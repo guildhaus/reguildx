@@ -6,7 +6,7 @@
    Several Open lines below were written for the whole unit and now concern f3gmt's functions.
    Open: many callees are still declared K&R in this file (amt_HasTownObject must stay K&R: the typed prototype
    costs gm_Unk4fa4b0 a byte).
-   Open: gm_GetWorth is int in every header now; the older callers still go through the K&R cast I50A640.
+   gm_GetWorth is int in every header.
    Open: gm_IsBankrupt calls ai_LiquidateAssets (0x5b92e0: netId, character, amount, message) without a prototype;
    its definition in lc.c is still a one-parameter skeleton.
    Open: ai.h is not includable here, so the character / building / object records are read through gv.h's views
@@ -42,6 +42,7 @@ struct AICHAR;
 #include "di_input.h"
 #include "data_views.h"
 #include "amt.h"
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 extern char ai_Crimes[];
 #define GAPDATA __declspec(align(1)) unsigned char
 /* The stock area is ONE 0xd4d0-byte object at 0x7d6a60 (five blocks of 0x2a90: four header ints, then
@@ -149,10 +150,7 @@ int gm_IsUnderAge(unsigned short id);         /* 0x4fd7e0 */
 #include "d3_pose.h"
 #include "mission.h"
 #include "f3gm.h"
-void *ai_ProdSetting(int param_1);  /* 0x5a8560 */
-#define ai_ProdSettingK ((int (*)(void *))ai_ProdSetting)  /* 0x5a8560 (lc.c: void *ai_ProdSetting(int bld)): @original this unit's callers pass the building pointer (gm_CreateBuilding 0x501676 pushes the record, as lc.c's own callers cast it); the result is unused */
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
-#define util_RandomS ((unsigned short (*)(unsigned short))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original gm_Shuffled reads the 16-bit result of the 16-bit parameter's call (movzx bp,dl push, mov si,ax / and 0xffff), as anm.c's callers */
+void *ai_ProdSetting(void *bld);    /* 0x5a8560 */
 extern struct D2COLKEY d2_TransparentColour;  /* 0x6f0454, shp.c (the type in shp.h) */
 #define d2_TransparentBytes ((unsigned char *)&d2_TransparentColour)  /* 0x6f0454, @original: unk_LoadIconNames stores the key byte by byte (mov byte [0x6f0455], 0xff; [0x6f0454] and [0x6f0456] = bl), not through the D2COLKEY word gb */
 #define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
@@ -457,7 +455,6 @@ int ai_AddNeedDelta(int k, float v);                     /* 0x4c3eb0 */
 void ai_SendNeedBlock(void);                     /* 0x4c4a20 */
 void gm_ShiftLoyalty();                   /* 0x4fb0e0 */
 int gm_FindRichest(short *id, int *rate);
-#define I50A640 ((int (*)())gm_GetWorth)
 extern char * cm_FieldObject;                /* 0xa68d2c */
 
 /* 0x4fa580, the upkeep of the characters: rate = gm_PlayerFactor (0xe - the decision 5's value, the own player); for
@@ -974,7 +971,7 @@ unsigned *gm_CharNameRecord(int id)
             return (unsigned *)&((GMHEAD *)gm_OwnNameHeads)[gm_OwnNameHeadLast];
         }
         if (ORD_CHARS[id].kind == 0x11)
-            return (unsigned *)((GMHEAD *)gm_SpyHeads + (util_RandomU(3) & 0xffff));
+            return (unsigned *)((GMHEAD *)gm_SpyHeads + util_Random(3));
         if (k != 0) {
             if (ORD_CHARS[id].textVariant == 0)
                 p = (GMHEAD *)gm_JobHeadsMale;
@@ -1479,7 +1476,7 @@ float gm_DailyCharacterStep(unsigned short *id)
         gm_NetMsgCount++;
     }
     if (c->flags1cc & 2) {
-        t = c->f01c - ((util_RandomU(0x10) & 0xffff) + 0x11);
+        t = c->f01c - (util_Random(0x10) + 0x11);
         cm_BeginFieldBlock((char *)c, c->netId);
         cm_AddFieldDelta(4, 1, 0x1c, &t);
         cm_SendFieldDeltas();
@@ -1984,7 +1981,7 @@ void gm_PopulationStep(void)
     for (i = 0; i < 0x300; i++) {
         c = &ORD_CHARS[i];
         if (c->id != 0xffff && c->health != 0 && c->kind == 3
-            && (c->w00a >= util_RandomU(4) + 0x2c || !((float)n < 652.80005f))
+            && (c->w00a >= util_Random(4) + 0x2c || !((float)n < 652.80005f))
             && c->job == 0 && c->appliedOffice == 0 && c->job2 == 0 && gm_IsNoPlayerKin(c) != 0) {
             gm_AddHealth(c->id, (int)-(c->f01c + 1.0f));
             n--;
@@ -2015,7 +2012,7 @@ void gm_PopulationStep(void)
                 if (c->level < 2)
                     cm_AddFieldValue(1, 1, (char *)&c->level - cm_FieldObject, &level);
                 cm_SendFieldValues();
-                cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, (util_RandomU(0x800) + 0x800) * level * 0x20);
+                cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, (util_Random(0x800) + 0x800) * level * 0x20);
                 settled++;
             }
             continue;
@@ -2026,26 +2023,26 @@ void gm_PopulationStep(void)
                 kids++;
         }
     }
-    if (kids < 6 && util_RandomU(4) == 0) {
+    if (kids < 6 && util_Random(4) == 0) {
         h = cm_SendCreateCharacter(0x10, -1, -1, util_Random(4) + 0x10, -1, 0, 0, 0);
         while (h != -1 && cm_GetSlotState(h) == 0)
             sv_PumpNet();
         if (cm_GetSlotState(h) == 1) {
             settled++;
             nc = ORD_CHAR(cm_GetSlotValue(h));
-            cm_SendMoveGoodsUnchecked(nc->netId, -1, ai_OwnPlayer, (util_RandomU(0x2000) + 10000) * 0x40);
+            cm_SendMoveGoodsUnchecked(nc->netId, -1, ai_OwnPlayer, (util_Random(0x2000) + 10000) * 0x40);
         }
     }
     if (!((float)n > 652.80005f)) {
-        t = settled < 0x1e ? (0x28 - settled) / 2 : settled < 0x28 ? util_RandomU(2) + 1 : 0;
+        t = settled < 0x1e ? (0x28 - settled) / 2 : settled < 0x28 ? util_Random(2) + 1 : 0;
         for (i = 0; i < t; i++) {
-            h = cm_SendCreateCharacter(3, -1, -1, 0x14, -1, gm_TitleNumber(util_RandomU(0xc) + 1, util_RandomU(2) + 1), 0, 2);
+            h = cm_SendCreateCharacter(3, -1, -1, 0x14, -1, gm_TitleNumber(util_Random(0xc) + 1, util_Random(2) + 1), 0, 2);
             while (h != -1 && cm_GetSlotState(h) == 0)
                 sv_PumpNet();
             if (cm_GetSlotState(h) == 1) {
-                int office = util_RandomU(0xc) + 10;
+                int office = util_Random(0xc) + 10;
                 nc = ORD_CHAR(cm_GetSlotValue(h));
-                cm_SendMoveGoodsUnchecked(nc->netId, -1, ai_OwnPlayer, (util_RandomU(0x400) + 0x400) * 0x40);
+                cm_SendMoveGoodsUnchecked(nc->netId, -1, ai_OwnPlayer, (util_Random(0x400) + 0x400) * 0x40);
                 cm_BeginFieldBlock((char *)nc, nc->netId);
                 cm_AddFieldValue(1, 1, (char *)&nc->prevOffice - cm_FieldObject, &office);
                 cm_SendFieldValues();
@@ -2081,7 +2078,7 @@ unsigned short gm_CreateRandomChild(int age)
 
     range = 0x300;
     for (tries = 0; tries < 0x10; tries++) {
-        a = util_RandomU(range);
+        a = util_Random(range);
         if (ORD_CHARS[a].id == 0xffff)
             range = range * 3 / 4;
         else if (ORD_CHARS[a].kind < 6 && !((float)ORD_CHARS[a].w00a < ORD_CHARS[a].f020) && ORD_CHARS[a].health != 0) {
@@ -2089,7 +2086,7 @@ unsigned short gm_CreateRandomChild(int age)
             for (k = 3; k < 8; k++)
                 if (ORD_CHARS[a].relatives[k] != -1)
                     n++;
-            if (util_RandomU(0x100) + 1 < chance[n])
+            if (util_Random(0x100) + 1 < chance[n])
                 break;
         } else
             a = 0xffff;
@@ -2097,7 +2094,7 @@ unsigned short gm_CreateRandomChild(int age)
     if (a == 0xffff)
         return 0;
     for (tries = 0; tries < 0x10; tries++) {
-        b = util_RandomU(range);
+        b = util_Random(range);
         if (ORD_CHARS[b].id == 0xffff)
             range = range * 3 / 4;
         else if (ORD_CHARS[b].kind < 6 && !((float)ORD_CHARS[b].w00a < ORD_CHARS[b].f020) && ORD_CHARS[b].health != 0) {
@@ -2105,7 +2102,7 @@ unsigned short gm_CreateRandomChild(int age)
             for (k = 3; k < 8; k++)
                 if (ORD_CHARS[b].relatives[k] != -1)
                     n++;
-            if (util_RandomU(0x100) + 1 < chance[n])
+            if (util_Random(0x100) + 1 < chance[n])
                 break;
         } else
             b = 0xffff;
@@ -2190,7 +2187,7 @@ ORDBLD *gm_FindHome(int unused, ORDBLD *o)
             list[n] = b;
             b = (ORDBLD *)gm_BuildNext();
         }
-        return list[util_RandomU(n)];
+        return list[util_Random(n)];
     }
     return pick;
 }
@@ -2518,10 +2515,10 @@ char d3if_ShowTree(struct D3OBJECT *obj, char show);                     /* 0x44
 void cm_BeginGroup(const char *s);                     /* 0x4c4540 */
 int cm_EndGroup(const char *s);                     /* 0x4c4580 */
 int cm_SendMoveGoods(int a, int b, unsigned char c, int d);                     /* 0x4c47e0 */
-void cm_SendOwnership(int a, int b, int c);                     /* 0x4c54a0 */
+int cm_SendOwnership(int a, int b, int c);                     /* 0x4c54a0 */
 void cm_SendBoss(int a, int b);                     /* 0x4c5540 */
 int cm_SendExSetHE(int k, char *p);                     /* 0x4c4c60 */
-void he_MessageBoxQuickjump(int a1, int a2, char *text, char fl, int a5, int a6, int a7, char *jump, char *text2);                     /* 0x53dee0 */
+void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2);                     /* 0x53dee0 */
 int d3t_SceneIndex();                     /* 0x411be0 */
 int ch_Delete();                     /* 0x4028a0 */
 int gm_ObjectBuilding(int y);                     /* 0x50a0f0 */
@@ -2570,13 +2567,13 @@ int gm_EquipmentValue(unsigned char *b, int level);                     /* 0x509
 int gm_CharSumAmounts(char *c);                     /* 0x509eb0 */
 int cm_SendMoveObject(int a, int b, int c);                     /* 0x4c5010 */
 extern const unsigned int ai_BuildingTypeMasks[6];  /* 0x5eed70 (ai.h, not includable here): [2..3] the 64-bit mask of the house-owner building kinds */
-void cm_SendFloatDelta(int id, int field, float delta);                     /* 0x4c4ac0 */
+int cm_SendFloatDelta(int id, int field, float delta);                     /* 0x4c4ac0 */
 int cm_SendMoveGoods(int a, int b, unsigned char c, int d);                     /* 0x4c47e0 */
 int gm_PlayerFactor(int a, unsigned char k);                     /* 0x5085f0 */
 float util_RandomSq(void);                  /* 0x42ec40 */
 int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);                     /* 0x53dda0 */
 int gm_BuildingClass();                     /* 0x501d80 */
-void cm_SendOwnership(int a, int b, int c);                     /* 0x4c54a0 */
+int cm_SendOwnership(int a, int b, int c);                     /* 0x4c54a0 */
 int gm_CharSumAmounts(char *c);                     /* 0x509eb0 */
 int cm_SendMoveGoods(int a, int b, unsigned char c, int d);                     /* 0x4c47e0 */
 int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3d00 */

@@ -52,7 +52,6 @@
 #include "d3_snd.h"
 #include "d3_tools.h"
 #include "d3s.h"
-#include "dd_vesa.h"
 #include "f3gm.h"
 #include "f3init.h"
 #include "mem.h"
@@ -63,10 +62,7 @@
 #include "poker.h"
 #include "ch.h"
 #include "bio.h"
-#define dd_ClearB ((void (*)(D3RECT *, unsigned char, unsigned char, unsigned char))dd_Clear)  /* 0x41e100 (dd_vesa.h: RECT *, int x3): @original this unit passes the fog colour as bytes, its D3RECT viewport */
-#define d3_MirBeginFrameE ((void (*)(D3OBJECT *, D3OBJECT **))d3_MirBeginFrame)  /* 0x4554b0 (d3_mir.h: D3MIRROR *): this unit passes the mirror as its D3OBJECT ** view */
-#define d3_PointToRefD ((void (*)(D3OBJECT *, D3OBJECT *, D3VECTOR *, D3VECTOR4 *))d3_PointToRef)  /* 0x458b20 (d3_pose.h: XOBJ *, XOBJ *, float *, float *): this unit's D3OBJECT / vector view */
-#define d3_WorldMatrixD ((void (*)(D3OBJECT *, D3OBJECT *, int, void *))d3_WorldMatrix)  /* 0x458da0 (d3_pose.h: XOBJ *, XOBJ *, char, D3MATRIX *): this unit's D3OBJECT view of the object */
+void dd_Clear(D3RECT *rect, unsigned char r, unsigned char g, unsigned char b);  /* 0x41e100, @original: dd_vesa.c defines it with (RECT *, int r, int g, int b) and this unit does not include dd_vesa.h; it passes the fog colour's bytes unwidened (mov cl,al / mov al,ah / mov dl,[..]; push) and its D3RECT viewport */
 /* The stock list head lives inside its 0xfc2e00 head sentinel (the original's +0x1fc relationship). As a
    separate COMMON pointer the linker would not keep it adjacent, so the loader would link the first object
    into one address while the readers start from another. */
@@ -458,7 +454,7 @@ void d3_UpdateWorldMatrix(D3OBJECT *obj, D3OBJECT *camera, char force)
     D3MATRIX m;
 
     if (!(obj->stateFlags & 0x80) || force) {
-        d3_WorldMatrixD(obj, 0, 0, D3_MESH(obj)->worldMatrix);
+        d3_WorldMatrix(obj, 0, 0, D3_MESH(obj)->worldMatrix);
         obj->stateFlags |= 0x80;
     }
     if (!(obj->flags & 1) || force || D3_MESH(obj)->camera != camera) {
@@ -731,7 +727,7 @@ char d3_DrawObjectCB(D3OBJECT *obj)
                 d3_LightKeysVisible += s->info.nkeys;
                 d3_RelightObject(obj);
             }
-            d3_MirBeginFrameE(obj, (D3OBJECT **)&d3_Mirror);
+            d3_MirBeginFrame(obj, &d3_Mirror);
             if (obj == d3s_Object || s->flags.f.b[0] < 0xff || (s->flags.f.b[2] & 1))
                 base = 0x4000;
             n = min(s->info.ntris, d3_SortMax - (int)d3_SortCount);
@@ -1544,7 +1540,7 @@ void d3_Shutdown(void)
    and the shadow mode; a changed mode resets the object shadows, a changed shift flushes and reloads the
    textures (e = reload flag). */
 
-void d3_ApplyGraphicsOptions(int a, unsigned char b, unsigned char c, unsigned char mode, int e)
+void d3_ApplyGraphicsOptions(unsigned char a, unsigned char b, unsigned char c, unsigned char mode, int e)
 {
     if (d3_ShadowMode.mode != mode || d3_MipSkip != c) {
         d3_ShadowMode.mode = mode;
@@ -2179,7 +2175,7 @@ void d3_TransformSurf(D3OBJECT *obj)
     if (info) {
         if (info != obj->info)
             obj->info = info;
-        d3_WorldMatrixD(obj, (obj->state & 0x80) ? 0 : d3_Camera, 0, buf);
+        d3_WorldMatrix(obj, (obj->state & 0x80) ? 0 : d3_Camera, 0, buf);
         D3_OPS(info)->Transform(obj, info, buf);
         obj->state |= 4;
     }
@@ -2204,7 +2200,7 @@ char d3_GetBounds(D3OBJECT *obj, D3OBJECT *camera, D3VECTOR *center, float *radi
 
     if (obj && (center || radius)) {
         if (!obj->type) {
-            d3_PointToRefD(obj, camera, &obj->pos, &c);
+            d3_PointToRef(obj, camera, &obj->pos, &c);
             r = D3_X(obj)->radius;
             ok = 1;
         } else {
@@ -2532,7 +2528,7 @@ void d3_Render(unsigned int mask, char flag)
         if (d3_Hardware)
             d3d_Clear(&d3_Viewport);
         else
-            dd_ClearB(&d3_Viewport, GetBValue(d3_fog_color.col), GetGValue(d3_fog_color.col), GetRValue(d3_fog_color.col));
+            dd_Clear(&d3_Viewport, GetBValue(d3_fog_color.col), GetGValue(d3_fog_color.col), GetRValue(d3_fog_color.col));
         d3_LightKeysCulled = 0;
         d3_LightKeysVisible = 0;
         d3_MaxZ = 0.0f;

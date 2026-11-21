@@ -282,7 +282,6 @@ extern unsigned char kb_Last;
 extern int sv_FrameMask;
 extern char ai_Chars[768][0x21c];
 
-#define AI_4A63F0_7(p, a, fl, b, c, f, o) ((int (*)(void *, int, unsigned int, int, int, float, int *))ai_PickActionBuilding)(p, a, fl, b, c, f, o)
 
 #define U_I(a) (*(int *)(a))
 
@@ -305,7 +304,6 @@ struct SBSAMPLE;
 extern TUTSTATE *const ai_Tutorial;
 #define S (*(char **)(unsigned)&ai_Tutorial)  /* the tutorial state record (at 0x6fa060): the pointer ai_Tutorial holds */
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original ai_SeanceGhost reads the 16-bit result (mov si, ax) */
 typedef struct SHOTENTRY {   /* 0x10 bytes */
     int obj;                 /* +0x0, -1 when empty */
     float dist;              /* +0x4 */
@@ -347,7 +345,6 @@ extern SHOTRESULT ai_ShotTable[3];
 #include "anm.h"
 #include "bmp.h"
 #include "f3gm.h"
-#define gm_TitleJobI ((int (*)(int, int))gm_TitleJob)  /* 0x5044b0 (f3gm.h: unsigned char): @original the byte-matched callers here read the result as an int (no `and eax,0xff` after the call): ai_PermissionBits1d 0x587b70 (shape) */
 #include "f3snd.h"
 #include "gv.h"
 #include "he.h"
@@ -494,7 +491,7 @@ void gv_CannonScatter(char *o, float *a, float *b); float gv_CannonItemFactor();
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
 int he_EventOnBuilding(); int sv_MessageBox();
 int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(char *o, int n, unsigned char t); short * gm_PlayerRecord(char *c);
-void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
 int ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
 void txt_Format(char *out, int id0, ...); int sv_MessageBox();
 void sv_ReleaseNamePlates(void); int sv_RegisterNamePlate(); void ai_StorageWindow();
@@ -743,7 +740,6 @@ int ai_OpenBuildingTooltip(int idx)
 
 float gm_GoodsPrice(unsigned id, unsigned char p);
 
-#define d2_WinOpenPicStyledS ((int (*)(short, short, int, int, int))d2_WinOpenPicStyled)  /* @original ai_OpenItemTooltip recomputes each row y (slot * 0x16 + 0x28) per call instead of strength-reducing it: a short y, as d2_WinOpenPic's (sv.c has the same cast) */
 
 /* 0x588310, opens the item tooltip view of the goods item idx: the form "ToolTip\ToolTip_Objekte_Waffen" when
    the item has a weapon record (ai_FindWeaponRecord) with a nonzero id, else "ToolTip\ToolTip_Objekte_Handelsgut",
@@ -767,7 +763,7 @@ float gm_GoodsPrice(unsigned id, unsigned char p);
    six-compare (best o9 53 ins / 574 bytes, nothing moves the layout). Next: a form where the arms differ
    before cross-jumping (a value per arm through a local, the list written by a helper), or the 0x225 chain
    as a macro shared with the 0x1c1 test at the end. prior: 273 -> 53 ins: d2_WinOpenPicStyled called with
-   a short y (cast macro d2_WinOpenPicStyledS, as sv.c; the row y is recomputed per call, loop counters in
+   a short y (its true short x, short y prototype; the row y is recomputed per call, loop counters in
    memory: -101), the staff loop as an index loop over ai_CharsT (countdown edx 0x300: -117),
    (float)(c->sk81 * (1.0 / 1008)) + factor (the fxch pair). Left: only the type 0x17/0x25 chain layout
    (all 49 code ins, 0x58869f..0x588843): the original puts each arm inline after an inverted last compare,
@@ -844,7 +840,7 @@ int ai_OpenItemTooltip(int idx)
         id = item->in[k];
         amount = item->need[k];
         if (id != 0) {
-            d2_WinOpenPicStyledS(0, slot * 0x16 + 0x28, id + 0xdf, d2_LastWindow, -2);
+            d2_WinOpenPicStyled(0, slot * 0x16 + 0x28, id + 0xdf, d2_LastWindow, -2);
             io_PrintText("%i %s$N", amount, id * 2 + 0x9a8);
             slot++;
         }
@@ -855,7 +851,7 @@ int ai_OpenItemTooltip(int idx)
     for (i = 0; i < 37; i++) {
         for (k = 0; k < 10; k++) {
             if (gm_BuildingItemGroups[i].items[k] == idx && idx != 0x1cd) {
-                d2_WinOpenPicStyledS(6, slot * 0x16 + 0x28, gm_BuildingItemGroups[i].key + 0x427, d2_LastWindow, -2);
+                d2_WinOpenPicStyled(6, slot * 0x16 + 0x28, gm_BuildingItemGroups[i].key + 0x427, d2_LastWindow, -2);
                 io_PrintText("%s$N", gm_BuildingItemGroups[i].key * 0xe + 0x48e);
                 slot++;
             }
@@ -895,7 +891,7 @@ int ai_OpenItemTooltip(int idx)
     }
     for (k = 0; k < n; k++) {
         id = list[k];
-        d2_WinOpenPicStyledS(6, slot * 0x16 + 0x28, id + 0x427, d2_LastWindow, -2);
+        d2_WinOpenPicStyled(6, slot * 0x16 + 0x28, id + 0x427, d2_LastWindow, -2);
         io_PrintText("%s$N", id * 0xe + 0x48e);
         slot++;
     }
@@ -903,7 +899,7 @@ int ai_OpenItemTooltip(int idx)
           (idx != 0x1c7 && (idx == 0x1c4 || idx == 0x1c5 || idx == 0x1c6 || idx == 0x2af || idx == 0x2b0))) ||
         idx == 0x1c7) {
         if (item->type == 0x17 || item->type == 0x25) {
-            d2_WinOpenPicStyledS(6, slot * 0x16 + 0x28, 0x444, d2_LastWindow, -2);
+            d2_WinOpenPicStyled(6, slot * 0x16 + 0x28, 0x444, d2_LastWindow, -2);
             io_PrintText("%s$N", 0x624);
             slot++;
         }

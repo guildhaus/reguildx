@@ -21,7 +21,6 @@ extern int gm_PlayerRecords[688];
 #include <strmif.h>
 #include <control.h>
 #include "f3gm.h"
-#define gm_TitleJobI ((int (*)(int, int))gm_TitleJob)  /* 0x5044b0 (f3gm.h: unsigned char): @original the byte-matched callers here read the result as an int (no `and eax,0xff` after the call): main_RundenBeginn 0x538140 */
 #include "mov.h"
 #include "txt.h"
 #include "di_input.h"
@@ -52,6 +51,8 @@ extern int gm_PlayerRecords[688];
 #include "ls.h"                      /* ls_SavePath (LSSAVE, its NETHDR), the save game functions */
 #include "udp.h"                     /* udp_FindServers, UDPSERVER */
 #define GAPDATA __declspec(align(1)) unsigned char
+
+void main_Nothing(void);  /* unlinked, defined at the end of the unit (an empty body above its callers would let VC6 drop the calls) */
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 extern int main_Inactive;       /* 0x6f2584, 1 while the app is deactivated */
@@ -131,7 +132,6 @@ extern int d2_DirtyRectLeft[4];         /* 0xfb9060, the rectangle d2_AddDirty t
 #define d2_DirtyRectTop (*(int *)((char *)&d2_DirtyRectLeft + 0x4))       /* 0xfb9064 */
 #define d2_DirtyRectRight (*(int *)((char *)&d2_DirtyRectLeft + 0x8))     /* 0xfb9068 */
 #define d2_DirtyRectBottom (*(int *)((char *)&d2_DirtyRectLeft + 0xc))    /* 0xfb906c */
-#define main_AddHealthS ((float (*)(unsigned short, int))gm_AddHealth)  /* @original this caller passes the id as a word ("mov ax,[id]; push eax") and pops the float result */
 extern float gm_DayStartHours[], gm_DayEndHours[];  /* 0x617830 / 0x617840 (f3gm.c) */
 #pragma pack(push, 1)
 typedef struct MAINCARRY {          /* 0x21d bytes (+0x219 the entry count), what gm_CollectCarried collects for a character (f3gm.c: +0x31 the free capacity) */
@@ -269,8 +269,6 @@ void main_PlayOutro(void);
 extern unsigned int d3anim_CacheMax;   /* 0x5f927c, d3_anim.h */
 void ai_ClearTurnTable(void);           /* 0x587de0, sv_t.c: not in sv_t.h (adding it there moves sv_t's drafts ai_TutorialInitChapter3 / ai_TutorialInitChapter5) */
 int main_PreloadSound(char *f);         /* 0x537c70 */
-#define d2_MoveObjS ((void (*)(short, short, int))d2_MoveObj)  /* 0x46cda0 as its definition reads it (d2.c f_46cda0.c: short x, short y): this unit's callers push the short sums untruncated (0x532212 `sub dx, [..]; sub edx, 0x30; push edx`) */
-#define util_RandomInt ((int (*)(unsigned short))util_Random)  /* 0x42ec00 as tr.c defines it: @original this unit reads the full int result (0x53b8c9 util_Random(4) + 0x20 pushed without the 16-bit mask ai.h's unsigned short prototype adds) */
 int main_ChooseCity(int unused, int host);  /* 0x537230, the player setup / city choice of a new game ("Menu\CHOOSECITY", the start menu page "Startmenu/A_Stadtwahl.esc"; host = 1 for a network host (the list of ".NET" files, else ".CTY"): lists the city files
    "gamedata/cities/*" (0x5d33b0: up to 64 records of 0x210 bytes, the path at +0x109), reads each header (0x51cee0, an LSHEADER: +5 the name, from which the city point is created (ai_CreateCityPoint, its dummy "dummy_<NAME>"), +0x30 slotByte the player limit; diff[i] = limit - players (0x62489c)),
    creates the name object of the city (0x59a2c0 "stadt_<name>", the text plate 0x52e1c0 from the table 0x143a1c0 by the key "_STADTAUSWAHL_<NAME>_INFO+0" (0x42e770)), puts the city tower "sp_STADTTURM" (0x446e10,
@@ -311,12 +309,11 @@ void main_FreeSoundBanks(void);         /* 0x537db0 */
 #include "mission.h"
 #include "rmsg.h"
 #include "d3_fl.h"
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 #define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
 #define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
 #define ai_NumPlayersW (*(int *)&ai_NumPlayers)  /* 0x62489c, ai_NumPlayers as the dword around it: @original main_ChooseCity reads the count as mov ecx,[0x62489c]; and ecx,0xff (0x537319), main_PlayerCountDialog the same after its clamp (0x53281b) */
 #define ai_NetLibName (ai_DataPath + 0x100)  /* 0x75dda0, the network plug-in DLL (0x104 bytes inside ai_DataPath's block: game.INI [Network] Server, "Server\Server.dll") */
-#define ls_SavePortW (*(int *)((char *)&ls_SavePath + 0x84))  /* 0x75e6c4, ls_SavePath.cur as the whole dword: @original main_GameLoop passes it so (0x53bce5 mov edx,[0x75e6c4]; push edx) */
-#define net_ConnectI ((unsigned int (*)(char *, int))net_Connect)  /* 0x424990 (net.h: unsigned short port): @original main_GameLoop pushes the port as a dword */
 #define ai_CityName (ai_DataPath + 0x220)  /* 0x75dec0, the name of the chosen city (0x40 bytes inside ai_DataPath's block: game.INI [General] Stadt, main_ChooseCity) */
 #define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
@@ -702,7 +699,7 @@ int main_OpenEngine(void)
     d2_ClearScreen();
     f = d2_OpenForm(0, 0, "Misc\\Loading_main");
     d2_PlaceWindow(d2_Views[f].wins[0], 3);
-    d2_MoveObjS(0, d2_ScreenH - d2_Wins[d2_Views[f].wins[1]].h - 0x30, d2_Wins[d2_Views[f].wins[1]].parent);
+    d2_MoveObj(0, d2_ScreenH - d2_Wins[d2_Views[f].wins[1]].h - 0x30, d2_Wins[d2_Views[f].wins[1]].parent);
     d2_PlaceWindow(d2_Views[f].wins[1], 1);
     io_PrintText("$ADie Gilde - Gold Edition - Version 2.05$X");
     net_Connect(0, 0);
@@ -908,7 +905,7 @@ int main_HostNetworkGame(void)
     char c;
 
     if (main_PlayerCountDialog() != 0) {
-        ((void (*)(void))d3io_NoopCallback)();  /* called with no argument (no push at the call) */
+        main_Nothing();
         if (main_ChooseCity(1, 1) != 0) {
             sprintf(main_NetSaveName, "%s/%s.net", main_CitiesDir, ai_CityName);
             strcpy(main_NetHost, "127.0.0.1");
@@ -917,7 +914,7 @@ int main_HostNetworkGame(void)
             ls_SavePath.net.size = 0x6a;
             ls_SavePath.net.a = 1;
             ls_SavePath.net.b = 1;
-            ls_SavePath.net.x = ls_SavePath.cur;
+            ls_SavePath.net.x = ls_SavePath.port;
             i = 0;
             do {
                 c = ai_DataPath[0x220 + i];
@@ -956,7 +953,7 @@ int main_JoinNetworkGame(void)
             ls_SavePath.net.size = 0x6a;
             ls_SavePath.net.a = 1;
             ls_SavePath.net.b = 4;
-            ls_SavePath.net.x = ls_SavePath.cur;
+            ls_SavePath.net.x = ls_SavePath.port;
             strcpy(ls_SavePath.net.name, hdr.player);
             strcpy(ls_SavePath.net.save, main_NetSaveName);
             memcpy(ls_SavePath.net.party, hdr.party, sizeof(hdr.party));
@@ -1486,7 +1483,7 @@ void main_Menue(void)
         if (dm_L.lclick != 0 && d2_PointerObj != -1) {
             if (d2_PointerObj == bnew) {
                 d2_EnableObject(win, 0);
-                ((void (*)(void))d3io_NoopCallback)();  /* called with no argument (no push at the call) */
+                main_Nothing();
                 hmt_Reset();
                 if (main_NewSinglePlayerGame() != 0) {
                     sv_PopRequest = 1;
@@ -1729,7 +1726,7 @@ CHARACTER *main_PlaceFamilyModel(char *dummy, char *model, int k)
         dir[0] = 0;
         dir[1] = 0.0f;
         dir[2] = 0;
-        d3_DirToWorld((struct XOBJ *)o, (float *)&d3_ZAxis, loc);
+        d3_DirToWorld(o, &d3_ZAxis, (D3VECTOR *)loc);
         dir[1] = d3_VecAngle((D3VECTOR *)&d3_ZAxis, (D3VECTOR *)loc);
         d3_SetObjectRot(ch->obj, (D3VECTOR *)dir);
         ch_PlaceOnGround(ch, 0);
@@ -2806,7 +2803,7 @@ void main_LoadingScreen(void)
     d2_CutsceneActive = 1;
     d2_ClearScreen();
     sv_SetScreenCenter(0x24087);
-    s = (short)util_RandomInt(2);
+    s = (short)util_Random(2);
     d2_ShowPicture(((s != 1) ? 3 : 0) + 0x78e);
     d2_DirtyRectLeft[0] = -1;
     d2_DirtyRectRight = -1;
@@ -2818,7 +2815,7 @@ void main_LoadingScreen(void)
     else
         id = d2_OpenForm(0, 0, "Misc\\Loading_game");
     init_StatusForm = id;
-    d2_MoveObjS(0, d2_ScreenH - d2_Wins[d2_Views[id].wins[0]].h - 0x30, d2_Wins[d2_Views[id].wins[0]].parent);
+    d2_MoveObj(0, d2_ScreenH - d2_Wins[d2_Views[id].wins[0]].h - 0x30, d2_Wins[d2_Views[id].wins[0]].parent);
     d2_PlaceWindow(d2_Views[init_StatusForm].wins[0], 1);
     d2_SetForm(init_StatusForm, 1);
     d2_WinOpenSlider(0, 0, 0x246, 0, 0x246, 0x83, 0x42, d2_LastWindow);
@@ -2871,7 +2868,7 @@ void main_CloseLoadingScreen(void)
     while ((*fade & 4) == 0)
         sv_RunFrame(0, mask);
     d2_CloseView(init_StatusForm);
-    ((void (*)(void))d3io_NoopCallback)();  /* called with no argument (no push at the call) */
+    main_Nothing();
     d2_ClearSurface(d2_ScreenSurf);
     d2_CutsceneActive = 0;
     d2_ReleaseFade(fade);
@@ -2901,7 +2898,6 @@ int main_PreloadSound(char *f)
         memset(buf, 0, 0x100);
         fgets(buf, 0x100, fp);
         if (strstr(buf, "//") == 0 && (inc = strstr(buf, "#include")) != 0) {
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
             q = strchr(inc, 0x22);
             if (q == 0)
                 return 0;
@@ -2976,7 +2972,7 @@ void main_StartGame(void)
     sv_PanelShown = 0;
     ai_PlayerBuilding = 0;
     ai_FallbackBuilding = 0;
-    ((void (*)(void))d3io_NoopCallback)();  /* called with no argument (no push at the call) */
+    main_Nothing();
     anm_Alloc();
     ch_Reset();
     ai_InitBookmarks();
@@ -3091,7 +3087,7 @@ void main_RundenBeginn(void)
                 rec = (MAINPLREC *)gm_PlayerRecord((char *)ch);
                 k = 0;
                 do {
-                    t = gm_TitleJobI(ch->id, k);
+                    t = gm_TitleJob(ch->id, k);
                     if (gm_TitlesLeft(t) == 6) {
                         txt_Format(b4, 0x15c5, rec->job[k] + 0x130);
                         e = (char *)he_AddApEvent(ch->id, b4, 1, 0);
@@ -3333,7 +3329,7 @@ void main_EndRound(void)
         while ((fade->flags & 4) == 0)
             sv_RunFrame(0, sv_FrameMask | 0x80);
         sv_DestroyScrollForm();
-        ((void (*)(void))d3io_NoopCallback)();  /* called with no argument (no push at the call) */
+        main_Nothing();
     }
     cm_SendMoveGoodsUnchecked(-1, ai_CharsT[MAIN_PLAYER].netId, ai_OwnPlayer, -he_SumApEventCosts(MAIN_PLAYER));
     ai_PostRandomMessages(3, ai_CharsT[MAIN_PLAYER].netId);
@@ -3390,7 +3386,7 @@ void main_EndRound(void)
             weight = 0;
             b = (AIBLD *)gm_BuildQuery(1, 4, k);
             while (b != 0) {
-                if (AI_KIND(b->type) == 1 || AI_KIND(b->type) == 4 || AI_KIND(b->type) == 2 || ai_BTypesT[b->type].kind == 0x13 || ai_BTypesT[b->type].kind == 4 || ai_BTypesT[b->type].kind == 0x10 || ai_BTypesT[b->type].kind == 5 || ai_BTypesT[b->type].kind == 9) {
+                if (gm_BuildingClass(b->type) == 1 || gm_BuildingClass(b->type) == 4 || gm_BuildingClass(b->type) == 2 || ai_BTypesT[b->type].kind == 0x13 || ai_BTypesT[b->type].kind == 4 || ai_BTypesT[b->type].kind == 0x10 || ai_BTypesT[b->type].kind == 5 || ai_BTypesT[b->type].kind == 9) {
                     if (ai_BTypesT[b->type].level == 1)
                         weight += 2;
                     else if (ai_BTypesT[b->type].level == 2)
@@ -3399,7 +3395,7 @@ void main_EndRound(void)
                         weight += 8;
                 }
                 if (ai_IsLocalMaster(&ai_CharsT[k]) != 0 || ai_CharsT[k].kind == 1) {
-                    if (gm_BuildingLevel((char *)b) < util_RandomU(0x5a)) {
+                    if (gm_BuildingLevel((char *)b) < util_Random(0x5a)) {
                         cost = (float)gm_EquipmentValue((unsigned char *)b, 100) * 0.005f;
                         if (32.0f > cost)
                             cost = 32.0f;
@@ -3429,7 +3425,7 @@ void main_EndRound(void)
             }
             b = (AIBLD *)gm_BuildQuery(1, 4, k);
             while (b != 0) {
-                if (AI_KIND(b->type) == 1 || AI_KIND(b->type) == 4 || AI_KIND(b->type) == 2 || ai_BTypesT[b->type].kind == 0x13 || ai_BTypesT[b->type].kind == 4 || ai_BTypesT[b->type].kind == 0x10 || ai_BTypesT[b->type].kind == 5 || ai_BTypesT[b->type].kind == 9) {
+                if (gm_BuildingClass(b->type) == 1 || gm_BuildingClass(b->type) == 4 || gm_BuildingClass(b->type) == 2 || ai_BTypesT[b->type].kind == 0x13 || ai_BTypesT[b->type].kind == 4 || ai_BTypesT[b->type].kind == 0x10 || ai_BTypesT[b->type].kind == 5 || ai_BTypesT[b->type].kind == 9) {
                     if (ai_BTypesT[b->type].level == 1) {
                         b->budget = value * 2 / weight;
                         b->budget = b->budget < 0 ? 0 : b->budget;
@@ -3537,9 +3533,9 @@ void main_ReplaceFigure(unsigned p)
         } while ((int)e < (int)((AIJOB *)he_Events + 0x400));
         ch->kind = 5;
         if (ch->flag9 == 0) {
-            strcpy(ch->name, txt_MaleFirstNames[(unsigned short)util_RandomInt(0xbf)]);
+            strcpy(ch->name, txt_MaleFirstNames[util_Random(0xbf)]);
         } else {
-            strcpy(ch->name, txt_FemaleFirstNames[(unsigned short)util_RandomInt(0x70)]);
+            strcpy(ch->name, txt_FemaleFirstNames[util_Random(0x70)]);
         }
         ch->seq = (short)ai_NextCharNumber;
         memset(ch->clear, 0xff, sizeof(ch->clear));
@@ -3900,7 +3896,7 @@ void main_UpdateFigures(void)
             if (ch->kind == 2 || ch->kind == 5 || ch->kind == 4) {
                 if (gm_IsBankrupt((unsigned short *)ch, 0) != 0) {
                     k = (int)-(ch->f01c + 5.0f);
-                    main_AddHealthS(ch->id, k);
+                    gm_AddHealth(ch->id, k);
                 }
             }
             if (ch->heldRounds > 0) {
@@ -4057,10 +4053,10 @@ void main_SettleRound(unsigned short pl)
                         }
                     }
                 }
-                if ((unsigned short)util_Random(100) > 0x1e) {
+                if (util_Random(100) > 0x1e) {
                     kind = bt->kind;
                     if (kind != 0xd && kind != 0xc && kind != 0xb && kind != 0x10 && (c->flags5a & 1) == 0 && kind != 10) {
-                        int d = (util_Random(3) & 0xffff) + 2;
+                        int d = util_Random(3) + 2;
 
                         gm_ChangeBuildingState((unsigned char *)c, -d);
                         cnt++;
@@ -4154,8 +4150,8 @@ void main_SettleRound(unsigned short pl)
                             cnt++;
                             m = gm_Opinion(pl, q->id) + rel;
                             if (m < -0x1a) {
-                                if (-(int)(util_Random(0x4a) & 0xffff) < m) {
-                                    if ((unsigned short)util_Random(100) > 0x32) {
+                                if (-(int)(util_Random(0x4a)) < m) {
+                                    if (util_Random(100) > 0x32) {
                                         AIMSG msg4;     /* 0x33 */
 
                                         memset(&msg4, 0, sizeof(msg4));
@@ -4165,7 +4161,7 @@ void main_SettleRound(unsigned short pl)
                                         msg4.time = ai_Time;
                                         msg4.flags = 1;
                                         msg4.arg[0] = q->netId;
-                                        gm_AddTime((struct AITIME *)&msg4.time, (util_Random(6) & 0xffff) + 4, 0, 0);
+                                        gm_AddTime((struct AITIME *)&msg4.time, util_Random(6) + 4, 0, 0);
                                         cm_SendLongMessage((char *)&msg4);
                                     } else {
                                         AIMSG msg1;     /* 0x1b to the master; 0x34 */
@@ -4177,7 +4173,7 @@ void main_SettleRound(unsigned short pl)
                                         msg1.time = ai_Time;
                                         msg1.flags = 1;
                                         msg1.arg[0] = q->netId;
-                                        gm_AddTime((struct AITIME *)&msg1.time, (util_Random(6) & 0xffff) + 4, 0, 0);
+                                        gm_AddTime((struct AITIME *)&msg1.time, util_Random(6) + 4, 0, 0);
                                         cm_SendLongMessage((char *)&msg1);
                                     }
                                     cnt++;
@@ -4271,7 +4267,7 @@ void main_BeginPlayerRound(void)
     }
     ai_PlayerId = (unsigned short)cur;
     he_RunEveryFrameEvents();
-    if ((ai_GameFlags & 4) == 0 && (unsigned short)util_Random(10) > 6 && main_CheckCD() != 1) {
+    if ((ai_GameFlags & 4) == 0 && util_Random(10) > 6 && main_CheckCD() != 1) {
         do {
             d2_CutsceneActive = 0;
             sv_FrameMask = 0x24087;
@@ -4355,7 +4351,7 @@ void main_BeginPlayerRound(void)
         sv_PumpNet();
         Sleep(100);
         he_DailyEventChecks();
-        ((void (*)(void))d3io_NoopCallback)();  /* called with no argument (no push at the call) */
+        main_Nothing();
         sv_PumpNet();
         Sleep(100);
         gv_CheckRankUps();
@@ -4446,7 +4442,7 @@ void main_CreateStartCouple(void)
         mother->seq = a->seq;
         mother->coat = a->coat;
         mother->rel.child = a->netId;
-        t = txt_FemaleFirstNames[(unsigned short)util_Random(0x70)];
+        t = txt_FemaleFirstNames[util_Random(0x70)];
         d = mother->firstName;
         do {
             c = *t++;
@@ -4456,7 +4452,7 @@ void main_CreateStartCouple(void)
         father->seq = a->seq;
         father->coat = a->coat;
         father->rel.child = a->netId;
-        t = txt_MaleFirstNames[(unsigned short)util_Random(0xbf)];
+        t = txt_MaleFirstNames[util_Random(0xbf)];
         d = father->firstName;
         do {
             c = *t++;
@@ -4477,8 +4473,8 @@ void main_CreateStartCouple(void)
         cm_SendRelations(mother->netId, a->netId, 0x7f, 0);
         cm_SendRelations(father->netId, mother->netId, 0x7f, 0);
         cm_SendRelations(mother->netId, father->netId, 0x7f, 0);
-        cm_SendMoveGoods(father->netId, -1, ai_OwnPlayer, ((unsigned short)util_Random(0x200) + 500) * 0x20);
-        cm_SendMoveGoods(mother->netId, -1, ai_OwnPlayer, ((unsigned short)util_Random(0x200) + 500) * 0x20);
+        cm_SendMoveGoods(father->netId, -1, ai_OwnPlayer, (util_Random(0x200) + 500) * 0x20);
+        cm_SendMoveGoods(mother->netId, -1, ai_OwnPlayer, (util_Random(0x200) + 500) * 0x20);
         if (ai_MissionMode > -1)
             ai_NewMission(a->netId, init_PlayerProfile.mission, 0);
         for (k = 0; k < 5; k++)
@@ -4577,7 +4573,7 @@ void main_GameLoop(int ctl)
             udp_Init(0x3039);
             main_UdpOpen = 1;
         }
-        net_ConnectI(main_NetHost, ls_SavePortW);
+        net_Connect(main_NetHost, ls_SavePath.port);
         d2_CloseView(w);
     } else {
         net_Connect(0, 0);
@@ -5063,7 +5059,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE prev, char *cmd, int show)
         main_MoneyCheat = 1;
     GetPrivateProfileStringA("General", "Stadt", "Augsburg", ai_CityName, 0x40, ai_OptionsFile);
     GetPrivateProfileStringA("Network", "Host", "128.0.0.1", main_NetHost, 0x80, ai_OptionsFile);
-    ls_SavePortW = GetPrivateProfileIntA("Network", "Port", 0x1d6b, ai_OptionsFile);
+    ls_SavePath.port = GetPrivateProfileIntA("Network", "Port", 0x1d6b, ai_OptionsFile);
     r = strstr(cmd, "STADT=\"");
     if (r != 0) {
         d = ai_CityName;
@@ -5106,7 +5102,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE prev, char *cmd, int show)
             d += k;
         }
         *d = 0;
-        ls_SavePortW = atoi(num);
+        ls_SavePath.port = atoi(num);
     }
     if (main_CreateMutex(&mutex) != 0)
         exit(1);
@@ -5152,8 +5148,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE prev, char *cmd, int show)
                 }
             }
             ai_GameFlags = 9;
-            init_PlayerProfile.tool1 = (unsigned char)util_RandomInt(0x5f) + 1;
-            init_PlayerProfile.tool2 = (unsigned char)util_RandomInt(0x5f) + 1;
+            init_PlayerProfile.tool1 = (unsigned char)util_Random(0x5f) + 1;
+            init_PlayerProfile.tool2 = (unsigned char)util_Random(0x5f) + 1;
             init_PlayerProfile.job = (unsigned char)k;
             init_PlayerProfile.status = 0x12;
             init_PlayerProfile.coat = 0x59a;
@@ -5213,12 +5209,12 @@ char main_CitiesDir[128] = "gamedata/cities";  /* 0x6248b8, the folder of the ci
 int main_MessageBox = -1;  /* 0x624938, the message box open over the character creation (sv_OpenMessageBox), -1 = none */
 int ai_GameFlags = 0;  /* 0x6f23f8 */
 int ai_Difficulty = 0;  /* 0x6f23fc */
-int snd_SystemBank = 0;  /* 0x6f2400, the handle of the system sample bank system.sbf (main_ 0x532160 loads it) */
-int snd_Bank = 0;  /* 0x6f2404, the sample bank */
+struct SBBANK *snd_SystemBank = 0;  /* 0x6f2400, the handle of the system sample bank system.sbf (main_ 0x532160 loads it) */
+struct SBBANK *snd_Bank = 0;  /* 0x6f2404, the sample bank */
 int snd_ThunderBank = 0;  /* 0x6f2408 */
 int snd_BookBank = 0;  /* 0x6f240c */
-int snd_RoomBank = 0;  /* 0x6f2410 */
-int snd_TransportBank = 0;  /* 0x6f2414 */
+struct SBBANK *snd_RoomBank = 0;  /* 0x6f2410 */
+struct SBBANK *snd_TransportBank = 0;  /* 0x6f2414 */
 struct MSXTRACK *main_MenuSong = 0;  /* 0x6f2418, the main menu's song (main_Menue) */
 int main_Movie = 0;  /* 0x6f241c, the id mov_Open gave the movie that plays (intro movies, outro.mpg) */
 GAPDATA full_data_6f2420[8] = { 0 };  /* 0x6f2420 */
@@ -5571,3 +5567,9 @@ LSSAVE ls_SavePath;  /* 0x75e640 */
 /* full_data_144acf4: view of txt_Ptrs (build/mk_txt_views.py) */
 /* full_data_144ad10: view of txt_Ptrs (build/mk_txt_views.py) */
 /* full_data_144adb4: view of txt_Ptrs (build/mk_txt_views.py) */
+
+/* unlinked: an empty function; LINK folds it (/OPT:ICF) into d3io_NoopCallback, 0x44ee40, where the original's
+   calls of it in main_RunTitle .. main_GameLoop (no push) point */
+void main_Nothing(void)
+{
+}

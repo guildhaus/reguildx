@@ -23,11 +23,10 @@ table of 8 ints, then the strings "RCPID" .. "alchemy_data.ini"). Starts at 0x4e
 #include "tr.h"
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (defined below as char[768][0x21c]) as the AICHAR records they are */
 
-#define vfs_freadU ((unsigned (*)(void *, int, int, VFSFILE *))vfs_fread)  /* 0x430bd0, vfs.h int: @original this unit compares the count as unsigned (ahm_LoadDfn 0x4ebabd test eax,eax; jbe for `<= 0`) */
 
 extern char ch_EmptyName[];  /* 0x631090, the shared empty string "" (ch.c) */
 
-unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: the function masks its argument to 16 bits (0x42ec00: test si,si; and esi,0xffff) and the shuffler passes the count through mov cx,WORD PTR ds:0x6f0e28 (0x4eadd8), so this TU's callers were compiled against the 16-bit parameter and result (ai.h's view is int) */
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: the function masks its argument to 16 bits (0x42ec00: test si,si; and esi,0xffff) and the shuffler passes the count through mov cx,WORD PTR ds:0x6f0e28 (0x4eadd8), so this TU's callers were compiled against the 16-bit parameter and result; every calling unit declares it so) */
 
 /* 0x4eaa50, the character the alchemist object p (building kind 0x1e) belongs to: the character with the id of the record at +0x65; 0 when p is another kind or has no record */
 char *ahm_OwnerChar(unsigned char *p)
@@ -148,9 +147,9 @@ void ahm_ShufflePlayers(int init)
     srand(ai_WalkSeed.seed & 0xffff);
     ahm_ShuffleTable();
     if (init != 0) {
-        ai_WalkX = util_Random(0x19) & 0xffff;
-        ai_WalkDX = ahm_Tab[util_Random(8) & 0xffff];
-        ai_WalkY = util_Random(0x19) & 0xffff;
+        ai_WalkX = util_Random(0x19);
+        ai_WalkDX = ahm_Tab[util_Random(8)];
+        ai_WalkY = util_Random(0x19);
         t = util_Random(8);
         ai_WalkIndex = 0;
         ai_WalkDY = ahm_Tab[t];
@@ -199,7 +198,7 @@ AHMGRID *ahm_RandomRecipe(char *c)
             step++;
             r = (int)step % ai_RecipePrototypeCount;
         }
-        pos = util_Random(ai_RecipePrototypeCount) & 0xffff;
+        pos = util_Random(ai_RecipePrototypeCount);
         k = ai_RecipePrototypeCount;
         while (k != 0) {
             if (ahm_SlotOf(c, ai_RecipePrototypes[pos].rcp.id) == 0)
@@ -468,7 +467,7 @@ int ahm_LoadDfn(void)
 
     f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "rb", (int)vfs_Root);
     if (f != 0) {
-        if (0 < vfs_freadU(&magic, 4, 1, f) && magic == 0x61486d52 && 0 < vfs_freadU(&ai_PlayerPrototypeCount, 4, 1, f) &&
+        if (0 < vfs_fread(&magic, 4, 1, f) && magic == 0x61486d52 && 0 < vfs_fread(&ai_PlayerPrototypeCount, 4, 1, f) &&
             ai_PlayerPrototypeCount >= 1 && ai_PlayerPrototypeCount <= 0x64) {
             if (ai_PlayerPrototypes != 0) {
                 mem_Free(ai_PlayerPrototypes);
@@ -477,15 +476,15 @@ int ahm_LoadDfn(void)
             ai_PlayerPrototypes = mem_Alloc(ai_PlayerPrototypeCount * 12, "ahm_AllocPlayerPrototypes");
             if (ai_PlayerPrototypes != 0) {
                 for (i = 0; i < ai_PlayerPrototypeCount; i++) {
-                    if (vfs_freadU(&ai_PlayerPrototypes[i].plr.attr[0], 1, 1, f) <= 0 ||
-                        vfs_freadU(&ai_PlayerPrototypes[i].plr.attr[1], 1, 1, f) <= 0 ||
-                        vfs_freadU(&ai_PlayerPrototypes[i].plr.attr[2], 1, 1, f) <= 0 ||
-                        vfs_freadU(&ai_PlayerPrototypes[i].plr.attr[3], 1, 1, f) <= 0 ||
-                        vfs_freadU(&ai_PlayerPrototypes[i].plr.attr[4], 1, 1, f) <= 0 ||
-                        vfs_freadU(&ai_PlayerPrototypes[i].plr.id, 4, 1, f) <= 0)
+                    if (vfs_fread(&ai_PlayerPrototypes[i].plr.attr[0], 1, 1, f) <= 0 ||
+                        vfs_fread(&ai_PlayerPrototypes[i].plr.attr[1], 1, 1, f) <= 0 ||
+                        vfs_fread(&ai_PlayerPrototypes[i].plr.attr[2], 1, 1, f) <= 0 ||
+                        vfs_fread(&ai_PlayerPrototypes[i].plr.attr[3], 1, 1, f) <= 0 ||
+                        vfs_fread(&ai_PlayerPrototypes[i].plr.attr[4], 1, 1, f) <= 0 ||
+                        vfs_fread(&ai_PlayerPrototypes[i].plr.id, 4, 1, f) <= 0)
                         goto bad;
                 }
-                if (0 < vfs_freadU(&ai_RecipePrototypeCount, 4, 1, f) && ai_RecipePrototypeCount >= 1 && ai_RecipePrototypeCount <= 0x64) {
+                if (0 < vfs_fread(&ai_RecipePrototypeCount, 4, 1, f) && ai_RecipePrototypeCount >= 1 && ai_RecipePrototypeCount <= 0x64) {
                     if (ai_RecipePrototypes != 0) {
                         mem_Free(ai_RecipePrototypes);
                         ai_RecipePrototypes = 0;
@@ -493,9 +492,9 @@ int ahm_LoadDfn(void)
                     ai_RecipePrototypes = mem_Alloc(ai_RecipePrototypeCount * 12, "ahm_AllocRecipePrototypes");
                     if (ai_RecipePrototypes != 0) {
                         for (i = 0; i < ai_RecipePrototypeCount; i++) {
-                            if (vfs_freadU(&ai_RecipePrototypes[i].rcp.id, 4, 1, f) <= 0 ||
-                                vfs_freadU(&ai_RecipePrototypes[i].rcp.a, 4, 1, f) <= 0 ||
-                                vfs_freadU(&ai_RecipePrototypes[i].rcp.b, 4, 1, f) <= 0)
+                            if (vfs_fread(&ai_RecipePrototypes[i].rcp.id, 4, 1, f) <= 0 ||
+                                vfs_fread(&ai_RecipePrototypes[i].rcp.a, 4, 1, f) <= 0 ||
+                                vfs_fread(&ai_RecipePrototypes[i].rcp.b, 4, 1, f) <= 0)
                                 goto bad;
                         }
                         vfs_fclose(f);
@@ -771,7 +770,7 @@ int ahm_SendCreateAlchemist(unsigned char *o, AHMSTEP *s)
     m.x = s->x;
     m.y = s->y;
     m.value = g->rcp.b;
-    return ((int (*)(void *))cm_SendCreateAlchemist)(&m);
+    return cm_SendCreateAlchemist(&m);
 }
 
 #define AHM_ZERO6(m) memset(m, 0, 24)
@@ -893,7 +892,7 @@ int ahm_SendSetShare(char *c, int id, float v)
     m.tag = AHM_CMD_SET_SHARE;
     m.id = id;
     m.value.f = min(max(v, 0.0f), 1.0f);
-    return ((int (*)(void *))cm_SendCommand)(&m);
+    return cm_SendCommand(&m);
 }
 /* 0x4eca00, the 'SsCa' handler: sets the share m->id (0 .. 3) of the record rec (+8 .. +0xb) to the value m->value.f times 252 (the inverse of 0x4eab20); 0 for
    another number */
@@ -939,7 +938,7 @@ int ahm_SendAddPlace(char *c, int id)
     m.tag = AHM_CMD_ADD_PLACE;
     m.id = g->rcp.id;
     m.value.i = g->w[2];
-    return ((int (*)(void *))cm_SendCommand)(&m);
+    return cm_SendCommand(&m);
 }
 /* 0x4ecb30, puts the order p (+8 the id, +0x10 the value) into the first free place of the record rec (6 pairs at +0xc) of the object o (+0x5d the list); 0 when all are in use */
 
@@ -1012,7 +1011,7 @@ int ahm_SendSetPlaceValue(char *c, int id, float v)
     m.tag = AHM_CMD_SET_PLACE;
     m.id = id;
     m.value.f = min(max(v, 0.0f), 1.0f);
-    return ((int (*)(void *))cm_SendCommand)(&m);
+    return cm_SendCommand(&m);
 }
 /* 0x4ecd10, the 'cRSa' handler: sets the value of the place m->id in the record rec to m->value.f; 0 when there is none */
 
@@ -1042,7 +1041,7 @@ int ahm_SendAddValue(char *c, float v)
     m.tag = AHM_CMD_ADD_VALUE;
     m.charId = ((AHMCHAR *)c)->id;
     m.value.f = v;
-    return ((int (*)(void *))cm_SendCommand)(&m);
+    return cm_SendCommand(&m);
 }
 /* 0x4ecdb0, the 'SmSa' handler: adds m->value.f to the value at +4 of the record rec, clamped to 0 .. 1 (the windows.h min / max macros on the sum in a local; the 0.0f / 1.0f are the pooled literals ai_FloatZero / ai_FloatOne) */
 
@@ -1068,7 +1067,7 @@ int ahm_SendDelete(char *c)
     AHM_ZERO6(&m);
     m.tag = AHM_CMD_DELETE;
     m.charId = ((AHMCHAR *)c)->id;
-    return ((int (*)(void *))cm_SendCommand)(&m);
+    return cm_SendCommand(&m);
 }
 /* 0x4ece60, deletes the alchemist of the record rec (+0 the character id): clears its object pointers, removes the places from the list of the object o, zeroes the record; 0 when the character is gone */
 

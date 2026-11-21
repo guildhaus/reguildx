@@ -25,15 +25,13 @@
 #include "rea_dump.h"           /* debug build: REA_DUMP_TRACE */
 #endif
 #include "data_views.h"
-#include "cm.h"
 #include "d3_io_a.h"
 #include "f3init.h"
 #include "mem.h"
 #include "sblib.h"
 #include "sv.h"
 #include "d2.h"
-#define sb_PlaySampleI ((struct SBSAMPLE *(*)(int, char *, int, int, int, int, int))sb_PlaySample)  /* 0x426fa0 (sblib.c: SBBANK *bank): this unit passes the bank as an int */
-#define d2_MoveObjI ((void (*)(int, int, int))d2_MoveObj)  /* 0x46cda0 (d2.c: short x, short y): @original this unit passes the coordinates as ints (d2_CreatePicObj) */
+void d2_MoveObj(int x, int y, int obj);  /* 0x46cda0, @original: d2.c defines it with short x, y (d2.h does not declare it, cm.h is not included); this unit pushes int coordinates (movsx) */
 
 /* 0x476b90, adds amount to the item list drawn next to the pointer: the entry of picture id (first match, else
    the first free one); no effect when amount is 0 or the list is full (6 entries) */
@@ -446,7 +444,7 @@ void d2_InputKey(void)
             if (d2_TextCursorSprite == -1)
                 d2_TextCursorSprite = d2_CreatePicObj(d2_TextCursorX, d2_TextCursorY - 7, d2_ExtraSymbolsPic + 8);
             else
-                d2_MoveObjI(d2_TextCursorX, d2_TextCursorY - 7, d2_TextCursorSprite);
+                d2_MoveObj(d2_TextCursorX, d2_TextCursorY - 7, d2_TextCursorSprite);
         }
         kb_Last = 0;
         break;
@@ -476,7 +474,7 @@ void d2_InputKey(void)
             D2CUR->value = atoi(D2CUR->text);
         d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
         if (d2_TextCursorSprite != -1)
-            d2_MoveObjI(d2_TextCursorX, d2_TextCursorY - 7, d2_TextCursorSprite);
+            d2_MoveObj(d2_TextCursorX, d2_TextCursorY - 7, d2_TextCursorSprite);
     }
 }
 /* 0x477a70, mouse drag on a number input */
@@ -693,7 +691,7 @@ focus:
                     if (d2_TextCursorSprite == -1) {
                         d2_TextCursorSprite = d2_CreatePicObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorPic);
                     } else {
-                        d2_MoveObjI(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorSprite);
+                        d2_MoveObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorSprite);
                     }
                 } else {
                     if (d2_TextCursorSprite != -1) {
@@ -787,7 +785,7 @@ void d2_FocusInput(int obj)
             if (d2_TextCursorSprite == -1)
                 d2_TextCursorSprite = d2_CreatePicObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorPic);
             else
-                d2_MoveObjI(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorSprite);
+                d2_MoveObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorSprite);
         } else if (d2_TextCursorSprite != -1) {
             d2_RemoveObj(d2_TextCursorSprite);
             d2_TextCursorSprite = -1;
@@ -836,11 +834,11 @@ void d2_MouseUpdate(void)
             if (o->checkable != 0) {
                 o->checked ^= 1;
                 d2_Objs[d2_PointerObj].highlighted = d2_Objs[d2_PointerObj].checked;
-                sb_PlaySampleI(d2_ClickBank, "MausclickLinks_s_01", 1, 0x3f, 0x7f, 0, 0);
+                sb_PlaySample(d2_ClickBank, "MausclickLinks_s_01", 1, 0x3f, 0x7f, 0, 0);
             } else if (d2_HoverObj == 1) {
-                sb_PlaySampleI(d2_ClickBank, "MausclickRechts_s_01", 1, 0x3f, 0x7f, 0, 0);
+                sb_PlaySample(d2_ClickBank, "MausclickRechts_s_01", 1, 0x3f, 0x7f, 0, 0);
             } else {
-                sb_PlaySampleI(d2_ClickBank, "MausclickLinks_s_01", 1, 0x3f, 0x7f, 0, 0);
+                sb_PlaySample(d2_ClickBank, "MausclickLinks_s_01", 1, 0x3f, 0x7f, 0, 0);
             }
             found = 0;
             for (i = 0; i < 8; i++) {
@@ -913,7 +911,7 @@ void d2_CopyCaption(char *s)
 }
 /* 0x478890, adds a hit rectangle, returns its number or 0 if the table is full */
 
-int d2_AddHitRect(short x, short y, short w, short h, int user)
+int d2_AddHitRect(int x, int y, int w, int h, int user)
 {
     D2HIT *p;
     int i = d2_HitCount + 1;

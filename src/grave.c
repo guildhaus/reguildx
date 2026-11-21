@@ -18,7 +18,6 @@
 #include "d3_types.h"                 /* D3COLOR, for d3_tools.h */
 #include "d3_tools.h"
 #include "data_views.h"
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
 #define gv_PlayerAiChar (*(AICHAR **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) as the AICHAR it points to */
 #define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
 #define gv_CrimesT (*(CRIME (*)[0x200])&ai_Crimes)  /* 0x91f700, ai_Crimes (cm.c: char[0x5a00]) as its 0x200 CRIME records */
@@ -59,6 +58,7 @@ typedef struct GVPLAYERREC {           /* 0x2f4 bytes, a player's slot record (a
 #include "d3_engine.h"
 #include "menu.h"
 #include "net.h"
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 extern int gm_PlayerRecords[688];
 
 extern const float gv_SaleShares[];
@@ -385,7 +385,7 @@ GVGRAVE *gv_RandomGrave(unsigned char *o)
     g = bld->yard;
     if (bt->kind == 0x1d && bt->cap247 >= 1 && bt->cap247 <= 3) {
         n = gv_GraveCount(o);
-        i = util_RandomU(n);
+        i = util_Random(n);
         k = n;
         if (n != 0) {
             do {
@@ -423,16 +423,16 @@ int gv_BuryNewDead(unsigned char *o, int n)
             e->until = (unsigned short)(ai_Time.year + 5);
             e->b0c = 0xff;
             for (k = 0; k < 5; k++)
-                e->grave->traits[k] = (unsigned char)(int)((float)util_RandomU(8) * 21.0f + 42.0f);
-            e->grave->v2c = util_RandomU(9) + 1;
-            e->grave->v30 = util_RandomU(2) + 1;
-            e->grave->nameId = util_RandomU(0x5e) + 1;
-            e->grave->year = ai_Time.year - util_RandomU(4) - 1;
-            e->grave->sex = util_RandomU(2);
-            strncpy(e->grave->family, txt_FamilyNames[util_RandomU(0x95)], 0xf);
+                e->grave->traits[k] = (unsigned char)(int)((float)util_Random(8) * 21.0f + 42.0f);
+            e->grave->v2c = util_Random(9) + 1;
+            e->grave->v30 = util_Random(2) + 1;
+            e->grave->nameId = util_Random(0x5e) + 1;
+            e->grave->year = ai_Time.year - util_Random(4) - 1;
+            e->grave->sex = util_Random(2);
+            strncpy(e->grave->family, txt_FamilyNames[util_Random(0x95)], 0xf);
             rec = gm_NameRecord(e->grave->sex, e->grave->nameId);
             e->grave->icon = 0xff;
-            r = util_RandomU(4);
+            r = util_Random(4);
             k = 4;
             do {                                    /* one of the record's four words +0x34 that is set, from a random one */
                 if (rec[0xd + r] != 0xff) {
@@ -443,9 +443,9 @@ int gv_BuryNewDead(unsigned char *o, int n)
                 r = (r + 1) % 4;
             } while (k != 0);
             if (e->grave->sex == 0)
-                strncpy(e->grave->first, txt_MaleFirstNames[util_RandomU(0xbf)], 0xf);
+                strncpy(e->grave->first, txt_MaleFirstNames[util_Random(0xbf)], 0xf);
             else
-                strncpy(e->grave->first, txt_FemaleFirstNames[util_RandomU(0x70)], 0xf);
+                strncpy(e->grave->first, txt_FemaleFirstNames[util_Random(0x70)], 0xf);
         }
         return i;
     }
@@ -669,7 +669,7 @@ int gv_OrderBury(int *g, char *o, int v, int b)
         m.size = v;
         m.years = 0;
         m.price = 0;
-        return ((int (*)(void *))cm_SendGraveOrder)(&m);
+        return cm_SendGraveOrder(&m);
     }
     return -1;
 }
@@ -757,7 +757,7 @@ int gv_OrderReserveGrave(int *c, char *o, int size, short years, int price)
         m.entry = 0xff;
         m.years = years;
         m.price = price;
-        return ((int (*)(void *))cm_SendGraveOrder)(&m);
+        return cm_SendGraveOrder(&m);
     }
     return -1;
 }
@@ -826,7 +826,7 @@ int gv_OrderExtendGrave(int *g, char *o, int v, int b, short s, int x)
         m.type = 2;
         m.years = s;
         m.price = x;
-        return ((int (*)(void *))cm_SendGraveOrder)(&m);
+        return cm_SendGraveOrder(&m);
     }
     return -1;
 }
@@ -884,7 +884,7 @@ int gv_OrderSetGraveHolder(int *c, char *o, int size, int entry)
         m.entry = (unsigned char)entry;
         m.years = 0;
         m.price = 0;
-        return ((int (*)(void *))cm_SendGraveOrder)(&m);
+        return cm_SendGraveOrder(&m);
     }
     return -1;
 }
@@ -946,7 +946,7 @@ int gv_OrderOpenSize(int *c, char *o, int size)
     m.entry = 0;
     m.years = 0;
     m.price = 0;
-    return ((int (*)(void *))cm_SendGraveOrder)(&m);
+    return cm_SendGraveOrder(&m);
 }
 /* 0x4f0af0, graveyard order type 4 (GVORDER m, sent by gv_OrderOpenSize): opens the grave sizes 1 .. m->size (GVYARD.open)
    of the graveyard building m->bld, when that size's list exists and the yard's level (GVYARD.kind) reaches it. Returns 0,
@@ -1007,7 +1007,7 @@ int gv_OrderAdjustEntry(char *o, int v, int b, int x)
         m.size = v;
         m.years = 0;
         m.price = x;
-        return ((int (*)(void *))cm_SendGraveOrder)(&m);
+        return cm_SendGraveOrder(&m);
     }
     return -1;
 }
@@ -1056,7 +1056,7 @@ int gv_OrderNewDead(char *o, int x)
     m.chr = -1;
     m.bld = bld->id;
     m.price = x;
-    return ((int (*)(void *))cm_SendGraveOrder)(&m);
+    return cm_SendGraveOrder(&m);
 }
 /* 0x4f0dd0, graveyard order type 6 (p: +8 the object id, +0x13 the number): makes that many new dead (0x4ef9c0); 0 when some were made, else -4 */
 
@@ -1184,7 +1184,7 @@ int gv_OrderRaiseDead(char *o, int size, int entry, int grave, int kind)
         m.grave = grave;
         m.kind = kind;
         gv_Accuse(0x1b, 1, gv_CharsT[owner].netId, -1, m.bld);
-        return ((int (*)(void *))cm_SendRaiseDead)(&m);
+        return cm_SendRaiseDead(&m);
     }
     return -1;
 }
@@ -1289,9 +1289,9 @@ unsigned gv_RaiseDead(GVRAISE *m)
             c->v02c = 0;
             c->f014 = 1000.0f / (r * 4.0f + 8.0f);
             for (j = 0; j < 0x300; j++) {
-                ai_Relations[j][c->id] = (signed char)util_RandomU(0x40) - 0x20;
+                ai_Relations[j][c->id] = (signed char)util_Random(0x40) - 0x20;
                 ai_RelationMemory[j][c->id] = 0;
-                ai_Relations[c->id][j] = (signed char)util_RandomU(0x40) - 0x20;
+                ai_Relations[c->id][j] = (signed char)util_Random(0x40) - 0x20;
                 ai_RelationMemory[c->id][j] = 0;
             }
             gm_PlaceOnStage(c->netId, bld->id, -1, 0, 0);
@@ -1647,7 +1647,7 @@ void gv_GraveyardTurn(char *o)
                 goto next;
             if (c != pl && ai_Time.year % 4 == (c->netId & 3)
                 && (float)e->b0c / 255.0f < 0.66f) {
-                h = cm_SendRelations(pl->netId, c->netId, -5 - util_RandomU(0x10), 1);
+                h = cm_SendRelations(pl->netId, c->netId, -5 - util_Random(0x10), 1);
                 rounds++;
                 nrel++;
             }
@@ -1685,7 +1685,7 @@ void gv_GraveyardTurn(char *o)
         e = (GVENTRY *)gv_FindEntry(0, (unsigned char *)bld, (unsigned)e, gv_EntryIsUsed, 0xff);
     }
     if (gv_GravesInUse((unsigned char *)bld) < 4)
-        gv_OrderNewDead(o, util_RandomU(2) + 1);
+        gv_OrderNewDead(o, util_Random(2) + 1);
     if (pl != 0 && (pl->kind == 6 || pl->kind == 7)) {
         if (paid > 0)
             ai_TellGravesPaid((int)pl, (int)bld, paid, sum);

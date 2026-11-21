@@ -206,17 +206,10 @@ typedef struct INIT_CHAR {
     char pad188[0x94];              /* 0x188 .. 0x21b */
 } INIT_CHAR;
 
-/* AIFIN.camAngle (0x88) in both spellings the unit needs: the factor, and its bits for sv_PlaceCameraB (the
-   original's callers push the float's bits; sv.h's float prototype would convert them) */
-typedef union INIT_CAMANGLE {
-    float f;
-    int bits;
-} INIT_CAMANGLE;
-
 /* the player record view (ai.h's AIFIN, 0xac bytes, gm_PlayerRecords): the camera fields this unit reads */
 typedef struct INIT_CAMREC {
     char pad000[0x88];              /* 0x00 .. 0x87 */
-    INIT_CAMANGLE angle;            /* 0x88, AIFIN.camAngle: the camera angle factor */
+    float angle;                    /* 0x88, AIFIN.camAngle: the camera angle factor */
     D3VECTOR pos;                   /* 0x8c, AIFIN.camPos: the camera position */
     char pad098[0x4];               /* 0x98 .. 0x9b */
     float rot[3];                   /* 0x9c, AIFIN.camRot: the camera's angles (rot[1] = the stored y angle) */
@@ -239,9 +232,6 @@ typedef struct INIT_TERRAIN {
 #include "data_views.h"
 #include "d3_snd.h"
 #include "sblib.h"
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
-#define d3snd_AttachI ((int (*)(int, char *, int, float))d3snd_Attach)  /* 0x417710 (d3_snd.h: D3SOUND *(SNDHANDLE *, D3OBJECT *, int, float)): this unit's int handle / char * object view */
-#define sv_PlaceCameraB ((void (*)(int))sv_PlaceCamera)  /* 0x525dd0 (sv.h: void sv_PlaceCamera(float f)): @original init_AfterTownLoad pushes the angle's bits as an int (0x513740: push 0x3ea8f5c3 / the INIT_CAMREC angle union's int) */
 #define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
 
 /* the object list of init_LoadSiteScene (0x510770): the count, the objects by name and the name substring the
@@ -332,7 +322,7 @@ void gm_AgeCharacter(char *c, unsigned short age);    /* 0x4fc6f0, f3gm.c: ages 
 int ai_WorksForMaster(struct AICHAR *c);                 /* 0x47dd70, ai.c */
 void hmt_Begin(void);                           /* 0x4ad0a0, hmt.c */
 void ai_ObjectAngle(void *out, int plot);                 /* 0x58fd90, lc.c: the angle of the object plot to out */
-void cm_SendOwnership(int a, int b, int c);               /* 0x4c54a0, cm.c: message 0x38, the building a changes its person from b to c */
+int cm_SendOwnership(int a, int b, int c);               /* 0x4c54a0, cm.c: message 0x38, the building a changes its person from b to c */
 void cm_SendBoss(int a, int b);                            /* 0x4c5540, cm.c: message 0x39, the building a gets the character b as its boss */
 int cm_RequestCreateGeb(int owner, int kind, D3VECTOR4 *pos, int *rot);  /* 0x4c5ae0, cm.c: message 0x4c, a building of kind k at pos */
 unsigned char *gm_NearestFreeBuilding(unsigned char *b, unsigned kind); /* 0x501f60, f3gm.c */
@@ -364,7 +354,7 @@ extern char ai_Unk7e3f40_[];
 void ai_CheckBuildSites(void);                     /* 0x58fb60 */
 void gm_UpdatePlayers(void);                 /* 0x4feb30, f3gm.c */
 void gm_InitPlayerRecord(int p);                 /* 0x4feb60, f3gm.c */
-void cm_SendOwnership(int a, int b, int c);                     /* 0x4c54a0 */
+int cm_SendOwnership(int a, int b, int c);                     /* 0x4c54a0 */
 struct G13MIS;
 struct G13MIS *ai_NewRandomMission(int owner, int kind, int x);  /* 0x4b3c10, mission.h */
 void ai_ShowMissions(int owner);                /* 0x4b5310, mission.c */
@@ -389,6 +379,7 @@ void d3fl_SetShift(struct D3FLMAP *map, unsigned char shift, char light);   /* 0
 #include "menu_types.h"
 #include "ch.h"
 #include "f3gm.h"
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 extern int snd_SfxEnabled;              /* 0x6f257c, sound on */
 struct SBSAMPLE; struct SBBANK;
 extern int init_StatusForm;
@@ -439,6 +430,7 @@ int cm_SendMessage10(unsigned char n, int b, void *p, short d);  /* 0x4c45c0, cm
 void gm_SyncMarket(unsigned p);         /* 0x4fec10, f3gm.c */
 void ai_MsgNoOp(struct AICHAR *c);                     /* 0x4b70f0 */
 void init_RoomNoOp(void);                                /* unlinked, folded into ai_MsgNoOp (below init_ShowBuildingScene) */
+void init_NoRoomNoOp(void);                              /* unlinked, folded into ai_MsgNoOp (below init_ShowBuildingScene) */
 struct G15PLANT;
 void ai_FavourComment(char *a);
 
@@ -958,7 +950,7 @@ void init_LoadBuildingScene(int k)
    The purse goes through its own address-taken local (money), so the two judge send slots stay in registers. Caller: 0x511400 at 0x511423 (the new-game setup). Readability done: Q1 init_StartNewGame, Q2 cleared, Q3 INIT_START_CHARACTERS_END, Q4 INIT_CHAR view, Q5 marker removed, Q6 described. */
 
 
-void init_StartNewGame(void)
+void init_StartNewGame(int unused)
 {
     INIT_CHAR *c;
     int i;
@@ -971,7 +963,7 @@ void init_StartNewGame(void)
     c = (INIT_CHAR *)ai_Chars[0];
     do {
         if (c->id != 0xffff && c->kind < 5) {
-            money = gm_PlayerFactor((util_RandomU(0x122) & 0xffff) + 10, ai_OwnPlayer);
+            money = gm_PlayerFactor(util_Random(0x122) + 10, ai_OwnPlayer);
             cm_BeginFieldBlock((char *)c, c->netId);
             cm_AddFieldValues(4, 1, INIT_FIELD_MONEY, &money);
             cm_SendFieldDeltas();
@@ -979,8 +971,8 @@ void init_StartNewGame(void)
         c++;
     } while ((int)c < INIT_START_CHARACTERS_END);
     cm_BeginSendGroup();
-    w1 = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(0xc, -1, -1, 0x12, -1, 0, 0, 0);
-    w2 = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(0xc, -1, -1, 0x12, -1, 0, 0, 0);
+    w1 = cm_SendCreateCharacter(0xc, -1, -1, 0x12, -1, 0, 0, 0);
+    w2 = cm_SendCreateCharacter(0xc, -1, -1, 0x12, -1, 0, 0, 0);
     cm_EndSendGroup();
     i = cm_SendGroupState();
     while (i == 0) {
@@ -1011,7 +1003,7 @@ void init_StartNewGame(void)
     cm_BeginSendGroup();
     i = 0;
     do {
-        rec[i] = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(0, -1, -1, util_RandomU(8) + 0x10, -1, (char)util_RandomU(3) + 4, 0, 0);
+        rec[i] = cm_SendCreateCharacter(0, -1, -1, util_Random(8) + 0x10, -1, (char)util_Random(3) + 4, 0, 0);
         i++;
     } while (i < 8);
     cm_EndSendGroup();
@@ -1023,7 +1015,7 @@ void init_StartNewGame(void)
     cm_BeginSendGroup();
     i = 0;
     do {
-        rec[i] = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(0xb, -1, -1, util_RandomU(8) + 0x10, -1, 0, 0x13, 0);
+        rec[i] = cm_SendCreateCharacter(0xb, -1, -1, util_Random(8) + 0x10, -1, 0, 0x13, 0);
         cm_SendExSellObject(-2, -1, 0x154, 1, ai_OwnPlayer, 0);
         i++;
     } while (i < 8);
@@ -1058,8 +1050,8 @@ void init_CreateOpponents(int n, int m, int *list)
 
     prm = 0;
     i = 0;
-    idx = util_RandomU(m);
-    step = util_RandomU(2) != 0 ? 1 : 3;
+    idx = util_Random(m);
+    step = util_Random(2) != 0 ? 1 : 3;
     price[0] = 500;
     price[1] = 750;
     price[2] = 1000;
@@ -1081,10 +1073,10 @@ void init_CreateOpponents(int n, int m, int *list)
             cnt--;
             idx = (idx + step) % m;
         }
-        ids[i] = ((int (*)(int, int, int, int, int, int, int, int))cm_SendCreateCharacter)(5, -1, -1, 0x10, -1, prm, 0, 2);
+        ids[i] = cm_SendCreateCharacter(5, -1, -1, 0x10, -1, prm, 0, 2);
         cm_SendMoveGoods(-2, -1, ai_OwnPlayer, gm_PlayerFactor(price[ai_Opponents[i]], ai_OwnPlayer));
         if (init_BonusStart != 0)
-            cm_SendMoveGoods(-2, -1, ai_OwnPlayer, gm_PlayerFactor(util_RandomU(5000) + 5000, ai_OwnPlayer));
+            cm_SendMoveGoods(-2, -1, ai_OwnPlayer, gm_PlayerFactor(util_Random(5000) + 5000, ai_OwnPlayer));
     }
     cm_EndSendGroup();
     while (cm_SendGroupState() == 0) {
@@ -1146,7 +1138,7 @@ void init_PlaceOffices(int n, int *out, int *ids)
     tab[12] = 0x58;
     tab[13] = 0x51;
     tab[14] = 0x2d;
-    s = util_RandomU(0xf);
+    s = util_Random(0xf);
     if (0 < n) {
         q = out;
         do {
@@ -1171,15 +1163,15 @@ void init_PlaceOffices(int n, int *out, int *ids)
    @deep match-deep 48: kept: ai_FloatOne for the 1.0f of fl (resolves the open M10: the original refers
    to the pooled datum) and the age table t[30] split from lv[10] / money[10] (the frame now puts ids at
    the original's 0x138; 219 -> 191 ins). headers sample insensitive. Tried with no change (= control):
-   msg0 with (unsigned short) / & 0xffff on util_RandomU(2), (float) cast in the msg4 product, (unsigned
+   msg0 with (unsigned short) / & 0xffff on util_Random(2), (float) cast in the msg4 product, (unsigned
    char) level index; frameorder.py probes: local names never move the frame (ties of references per byte
    are not broken by name), one ids reference fewer moves ids above all office structs. t stores grouped by
    value: 213 vs 219 (before the split). Left: frame order of kind / ob1 / ob3 / ob2 / rec (original 0xf0
    kind, 0x108 ob1, 0x120 ob3, 0x1b0 ob2, 0x1c8 rec; ours ob1 0xf0, ob2 0x108, ob3 0x120, rec 0x1b0, kind
    0x1c8: the original's reference density differs), the t[] init constant registers (original eax=0x12
    first, ebp=0 late), the t add loop i*4 vs the original's byte offset (add esi,4 / cmp 0x78), msg0 = 2 in
-   ebx across the office loop (push ebx for util_RandomU(2)) where ours stores the immediate, the level
-   reloaded from kind+8 after util_RandomU(2) (ours keeps it in esi from the msg5 expression), the money
+   ebx across the office loop (push ebx for util_Random(2)) where ours stores the immediate, the level
+   reloaded from kind+8 after util_Random(2) (ours keeps it in esi from the msg5 expression), the money
    product order ((r+1)*fl)*(msg3*0.01) vs ours (r+1)*(msg3*0.01)*fl, the spouse loop's u/v/k registers
    (ebx/edx/ecx vs ebx/ecx/edx) (tiebreak: not measured (dcp headers sample init_CreateStartCharacters))
    prior: read against the whole original 0x50e690..0x50f0a1 and corrected: signed level /3 and int money
@@ -1194,7 +1186,7 @@ void init_PlaceOffices(int n, int *out, int *ids)
    byt... */
 
 
-int init_CreateStartCharacters(void)
+int init_CreateStartCharacters(int unused)
 {
     int t[30] = {0x10, 0x12, 0x14, 0x18, 0x10, 0x12, 0x14, 0x18, 0x10, 0x12, 0x14, 0x18,
                  0x16, 0x18, 0x19, 0x1b, 0x1d, 0x1d, 0x16, 0x18, 0x19, 0x1b, 0x1d, 0x1d,
@@ -1223,7 +1215,7 @@ int init_CreateStartCharacters(void)
     gm_Shuffle(6, t + 24);
     memset(f0, 0, sizeof(f0));
     for (i = 0; i < 30; i++)
-        t[i] += util_RandomU(3) & 0xffff;
+        t[i] += util_Random(3);
     n = 0;
     p = (INIT_CHAR *)ai_Chars[0];
     do {
@@ -1248,11 +1240,11 @@ int init_CreateStartCharacters(void)
     init_PlaceOffices(30 - n, out + n, ids + n);
     for (i = n; i < 30; i++) {
         cm_BeginSendGroup();
-        if (cnt < 3 && i * 4 > 0x30 && util_RandomU(4) == 0) {
-            h = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(0x10, -1, -1, 0x10, -1, 0, 0, 0);
+        if (cnt < 3 && i * 4 > 0x30 && util_Random(4) == 0) {
+            h = cm_SendCreateCharacter(0x10, -1, -1, 0x10, -1, 0, 0, 0);
             cnt++;
         } else {
-            h = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(3, -1, -1, 0x10, -1, (unsigned char)out[i], 0, 2);
+            h = cm_SendCreateCharacter(3, -1, -1, 0x10, -1, (unsigned char)out[i], 0, 2);
         }
         cm_EndSendGroup();
         while (cm_SendGroupState() == 0) {
@@ -1273,8 +1265,8 @@ int init_CreateStartCharacters(void)
         amt_GetOffice((unsigned char)ids[k], &rec);
         amt_GetKind(rec.kindWord & 0xff, &kind);
         age = (unsigned short)t[k];
-        msg5 = (char)((util_RandomU(0x2a) & 0xffff) + ((int)(kind.levelWord & 0xff) / 3 + 1) * 21.0f);
-        msg0 = util_RandomU(2) + lv[kind.levelWord & 0xff];
+        msg5 = (char)(util_Random(0x2a) + ((int)(kind.levelWord & 0xff) / 3 + 1) * 21.0f);
+        msg0 = util_Random(2) + lv[kind.levelWord & 0xff];
         w = money[kind.levelWord & 0xff];
         msg3 = gm_PlayerFactor(w - (int)(util_RandomF() * w * -0.5f), ai_OwnPlayer);
         ch = f0[k];
@@ -1283,9 +1275,9 @@ int init_CreateStartCharacters(void)
         cm_AddFieldDelta(1, 1, 0xd, &msg0);
         if (ch->kind == 3) {
             cm_AddFieldDelta(1, 1, 0x84, &msg5);
-            if (util_RandomU(2) != 0) {
+            if (util_Random(2) != 0) {
                 fl = util_RandomF() + 1.0f;
-                msg4 = (unsigned)(((util_RandomU(8) & 0xffff) + 1) * fl * (msg3 * 0.01f));
+                msg4 = (unsigned)((util_Random(8) + 1) * fl * (msg3 * 0.01f));
                 cm_AddFieldDelta(4, 1, 0x1ac, &msg4);
             }
         }
@@ -1296,9 +1288,9 @@ int init_CreateStartCharacters(void)
             sv_PumpNet();
         c = ch->officeKind;
         if (c == 0x18 || c == 0x1a || c == 0x1b) {
-            j = ((int (*)(void *, int, int, int, int))cm_SendSetField)(ch->netId, 0x1cc, 4, 0x80, 0);
+            j = cm_SendSetField(ch->netId, 0x1cc, 4, 0x80, 0);
         } else if (c == 0x16 || c == 0x17 || c == 0x19) {
-            j = ((int (*)(void *, int, int, int, int))cm_SendSetField)(ch->netId, 0x1cc, 4, 0x40, 0);
+            j = cm_SendSetField(ch->netId, 0x1cc, 4, 0x40, 0);
         } else {
             j = -1;
         }
@@ -1338,42 +1330,42 @@ int init_CreateStartCharacters(void)
             cm_AddFieldDelta(4, 1, 0x5c, &u->netId);
             cm_SendFieldDeltas();
             if (n > 5) {
-                w = gm_TitleNumber(gm_TitleGroup(util_RandomU(2) != 0 ? u->jobId : v->jobId), 1);
+                w = gm_TitleNumber(gm_TitleGroup(util_Random(2) != 0 ? u->jobId : v->jobId), 1);
                 msg4 = 2;
-                j = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(8, u->netId, v->netId, n, -1, w, 0, 2);
+                j = cm_SendCreateCharacter(8, u->netId, v->netId, n, -1, w, 0, 2);
                 while (j != -1 && cm_GetSlotState(j) == 0)
                     sv_PumpNet();
                 ch = (INIT_CHAR *)cm_GetSlotValue(j);
-                cm_SendMoveGoods(ch->netId, -1, ai_OwnPlayer, ((util_RandomU(0x400) & 0xffff) + 0x200) * 0x20);
+                cm_SendMoveGoods(ch->netId, -1, ai_OwnPlayer, (util_Random(0x400) + 0x200) * 0x20);
                 cm_BeginFieldBlock((char *)ch, ch->netId);
                 cm_AddFieldDelta(1, 1, 0xd, &msg4);
                 cm_SendFieldDeltas();
             }
-            ((int (*)(int, int, int, int))cm_SendRelations)(u->netId, v->netId, (util_RandomU(0x20) & 0xffff) + 0x60, 0);
-            j = ((int (*)(int, int, int, int))cm_SendRelations)(v->netId, u->netId, (util_RandomU(0x20) & 0xffff) + 0x60, 0);
+            cm_SendRelations(u->netId, v->netId, util_Random(0x20) + 0x60, 0);
+            j = cm_SendRelations(v->netId, u->netId, util_Random(0x20) + 0x60, 0);
             while (j != -1 && cm_GetSlotState(j) == 0)
                 sv_PumpNet();
         }
     } while (u != 0 && v != 0);
     for (i = 8; i != 0; i--) {
         msg0 = 2;
-        msg1 = (util_RandomU(9) & 0xffff) + 1;
-        h = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(3, -1, -1, util_Random(4) + 0xf, -1,
-            gm_TitleNumber((util_RandomU(0xc) & 0xffff) + 1, (util_RandomU(2) & 0xffff) + 1), 0, 0);
+        msg1 = util_Random(9) + 1;
+        h = cm_SendCreateCharacter(3, -1, -1, util_Random(4) + 0xf, -1,
+            gm_TitleNumber(util_Random(0xc) + 1, util_Random(2) + 1), 0, 0);
         while (h != -1 && cm_GetSlotState(h) == 0)
             sv_PumpNet();
         ch = (INIT_CHAR *)cm_GetSlotValue(h);
-        cm_SendMoveGoods(ch->netId, -1, ai_OwnPlayer, ((util_RandomU(0x400) & 0xffff) + 0x200) * 0x20);
+        cm_SendMoveGoods(ch->netId, -1, ai_OwnPlayer, (util_Random(0x400) + 0x200) * 0x20);
         cm_BeginFieldBlock((char *)ch, ch->netId);
         cm_AddFieldDelta(1, 1, 0xd, &msg0);
         cm_AddFieldDelta(1, 1, 0x167, &msg1);
         cm_SendFieldDeltas();
-        h = ((int (*)(unsigned char, int, int, unsigned short, int, unsigned char, unsigned char, unsigned char))cm_SendCreateCharacter)(3, -1, -1, util_Random(4) + 0xe, -1,
-            gm_TitleNumber((util_RandomU(0xc) & 0xffff) + 1, (util_RandomU(2) & 0xffff) + 1), 0, 1);
+        h = cm_SendCreateCharacter(3, -1, -1, util_Random(4) + 0xe, -1,
+            gm_TitleNumber(util_Random(0xc) + 1, util_Random(2) + 1), 0, 1);
         while (h != -1 && cm_GetSlotState(h) == 0)
             sv_PumpNet();
         ch = (INIT_CHAR *)cm_GetSlotValue(h);
-        cm_SendMoveGoods(ch->netId, -1, ai_OwnPlayer, ((util_RandomU(0x400) & 0xffff) + 0x200) * 0x20);
+        cm_SendMoveGoods(ch->netId, -1, ai_OwnPlayer, (util_Random(0x400) + 0x200) * 0x20);
         cm_BeginFieldBlock((char *)ch, ch->netId);
         cm_AddFieldDelta(1, 1, 0xd, &msg0);
         cm_AddFieldDelta(1, 1, 0x167, &msg1);
@@ -1439,7 +1431,7 @@ void init_CreateOpeningObjects(void)
                     } else {
                         cm_SendExSellObject(o1->objId, -1, g, 2 - (i != 0), ai_OwnPlayer, 0);
                         if (i == 0) {
-                            cm_SendExSellObject(o2->objId, -1, goods[0], (util_RandomU(0x14) & 0xffff) + 0x14, ai_OwnPlayer, 0);
+                            cm_SendExSellObject(o2->objId, -1, goods[0], util_Random(0x14) + 0x14, ai_OwnPlayer, 0);
                         }
                     }
                     switch (g) {
@@ -1764,7 +1756,7 @@ void init_OpenTown(void)
                 cl = INIT_BTYPE(b);
                 for (j = 0; j < 6; j++) {
                     if (cl[0x223 + j] != 0 && cl[0x223 + j] == (unsigned char)c[0x164]) {
-                        h = ((int (*)(void *, void *, void *))cm_SendOwnership)(((INIT_BLD *)b)->id, ((INIT_CHAR *)c)->netId, ((INIT_CHAR *)c)->netId);
+                        h = cm_SendOwnership(((INIT_BLD *)b)->id, ((INIT_CHAR *)c)->netId, ((INIT_CHAR *)c)->netId);
                         while (cm_GetSlotState(h) == 0)
                             sv_PumpNet();
                         init_OpenBuilding((INIT_BLD *)b);
@@ -1831,7 +1823,7 @@ void init_OpenTown(void)
         if (r == 0)
             break;
         cm_SendBoss(((INIT_CHAR *)c)->netId, ((INIT_BLD *)r)->id);
-        h = ((int (*)(void *, void *, void *))cm_SendOwnership)(((INIT_BLD *)r)->id, ((INIT_CHAR *)c)->netId, ((INIT_CHAR *)c)->netId);
+        h = cm_SendOwnership(((INIT_BLD *)r)->id, ((INIT_CHAR *)c)->netId, ((INIT_CHAR *)c)->netId);
         while (cm_GetSlotState(h) == 0)
             sv_PumpNet();
     }
@@ -1935,7 +1927,7 @@ void init_OpenTown(void)
             if (r == 0)
                 break;
             cm_SendBoss(((INIT_CHAR *)c)->netId, ((INIT_BLD *)r)->id);
-            h = ((int (*)(void *, void *, void *))cm_SendOwnership)(((INIT_BLD *)r)->id, ((INIT_CHAR *)c)->netId, ((INIT_CHAR *)c)->netId);
+            h = cm_SendOwnership(((INIT_BLD *)r)->id, ((INIT_CHAR *)c)->netId, ((INIT_CHAR *)c)->netId);
             while (cm_GetSlotState(h) == 0)
                 sv_PumpNet();
         }
@@ -1975,7 +1967,7 @@ void init_OpenTown(void)
         cm_ReceiveMessages();
         cm_ExecCommands();
     }
-    ((int (*)(int))init_CreateStartCharacters)(0);   /* @original: the original call pushes one argument (0x510494) although the callee reads none */
+    init_CreateStartCharacters(0);   /* the original call pushes one argument (0x510494), which the callee does not read */
     ord_UpdateStatistics();
     b = (char *)gm_BuildQuery(1, 6);
     while (b != 0) {
@@ -2025,8 +2017,8 @@ void init_OpenTown(void)
             m = 0;
             for (j = i + 1; j < 0x300; j++) {
                 if (((INIT_CHAR *)ai_Chars[j])->kind == 6 || ((INIT_CHAR *)ai_Chars[j])->kind == 7 || ((INIT_CHAR *)ai_Chars[j])->kind == 5 || ((INIT_CHAR *)ai_Chars[j])->kind == 3 || ((INIT_CHAR *)ai_Chars[j])->kind == 4 || ((INIT_CHAR *)ai_Chars[j])->kind == 2) {
-                    ((int (*)(int, int, int, int))cm_SendRelations)(((INIT_CHAR *)c)->netId, ((INIT_CHAR *)ai_Chars[j])->netId, (util_RandomU(0x40) & 0xffff) - 0x20, 0);
-                    h = ((int (*)(int, int, int, int))cm_SendRelations)(((INIT_CHAR *)ai_Chars[j])->netId, ((INIT_CHAR *)c)->netId, (util_RandomU(0x40) & 0xffff) - 0x20, 0);
+                    cm_SendRelations(((INIT_CHAR *)c)->netId, ((INIT_CHAR *)ai_Chars[j])->netId, util_Random(0x40) - 0x20, 0);
+                    h = cm_SendRelations(((INIT_CHAR *)ai_Chars[j])->netId, ((INIT_CHAR *)c)->netId, util_Random(0x40) - 0x20, 0);
                     m += 2;
                     while (h != -1 && m % 10 == 0 && cm_GetSlotState(h) == 0)
                         sv_PumpNet();
@@ -2168,7 +2160,7 @@ int init_InitTown(char *city)
     cm_BeginSendGroup();
     cm_SendMessage10(0x44, -1, 0, 0);
     cm_SendMessage10(0x45, -1, 0, 0);
-    bank = ((int (*)(int, int, int, int, int, int, int, int))cm_SendCreateCharacter)(10, -1, -1, 0x12, -1, 0, 0, 1);
+    bank = cm_SendCreateCharacter(10, -1, -1, 0x12, -1, 0, 0, 1);
     cm_EndSendGroup();
     i = cm_SendGroupState();
     while (i == 0) {
@@ -2314,7 +2306,7 @@ int init_StartNetworkGame(char *name)
     WritePrivateProfileStringA("Network", "Name", init_PlayerProfile.firstName, ini);
     WritePrivateProfileStringA("Network", "Familienname", init_PlayerProfile.familyName, ini);
     d2_ClearSurface((struct D2SURF *)d2_ScreenSurf);
-    s = util_RandomU(2);
+    s = util_Random(2);
     d2_ShowPicture((s != 1 ? 3 : 0) + 0x78e);
     d2_DrawAll();
     if ((cm_NetFlags & 1) != 0) {
@@ -2450,7 +2442,7 @@ int init_SetupNewGame(int n)
         t = timeGetTime();
         srand(t);
     }
-    ((void (*)(int))init_StartNewGame)(0);   /* @original: the original call pushes one argument (0x511422) although the callee reads none */
+    init_StartNewGame(0);   /* the original call pushes one argument (0x511422), which the callee does not read */
     if (main_StartHouseCheat != 0) {
         i = 0;
         p = ai_Chars[0] + 2;
@@ -3120,7 +3112,8 @@ void init_LoadShopScript(unsigned char *b, unsigned short *o)
 void init_SoundObjectHook(char *o)
 {
     char name[0x100];
-    int loop, delay, h;
+    int loop, delay;
+    struct D3SOUND *h;
     struct SBSAMPLE *s;
 
     if (strncmp(o, "sfx_", 4) == 0) {
@@ -3134,9 +3127,9 @@ void init_SoundObjectHook(char *o)
         if (snd_SfxEnabled != 0) {
             s = sb_GetSample(0, name);
             if (s != 0) {
-                h = d3snd_AttachI((int)s, o, 0x7f, (float)((int)((SCENEOBJ *)o)->soundRange + 0x32));
+                h = d3snd_Attach(s, (struct D3OBJECT *)o, 0x7f, (float)((int)((SCENEOBJ *)o)->soundRange + 0x32));
                 if (h != 0)
-                    d3snd_Play((struct D3SOUND *)h, 0, loop, delay);
+                    d3snd_Play(h, 0, loop, delay);
             }
         }
         ((SCENEOBJ *)o)->mask = 0;
@@ -3448,7 +3441,7 @@ void init_ShowBuildingScene(unsigned char *b, int slot)
     if (o == 0 || (proto = *o) == 0xfd) {
         uni = init_BuildingUniverse[(unsigned char)ai_BTypes[*b * 0x24d]];
         ai_SceneObject = 0;
-        ((int (*)())ai_MsgNoOp)();
+        init_NoRoomNoOp();
     } else {
         ai_SceneObject = o;
         uni = init_ObjectUniverse[proto];
@@ -3537,6 +3530,11 @@ void init_ShowBuildingScene(unsigned char *b, int slot)
    into ai_MsgNoOp, 0x4b70f0, where both of the original's calls point. A distinct symbol, as the original keeps the
    two calls apart (one symbol in both arms is merged into one call) */
 void init_RoomNoOp(void)
+{
+}
+
+/* unlinked: the same for the other branch of init_ShowBuildingScene (folded into ai_MsgNoOp, 0x4b70f0) */
+void init_NoRoomNoOp(void)
 {
 }
 /* 0x513400, finishes the scene of the building b (init_FinishBuildingScene): one of the "contact_EINKAUF*" shop
@@ -3695,11 +3693,11 @@ void init_AfterTownLoad(void)
     phase = gm_ClockSeason(&ai_Time);
     if (d3_CurrentScene == 0) {
         cam = (INIT_CAMREC *)gm_PlayerRecord(ai_Chars[(unsigned short)ai_PlayerId]);
-        if (cam == 0 || cam->angle.f == -1.0f) {
-            sv_PlaceCameraB(0x3ea8f5c3);
+        if (cam == 0 || cam->angle == -1.0f) {
+            sv_PlaceCamera(0.33f);
         } else {
             d3_SetObjectPos(d3_Camera, &cam->pos);
-            sv_PlaceCameraB(cam->angle.bits);
+            sv_PlaceCamera(cam->angle);
             d3_Camera->rotation.y = cam->rot[1];
             d3_SetObjectRot(d3_Camera, &d3_Camera->rotation);
         }

@@ -22,8 +22,9 @@
 #include "cm.h"
 #include "cmscene.h"
 #include "d2.h"
-#define cm_DuelChooseRoundR ((void (*)(CMCUTINFO *))cm_DuelChooseRound)  /* @original cm_DuelAskPlayer jumps to it with its own arguments in place (a tail jmp, byte-matched): called with r alone, the duel record stays on the stack */
 #include "d3.h"
+void cm_SceneNothing(void);  /* unlinked, defined at the end of the unit (an empty body above its callers would let VC6 drop the calls) */
+
 struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3SKY *s, int first, char *tex, D3TEXFLAGS flags, float scale, float offset, float vscale, float voffset);  /* 0x45d880 */
 #include "d3_tools.h"
 #include "d3_quad.h"
@@ -87,11 +88,8 @@ extern GAPDATA full_data_602568[];
 #include "gv.h"
 #include "poker.h"
 #include "gfx.h"
-#define d3sm_PickK ((int (*)(D3SM *, int, int, int *, int *))d3sm_Pick)  /* 0x45f2b0 (d3_sm.c: char d3sm_Pick(D3SM *, int, int, int *, int *)): @original this unit's callers read an int result (byte-matched cm_UpdatePointer 0x4cf73a: and eax, 0xff after the call) */
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 #define d3t_CamMoveI (*(int *)&d3t_CamMove)  /* 0x6310e8, d3t_CamMove (d3_tools.c: D3ANIM *) as the int this unit tests */
-#define d3t_CreateBloodK ((int (*)(void *, int, int, int, int, int))d3t_CreateBlood)  /* 0x415e90 (d3_tools.c: D3PARTSYS *d3t_CreateBlood(void *, int, float, float, float, float)): @original this unit passes the four floats as their int bit patterns and does not use the result (byte-matched cm_DuelShotAction 0x4de767: push 0x425c0000 .. push 0x3e800000, no fstp pair) */
-#define sb_PlaySampleI ((struct SBSAMPLE *(*)(int, char *, int, int, int, int, int))sb_PlaySample)  /* 0x426fa0 (sblib.c: SBBANK *bank): this unit passes the bank as an int */
 #define d2_LastWindowPtrC (*(char **)&d2_LastWindowPtr)  /* 0x6ed980, d2_LastWindowPtr (d2.c: D2WIN *) read bytewise, as this unit does */
 #define d2_ObjsC (*(char **)&d2_Objs)  /* 0xf8f080, d2_Objs (d2.c: D2OBJ *) read bytewise, as this unit does (+ obj * 0x2ec) */
 #define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (cm.h: char *) as the AIGOOD records it points to */
@@ -154,14 +152,9 @@ typedef struct CMBOMB {             /* 8 bytes, one of the 32 bombs of cm_Bombs 
 #define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
 #define ai_FallbackBuildingT (*(struct AIBLD **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) as the AIBLD it points to */
 #define ai_PlayerBuildingT (*(struct AIBLD **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) as the AIBLD it points to */
-#define d3sm_GetVertexI ((int (*)(D3SM *, int, int, D3VECTOR *))d3sm_GetVertex)  /* 0x45f100 (d3_sm.c: char, D3SM *, int, int, D3VECTOR *): @original this unit's callers read an int result (byte-matched ord_RandomCellPoint (ord.c): no 0f be c0 after the call) */
-#define amt_GetOfficeI ((int (*)(int, struct AMTREC *))amt_GetOffice)  /* 0x4e6f30 (amt.h: unsigned char i): @original this unit pushes its int index raw (0x4dab50 / 0x4aad30: push ebp / push edx, no zero-extension) */
-#define ai_DecideTortureP ((int (*)(AIPLAN *))ai_DecideTorture)  /* 0x4941b0 (am.h: void): @original cm_TrialAskAI pushes the plan (0x4de3a6 push esi, add esp, 4) */
-#define ai_DecideTortureInstrumentP ((int (*)(AIPLAN *))ai_DecideTortureInstrument)  /* 0x4941d0 (am.h: void): @original cm_TrialAskAI pushes the plan (0x4de3c6 push esi, add esp, 4) */
 #define cm_FightersT (*(AICHAR (*)[32])&cm_Fighters)  /* 0x930600, cm_Fighters (char[], with the 0x1000 bytes after the 32 records) as its AICHAR records */
 #define ai_SceneCharsT (*(AICHAR *(*)[32])&ai_SceneChars)  /* 0x7603a0, ai_SceneChars (f3init.h: int[32]) as the AICHAR pointers it holds */
 #define cm_FlagObjectsT (*(D3OBJECT *(*)[32])&cm_FlagObjects)  /* 0x935980, cm_FlagObjects (cm.h: char *[]) as the D3OBJECTs it holds */
-#define ai_TrustedOfFourB ((int (*)(unsigned char, AICHAR *, int *, int *))ai_TrustedOfFour)  /* 0x4aad30 (poker.h: unsigned char k, AIPER *p; cm.h declares it without a prototype): the prototype these calls need (cm_AskElectVote 0x4dab50 pushes its unsigned char office raw, cm_SessionAskAI 0x4dae90 a byte: mov al / push eax) */
 #define d2_LastWindowPtrT (*(struct D2WIN **)&d2_LastWindowPtr)  /* 0x6ed980, d2_LastWindowPtr (d2.c: D2WIN *) as the window record */
 typedef struct CMAMOUNTROW {        /* 0x38 bytes, one row of the special-amount list (ai_AmountRowStatus / ai_AmountRow read it
                                        as ints; menu.c GYPSYROW) */
@@ -292,7 +285,7 @@ void cm_DeleteSceneChars()
 /* 0x4d8c70, draws the next picture 0x4df of a stack (o + 0x2c counts them, 10 up each) on the window 0x6ed938 */
 void cm_StackPicture(int unused, CMAMOUNTROW *o)
 {
-    ((int (*)(short, short, int, int))d2_WinOpenPic)(0x8c, (short)(0x44 - (short)o->x2c * 10), 0x4df, d2_LastWindow);
+    d2_WinOpenPic(0x8c, (short)(0x44 - (short)o->x2c * 10), 0x4df, d2_LastWindow);
     o->x2c++;
 }
 /* 0x4d8cb0, the fight result list (a) or one more picture of its three stacks: b set: the three headings (texts 0x12d3 / 0x12d4 / 0x12d5)
@@ -907,7 +900,7 @@ int cm_AskElectVote(unsigned char office, AICHAR *b, int *ids, int *click)
     }
     if (n == 0)
         return -1;
-    res = ai_TrustedOfFourB(office, b, ids, proposed);
+    res = ai_TrustedOfFour(office, (struct AIPER *)b, ids, proposed);
     view = d2_OpenForm(0, 0, "cutscenes\\sitzungen");
     d2_PlaceMainWindow(view, 1);
     d2_SetForm(view, 0);
@@ -1006,7 +999,7 @@ void cm_SessionAskAI(CMCUTINFO *r, CMSESSIONREQ *m)
             return;
         if (amt_CanTakeOffice((char *)c, m->kind) == 0)
             return;
-        res = ai_TrustedOfFourB(m->office, c, m->ids, &click);
+        res = ai_TrustedOfFour(m->office, (struct AIPER *)c, m->ids, &click);
         r->session.click = click;
         r->session.answer = res;
         sprintf(r->text, ch_EmptyName);
@@ -1181,7 +1174,6 @@ int cm_CheckTrial(G28REC *p)
     return 0;
 }
 
-#define gv_PassSentenceK ((void (*)(AICHAR *, int, AICHAR *, AICHAR *, AICHAR *))gv_PassSentence)  /* 0x4f4460 (gv.h: void gv_PassSentence(AICHAR *, int)): @original cm_RunTrial pushes five arguments (the accused, the sentence, the judge, the two assessors; 0x4dd52d push edx .. push ebx) */
 #define CM_WAIT_VOICE(h) if ((h) != 0) { do { if (sb_IsPlaying(h) == 0) break; cm_WaitTicks(1); } while (1); } cm_WaitTicks(1)  /* waits until the voice sample h has played */
 
 /* 0x4db700, the trial (the run function of scene kind 2, checked by cm_CheckTrial) of the party m in "Gericht.ed3": the
@@ -1735,7 +1727,7 @@ void cm_RunTrial(G28REC *m)
         cm_QueueVoice(c2->id, bankV, (int)"_PROZESS_7_STRAFEN", sentence, 100);
         cm_QueueVoice(c2->id, bank8, (int)"_PROZESS_8", (c1->sex == 1) & 1, 200);
         if (m->host == ai_CharsT[ai_PlayerId].netId)
-            gv_PassSentenceK(c1, sentence, c2, c3, c4);
+            gv_PassSentence(c1, sentence, c2, c3, c4);
         io_PrintText(0x1531);
         if (m->host == ai_CharsT[ai_PlayerId].netId) {
             fee = plan.rating2c / 3;
@@ -2030,12 +2022,12 @@ void cm_TrialAskAI(CMCUTINFO *r, AIPLAN *m)
     case 1:
         if (r->playerId != m->ids[0])
             return;
-        r->session.answer = ai_DecideTortureP(m);
+        r->session.answer = ai_DecideTorture(m);
         return;
     case 2:
         if (r->playerId != m->ids[0])
             return;
-        r->session.answer = ai_DecideTortureInstrumentP(m);
+        r->session.answer = ai_DecideTortureInstrument(m);
         return;
     case 3:
         if (r->playerId != m->ids[5])
@@ -2048,7 +2040,7 @@ void cm_TrialAskAI(CMCUTINFO *r, AIPLAN *m)
     case 6:
         if (r->playerId != m->ids[1])
             return;
-        r->session.answer = util_RandomU(2) & 0xffff;
+        r->session.answer = util_Random(2);
         return;
     case 4:
         id = r->playerId;
@@ -2088,7 +2080,7 @@ int cm_DuelSinkDown(char *c, int dmg)
     CHACTION *o;
 
     if (gm_HealthRatio(c) < 0.2) {
-        d3t_CreateBloodK(ch->scene->obj, 0x40, 0x3e800000, 0x3dcccccd, 0x3e0f5c29, 0x425c0000);
+        d3t_CreateBlood(ch->scene->obj, 0x40, 0.25f, 0.1f, 0.14f, 55.0f);
         ch_StopActions(ch->scene);
         o = ch_AddActionCB(ch->scene, cm_SinkDownAction, 0x12, 0x36, 1);
         strcpy(o->u.name, "bewegung/zu_boden_sinken");
@@ -2160,10 +2152,10 @@ void cm_DuelShotAction(CHACTION *a)
         cm_ShowDamage((char *)tg, (int)((tg->f01c * 0.01) * dmg), 0);
     } else
         dmg = 0;
-    sb_PlaySampleI(0, "Schuss", 1, 0x3f, 0x7f, 0, 0);
+    sb_PlaySample(0, "Schuss", 1, 0x3f, 0x7f, 0, 0);
     if (cm_DuelSinkDown((char *)tg, dmg) == 0) {
         if (hit != 0) {
-            d3t_CreateBloodK(tg->scene->obj, 0x40, 0x3e800000, 0x3dcccccd, 0x3e0f5c29, 0x425c0000);
+            d3t_CreateBlood(tg->scene->obj, 0x40, 0.25f, 0.1f, 0.14f, 55.0f);
             if (tg->scene->actions == 0)
                 ch_QueueAnim(tg->scene, "kampf/taumeln", 1);
             d2_SetForm(cm_TextBox, 0);
@@ -2342,7 +2334,7 @@ void cm_RunDuel(G28REC *m)
 
         hita = 0;
         hitb = 0;
-        r = util_RandomU(3) - 5;
+        r = util_Random(3) - 5;
         w = 0;
         a = (AICHAR *)gm_FindChar(m->members[0]);
         b = (AICHAR *)gm_FindChar(m->members[1]);
@@ -2638,7 +2630,7 @@ int cm_DuelAftermath(G28REC *m)
    name, the timer slider): r->duel.round = 1 (the cheat) for the answer 0, 0 for the answer 1 and when the time runs
    out; r's text cleared */
 
-void cm_DuelRoundDialog(CMCUTINFO *r)
+void cm_DuelRoundDialog(CMCUTINFO *r, G28REC *m)
 {
     int view, dlg;
 
@@ -2728,12 +2720,12 @@ void cm_DuelAskAI(CMCUTINFO *r)
 /* 0x4dfff0, the player's round of the duel (the player's callback of the scene kind 4): the round dialog
    cm_DuelRoundDialog without the party scene, else the party's choice cm_DuelChooseRound */
 
-void cm_DuelAskPlayer(CMCUTINFO *r)
+void cm_DuelAskPlayer(CMCUTINFO *r, G28REC *m)
 {
     if (cm_ScenePartyRuns == 0)
-        cm_DuelRoundDialog(r);
+        cm_DuelRoundDialog(r, m);
     else
-        cm_DuelChooseRoundR(r);
+        cm_DuelChooseRound(r, m);
 }
 /* 0x4e0010, the run function of scene kind 0, the picture show: loads the scene "cutscene_toby.ed3", runs the party
    twice (its members' texts, the kind's callbacks are the noop) and leaves the scene */
@@ -2786,7 +2778,7 @@ int cm_ExecutionAftermath(G28REC *m)
     }
     return 1;
 }
-#define CUT_NAMEREC(c) ((c) != 0 ? (char *)gm_CharNameRecord((c)->id) : (char *)gm_NameRecord((unsigned short)util_RandomU(2), (unsigned short)util_RandomU(0x5e) + 1))  /* a character's name record, a random one for none */
+#define CUT_NAMEREC(c) ((c) != 0 ? (char *)gm_CharNameRecord((c)->id) : (char *)gm_NameRecord(util_Random(2), util_Random(0x5e) + 1))  /* a character's name record, a random one for none */
 /* 0x4e01e0, one execution (the scene callback of the execution event, cm_RegisterSceneKind kind 5) of the delinquent
    m->members[0] with the others m->members[1] .. [3], the way m->variant 0 .. 4 (head, gallows (1, 2), shovel, cannon):
    the scene "Richtplatz.ed3" with a random sky of a random weather (1 heavy, 2 medium, else fair; the heavy one also calls
@@ -3121,7 +3113,7 @@ void cm_RunBirth(G28REC *m)
         }
         if (cm_RunSceneTicksOrClick(0x3e8, 0, 0) == 0) {
             for (k = cm_Random(4) + 2; k > 0; k--)
-                cm_QueueVoice(-8, bank, "_GEBURT_GESCHREI", cm_Random(5), (unsigned short)util_RandomU(0x800) + 0x3e8);
+                cm_QueueVoice(-8, bank, "_GEBURT_GESCHREI", cm_Random(5), util_Random(0x800) + 0x3e8);
             cm_RunSceneTicksOrClick(0x1b58, 0, 0);
         }
     }
@@ -4223,19 +4215,19 @@ int cm_RunSceneTicks(int a)
 }
 /* 0x4e3620, clears the sound queue and plays the special track name (snd_PlaySpecialTrack), nothing in the replay mode */
 
-int cm_PlaySpecialTrack(char *name)
+void cm_PlaySpecialTrack(char *name)
 {
     if (cm_SkipEvents == 0) {
         snd_ClearQueue();
-        return ((int (*)(char *))snd_PlaySpecialTrack)(name);
+        snd_PlaySpecialTrack(name);
     }
 }
 /* 0x4e3640, ends the special track and restores the ambient sounds and the music volume (snd_EndSpecialTrack), nothing in the replay mode */
 
-int cm_EndSpecialTrack(void)
+void cm_EndSpecialTrack(void)
 {
     if (cm_SkipEvents == 0)
-        return ((int (*)())snd_EndSpecialTrack)();
+        snd_EndSpecialTrack();
 }
 /* 0x4e3650, sets the object tables 0x5fb5b0 up with the two 0xc0 byte callbacks 0x512de0 / 0x512e40 (0x438e60) after 0x4fe350, then 0x5128d0 */
 
@@ -4659,7 +4651,7 @@ void cm_ExecCutscene(char *m)
                 shown++;
             }
         }
-        ((void (*)(void))d3io_NoopCallback)();  /* @original called without its argument (no push) */
+        cm_SceneNothing();
         cm_ClearSceneChars();
         if (party->flags & 0x20) {
             /* the cinemascope letterbox: 75 (scaled) lines off the top and the bottom */
@@ -5299,4 +5291,10 @@ void cm_InitScenes(void)
     cm_RegisterSceneKind(10, (int)cm_RunAuction, (int)cm_AuctionAskPlayer, (int)cm_AuctionAskAI, (int)cm_CheckAuction, 1);
     cm_RegisterSceneKind(11, (int)cm_RunSale, 0, 0, 0, 0);
     cm_ResetCutInfos(0);
+}
+
+/* unlinked: an empty function; LINK folds it (/OPT:ICF) into d3io_NoopCallback, 0x44ee40, where the original's
+   calls of it in the scene runner (no push) point */
+void cm_SceneNothing(void)
+{
 }

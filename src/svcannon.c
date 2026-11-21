@@ -292,7 +292,6 @@ extern unsigned char kb_Last;
 extern int sv_FrameMask;
 extern char ai_Chars[768][0x21c];
 
-#define AI_4A63F0_7(p, a, fl, b, c, f, o) ((int (*)(void *, int, unsigned int, int, int, float, int *))ai_PickActionBuilding)(p, a, fl, b, c, f, o)
 
 #define U_I(a) (*(int *)(a))
 
@@ -315,7 +314,6 @@ struct SBSAMPLE;
 extern TUTSTATE *const ai_Tutorial;
 #define S (*(char **)(unsigned)&ai_Tutorial)  /* the tutorial state record (at 0x6fa060): the pointer ai_Tutorial holds */
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original ai_SeanceGhost reads the 16-bit result (mov si, ax) */
 typedef struct SHOTENTRY {   /* 0x10 bytes */
     int obj;                 /* +0x0, -1 when empty */
     float dist;              /* +0x4 */
@@ -349,7 +347,6 @@ extern SHOTRESULT ai_ShotTable[3];
 #include "anm.h"
 #include "bmp.h"
 #include "f3gm.h"
-#define gm_TitleJobI ((int (*)(int, int))gm_TitleJob)  /* 0x5044b0 (f3gm.h: unsigned char): @original the byte-matched callers here read the result as an int (no `and eax,0xff` after the call): ai_PermissionBits1d 0x587b70 (shape) */
 #include "f3snd.h"
 #include "gv.h"
 #include "he.h"
@@ -1589,7 +1586,7 @@ int ai_CanSpyOn(AIBLD *rec)
 }
 
 int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(char *o, int n, unsigned char t); short * gm_PlayerRecord(char *c);
-void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
 
 /* 0x581020, the cabinet's spy window for the building rec: the form "Locations\Domizil\kabinett_spy" (centred,
    fitted, the default pointer) with the title txt 0x4020 centred over the window's width in font 0x54, a slider of
@@ -2140,7 +2137,7 @@ void ai_UnlockRoomWindow(AIBLD *rec, AIOBJ *room)
                     cm_BeginFieldBlock((char *)room, room->objId);
                     cm_AddFieldDelta(4, 1, 0x1c, &zero);
                     cm_AddFieldDelta(4, 1, 0x20, &zero);
-                    k = ((int (*)(void))cm_SendFieldDeltas)();  /* cm.c defines it void; the original's callers use eax: the slot of the block */
+                    k = cm_SendFieldDeltas();  /* cm.c defines it void; the original's callers use eax: the slot of the block */
                     while (k != -1 && cm_GetSlotState(k) == 0)
                         sv_RunFrame(0, 0x20007);
                     sv_PopRequest = 1;

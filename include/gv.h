@@ -2,7 +2,7 @@ struct D3PARTSYS;
 struct D3COLOR;
 struct D3SM;
 struct D3VECTOR;
-struct SNDHANDLE;
+struct SBSAMPLE;
 struct SHOTREC;
 struct AIBLD;
 struct AICHAR;
@@ -324,7 +324,6 @@ typedef struct ORDEVENT {
 extern volatile unsigned long d3_Time;  /* 0x6333cc, milliseconds (tb.c) */
 extern int d3_CurrentScene;                /* 0x633444 */
 
-int util_Random(unsigned short n);      /* 0x42ec00, tr.c; the callers that read a 16-bit result (ch_RandomNear, anm_Update, cm_FightLoop ..) call util_RandomU, a cast in their head */
 unsigned char * gm_BuildQuery(int n, ...);                     /* 0x501190 */
 char d3if_Delete(struct D3OBJECT *obj);  /* 0x447190, d3_interface.h */
 int gm_MinutesBetween();                     /* 0x4fe280 */
@@ -462,7 +461,7 @@ int gv_SendGrave(unsigned char *o);    /* 0x4f15e0 */
 int gv_DecayRaisedDead(struct AICHAR *c);  /* 0x4f1660 */
 int gv_RoomForRaised(unsigned char *o, int *n);  /* 0x4f1d50 */
 float gv_PreserveRate(char *o);           /* 0x4f16f0 */
-void cm_SendFloatDelta(int id, int field, float delta);  /* 0x4c4ac0 */
+int cm_SendFloatDelta(int id, int field, float delta);  /* 0x4c4ac0 */
 int gv_WriteGraveyard(void *f, unsigned char *o);  /* 0x4f17f0 */
 char * gm_Query(void *list, int n, ...);                   /* 0x4ffe90 */
 unsigned gv_RaiseDead(GVRAISE *m);     /* 0x4f1200 */
@@ -543,7 +542,7 @@ int gv_CrimeTextLaw9to16(char *out, CRIME r, int mode);  /* 0x4f31d0 */
 int gv_CrimeTextLaw17to28(char *out, CRIME r, int mode);  /* 0x4f3270 */
 int gv_CrimeText(char *out, CRIME r, int mode);  /* 0x4f3580 */
 char *gv_FindAccused(char *c, int max, int *ids, int *cnt);  /* 0x4f41b0 */
-void gv_PassSentence(struct AICHAR *c, int a);  /* 0x4f4460 */
+void gv_PassSentence(struct AICHAR *c, int a, struct AICHAR *judge, struct AICHAR *assessor1, struct AICHAR *assessor2);  /* 0x4f4460 */
 void gv_SentenceText(unsigned short *c, int a, char *out);  /* 0x4f48f0 */
 
 unsigned ord_ApplyForOffice(ORDCHAR *c, int *m);  /* 0x4f4e20 */
@@ -629,7 +628,7 @@ int ord_InterrogationOrder3(char *c, int *m);     /* 0x4f7fc0 */
 int ord_DismissWorkerOrder(char *c, int *m);     /* 0x4f8140 */
 
 extern int (*ord_OrderHandlers[0x3a])(char *c, int *m);    /* 0x611768, the order handler of each order number */
-int d2_OpenForm(int x, int y, char *name);  /* 0x4741f0, d2.h: loads the view, returns its number */
+int d2_OpenForm(short x, short y, char *name);  /* 0x4741f0, d2.h: loads the view, returns its number */
 void d2_CentreViewWindows(int view);                     /* 0x475600 */
 int d2_SetForm(int view, int n);                       /* 0x475f70 */
 void d2_CloseView(int view);                     /* 0x4758f0 */
@@ -665,9 +664,9 @@ int gm_FindById(int *bld, int *obj, int *chr, int id);  /* 0x4fea50, fills *bld 
 int gm_EquipmentValue(unsigned char *b, int level);                     /* 0x509b10 */
 void ord_CountGridObjects(void);               /* 0x4f8360 */
 
-char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100, d3_sm.c (this unit's callers read an int: d3sm_GetVertexI) */
+char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100, d3_sm.c */
 extern char ord_KindTable[];            /* 0x617468, 0x58 pairs of ints */
-int ord_RandomCellPoint(int x, int y, int z);  /* 0x4f86a0 */
+char ord_RandomCellPoint(int x, int y, struct D3VECTOR *out);  /* 0x4f86a0, ord.c */
 int ord_GetKindRecord(int i, int *out);     /* 0x4f8890 */
 
 void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py);  /* 0x4f8460, kind: a law record (CRIME.law; the caller cm_ExAddCrime pushes the byte unwidened) */
@@ -694,7 +693,7 @@ int ord_HandleMessageRecord(int *m);              /* 0x4f9710 */
 unsigned char ord_GetRatingByte(int i);              /* 0x4f97a0 */
 float ord_BuildingCapacityRatio(void);              /* 0x4f97c0 */
 
-float ord_StatisticsRating(void);              /* 0x4f9ce0 */
+float ord_StatisticsRating(int *rec);              /* 0x4f9ce0 */
 float ord_WeightedRecordSum(int *out);          /* 0x4f9d40 */
 float ord_GetStatistics(int *o);            /* 0x4f9e00 */
 

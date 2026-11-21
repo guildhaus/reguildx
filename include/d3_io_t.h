@@ -16,8 +16,6 @@ typedef union D3BGFFLAGS {          /* tex_Load flags as the loader builds them 
         unsigned char b3;
     } s;
 } D3BGFFLAGS;
-/* tex_Load with its real argument types (ts_texture.c); d3.h declares the last two as int */
-#define D3BGF_TEXLOAD ((D3TEXHANDLE *(*)(char *, D3BGFFLAGS, unsigned char, unsigned char))tex_Load)
 
 typedef struct D3BGFPOLY {          /* 0x38 bytes, D3BGF::polys */
     float uv[3][2];                 /* 0x00 */
@@ -164,7 +162,10 @@ typedef struct D3IOPATH {           /* 0x44 bytes, the animation of an object (o
     int unk10;
     float pos[3];                   /* 0x14, the object's position and angles at the start */
     float rot[3];                   /* 0x20 */
-    D3IOANIMFLAGS flags;            /* 0x2c */
+    union {
+        D3IOANIMFLAGS flags;        /* 0x2c, field-wise */
+        D3ANIMFLAGS animFlags;      /* the same 12 bytes as d3anim_NextFrame takes them */
+    };
     float unk38;
     int unk3c;
     D3IOKEY *keys;                  /* 0x40 */

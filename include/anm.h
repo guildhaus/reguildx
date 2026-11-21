@@ -33,7 +33,7 @@ int gm_ClockSeason(AITIME *c);                                                  
 struct CHARACTER *ch_Create(char *name, struct D3VECTOR *pos);                                         /* 0x403390, ch.c: CHARACTER *, D3VECTOR * */
 struct CHACTION *ch_AddAction(struct CHARACTER *ch, unsigned int type, ...);                            /* 0x40b2f0, ch.c */
 int ch_Delete(struct CHARACTER *ch);                                                         /* 0x4028a0, ch.c: CHARACTER * */
-void d3_PointToWorld(struct D3OBJECT *obj_, struct D3VECTOR *in, struct D3VECTOR *out);                               /* 0x458a20, d3.h: D3 types */
+void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                               /* 0x458a20, d3.h: D3 types */
 int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);                                  /* 0x453e80, d3.h: D3VECTOR */
 unsigned char * gm_BuildQuery(int n, ...);                                                  /* 0x501190, ai.h: AIBLD * */
 unsigned char * gm_BuildNext(void);                                                        /* 0x501030 */
@@ -42,7 +42,6 @@ void anm_Update(void);                                                          
 int ch_QueueAnim(struct CHARACTER *ch, char *name, int n);                                   /* 0x4057a0, ch.c */
 char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py);           /* 0x45f170, ch.h: D3SM *, D3VECTOR * */
 extern struct D3SCENE *d3_DefaultScene; /* 0x5fb5b0 (as d3.h / lc.h) */
-int util_Random(unsigned short n);                                               /* 0x42ec00, tr.c; the callers that read a 16-bit result (ch_RandomNear, anm_Update, cm_FightLoop ..) call util_RandomU, a cast in their head */
 
 
 ANMREC *anm_NewAnimal(void);

@@ -17,19 +17,6 @@
 #include "d3_sm.h"
 #include "path.h"
 #include "ch.h"
-#define d3anim_StartAnimCh ((int (*)(void *, char *, CHANIMFLAGS))d3anim_StartAnim)  /* 0x435550 (d3.h: D3ANIMFLAGS f): @original this unit passes its field-wise CHANIMFLAGS, 12 bytes like D3ANIMFLAGS, as the original TU did */
-/* CHANIMFLAGS with byte 1 bit-wise (ch_AttachAni: f08 = the loop argument, f10 always set); a type of this
-   unit only: a member added to ch.h's CHANIMFLAGS moves sv_t's ai_TutorialInitChapter2 off byte */
-typedef struct CHANIMFLAGSB {
-    union {
-        int all;
-        struct { unsigned char b0, b1, b2, b3; } c;
-        struct { unsigned char p0; unsigned char p8 : 3, f08 : 1, f10 : 1, p13 : 3; } bits;
-    } u;
-    unsigned int a : 1, b : 1, r : 30;
-    unsigned char a8 : 1, b8 : 1, r8 : 6;
-} CHANIMFLAGSB;
-#define d3anim_StartAnimB ((int (*)(void *, char *, CHANIMFLAGSB))d3anim_StartAnim)  /* 0x435550, CHANIMFLAGSB f */
 #include "data_views.h"
 #include "d3_engine.h"
 #include "d3_fl.h"
@@ -47,7 +34,7 @@ typedef struct CHANIMFLAGSB {
 #include "d3_pose.h"
 #include "vfs.h"
 #include "chc.h"
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 #define d3t_CamMoveI (*(int *)&d3t_CamMove)  /* 0x6310e8, d3t_CamMove (d3_tools.c: D3ANIM *) as the int this unit tests and clears */
 
 char ch_AnimPath[0x100] = "x:\\gfx\\engine\\animations\\character";  /* 0x5f1120 */
@@ -545,7 +532,7 @@ void ch_UpdateLowPoly(CHARACTER *ch)
                 f.a = 0;
                 if (!d3_FindAnim(name))
                     d3_LoadAnimStream(path, name, 1);
-                s = (D3ANIMSLOT *)d3anim_StartAnimCh(ch->lowPolyBody->material->animCtl, name, f);
+                s = (D3ANIMSLOT *)d3anim_StartAnim(ch->lowPolyBody->material->animCtl, name, f.anim);
                 if (!s) {
                     sprintf(msg, "ch_Updatelowpoly(): Could not attach ani: %s", path);
                     ch->flags.lowPolyAnimFailed = 1;
@@ -806,7 +793,7 @@ D3ANIMSLOT *ch_AttachMotion(CHARACTER *ch, int motion)
         f.a = 1;
         if (!d3_FindAnim(name))
             d3_LoadAnimStream(path, name, 1);
-        s = (D3ANIMSLOT *)d3anim_StartAnimCh(ch->obj->material->animCtl, name, f);
+        s = (D3ANIMSLOT *)d3anim_StartAnim(ch->obj->material->animCtl, name, f.anim);
         if (!s) {
             sprintf(msg, "ch_AttachMotion(): Could not attach ani: %s", path);
             return 0;
@@ -885,7 +872,7 @@ void ch_StopAnim(CHARACTER *ch)
                 f.u.c.b1 = 0x18;
                 f.b = 0;
                 f.a = 0;
-                ch->morph = (D3ANIMSLOT *)d3anim_StartAnimCh(obj->material->animCtl, name, f);
+                ch->morph = (D3ANIMSLOT *)d3anim_StartAnim(obj->material->animCtl, name, f.anim);
                 if (ch->morph) {
                     if (!d3t_SceneIndex(ch->scene))
                         ch->morph->timeout = -1;
@@ -965,7 +952,7 @@ void ch_CheckAniMorph(CHARACTER *ch)
                 f.u.c.b1 = 0x18;
                 f.b = 0;
                 f.a = 0;
-                ch->morph = (D3ANIMSLOT *)d3anim_StartAnimCh(obj->material->animCtl, name, f);
+                ch->morph = (D3ANIMSLOT *)d3anim_StartAnim(obj->material->animCtl, name, f.anim);
                 if (ch->morph) {
                     if (!d3t_SceneIndex(ch->scene))
                         ch->morph->timeout = -1;
@@ -999,7 +986,7 @@ void ch_CheckAniMorph(CHARACTER *ch)
             sprintf(msg, "character/%s/%s.baf", ch->body, ch->next->name, ch->body);
             d3_LoadAnimStream(msg, ch->next->name, 0);
         }
-        ch->slot = (D3ANIMSLOT *)d3anim_StartAnimCh(obj->material->animCtl, ch->next->name, f);
+        ch->slot = (D3ANIMSLOT *)d3anim_StartAnim(obj->material->animCtl, ch->next->name, f.anim);
         ch->lastActionFrame = -1;
         if (ch->slot) {
             if (!d3t_SceneIndex(ch->scene))
@@ -1047,7 +1034,7 @@ void ch_PreloadAnims(CHARACTER *ch, int n, ...)
                 f.u.c.b0 = 0;
                 f.b = 0;
                 f.a = 1;
-                d3anim_StartAnimCh(ch->obj->material->animCtl, name, f);
+                d3anim_StartAnim(ch->obj->material->animCtl, name, f.anim);
                 d3_ReleaseTexture(ch->obj->material->animCtl, name);
             }
         }
@@ -1085,9 +1072,9 @@ void ch_LoadLowAnims(CHARACTER *ch, int n, ...)
             f.words[1] &= ~3;
             f.anim.b[0] = 0;
             if (!r)
-                r = d3_LoadAnimFile(file, buf, 1);
+                r = (int)d3_LoadAnimStream(file, buf, 1);
             if (r) {
-                d3_AttachAnimF(ch->lowPolyBody->material->animCtl, buf, f.anim);
+                d3anim_StartAnim(ch->lowPolyBody->material->animCtl, buf, f.anim);
                 d3_ReleaseTexture(ch->lowPolyBody->material->animCtl, buf);
             }
         }
@@ -1100,7 +1087,7 @@ int ch_AttachAni(CHARACTER *ch, char *name, unsigned char loop)
     char msg[512];
     char file[272];
     char buf[272];
-    CHANIMFLAGSB f;
+    CHANIMFLAGS f;
     D3ANIMSLOT *s;
 
     vfs_ToSlashes(name);
@@ -1118,11 +1105,11 @@ int ch_AttachAni(CHARACTER *ch, char *name, unsigned char loop)
         f.a = 1;
         if (!d3_FindAnim(buf)) {
             if (strcmp(name, "bewegung/gehen") && strcmp(name, "bewegung/karren_ziehen"))
-                d3_LoadAnimFile(file, buf, 0);
+                d3_LoadAnimStream(file, buf, 0);
             else
-                d3_LoadAnimFile(file, buf, 1);
+                d3_LoadAnimStream(file, buf, 1);
         }
-        s = (D3ANIMSLOT *)d3anim_StartAnimB(ch->obj->material->animCtl, buf, f);
+        s = (D3ANIMSLOT *)d3anim_StartAnim(ch->obj->material->animCtl, buf, f.anim);
         if (!s) {
             sprintf(msg, "ch_AttachAni(): Could not attach ani: %s", name);
             return 0;
@@ -1539,8 +1526,8 @@ int ch_RandomNear(D3VECTOR *pos, D3VECTOR *out)
     if (!h)
         return 0;
     d3_GetHeightAt(h, pos, &x, &z, &y);
-    nx = util_RandomU(10) - 4 + x;
-    nz = util_RandomU(10) - 4 + z;
+    nx = util_Random(10) - 4 + x;
+    nz = util_Random(10) - 4 + z;
     if (h->size - 2 < nx)
         nx = h->size - 2;
     if (nx < 2)

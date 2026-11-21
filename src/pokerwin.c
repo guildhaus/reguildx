@@ -49,8 +49,7 @@ extern int gm_PlayerRecords[688];
 #include "d3_fl.h"
 #include "dd_vesa.h"
 #include "ch.h"
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
-#define sb_PlaySampleI ((struct SBSAMPLE *(*)(int, char *, int, int, int, int, int))sb_PlaySample)  /* 0x426fa0 (sblib.c: SBBANK *bank): this unit passes the bank as an int */
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 #define ai_MarketBuildingV (*(G16BLDVIEW **)&ai_MarketBuilding)  /* 0x6f1bc8, ai_MarketBuilding (ai.c: AIBLD *) as this unit's G16BLDVIEW (its +0x4c / object fields) */
 #define ai_FallbackBuildingB (*(unsigned char **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) read bytewise, as this unit does */
 #define ai_PlayerBuildingB (*(unsigned char **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) read bytewise, as this unit does */
@@ -159,7 +158,6 @@ extern D2WIN d2_Wins[];             /* 0xf8f120, d2.h: D2WIN d2_Wins[0x61] */
 extern float sv_FramesPerTick;          /* 0x62378c, sv.c: the frames drawn since the last timer tick
                                            (the frame loop counts them in 0x623790, the tick callback
                                            0x520ec0 copies the count as a float and clears it) */
-int d2_CreateWindow(short x, short y, short w, short h, unsigned int flags); /* 0x472390, d2.c */
 void d2_PlaceWindowScaled(int win, int flags); /* 0x475730, d2.c */
 int d2_RemoveWindow(int win);           /* 0x472ce0, d2.c */
 int io_PrintText(char *fmt, ...);          /* 0x515960, io_text.c: prints a text (id or literal) with its
@@ -245,7 +243,7 @@ void d3s_FreeShadows(struct D3OBJECT *obj);     /* 0x45ccd0, d3s.c */
 void d3_UpdateAll(unsigned char full);          /* 0x43b6e0, d3_engine.c */
 char d3if_SelectScene(int index, char keep);    /* 0x4478e0, d3_interface.c */
 void d3_ReloadMeshes(unsigned int mask, int type, void (*progress)(int a, int i, int n));  /* 0x43e090, d3_engine.c */
-void d3_ApplyGraphicsOptions(int a, unsigned char b, unsigned char c, unsigned char mode, int e); /* 0x43c4e0 */
+void d3_ApplyGraphicsOptions(unsigned char a, unsigned char b, unsigned char c, unsigned char mode, int e); /* 0x43c4e0 */
 void ch_SetLowPoly(unsigned char mode);         /* 0x402af0, ch.c */
 void d3fl_SetMips(char a);                      /* 0x43f930, d3_fl.c */
 void ai_CheckBuildSites(void);                  /* 0x58fb60, lc.c */
@@ -555,7 +553,7 @@ int ai_PokerGame(void)
                 d2_SetForm(ai_PokerUi.window, 4);
                 txt_Format(text, 0x4252, ai_PokerState.pot);
                 io_PrintText(text);
-                txt_Format(text, util_RandomU(3) + 0x4253, 0x4256);
+                txt_Format(text, util_Random(3) + 0x4253, 0x4256);
                 io_PrintText(text);
                 if (ai_PokerState.actor != 0) {
                     txt_Format(text, 0x425a, ai_PokerState.bet);
@@ -586,7 +584,7 @@ int ai_PokerGame(void)
                 d2_SetForm(ai_PokerUi.window, 4);
                 txt_Format(text, 0x4252, ai_PokerState.pot);
                 io_PrintText(text);
-                txt_Format(text, util_RandomU(3) + 0x4253, 0x4257);
+                txt_Format(text, util_Random(3) + 0x4253, 0x4257);
                 io_PrintText(text);
                 if (ai_PokerState.actor != 0) {
                     txt_Format(text, 0x425a, ai_PokerState.bet);
@@ -698,7 +696,7 @@ int ai_PokerGame(void)
                 d2_SetForm(ai_PokerUi.window, 4);
                 txt_Format(text, 0x4252, ai_PokerState.pot);
                 io_PrintText(text);
-                txt_Format(text, util_RandomU(3) + 0x4253, 0x4258);
+                txt_Format(text, util_Random(3) + 0x4253, 0x4258);
                 io_PrintText(text);
                 if (ai_PokerState.actor != 0) {
                     txt_Format(text, 0x425a, ai_PokerState.bet);

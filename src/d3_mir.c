@@ -20,8 +20,6 @@
 #include "data_views.h"
 #include "ts_texture.h"
 #include "d3_pose.h"
-#define d3_TriNormalM ((void (*)(D3VECTOR *, D3PVERT *, D3PVERT *, D3VECTOR4 *))d3_TriNormal)  /* 0x454700 (d3_vec.h: D3VECTOR4 * x4): this unit passes the origin and its polygon vertices */
-#define d3_DirToRefD ((void (*)(D3OBJECT *, D3OBJECT *, D3VECTOR *, D3VECTOR4 *))d3_DirToRef)  /* 0x458950 (d3_pose.h: XOBJ *, XOBJ *, float *, float *): this unit's D3OBJECT / vector view */
 
 #define D3M_SURF(o) ((D3MIRSURF *)(o)->info)
 #define D3M_PTS(mesh) ((mesh)->mirrorPoints)                     /* "d3_mir:MirroredPoints" */
@@ -42,7 +40,7 @@ char d3_MirBoundaryEdges(unsigned int n, unsigned char *used, D3PVERT **pts, uns
         row = used + i;
             for (j = 0; j < n; j++, row += n) {
                 if (i != j && used[i * n + j] == 0) {
-                    d3_TriNormalM((D3VECTOR *)&d3_Origin, pts[i], pts[j], &nrm);
+                    d3_TriNormal((D3VECTOR4 *)&d3_Origin, (D3VECTOR4 *)pts[i], (D3VECTOR4 *)pts[j], &nrm);
                     for (k = 0; k < n; k++) {
                         if (k != i && k != j) {
                             p = pts[k];
@@ -266,7 +264,7 @@ D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, D3TEXTURE *tex)
                 planes->n = ci->n + ne;
                 planes->mirror = 1;
                 for (j = 0; j < ne; j++) {
-                    d3_TriNormalM(&d3_Origin, uniq[j * 2], uniq[j * 2 + 1], &planes->p[j]);
+                    d3_TriNormal((D3VECTOR4 *)&d3_Origin, (D3VECTOR4 *)uniq[j * 2], (D3VECTOR4 *)uniq[j * 2 + 1], &planes->p[j]);
                     p = uniq[j * 2];
                     planes->p[j].w = -(p->x * (planes->p[j].x) + p->y * planes->p[j].y + (p->z) * planes->p[j].z);
                 }
@@ -469,7 +467,7 @@ found:
                 m->planes = 0;
             }
             if (m->flags.visible) {
-                d3_DirToRefD(obj, d3_Camera, &((D3SRCPOLY *)m->tri->src)->normal, &m->plane);
+                d3_DirToRef(obj, d3_Camera, &((D3SRCPOLY *)m->tri->src)->normal, &m->plane);
                 m->plane.w = m->plane.x * m->tri->v[0]->x + m->plane.y * m->tri->v[0]->y + m->plane.z * m->tri->v[0]->z;
                 m->planes = d3_MirCreatePlanes(m->obj, m->tex);
             }

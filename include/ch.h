@@ -5,7 +5,6 @@ struct SBBANK;
 struct D3VECTOR;
 struct D3TERRAIN;
 struct D3SM;
-struct XOBJ;
 struct D3SURF;
 /* ch.c -- characters ("ch_SetVisible(): invalid character", "ch_Create:Too many characters!"),
    original file name unknown. Starts at 0x402140 and continues past 0x4028a0. Field names unkXXX are
@@ -140,7 +139,7 @@ char d3_InflateScene(unsigned int flags);                                       
 void d3_SetObject078(D3OBJECT *obj, D3VECTOR *v);                                       /* 0x43b820 */
 char d3if_Show(struct D3OBJECT *obj, char show);                                               /* 0x4471b0 */
 char d3if_ShowTree(D3OBJECT *obj, char show);                                             /* 0x447300 */
-void d3_DirToWorld(struct XOBJ *obj, float *in, float *out);                           /* 0x458810 */
+void d3_DirToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                           /* 0x458810 */
 float d3_VecAngle(D3VECTOR *a, D3VECTOR *b);                                            /* 0x4539f0 */
 extern const D3VECTOR4 d3_ZAxis;             /* 0x5ebb74, (0, 0, 1) */
 struct D3SM * d3sm_Create(struct D3TERRAIN *t, int size, int mask);                          /* 0x45eeb0 */
@@ -151,13 +150,18 @@ extern int ch_LowPoly;              /* 0x631064, 2 - the ch_SetLowPoly mode */
 struct D3OBJECT; struct D3IFSCENE; char d3if_MoveObject(struct D3OBJECT *obj, struct D3IFSCENE *from, struct D3IFSCENE *to);                           /* 0x447fd0, moves obj to another scene */
 void vfs_ToSlashes(char *path);                                                         /* 0x42ed10 */
 /* D3ANIMFLAGS as built for d3anim_StartAnim here: field-wise, so VC6 keeps the dword at 4 in a register */
-typedef struct CHANIMFLAGS {
-    union {
-        int all;
-        struct { unsigned char b0, b1, b2, b3; } c;     /* b1: 0x10 loop, 0x08 (D3ANIMFLAGS.b[1]) */
-    } u;
-    unsigned int a : 1, b : 1, r : 30;                  /* 0x04 */
-    unsigned char a8 : 1, b8 : 1, r8 : 6;               /* 0x08, b8 = D3ANIMSLOT.play */
+typedef union CHANIMFLAGS {
+    struct {
+        union {
+            int all;
+            struct { unsigned char b0, b1, b2, b3; } c; /* b1: 0x10 loop, 0x08 (D3ANIMFLAGS.b[1]) */
+            struct { unsigned char p0; unsigned char p8 : 3, f08 : 1, f10 : 1, p13 : 3; } bits;  /* byte 1 bit-wise
+                                                   (ch_AttachAni: f08 = the loop argument, f10 always set) */
+        } u;
+        unsigned int a : 1, b : 1, r : 30;              /* 0x04 */
+        unsigned char a8 : 1, b8 : 1, r8 : 6;           /* 0x08, b8 = D3ANIMSLOT.play */
+    };
+    D3ANIMFLAGS anim;                                   /* the same 12 bytes as d3anim_StartAnim takes them */
 } CHANIMFLAGS;
 struct D3ANIMDATA *d3_LoadAnimStream(char *name, char *file, char unk);                                /* 0x44e4a0, loads an animation, d3_io_t.c */
 
@@ -218,7 +222,7 @@ void ch_SaveGround(struct D3HMAP *hmap);                                        
 
 /* ---- 0x404360..0x405810 (worker ch2): action queue, camera presets, ground map ---- */
 struct D3OBJECT;
-struct SNDHANDLE;
+struct SBSAMPLE;
 #include "d3_anim.h"
 #include "d3_sm.h"
 
@@ -383,12 +387,10 @@ extern int ch_DirtyZ1;                      /* 0x631080 */
 extern int d3t_CamMoving;                   /* 0x6310e4 */
 extern struct D3ANIM *d3t_CamMove;       /* 0x6310e8, the running camera animation (d3_tools.c; ch.c / ecmd.c test it through d3t_CamMoveI) */
 
-char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100 */  /* @original: the original callers read an int result (gv.h declares it int; ord.c's ord_RandomCellPoint at 0x4f86a0 is byte-matched without the char widening) */
+char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100 */
 char map_Pick(struct D3FLMAP *map, struct D3VECTOR *pos, char lod, int *x, int *y, float *h);             /* 0x4463b0 */
 int d3t_PlaceObjectV(struct D3OBJECT *camera, struct D3VECTOR *pos, struct D3VECTOR *dir, int unk, char flags); /* 0x411860 */
 void vfs_ToSlashes(char *path);                                                         /* 0x42ed10 */
-#define d3_LoadAnimFile ((int (*)(char *, char *, int))d3_LoadAnimStream)                    /* 0x44e4a0, returns int */
-#define d3_AttachAnimF ((int (*)(void *, char *, D3ANIMFLAGS))d3anim_StartAnim)                   /* 0x435550 with the d3.h flags type */
 
 void ch_LoadLowAnims(CHARACTER *ch, int n, ...);                                        /* 0x404360 */
 int ch_AttachAni(CHARACTER *ch, char *name, unsigned char loop);                        /* 0x4044a0 */
@@ -420,7 +422,6 @@ extern D3SCENE *ch_Saved0;                  /* 0x631084, scene whose ground ch_G
 extern D3SCENE *ch_Saved1;                  /* 0x631088, the same for ch_Ground1 */
 extern int ch_LastUpdate;                   /* 0x5f1224 */
 
-int util_Random(unsigned short n);                                                      /* 0x42ec00, tr.c; the callers that read a 16-bit result (ch_RandomNear, anm_Update, cm_FightLoop ..) call util_RandomU, a cast in their head */
 char ch_FindFreeCell(struct D3SM *h, struct D3VECTOR *from, struct D3VECTOR *to, int x, int z, int *px, int *pz, int max, int flags); /* 0x4072a0, see ch4 block */
 
 /* ---- 0x405810..0x406e40 (worker ch3): sit / stand / gate / take / drop actions ---- */
@@ -540,7 +541,7 @@ typedef struct CHSLOT {             /* D3ANIMSLOT as the walk code sees it */
 extern char ch_MarkWalkErrors;           /* 0x631058, marks a failed walk animation on the character (a debug switch, always 0) */
 extern int ch_SndLib;               /* 0x63105c, sound library for step sounds */
 struct SBSAMPLE * sb_GetSample(struct SBBANK *bank, char *name);                                               /* 0x426030 */
-int d3snd_PlayAt(struct SNDHANDLE *snd, struct D3OBJECT *obj, int volume, float range);                    /* 0x417e30 */
+int d3snd_PlayAt(struct SBSAMPLE *snd, struct D3OBJECT *obj, int volume, float range);                    /* 0x417e30 */
 
 int ch_InitWalk(CHACTION *a, D3SM *h);                                                  /* 0x408690 */
 void ch_WalkSound(CHACTION *a, int ground);                                             /* 0x408ab0 */

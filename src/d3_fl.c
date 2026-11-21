@@ -29,9 +29,6 @@
 #include "vfs.h"
 #include "ch.h"
 #include "cm.h"
-#define tex_GetFrameF ((D3FLTEX *(*)(int, unsigned char))tex_GetFrame)  /* 0x460b00 (TSTEXTURE *): this unit's D3FLTEX view of the texture */
-#define tex_FindF ((D3FLTEX *(*)(char *))tex_Find)  /* 0x45f980 (TSTEXTURE *): this unit's D3FLTEX view of the texture */
-#define d3_DirToWorldD ((void (*)(D3OBJECT *, D3VECTOR *, D3VECTOR *))d3_DirToWorld)  /* 0x458810 (d3_pose.h: XOBJ *, float *, float *): this unit's D3OBJECT / vector view */
 extern const char d3_ScrollPool[];
 
 /* 0xfe79fc / 0xfe7a00 / 0xfe7a04 are d3d_UsedTexFormat.pf2 (+0x2c) + 0x10 / 0x14 / 0x18. */
@@ -982,7 +979,7 @@ void d3fl_PrepareWater(D3FLMAP *map)
                         D3FL_COPY_TO(regs, map->regions, oldn * sizeof(D3FLREGION));
                         first = oldn;
                     }
-                    if (!(tex = tex_FindF("EF_WASS_06A_2T_W_AN0"))) {
+                    if (!(tex = (D3FLTEX *)tex_Find("EF_WASS_06A_2T_W_AN0"))) {
                         f.all = 0;
                         f.b[0] = 0xac;
                         if (tex = (D3FLTEX *)tex_Load("EF_WASS_06A_2T_W_AN0", f, 0, 0))
@@ -1381,7 +1378,7 @@ void d3fl_MakeLight(D3FLMAP *map)
                 map->ambient[0] = D3_L(ctx.light)->color.x * (1.0f / 255.0f);
                 map->ambient[1] = D3_L(ctx.light)->color.y * (1.0f / 255.0f);
                 map->ambient[2] = D3_L(ctx.light)->color.z * (1.0f / 255.0f);
-                d3_DirToWorldD(ctx.light, &d3_ZAxis, (D3VECTOR *)&dir);
+                d3_DirToWorld(ctx.light, &d3_ZAxis, (D3VECTOR *)&dir);
                 lp = map->light;
                 h = map->height;
                 kx = (map->negScale) * map->hscale * 2.0f;
@@ -1819,7 +1816,7 @@ void d3fl_UpdateWater(unsigned long time, unsigned int n, D3FLREGION *r)
 
     for (k = 0; k < n; k++, r++) {
         if (r->tex && r->tex->frames > 0 && r->tex->speed > 0)
-            r->tex2 = tex_GetFrameF((D3TEXTURE *)r->tex - (D3TEXTURE *)d3_Textures,
+            r->tex2 = (D3FLTEX *)tex_GetFrame((D3TEXTURE *)r->tex - (D3TEXTURE *)d3_Textures,
                                    time / d3_AnimDiv[r->tex->speed] % r->tex->frames);
         dt = time - r->time;
         if (dt > 0) {

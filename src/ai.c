@@ -21,16 +21,12 @@ typedef unsigned int SOCKET;
 #include "net.h"
 #include "ai.h"
 #include "data_views.h"
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
 #define ai_FallbackBuildingT (*(struct AIBLD **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) as the AIBLD it points to */
 #define ai_PlayerBuildingT (*(struct AIBLD **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) as the AIBLD it points to */
 #define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
 #define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
 #define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define he_MessageBoxQuickjumpI ((void (*)(int, int, char *, int, int, int, int, int, int))he_MessageBoxQuickjump)  /* 0x53dee0 (he.c: char fl): @original this unit builds the flag as an int (byte-matched ai_MsgTakeBuildingGoodsPct5to19Type33 / ai_MsgTakeBuildingGoodsPct5to24Type34) */
-#define gm_CharLevelS ((int (*)(unsigned short, int))gm_CharLevel)  /* 0x505e60 (f3gm.c: unsigned short id, so the cast is now the prototype itself): @original this unit pushes the id as 16 bits (byte-matched ai_MasterExamPassed / ai_EvalFest / ai_RelationGain) */
-#define cm_SendRemoveGoodsI ((void (*)(int, int))cm_SendRemoveGoods)  /* 0x4c4960 (cm.h: short b): @original ai.c pushes the second argument as an int (byte-matched ai_SendRemoveEmptyGoods) */
 #include "d3_types.h"
 #include "am_types.h"                /* AIACT */
 #include "ahm.h"
@@ -50,6 +46,7 @@ typedef unsigned int SOCKET;
 #include "sv_t.h"
 #include "lc.h"
 #include "ch.h"
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 
@@ -236,8 +233,8 @@ AICHAR *ai_FindPartner(AICHAR *c)
             o = &ai_CharsT[i];
             id = c->id;
             if (i != id && o->kind == 6 || o->kind == 7 || ai_WorksForMaster(o) && (o->officeKind || o->secondOffice)) {
-                d = gm_CharLevelS(i, 0);
-                d = d - gm_CharLevelS(id, 0);
+                d = gm_CharLevel(i, 0);
+                d = d - gm_CharLevel(id, 0);
                 d = abs(d);
                 f = (10.0f - (float)d * 0.5f) * 0.1f;
                 if (ai_RelationMemory[i][c->id] * f < bestf && gm_Liking(i, c->id, 1) < 34.0f) {
@@ -249,7 +246,7 @@ AICHAR *ai_FindPartner(AICHAR *c)
         if (best == -1)
             return 0;
         d = ai_Relations[best][c->id] / 2 + ai_RelationMemory[best][c->id];
-        if (d < -0x32 - util_RandomU(0x20)) {
+        if (d < -0x32 - util_Random(0x20)) {
             a = 0;
             cm_BeginFieldBlock(c, c->netId);
             cm_AddFieldDelta(1, 1, 0x215, &a);
@@ -289,7 +286,7 @@ AICHAR *ai_FindPartner(AICHAR *c)
             p = 0;
         } else if (c->b215 <= 3) {
             /* one or two steps further; past the third the two have met */
-            a = util_RandomU(2) + 1;
+            a = util_Random(2) + 1;
             cm_BeginFieldBlock(c, c->netId);
             cm_AddFieldValues(1, 1, 0x215, &a);
             if (c->b215 + a > 3)
@@ -612,7 +609,7 @@ void ai_SendRemoveEmptyGoods(AIOBJ *stall)
 
     for (i = 0; i < ai_NEntries; i++) {
         if (ai_Entries[i].amount == 0 && !(ai_Entries[i].flags & 8))
-            cm_SendRemoveGoodsI(stall->objId, ai_Entries[i].item);
+            cm_SendRemoveGoods(stall->objId, ai_Entries[i].item);
     }
 }
 /* 0x47edb0, evaluates the production of a master's workshop @deep B3 far draft (1608/2272 bytes, 702
@@ -715,7 +712,7 @@ void ai_EvaluateProduction(AICHAR *ch)
         info.perm[i] = i;
     i = 0;
     do {
-        r = util_RandomU(0x20);
+        r = util_Random(0x20);
         t = info.perm[i];
         i++;
         info.perm[i - 1] = info.perm[r];
@@ -903,7 +900,7 @@ void ai_EvaluateProductionFlags(AICHAR *ch)
         info.perm[i] = i;
     i = 0;
     do {
-        r = util_RandomU(0x20);
+        r = util_Random(0x20);
         t = info.perm[i];
         i++;
         info.perm[i - 1] = info.perm[r];
@@ -1055,7 +1052,7 @@ done:
    0x47e990 comes here when gm_BuildingClass(type) == 2): buys slots / capacity / upgrades, starts the entries'
    production, sends the job orders and finishes with the trade (ai_MeisterCollectTrans / ai_MeisterTrade);
    the same production steps as ai_EvaluateProduction for this category's AIENTRY flags
-   @deep size queue s6: the r = util_RandomU(ai_NEntries) site of the PFLANZBAR walk: the original keeps r
+   @deep size queue s6: the r = util_Random(ai_NEntries) site of the PFLANZBAR walk: the original keeps r
    in edx inside the loop (mov dx, ax / and edx, 0xffff, the loop-skip path reads its home [esp+0x18]);
    ours stores it to [esp+0x1c] after and eax, 0xffff. r is already an int local: no 16-bit spelling lever,
    it is the same allocation race as the c/ch swap. prior: B3 far draft (970/975 instructions, 447
@@ -1272,7 +1269,7 @@ check:
                         idx = j;
                 }
                 for (i = 0; i < ai_NEntries * 4; i++) {
-                    r = util_RandomU(ai_NEntries);
+                    r = util_Random(ai_NEntries);
                     if (ai_GoodsT[ai_Entries[r].item].type == 0x17)
                         break;
                 }
@@ -1416,12 +1413,12 @@ void ai_CalcMeisterWache(AICHAR *ch)
     kind = ai_CharsT[ch->bld->owner].kind;
     if (kind != 6 && kind != 7) {
         if (!(util_RandomF() > 0.85) || idle < 3 || ai_Time.year < 7 - ai_Difficulty)
-            r = util_RandomU(3);
+            r = util_Random(3);
         else
             goto attack;
     } else {
-        r = util_RandomU(3);
-        if (r != 0 && ch->target != -1 && util_RandomU(2) != 0)
+        r = util_Random(3);
+        if (r != 0 && ch->target != -1 && util_Random(2) != 0)
             goto city;
     }
     if (r == 4) {
@@ -1469,7 +1466,7 @@ city:
         msg.flags = 2;
         msg.arg[0] = sel->id;
         msg.arg[1] = ch->bld->id;
-        msg.patrolRoll = util_RandomU(4) + 2;
+        msg.patrolRoll = util_Random(4) + 2;
         n = min(idle, 4);
         for (k = 0, c = 0; k < n && c < 768; c++) {
             if (ai_CharsT[c].id != 0xffff && ai_CharsT[c].bld == ch->bld && ai_CharsT[c].title
@@ -1557,7 +1554,7 @@ umland:
     msg.fromId = ch->bld->id;
     msg.time = ai_Time;
     msg.flags = 2;
-    strcpy((char *)&msg.arg[0], ai_AmbushSpots[util_RandomU(8)]);
+    strcpy((char *)&msg.arg[0], ai_AmbushSpots[util_Random(8)]);
     msg.arg[8] = ch->bld->id;
     o = gm_GetGebaeudeHauptraum(ch->bld);
     if (!o) {
@@ -1668,7 +1665,7 @@ int ai_CalcAngriff(AICHAR *ch, int n)
                 else
                     w = 1.0f - (ai_Grid[i][j].a * 0.125f + ai_Grid[i][j].b) / max;
                 w = (8.0f - gm_BuildingRank(bb)) * w * 0.5;
-                w = util_RandomU(100) * w * 0.01;
+                w = util_Random(100) * w * 0.01;
                 if (!best) {
                     bestw = w;
                     best = bb;
@@ -1719,7 +1716,7 @@ spy:
 
 report:
     /* his report on the building: it must know it well enough (reportKnow 50 + a random 0..49), else spy again */
-    if (o->reportKnow < util_RandomU(0x32) + 0x32)
+    if (o->reportKnow < util_Random(0x32) + 0x32)
         goto spy;
     if (n < 3)
         return 0;
@@ -1860,13 +1857,13 @@ void ai_CalcMeisterDiebe(AICHAR *ch)
         return;
     }
     if (ai_CharsT[ch->bld->owner].kind == 6 || ai_CharsT[ch->bld->owner].kind == 7) {
-        r = util_RandomU(2);
-        if (r && ch->target != -1 && util_RandomU(2))
+        r = util_Random(2);
+        if (r && ch->target != -1 && util_Random(2))
             goto burgle;
     } else {
         if (util_RandomF() > 0.85 && n >= 3 && ai_Time.year >= 7 - ai_Difficulty)
             goto other;
-        r = util_RandomU(3);
+        r = util_Random(3);
     }
     if (r == 1) {
         if (!(util_RandomF() < 0.95)) {
@@ -1894,7 +1891,7 @@ void ai_CalcMeisterDiebe(AICHAR *ch)
                             w = 0.0f;
                         else
                             w = 1.0f - (ai_Grid[i][j].a * 0.125f + ai_Grid[i][j].b) / max;
-                        w = util_RandomU(100) * w * 0.01;
+                        w = util_Random(100) * w * 0.01;
                         if (!best) {
                             bestw = w;
                             best = bb;
@@ -1920,7 +1917,7 @@ void ai_CalcMeisterDiebe(AICHAR *ch)
                 msg.arg[0] = ai_CharsT[best->owner].netId;
                 msg.arg[1] = best->id;
                 msg.arg[2] = ch->bld->id;
-                t = min(n, util_RandomU(3) + 1);
+                t = min(n, util_Random(3) + 1);
                 AI_FILL_IDS(t)
                 if (msg.ids[0] != -1) {
                     cm_SendLongMessage(&msg);
@@ -1966,7 +1963,7 @@ burgle:
                         w = 1.0f - (ai_Grid[i][j].a * 0.125f + ai_Grid[i][j].b) / max;
                     r = gm_BuildingRank(bb);
                     w = (8.0f - r) * w * 0.5;
-                    w = util_RandomU(100) * w * 0.01;
+                    w = util_Random(100) * w * 0.01;
                     if (!best) {
                         bestw = w;
                         best = bb;
@@ -1987,7 +1984,7 @@ burgle:
             if (o->reportBld == best->id)
                 break;
         /* a report on the building that knows enough (reportKnow 0x5f, or a random 0 .. 19 plus twice its guard): break in */
-        if (o && (o->reportKnow >= 0x5f || !((float)o->reportKnow < util_RandomU(20) + o->reportGuard * 2.0f))) {
+        if (o && (o->reportKnow >= 0x5f || !((float)o->reportKnow < util_Random(20) + o->reportGuard * 2.0f))) {
             for (job = he_FindEvent(2, 0, 0x40, 3, ch->bld->id); job; job = he_NextEvent())
                 if (job->targetBld == best->id)
                     goto unfinished;
@@ -2117,13 +2114,13 @@ void ai_CalcMeisterRaeuber(AICHAR *ch)
         return;
     }
     if (ai_CharsT[ch->bld->owner].kind == 6 || ai_CharsT[ch->bld->owner].kind == 7) {
-        r = util_RandomU(2);
-        if (r && ch->target != -1 && util_RandomU(2))
+        r = util_Random(2);
+        if (r && ch->target != -1 && util_Random(2))
             goto lauer;
     } else {
         if (util_RandomF() > 0.85 && n >= 3 && ai_Time.year >= 7 - ai_Difficulty)
             goto attack;
-        r = util_RandomU(4);
+        r = util_Random(4);
     }
     if (r == 3) {
 attack:
@@ -2152,7 +2149,7 @@ attack:
                             w = 0.0f;
                         else
                             w = 1.0f - (ai_Grid[i][j].a * 0.125f + ai_Grid[i][j].b) / max;
-                        w = util_RandomU(100) * w * 0.01;
+                        w = util_Random(100) * w * 0.01;
                         if (best == 0) {
                             bestw = w;
                             best = bb;
@@ -2204,7 +2201,7 @@ lauer:
     msg.fromId = ch->bld->id;
     msg.time = ai_Time;
     msg.flags = 2;
-    src = ai_AmbushSpots[util_RandomU(8)];
+    src = ai_AmbushSpots[util_Random(8)];
     strcpy((char *)msg.arg, src);
     want = min(n, 8);
     k = 0;
@@ -2252,7 +2249,7 @@ void ai_CalcMeisterBank(AICHAR *ch)
         cm_SendFieldDeltas();
     } else if (n == 0) {
         if (ch->bld->interest > rate.cur - 2) {
-            v = ch->bld->interest - util_RandomU(3) - 1;
+            v = ch->bld->interest - util_Random(3) - 1;
             if (rate.cur - 2 > v)
                 v = rate.cur - 2;
             if (v < 4)
@@ -2262,7 +2259,7 @@ void ai_CalcMeisterBank(AICHAR *ch)
             cm_SendFieldDeltas();
         }
     } else if (n > 3 && ch->bld->interest < rate.cur) {
-        v = util_RandomU(3) + 1 + ch->bld->interest;
+        v = util_Random(3) + 1 + ch->bld->interest;
         if (v >= rate.cur + 3)
             v = rate.cur + 3;
         cm_BeginFieldBlock(ch->bld, ch->bld->id);
@@ -2390,7 +2387,7 @@ void ai_StartBuildingWork(AICHAR *ch)
     if (!(ch->flags1b4 & 0x800)) {
         ch->flags1b4 |= 0x800;
         if (!he_FindEvent(2, 0, 0x8d, 3, ch->bld->id)) {
-            p = gv_FindWornEntry(ch->bld, (char)util_RandomU(0x40) - 0x80);
+            p = gv_FindWornEntry(ch->bld, (char)util_Random(0x40) - 0x80);
             if (p) {
                 AIMSG msg;
 
@@ -2570,7 +2567,7 @@ void ai_EvaluateProductionGraveyard(AICHAR *ch)
         info.perm[i] = i;
     i = 0;
     do {
-        r = util_RandomU(0x20);
+        r = util_Random(0x20);
         t = info.perm[i];
         i++;
         info.perm[i - 1] = info.perm[r];
@@ -2807,7 +2804,7 @@ void ai_EvaluateProductionGypsies(AICHAR *ch)
         info.perm[i] = i;
     i = 0;
     do {
-        r = util_RandomU(0x20);
+        r = util_Random(0x20);
         t = info.perm[i];
         i++;
         info.perm[i - 1] = info.perm[r];
@@ -3108,7 +3105,7 @@ void ai_UpdateProduction(AICHAR *ch, AIOBJ *a, AIOBJ *b)
         } else {
             ai_Slots[j].amount = gm_ListAmount(b, o);
             if (!ai_Slots[j].amount)
-                cm_SendRemoveGoodsI(b->objId, ai_Slots[j].item);
+                cm_SendRemoveGoods(b->objId, ai_Slots[j].item);
         }
         ai_Slots[j].capacity = gm_FreeCapacity(b, ai_Slots[j].item, 1000000);
     }
@@ -3428,7 +3425,7 @@ void ai_BuildTradeOffers(AICHAR *ch, AIOBJ *store, int f)
     k = 0;
     bld = ai_BldsT;
     do {
-        if (AI_KIND(bld->type) == 2) {
+        if (gm_BuildingClass(bld->type) == 2) {
             o = gm_Query(bld->objList, 2, 0, 0x2a, 6);
             if (o) {
                 for (it = gm_Query(o->list, 1, 5); it; it = gm_QueryNext()) {
@@ -3662,7 +3659,7 @@ int ai_HasMaterials(AICHAR *ch, AIENTRY *e, int f)
                             if (j >= gm_NOffers)
                                 break;
                             row = &gm_Offers[j];
-                            if (row->bld != ch->bld && AI_KIND(row->bld->type) != 2 && row->goodsObj != 0) {
+                            if (row->bld != ch->bld && gm_BuildingClass(row->bld->type) != 2 && row->goodsObj != 0) {
                                 cnt = row->count;
                                 if (cnt >= ai_GoodsT[e->item].need[k]) {
                                     if (row->bld->owner != ch->bld->owner) {
@@ -3753,7 +3750,7 @@ int ai_StartProduction(AICHAR *ch, AIENTRY *e)
                         if (j >= gm_NOffers)
                             break;
                         row = &gm_Offers[j];
-                        if (row->bld != ch->bld && AI_KIND(row->bld->type) != 2 && row->goodsObj != 0) {
+                        if (row->bld != ch->bld && gm_BuildingClass(row->bld->type) != 2 && row->goodsObj != 0) {
                             cnt = row->count;
                             if (cnt >= ai_GoodsT[e->item].need[k]) {
                                 s->bld = row->bld;
@@ -3989,7 +3986,7 @@ void ai_UpdateStaff(AICHAR *ch)
                         return;
                     if (ch->budget < v)
                         return;
-                    if (util_RandomU(0x48) < (0x12 - n) * 2)
+                    if (util_Random(0x48) < (0x12 - n) * 2)
                         return;
                 }
                 if (job == 0) {
@@ -4036,7 +4033,7 @@ void ai_OfferGrave(AICHAR *ch)
                         n++;
                 }
                 if (n < ai_BTypesT[bld->type].k231 + ai_BTypesT[bld->type].k232) {
-                    if (n == 0 || (!(ch->flags1c8 & 8) && util_RandomU(0x48) >= (0x12 - n) * 2))
+                    if (n == 0 || (!(ch->flags1c8 & 8) && util_Random(0x48) >= (0x12 - n) * 2))
                         gv_SendGrave(ch->bld);
                 }
             }
@@ -4082,7 +4079,7 @@ void ai_BuyUpgrade(AICHAR *ch)
         return;
     if (!(flags & 8))
         return;
-    rv = util_RandomU(0x14);
+    rv = util_Random(0x14);
     lim = rv + 0x4b;
     if (gm_BuildingLevel((AIBLD *)bld) < lim) {
         f = (float)gm_EquipmentValue(ch->bld, 100) * 0.005f;
@@ -4178,7 +4175,7 @@ void ai_BuySlots(AIOBJ *b, AICHAR *ch, int n)
     int a, d, ma, mb, x, y;
     int cnt, r;
 
-    if (b && !(c->flags1c8 & 8) && (int)util_RandomU(100) >= n) {
+    if (b && !(c->flags1c8 & 8) && (int)util_Random(100) >= n) {
         a = b->lvl1c;
         d = b->lvl1d;
         for (job = he_FindEvent(2, 0, 0x12, 3, c->bld->id); job; job = he_NextEvent()) {
@@ -4219,7 +4216,7 @@ void ai_BuySlots(AIOBJ *b, AICHAR *ch, int n)
                     txt_Format(buf, 0x1bbd, c->id, c->bld, cnt);
                 break;
             }
-            he_MessageBoxQuickjumpI(ai_CharsT[c->bld->owner].netId, ai_CharsT[c->bld->owner].netId, buf, 0, 0x60b,
+            he_MessageBoxQuickjump(ai_CharsT[c->bld->owner].netId, ai_CharsT[c->bld->owner].netId, buf, 0, 0x60b,
                          c->bld->id, -1, 0, 0);
             c->budget += cnt * -8000;
             cm_EndGroup("AI-Slots");
@@ -4235,7 +4232,7 @@ void ai_BuyCapacity(AIOBJ *b, AICHAR *ch, int n)
     AIMSG msg;
 
     if (b && !(c->flags1c8 & 8)) {
-        if ((int)util_RandomU(100) >= n) {
+        if ((int)util_Random(100) >= n) {
             if (!he_FindEvent(2, 0, 0x13, 3, c->bld->id) && b->count < 3 && c->budget >= 0x9600) {
                 memset(&msg, 0, sizeof(msg));
                 msg.type = 0x13;
@@ -4557,10 +4554,10 @@ int ai_CheckFreeThieves(AICHAR *ch)
         if (found)
             break;
     }
-    if (found && util_RandomU(0x80) < 0x20)
+    if (found && util_Random(0x80) < 0x20)
         return 0;
     if (!found) {
-        if (((float)ai_CharsT[i].sk83 < 252.0f || (float)ai_CharsT[i].sk82 < 252.0f) && util_RandomU(0x80) > 0x60)
+        if (((float)ai_CharsT[i].sk83 < 252.0f || (float)ai_CharsT[i].sk82 < 252.0f) && util_Random(0x80) > 0x60)
             return 0;
     }
     for (i = 0; i < 768; i++) {
@@ -4596,11 +4593,11 @@ int ai_CheckFreeStaff(AICHAR *ch)
         if (found)
             break;
     }
-    if (found && util_RandomU(0x80) < 0x60)
+    if (found && util_Random(0x80) < 0x60)
         return 0;
     if (!found) {
         if (((float)ai_CharsT[i].sk81 < 252.0f || (float)ai_CharsT[i].sk82 < 252.0f ||
-             (float)ai_CharsT[i].sk84 < 252.0f) && util_RandomU(0x80) > 0x20)
+             (float)ai_CharsT[i].sk84 < 252.0f) && util_Random(0x80) > 0x20)
             return 0;
     }
     for (i = 0; i < 768; i++) {
@@ -4937,7 +4934,7 @@ void ai_MeisterCollectTrans(AICHAR *ch)
                     return;
                 if (n >= bt->cap247)
                     return;
-                if (util_RandomU(0x2ee) >= 2)
+                if (util_Random(0x2ee) >= 2)
                     return;
                 if (ch->budget <= (int)gm_ItemPrice(0x136, 100) * 2)
                     return;
@@ -4948,9 +4945,9 @@ void ai_MeisterCollectTrans(AICHAR *ch)
                     return;
                 if (n >= bt->cap247)
                     return;
-                if (util_RandomU(0x2ee) >= 2)
+                if (util_Random(0x2ee) >= 2)
                     return;
-                item = 0x136 - (util_RandomU(8) < 4);
+                item = 0x136 - (util_Random(8) < 4);
                 if (ch->budget <= (int)gm_ItemPrice(item, 100) * 2)
                     return;
                 cm_SendMoveGoods(-1, ai_CharsT[ch->bld->owner].netId, ai_OwnPlayer, (int)gm_ItemPrice(item, 100));
@@ -4971,7 +4968,7 @@ void ai_MeisterCollectTrans(AICHAR *ch)
                 return;
             if (n >= bt->cap247)
                 return;
-            if (util_RandomU(0x2ee) >= 2)
+            if (util_Random(0x2ee) >= 2)
                 return;
             if (ch->budget <= (int)gm_ItemPrice(0x135, 100) * 2)
                 return;
@@ -4997,7 +4994,7 @@ void ai_UnloadCarts(AICHAR *ch)
              car = gm_QueryNext()) {
             AIMSG msg;
 
-            if (car->fill < util_RandomU(0x20) + 0x28) {
+            if (car->fill < util_Random(0x20) + 0x28) {
                 memset(&msg, 0, sizeof(msg));
                 msg.type = 0x10;
                 msg.to = ai_CharsT[ch->bld->owner].netId;
@@ -5306,7 +5303,7 @@ int ai_MeisterTrade(AICHAR *ch, AIOBJ *b)
                             }
                         }
                         if (!stA.amount[i]) {
-                            cm_SendRemoveGoodsI(b->objId, stA.item[i]);
+                            cm_SendRemoveGoods(b->objId, stA.item[i]);
                             stA.item[i] = 0;
                         }
                     }
@@ -5342,7 +5339,7 @@ int ai_MeisterTrade(AICHAR *ch, AIOBJ *b)
                             }
                         }
                         if (!stB.amount[i]) {
-                            cm_SendRemoveGoodsI(b->objId, stB.item[i]);
+                            cm_SendRemoveGoods(b->objId, stB.item[i]);
                             stB.item[i] = 0;
                         }
                     }
@@ -5692,7 +5689,7 @@ int ai_MeisterTradeAllgemein(AICHAR *ch, AIOBJ *b)
                             }
                         }
                         if (!stA.amount[i]) {
-                            cm_SendRemoveGoodsI(b->objId, stA.item[i]);
+                            cm_SendRemoveGoods(b->objId, stA.item[i]);
                             stA.item[i] = 0;
                         }
                     }

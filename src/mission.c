@@ -6,7 +6,7 @@
    G13TYPE.offerSpeech, G13MIS.progress / fulfilled stand on their users (the _AUFTRAEGE_VERGABE speech,
    ai_CountMissionEvent and the completion flag of he.c 0x56ce40). AIFIN.missionMoney (ai.h) holds the five saved
    money statistics of the player record the money conditions read (no writer in the build).
-   Open: the mission conditions read AICHAR / AIBLD bytes through the G13_B / gm_BuildQueryT views (type debt).
+   Open: the mission conditions read AICHAR / AIBLD bytes through the G13_B view and (AIBLD *) casts of gm_BuildQuery (type debt).
    Open: not included yet (dcp headers conflicts mission HEADER): d2.h; held by own declarations that differ
    from the owner's: d2_Radios.
    unit of rea 8cef7d5b (src/game/unk_4b39f0.c); boundaries in decl/text.dcl */
@@ -31,7 +31,6 @@
 #define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
 #define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
 #define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define io_PrintTextId ((int (*)(int, ...))io_PrintText)  /* 0x515960 (io_text.h: int io_PrintText(char *fmt, ...)): the call with a text id for fmt (an id of txt_Ptrs, computed from a mission type's text) */
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 /* 0x4b39f0, clears the running missions */
 int ai_ClearMissions(void)
@@ -197,7 +196,7 @@ G13MIS *ai_NewMission(int owner, int type, int x)
     return 0;
 }
 
-int d2_OpenForm(int x, int y, char *name);                                     /* 0x4741f0 */
+int d2_OpenForm(short x, short y, char *name);                                     /* 0x4741f0 */
 void d2_CentreViewWindows(int view);                                                     /* 0x475600 */
 void d2_CloseView(int view);                                                     /* 0x4758f0 */
 int d2_SetForm(int view, int n);                                                 /* 0x475f70 */
@@ -223,7 +222,7 @@ int ai_MissionOfferDialog(int type, int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintTextId(t->text + 1);
+    io_PrintText((char *)(t->text + 1));
     io_PrintText("$N");
     io_PrintText((char *)0x7d);
     io_PrintText("$N");
@@ -464,7 +463,6 @@ int ai_ChooseMissionFrom(int n)
 }
 
 #define G13_B(c, off) (((unsigned char *)(c))[off])
-#define gm_BuildQueryT ((AIBLD *(*)(int, ...))gm_BuildQuery)  /* the variadic view (am.h repeats a 3-int one) */
 
 int ai_TimedCondition(int x, int ok, int y);                                          /* 0x4b5160 */
 
@@ -820,7 +818,7 @@ int ai_CondPlayerHoldsNoBuilding(AICHAR *c, G13TYPE *t)
 {
     AIBLD *b;
 
-    for (b = gm_BuildQueryT(1, 6); b != 0; b = gm_BuildNext()) {
+    for (b = (AIBLD *)gm_BuildQuery(1, 6); b != 0; b = gm_BuildNext()) {
         if (b->owner != 0xffff && ai_CharsT[b->owner].kind == 5)
             return 0;
     }
@@ -924,10 +922,6 @@ int ai_IsMissionFulfilled(G13MIS *m)
     return 0;
 }
 
-#define gm_SetTimeT ((void (*)(AITIME *, char, char, char))gm_SetTime)  /* 0x4fe1e0, gm_SetTime with char arguments: the
-                                                                         original's call passes the clock's bytes (ai.h
-                                                                         declares the arguments unsigned char) */
-
 /* 0x4b5160, timed condition of mission x: not ok resets its time; ok starts it (once) and holds after min
    minutes */
 int ai_TimedCondition(int x, int ok, int min)
@@ -937,7 +931,7 @@ int ai_TimedCondition(int x, int ok, int min)
     if (ok) {
         if (m->time.year == 0 && m->time.hour == 0 && m->time.min == 0 && m->time.sec == 0) {
             m->time.year = ai_Time.year;
-            gm_SetTimeT(&m->time, (char)ai_Time.hour, (char)ai_Time.min, (char)ai_Time.sec);
+            gm_SetTime(&m->time, ai_Time.hour, ai_Time.min, ai_Time.sec);
         }
         return gm_MinutesBetween(&m->time, &ai_Time) >= min;
     }
@@ -954,9 +948,9 @@ void ai_CharBuildingShare(AICHAR *c, int k, G13STAT *s)
 
     same = 0;
     if (k != 0)
-        b = gm_BuildQueryT(1, 5, k);
+        b = (AIBLD *)gm_BuildQuery(1, 5, k);
     else
-        b = gm_BuildQueryT(1, 6);
+        b = (AIBLD *)gm_BuildQuery(1, 6);
     n = 0;
     for (; b != 0; b = gm_BuildNext(), n++) {
         if (b->owner == c->id)
@@ -980,9 +974,9 @@ void ai_PlayerShare(int k, G13STAT *s)
 
     same = 0;
     if (k != 0)
-        b = gm_BuildQueryT(1, 5, k);
+        b = (AIBLD *)gm_BuildQuery(1, 5, k);
     else
-        b = gm_BuildQueryT(1, 6);
+        b = (AIBLD *)gm_BuildQuery(1, 6);
     n = 0;
     for (; b != 0; b = gm_BuildNext(), n++) {
         w = b->owner;
@@ -1023,7 +1017,7 @@ void ai_MissionInfoDialog(int type, int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintTextId(t->text + 1);
+    io_PrintText((char *)(t->text + 1));
     io_PrintText("$N");
     io_PrintText((char *)0x7d);
     sprintf(name, "_AUFTRAEGE_VERGABE_HS_%.2d", t->offerSpeech);
@@ -1104,7 +1098,7 @@ void ai_MissionSuccessDialog(G13TYPE *t, int id)
     d2_SetForm(view, 1);
     io_PrintText("$C");
     io_PrintText((char *)0x1b9e);
-    io_PrintTextId(t->text + 2);
+    io_PrintText((char *)(int)(t->text + 2));
     if (sb_IsInit()) {
         sprintf(name, "_AUFTRAEGE_ERFOLG_HS_%.2d", t->speech);
         snd = snd_PlayVoice(-7, 0, name, -1);
@@ -1275,7 +1269,7 @@ void ai_MissionNextDialog(int id)
                 ai_MissionMode = -1;
                 msg2[0] = c->netId;
                 msg2[4] = 0;
-                h = ((int (*)(int, int))cm_SendExSysMessage)(0x0a, msg2);
+                h = cm_SendExSysMessage(0x0a, msg2);
                 while (!cm_GetSlotState(h))
                     sv_PumpNet();
                 sv_PopRequest = 1;
@@ -1284,7 +1278,7 @@ void ai_MissionNextDialog(int id)
                 msg1[0] = c->netId;
                 quit = 1;
                 msg1[4] = 1;
-                h = ((int (*)(int, int))cm_SendExSysMessage)(0x0a, msg1);
+                h = cm_SendExSysMessage(0x0a, msg1);
                 while (!cm_GetSlotState(h))
                     sv_PumpNet();
                 sv_PopRequest = 1;
@@ -1296,7 +1290,7 @@ void ai_MissionNextDialog(int id)
         nm = ai_NewRandomMission(c->netId, next, 1);
         msg1[0] = c->netId;
         msg1[4] = 0;
-        h = ((int (*)(int, int))cm_SendExSysMessage)(0x0a, msg1);
+        h = cm_SendExSysMessage(0x0a, msg1);
         while (!cm_GetSlotState(h))
             sv_PumpNet();
         ai_MissionInfoDialog(nm->type, id);
@@ -1418,21 +1412,21 @@ void ai_MissionCompleteSingle(int id)
         ai_MissionMode = -1;
         msg[0] = c->netId;
         msg[4] = 0;
-        h = ((int (*)(int, int))cm_SendExSysMessage)(0x0a, msg);
+        h = cm_SendExSysMessage(0x0a, msg);
         while (!cm_GetSlotState(h))
             sv_PumpNet();
     } else if (r == 0xff) {
         ai_MissionMode = -1;
         msg[0] = c->netId;
         msg[4] = 1;
-        h = ((int (*)(int, int))cm_SendExSysMessage)(0x0a, msg);
+        h = cm_SendExSysMessage(0x0a, msg);
         while (!cm_GetSlotState(h))
             sv_PumpNet();
     } else {
         ai_NewMission(c->netId, r, 1);
         msg[0] = c->netId;
         msg[4] = 0;
-        h = ((int (*)(int, int))cm_SendExSysMessage)(0x0a, msg);
+        h = cm_SendExSysMessage(0x0a, msg);
         while (!cm_GetSlotState(h))
             sv_PumpNet();
     }

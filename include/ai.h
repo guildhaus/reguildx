@@ -219,7 +219,6 @@ typedef struct AIMAPENT {               /* 24 bytes, the AI's view of the vegeta
     int obj;                            /* 0x14, its 3D object */
 } AIMAPENT;
 
-#define AI_KIND(t) (((int (*)(int))gm_BuildingClass)(t))   /* the call zero-extends the byte (xor ecx,ecx; mov cl) */
 
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern char ai_Chars[768][0x21c];        /* 0x770b80, the characters: AICHAR records, defined by ahm.c as char[768][0x21c]; the units that read their fields use their ai_CharsT view */
@@ -331,7 +330,6 @@ int ai_MeisterTradeFernEinkauf2(AICHAR *ch, AIOBJ *obj);                 /* 0x48
                                                                             (same log strings) */
 
 /* callees outside this unit */
-int util_Random(unsigned short n);                                       /* 0x42ec00, tr.c; the callers that read a 16-bit result (ch_RandomNear, anm_Update, cm_FightLoop ..) call util_RandomU, a cast in their head */
 struct G15TREE * veg_FindType(int type);                                         /* 0x4bc5a0 */
 struct G15PLANT * veg_FindPlantId(struct G15PLANT *p, int id);                /* 0x4bc670, the plant record with the id (rd.c) */
 void cm_BeginFieldBlock(char *o, int id);                             /* 0x4c3ba0, starts a message about o */
@@ -348,7 +346,7 @@ char * ai_FindWeaponRecord(int id);                                             
 int gv_EntryIndex(char *r, int *e);                                        /* 0x4ef6b0 */
 int ord_GetGridCell(char *p, int *x, int *y);                               /* 0x4f8300 */
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);                       /* 0x4fe140 */
-void gm_SetTime(struct AITIME *c, unsigned char hour, unsigned min, unsigned sec);                   /* 0x4fe1e0, f3gm.c: sets the time of day of the clock c */
+void gm_SetTime(struct AITIME *c, unsigned char hour, unsigned char min, unsigned char sec);                   /* 0x4fe1e0, f3gm.c: sets the time of day of the clock c */
 int gm_MinutesBetween(AITIME *a, AITIME *b);                                  /* 0x4fe280, minutes between two times */
 int gm_FindObjectInst(int id);                                              /* 0x4fe980 */
 int gm_FindById(int *bld, int *obj, int *chr, int id);           /* 0x4fea50 */

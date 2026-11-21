@@ -35,8 +35,6 @@ struct D3SM;
 #include "evt.h"
 #include "data_views.h"
 #define GAPDATA __declspec(align(1)) unsigned char
-#define ai_PlagueMessageK ((void (*)(AICHAR *, AIBLD *))ai_PlagueMessage)  /* 0x5a9240 (lc.c: G8CHARREC *c): @original the caller here pushes two arguments (0x54a4ba..0x54a4bb, add esp,8): the character (read as the first) and the building (unused) */
-#define ai_DomizilMessageK ((void (*)(AICHAR *, AICHAR *, void *, int))ai_DomizilMessage)  /* 0x5a9c30 (lc.c: G8CHARREC *to, G8CHARREC *c, G8OBJ *obj, int level; lc.c-local types the header cannot spell): @original the caller here pushes four arguments (0x56d492..0x56d495, add esp,0x10) */
 
 
 extern int ai_TransportWindow();
@@ -61,7 +59,7 @@ extern GAPDATA full_data_5f1890[];
 extern int ai_PermsDirty;
 
 extern unsigned char ai_GameState;
-extern int snd_SystemBank;
+extern struct SBBANK *snd_SystemBank;
 extern const int sv_PhaseMinutes[24];
 #include "sv_types.h"
 extern float gm_DayStartHours[];
@@ -93,8 +91,6 @@ struct AIPER; struct AMTREC; struct CHARACTER; struct CHACTION; struct EVTSCRIPT
 typedef void (*HEALLOC)(AIJOB *ev);     /* an event type's alloc handler (registered with its run handler by he_SetEventHandlers) */
 #define he_AllocHandlers (*(HEALLOC (*)[0xa7])((char *)&he_QuickList + 0x400))  /* 0x74df40 */
 
-#define AI_4A63F0_7(p, a, fl, b, c, f, o) ((int (*)(void *, int, unsigned int, int, int, float, int *))ai_PickActionBuilding)(p, a, fl, b, c, f, o)
-#define ai_PickActionBuildingI ((int (*)(struct AIPER *, int, __int64, int, float, int *))ai_PickActionBuilding)  /* 0x4a63f0 with lo an int: @original he_AllocBrawl passes its (null) home building there, the register as it is (push edi; a float parameter would convert it) */
 
 #define AICHAR_FLAGS1C8 0x71  /* the ai_CharInts index of AICHAR.flags1c8 (ai.h, +0x1c8; ai_CharInts starts at +4) */
 #define SLOT(i) ((int *)((unsigned)&he_EventSlots + (i) * 12))
@@ -313,7 +309,7 @@ typedef struct HETRANSPORT {            /* the transport event 15's words over A
     D3VECTOR lastPos;                   /* 0xd8, the cart body's position at the last round (arrived: it did not move) */
     char pade4[4];
     int slotE8;                         /* 0xe8, -1 at the start (its run handler's slot) */
-    int route;                          /* 0xec, the send slot of the cart's route (cm_SendCartRouteH), -1 at the start */
+    int route;                          /* 0xec, the send slot of the cart's route (cm_SendCartRoute), -1 at the start */
     unsigned char ambushed;             /* 0xf0, 1 once an ambush (he_RunAmbush) picked the transport, 0 at the start */
     unsigned char weatherStage;         /* 0xf1, 2: the cart slowed once more (he_SetCartSpeed) */
     unsigned char quiet;                /* 0xf2, nonzero: no arrival news */
@@ -521,19 +517,13 @@ int he_RegisterEventTypeA2();
 #include "amt.h"
 #include "mission.h"
 #include "rmsg.h"
-#define rt_UnloadAtPointC ((void (*)(char *, char))rt_UnloadAtPoint)  /* 0x4bfa40 (rt.c: int pl): @original he_RunTransport pushes its char player slot unextended (0x556bb9) */
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 #define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
 #define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define cm_SendSpawnCharacterR ((int (*)(unsigned char, int, int, unsigned char, unsigned char, int, const char *))cm_SendSpawnCharacter)  /* 0x4c59f0: @original he_BeginPlague keeps what it returns (eax after the call: the cm slot of the new character), cm.c's definition is void; f an int: he_AllocBrawl pushes 0x154 whole */
-#define gm_SumListAmountsL ((int (*)(void *))gm_SumListAmounts)  /* 0x509e30 with the list alone: @original he_AllocTheft pushes only the list (add esp, 4), as lc.c / sv.c call it */
-#define util_RandomU ((unsigned short (*)(unsigned short))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original he_SpawnFounders and he_AllocTransport read the 16-bit result (mov cx, ax / and 0xffff) */
 #define ai_PlayerSlotsT (*(GMPLAYERSLOT (*)[4])&ai_PlayerSlots)  /* 0x7e3f40, ai_PlayerSlots (cm.h: char[][0x2f4]) as the four player slots */
 #define snd_CurrentTrack (*(char **)&snd_TrackHandles)  /* 0x6f0b6c, snd_TrackHandles.current (f3snd.h G16TRACKHANDLES, not included here): the music track playing */
 #define he_PlayerCh (*(AICHAR **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) as the AICHAR it points to */
 #define ai_TimeHourW (*(unsigned *)((char *)&ai_Time + 4))  /* 0x770ae4, ai_Time's hour with the low word of the minute int packed over it (0x565410 masks it to 0xffff) */
-#define gm_NearestBuildingK ((int (*)())gm_NearestBuilding)  /* 0x50xxxx: @original this unit's calls were compiled without a prototype (as the K&R declaration it had before the definition's spelling) */
-#define gm_LevelPayoutK ((int (*)())gm_LevelPayout)  /* 0x50a970: @original this unit's calls were compiled without a prototype (as the K&R declaration it had before the definition's spelling) */
 typedef struct HEJOBTABLE {             /* the job table (object 0x12c) of a building's object list as he.c reads it: AIOBJ's
                                            +0x28 is an AIOBJ view of its own only here (adding a member to AIOBJ flips 8 matches) */
     char pad00[0x1c];
@@ -1142,8 +1132,9 @@ typedef struct HEMEET4 {                /* the circus show event 0xa1's words ov
 void err_Message(char *text);
 #include <stdarg.h>
 #include <math.h>
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 void he_AllocDueIsStart(AIJOB *ev);
-void he_SetLifeByAge(AICHAR *c, int num);
+void he_SetLifeByAge(AICHAR *c, unsigned short num);
 void d3t_SetColor(D3OBJECT *obj, unsigned char r, unsigned char g, unsigned char b);
 struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);  /* 0x447190, d3_interface.h */
@@ -1170,7 +1161,7 @@ void ai_PlagueNews(void);
 int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out);
 void amt_ChangeDistrictOpinion();
 int sv_IsAtDoor();
-void ai_PlagueMessage(int param_1);
+void ai_PlagueMessage(struct G8CHARREC *c, void *bld);
 float util_RandomF2();
 int ls_GetLanguage();
 int ai_IsLocalWorker();
@@ -1232,7 +1223,7 @@ int ai_TutorialCloseIntro();
 void ai_TutorialClearHost(void);
 void sv_PopTo(int v);
 void he_FreeEventNow();
-void he_MessageBoxQuickjump(int a1, int a2, char *text, char fl, int a5, int a6, int a7, char *jump, char *text2);
+void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2);
 int gm_LevelPayout(int v, int kind);
 typedef struct SVFRAME {                /* 8 bytes, an entry of the frame stack sv_Frames (sv.c sv_RunFrame: "MASTER()"; as sv.c / lc.c declare it) */
     int cb;                             /* 0x00, the frame callback registered at this depth */
@@ -1551,7 +1542,6 @@ void he_AllocProduktion(AIJOB *ev)
 void sv_CountGroupMembers(char *g);
 int he_HasEvent9f(AICHAR *a);
 
-#define cm_SendMakeGoodsH ((int (*)(int, int, int))cm_SendMakeGoods)  /* 0x4c48e0: it returns the send slot of its message (cm_QueueSend's result stays in eax), which the void prototype drops; @original he_RunProduktion keeps it (HEPRODUCTION.slot) and passes the good as an int (zero-extended) */
 
 /* 0x569210, the run handler of the production event (he_AllocProduktion; "he_RunProduktion()"): without a character
    it frees itself (the debug text names the building). Stage 1 goes to 2 when no workers are left (the words +0x14 /
@@ -1794,7 +1784,7 @@ wait:
                     units++;
                 }
                 if (units != 0)
-                    p->slot = cm_SendMakeGoodsH(p->store, p->good, units);
+                    p->slot = cm_SendMakeGoods(p->store, p->good, units);
                 else if (p->slot == -1 && gm_Query((void *)store->list, 1, 0, p->good) == 0)
                     p->slot = cm_SendExSellObject(store->objId, -1, p->good, 0, ai_OwnPlayer, 0);
                 ev->clock60 = ev->end;
@@ -1888,7 +1878,7 @@ void he_AllocSearchEvent(AIJOB *e)
 {
     e->end = e->start;
     e->clock60 = e->start;
-    gm_AddTime(&e->end, 4, (unsigned short)util_Random(0x3c), 0);
+    gm_AddTime(&e->end, 4, util_Random(0x3c), 0);
 }
 /* 0x56a170, the run handler of the search event 8 ("Suchen", he_AllocSearchEvent): stage 0 goes to 1; stage 1 frees
    the event when no workers are left (the words +0x14 / +0x18), else waits for the due clock; then, with its building
@@ -1920,7 +1910,7 @@ void he_RunSearchEvent(AIJOB *ev)
             return;
         }
         g = GM_GOOD(s->good);
-        amount = (util_RandomU(g->batch * 40) + g->batch * 40) * (ev->words14[0] + ev->words14[1]);
+        amount = (util_Random(g->batch * 40) + g->batch * 40) * (ev->words14[0] + ev->words14[1]);
         cm_SendExSellObject(s->store, -1, s->good, amount, ai_OwnPlayer, 0);
         txt_Format(text, 0x1bb8, s->good * 2 + 0x9a8, bld, amount);
         he_MessageBoxQuickjump(ai_CharsT[bld->owner].netId, -1, text, 0, 0x5f1, bld->id, -1, 0, "_NACHRICHTEN_HS_08");
@@ -1949,7 +1939,7 @@ void he_AllocSearch9(AIJOB *e)
 {
     e->end = e->start;
     e->clock60 = e->start;
-    gm_AddTime(&e->end, 7, (unsigned short)util_Random(0x1e) + 0x1e, 0);
+    gm_AddTime(&e->end, 7, util_Random(0x1e) + 0x1e, 0);
 }
 
 
@@ -2015,7 +2005,7 @@ void he_RunSearch9(AIJOB *ev)
                     cm_SendExSellObject(src->objId, -1, gm_KindObjs[i], 3, ai_OwnPlayer, 0);
             }
             g = GM_GOOD(found->id);
-            amount = (util_RandomU(g->batch * 30) + g->batch * 30) * (ev->words14[0] + ev->words14[1]);
+            amount = (util_Random(g->batch * 30) + g->batch * 30) * (ev->words14[0] + ev->words14[1]);
             cm_SendExSellObject(s->store, -1, found->id, amount, ai_OwnPlayer, 0);
             txt_Format(text, 0x1bb8, found->id * 2 + 0x9a8, bld, amount);
             he_MessageBoxQuickjump(ai_CharsT[bld->owner].netId, -1, text, 0, 0x5f1, bld->id, -1, 0, "_NACHRICHTEN_HS_08");
@@ -2716,9 +2706,8 @@ D3OBJECT *he_CreateConstruction(D3VECTOR *rot, D3VECTOR *pos, unsigned char *typ
 }
 
 
-/* @original the construction event's run handler stores what gm_AddToTreasury leaves in eax as the payment's slot
-   (0x56bf1a .. 0x56bf22): it called the function without a prototype, as returning int */
-#define gm_AddToTreasuryI ((int (*)(int))gm_AddToTreasury)
+/* the construction event's run handler stores gm_AddToTreasury's result (the send slot of its goods message) as
+   the payment's slot (0x56bf1a .. 0x56bf22) */
 void sv_CreateBanners(char *b);
 
 /* 0x56be30, the run handler of the building construction event 0xd, by its stage: 0 pays the price when due (the
@@ -2802,7 +2791,7 @@ void he_RunConstruction(int ev)
             if (fin != 0)
                 fin->buildPaid += c->carry;
         } else {
-            c->slot = gm_AddToTreasuryI(c->carry);
+            c->slot = gm_AddToTreasury(c->carry);
         }
         e->exSlot = cm_SendExSetHE(e->stage + 1, ev);
         break;
@@ -3297,7 +3286,7 @@ void he_AllocRecipeResearch(int ev)
     he_FreeEvent((int *)ev);
 }
 
-void ai_DomizilMessage(int param_1, int param_2, int param_3);
+void ai_DomizilMessage(struct G8CHARREC *to, struct G8CHARREC *c, struct G8OBJ *obj, int level);
 
 /* 0x56d3d0, the run handler of the research event 0x95 (alloc he_AllocRecipeResearch): without its character or the
    character's alchemist record the event ends (stage -2); stages -2 / -1 free it; outside the day hours of the season
@@ -3327,7 +3316,7 @@ void he_RunRecipeResearch(int ev)
             o = gm_Query((void *)c->bld->objList, 2, 6, 0, 0x24b);
             to = (AICHAR *)gm_FindChar(e->netId);
             if (to != 0)
-                ai_DomizilMessageK(to, c, o, r->recipe);
+                ai_DomizilMessage((struct G8CHARREC *)to, (struct G8CHARREC *)c, (struct G8OBJ *)o, r->recipe);
             ahm_SendAddPlace((char *)c, r->recipe);
             sv_MoveToGroup(0, 0, c->id, 0);
             he_FreeEvent((int *)ev);
@@ -3599,8 +3588,8 @@ void he_RunAlchemistDay(int ev)
     rec = c->bld->ahm;
     e->end = ai_Time;
     e->end.year++;
-    e->end.hour = util_RandomU((int)(gm_DayEndHours[season] - gm_DayStartHours[season])) + (int)gm_DayStartHours[season];
-    e->end.min = util_RandomU(4) * 15;
+    e->end.hour = util_Random((int)(gm_DayEndHours[season] - gm_DayStartHours[season])) + (int)gm_DayStartHours[season];
+    e->end.min = util_Random(4) * 15;
     if (d->bonus != 0) {
         ahm_SendAddValue((char *)c, (util_RandomF() + 1.0f) * 0.25f);
         d->bonus = 0;
@@ -3682,7 +3671,7 @@ void he_LabIncident(AICHAR *c, int ev, AIBLD *b, int state)
         task[2] = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x266);
         if (task[2] != 0 && task[2]->lab.broken == 0)
             possible[1] = 1;
-        pick = util_RandomU(4) + 1;
+        pick = util_Random(4) + 1;
         for (n = 5; n != 0; n--) {
             if (pick != 0 && possible[pick] != 0) {
                 mishap = pick;
@@ -3692,11 +3681,11 @@ void he_LabIncident(AICHAR *c, int ev, AIBLD *b, int state)
         }
         switch (mishap) {
         case 1:
-            k = util_RandomU(3);
+            k = util_Random(3);
             for (n = 3; n != 0; n--) {
                 if (task[k] != 0 && task[k]->lab.broken == 0) {
                     int one = 1;
-                    int step = util_RandomU(4) + 3;
+                    int step = util_Random(4) + 3;
 
                     cm_BeginFieldBlock((char *)task[k], task[k]->objId);
                     cm_AddFieldDelta(4, 1, 0x1c, &one);
@@ -3725,7 +3714,7 @@ void he_LabIncident(AICHAR *c, int ev, AIBLD *b, int state)
             ai_DomizilMessageAge((int)&ai_CharsT[b->owner], (int)c, (int)b);
             break;
         case 4:
-            k = util_RandomU(6);
+            k = util_Random(6);
             for (n = 6; n != 0; n--) {
                 if (rec->slots[k].id != 0 && rec->slots[k].v > 0.2f) {
                     v = rec->slots[k].v - (util_RandomF() * 0.1f + 0.05f);
@@ -3777,7 +3766,7 @@ void he_AllocSecretRoom(AIJOB *e)
     e->start = ai_Time;
     e->end = ai_Time;
     gm_AddTime(&e->end, 0, 1, 0);
-    ((HESECRETROOM *)e)->walkSlot = ((int (*)(int, int, int, int, int, int, const char *))cm_SendSpawnCharacter)(0xd, ((HESECRETROOM *)e)->home, -1, 0x2d, 0, 0, "ASSASSIN");
+    ((HESECRETROOM *)e)->walkSlot = cm_SendSpawnCharacter(0xd, ((HESECRETROOM *)e)->home, -1, 0x2d, 0, 0, "ASSASSIN");
     e->exSlot = cm_SendExSetHE(0, (char *)e);
     return;
 taken:
@@ -3787,7 +3776,7 @@ taken:
     he_FreeEvent((int *)e);
 }
 
-int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out);   /* 0x4a63f0 (am.h); the 7-dword callers go through AI_4A63F0_7 */
+int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out);   /* 0x4a63f0 (amt_ai.h) */
 void he_FreeEventNow(int *r);          /* 0x56f040 */
 
 /* 0x56e5b0, the run handler of the secret room event 0x99 (alloc he_AllocSecretRoom): the stages -1 / -2 remove the
@@ -4131,7 +4120,7 @@ int he_FindMeetingSlot(int c)
     round = 2;
     do {
         round--;
-        slot = util_RandomU(0x1d);
+        slot = util_Random(0x1d);
         i = 0x1d;
         do {
             gv_GetTableRecord(slot, (int *)&dec);
@@ -4154,7 +4143,7 @@ int he_SecretRoomAttack(AICHAR *a, AICHAR *b, int c)
         fa = gm_GetSkill((char *)a, 2);
         fb = gm_GetSkill((char *)b, 2);
         if (fa - fb * 0.5f + util_RandomF() >= 1.0f) {
-            ((float (*)(unsigned short, int))gm_AddHealth)(b->id, (-1 - c) * 5);
+            gm_AddHealth(b->id, (-1 - c) * 5);
             return 1;
         }
     }
@@ -4411,23 +4400,23 @@ int he_RegisterEventTypes88(void)
    f018 - f01c; else (int)(fnum - f020) steps of v = v - f014 + f014 / v from v = f018, then the delta
    v - f01c (cm_SendFloatDelta, field 0x1c) */
 
-void he_SetLifeByAge(AICHAR *c, int num)
+void he_SetLifeByAge(AICHAR *c, unsigned short num)
 {
     float f, v, fnum;
     int n;
 
     if (c == 0)
         return;
-    fnum = (float)(unsigned short)num;
+    fnum = (float)num;
     if (fnum <= c->f020) {
-        ((int (*)(int, int, float))cm_SendFloatDelta)(c->netId, 0x1c, c->f018 - c->f01c);
+        cm_SendFloatDelta(c->netId, 0x1c, c->f018 - c->f01c);
         return;
     }
     v = c->f018;
     f = c->f014;
     for (n = (int)(fnum - c->f020); n > 0; n--)
         v = v - f + (f / v);
-    ((int (*)(int, int, float))cm_SendFloatDelta)(c->netId, 0x1c, v - c->f01c);
+    cm_SendFloatDelta(c->netId, 0x1c, v - c->f01c);
 }
 /* 0x56fc50, the alloc of the event 0x88 (a work at the building +0xb0 of the player +8): paused -> nothing; with a running event 0x88 of the same player and building the text 0x4096 and state -1; else the due clock now + 1 hour and state 0 (0x4c4c60), or -1 when +0xb4 is -1, and the message 0x50cc50 (pid, -(+0xb8)) */
 
@@ -4684,7 +4673,7 @@ void he_RunDecay(int ev)
                 bld = agent->bld;
                 bt = &ai_BTypesT[bld->type];
                 d->aged = 1;
-                age = util_RandomU(3) + bt->cap247 * 2 + bld->level / 50;
+                age = util_Random(3) + bt->cap247 * 2 + bld->level / 50;
                 he_SetLifeByAge(victim, age);
                 ai_TellGraveWorkSuccess((int)victim);
                 e->stage++;
@@ -4847,7 +4836,7 @@ void he_RunPlunder(int ev)
                     deal[1] = p->agent;
                     deal[2] = ai_CharsT[idx].netId;
                     deal[3] = price;
-                    if (util_RandomU(2) != 0)
+                    if (util_Random(2) != 0)
                         he_PlunderTakePrice(deal, &ai_CharsT[idx]);
                     else
                         he_PlunderFailNews(deal, &ai_CharsT[idx]);
@@ -4889,7 +4878,7 @@ void he_PlunderTakePrice(int *a, AICHAR *c)
 {
     char text[0x400];
 
-    ((int (*)(int, int, unsigned char, int))cm_SendMoveGoodsUnchecked)(a[0], c->netId, ai_OwnPlayer, a[3]);
+    cm_SendMoveGoodsUnchecked(a[0], c->netId, ai_OwnPlayer, a[3]);
     cm_SendSetField(c->netId, 0x1cc, 4, 1, 0);
     txt_Format(text, 0x40fe, c->id, a[3]);
     he_ShowNews(a[0], -1, text, 1, 0x5f4, 0);
@@ -5519,14 +5508,14 @@ int he_CatchMeetingDisease(AICHAR *ch, float chance, int kind, float *health)
         } else {
             if ((ch->v02c & 0xe0000) == 0)
                 a = 6;
-            b = util_RandomU(2) ? 7 : 8;
+            b = util_Random(2) ? 7 : 8;
             if ((ch->v02c & 0x1800000) != 0 && b == 8)
                 b = 0;
             if ((ch->v02c & (7 << 0x14)) != 0 && b == 7)
                 b = 0;
         }
         if (a != 0) {
-            if (b != 0 && util_RandomU(2) == 0)
+            if (b != 0 && util_Random(2) == 0)
                 a = b;
         } else {
             if (b == 0)
@@ -5536,7 +5525,7 @@ int he_CatchMeetingDisease(AICHAR *ch, float chance, int kind, float *health)
         bits = ch->v02c;
         if (gm_GetDisease(a, &d) == 0)
             return a;
-        sev = util_RandomU(d.range);
+        sev = util_Random(d.range);
         cost = (int)(sev * d.cost);
         if (sev == 0)
             return a;
@@ -5942,7 +5931,7 @@ void he_RunGraveyardWorkers(int ev)
                             ch = chars[i];
                             if (ch->job == 0) {
                                 v = gm_Opinion(bld->owner, ch->id);
-                                if (-(util_Random(0x4a) & 0xffff) < v) {
+                                if (-util_Random(0x4a) < v) {
                                     memset(&msg, 0, sizeof(msg));
                                     msg.type = 0x94;
                                     msg.to = e->chr;
@@ -5961,7 +5950,7 @@ void he_RunGraveyardWorkers(int ev)
             }
         }
         e->end = ai_Time;
-        gm_AddTime(&e->end, 0, 0x14 + (util_Random(0x14) & 0xffff), 0);
+        gm_AddTime(&e->end, 0, 0x14 + util_Random(0x14), 0);
         e->stage++;
         break;
     case 1:
@@ -5986,7 +5975,7 @@ void he_RunGraveyardWorkers(int ev)
             }
         }
         e->end = ai_Time;
-        gm_AddTime(&e->end, 0, 0x14 + (util_Random(0x14) & 0xffff), 0);
+        gm_AddTime(&e->end, 0, 0x14 + util_Random(0x14), 0);
         e->stage++;
         break;
     case 2:
@@ -6063,7 +6052,7 @@ void he_RunGraveyardTheft(int ev)
     }
     if (n == 0)
         goto done;
-    obj = objs[util_Random(n) & 0xffff];
+    obj = objs[util_Random(n)];
     if (obj == 0)
         goto done;
     gm_GoodsPrice(obj->id, ai_OwnPlayer);
@@ -6276,7 +6265,7 @@ void he_RunGypsyApproach(int ev)
         he_GypsyApproach((char *)pl, (char *)per, g->approach);
         gm_AddTime(&e->end, 0x18, 0, 0);
         e->end.hour = 6;
-        e->end.min = (util_Random(4) & 0xffff) * 0xf + 5;
+        e->end.min = util_Random(4) * 0xf + 5;
         e->exSlot = cm_SendExSetHE(1, ev);
         return;
     case 1:
@@ -6349,11 +6338,11 @@ void he_GypsyRumour(AICHAR *pl, AICHAR *per)
     int i, delta, district, fmt;
 
     if (amt_GetKind(per->officeKind, &kind) != 0 && (district = kind.col) != 0) {
-        amt_ChangeDistrictOpinion(per, district, -0x14 - (util_Random(0x10) & 0xffff));
+        amt_ChangeDistrictOpinion(per, district, -0x14 - util_Random(0x10));
     } else if (per->kind != 6 && per->kind != 7 && per->kind != 5) {
-        amt_ChangeDistrictOpinion(per, 1 + (util_Random(3) & 0xffff), 0x14 + (util_Random(0x10) & 0xffff));
+        amt_ChangeDistrictOpinion(per, 1 + util_Random(3), 0x14 + util_Random(0x10));
     } else {
-        delta = -0x14 - (util_Random(0x10) & 0xffff);
+        delta = -0x14 - util_Random(0x10);
         for (i = 0, ch = ai_CharsT; (int)&ch->kind < (int)&ai_CharsT[768].kind; ch++, i++) {
             if (i == per->id)
                 continue;
@@ -6530,15 +6519,15 @@ void he_GypsyFee(AICHAR *pl, int a)
     int n;
 
     if (a < 2)
-        n = util_RandomU(2) + 2;
+        n = util_Random(2) + 2;
     else if (a == 2)
-        n = util_RandomU(2) + 3;
+        n = util_Random(2) + 3;
     else if (a == 3)
-        n = util_RandomU(3) + 3;
+        n = util_Random(3) + 3;
     else if (a == 4)
-        n = util_RandomU(4) + 3;
+        n = util_Random(4) + 3;
     else
-        n = util_RandomU(4) + 4;
+        n = util_Random(4) + 4;
     if (pl->money >= n) {
         gm_SendMoneyDelta(pl->netId, -n);
         txt_Format(text, 0x41db, n);
@@ -6559,7 +6548,7 @@ void he_AllocGypsyCurse(int ev)
     e->end = ai_Time;
     gm_AddTime(&e->end, 0x18, 0, 0);
     e->end.hour = 6;
-    e->end.min = (util_Random(0x10) & 0xffff) + 5;
+    e->end.min = util_Random(0x10) + 5;
 }
 /* 0x573fb0, the run of the event 0x9e: -2 / -1 free; the stage + 1; the cursed character +0xb0 and the gypsy +0xac
    (gm_FindChar); the cursed one's money +0x194 (n) is taken -n and the gypsy gets n / 2 (at least 2) (gm_SendMoneyDelta);
@@ -6689,7 +6678,7 @@ void he_TrialPayment(int ev)
         }
         bar = add + 40.0f;
         bonus = adj + 0x19;
-        fee = (util_RandomU(0x18) + 0xf) * 32;
+        fee = (util_Random(0x18) + 0xf) * 32;
     } else if (kind == 2) {
         int add, adj;
 
@@ -6701,11 +6690,11 @@ void he_TrialPayment(int ev)
         }
         bar = add + 50.0f;
         bonus = adj + 0xf;
-        fee = (util_RandomU(0x10) + 0xc) * 32;
+        fee = (util_Random(0x10) + 0xc) * 32;
     } else {
         bar = 70.0f;
         bonus = 0xa;
-        fee = (util_RandomU(8) + 0xa) * 32;
+        fee = (util_Random(8) + 0xa) * 32;
     }
     cnt = 0;
     for (i = 0; i < 0x300; i++) {
@@ -6996,7 +6985,7 @@ void he_RunCircusShow(int ev)
             p = pers[i];
             if (p->model != 0) {
                 for (k = 8; k != 0; k--)
-                    cm_SendChrAnim(p->netId, anims[util_RandomU(0xa)], util_RandomU(2) + 1);
+                    cm_SendChrAnim(p->netId, anims[util_Random(0xa)], util_Random(2) + 1);
             }
         }
         return;
@@ -7081,7 +7070,7 @@ void he_AllocPettyLoss(int ev)
     e->start = ai_Time;
     e->end = ai_Time;
     e->stage = 0;
-    gm_AddTime(&e->end, util_Random(2) & 0xffff, util_Random(0x1e) & 0xffff, 0);
+    gm_AddTime(&e->end, util_Random(2), util_Random(0x1e), 0);
 }
 /* 0x5751e0, the run of the event 0xa3 (alloc he_AllocPettyLoss): -1 / -2, a stage above 3 or no character netId
    (gm_FindChar): freed. Else the stage advances and the next run is due in 3 + random(3) hours; a character with money
@@ -7101,11 +7090,11 @@ void he_RunPettyLoss(int ev)
         return;
     }
     e->stage++;
-    gm_AddTime(&e->end, (util_Random(3) & 0xffff) + 3, 0, 0);
+    gm_AddTime(&e->end, util_Random(3) + 3, 0, 0);
     if (per->money < 1)
         return;
-    if ((util_Random(2) & 0xffff) + 1 < per->money)
-        x = util_RandomU(2) + 1;
+    if (util_Random(2) + 1 < per->money)
+        x = util_Random(2) + 1;
     else
         x = per->money;
     gm_SendMoneyDelta(per->netId, -x);
@@ -7125,7 +7114,7 @@ void he_AllocEventGood(int ev)
     e->start = ai_Time;
     e->end = ai_Time;
     e->stage = 0;
-    gm_AddTime(&e->end, util_Random(0x20) & 0xffff, 0, 0);
+    gm_AddTime(&e->end, util_Random(0x20), 0, 0);
 }
 
 void he_GiveDomizilGood(AICHAR *per);     /* 0x575430 */
@@ -7187,7 +7176,7 @@ void he_GiveDomizilGood(AICHAR *per)
 
 void he_EventGoodMoney(AICHAR *per)
 {
-    gm_SendMoneyDelta(per->netId, (util_Random(4) & 0xffff) + 3);
+    gm_SendMoneyDelta(per->netId, util_Random(4) + 3);
 }
 /* 0x575570, the low outcome of the event 0xa4: the character +4 is credited the price of good 0x2b7 (gm_GoodsPrice)
    times (2 * random + 1) (cm_SendMoveGoodsUnchecked) */

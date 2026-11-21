@@ -169,7 +169,7 @@ struct AIPER;
 int gm_BathObjectCount(char *b);             /* 0x50cf60, f3gm.c: 1 + the kitchen / bath objects of the building (as poker.h) */
 void gm_SendMoneyDelta(int a, int b);                /* 0x50cc50, f3gm.c: forwards to cm_SendMoneyDelta */
 int amt_GetKindLevel(int k);                         /* 0x4e7c40, amt.c: the level of the office kind k */
-extern int snd_SystemBank;        /* 0x6f2400, main.c: the handle of the system sample bank (system.sbf) */
+extern struct SBBANK *snd_SystemBank;        /* 0x6f2400, main.c: the handle of the system sample bank (system.sbf) */
 extern int main_ScreenRestart;     /* 0x6f25a4, main.c: nonzero = re-initialise the screen (the resolution changed) */
 extern char dd_Has1024x768;         /* 0x631226, dd_vesa.h */
 extern char dd_Has1152x864;         /* 0x631227, dd_vesa.h */
@@ -246,7 +246,7 @@ extern const struct D3VECTOR4 d3_ZAxis;  /* 0x5ebb74, (0, 0, 1), d3_vec.c */
 int ai_ShotHitsGround(struct D3SM *map, D3VECTOR *from, D3VECTOR *to, int px, int pz, int *npx, int *npz);  /* 0x5dcf00, 1 when the move from -> to of a flight step hits the ground (to is moved to the hit) */
 int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int flags, int win); /* 0x46a960, d2.c: a slider in a window */
 int sv_CheckGoodAmount(char *o, int n, unsigned char t);   /* 0x521040, sv.c: 1 when the character's stock covers n of the good t (an unsigned char: the callers push the byte unextended) */
-void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); /* 0x4c4830, cm.c */
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); /* 0x4c4830, cm.c */
 int cm_SendLongMessage(char *msg);                         /* 0x4c4b70, cm.c: sends a long (0xf8 bytes) message */
 extern unsigned char ai_OwnPlayer;                         /* 0x6f1bc5, the player's own goods slot */
 void sv_ButtonRow(int f, int y, int *out, int n, ...); /* 0x52e350, rt.h: a row of n buttons, ids in out[] */
@@ -333,7 +333,7 @@ extern int d2_ClickedId;            /* 0xf8a668, d2.h / rt.h: the id the pointer
 
 
 /* The callees of the options menu whose units have no header (type debt, the prototype belongs there). */
-int d2_OpenForm(int x, int y, char *name);  /* 0x4741f0, d2.h: loads the view, returns its number */
+int d2_OpenForm(short x, short y, char *name);  /* 0x4741f0, d2.h: loads the view, returns its number */
 void d2_SetObjEnabled(int obj, int on);     /* 0x475e40, d2.h: enables / disables one control */
 void d2_SetViewEnabled(int view, int on);   /* 0x475590, d2.c: enables / disables the objects of a view */
 void d2_PlaceViewWindows(int view, unsigned char flags); /* 0x475870, d2.c: places the view's windows

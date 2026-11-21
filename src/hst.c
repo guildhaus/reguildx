@@ -32,12 +32,11 @@ typedef unsigned int SOCKET;            /* <winsock.h>, for net.h (as ai.c) */
 #include "tr.h"
 #include "d2.h"
 #include "gfx.h"
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 #define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
 #define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
 #define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define gm_AddHealthS ((float (*)(unsigned short, int))gm_AddHealth)  /* 0x4fca40 (f3gm.c: unsigned id): @original this unit pushes the id as 16 bits (byte-matched ai_CommandKillPlayer / ai_MsgWorkerOwnHealthLossType1f) */
 /* AI_ZERO_AT with the destination local assigned inside: @original the token callbacks store the size temp
    (0x200) before n1 = buf and read both slots into edi / ebx (ai_TokenRandomChurchProfession, byte) */
 #define AI_ZERO_BUF(var, dst, size) {                               \
@@ -162,8 +161,6 @@ int ai_IsLivingInhabitant(unsigned short id)
     return 0;
 }
 
-/* txt_Format takes a text id; these callers pass a format string */
-#define txt_FormatString ((void (*)(char *, char *, ...))txt_Format)
 
 /* 0x4ae160, the BUERGERMEISTER token of a history text (callback 0x601b10[0], name 0x601730[0]): the mayor
    (officeKind 0x0f); mode 1 checks args[k].id, otherwise the first living one is taken (mode 0 stores it in
@@ -195,7 +192,7 @@ int ai_TokenMayor(int mode, G12ARG *args, int k, char *fmt, char *out)
     n1 = (int)buf;
     AI_ZERO((char *)n1, 0x200);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4ae280, the BISCHOF token of a history text (callback 0x601b10[1], name 0x601730[1]): a bishop (officeKind
@@ -227,7 +224,7 @@ int ai_TokenBishop(int mode, G12ARG *args, int k, char *fmt, char *out)
     n1 = (int)buf;
     AI_ZERO((char *)n1, 0x200);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4ae3a0, the RND_GILDENMEISTER token of a history text (callback 0x601b10[2], name 0x601730[2]): a random
@@ -254,7 +251,7 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
     } else {
         c = 0;
         if (sel == 0) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (ai_IsLivingCharacter((unsigned short)i) && ai_CharsT[i].secondOffice >= 0x1e
@@ -266,7 +263,7 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
                 i = (i + 1) % 0x300;
             }
         } else if (sel == 1) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (ai_IsLivingNonPlayer((unsigned short)i) && ai_CharsT[i].secondOffice >= 0x1e
@@ -279,7 +276,7 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
             }
         } else {
             pick = 0;
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && ai_CharsT[i].secondOffice >= 0x1e
@@ -301,7 +298,7 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 
@@ -331,7 +328,7 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
     } else {
         c = 0;
         if (sel == 0) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (G12_B(i, 9) == 1 && ai_IsLivingCharacter((unsigned short)i) && ai_NotInLists(ai_CharsT[i].netId)
@@ -343,7 +340,7 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
                 i = (i + 1) % 0x300;
             }
         } else if (sel == 1) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (G12_B(i, 9) == 1 && ai_IsLivingNonPlayer((unsigned short)i) && ai_NotInLists(ai_CharsT[i].netId)
@@ -356,7 +353,7 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
             }
         } else {
             pick = 0;
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (G12_B(i, 9) == 1) {
@@ -380,7 +377,7 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4ae900, the same as 0x4ae600 for a man (byte 9 == 0; 0x4ae600, RND_AMTSTRAEGERIN, takes byte 9 == 1)
@@ -405,7 +402,7 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
     } else {
         c = 0;
         if (sel == 0) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (G12_B(i, 9) == 0 && ai_IsLivingCharacter((unsigned short)i) && G12_TITLED(i)
@@ -417,7 +414,7 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
                 i = (i + 1) % 0x300;
             }
         } else if (sel == 1) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (G12_B(i, 9) == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)
@@ -430,7 +427,7 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
             }
         } else {
             pick = 0;
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (G12_B(i, 9) == 0) {
@@ -454,7 +451,7 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4aec00, the same as 0x4ae600 for anybody (no sex test); mode 2 gives no token
@@ -481,7 +478,7 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
     } else {
         c = 0;
         if (sel == 0) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (ai_IsLivingCharacter((unsigned short)i) && G12_TITLED(i) && ai_NotInLists(ai_CharsT[i].netId)) {
@@ -492,7 +489,7 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
                 i = (i + 1) % 0x300;
             }
         } else if (sel == 1) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i) && ai_NotInLists(ai_CharsT[i].netId)) {
@@ -504,7 +501,7 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
             }
         } else {
             pick = 0;
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)) {
@@ -526,7 +523,7 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 
@@ -589,7 +586,7 @@ int ai_TokenRichestInhabitant(int mode, G12ARG *args, int k, char *fmt, char *ou
     }
     if (mode == 0)
         args[k].id = c->netId;
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4af090, text token for the building of type 0x16 with the highest 0x509b10 rating */
@@ -604,7 +601,7 @@ int ai_TokenBestInn(int mode, G12ARG *args, int k, char *fmt, char *out)
     if (mode == 2)
         return 0;
     if (mode == 1) {
-        AI_4FEA50_4((int *)&pick, 0, 0, args[k].id);
+        gm_FindById((int *)&pick, 0, 0, args[k].id);
         if (pick == 0)
             return 0;
     } else {
@@ -623,7 +620,7 @@ int ai_TokenBestInn(int mode, G12ARG *args, int k, char *fmt, char *out)
     n1 = (int)buf;
     AI_ZERO((char *)n1, 0x200);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_FormatString(out, buf, pick);
+    txt_Format(out, (int)buf, pick);
     return 1;
 }
 /* 0x4af1b0, text token (mode 2 only): fmt "...-n" gives n percent of the wealth (0x50a640) of the character
@@ -663,7 +660,7 @@ int ai_TokenMoney(int mode, G12ARG *args, int k, char *fmt, char *out)
         }
         ai_SplitTokenFormat(fmt, buf, &n1, &n2);
         n1 = atoi(fmt + n1);
-        txt_FormatString(out, buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
+        txt_Format(out, (int)buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
         return 1;
     }
     return 0;
@@ -697,7 +694,7 @@ int ai_TokenCityTreasury(int mode, G12ARG *args, int k, char *fmt, char *out)
     AI_ZERO((char *)n2, cnt);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
     n1 = atoi(fmt + n1);
-    txt_FormatString(out, buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
+    txt_Format(out, (int)buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
     return 1;
 }
 
@@ -727,7 +724,7 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
     } else {
         c = 0;
         if (sel == 0) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (ai_IsLivingCharacter((unsigned short)i) && G12_CHURCHJOB(i) && ai_NotInLists(ai_CharsT[i].netId)) {
@@ -738,7 +735,7 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
                 i = (i + 1) % 0x300;
             }
         } else if (sel == 1) {
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (ai_IsLivingNonPlayer((unsigned short)i) && G12_CHURCHJOB(i) && ai_NotInLists(ai_CharsT[i].netId)) {
@@ -750,7 +747,7 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
             }
         } else {
             pick = 0;
-            i = util_RandomU(0x300);
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_CHURCHJOB(i)) {
@@ -772,7 +769,7 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4af6c0, text token for one of the five richest characters (0x50a640) passing a predicate: fmt "...-n"
@@ -854,11 +851,11 @@ int ai_TokenRandomRich(int mode, G12ARG *args, int k, char *fmt, char *out)
         }
         if (found == 0)
             return 0;
-        c = &ai_CharsT[ids[util_RandomU(5)]];
+        c = &ai_CharsT[ids[util_Random(5)]];
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4af8d0, text token for the first character in the lists of 0x4adfb0 who passes 0x4ae120; fmt "...-n" as in
@@ -908,7 +905,7 @@ int ai_TokenRandomNpcInhabitant(int mode, G12ARG *args, int k, char *fmt, char *
                 if (mode == 0)
                     args[k].id = c->netId;
             }
-            txt_FormatString(out, buf, c->id);
+            txt_Format(out, (int)buf, c->id);
             return 1;
         }
     }
@@ -978,11 +975,11 @@ int ai_TokenRandomMerchant(int mode, G12ARG *args, int k, char *fmt, char *out)
         }
         if (found == 0)
             return 0;
-        c = &ai_CharsT[ids[util_RandomU(5)]];
+        c = &ai_CharsT[ids[util_Random(5)]];
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4afc30, text token for a random character passing 0x4ae0d0 / 0x4adfb0, searched with a random step
@@ -1013,8 +1010,8 @@ int ai_TokenRandomPlayer(int mode, G12ARG *args, int k, char *fmt, char *out)
         /* @original the outer loop counts i, which the search reuses: it repeats the search until a
            search ends on 0x2ff (the original's inc / cmp 0x300 after each search) */
         for (i = 0; i < 0x300; i++) {
-            step = steps[(unsigned short)util_RandomU(4)];
-            i = (unsigned short)util_RandomU(0x300);
+            step = steps[util_Random(4)];
+            i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
                 if (ai_IsLivingHuman((unsigned short)i) && ai_NotInLists(ai_CharsT[i].netId)) {
@@ -1030,7 +1027,7 @@ int ai_TokenRandomPlayer(int mode, G12ARG *args, int k, char *fmt, char *out)
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_FormatString(out, buf, c->id);
+    txt_Format(out, (int)buf, c->id);
     return 1;
 }
 /* 0x4afdd0, the FEST text command (callback 0x601b50[0], name 0x601070[0]) "-n" (n > 0): sends message 0x53
@@ -1299,7 +1296,7 @@ int ai_CommandKillPlayer(G12ARG *args, int k)
     AICHAR *c;
 
     if (args != 0 && k < 8 && (c = gm_FindChar(args[k].id)) != 0) {
-        gm_AddHealthS(c->id, (int)-(gm_CharacterHealth((short *)c) + 1.0f));
+        gm_AddHealth(c->id, (int)-(gm_CharacterHealth((short *)c) + 1.0f));
         return 1;
     }
     return 0;
@@ -2577,7 +2574,7 @@ void hst_ParseText_Real(char *out, int k)
     }
     if (open != 0 || hash != 0)
         return;
-    txt_FormatString(out, "%s", buf);
+    txt_Format(out, (int)"%s", buf);
 }
 
 /* G12_COPY2: G12_COPY with destination and source in variables */
@@ -2659,13 +2656,13 @@ int hst_ParseDate(int k, int mode, int *year, char *name)
     } else if (mode & 2) {
         switch (known) {
         case 0:
-            txt_FormatString(name, "%s, %i %s %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.day, date.month + 0x4f, date.year);
+            txt_Format(name, (int)"%s, %i %s %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.day, date.month + 0x4f, date.year);
             break;
         case 1:
-            txt_FormatString(name, "%s, %s %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.month + 0x4f, date.year);
+            txt_Format(name, (int)"%s, %s %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.month + 0x4f, date.year);
             break;
         case 2:
-            txt_FormatString(name, "%s, %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.year);
+            txt_Format(name, (int)"%s, %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.year);
             break;
         }
     }

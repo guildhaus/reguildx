@@ -228,7 +228,6 @@ int ord_DispatchOrder(int id, char *c, int *m);                                 
 int gm_CharCurrency(char *c, char p);                                    /* 0x509ee0 */
 int gm_GetWorth(unsigned short id);                                            /* 0x50a640 */
 /* ai.h declares he_FindEvent with five arguments; 0x496b10 calls it with three */
-#define AI_53E400_3(a, b, k) ((AIJOBX *(*)(int, int, int, ...))he_FindEvent)(a, b, k)
 
 /* 0x497660..0x49a0a0 (round 22, hv4): more action callbacks */
 #pragma pack(push, 1)
@@ -300,7 +299,6 @@ extern float ai_Unkf84cf4[8];           /* 0xf84cf4, the same scaled by 0x499f20
 #define AI_GOODX ((AIGOODX *)ai_Goods)
 #define AI_BLDX ((AIBLDX *)ai_Blds)
 /* ai.h declares gm_BuildQuery with two arguments, am.h above with three */
-#define AI_501190_2(a, b) ((AIBLDX *(*)(int, int))gm_BuildQuery)(a, b)
 #define AI_BUILDNEXT() ((AIBLDX *)gm_BuildNext())
 #define AI_501190_3(a, b, c) ((AIBLDX *)gm_BuildQuery(a, b, c))
 #define AI_JOBS1B() ((AIJOBX *)he_FindEvent(1, 0, 0x1b))
@@ -332,7 +330,6 @@ int ai_RepairCost(struct AIBLD *b, int k);                                      
 int ai_CanBuildType(int a, struct AIPER *p, int b, struct AIARG *s1, struct AIARG *s2, int f);         /* 0x4a5140 */
 int ai_ExecBuildBuilding(struct AIPER *p, struct AIARG *s1, struct AIARG *s2);                               /* 0x4a5320 */
 int ai_FindGoodToMake(int *item, int *obj, AIBLD *bld, int f);                       /* 0x4a5540 */
-int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out);    /* 0x4a63f0 */
 void gm_SellBuilding(int a, int b, int c, int d, int e);                     /* 0x502fd0 */
 int gm_JobBuildingType(int k);                                                        /* 0x504050 */
 int gm_FirstTitleNumber(int k);                                                        /* 0x504290 */
@@ -493,8 +490,6 @@ typedef char ai_AssertAIPX[sizeof(AIPX) == 0x21c ? 1 : -1];
 
 #define AIC ((AIPX *)ai_Chars)
 /* ai.h declares gm_FindById for another use; here it fills an int and takes three more */
-#define AI_4FEA50_4(a, b, c, d) ((int (*)(int *, int, int, int))gm_FindById)(a, b, c, d)
-#define AI_501190_5(a, b, c, d, e) ((AIBLD *(*)(int, int, int, int, int))gm_BuildQuery)(a, b, c, d, e)
 
 typedef AIARG AIARGX;                   /* 0x48e070..0x48f250 spell it so */
 
@@ -504,7 +499,7 @@ extern int ai_NumPlayerChars;                /* 0x6f0470, number of characters o
 
 int ai_AimCannon(struct AIPER *p, struct AIBLD *b, struct AIBLD *t);                        /* 0x4a67a0 */
 int ai_FireCannon(struct AIPER *p, struct AIBLD *b);                                    /* 0x4a6ae0 */
-void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d);                 /* 0x4c4830 */
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d);                 /* 0x4c4830 */
 int amt_GetKindLevel(int v);                                                 /* 0x4e7c40 */
 void gm_SendMoneyDelta(int a, int b);                                        /* 0x50cc50 */
 
@@ -554,7 +549,6 @@ int ai_ExecBuildBuilding(struct AIPER *p, struct AIARG *s1, struct AIARG *s2);  
 void ai_FindWantedItems(struct G5CH *p, int n, struct G9REC *rec, int *st);                         /* 0x4a5760 */
 /* am.h declares 0x4a63f0 with an __int64 mask; 0x48ff50..0x490350 pass it as two ints */
 /* am.h: id is an int; 0x490690 passes an unsigned short */
-#define AI_4A63F0_7(p, a, fl, b, c, f, o) ((int (*)(void *, int, unsigned int, int, int, float, int *))ai_PickActionBuilding)(p, a, fl, b, c, f, o)
 int ai_DecideTakeCredit(int a, struct G5CH *p, int f, struct AIARG *o1, struct AIARG *o2);                  /* 0x49eec0 */
 int gm_BuildingKindValue(int a);                                                        /* 0x509d30 */
 int gm_BuildingKindCost(int c, int kind);                                               /* 0x509dc0 */
@@ -609,8 +603,8 @@ int gm_GetWorth(unsigned short id);                            /* 0x50a640 */
 int ord_DispatchOrder(int id, char *c, int *m);           /* 0x4f81c0 */
 
 int ai_PlanWorth(AIPLAN *q);                                    /* 0x494020 */
-int ai_DecideTorture(void);                                         /* 0x4941b0 */
-int ai_DecideTortureInstrument(void);                                         /* 0x4941d0 */
+int ai_DecideTorture(AIPLAN *q);                                      /* 0x4941b0 */
+int ai_DecideTortureInstrument(AIPLAN *q);                                      /* 0x4941d0 */
 int ai_DecideTortureMercy(AIPLAN *q);                                    /* 0x4941e0 */
 int ai_PlanLevel(AIPLAN *q);                                    /* 0x4942a0 */
 int ai_PlanRollTries(AIPLAN *q);                                    /* 0x494300 */
@@ -756,7 +750,6 @@ int ai_CanBuildType(int a, struct AIPER *p, int b, struct AIARG *s1, struct AIAR
 int gm_BuildingKindCost(int c, int kind);                                               /* 0x509dc0 */
 int gm_BuildingKindValue(int k);                                                        /* 0x509d30 */
 int ai_DecideTakeCredit(int a, struct G5CH *p, int f, struct AIARG *o1, struct AIARG *o2);                  /* 0x49eec0 */
-#define G6_509EE0(p, k) ((float (*)(AIPER *, unsigned char))gm_CharCurrency)((AIPER *)(p), (k))  /* am.h: returns int */
 int ai_ExecuteBuildResidence(G5CH *p, AIARG *s1, AIARG *s2);                                /* 0x498a80 */
 int ai_DecideUpgradeResidence(int a, AIPER *p, int f, AIARG *o1, AIARG *o2);                 /* 0x498b80 */
 int amt_GetColumnOfficesOwned(int col, int max, struct AMTREC *out);                                      /* 0x4e7040 */
@@ -844,10 +837,8 @@ int ai_ExecuteSaveAps(G5CH *p, AIARG *s1, AIARG *s2);                           
 int ai_DecideUseMilitaryObject(int a, AIPER *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49a390 */
 /* unk_48e070.h declares ai_FindWantedItems with its AIPX / AIRECX views (unify at the join) */
 void ai_FindWantedItems(struct G5CH *p, int n, struct G9REC *rec, int *st);                           /* 0x4a5760 */
-#define G8_4FEA50(a, b, c, d) ((int (*)(int *, int, int, int))gm_FindById)(a, b, c, d)  /* ai.h: other types */
 int ai_ExecuteUseMilitaryObject(G5CH *p, AIARG *s1, AIARG *s2);                                /* 0x49a5b0 */
 /* 0x5ba620 with an int id (the callers here zero-extend; unk_48e070.h: unsigned short) */
-#define ai_FindUsableGoodP(id) ((void *(*)(int))ai_FindUsableGood)(id)
 int ai_DecideUseReputationObject(int a, G5CH *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49a690 */
 int ai_ExecuteUseReputationObject(G5CH *p, AIARG *s1, AIARG *s2);                                /* 0x49aa80 */
 int ai_DecideUseApsObject(int a, G5CH *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49ab60 */
@@ -893,8 +884,7 @@ int ai_ExecuteBlackmail(G5CH *p, AIARG *s1, AIARG *s2);                         
 int ai_DecideUsePrivileges(int a, G5CH *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49d750 */
 int ai_ExecuteUsePrivileges(G5CH *p, AIARG *s1, AIARG *s2);                                /* 0x49d7d0 */
 float ord_GetStatistics(int *o);                                                   /* 0x4f9e00 */
-int ai_EvalCurrentNeed(float *a, float *b, int i, AIPER *p);                          /* 0x4a4ae0, as in unk_4a3af0.h */
-#define AI_EvalCurrentNeed7(a, b, i, p, f, o1, o2) ((int (*)(float *, float *, int, G5CH *, int, AIARG *, AIARG *))ai_EvalCurrentNeed)(a, b, i, p, f, o1, o2)  /* declared with 4 parameters */
+int ai_EvalCurrentNeed(float *a, float *b, int i, AIPER *p, int f, void *x, void *y);                          /* 0x4a4ae0, as in unk_4a3af0.h */
 int ai_EvalMayor(float *a, float *b, int i, G5CH *p, int f, AIARG *o1, AIARG *o2); /* 0x49d7f0 */
 int ai_DecideMayor(int a, G5CH *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49d8d0 */
 char * gm_PlayerSeat(int p);                                                      /* 0x504a80 */
@@ -947,9 +937,7 @@ int ai_BuyObjectApExec(G5CH *p, AIARG *s1, AIARG *s2);  /* unlinked: LINK folds 
 int ai_UpgradeBusinessApDecide(int a, G5CH *p, int f, AIARG *o1, AIARG *o2);  /* unlinked: LINK folds it (/OPT:ICF) into sv_ReturnZero */
 int ai_UpgradeBusinessApExec(G5CH *p, AIARG *s1, AIARG *s2);  /* unlinked: LINK folds it (/OPT:ICF) into sv_ReturnZero */
 int ai_RegisterBaseActions(int a);                                                        /* 0x4a16f0 */
-#define G8_4C4830(a, b, k, d) ((void (*)(int, unsigned int, unsigned char, int))cm_SendMoveGoodsUnchecked)(a, b, k, d)  /* above: c is int */
 /* 0x4c4830 with an int c (unk_48e070.h: unsigned char) */
-#define G8_4C4830I(a, b, c, d) ((void (*)(int, unsigned int, int, int))cm_SendMoveGoodsUnchecked)(a, b, c, d)
 
 /* ---- 0x4a3af0..0x4a7140 (was unk_4a3af0.h) ---- */
 #define amt_GetKindLevel ai_Unk4e7c40_g9      /* k is an unsigned char here */
@@ -973,13 +961,13 @@ int ai_RepairCost(struct AIBLD *b, int k);                                      
 int ai_PickBuildSite(AIPER *p, int name);                                           /* 0x4a4e70 */
 extern int d3_CurrentScene;             /* 0x633444 */
 char d3if_SelectScene(int index, char keep);                                        /* 0x4478e0 */
-void d3_PointToWorld(struct D3OBJECT *obj_, struct D3VECTOR *in, struct D3VECTOR *out);                              /* 0x458a20 */                                                     /* 0x4a4680 */
+void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                              /* 0x458a20 */                                                     /* 0x4a4680 */
 
 #define G7_MASK(p) (((G5CH *)(p))->mask)
 
 int amt_GetKindLevel(int k);                                              /* 0x4e7c40 */
 extern const int ai_RingStrides[11];          /* 0x5ed180, the strides of the near ring cursor */
-int ai_EvalCurrentNeed(float *a, float *b, int i, AIPER *p);                          /* 0x4a4ae0 */
+int ai_EvalCurrentNeed(float *a, float *b, int i, AIPER *p, int f, void *x, void *y);                          /* 0x4a4ae0 */
 
 int gm_MayTakeJob(int k, int c);                                      /* 0x5020e0 */
 /* 0x4a5140 ai_CanBuildType is declared in am.h */

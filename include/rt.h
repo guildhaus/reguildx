@@ -51,13 +51,13 @@ extern struct D2INPUT *d2_FocusedInput;      /* 0x6ed9dc (as d2.h / cm.h) */
 extern char ch_EmptyName[];             /* 0x631090 */
 extern int rt_MarkGroup;                /* 0x602a90, a d2 radio group (-1: none) */
 
-void d3_PointToWorld(struct D3OBJECT *obj_, struct D3VECTOR *in, struct D3VECTOR *out);                               /* 0x458a20, d3.h: D3 types */
+void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                               /* 0x458a20, d3.h: D3 types */
 char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py);           /* 0x45f170, ch.h: D3SM *, D3VECTOR * */
 int d2_CreateRadioGroup(int n, ...);                                             /* 0x46c490 */
 void d2_RadioAdd(int g, int obj);                                                /* 0x46c560 */
 int d2_GetObjValue(int obj);                                                       /* 0x475980 */
 int d2_WinOpenPic(short x, short y, int pic, int win);                            /* 0x4731d0 */
-int d2_OpenForm(int a, int b, char *name);                                      /* 0x4741f0, d2.c */
+int d2_OpenForm(short x, short y, char *name);                                      /* 0x4741f0, d2.c */
 void d2_CentreViewWindows(int view);                                                        /* 0x475600 */
 int d2_SetForm(int view, int n);                                                   /* 0x475f70 */
 int d2_GetWinObj(int view, int idx, int k);                                        /* 0x475b80 */
@@ -112,7 +112,7 @@ int rt_FindMark(RTPOINT *p);
 void rt_RemoveMark(int i);
 void rt_HighlightRoute(RTPOINT *p, struct LCMAPWIN *m);
 void rt_EditCartRoute(struct AIOBJ *c);
-void rt_UnloadAtPoint(char *c, int pl);
+void rt_UnloadAtPoint(char *c, char pl);
 void rt_LoadAtPoint(struct AIOBJ *c, char pl);
 int rt_SaveRoutes(void *f);
 int rt_LoadRoutes(void *f);

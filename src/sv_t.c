@@ -315,7 +315,6 @@ extern unsigned char kb_Last;
 extern int sv_FrameMask;
 extern char ai_Chars[768][0x21c];
 
-#define AI_4A63F0_7(p, a, fl, b, c, f, o) ((int (*)(void *, int, unsigned int, int, int, float, int *))ai_PickActionBuilding)(p, a, fl, b, c, f, o)
 
 #define U_I(a) (*(int *)(a))
 
@@ -339,7 +338,6 @@ TUTSTATE *const ai_Tutorial = &ai_TutorialState;  /* 0x5eec60, the pointer to th
 const int ai_TutorialConst5 = 5;  /* 0x5eec64, the tutorial object's second named constant (after ai_Tutorial, before its literal 400.0f); no reader in the surviving code (name from the value: its meaning is open) */
 #define S (*(char **)(unsigned)&ai_Tutorial)  /* the tutorial state record (at 0x6fa060): the pointer ai_Tutorial holds */
 #define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original ai_SeanceGhost reads the 16-bit result (mov si, ax) */
 typedef struct SHOTENTRY {   /* 0x10 bytes */
     int obj;                 /* +0x0, -1 when empty */
     float dist;              /* +0x4 */
@@ -377,7 +375,6 @@ SHOTRESULT ai_ShotTable[3];  /* 0x6f9f60, the cannon scene's shot results (the c
 #include "anm.h"
 #include "bmp.h"
 #include "f3gm.h"
-#define gm_TitleJobI ((int (*)(int, int))gm_TitleJob)  /* 0x5044b0 (f3gm.h: unsigned char): @original the byte-matched callers here read the result as an int (no `and eax,0xff` after the call): ai_PermissionBits1d 0x587b70 (shape) */
 #include "f3snd.h"
 #include "gv.h"
 #include "he.h"
@@ -404,6 +401,7 @@ SHOTRESULT ai_ShotTable[3];  /* 0x6f9f60, the cannon scene's shot results (the c
 #include "d2.h"
 #include "sv.h"
 #include "gfx.h"
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 
 /* 0x575860, the tutorial's tick: nothing (-4) without the tutorial, its run record or its event slot; puts the
    tutorial's own event window back to the state 3 (or its state to next when another window is active), then, while
@@ -4490,7 +4488,7 @@ int ai_AlchemistSendRecipeResearch(unsigned char *obj, AHMREC *rec, int slot)
     msg.time = ai_Time;
     msg.arg[1] = rec->slots[slot].id;
     msg.arg[0] = rec->id;
-    msg.arg[4] = (util_Random(0x5a0) & 0xffff) + 1000;
+    msg.arg[4] = util_Random(0x5a0) + 1000;
     cm_SendLongMessage((char *)&msg);
     return 1;
 }
@@ -4792,7 +4790,7 @@ int ai_AlchemistTrainShareWindow(unsigned char *obj, AHMREC *rec, int idx)
                 msg.fromId = ((AIBLD *)obj)->id;
                 msg.time = ai_Time;
                 msg.arg[0] = rec->id;
-                msg.arg[4] = (util_Random(0x5a0) & 0xffff) + 1000;
+                msg.arg[4] = util_Random(0x5a0) + 1000;
                 msg.arg[1] = idx;
                 cm_SendLongMessage((char *)&msg);
                 sv_PopRequest = 1;
@@ -5033,7 +5031,7 @@ void gv_CannonScatter(char *o, float *a, float *b); float gv_CannonItemFactor();
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
 int he_EventOnBuilding(); int sv_MessageBox();
 int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(char *o, int n, unsigned char t); short * gm_PlayerRecord(char *c);
-void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
 int ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
 void txt_Format(char *out, int id0, ...); int sv_MessageBox();
 void sv_ReleaseNamePlates(void); int sv_RegisterNamePlate(); void ai_StorageWindow();

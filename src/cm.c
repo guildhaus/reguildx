@@ -17,8 +17,7 @@
    kind 0xca) are read as CMSPYREPORT (defined above cm_ExSpyReport: the report's words 0x1c .. 0x37, HESPYREPORT).
    Open: not included yet (dcp headers conflicts cm HEADER): anm.h hmt.h hst.h rt.h menu.h;
    held by calls whose argument count differs from the definition (read the original's pushes):
-   gv_PassSentence takes five arguments here (gv_PassSentenceK). ai_DecideTorture / ai_DecideTortureInstrument
-   use this unit's cast macros (ai_DecideTortureP / ai_DecideTortureInstrumentP).
+   gv_PassSentence takes five arguments here (gv_PassSentenceK).
    Open: head: cm.h carries the parameter lists of cm_StartEventArg, cm_QueueVoice, cm_LoadVoiceBank,
    cm_RunSceneTicks, cm_RunSceneTicksOrClick, cm_WaitEvent, cm_DialogTimer, cm_PartyById, cm_UnloadVoiceBank,
    cm_MessageBox, cm_PlayVoice, cm_StopScript, cm_DeleteChar, cm_StartScript, cm_CutInfoById,
@@ -49,7 +48,6 @@
 #include "net.h"
 #include "cm.h"
 #include "d2.h"
-#define cm_DuelChooseRoundR ((void (*)(CMCUTINFO *))cm_DuelChooseRound)  /* @original cm_DuelAskPlayer jumps to it with its own arguments in place (a tail jmp, byte-matched): called with r alone, the duel record stays on the stack */
 #include "d3.h"
 struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3SKY *s, int first, char *tex, D3TEXFLAGS flags, float scale, float offset, float vscale, float voffset);  /* 0x45d880 */
 #include "d3_tools.h"
@@ -114,11 +112,7 @@ extern GAPDATA full_data_602568[];
 #include "gv.h"
 #include "poker.h"
 #include "gfx.h"
-#define d3sm_PickK ((int (*)(D3SM *, int, int, int *, int *))d3sm_Pick)  /* 0x45f2b0 (d3_sm.c: char d3sm_Pick(D3SM *, int, int, int *, int *)): @original this unit's callers read an int result (byte-matched cm_UpdatePointer 0x4cf73a: and eax, 0xff after the call) */
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
 #define d3t_CamMoveI (*(int *)&d3t_CamMove)  /* 0x6310e8, d3t_CamMove (d3_tools.c: D3ANIM *) as the int this unit tests */
-#define d3t_CreateBloodK ((int (*)(void *, int, int, int, int, int))d3t_CreateBlood)  /* 0x415e90 (d3_tools.c: D3PARTSYS *d3t_CreateBlood(void *, int, float, float, float, float)): @original this unit passes the four floats as their int bit patterns and does not use the result (byte-matched cm_DuelShotAction 0x4de767: push 0x425c0000 .. push 0x3e800000, no fstp pair) */
-#define sb_PlaySampleI ((struct SBSAMPLE *(*)(int, char *, int, int, int, int, int))sb_PlaySample)  /* 0x426fa0 (sblib.c: SBBANK *bank): this unit passes the bank as an int */
 #define d2_LastWindowPtrC (*(char **)&d2_LastWindowPtr)  /* 0x6ed980, d2_LastWindowPtr (d2.c: D2WIN *) read bytewise, as this unit does */
 #define d2_ObjsC (*(char **)&d2_Objs)  /* 0xf8f080, d2_Objs (d2.c: D2OBJ *) read bytewise, as this unit does (+ obj * 0x2ec) */
 #define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (cm.h: char *) as the AIGOOD records it points to */
@@ -181,14 +175,9 @@ typedef struct CMBOMB {             /* 8 bytes, one of the 32 bombs of cm_Bombs 
 #define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
 #define ai_FallbackBuildingT (*(struct AIBLD **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) as the AIBLD it points to */
 #define ai_PlayerBuildingT (*(struct AIBLD **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) as the AIBLD it points to */
-#define d3sm_GetVertexI ((int (*)(D3SM *, int, int, D3VECTOR *))d3sm_GetVertex)  /* 0x45f100 (d3_sm.c: char, D3SM *, int, int, D3VECTOR *): @original this unit's callers read an int result (byte-matched ord_RandomCellPoint (ord.c): no 0f be c0 after the call) */
-#define amt_GetOfficeI ((int (*)(int, struct AMTREC *))amt_GetOffice)  /* 0x4e6f30 (amt.h: unsigned char i): @original this unit pushes its int index raw (0x4dab50 / 0x4aad30: push ebp / push edx, no zero-extension) */
-#define ai_DecideTortureP ((int (*)(AIPLAN *))ai_DecideTorture)  /* 0x4941b0 (am.h: void): @original cm_TrialAskAI pushes the plan (0x4de3a6 push esi, add esp, 4) */
-#define ai_DecideTortureInstrumentP ((int (*)(AIPLAN *))ai_DecideTortureInstrument)  /* 0x4941d0 (am.h: void): @original cm_TrialAskAI pushes the plan (0x4de3c6 push esi, add esp, 4) */
 #define cm_FightersT (*(AICHAR (*)[32])&cm_Fighters)  /* 0x930600, cm_Fighters (char[], with the 0x1000 bytes after the 32 records) as its AICHAR records */
 #define ai_SceneCharsT (*(AICHAR *(*)[32])&ai_SceneChars)  /* 0x7603a0, ai_SceneChars (f3init.h: int[32]) as the AICHAR pointers it holds */
 #define cm_FlagObjectsT (*(D3OBJECT *(*)[32])&cm_FlagObjects)  /* 0x935980, cm_FlagObjects (cm.h: char *[]) as the D3OBJECTs it holds */
-#define ai_TrustedOfFourB ((int (*)(unsigned char, AICHAR *, int *, int *))ai_TrustedOfFour)  /* 0x4aad30 (poker.h: unsigned char k, AIPER *p; cm.h declares it without a prototype): the prototype these calls need (cm_AskElectVote 0x4dab50 pushes its unsigned char office raw, cm_SessionAskAI 0x4dae90 a byte: mov al / push eax) */
 #define d2_LastWindowPtrT (*(struct D2WIN **)&d2_LastWindowPtr)  /* 0x6ed980, d2_LastWindowPtr (d2.c: D2WIN *) as the window record */
 typedef struct CMAMOUNTROW {        /* 0x38 bytes, one row of the special-amount list (ai_AmountRowStatus / ai_AmountRow read it
                                        as ints; menu.c GYPSYROW) */
@@ -1314,9 +1303,9 @@ int cm_SendMoveGoods(int a, int b, unsigned char c, int d)
     m.moveGoods.amount = d;
     return cm_QueueSend(&m);
 }
-/* 0x4c4830, message 0x10 */
+/* 0x4c4830, message 0x10; returns the send slot (cm_QueueSend) */
 
-void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d)
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d)
 {
     G17MSG m;
 
@@ -1325,7 +1314,7 @@ void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d)
     m.type = 0x10;
     m.moveGoods.player = c;
     m.moveGoods.amount = d;
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c4880, message 0x11; returns the message's slot handle (gm_SyncMarket waits on it) */
 
@@ -1342,9 +1331,9 @@ int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f)
     m.sell.price = f;
     return cm_QueueSend(&m);
 }
-/* 0x4c48e0, message 0x12 */
+/* 0x4c48e0, message 0x12: produce goods; returns the send slot (cm_QueueSend) */
 
-void cm_SendMakeGoods(int a, short b, int c)
+int cm_SendMakeGoods(int a, int b, int c)
 {
     G17MSG m;
 
@@ -1352,11 +1341,11 @@ void cm_SendMakeGoods(int a, short b, int c)
     m.type = 0x12;
     m.make.item = b;
     m.make.runs = c;
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
-/* 0x4c4920, message 0x13 */
+/* 0x4c4920, message 0x13: the cart route; returns the send slot (cm_QueueSend) */
 
-void cm_SendCartRoute(int a, int b, int c)
+int cm_SendCartRoute(int a, int b, int c)
 {
     G17MSG m;
 
@@ -1364,11 +1353,11 @@ void cm_SendCartRoute(int a, int b, int c)
     m.type = 0x13;
     m.move.from = b;
     m.move.objId = c;
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c4960, message 0x14 */
 
-void cm_SendRemoveGoods(int a, short b)
+void cm_SendRemoveGoods(int a, int b)
 {
     G17MSG m;
 
@@ -1423,7 +1412,7 @@ int cm_SendSetField(int a, int b, int c, int d, int e)
 }
 /* 0x4c4ac0, sends message 0x1a: adds delta to the float field at the offset field of the character with the netId id */
 
-void cm_SendFloatDelta(int id, int field, float delta)
+int cm_SendFloatDelta(int id, int field, float delta)
 {
     G17MSG m;
 
@@ -1431,7 +1420,7 @@ void cm_SendFloatDelta(int id, int field, float delta)
     m.type = 0x1a;
     m.floatDelta.field = field;
     m.floatDelta.delta = delta;
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c4b00, sends message 0x1b: the relation of the character a to b changes by c (d: 0 / 1 / 2, the callers' kind of change), with the difficulty values; returns the send slot (cm_QueueSend) */
 
@@ -1808,7 +1797,7 @@ void cm_SendChrUseGates(int charId, int bldId, int objId)
 }
 /* 0x4c54a0, message 0x38: the building bldId gets the owner ownerId with the master masterId - handler 0x4caaa0 */
 
-void cm_SendOwnership(int bldId, int masterId, int ownerId)
+int cm_SendOwnership(int bldId, int masterId, int ownerId)
 {
     G17MSG m;
 
@@ -1816,7 +1805,7 @@ void cm_SendOwnership(int bldId, int masterId, int ownerId)
     m.owner.bldId = bldId;
     m.owner.masterId = masterId;
     m.owner.ownerId = ownerId;
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c54e0, sends the message 0x3a with a building id (he_RunUpgrade, when the building event 0x1e ends; reasoned:
    the upgrade is done) */
@@ -1852,7 +1841,7 @@ void cm_SendBoss(int a, int b)
 }
 /* 0x4c5580, message 0x3c */
 
-void cm_SendHandOverCrimes(int a, int b, int c, int d)
+int cm_SendHandOverCrimes(int a, int b, int c, int d)
 {
     G17MSG m;
 
@@ -1861,7 +1850,7 @@ void cm_SendHandOverCrimes(int a, int b, int c, int d)
     m.handOver.culprit = b;
     m.handOver.state = c;
     m.handOver.hand = d;
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c55d0, message 0x3d: hires a character of kind b for the building p (the applicant for title c / job d,
    gm_FindApplicant, else a new one) with a home (gm_FindHome) */
@@ -2032,9 +2021,9 @@ void cm_SendSetJob(int id, int job)
     m.setJob.job = (unsigned char)job;
     cm_QueueSend(&m);
 }
-/* 0x4c59f0, message 0x49 with a text */
+/* 0x4c59f0, message 0x49 with a text: spawns a character; returns the send slot (cm_QueueSend) */
 
-void cm_SendSpawnCharacter(unsigned char a, int b, int c, unsigned char d, unsigned char e, unsigned char f, const char *s)
+int cm_SendSpawnCharacter(unsigned char a, int b, int c, unsigned char d, unsigned char e, int f, const char *s)
 {
     G17MSG m;
 
@@ -2046,7 +2035,7 @@ void cm_SendSpawnCharacter(unsigned char a, int b, int c, unsigned char d, unsig
     m.spawn.title = e;
     m.spawn.item = f;
     strcpy(m.spawn.text, s);
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c5a70, message 0x4a */
 
@@ -2312,13 +2301,13 @@ void cm_SendSpyReport(AIBLD *o, HESPYREPORT *p)
 }
 /* 0x4c60b0, message 0x60 (0x1f bytes of p) */
 
-void cm_SendGraveOrder(void *p)
+int cm_SendGraveOrder(void *p)
 {
     G17MSG m;
 
     m.type = 0x60;
     memcpy(m.data, p, 0x1f);
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c60f0, message 0x61 (0x19 bytes of p), the slot handle cm_QueueSend returns */
 
@@ -2332,33 +2321,33 @@ int cm_SendGraveMove(void *p)
 }
 /* 0x4c6130, message 0x62 (0x19 bytes of p) */
 
-void cm_SendRaiseDead(void *p)
+int cm_SendRaiseDead(void *p)
 {
     G17MSG m;
 
     m.type = 0x62;
     memcpy(m.data, p, 0x19);
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c6170, message 99 (0x24 bytes of p) */
 
-void cm_SendCreateAlchemist(void *p)
+int cm_SendCreateAlchemist(void *p)
 {
     G17MSG m;
 
     m.type = 99;
     memcpy(m.data, p, 0x24);
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c61b0, message 100 (0x18 bytes of p) */
 
-void cm_SendCommand(void *p)
+int cm_SendCommand(void *p)
 {
     G17MSG m;
 
     m.type = 100;
     memcpy(m.data, p, 0x18);
-    cm_QueueSend(&m);
+    return cm_QueueSend(&m);
 }
 /* 0x4c61f0, sends message 0x65: the master of party p becomes the character q (its netId; its handler 0x4cd130
    sets the party record's host); returns the message's send slot (cm_QueueSend) */
@@ -3172,7 +3161,7 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
         if (x1 != 0) {
             txt_Format(buf, 0x7c, x1->type * 14 + 0x48e, m->sell.price);
             sv_SetStatusText(buf);
-            sb_PlaySampleI(0, "RollenKurz_s_01", 1, 0x3f, 0x7f, 0, 0);
+            sb_PlaySample(0, "RollenKurz_s_01", 1, 0x3f, 0x7f, 0, 0);
         }
     }
     if (s != 0) {
@@ -5037,7 +5026,7 @@ int cm_ExGebUpgrade(G17MSG *m, G17STAT *s)
             } else {
                 float radius, key;
 
-                d3_DirToWorld((struct XOBJ *)b->object, (float *)&d3_ZAxis, (float *)&dir);
+                d3_DirToWorld((struct D3OBJECT *)b->object, &d3_ZAxis, &dir);
                 rot.x = 0;
                 rot.y = 0;
                 rot.z = 0;

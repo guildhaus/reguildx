@@ -26,7 +26,6 @@
 #include "ts_texture.h"
 #include "d3_vtx.h"
 #include "vfs.h"
-#define d3anim_NextFrameIo ((int (*)(D3IOANIMFLAGS, int, int, int, int))d3anim_NextFrame)  /* 0x4324e0 (d3_anim.h: D3ANIMFLAGS f): @original this unit passes its field-wise D3IOANIMFLAGS (12 bytes), as the original TU did */
 
 /* 0x44c510, sets the directory the stock objects are searched in */
 
@@ -614,9 +613,9 @@ D3BGF *d3iot_LoadBGF(char *path, char *name, char *texnames, int ntexsets, int n
                     fl.s.b1 = mt->c7;
                     fl.s.c1 = mt->c2;
                     if (mt->name[2][0] == 0)
-                        tex = D3BGF_TEXLOAD(m->texnames + k * 0x40, fl, ((mt->c3 << 4 | mt->c6) * 2 | mt->c5) * 2, mt->c8 << 4 | mt->c9);
+                        tex = (D3TEXHANDLE *)tex_Load(m->texnames + k * 0x40, fl.f, ((mt->c3 << 4 | mt->c6) * 2 | mt->c5) * 2, mt->c8 << 4 | mt->c9);
                     else
-                        tex = D3BGF_TEXLOAD(m->texnames + k * 0x40, fl, (((mt->c3 << 4 | mt->c6) * 2 | mt->c5) * 2) | 1, mt->c8 << 4 | mt->c9);
+                        tex = (D3TEXHANDLE *)tex_Load(m->texnames + k * 0x40, fl.f, (((mt->c3 << 4 | mt->c6) * 2 | mt->c5) * 2) | 1, mt->c8 << 4 | mt->c9);
                     mi = tex ? tex - (D3TEXHANDLE *)d3_Textures : -1;
                     for (j = 0; j < m->npolys; j++) {
                         if (!used2[j] && m->polys[j].mat == k) {
@@ -808,7 +807,7 @@ D3IOPATH *d3_LoadObjectAnim(char *file, D3IOOBJ *obj, char reload)
                 n = p->nkeys - 1;
                 p->key = n;
                 p->time = p->keys[n].time - 1;
-                p->next = d3anim_NextFrameIo(p->flags, n, 0, n, p->nkeys);
+                p->next = d3anim_NextFrame(p->animFlags, n, 0, n, p->nkeys);
             } else {
                 p->next = 1;
                 p->key = 0;

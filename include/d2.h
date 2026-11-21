@@ -275,7 +275,6 @@ void d2_AddRefcount(int pic);                                                   
 void d2_SubRefcount(int pic);                                                   /* 0x46cac0 */
 #define d2_Unk46ca60 d2_AddRefcount /* old names (round 16), until the round 17 d2 files use the new ones */
 #define d2_Unk46cac0 d2_SubRefcount
-void d2_MoveObj(short x, short y, int obj);                                       /* 0x46cda0, moves an object (d2.c); d2_CreatePicObj passes ints (d2_MoveObjI) */
 void d2_RemoveObj(int obj);                                                      /* 0x46e710, removes the object */
 void d2_DeleteObject(int obj);                                                   /* 0x46c9e0, forwards to d2_RemoveObj */
 int d2_TextWidth(char *text, int font);                                         /* 0x46ea10, text width */
@@ -378,7 +377,7 @@ void d2_DrawWindowText(void *surf, int win);                     /* 0x46fba0, la
 void d2_DrawWindowBackground(D2WIN *w, void *surf);                    /* 0x4713c0, draws the background of a window */
 void d2_SetBackgroundTexture(char *name, int win);          /* 0x4721e0 */
 void d2_CreateScrollButtons(int x, int y, int win, int obj, int pic); /* 0x472270, creates the scroll buttons */
-int d2_CreateWindow(short x, short y, short w, short h, unsigned int flags);  /* 0x472390, creates a window, its index; -1 none free, 0 no surface */
+int d2_CreateWindow();  /* 0x472390, creates a window, its index; -1 none free, 0 no surface. d2.c defines it K&R style (short x, y, w, h; unsigned int flags): every caller, d2.c's own after the definition too, pushes promoted ints (movsx) */
 void d2_ScrollWindowBy(int a, int b, int win);                   /* 0x472760, scrolls a window */
 void d2_ResizeWindow(short w, short h, int win);               /* 0x472800, resizes a window */
 void d2_FinishFades(void);                                    /* 0x472a60 */
@@ -389,7 +388,7 @@ void d2_RaiseObject(int obj);                                 /* 0x472f50 */
 void d2_RaiseWindow(int win);                                 /* 0x472fd0 */
 int d2_WinOpenPic(short x, short y, int pic, int win);       /* 0x4731d0, picture object on a window (defined with
                                                                int x, y; callers above it pass shorts) */
-int d2_WinOpenPicStyled(int x, int y, int pic, int win, int a);    /* 0x473350 */
+int d2_WinOpenPicStyled(short x, short y, int pic, int win, int a);    /* 0x473350 */
 void d2_SetObjText(int obj, char *text);                     /* 0x4734d0, sets the text of a text object */
 int d2_CreateWinText(short x, short y, char *text, int win);    /* 0x473650, text label on a window */
 int d2_CreateScreenText(short x, short y, char *text);             /* 0x473860, text label on the screen */
@@ -403,7 +402,7 @@ void d2_RaiseViewWindows(int view);                                /* 0x4741a0, 
 int d2_BlitPartToDD(int sx, int sy, int w, int h, D2SURF *src, int x, int y, struct IDirectDrawSurface4 *dst); /* 0x4794c0 */
 int d2_BlitPartFromDD(int sx, int sy, int w, int h, struct IDirectDrawSurface4 *src, int x, int y, D2SURF *dst); /* 0x479610, blits a part of a DirectDraw surface onto a D2SURF */
 struct VFSFILE * vfs_Tfopen(char *name, char *mode, int unk);                            /* 0x430470 */
-int vfs_fread(void *buf, int size, int n, struct VFSFILE *f);                             /* 0x430bd0 */
+unsigned int vfs_fread(void *buf, int size, int n, struct VFSFILE *f);                             /* 0x430bd0 */
 int vfs_fseek(struct VFSFILE *f, long offset, int origin);                                    /* 0x430fa0 */
 int vfs_fclose(struct VFSFILE *f);                                                        /* 0x430aa0 */
 extern struct VFSDIR *vfs_Root;                                                          /* 0x6333fc */
@@ -412,7 +411,7 @@ extern int d2_CurrentView;                                                      
 extern int d2_FullFormPath;                                                        /* 0x6ed984, nonzero: the name given to d2_OpenForm is a full path (no d2_FormsDir prefix, no .form suffix); cleared after each load, nothing in the binary sets it */
 extern D2FORM0 d2_Forms0[];                                                     /* 0x633f18 */
 extern D2FORM2 d2_Forms2[];                                                     /* 0x68ce98 */
-int d2_OpenForm(int x, int y, char *name);                                     /* 0x4741f0, loads a view */
+int d2_OpenForm(short x, short y, char *name);                                     /* 0x4741f0, loads a view */
 int d2_LoadView(int x, int y, char *name);                                     /* 0x474b30 */
 int d2_SetViewTextures(int view, char *tex1, char *tex2);                             /* 0x474ca0 */
 void d2_ClearViewTextures(int view);                                                    /* 0x474d10 */

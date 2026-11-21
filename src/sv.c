@@ -3,13 +3,10 @@
    0x531670, main.c's program level code. Names are ours.
    Open: the start and the end rest on the .data order only.
    Open: head: d2.h is included (the d2 records through the SV* views, the SV_I / SV_W address macros with their
-   byte offsets and sv_D2Objs = d2_Objs as D2OBJ *), with gfx.h (d2_AddHitRect's int call goes through
-   d2_AddHitRectI), cm.h, rt.h, lc.h (the ai_ panels), anm.h, f3snd.h, sblib.h, menu.h (the option / save screens,
+   byte offsets and sv_D2Objs = d2_Objs as D2OBJ *), with gfx.h, cm.h, rt.h, lc.h (the ai_ panels), anm.h, f3snd.h, sblib.h, menu.h (the option / save screens,
    the wind update), sv_t.h and mission.h.
    Calls whose argument count differs from the definition (read the original's pushes): sb_PlaySample (sblib.h:
-   6 calls to re-grade). The
-   @original cast macros (d2_PutPixelRGBc, d2_WinOpenPicStyledS, d2_OpenFormS, ai_SwitchRoomI) record the parameter types the original's
-   calls show.
+   6 calls to re-grade).
    Open: data: 0x6f23f1 sv_InMissionComplete, owner sv (only sv_RunFrame uses it; it follows sv_BookPhase) but kept
    typed in main.c's gap block. ai_GameState, main_GameEnded and sv_MenuOpen (0x6f25ac..ae) lie in main's block
    (0x6f25a4..): whose unit they are is open.
@@ -218,8 +215,7 @@ extern SVPLATE sv_NamePlates[0x20];
 #include "rt.h"
 #include "gfx.h"
 #include "cm.h"
-#define d2_AddHitRectI ((int (*)(int, int, int, int, int))d2_AddHitRect)  /* 0x478890 (gfx.h: short x, y, w, h): @original sv_BuildScreenLayout pushes d2_ScreenW - 0x50 unextended, an int x (0x521e9c sub edx, 0x50 / 0x521ea1 push edx) */
-#define util_RandomU ((unsigned short (*)(int))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original this unit's callers read the 16-bit result (byte-matched ch_RandomNear 0x405160, ai_CalcMeisterBank 0x4836a0, cm_FightLoop 0x4d88c0 move it as a word / movzx) */
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 #define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
 /* 0x520ec0, the tick callback: turns the frame counter sv_TickFrames into the float sv_FramesPerTick and clears it */
 
@@ -308,7 +304,7 @@ int sv_CheckGoodAmount(char *o, int n, unsigned char t)
 }
 /* 0x5210a0, sv_CheckStock: checks that the stock list holds at least n of the good record p (its prototype word; 0x508660) and shows a message box with the text by the prototype (0x142 / 0x115, the two money seats, pick 0x76 / 0x77, else 0x75); flag 4 auto-closes the box. 1 when the stock covers n, 0 after the box */
 
-int sv_CheckStock(short *p, int stock, int n, unsigned t)
+int sv_CheckStock(short *p, int stock, int n, unsigned char t)
 {
     int v;
     char buf[0x200];
@@ -318,15 +314,15 @@ int sv_CheckStock(short *p, int stock, int n, unsigned t)
         return 1;
     if (p != 0) {
         if (*p == 0x142) {
-            txt_Format(buf, 0x76, t & 0xff);
+            txt_Format(buf, 0x76, t);
             goto show;
         }
         if (*p == 0x115) {
-            txt_Format(buf, 0x77, t & 0xff);
+            txt_Format(buf, 0x77, t);
             goto show;
         }
     }
-    txt_Format(buf, 0x75, t & 0xff);
+    txt_Format(buf, 0x75, t);
 show:
     sv_MessageBox(buf, 4);
     return 0;
@@ -738,7 +734,7 @@ void sv_BuildScreenLayout(int s)
     int *q;
 
     d2_SetClipRect(0, 0, (int)d2_ScreenW, (int)d2_ScreenH);
-    sv_AdvanceHit = d2_AddHitRectI(d2_ScreenW - 0x50, 0x11, 0x30, 0x30, 0);
+    sv_AdvanceHit = d2_AddHitRect(d2_ScreenW - 0x50, 0x11, 0x30, 0x30, 0);
     sv_BarWindow = d2_CreateWindow(4, 10, 0x288, 0x30, 0);
     d2_PlaceWindowScaled(sv_BarWindow, 1);
     if (sv_ViewShape != 0) {
@@ -970,13 +966,11 @@ int sprintf(char *buf, const char *fmt, ...);                     /* 0x5de652 */
 struct D2SURF * d2_LoadBmpSurface(char *name);                     /* 0x478b50 */
 void d2_GetPixelColour(int x, int y, struct D2SURF *surf, unsigned char *rgb);                     /* 0x4798f0 */
 struct D2SURF; int d2_PutPixelRGB(int x, int y, unsigned char r, unsigned char g, unsigned char b, struct D2SURF *surf);  /* 0x4799e0 */
-void ai_SwitchRoom(int param_1, unsigned short param_2);                     /* 0x59e0a0 */
+void ai_SwitchRoom(int index, unsigned room);                                /* 0x59e0a0 */
 unsigned gm_PermissionBits(unsigned p1, unsigned char *b, unsigned short *o, int c);                     /* 0x503530 */
 int d2_FindPic(char *name);                     /* 0x468890 */
 char *strupr(char *);                     /* 0x5ea986 */
-#define ai_SwitchRoomI ((void (*)(int, int))ai_SwitchRoom)  /* @original: sv_UpdateGroundplan zero-extends the room word into an int argument (xor edx,edx / mov dx,[esi]) */
 extern int d2_PicShift;                   /* 0x6ed98c, d2.h (not includable here) */
-#define d2_PutPixelRGBc ((int (*)(int, int, unsigned char, unsigned char, unsigned char, struct D2SURF *))d2_PutPixelRGB)  /* @original: sv_LoadGroundplan pushes the colour bytes as dwords loaded from the pixel buffer (char parameters, gfx.c masks them) */
 int d2_CompareColour(char *a, char *b);                     /* 0x478930 */
 int gm_BuildingClass(int kind);                /* 0x501d80, f3gm.c, the class of a building kind */
 unsigned short * gm_QueryNext(void);                   /* 0x4ffcc0 */
@@ -1065,7 +1059,7 @@ loaded:
     for (y = 0; y < sv_GroundplanSurf->h; y++)
         for (x = 0; x < sv_GroundplanSurf->w; x++) {
             d2_GetPixelColour(x, y, sv_GroundplanSurf, rgb);
-            d2_PutPixelRGBc(x, y, rgb[0], rgb[1], rgb[2], sv_GroundplanView);
+            d2_PutPixelRGB(x, y, rgb[0], rgb[1], rgb[2], sv_GroundplanView);
         }
     d2_UnlockSurface(sv_GroundplanView);
     if (sv_GroundplanSurf != 0) {
@@ -1210,7 +1204,7 @@ void sv_UpdateGroundplan(unsigned flags)
                             && ai_ScriptQuery(0x19, (int)ai_PlayerBuilding, 0, obj->id) == 1
                             && !(ai_CharsT[ai_PlayerId].heldRounds > 0)) {
                             if (gm_PermissionBits(ai_PlayerId, (unsigned char *)ai_PlayerBuilding, &obj->id, 0) & 0x4000)
-                                ai_SwitchRoomI(-1, obj->id);
+                                ai_SwitchRoom(-1, obj->id);
                         } else if (obj != 0)
                             d2_CopyCaption((char *)txt_ObjectNames[obj->id][0]);
                     }
@@ -1275,6 +1269,7 @@ int ahm_HasRecord();                     /* 0x4eaad0 */
 struct D3SKY; struct D3SKYLAYER; struct D3VECTOR; int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);  /* 0x453e80 */
 char * cm_CharWeapon(char *c);                     /* 0x4cda50 */
 
+int gm_SumListMoney(void *list);  /* f3gmt.c, folded into gm_SumListAmounts 0x509e30: one push, no player slot */
 /* 0x522f10, the city / time panel (the big panel at the top of the screen), only while the player's character
    is in state 6: blits the saved view shape back; a & 1 rebuilds the widgets (the shield, the money and name
    texts, the clock / compass pictures, the help captions from the text list), then every call draws the date
@@ -1441,7 +1436,7 @@ void sv_UpdateCityPanel(unsigned char a, int b)
                 who = ai_OwnPlayer;
             n = gm_SumSlotAmounts((void *)ai_CharsT[ai_PlayerId].inventory, who) + sv_PendingMoney;
         } else {
-            n = ((int (*)(void *))gm_SumListAmounts)(((AIOBJ *)gm_PlayerSeat(sv_ResearchClass))->list) + sv_PendingMoney;
+            n = gm_SumListMoney(((AIOBJ *)gm_PlayerSeat(sv_ResearchClass))->list) + sv_PendingMoney;
             who = ai_OwnPlayer;
         }
         if (sv_PanelMoneyText != -1) {
@@ -1838,9 +1833,6 @@ extern int sv_SelectedChar;
 extern char sv_PlayerBarKind;
 #define sv_MemberRows (*(SVMEMBERROW (*)[0x20])&ai_Unk75f280)  /* 0x75f280, the member list rows (he.c and sv.c declare int[576]) */
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);                     /* 0x472aa0 */
-int d2_WinOpenPicStyled();                     /* 0x473350 */
-#define d2_OpenFormS ((int (*)(short, short, char *))d2_OpenForm)  /* @original: sv_OpenPlayerBar computes x = d2_ScreenW - 0x68 in 16 bits (sub cx, 0x68; push ecx) */
-#define d2_WinOpenPicStyledS ((int (*)(short, short, int, int, int))d2_WinOpenPicStyled)  /* @original: sv_UpdateMemberList computes the y of each call afresh (a short y, as d2_WinOpenPic's) */
 int d2_CreateWinText(short x, short y, char *text, int win);                     /* 0x473650 */
 void d2_SetObjText();                     /* 0x4734d0 */
 void snd_PlayWorkerClick(struct G16CHARCLICK *c);                     /* 0x4c2c70 */
@@ -1994,14 +1986,14 @@ void sv_UpdateMemberList(unsigned char *g)
         if (im0 != -1) {
             if (sv_MemberRows[n].icon[0] == -1) {
                 if (im0 >= 0xdf && im0 <= 0x3bb)
-                    sv_MemberRows[n].icon[0] = d2_WinOpenPicStyledS(0x38, n * 0x4e + 0x10, im0, d2_LastWindow, -2);
+                    sv_MemberRows[n].icon[0] = d2_WinOpenPicStyled(0x38, n * 0x4e + 0x10, im0, d2_LastWindow, -2);
                 else
                     sv_MemberRows[n].icon[0] = d2_WinOpenPic(0x38, n * 0x4e + 0x10, im0, d2_LastWindow);
             } else if (im0 != sv_D2Objs[sv_MemberRows[n].icon[0]].pic) {
                 d2_RemoveObj(sv_MemberRows[n].icon[0]);
                 sv_MemberRows[n].icon[0] = -1;
                 if (im0 >= 0xdf && im0 <= 0x3bb)
-                    sv_MemberRows[n].icon[0] = d2_WinOpenPicStyledS(0x38, n * 0x4e + 0x10, im0, d2_LastWindow, -2);
+                    sv_MemberRows[n].icon[0] = d2_WinOpenPicStyled(0x38, n * 0x4e + 0x10, im0, d2_LastWindow, -2);
                 else
                     sv_MemberRows[n].icon[0] = d2_WinOpenPic(0x38, n * 0x4e + 0x10, im0, d2_LastWindow);
             }
@@ -2009,14 +2001,14 @@ void sv_UpdateMemberList(unsigned char *g)
         if (im1 != -1) {
             if (sv_MemberRows[n].icon[1] == -1) {
                 if (im1 >= 0xdf && im1 <= 0x3bb)
-                    sv_MemberRows[n].icon[1] = d2_WinOpenPicStyledS(0x38, n * 0x4e + 0x28, im1, d2_LastWindow, -2);
+                    sv_MemberRows[n].icon[1] = d2_WinOpenPicStyled(0x38, n * 0x4e + 0x28, im1, d2_LastWindow, -2);
                 else
                     sv_MemberRows[n].icon[1] = d2_WinOpenPic(0x38, n * 0x4e + 0x28, im1, d2_LastWindow);
             } else if (im1 != sv_D2Objs[sv_MemberRows[n].icon[1]].pic) {
                 d2_RemoveObj(sv_MemberRows[n].icon[1]);
                 sv_MemberRows[n].icon[1] = -1;
                 if (im1 != 0)                   /* the original tests im1 != 0 here, not the range */
-                    sv_MemberRows[n].icon[1] = d2_WinOpenPicStyledS(0x38, n * 0x4e + 0x28, im1, d2_LastWindow, -2);
+                    sv_MemberRows[n].icon[1] = d2_WinOpenPicStyled(0x38, n * 0x4e + 0x28, im1, d2_LastWindow, -2);
                 else
                     sv_MemberRows[n].icon[1] = d2_WinOpenPic(0x38, n * 0x4e + 0x28, im1, d2_LastWindow);
             }
@@ -2063,7 +2055,6 @@ int d2_GetWinObj();                     /* 0x475b80 */
 void d2_SetViewEnabled(int view, int on);  /* 0x475590 */
 void d2_ClearPointerItems(void);                     /* 0x476c70 */
 void sv_UpdatePanel(void);                     /* 0x52a050 */
-int d2_WinOpenPicStyled();                     /* 0x473350 */
 void gm_ClockToDate(struct AITIME *c, unsigned char *out);                     /* 0x4fe2c0 */
 void ai_InitWind(int type, int id, float *from, float *to);                     /* 0x5dbc30 */
 void d3t_FreeSnow();                     /* 0x414b50 */
@@ -2092,9 +2083,9 @@ void sv_OpenPlayerBar(int a, char k)
         return;
     sv_PlayerBarKind = k;
     if (ai_GfxResolution.byte[0] == 0)
-        sv_PlayerBarForm = d2_OpenFormS(d2_ScreenW - 0x68, 0x106, "Misc\\PlayerBar");
+        sv_PlayerBarForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "Misc\\PlayerBar");
     else
-        sv_PlayerBarForm = d2_OpenFormS(d2_ScreenW - 0x68, 0x106, "Misc\\PlayerBar_1");
+        sv_PlayerBarForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "Misc\\PlayerBar_1");
     d2_SetForm(sv_PlayerBarForm, 1);
     s = d2_LastWindow;
     d2_SetForm(sv_PlayerBarForm, 2);
@@ -2195,14 +2186,14 @@ void sv_SetupWeather(struct AITIME *t, int reroll)
     sv_SeasonClimate = ai_SeasonClimate[ai_OwnPlayer * 0xbd + season];
     if (reroll != 0) {
         if (season == 3) {
-            sv_WinterWeather = (util_RandomU(100) < sv_CloudChance / 2) + 1;
+            sv_WinterWeather = (util_Random(100) < sv_CloudChance / 2) + 1;
         } else
             sv_WinterWeather = 0;
         for (i = 0; i < 24; i++)
             sv_Weather.clouds[i] = 0;
         for (i = 0; i < 24; i++) {
-            if (util_RandomU(100) < sv_CloudChance)
-                sv_Weather.clouds[i] = (unsigned short)util_Random(sv_CloudChance * 10);
+            if (util_Random(100) < sv_CloudChance)
+                sv_Weather.clouds[i] = util_Random(sv_CloudChance * 10);
             if ((int)sv_Weather.clouds[i] > 700)
                 sv_Weather.clouds[i] = (sv_Weather.clouds[i] & 1) + 999;
             else if ((int)sv_Weather.clouds[i] > 500)
@@ -2212,7 +2203,7 @@ void sv_SetupWeather(struct AITIME *t, int reroll)
             else
                 sv_Weather.clouds[i] = 0;
             if (sv_WinterWeather == 0 && (int)sv_Weather.clouds[i] >= 999)
-                sv_Weather.storm[i] = (unsigned short)util_Random(3);
+                sv_Weather.storm[i] = util_Random(3);
             else
                 sv_Weather.storm[i] = 0;
         }
@@ -3540,7 +3531,7 @@ void sv_OpenBuildingPanel(AIBLD *b)
     level = gm_BuildingLevel((char *)b);
     if (sv_PanelForm != -1)
         return;
-    sv_PanelForm = d2_OpenFormS(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_gebaeude");
+    sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_gebaeude");
     d2_SetForm(sv_PanelForm, 1);
     if (b->type != 0x47) {
         io_CharacterNameMarkup(b->owner, 2, 1, name);
@@ -3597,7 +3588,7 @@ void sv_OpenItemPanel(unsigned short *p)
 
     b = 0;
     if (sv_PanelForm == -1 && (*p < 0x92 || *p > 0x97) && *p != 0x2db) {
-        sv_PanelForm = d2_OpenFormS(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_gebaeude");
+        sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_gebaeude");
         d2_SetForm(sv_PanelForm, 1);
         if (ai_PlayerBuilding != 0)
             b = (AIBLD *)ai_PlayerBuilding;
@@ -3640,7 +3631,7 @@ void sv_OpenCartPanel(AIOBJ *c)
     owner = gm_ObjectBuildingOwner((unsigned short *)c);
     if (owner == 0)
         return;
-    sv_PanelForm = d2_OpenFormS(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_transporter");
+    sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_transporter");
     d2_SetForm(sv_PanelForm, 1);
     io_PrintText("$Z%2N1$A%s", *owner, c->id * 2 + 0x9a8);
     d2_SetForm(sv_PanelForm, 0);
@@ -3692,7 +3683,7 @@ void sv_OpenDefaultPanel(void)
         return;
     if (ai_FallbackBuilding == 0) {
         if (ai_PlayerBuilding == 0) {
-            sv_PanelForm = d2_OpenFormS(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_standard");
+            sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_standard");
             d2_SetForm(sv_PanelForm, 0);
             sv_PanelBuildBtn = sv_AddPanelButton(0, 0x8c, txt_PanelBtnBuild);
             sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_PanelBtnItem);
@@ -3700,7 +3691,7 @@ void sv_OpenDefaultPanel(void)
         }
     } else if (((AIBLD *)ai_FallbackBuilding)->owner == (unsigned short)ai_PlayerId) {
         level = gm_BuildingLevel((char *)ai_FallbackBuilding);
-        sv_PanelForm = d2_OpenFormS(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_gebaeude");
+        sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_gebaeude");
         d2_SetForm(sv_PanelForm, 0);
         d2_SetForm(sv_PanelForm, 1);
         io_CharacterNameMarkup(((AIBLD *)ai_FallbackBuilding)->owner, 2, 1, name);
@@ -3731,7 +3722,7 @@ void sv_OpenPersonPanel(AICHAR *c)
 
     if (sv_PanelForm != -1)
         return;
-    sv_PanelForm = d2_OpenFormS(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_personen");
+    sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_personen");
     d2_SetForm(sv_PanelForm, 1);
     if (c == 0 || ai_SelectedCount >= 2) {
         sprintf(text, "%i %s", ai_SelectedCount, txt_PanelPersons);
@@ -3897,7 +3888,7 @@ void sv_RefreshPanel(void)
         for (i = 0; i < n; i++) {
             icon = icons[i];
             if (icon >= 0xdf && icon < 0x3bb)
-                sv_PanelWidgets[i] = d2_WinOpenPicStyledS(x + 0x32, i * 0x1a + 0x38, icon, d2_LastWindow, -2);
+                sv_PanelWidgets[i] = d2_WinOpenPicStyled(x + 0x32, i * 0x1a + 0x38, icon, d2_LastWindow, -2);
             else
                 sv_PanelWidgets[i] = d2_WinOpenPic(x + 0x32, i * 0x1a + 0x38, icon, d2_LastWindow);
         }
@@ -4003,7 +3994,7 @@ void sv_RefreshPanel(void)
     do {
         if (x >= 0x83)
             return;
-        *q = d2_WinOpenPicStyledS(x, 0x28, goods->id + 0xdf, d2_LastWindow, -2);
+        *q = d2_WinOpenPicStyled(x, 0x28, goods->id + 0xdf, d2_LastWindow, -2);
         sprintf(amount, "%i", gm_ListAmount(load, goods));
         o = d2_CreateWinText(x - 2, 0x1c, amount, d2_LastWindow);
         ((D2OBJ *)d2_Objs)[o].interactive = 1;
@@ -5236,9 +5227,9 @@ void sv_SpeakPicked(void)
             if (v == 0xb || v == 0xc)
                 plain = 0;
             if (plain) {
-                kind = util_RandomU(4) + 1;
+                kind = util_Random(4) + 1;
             } else {
-                kind = util_RandomU(4) + 1;
+                kind = util_Random(4) + 1;
                 if (kind == 3)
                     kind = 4;
             }
@@ -5249,117 +5240,117 @@ void sv_SpeakPicked(void)
                 switch (c->jobKind) {
                 case 0x49:
                     if ((r = (AIBLD *)gm_FindBuildingById(job->u.id)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x124a, r->owner, r);
+                        txt_Format(text, util_Random(3) + 0x124a, r->owner, r);
                     break;
                 case 0x44:
                     if ((r = (AIBLD *)gm_FindBuildingById(job->u.id)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x1259, r->owner, r);
+                        txt_Format(text, util_Random(3) + 0x1259, r->owner, r);
                     break;
                 case 0x28:
-                    txt_Format(text, util_RandomU(3) + 0x124d);
+                    txt_Format(text, util_Random(3) + 0x124d);
                     break;
                 case 0x3c:
                     if ((c = (AICHAR *)gm_FindChar(job->u.id)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x1253, c->id);
+                        txt_Format(text, util_Random(3) + 0x1253, c->id);
                     break;
                 case 0x14:
                     if (c->bld != 0) {
                         if (ai_BTypesT[c->bld->type].kind == ' ')
-                            txt_Format(text, util_RandomU(3) + 0x1286);
+                            txt_Format(text, util_Random(3) + 0x1286);
                         else
-                            txt_Format(text, util_RandomU(3) + 0x1256);
+                            txt_Format(text, util_Random(3) + 0x1256);
                     }
                     break;
                 case 0x19:
                     if ((r = (AIBLD *)gm_FindBuildingById(job->u.id)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x125c, r->owner, r);
+                        txt_Format(text, util_Random(3) + 0x125c, r->owner, r);
                     break;
                 case 0x62:
-                    txt_Format(text, util_RandomU(3) + 0x125f);
+                    txt_Format(text, util_Random(3) + 0x125f);
                     break;
                 case 0x18:
                     if ((c = (AICHAR *)gm_FindChar(job->id4)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x1262, c->id);
+                        txt_Format(text, util_Random(3) + 0x1262, c->id);
                     break;
                 case 0x40:
                     if ((r = (AIBLD *)gm_FindBuildingById(job->u.id)) != 0 && r->owner != 0xffff)
-                        txt_Format(text, util_RandomU(3) + 0x1265, r->owner, r);
+                        txt_Format(text, util_Random(3) + 0x1265, r->owner, r);
                     break;
                 case 0x43:
-                    txt_Format(text, util_RandomU(3) + 0x1268);
+                    txt_Format(text, util_Random(3) + 0x1268);
                     break;
                 case 0x61:
-                    txt_Format(text, util_RandomU(3) + 0x126b);
+                    txt_Format(text, util_Random(3) + 0x126b);
                     break;
                 case 0x48:
-                    txt_Format(text, util_RandomU(3) + 0x126e);
+                    txt_Format(text, util_Random(3) + 0x126e);
                     break;
                 case 100:
                     if ((r = (AIBLD *)gm_FindBuildingById(job->id2)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x1271, r->owner, r);
+                        txt_Format(text, util_Random(3) + 0x1271, r->owner, r);
                     break;
                 case 0x65:
-                    txt_Format(text, util_RandomU(3) + 0x1274);
+                    txt_Format(text, util_Random(3) + 0x1274);
                     break;
                 case 0x1a:
                     if ((c = (AICHAR *)gm_FindChar(job->id3)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x1277, c->id);
+                        txt_Format(text, util_Random(3) + 0x1277, c->id);
                     break;
                 case 0x3f:
                 case 0x75:
                     if ((r = (AIBLD *)gm_FindBuildingById(job->u.id)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x1250, r->owner, r);
+                        txt_Format(text, util_Random(3) + 0x1250, r->owner, r);
                     break;
                 case 0x89:
                     if ((c = (AICHAR *)gm_FindChar(job->id2)) != 0)
-                        txt_Format(text, util_RandomU(3) + 0x127a, c->id);
+                        txt_Format(text, util_Random(3) + 0x127a, c->id);
                     break;
                 case 0x8e:
-                    txt_Format(text, util_RandomU(3) + 0x127d);
+                    txt_Format(text, util_Random(3) + 0x127d);
                     break;
                 case 0xa1:
-                    txt_Format(text, util_RandomU(3) + 0x1280);
+                    txt_Format(text, util_Random(3) + 0x1280);
                     break;
                 case 0x8c:
                     if (c->bld != 0) {
                         cls = &ai_BTypesT[c->bld->type];
                         if (cls->kind == 0x1d)
-                            txt_Format(text, util_RandomU(3) + 0x1283);
+                            txt_Format(text, util_Random(3) + 0x1283);
                         else if (cls->kind == 0x1f)
-                            txt_Format(text, util_RandomU(3) + 0x1289);
+                            txt_Format(text, util_Random(3) + 0x1289);
                     }
                     break;
                 default:
-                    kind = util_RandomU(4) + 1;
+                    kind = util_Random(4) + 1;
                     if (!plain && kind == 3)
                         kind = 4;
                     break;
                 }
             }
         } else {
-            kind = util_RandomU(4) + 1;
+            kind = util_Random(4) + 1;
         }
         if (kind >= 0 && kind <= 4)
             id = kind * 15 + 0x11e9;
-        if (util_RandomU(2) == 0 && he_FindEvent(1, 0, 0x52) != 0)
+        if (util_Random(2) == 0 && he_FindEvent(1, 0, 0x52) != 0)
             kind = 5;
         ord_GetStatistics((int *)st);
         switch (kind) {
         case 1:
             id = (int)(3.0 * (st[1] * 5.0) + id);
-            id += util_RandomU(3);
+            id += util_Random(3);
             break;
         case 2:
             id = (int)(3.0 * (ord_BuildingCapacityRatio() * 5.0) + id);
-            id += util_RandomU(3);
+            id += util_Random(3);
             break;
         case 3:
             id = (int)(3.0 * (st[2] * 5.0) + id);
-            id += util_RandomU(3);
+            id += util_Random(3);
             break;
         case 4:
             id = (int)(3.0 * (st[0] * 5.0) + id);
-            id += util_RandomU(3);
+            id += util_Random(3);
             break;
         case 5:
             if (hst_KeyNext != -1) {
@@ -5367,7 +5358,7 @@ void sv_SpeakPicked(void)
                     if (*txt_Ptrs[hst_KeyNext - 5 + n] == 0)
                         break;
                 }
-                id = util_RandomU(n - 1) + hst_KeyNext - 5;
+                id = util_Random(n - 1) + hst_KeyNext - 5;
             }
             break;
         }
@@ -5828,7 +5819,7 @@ void sv_HandleRightClick(unsigned fl)
                 if (ai_PlayerBuilding == 0 || room == 0 || room == sv_PanelShown)
                     sv_PanelShown = 0;
                 else
-                    ai_SwitchRoomI(-1, *room);
+                    ai_SwitchRoom(-1, *room);
             } else if (ai_FallbackBuilding != 0 || ai_PlayerBuilding != 0) {
                 ai_FallbackBuilding = 0;
                 ai_PlayerBuilding = 0;
@@ -6762,7 +6753,7 @@ void sv_NetworkSyncWait(unsigned fl)
     t0 = timeGetTime();
     memset(msg, 0, sizeof(msg));
     strcpy(msg, "sv_NetworkSync");
-    m = ((int (*)(int, int))cm_SendExSysMessage)(0xe, msg);
+    m = cm_SendExSysMessage(0xe, msg);
     sv_FrameMask = fl;
     fl |= 0x300000;
     dlg = sv_OpenMessageBox(txt_NetworkSyncWait, 0);
@@ -6783,7 +6774,7 @@ void sv_BroadcastText(unsigned fl, char *t)
 
     memset(msg, 0, sizeof(msg));
     strcpy(msg, t);
-    m = ((int (*)(int, int))cm_SendExSysMessage)(0xe, msg);
+    m = cm_SendExSysMessage(0xe, msg);
     fl |= 0x300000;
     while (cm_GetSlotState(m) == 0) {
         sv_SetStatusText(t);
@@ -6800,7 +6791,7 @@ void sv_SyncText(char *t)
 
     memset(msg, 0, sizeof(msg));
     strcpy(msg, t);
-    m = ((int (*)(int, int))cm_SendExSysMessage)(0xe, msg);
+    m = cm_SendExSysMessage(0xe, msg);
     while (cm_GetSlotState(m) == 0) {
         sv_SetStatusText(t);
         sv_RunFrame(0, cm_DialogFrameFlags | 0x210000);
@@ -6958,17 +6949,17 @@ void sv_UpdateWeather(void)
         w = (float)(sqrt(wy * wy + wx * wx) * (c + 0x96) * 0.125);
         if (sv_SkyLayersT[1]->alpha == 0) {
             if (c < 0x32) {
-                k = util_RandomU(4);
+                k = util_Random(4);
                 if (strcmpi(sv_SkyLayersT[1]->t->name, sv_SkyFair[k].name) == 0)
                     k++;
                 sky = &sv_SkyFair[k];
             } else if (c < 0x96) {
-                k = util_RandomU(3);
+                k = util_Random(3);
                 if (strcmpi(sv_SkyLayersT[1]->t->name, sv_SkyMedium[k].name) == 0)
                     k++;
                 sky = &sv_SkyMedium[k];
             } else {
-                k = util_RandomU(2);
+                k = util_Random(2);
                 if (strcmpi(sv_SkyLayersT[1]->t->name, sv_SkyHeavy[k].name) == 0)
                     k++;
                 sky = &sv_SkyHeavy[k];
@@ -6981,17 +6972,17 @@ void sv_UpdateWeather(void)
         }
         if (sv_SkyLayersT[1]->alpha == 0xff) {
             if (c < 0x32) {
-                k = util_RandomU(4);
+                k = util_Random(4);
                 if (strcmpi(sv_SkyLayersT[0]->t->name, sv_SkyFair[k].name) == 0)
                     k++;
                 sky = &sv_SkyFair[k];
             } else if (c < 0x96) {
-                k = util_RandomU(3);
+                k = util_Random(3);
                 if (strcmpi(sv_SkyLayersT[0]->t->name, sv_SkyMedium[k].name) == 0)
                     k++;
                 sky = &sv_SkyMedium[k];
             } else {
-                k = util_RandomU(2);
+                k = util_Random(2);
                 if (strcmpi(sv_SkyLayersT[0]->t->name, sv_SkyHeavy[k].name) == 0)
                     k++;
                 sky = &sv_SkyHeavy[k];
@@ -7021,16 +7012,16 @@ void sv_WeatherFrame(void)
         d3t_DrawRain(d3t_Rain);
     if (d3t_Snow != 0)
         d3t_DrawSnow(d3t_Snow);
-    if (sv_Weather.storm[ai_Time.hour] != 0 && (util_RandomU(300) == 0 || (sv_Weather.storm[ai_Time.hour] == 3 && util_RandomU(100) == 0))) {
+    if (sv_Weather.storm[ai_Time.hour] != 0 && (util_Random(300) == 0 || (sv_Weather.storm[ai_Time.hour] == 3 && util_Random(100) == 0))) {
         sv_Weather.thunderStart = d3_Time;
-        sv_Weather.thunderLen = util_RandomU(8) + 8;
+        sv_Weather.thunderLen = util_Random(8) + 8;
         sb_PlaySample(snd_ThunderBank, "DonnerMittel_s", 1, 0x3f, (int)(init_SoundVolume * 127.0f), 0, 0);
     }
     if (d3_CurrentScene == 0) {
         if (ai_Time.hour >= 11 && ai_Time.hour <= 17 && sv_Weather.clouds[ai_Time.hour - 1] != 0 && sv_Weather.clouds[ai_Time.hour] == 0 && ai_Time.min > 30) {
             /* the hour store in both arms (tail-merged) gives the original's registers: the hour in ecx,
                sv_SunRaysHour in eax */
-            if (util_RandomU(0x80) > 0x60 && d3t_SunRays == 0) {
+            if (util_Random(0x80) > 0x60 && d3t_SunRays == 0) {
                 d3t_CreateSunRays();
                 sv_SunRaysHour = ai_Time.hour;
             } else

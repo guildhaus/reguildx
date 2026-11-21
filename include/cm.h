@@ -157,7 +157,7 @@ int gm_RemoveObjectFromBuilding(int b, int id);                                 
 unsigned short * gm_AllocRaum(unsigned char *b, unsigned n);                                           /* 0x5031b0 */
 /* 0x500190 */
 void txt_Format(char *buf, int id, ...);                                       /* 0x5176d0 */
-struct SBSAMPLE *sb_PlaySample(struct SBBANK *bank, char *name, int loops, int pan, int volume, int fade, int delay); /* 0x426fa0, sblib.c (this header's units: sb_PlaySampleI) */
+struct SBSAMPLE *sb_PlaySample(struct SBBANK *bank, char *name, int loops, int pan, int volume, int fade, int delay); /* 0x426fa0, sblib.c */
 float gm_ItemPrice(int item, unsigned char n);                                   /* 0x5087f0 */
 int gm_ObjectBuilding(int y);                                                     /* 0x50a0f0 */
 void util_Seed(unsigned int seed);                                               /* 0x42ec90, tr.c */
@@ -211,16 +211,16 @@ int cm_SendMessage0c(int a, int b, short c, unsigned char d, int e, unsigned cha
 void cm_SendTakeOverCharacter(int a, int b);                                                 /* 0x4c4770 */
 void cm_SendDeleteObject(int id);                                                      /* 0x4c47b0 */
 int cm_SendMoveGoods(int a, int b, unsigned char c, int d);                         /* 0x4c47e0 */
-void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d);                         /* 0x4c4830 */
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d);                         /* 0x4c4830 */
 int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f);         /* 0x4c4880 */
-void cm_SendMakeGoods(int a, short b, int c);                                        /* 0x4c48e0 */
-void cm_SendCartRoute(int a, int b, int c);                                          /* 0x4c4920 */
-void cm_SendRemoveGoods(int a, short b);                                               /* 0x4c4960 */
+int cm_SendMakeGoods(int a, int b, int c);                                          /* 0x4c48e0 */
+int cm_SendCartRoute(int a, int b, int c);                                           /* 0x4c4920 */
+void cm_SendRemoveGoods(int a, int b);                                                 /* 0x4c4960 */
 int cm_SendFieldDeltas(void);                                                         /* 0x4c49a0 */
 int cm_SendFieldValues(void);                                                          /* 0x4c49e0, returns the cm slot of the send */
 void ai_SendNeedBlock(void);                                                         /* 0x4c4a20 */
 int cm_SendSetField(int a, int b, int c, int d, int e);                            /* 0x4c4a60 */
-void cm_SendFloatDelta(int id, int field, float delta);                                          /* 0x4c4ac0 */
+int cm_SendFloatDelta(int id, int field, float delta);                                          /* 0x4c4ac0 */
 int cm_SendRelations(int a, int b, int c, int d);                                   /* 0x4c4b00 */
 int cm_SendLongMessage(char *msg);                                                    /* 0x4c4b70, AIMSG (am.h, 0xf8 bytes) */
 int cm_SendLongMessageText(char *msg, unsigned int len, void *extra);                      /* 0x4c4bc0 */
@@ -247,11 +247,11 @@ int cm_SendPlaceOnStage(int a, int b, int c);                                   
 int cm_SendChrGotoBuilding(int id, int bld, int c, const char *s, int f, const char *s2);  /* 0x4c52e0 */
 void cm_SendChrAnim(int a, const char *s, int c);                        /* 0x4c5410 */
 void cm_SendChrUseGates(int a, int b, int c);                                          /* 0x4c5460 */
-void cm_SendOwnership(int a, int b, int c);                                          /* 0x4c54a0 */
+int cm_SendOwnership(int a, int b, int c);                                          /* 0x4c54a0 */
 void cm_SendUpgradeDone(int a);                                                        /* 0x4c54e0 */
 void cm_SendBuildingDestroyed(int a);                                                        /* 0x4c5510 */
 void cm_SendBoss(int a, int b);                                                 /* 0x4c5540 */
-void cm_SendHandOverCrimes(int a, int b, int c, int d);                                   /* 0x4c5580 */
+int cm_SendHandOverCrimes(int a, int b, int c, int d);                                   /* 0x4c5580 */
 int cm_SendMessage3d(char *p, unsigned char b, int c, int d);                        /* 0x4c55d0 */
 void cm_SendCharModel(int a, const char *s);                                         /* 0x4c5690 */
 void cm_SendGoodsRecord(void *p, unsigned char k);                                     /* 0x4c56d0 */
@@ -264,7 +264,7 @@ int cm_SendOfficeRecord(AMTMSG *p);                                             
 int cm_SendDecisionValue(GVDECMSG *p);                                                   /* 0x4c5930 */
 void cm_SendCharClear(int a, int b, int c);                                          /* 0x4c5970 */
 void cm_SendSetJob(int id, int job);                                       /* 0x4c59b0 */
-void cm_SendSpawnCharacter(unsigned char a, int b, int c, unsigned char d, unsigned char e, unsigned char f, const char *s); /* 0x4c59f0 */
+int cm_SendSpawnCharacter(unsigned char a, int b, int c, unsigned char d, unsigned char e, int f, const char *s); /* 0x4c59f0 */
 void cm_SendFreeObject(int a);                                                        /* 0x4c5a70 */
 void cm_SendChat(void *p);                                                      /* 0x4c5aa0 */
 int cm_RequestCreateGeb(int owner, int kind, D3VECTOR4 *pos, int *rot);                /* 0x4c5ae0, "cm_RequestCreateGeb" */
@@ -285,11 +285,11 @@ void cm_SendMessage5b(int a, int b, int c);                                     
 int cm_SendTradeMessage(AMTTRADE *p);                                                   /* 0x4c5fe0 */
 void cm_SendAddSkill(int a, int b, int c);                                          /* 0x4c6020 */
 void cm_SendSpyReport(AIBLD *o, HESPYREPORT *p);                                     /* 0x4c6060 */
-void cm_SendGraveOrder(void *p);                                                      /* 0x4c60b0 */
+int cm_SendGraveOrder(void *p);                                                      /* 0x4c60b0 */
 int cm_SendGraveMove(void *p);                                                       /* 0x4c60f0 */
-void cm_SendRaiseDead(void *p);                                                      /* 0x4c6130 */
-void cm_SendCreateAlchemist(void *p);                                                      /* 0x4c6170 */
-void cm_SendCommand(void *p);                                                      /* 0x4c61b0 */
+int cm_SendRaiseDead(void *p);                                                      /* 0x4c6130 */
+int cm_SendCreateAlchemist(void *p);                                                      /* 0x4c6170 */
+int cm_SendCommand(void *p);                                                      /* 0x4c61b0 */
 int cm_SendMasterChange(G28REC *p, struct AICHAR *q);                                    /* 0x4c61f0, returns the message's send slot */
 int cm_SendEffectLoad(int *p);                                                       /* 0x4c6230 */
 int cm_SendShots(void *p);                                                      /* 0x4c6260 */
@@ -350,7 +350,7 @@ int gv_FreeCrimeSlot();  /* 0x4f36b0 */
 int gv_EvidenceSlot();  /* 0x4f3780 */
 int gv_RetireCrime();  /* 0x4f37e0 */
 void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py);  /* 0x4f8460, gv.h (ord.c) */
-int ord_RandomCellPoint();  /* 0x4f86a0 */
+char ord_RandomCellPoint();  /* 0x4f86a0 */
 void ord_AdvanceRatingBase(void);  /* 0x4f9c00, ord.c */
 void gm_CountCharacters(void);  /* 0x4fdfd0 */
 char * he_NextEvent(void);  /* 0x53e300 */
@@ -533,8 +533,7 @@ float cm_CharCellDistXZ(char *c, int x, int y);  /* 0x4ce200 */
 int cm_OtherBuilding(char *a, char *b);  /* 0x4ce270 */
 struct CMBOMB *cm_LayBomb(struct D3VECTOR *p);  /* 0x4ce290 */
 void ch_SetHandObject();  /* 0x406c60 */
-int util_Random(unsigned short n);  /* 0x42ec00, tr.c; the callers that read a 16-bit result (ch_RandomNear, anm_Update, cm_FightLoop ..) call util_RandomU, a cast in their head */
-char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100, d3_sm.c (this unit's callers read an int: d3sm_GetVertexI) */
+char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100, d3_sm.c */
 float gm_HealthRatio(short *c);  /* 0x4fc8e0, f3gm.h */
 float gm_GetSkill(char *c, int skill);  /* 0x504ec0 */
 int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);  /* 0x53dda0 */
@@ -564,7 +563,7 @@ int cm_UpdateBombs();  /* 0x4ce300 */
 struct CMGRENADE *cm_ThrowGrenade(struct D3VECTOR *p, int x, int y);  /* 0x4ce5d0 */
 unsigned int cm_Random(unsigned int n);  /* 0x4e52f0, a random number below n */
 extern int cm_FightAttacker;  /* 0x6f0cec */
-extern int cm_BombSounds;  /* 0x6f0d14 */
+extern struct SBBANK *cm_BombSounds;  /* 0x6f0d14 */
 extern char cm_Grenades[];  /* 0x935a00 */
 
 int cm_UpdateGrenades();  /* 0x4ce830 */
@@ -651,7 +650,7 @@ char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, floa
 int cm_OrderEscape(char *rec, char *c, char *tgt);  /* 0x4d0200 */
 
 int cm_OrderConquer(char *rec, char *c, char *tgt);  /* 0x4d02d0 */
-int cm_OrderWare(char *rec, char *c, char *tgt, unsigned char a);  /* 0x4d0380 */
+int cm_OrderWare(char *rec, char *c, char *tgt);  /* 0x4d0380 */
 
 int cm_OrderToBestCell(char *rec, char *c);  /* 0x4d0460 */
 void cm_OrderWait(char *rec, char *c);  /* 0x4d0520 */
@@ -694,11 +693,11 @@ void gm_ShuffledBytes(unsigned char n, unsigned char *out);  /* 0x505be0 */
 int gm_BuildingSkill(unsigned char *b, unsigned k, int flag);  /* 0x5092e0, f3gm.h (not includable here, cm.c lead comment) */
 extern int cm_FightDefender;  /* 0x6f0ce8 */
 extern int cm_FightWinner;  /* 0x6f0cf4 */
-extern int cm_FightSounds;  /* 0x6f0d0c */
-extern int cm_CrossbowSounds;  /* 0x6f0d10 */
-extern int cm_DaggerSounds;  /* 0x6f0d18 */
-extern int cm_PistolSounds;  /* 0x6f0d1c */
-extern int cm_SwordSounds;  /* 0x6f0d20 */
+extern struct SBBANK *cm_FightSounds;  /* 0x6f0d0c */
+extern struct SBBANK *cm_CrossbowSounds;  /* 0x6f0d10 */
+extern struct SBBANK *cm_DaggerSounds;  /* 0x6f0d18 */
+extern struct SBBANK *cm_PistolSounds;  /* 0x6f0d1c */
+extern struct SBBANK *cm_SwordSounds;  /* 0x6f0d20 */
 extern int cm_AttackerAttackVoices;  /* 0x6f0d2c */
 extern int cm_DefenderAttackVoices;  /* 0x6f0d30 */
 extern int cm_AttackerTauntVoices;  /* 0x6f0d3c */
@@ -801,7 +800,7 @@ int gm_TitleGroup();  /* 0x504ad0 */
 int gm_BuildingJob();  /* 0x5048e0 */
 void gm_ChangeBuildingState(unsigned char *b, int d);  /* 0x50cad0 */
 
-int d2_OpenForm();  /* 0x4741f0 */
+int d2_OpenForm(short x, short y, char *name);  /* 0x4741f0 */
 int d2_SetForm(int view, int n);  /* 0x475f70 */
 int d2_GetWinObj(int view, int idx, int k);  /* 0x475b80 */
 int io_PrintText(char *fmt, ...);  /* 0x515960 */
@@ -863,7 +862,7 @@ typedef struct G22ENT {                 /* 0x18 bytes, one participant of a sess
 } G22ENT;
 extern struct D2PIC *d2_Pics;  /* 0x6ed918 */
 int cm_LoadVoiceBank(char *name, int a);  /* 0x4e3270 */
-int cm_PlaySpecialTrack(char *a);  /* 0x4e3620 */
+void cm_PlaySpecialTrack(char *a);  /* 0x4e3620 */
 int amt_GetColumnOffices(int col, int max, struct AMTREC *out);  /* 0x4e6fc0 */
 int amt_IsColumnDecided();  /* 0x4e83b0 */
 void amt_ElectOffices();  /* 0x4e7c60 */
@@ -880,7 +879,7 @@ int cm_StartEventArg(char *name, int arg);  /* 0x4e2c30 */
 int cm_WaitEvent(int a);  /* 0x4e2c70 */
 int cm_UnloadVoiceBank(int a);  /* 0x4e3290, drops the reference of the voice bank a (0 in the replay mode) */
 int cm_WaitEventFull(int a);  /* 0x4e2d40 */
-int cm_EndSpecialTrack();  /* 0x4e3640 */
+void cm_EndSpecialTrack();  /* 0x4e3640 */
 void amt_UpdateOffices();  /* 0x4e85d0 */
 void ai_CampaignStep(int a, int b, int c, int d);  /* 0x576040 */
 void cm_RunCouncilSession(G28REC *a);  /* 0x4d8e20 */
@@ -932,10 +931,10 @@ void cm_RunDuel(G28REC *m);  /* 0x4ded10 */
 
 int gv_Accuse();  /* 0x4f2e30 */
 int cm_DuelAftermath(G28REC *m);  /* 0x4dfa20 */
-void cm_DuelRoundDialog(CMCUTINFO *r);  /* 0x4dfcb0 */
+void cm_DuelRoundDialog(CMCUTINFO *r, G28REC *m);  /* 0x4dfcb0 */
 void cm_DuelChooseRound(CMCUTINFO *, G28REC *);  /* 0x4dfdd0, the duel round dialog of the party scene (r, the duel record m) */
 void cm_DuelAskAI(CMCUTINFO *r);  /* 0x4dff80 */
-void cm_DuelAskPlayer(CMCUTINFO *r);  /* 0x4dfff0 */
+void cm_DuelAskPlayer(CMCUTINFO *r, G28REC *m);  /* 0x4dfff0 */
 void cm_RunPictureShow(G28REC *m);  /* 0x4e0010 */
 
 int cm_ExecutionAftermath(G28REC *m);  /* 0x4e0040 */

@@ -24,13 +24,14 @@
 #include "dd_vesa.h"
 #include "d2.h"
 #include "shp_bank.h"
+void d2_DrawNothing(int x, int y, void *surf, void *data);  /* unlinked, defined at the end of the unit (an empty body above its callers would let VC6 drop the calls) */
+
 #ifdef REA_FRAME_DUMP
 #include "rea_dump.h"           /* debug build: REA_DUMP_TRACE */
 
 #endif
 #include "data_views.h"
 #include "ch.h"
-#include "cm.h"
 #include "d3_interface.h"
 #include "d3_io_a.h"
 #include "d3s.h"
@@ -42,7 +43,6 @@
 #include "ts_texture.h"
 #include "vfs.h"
 #include "shp.h"
-#define d2_MoveObjI ((void (*)(int, int, int))d2_MoveObj)  /* 0x46cda0 (d2.c: short x, short y): @original this unit passes the coordinates as ints (d2_CreatePicObj) */
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 extern struct D3OBJECT *d3s_Lights[4];
@@ -106,7 +106,7 @@ D2WIN * d2_LastWindowPtr = 0;  /* 0x6ed980, window created last */
 int d2_FullFormPath = 0;  /* 0x6ed984, nonzero: the name given to d2_OpenForm is a full path (no d2_FormsDir prefix, no .form suffix); cleared after each load, nothing in the binary sets it */
 FILE *d2_File = 0;                  /* 0x6ed988 */
 int d2_PicShift = 0;                /* 0x6ed98c */
-int d2_ClickBank = 0;  /* 0x6ed990 */
+struct SBBANK *d2_ClickBank = 0;  /* 0x6ed990 */
 D2RECT *d2_Dirty[2] = {0};          /* 0x6ed994 */
 void *d2_RedrawInfo2 = 0;           /* 0x6ed99c, third redraw info buffer ("d2:d2_RedrawInfo2") */
 D2SHAPE *d2_Shapes = 0;             /* 0x6ed9a0 */
@@ -1393,6 +1393,7 @@ void d2_DrawButton(int id, D2SURF *surf)
 
 void d2_CenterObj(int obj)
 {
+    void d2_MoveObj();  /* @original: no prototype here: d2_MoveObj (short x, y) is defined below; the call pushes promoted ints (movsx) */
     D2OBJ *o = &d2_Objs[obj];
     int x;
 
@@ -1401,7 +1402,7 @@ void d2_CenterObj(int obj)
             x = o->win->w / 2 - o->w / 2 + o->win->x;
         else
             x = d2_ScreenW / 2 - o->w / 2;
-        d2_MoveObjI(x, o->y, obj);
+        d2_MoveObj(x, o->y, obj);
     }
 }
 /* 0x46c260, sets the width of an object and centres it again */
@@ -1741,10 +1742,10 @@ int d2_CreatePicObj(short x, short y, int pic)
     return d2_OpenPic(x, y, pic);
 }
 
-/* 0x46cda0, moves an object (and, for a window, the objects on it) to x, y and recomputes its clip rectangle */
 void d2_MoveObj(short x, short y, int obj);
 
-/* 0x46cda0 */
+/* 0x46cda0, moves an object (and, for a window, the objects on it) to x, y and recomputes its clip rectangle. d2.h
+   does not declare it (d2_CenterObj above and gfx.c call it unprototyped, pushing ints); cm.h does, for the game units */
 void d2_MoveObj(short x, short y, int obj)
 {
     D2OBJ *o;
@@ -1877,7 +1878,7 @@ void *surf;
         d2_DrawShape((short)x, (short)y, surf, data, 0);
         break;
     case 0x11:
-        ((void (*)(int, int, void *, void *))d3io_NoopCallback)(x, y, surf, data);
+        d2_DrawNothing(x, y, surf, data);
         break;
     case 5:
     case 8:
@@ -2037,11 +2038,11 @@ void d2_DrawObjects(void)
                 break;
             case 0x11:
                 if (o->drawFrames > 0) {
-                    ((void (*)(int, int, void *, void *))d3io_NoopCallback)(x, y, d2_ScreenSurf, o->data);
+                    d2_DrawNothing(x, y, d2_ScreenSurf, o->data);
                     if (o->drawFrames == 2) {
                         if (d2_NoBackgroundRestore == 1)
                             break;
-                        ((void (*)(int, int, void *, void *))d3io_NoopCallback)(x, y, d2_BackSurf, o->data);
+                        d2_DrawNothing(x, y, d2_BackSurf, o->data);
                     }
                     if (d2_NoBackgroundRestore != 1)
                         o->drawFrames--;
@@ -3850,7 +3851,9 @@ int pic;
    [esi+0x388], ebx ...) and holds flags in ecx, reloading its low byte at the end (mov bl, [esp+0x6c]);
    the found test re... */
 
-int d2_CreateWindow(short x, short y, short w, short h, unsigned int flags)
+int d2_CreateWindow(x, y, w, h, flags)
+short x, y, w, h;
+unsigned int flags;
 {
     int desc[16];
     int i, j, ob;
@@ -4063,7 +4066,6 @@ void d2_FinishFades(void)
         }
     }
 }
-#define d2_CreateWindowI ((int (*)(int, int, int, int, unsigned int))d2_CreateWindow)  /* @original: d2.c's own call was compiled without a prototype, pushing the expressions as ints (d2_CreateChildWindow 0x472aa0 is byte-matched with plain pushes at 0x472b0e) */
 /* 0x472aa0, creates a window inside another one (relative to its scroll position) */
 
 int d2_CreateChildWindow(short x, short y, short pw, short h, unsigned int flags, int win)
@@ -4074,7 +4076,7 @@ int d2_CreateChildWindow(short x, short y, short pw, short h, unsigned int flags
 
     if (!w->active)
         return -1;
-    n = d2_CreateWindowI(w->x - w->scrollX + x, w->y - w->scrollY + y, pw, h, flags);
+    n = d2_CreateWindow(w->x - w->scrollX + x, w->y - w->scrollY + y, pw, h, flags);
     d2_AddToDrawOrder(d2_Wins[n].parent, w);
     w->objs[w->nobjs] = d2_Wins[n].parent;
     d2_Objs[d2_Wins[n].parent].win = w;
@@ -4317,10 +4319,10 @@ int d2_WinOpenPic(short x, short y, int pic, int win)
 }
 /* 0x473350, the same without the horizontal scroll, and with a style */
 
-int d2_WinOpenPicStyled(int x, int y, int pic, int win, int a)
+int d2_WinOpenPicStyled(short x, short y, int pic, int win, int a)
 {
     D2WIN *w = &d2_Wins[win];
-    int obj;
+    int obj, bw, bh;
 
 
     if (!w->active)
@@ -4342,9 +4344,9 @@ int d2_WinOpenPicStyled(int x, int y, int pic, int win, int a)
         d2_Objs[obj].disabled = d2_Objs[w->parent].disabled;
         d2_ScaleObject(obj, a);
         w->nobjs++;
-        d2_GetFrameSize(w, &x, &win);
-        if ((short)y + d2_Objs[obj].h > w->contentHeight)
-            w->contentHeight = (short)y + x * 2 + d2_Objs[obj].h;
+        d2_GetFrameSize(w, &bw, &bh);
+        if (y + d2_Objs[obj].h > w->contentHeight)
+            w->contentHeight = y + bw * 2 + d2_Objs[obj].h;
     }
     return obj;
 }
@@ -4668,7 +4670,7 @@ void d2_RaiseViewWindows(int v)
    ('- push edi' against '+ push 1' at every vfs_fread), the original strength-reduces the records to
    stepped slots (d2_Forms0 entry [esp+0x34], d2_Forms2 entry + 0xed0 [esp+0x28], wins pointer [esp+0x10])
    where ours steps d2_Forms0 + 6 in ebp; the original does not thread its sec... */
-int d2_OpenForm(int x, int y, char *name)
+int d2_OpenForm(short x, short y, char *name)
 {
     char buf[0x100] = "";
     char msg[0x100];
@@ -4830,7 +4832,7 @@ int d2_OpenForm(int x, int y, char *name)
     d2_FullFormPath = 0;
     strcpy(d2_Views[view].pad22c, name);
     ww = (D2WINF *)&d2_Wins[d2_Views[view].wins[0]];
-    if ((short)x != 0 && (short)y != 0)
+    if (x != 0 && y != 0)
         d2_MoveObj(x, y, ww->parent);
     if (d2_ScreenW < ww->x + ww->w)
         d2_MoveObj(d2_ScreenW - ww->w, ww->y, ww->parent);
@@ -5838,4 +5840,10 @@ void d2_ClearInput(void)
     d2_ClickedId = -1;
     di_ClearButtons();
     kb_Last = 0;
+}
+
+/* unlinked: an empty function; LINK folds it (/OPT:ICF) into d3io_NoopCallback, 0x44ee40, where the original's
+   calls of it for the object type 0x11 in d2_DrawObject / d2_DrawAll (x, y, surface, data) point */
+void d2_DrawNothing(int x, int y, void *surf, void *data)
+{
 }

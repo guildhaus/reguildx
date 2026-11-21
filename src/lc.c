@@ -98,8 +98,6 @@
 #define GAPDATA __declspec(align(1)) unsigned char
 
 #define ai_MapPickCb(cb) ((void (*)(void *, void *))(cb))  /* @original: ai_MapPick's cb is void (*)() (lc.h, its callbacks take differing pointer types); both indirect calls push two dwords and read no result (0x5b22f6/0x5b22f7 push ebp twice; 0x5b248f/0x5b2490 push the picked building and picked) */
-#define util_RandomS ((unsigned short (*)(unsigned short))util_Random)  /* 0x42ec00 (tr.c: int util_Random(unsigned short)): @original the plague messages (ai_PlagueNews, ai_PlagueMessage, ai_PlagueMessageAll) read the 16-bit result (mov si,ax / and esi,0xffff), as f3gm.c's gm_Shuffled */
-#define d2_WinOpenPicStyledS ((int (*)(short, short, int, int, int))d2_WinOpenPicStyled)  /* @original the production columns' input pictures pass x = k * 0x31 + 0x11 as a short (no movsx, computed afresh per call: no strength reduction), as sv.c / svtip.c do */
 /* lc.c --the production / trade windows and the tavern / location / money lender / Rathaus windows
    (0x58bbd0 .. 0x5d33b0): the
    "Handel\Handel_PRODUKTION" screen of a building (0x58bd60) and its helpers (the table init 0x58bbd0, the
@@ -344,7 +342,7 @@ extern int d2_LastWindow;
 extern char * ai_BTypes;
 
 extern int d2_CutsceneActive;
-extern int snd_RoomBank;
+extern struct SBBANK *snd_RoomBank;
 extern char * ai_BTypes;
 #include "menu_types.h"
 extern char ai_Chars[768][0x21c];
@@ -605,7 +603,6 @@ typedef struct G8INVOBJ {               /* an object of a character's inventory 
     AITIME since;                       /* +0x2d, of a Domizil good in use: when minutesLeft was last counted down */
 } G8INVOBJ;
 #pragma pack(pop)
-#define d2_OpenFormS ((int (*)(short, short, char *))d2_OpenForm)  /* @original: the transport window computes x = d2_ScreenW - 0x68 in 16 bits (0x5af336 mov ax, [d2_ScreenW]; sub ax, 0x68; push eax), as sv_OpenPlayerBar */
 extern char * ai_BTypes;
 extern GAPDATA full_data_60c28c[];
 extern int ai_MapSize;
@@ -709,7 +706,6 @@ int sprintf(char *buf, const char *fmt, ...); /* 0x5de652, the CRT's sprintf */
 
 struct AMTREC;  /* file-scope tag for the prototypes below */
 
-#define AI_4A63F0_7(p, a, fl, b, c, f, o) ((int (*)(void *, int, unsigned int, int, int, float, int *))ai_PickActionBuilding)(p, a, fl, b, c, f, o)
 
 struct AITIME;  /* f3gm.h typedef; file-scope tag for the gm_AddTime prototype */
 
@@ -919,6 +915,7 @@ typedef struct G8USEVIEW {              /* a local view of am.h's G8USE (am.h ca
 #include "menu.h"
 #include "sv.h"
 #include "sv_quickjump.h"
+unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 /* 0x58bbd0, sets up the production window's tables: the grid rows ai_ProdRows / ai_ProdRows2 (no title picture),
    the 16 goods columns ai_ProdColumns (no inputs, x 0x10, y 8 + i * 0x78, no windows or pictures), the column
    slots ai_ProdColumnSlots (at 0x1a / 0x10 + i * 0x45) and the goods grids ai_ProdGoods / ai_ProdGoods2 (four
@@ -998,7 +995,7 @@ void ai_InitProductionTables(void)
     }
 }
 
-struct D3VECTOR; int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps); int d2_OpenForm(); void d2_CentreViewWindows(int view);
+struct D3VECTOR; int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps); void d2_CentreViewWindows(int view);
 float gm_GoodsPrice(unsigned id, unsigned char p);   /* 0x5089c0, the price (ai.h / cm.h / rt.h: float) */
 void gm_FormatAmount(int v, unsigned char k, char *out);  /* 0x508a80, above its first call (line 1119) */
 int d2_SetForm(int view, int n); int io_PrintText(char *fmt, ...);
@@ -1242,7 +1239,7 @@ int ai_ProductionWindow(AIBLD *bld)
     return 0;
 }
 
-int gm_BuildingGoodsList(char *b, unsigned *out, int kind); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); struct AIPER; struct D3VECTOR; int d2_WinOpenPic(short x, short y, int pic, int win); int d2_WinOpenPicStyled();
+int gm_BuildingGoodsList(char *b, unsigned *out, int kind); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); struct AIPER; struct D3VECTOR; int d2_WinOpenPic(short x, short y, int pic, int win);
 void d2_RemoveObj(int obj); int gm_MinutesBetween(); char * he_FindEvent(int n, ...); char * he_NextEvent(void);
 int d2_SetForm(int view, int n); int io_PrintText(char *fmt, ...);
 
@@ -1288,7 +1285,7 @@ void ai_UpdateResourceColumns(int win, int part, int ncols, int unused)
             d2_Objs[ai_ProdColumns[c].pic].icony = -1;
             for (k = 0; k < 4; k++) {
                 if (ai_ProdColumns[c].in[k] != 0) {
-                    ai_ProdColumns[c].inPics[k] = d2_WinOpenPicStyledS(k * 0x31 + 0x11, 0x3a, ai_ProdColumns[c].in[k] + 0xdf, ai_ProdColumns[c].win, -2);
+                    ai_ProdColumns[c].inPics[k] = d2_WinOpenPicStyled(k * 0x31 + 0x11, 0x3a, ai_ProdColumns[c].in[k] + 0xdf, ai_ProdColumns[c].win, -2);
                     d2_Objs[ai_ProdColumns[c].inPics[k]].interactive = 1;
                     d2_Objs[ai_ProdColumns[c].inPics[k]].iconx = -1;
                     d2_Objs[ai_ProdColumns[c].inPics[k]].icony = -1;
@@ -1361,7 +1358,7 @@ void ai_UpdateResourceColumns(int win, int part, int ncols, int unused)
     }
 }
 
-int gm_BuildingClass(); int d2_WinOpenPicStyled(); void d2_SetObjFont(); void d2_SetCaption();
+int gm_BuildingClass(); void d2_SetObjFont(); void d2_SetCaption();
 int gm_ClockSeason(); int ls_GetLanguage(); int d2_CountPointerItems(); void cm_BeginFieldBlock(char *o, int id);
 int cm_AddFieldValue(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldValues(void); void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input, unsigned char side, AIBLD *bld); void d2_MoveObj(short x, short y, int obj);
 void d2_SetPointerItem(int id, int amount); void d2_ClearPointerItems(void);
@@ -1427,7 +1424,7 @@ void ai_UpdateProdColumns(int win, int part, int ncols, int store, int mode)
             d2_Objs[ai_ProdColumns[c].pic].icony = -1;
             for (k = 0; k < 4; k++) {
                 if (ai_ProdColumns[c].in[k] != 0) {
-                    ai_ProdColumns[c].inPics[k] = d2_WinOpenPicStyledS(k * 0x31 + 0x11, 0x3a, ai_ProdColumns[c].in[k] + 0xdf,
+                    ai_ProdColumns[c].inPics[k] = d2_WinOpenPicStyled(k * 0x31 + 0x11, 0x3a, ai_ProdColumns[c].in[k] + 0xdf,
                                                                       ai_ProdColumns[c].win, -2);
                     d2_Objs[ai_ProdColumns[c].inPics[k]].interactive = 1;
                     d2_SetObjFont(ai_ProdColumns[c].inPics[k], 0x54);
@@ -1902,7 +1899,6 @@ void ai_LayoutMarketGoodsList(int view, int part, int pointer, int bld)
                 d2_SetPointerItem(ai_ProdGoods2[k].good + 0xdf, d2_GetObjValue(ai_ProdGoods2[k].check));
     }
 }
-#define d2_CreateWinTextS ((int (*)(short, short, char *, int))d2_CreateWinText)  /* @original ai_ShowProdSlot passes 16-bit x / y (mov ax, word ptr / add ax, 0x40; push eax) */
 int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int flags, int win);  /* 0x46a960 (d2.h) */
 int d2_RemoveWindow(int win);                                   /* 0x472ce0 (d2.h) */
 
@@ -1955,7 +1951,7 @@ void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input, unsigned c
                                       : gm_GoodsPrice(slot->good, ai_OwnPlayer) * bld->priceFactor),
                             ai_OwnPlayer, text);
             if (slot->priceText == -1)
-                slot->priceText = d2_CreateWinTextS(slot->x + 0x10, slot->y + 0x40, text, d2_LastWindow);
+                slot->priceText = d2_CreateWinText(slot->x + 0x10, slot->y + 0x40, text, d2_LastWindow);
             else
                 d2_SetObjText(slot->priceText, text);
             d2_Objs[slot->priceText].w = 0x2d;
@@ -1967,7 +1963,7 @@ void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input, unsigned c
                                                     : gm_GoodsPrice(slot->good, ai_OwnPlayer) * 0.9),
                             ai_OwnPlayer, text);
             if (slot->buyPriceText == -1)
-                slot->buyPriceText = d2_CreateWinTextS(slot->x + 0x10, slot->y + 0x49, text, d2_LastWindow);
+                slot->buyPriceText = d2_CreateWinText(slot->x + 0x10, slot->y + 0x49, text, d2_LastWindow);
             else
                 d2_SetObjText(slot->buyPriceText, text);
             d2_Objs[slot->buyPriceText].w = 0x2d;
@@ -2266,7 +2262,7 @@ int ai_BuildingName(int id, char *out)
 
 struct D3OBJECT;
 struct D3VECTOR;
-void d3_PointToWorld(struct D3OBJECT *obj_, struct D3VECTOR *in, struct D3VECTOR *out); /* 0x458a20 (d3_pose.c) */
+void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out); /* 0x458a20 (d3_pose.c) */
 unsigned char *gm_BuildQuery(int n, ...);                  /* 0x501190 (f3gm.c) */
 unsigned char *gm_BuildNext(void);                         /* 0x501030 (f3gm.c) */
 int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps); /* 0x453e80 (d3_vec.c) */
@@ -2542,9 +2538,8 @@ int lc_GetGebaeudeBauplatz(AIBUILDSITE *out, AIBLD *b)
 
 int d3t_DropObject(); 
 
-struct XOBJ;
-void d3_LocalToWorld(struct XOBJ *obj, float *in, float *out);  /* 0x458c10 (d3_pose.c) */
-void d3_DirToWorld(struct XOBJ *obj, float *in, float *out);    /* 0x458810 (d3_pose.c) */
+void d3_LocalToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);  /* 0x458c10 (d3_pose.c) */
+void d3_DirToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);    /* 0x458810 (d3_pose.c) */
 float d3_VecAngle(struct D3VECTOR *a, struct D3VECTOR *b);      /* 0x4539f0 (d3_vec.c) */
 extern const struct D3VECTOR4 d3_ZAxis;                          /* 0x5ebb74, (0, 0, 1) */
 
@@ -2561,7 +2556,7 @@ void ai_ObjectPosition(void *out, int plot)
     v[0] = 0;
     v[1] = 0;
     v[2] = 0;
-    d3_LocalToWorld((struct XOBJ *)plot, v, (float *)out);
+    d3_LocalToWorld((struct D3OBJECT *)plot, (struct D3VECTOR *)v, (struct D3VECTOR *)out);
     d3if_SelectScene(scene, 1);
 }
 /* 0x58fd90, the rotation angle of a plot record (123 B): d3if_SelectScene (0, 1) brackets the work; out[0..2] is
@@ -2582,7 +2577,7 @@ void ai_ObjectAngle(void *out_, int plot)
     out[0] = 0;
     out[1] = 0;
     out[2] = 0;
-    d3_DirToWorld((struct XOBJ *)plot, (float *)&d3_ZAxis, v);
+    d3_DirToWorld((struct D3OBJECT *)plot, &d3_ZAxis, (struct D3VECTOR *)v);
     out[1] = d3_VecAngle((struct D3VECTOR *)&d3_ZAxis, (struct D3VECTOR *)v);
     d3if_SelectScene(scene, 1);
 }
@@ -2763,7 +2758,7 @@ int lc_GebaeudeAusrichten(int kind, char *out)
         err_Message(buf);
         return 0;
     }
-    idx = util_Random(n) & 0xffff;
+    idx = util_Random(n);
     if (((AIBTYPE *)ai_BTypes)[kind].kind == '!')
         idx = ((AICHARREC *)ai_Chars)[ai_PlayerId].sex != 1;
     if (ai_BuildingName(kind, bname) == 0)
@@ -2814,7 +2809,7 @@ int lc_GebaeudeAusrichten(int kind, char *out)
                     rot.z = model->rotation.z;
                     d3if_Delete(model);
                 }
-                strcpy(path, names[util_Random(n) & 0xffff]);
+                strcpy(path, names[util_Random(n)]);
                 model = d3_LoadGroup(path, 0, 0);
                 if (model == 0) {
                     sprintf(buf, "lc_GebaeudeAusrichten(): Could not load 3D-Object-Group '%s'...", path);
@@ -2971,14 +2966,13 @@ int lc_GebaeudeAusrichten(int kind, char *out)
     return 0;
 }
 
-int ai_RunAllows(); int d2_OpenForm();
+int ai_RunAllows();
 int d2_SetForm(int view, int n); int d2_GetViewWin(); int io_PrintText(char *fmt, ...);
-int d2_WinOpenPic(short x, short y, int pic, int win); void d2_SetObjFont(); void d2_SetObjText();  /* d2_CreateWinText: d2.h's prototype; ai_ShowProdSlot's 16-bit calls go through d2_CreateWinTextS */
+int d2_WinOpenPic(short x, short y, int pic, int win); void d2_SetObjFont(); void d2_SetObjText();
 void d2_SetViewEnabled(); void d2_CloseView(int view); int cm_SendLongMessage(char *msg);
 void txt_Format(char *out, int id0, ...);
 int gm_CharCurrency(char *c, char p); int gm_BuildingClass(int kind); int gm_MayTakeJob(int k, int c);
 
-#define sv_CheckStockB ((int (*)(AIROOM *, int, int, unsigned char))sv_CheckStock)  /* @original ai_ConstructionWindow pushes the money kind as a byte (only cl loaded) */
 
 /* 0x5909a0, the construction window "BAUEN\GEB_BAUEN" (1988 B): run by ai_RunAllows (0x40) between the campaign
    steps 0xe (0, 0, 0) / (0, 1, 0); the window's padding 0x18 and its scroll buttons; the form 1 title (text 0x17eb)
@@ -3116,7 +3110,7 @@ void ai_ConstructionWindow(void)
             }
             pointed = d2_PointerObj;
             if ((seat != 0 &&
-                 sv_CheckStockB(seat, seat->list, gm_BuildingKindCost((int)ai_Chars[ai_PlayerId], kind), ai_OwnPlayer)) ||
+                 sv_CheckStock((short *)seat, seat->list, gm_BuildingKindCost((int)ai_Chars[ai_PlayerId], kind), ai_OwnPlayer)) ||
                 (seat == 0 && sv_CheckGoodAmount(ai_Chars[ai_PlayerId],
                                                   gm_BuildingKindCost((int)ai_Chars[ai_PlayerId], kind), ai_OwnPlayer))) {
                 d2_SetViewEnabled(view, 0);
@@ -3160,7 +3154,7 @@ struct AIBLD; int ai_ScriptQuery();
 int gm_IsType10(unsigned char *b);
 int d2_GetWinObj(int view, int idx, int k); void ai_TechEffectsWindow(AIBLD *bld);
 float gm_ItemPrice(int item, unsigned char n);
-void cm_BeginGroup(const char *s); void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_SendMoveGoods(int a, int b, unsigned char c, int d); short * gm_PlayerRecord(char *c);
+void cm_BeginGroup(const char *s); int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_SendMoveGoods(int a, int b, unsigned char c, int d); short * gm_PlayerRecord(char *c);
 int cm_SendLongMessage(char *msg); int cm_EndGroup(const char *s); int cm_GetSlotState(int h); void cm_SendMoneyDelta(int a, int b);
 char *strupr(char *); void gm_CloseTechTree(void);
 void ai_MasterLetterWindow();
@@ -3614,7 +3608,7 @@ void ai_TechTreeWindow(int bld, int room)
                                 txt_Format(text, 0x1a, cost, bld, i * 2 + 0x9a8);
                             } else {
                                 treasury = (AIROOM *)gm_ClassTreasury(b);
-                                if (sv_CheckStockB(treasury, treasury->list, cost, ai_OwnPlayer) != 0)
+                                if (sv_CheckStock((short *)treasury, treasury->list, cost, ai_OwnPlayer) != 0)
                                     ok = 1;
                                 txt_Format(text, 0x1c, cost, bld, i * 2 + 0x9a8);
                             }
@@ -6383,7 +6377,7 @@ void ai_TavernRulesWindow(void)
 }
 /* 0x597780, draws three dice (134 B): the window's objects are removed (d2_RemoveWindowObjects), the caption is
    printed (io_PrintText "$C$Z%s"), then the three dice cells at x = 0x1c + i * 0x3a (0 every 8) and y = 0x1d
-   (0x46 after 8), each a d2_WinOpenPic with the random picture 0x75b + (util_Random(6) & 0xffff) */
+   (0x46 after 8), each a d2_WinOpenPic with the random picture 0x75b + util_Random(6) */
 
 void ai_DrawDice(char *caption)
 {
@@ -6397,7 +6391,7 @@ void ai_DrawDice(char *caption)
     x = 0x1c;
     y = 0x1d;
     do {
-        d2_WinOpenPic(x, y, (util_Random(6) & 0xffff) + 0x75b, d2_LastWindow);
+        d2_WinOpenPic(x, y, util_Random(6) + 0x75b, d2_LastWindow);
         i++;
         if (i % 8 == 0)
             x = 0;
@@ -6440,7 +6434,7 @@ void ai_DrawDuelDice(char *caption, LCDUELSIDE *side)
                 x += 0x3a;
             y = i > 7 ? 0x46 : 0x1d;
         }
-        d2_WinOpenPic(x, y, (util_Random(6) & 0xffff) + 0x75b, d2_LastWindow);
+        d2_WinOpenPic(x, y, util_Random(6) + 0x75b, d2_LastWindow);
     } else {
         x = 0x1c;
         y = 0x1d;
@@ -6453,7 +6447,7 @@ void ai_DrawDuelDice(char *caption, LCDUELSIDE *side)
                 x += 0x3a;
             y = i > 7 ? 0x46 : 0x1d;
         }
-        d2_WinOpenPic(x, y, (util_Random(6) & 0xffff) + 0x75b, d2_LastWindow);
+        d2_WinOpenPic(x, y, util_Random(6) + 0x75b, d2_LastWindow);
     }
 }
 /* 0x597920, draws one side of a dice duel as thrown (as ai_DrawDuelDice without the random cell): the
@@ -7445,8 +7439,8 @@ void ai_DarkCornerTable(AIBLD *bld, AIOBJ *room)
 int d3t_PlaceAtObject(); void d2_SetBackgroundTexture(); 
 struct D3OBJECT * d3if_Pick(float x, float y, int flags, int mask); int gm_GetGoodsValue(); int gm_SumListAmounts(void *list, unsigned char p);
 int gm_PlayerFactor(int a, unsigned char k); int gm_GetCreditOffers(); void d2_EnableViewObjects();
-#define gm_SumListAmountsL ((int (*)(void *))gm_SumListAmounts)  /* 0x509e30: @original ai_WineCellarWindow passes the list alone (one push, no player slot) */
-void he_MessageBoxQuickjump(int a1, int a2, char *text, char fl, int a5, int a6, int a7, char *jump, char *text2); void he_FreeEvent(); void d2_RadioClear(int g); int d2_CreateRadioGroup(int n, ...);
+int gm_SumListMoney(void *list);  /* f3gmt.c, folded into gm_SumListAmounts 0x509e30: one push, no player slot */
+void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2); void he_FreeEvent(); void d2_RadioClear(int g); int d2_CreateRadioGroup(int n, ...);
 void ai_StorageWindow(); void ai_MasterLetterWindow(); int ai_OpenTransport();
 void ai_BardWindow(void); void ai_NoticeBoardWindow(void);
 void cm_BeginGroup(const char *s); void cm_SendScriptMessage(void *p); void cm_SendProofExecuted(int a, int b);
@@ -7922,7 +7916,7 @@ void ai_WineCellarWindow(void)
 
     win = d2_OpenForm(0, 0, "locations\\wohnsitz\\weinkeller");
     own = gm_GetGoodsValue(ai_Chars[ai_PlayerId]);
-    cellar = gm_SumListAmountsL((void *)((AIROOM *)sv_PanelShown)->list);
+    cellar = gm_SumListMoney((void *)((AIROOM *)sv_PanelShown)->list);
     d2_CentreViewWindows(win);
     d2_SetForm(win, 0);
     sv_FitForm(d2_LastWindow);
@@ -8052,7 +8046,7 @@ void ai_NewCreditWindow(AIBLD *bank)
 }
 
 short * gm_FindChar(int id); void txt_Format(char *out, int id0, ...);
-short * gm_PlayerRecord(char *c); void he_MessageBoxQuickjump(int a1, int a2, char *text, char fl, int a5, int a6, int a7, char *jump, char *text2); void he_FreeEvent();
+short * gm_PlayerRecord(char *c); void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2); void he_FreeEvent();
 void d2_RadioClear(int g); int d2_CreateRadioGroup(int n, ...); void d2_SetObjText(); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);
 int d2_RemoveWindow(); void d2_RemoveObj(); int gm_SumSlotAmounts(void *list, unsigned char i);
 void gm_SortCharsByName(int n, int *ids, int flag); void d2_AddPointerItem(int id, int amount); void d2_ClearPointerItems(void); int d2_CountPointerItems();
@@ -8738,10 +8732,10 @@ void ai_ExchangeWindow(AIBLD *bank)
     d2_SetForm(win, 0);
     sv_OpenWindowFrame(d2_LastWindow, 0x73b, 0x73f);
     d2_SetForm(win, 0);
-    bankText = d2_CreateWinTextS(d2_Objs[bankUp].x - d2_LastWindowPtr->x + 2,
+    bankText = d2_CreateWinText(d2_Objs[bankUp].x - d2_LastWindowPtr->x + 2,
                                  d2_Objs[bankUp].h - d2_LastWindowPtr->y + d2_Objs[bankUp].y + 2, ch_EmptyName,
                                  d2_LastWindow);
-    ownText = d2_CreateWinTextS(d2_Objs[ownUp].x - d2_LastWindowPtr->x + 2,
+    ownText = d2_CreateWinText(d2_Objs[ownUp].x - d2_LastWindowPtr->x + 2,
                                 d2_Objs[ownUp].h - d2_LastWindowPtr->y + d2_Objs[ownUp].y + 2, ch_EmptyName,
                                 d2_LastWindow);
     d2_Objs[bankText].font = 0x54;
@@ -9036,7 +9030,6 @@ int ai_MoneyMessengerWindow(AIBLD *bank, int good, int amount, unsigned char pla
 }
 
 int gm_SumListAmounts(void *list, unsigned char p); char * he_FindEvent(int n, ...); char * he_NextEvent(void); int ai_AmountMenu();
-#define gm_SumListAmounts1 ((int (*)(void *))gm_SumListAmounts)  /* @original ai_MoneyExchangeWindow pushes only the list (the player byte is unused) */
 int gm_BuildingClass(); unsigned gm_PermissionBits(unsigned p1, unsigned char *b, unsigned short *o, int c);
 void init_LoadObjectScene();
 char d3_DeflateScene(unsigned int flags); char d3_InflateScene(unsigned int flags); void init_SetCharacterAnimations(unsigned char *b);
@@ -9099,10 +9092,10 @@ void ai_MoneyExchangeWindow(AIBLD *bank)
     bankDown = d2_GetWinObj(win, 0, 0);
     d2_GetWinObj(win, 0, 4);
     d2_SetForm(win, 0);
-    bankText = d2_CreateWinTextS(d2_Objs[bankUp].x - d2_LastWindowPtr->x + 2,
+    bankText = d2_CreateWinText(d2_Objs[bankUp].x - d2_LastWindowPtr->x + 2,
                                  d2_Objs[bankUp].h - d2_LastWindowPtr->y + d2_Objs[bankUp].y + 2, ch_EmptyName,
                                  d2_LastWindow);
-    playerText = d2_CreateWinTextS(d2_Objs[playerUp].x - d2_LastWindowPtr->x + 2,
+    playerText = d2_CreateWinText(d2_Objs[playerUp].x - d2_LastWindowPtr->x + 2,
                                    d2_Objs[playerUp].h - d2_LastWindowPtr->y + d2_Objs[playerUp].y + 2, ch_EmptyName,
                                    d2_LastWindow);
     d2_Objs[bankText].font = 0x54;
@@ -9118,7 +9111,7 @@ void ai_MoneyExchangeWindow(AIBLD *bank)
     sv_ButtonRow(d2_LastWindow, 0, buttons, 2, txt_Ptrs[0x1906], txt_Ptrs[0x3fd6]);
     feesButton = buttons[0];
     exchangeButton = buttons[1];
-    if (gm_SumListAmounts1((void *)bank->objList) <= 0) {
+    if (gm_SumListMoney((void *)bank->objList) <= 0) {
         d2_SetForm(win, 5);
         io_PrintText(0x190a, bank);
     }
@@ -9381,7 +9374,7 @@ void ai_MoneyLenderContact(AIBLD *bld, int room)
    0x6f229c - 0x6f22a4 + 1 count, the room matrices 0x43b790 / 0x43b860 (0xfc2dec + 0 / + 0x10), the counters
    0x6f22cc / 0x6f22d0 = 0 and the sound "RaumWechseln_s" (0x426fa0) */
 
-void ai_SwitchRoom(int index, unsigned short room)
+void ai_SwitchRoom(int index, unsigned room)
 {
     unsigned short *p;
     int i;
@@ -10279,7 +10272,7 @@ void ai_CitizenRightWindow(AIBLD *b)
                 if (ai_TutorialOff() == 0)
                     gm_AddTime(&msg.time, 0, 5, 0);
                 else
-                    gm_AddTime(&msg.time, (unsigned short)util_Random(3) + 1, 0, 0);
+                    gm_AddTime(&msg.time, util_Random(3) + 1, 0, 0);
                 due = msg.time;
                 msg.rankUp.rank = 2;
                 msg.rankUp.ch = me->netId;
@@ -11062,7 +11055,7 @@ void ai_GuildLevel1Listener(int building, int room)
 }
 
 char * gm_Query(void *list, int n, ...); int gm_GetWorth(unsigned short id); int gm_GetGoodsValue(); int ai_AmountLimit();
-int d2_OpenForm(); void d2_SetPointerSprite(int a, int pic); int d2_SetForm(int view, int n);
+void d2_SetPointerSprite(int a, int pic); int d2_SetForm(int view, int n);
 int io_PrintText(char *fmt, ...); int d2_GetWinObj(); int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
 int cm_SendMoveGoods(int a, int b, unsigned char c, int d); int cm_SendRelations(int a, int b, int c, int d); void txt_Format(char *out, int id0, ...);
 void d2_CloseView(int view); int _ftol();
@@ -11164,7 +11157,7 @@ void ai_DonationWindow(AIBLD *bld)
 }
 
 int gv_CountOwnedGraves(); int gv_CulpritGuilt(int c); int gm_GetWorth(unsigned short id); float gm_Liking();
-int ai_InventoryHas(void *ch, int id); int d2_OpenForm(); void d2_SetPointerSprite(int a, int pic); 
+int ai_InventoryHas(void *ch, int id); void d2_SetPointerSprite(int a, int pic); 
 int d2_SetForm(int view, int n); int io_PrintText(char *fmt, ...); int d2_GetWinObj();
 void cm_BeginFieldBlock(char *o, int id); int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 int gv_RetireCrimesOf(int p, int n); int cm_SendMoveGoods(int a, int b, unsigned char c, int d); void ai_ShowIndulgenceNews(); int cm_GetSlotState();
@@ -11260,7 +11253,7 @@ void ai_IndulgenceWindow(AIBLD *bld, int room)
         sv_CameraFollow();
 }
 
-void cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); short * gm_FindChar(int id); int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); short * gm_FindChar(int id); int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);
 
 /* 0x5a23a0, the baptism window "Locations\Kirche\Taufe" of the church bld: the fee is a hundredth of the
    player's worth (gm_GetWorth). In the player's own church the fee is fifteen times that: the text 0x1976 (the
@@ -13584,7 +13577,7 @@ void ai_TrainingRoomListener(AIBLD *bld, int room)
 
 /* dcp unit split: the declarations that moved to lcmap (copies: drop what lc does not use) */
 char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py); void d2_RaiseObject(); void d2_ScrollWindow();
-int d2_OpenForm(); void d2_RaiseWindow(); int io_PrintText(char *fmt, ...);
+void d2_RaiseWindow(); int io_PrintText(char *fmt, ...);
 int d2_SetForm(int view, int n); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);
 void d2_CloseView(int view); void d2_RemoveObj(); void d2_ScrollWindowBy();
 #pragma pack(push, 1)

@@ -510,7 +510,7 @@ Where the pushes and pops sit, how many epilogue copies there are, shared agains
     -1 instead of 0xff (a -1 cached in ebx).
 - **Size queue s18 (byte or padded size by these)**:
   - `mov edi,1; push 2` hoisted above a half test (`test ax,ax; push 2; je`) whose arms both run into
-    the next `util_RandomU(2)` test: that next test written in EACH arm (both arms then start with the
+    the next `util_Random(2)` test: that next test written in EACH arm (both arms then start with the
     same instructions and VC6 hoists them); `d = 1` in both arms alone gave the `mov` but not the push
     (ai_MsgBuildingGetsItemType31 byte).
   - A vector's pad word stored from the cached zero register (`mov [esp+0x3c],ebx` for `a.w = 0`, while
@@ -814,7 +814,7 @@ Where the pushes and pops sit, how many epilogue copies there are, shared agains
     any operand order of the product with the local is one code (ai_TransportFromLager, both loops, byte).
   - **`neg eax; fild; fmul 0.01; fadd 1.0` against ours `fmul; fsubr 1.0`**: a double expression `-r * 0.01 +
     1.0` always folds to fsubr (every cast and grouping); a float conversion of the product keeps the neg:
-    `(float)(-util_RandomU(0x1e) * 0.01) + 1.0` (or a float local) (gm_GetCreditOffers 7 -> 4 ins, draft ->
+    `(float)(-util_Random(0x1e) * 0.01) + 1.0` (or a float local) (gm_GetCreditOffers 7 -> 4 ins, draft ->
     shape). Toy compiles (`toycc.py` in the s25 scratch) settle such folds in one run.
   - **A redundant second test the original keeps (`cmp al,6; jne` behind the kind-7 path, the kind-6 path
     threaded past it)**: two ifs on the same field, `if (kind != 6 && kind != 7) {..return} if (kind == 6)
@@ -878,7 +878,7 @@ Where the pushes and pops sit, how many epilogue copies there are, shared agains
     loop keeps f): byte; any other f / i / k assignment of the three, a separate i for one loop, while forms:
     = control. Generate all assignments in one `dcp try` (27 rows) before any spelling of the address.
   - **A statement in both arms instead of a named result** (the s27 lever, again): ai_PokerNpcSetStake's
-    `n = bold ? d : d >> 1; stake2 = util_RandomU(n) + stake` as the whole store in each arm (VC6 merges the
+    `n = bold ? d : d >> 1; stake2 = util_Random(n) + stake` as the whole store in each arm (VC6 merges the
     call tails; the argument becomes a temporary in edx): byte. evt_FindLogic's `(&& test) || (|| test)` as two
     ifs each with `return s + n` (n's second reference ranks it above end: esi / edi swap): byte.
   - **A complete-constant ternary**: `(p->sex != 0 ? 0x133d : 0x133a) + pick` for `pick + (sex ? 3 : 0) +
@@ -959,7 +959,7 @@ Where the pushes and pops sit, how many epilogue copies there are, shared agains
     the record `c = &ai_CharsT[i]` (edi).
   - **Loop forms by the test after the decrement**: he_FindMeetingSlot's `dec edi; mov esi,edx; test edi,edi;
     jne` is `i--;` as a statement before the slot step with `while (i != 0)` (for (..; i != 0; i--) folds the
-    test away); the outer counter decremented at the head of its do loop; the random start as util_RandomU
+    test away); the outer counter decremented at the head of its do loop; the random start as util_Random
     (mov si,ax). A product of 50 loop forms in one dcp try found the outer form, the inner needed the
     statement form. ai_DomizilGoodInRange: the guard on the global (`ai_DomizilCount == 0`) where the original
     tests the loaded value, not the n copy.
@@ -1419,7 +1419,7 @@ Where the pushes and pops sit, how many epilogue copies there are, shared agains
     random factors written inline put the temps in the original's slots).
   - **A temp of one arm computed in eax and stored, the variable in memory, the other arm's int temp in another
     slot**: block-local `int add, adj;` in each arm and the bonus defined once per arm as `bonus = adj + 0x19`
-    (he_TrialPayment); then **`add esp,4; shl esi,5` at the join after three calls** = `(util_RandomU(n) + b) * 32`
+    (he_TrialPayment); then **`add esp,4; shl esi,5` at the join after three calls** = `(util_Random(n) + b) * 32`
     in each arm: the equal tails cross-jump and take the pending `add esp` along.
   - **A late local packed with an early one in the original** (the tail's `slot` in p / k's slot): the tail copy of
     the word handler kept its slot in the parameter `k` (hst_ParseCommandline_2nd_Pass byte, @original comment).
@@ -3111,7 +3111,7 @@ a stack slot is a split piece, and the piece's extent is decided by the rules be
   ternary of whole sums) x init order: one round of 32. (ai_EvalMoodWeights 54 -> byte; ai_EvalGuiltWeights is
   the w > 0 variant)
 - **A copy `n = cnt` placed after the call that uses cnt** (`cnt = f(); if (cnt == 0) return 0; i =
-  util_RandomU(cnt); n = cnt;`): the block of `i = ..` then holds one candidate more (P 4 instead of 3), i's
+  util_Random(cnt); n = cnt;`): the block of `i = ..` then holds one candidate more (P 4 instead of 3), i's
   priority rises 6 and it outranks q; the copy before the test or `n = f(); cnt = n;` left i one point short
   (c2dag --alloc on a scratch copy of the unit: per-block P compared). (ai_ChooseObjectTarget, byte)
 - **Callee-saved registers swapped (ebx <-> edi / esi) and no respelling reaches it**: count P (c2prio) and add
@@ -3307,8 +3307,8 @@ a stack slot is a split piece, and the piece's extent is decided by the rules be
   temporary.
 - **A value kept across the next call as a 16-bit move** (`call util_Random; mov bx,ax; push esi; and
   ebx,0xffff; call gm_BuildingLevel; cmp eax,ebx`): NO local, `if (gm_BuildingLevel(b) <
-  util_RandomU(0x5a))`; the temporary gets the leftover ebx, value and weight take edi / ebp. Any named local
-  (`lim`, every type and scope) takes edi. The 16-bit move needs the 16-bit prototype (`util_RandomU`);
+  util_Random(0x5a))`; the temporary gets the leftover ebx, value and weight take edi / ebp. Any named local
+  (`lim`, every type and scope) takes edi. The 16-bit move needs the 16-bit prototype (util_Random's unsigned short header declaration);
   `(unsigned short)util_Random()` gives `mov ebx,eax` (main_EndRound byte).
 - **A cheap expression kept in a callee-saved register across calls and modified in place** (`mov edi,[i]; shl
   edi,7; push edi` .. four calls .. `add edi,0xc; push edi`): a NAMED local assigned where the original computes
@@ -4611,14 +4611,14 @@ How arguments are pushed, a call written in both arms, parameter and return type
   10`, the owner's `short x, short y` gave byte. No lever: loop forms, casts, `#pragma optimize`
   (ai_MessageFilterScreen 44 ins -> byte). Check the callee's real parameter types when IVs differ.
 - **Row y `slot * 0x16 + 0x28` recomputed per call (lea chains, counters in memory), ours strength-reduced**: y is
-  a short; call int-declared d2_WinOpenPicStyled through the cast macro `d2_WinOpenPicStyledS` (as sv.c)
-  (ai_OpenItemTooltip -101 ins, stuck).
+  a short; call d2_WinOpenPicStyled by its short prototype (the d2_WinOpenPicStyledS casts are gone, see
+  "Portable spellings first") (ai_OpenItemTooltip -101 ins, stuck).
 
 ### Return types of callees
 - **`mov si,ax` / `and esi,0xffff` after a call (not `mov esi,eax`)**: the callee's result is a 16-bit type at
-  this call site (a unit view `((unsigned short (*)(unsigned short))util_Random)`), not a cast of an int result
-  (gm_Shuffled). Into an `int` local, not an `unsigned short` one (that gives `mov esi,eax`):
-  `int v; v = util_RandomS(2);` (ai_PlagueMessageAll, ai_PlagueNews byte).
+  this call site (the headers' `unsigned short util_Random(unsigned short n)`, while tr.c defines it int), not a
+  cast of an int result (gm_Shuffled). Into an `int` local, not an `unsigned short` one (that gives `mov esi,eax`):
+  `int v; v = util_Random(2);` (ai_PlagueMessageAll, ai_PlagueNews byte).
 - **Callee returns in al, result passed straight on**: declare `unsigned int`; `unsigned char` adds `and
   eax,0xff`.
 - **`test al,al` and the `return 0` without `xor al,al`**: the callee returns `char`: local prototype `char
@@ -4631,9 +4631,9 @@ How arguments are pushed, a call written in both arms, parameter and return type
   / `AHM_FR ((unsigned (*)())ls_Read)` -> direct calls (ahm.h: vfs_fwrite unsigned @original, ls_Read int), same
   bytes (0x4ecf10, 0x4ed040), Q7-clean.
 - **`mov si,ax` / `mov di,ax` then `and esi,0xffff` right after `call util_Random`** (ours `mov esi,eax; and esi,0xffff`
-  later, or the int result in eax): the caller read the 16-bit result: the unit's `util_RandomU` / `util_RandomS`
-  cast, into an `int` local (`int v; v = util_RandomS(2);`, ai_PlagueMessage byte) or inline in the expression
-  (`x / 16000 + util_RandomU(2)`, he_AllocTransport byte). Grep the original for it: several queue functions have it.
+  later, or the int result in eax): the caller read the 16-bit result of the headers' unsigned short declaration,
+  into an `int` local (`int v; v = util_Random(2);`, ai_PlagueMessage byte) or inline in the expression
+  (`x / 16000 + util_Random(2)`, he_AllocTransport byte). Grep the original for it: several queue functions have it.
 
 ### Argument count different from the definition (K&R victims, Q7)
 - **More pushes than the callee reads** (`ai_FillSaveSlots` from 0x5d4080 / 0x5d42b0 / 0x5d45d0 / 0x5d4920 pushes
@@ -6056,10 +6056,133 @@ the bytes no portable form gives.
   cm_GetSlotState). Several sets of candidates per unit tried in one batch (one scratch script applying each
   set, building, comparing the whole snapshot) found one in a round or two; dcp grade's "N unused typedefs"
   number did not reproduce (stale row), so measure.
-- **The callers read a 16-bit result of an int function (util_Random; `mov si,ax`)**: no portable form. The
-  definition must return int (`mov eax,edx` / `xor eax,eax`; unsigned short gives `mov ax,dx`), and
-  `(unsigned short)util_Random(n)` gives `mov esi,eax; and esi,0xffff` (106 functions fall): the original's
-  units saw a 16-bit return type. util_RandomU / util_RandomS stay @original.
+- **Callers push a short (`k * 0x31 + 0x11` recomputed per call, no movsx) but the definition passes `&x` /
+  `&win` to an `int *` out-parameter**: the parameters are `short`, and the out-values were own locals VC6 packed
+  into the dead parameter slots (see "Dead parameter slots"). d2_WinOpenPicStyled(short x, short y, ..) with
+  `int bw, bh; d2_GetFrameSize(w, &bw, &bh)` compiles byte and replaced the d2_WinOpenPicStyledS casts (lc, sv,
+  svtip) and five K&R `int f();` declarations (which conflict with a short prototype).
+- **A handle stored as `int` where the owner's API takes a typed pointer (sample banks, sblib's SBSAMPLE,
+  d3snd's D3SOUND)**: type the handle variables and fields (`struct SBBANK *snd_Bank`, `struct SBSAMPLE
+  *smp`), move the owner's record into its header when another unit reads its fields (SBENTRY into sblib.h, the
+  unit's SNDHANDLE / G16SMP views went), and call the owner's prototype. Globals, fields and locals of pointer
+  type compile the same as int (sb_PlaySampleI, sb_SetRestartC, sb_PlayH, sb_SetPanH, sb_SetVolumeI,
+  d3snd_*I: 40 casts, every function unchanged). Where one API's int handles reach many units (the voice
+  banks of snd_PlayVoice / snd_QueueVoice), a data cast at the hand-over inside the owner beats a function
+  cast.
+- **A parameter the body never reads, pushed by some callers and not by others (gm_SumListAmounts' player
+  byte: am / aip push 2, he / lc push 1)**: varargs would promote the byte at the 2-push sites (movzx), so
+  the one-push callers call an unlinked twin with the same body and one parameter (`/* unlinked: .. LINK folds
+  it (/OPT:ICF) into gm_SumListAmounts, 0x509e30 */ int gm_SumListMoney(void *list)`); the calls stay byte.
+  Keep `folds it (/OPT:ICF) into NAME, 0xADDR` on one line of the comment.
+- **A cast macro whose type is the callee's own prototype** (gm_TitleJobI, gm_CharLevelS, gm_AddHealthS,
+  d2_CreateWinTextS, d3_AttachAnimF: left from an older header): drop it; scratchpad same.py lists them.
+- **A function that returns its send slot (cm_QueueSend's eax) declared void**: `int f(..) { ..; return
+  cm_QueueSend(&m); }` is the same code (cm_SendCartRoute, cm_SendMakeGoods, cm_SendSpawnCharacter).
+- **Calls that push a promoted int (movsx) to a short parameter in the same unit as the definition, above it**
+  (d2_CenterObj -> d2_MoveObj): the original unit had no prototype in scope at that call; the short definition
+  is right (int params 20 -> 37 ins). Spell it as that: d2.h does not declare d2_MoveObj (cm.h's short prototype
+  serves the game units), d2_CenterObj has a block-scope `void d2_MoveObj();` (`@original`; an undeclared call
+  is implicit int, which the void definition below then contradicts: C2371; a block-scope int prototype draws
+  C4028 at the definition), and gfx.c, which pushes ints at all four calls, declares `void d2_MoveObj(int x, int
+  y, int obj);` (`@original`) in its head and no longer includes cm.h (it needed nothing from it). A K&R
+  declaration followed by the short prototype compiles without a warning; VC6 merges them, so the calls after
+  the definition push shorts. The two d2_MoveObjI cast macros went (byte); dcp lint counts d2_CenterObj's call
+  as M7. A differing prototype in a unit that also sees the owner's compiles too (C4028, the later one wins), but
+  is not legal C within the unit: take the owner's prototype out of that unit's view first.
+- **Calls of an empty function that LINK folded with others (d3io_NoopCallback 0x44ee40, ai_MsgNoOp)**: each
+  calling unit gets its own unlinked empty function with the call's own prototype (main_Nothing,
+  d2_DrawNothing(x, y, surf, data) ..), defined at the END of the unit with a prototype at the top: an empty
+  body above its callers lets VC6 drop the calls (5 bytes per call, the callers fall to draft).
+- **A struct passed by value through another unit's view of it (CHANIMFLAGS / D3IOANIMFLAGS / CHCALPHA for
+  D3ANIMFLAGS / D3TEXFLAGS)**: make the view a union of its field view and the owner's type (anonymous struct /
+  union members) and pass `.anim` / `.f`; the D3IOFLAGS / D3BGFFLAGS unions already did this. Every caller
+  stayed byte (the field-wise locals keep their registers).
+- **Callers that pass a float's raw bits as an int constant (`push 0x3e800000`)**: write the float constant
+  (`0.25f`) to the float prototype; VC6 pushes float constants and float variables with integer moves
+  (d3t_CreateBlood, sv_PlaceCamera).
+- **A parameter the callers push but the body never reads, all callers agreeing (gv_PassSentence's judges,
+  ai_DecideTorture's plan, ai_PlagueMessage's building, init_StartNewGame)**: add it to the definition, unread;
+  the code is the same. Where a callback is called with (r, ctx) and tail-jumps on, both the callback and the
+  tail-jump targets take the pair (cm_DuelAskPlayer, cm_DuelRoundDialog).
+- **A char function's result returned unwidened by an int-returning caller (ord_RandomCellPoint's `return
+  d3sm_GetVertex(..)`, no movsx) that also passes its own int parameter through as the pointer argument**: the
+  caller's prototype was wrong, not the callee's: `char ord_RandomCellPoint(int x, int y, D3VECTOR *out)`
+  returns the char result and takes the out pointer (its one caller, cm.c, passes `&pos` and ignores the result);
+  byte, no cast.
+- **An unsigned char result tested in a register (`test al,0x40` after the call, no `and eax,0xff`)**: the
+  caller's local is `unsigned char`, not `unsigned int` (d3q_Mark's `r = d3_ClipBox(..)`: an unsigned int
+  local adds the mask; the old d3_ClipBoxU cast to an unsigned int return modelled that wrong local). Byte.
+- **Callers push promoted ints (movsx) to short parameters even in the defining unit, after the definition**
+  (d2_CreateChildWindow / d2_OpenForm -> d2_CreateWindow): the definition was old style, `int
+  d2_CreateWindow(x, y, w, h, flags) short x, y, w, h; unsigned int flags; {..}`, and its declarations K&R
+  (`int d2_CreateWindow();` in d2.h and menu.c): no prototype anywhere, so every call promotes. The body
+  compiles the same as with the short prototype; the d2_CreateWindowI casts (d2.c, menu.c) went,
+  d2_CreateChildWindow stays byte and d2_OpenForm's calls now push the original's movsx (its draft distance
+  630 -> 635 ins elsewhere). pokerwin.c / shot.c's unused short prototypes went (dcp lint M5). dcp lint counts the
+  calls as M7 (cmfight 2, main, menu, sv). A prototype in scope wins over a later K&R definition (composite
+  type), so the owner header must not carry the short prototype.
+- **A short parameter only stored into a short field, its one caller pushing an int (`movsx; sub edx,0x50; push
+  edx`)**: the parameter is `int` (d2_AddHitRect(int x, int y, int w, int h, int user): the body's word stores
+  compile the same; sv_BuildScreenLayout byte, the d2_AddHitRectI cast went). Check what the body does with a
+  "short" parameter before calling the definition right.
+- **A dword load pushed to an unsigned short parameter (`mov edx,[0x75e6c4]; push edx`; a u16 parameter loads
+  `mov dx,word`)**: both sides were int. The field was an `int` (LSSAVE.port at 0x84, written whole by
+  GetPrivateProfileIntA / atoi; it was a `short cur` read through an int view macro) and net_Connect takes `int
+  port` (its `htons(port)` compiles the same). The net_ConnectI cast and the ls_SavePortW view went (byte).
+- **Byte registers pushed unwidened (`mov cl,al; mov al,ah; mov dl,[..]; push ecx/eax/edx`) to an int
+  parameter the callee reads whole (dd_Clear's r, g, b)**: the calling unit saw an unsigned char prototype; a
+  K&R declaration promotes (movzx) like the int one. d3_engine.c and d3_interface.c declare `void
+  dd_Clear(D3RECT *rect, unsigned char r, unsigned char g, unsigned char b);` (`@original`) in their heads and
+  do not include dd_vesa.h (d3_interface.c takes its records from the new dd_vesa_types.h, which dd_vesa.h
+  includes; d3_engine.h's copy of the int prototype went). dd_vesa.c keeps `int r, g, b`. The dd_ClearB casts
+  went (byte).
+- **A caller pushes a byte unwidened (`mov al,[tex+0x7c]; push eax`) to a function in the same unit whose body
+  reads that slot as a whole int (d3s_ShadowPoly's `top = bpp`, `mov ebx,[esp+0x1c]`) and its low byte
+  elsewhere**: an old-style definition with `int bpp` and a later prototype with `unsigned char bpp` that the
+  caller below sees. VC6 compiles both without a warning (the K&R definition makes no prototype, the later one
+  wins at the call); d3s_Project byte, the d3s_ShadowPolyB cast went. Not compatible types by the standard, so
+  each side carries `@original`.
+- **A pointer register pushed into a float parameter's slot (he_AllocBrawl: `push edi`, home == 0, as
+  ai_PickActionBuilding's `lo`)**: the unit declared that parameter `int`. he.c declares `int
+  ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, int lo, float hi, int *out)` (`@original`) and
+  passes `0` / `(int)home` (its other calls' `0.0f` push the same `push 0`). For that to be the unit's only view,
+  the float prototype moved from am.h (which he.c includes, also through mission.h / rmsg.h) to its owner
+  header amt_ai.h, which aip.c, am.c, amr.c and rmsg.c now include. The ai_PickActionBuildingI cast went (byte).
+- **Where a unit saw another declaration than the defining unit, write that declaration, not a cast** (header
+  drift: 90s units declared a function in several places and nothing checked them across units). Prefer, in
+  order: one true prototype everywhere (d2_AddHitRect, net_Connect: check what the body does with the
+  parameter), typed locals / fields at the callers (d3q_Mark, ord_RandomCellPoint), a declaration in the calling
+  unit's head with `@original` (util_Random, dd_Clear, ai_PickActionBuilding in he.c, d2_MoveObj in gfx.c; the
+  unit must then not see the owner's prototype: move it to the owner header or split the header's records
+  out, as dd_vesa_types.h / amt_ai.h), an old-style definition or K&R declaration (d2_CreateWindow,
+  d3s_ShadowPoly, d2_CenterObj's block declaration), and a cast macro last. dcp check's M5 wants headers to
+  repeat the definition and accepts a differing view in a unit's head with `@original`; dcp lint counts calls
+  under a K&R declaration as M7. Only a return-type difference is an error in one unit (C2371); a parameter-type
+  redeclaration is C4028, a warning, but not legal C.
+- **(c) cases left** (the cast stays @original; no declaration arrangement compiles): util_Random in
+  he_RunInnSim (he.c reads the 16-bit result in 18 other functions and the int one here; one unit cannot declare
+  both return types: C2371 at file and at block scope, an undeclared call is implicit int and conflicts the
+  same), d3sm_Pick in cmfight.c (cm_UpdatePointer's `and eax,0xff; cmp eax,-1` needs an int result: VC6 folds the
+  test away from every char-typed spelling, casts, masks and temporaries alike; cm_OrderClick in the same unit
+  tests the char in al). Not counted: main.c's call of the GetProcAddress result (dynamic loading), function
+  pointers passed with a cast as callbacks (d3_ForEachObject2, qsort, ai_GraveWindow, ai_VgFilter, sndc's
+  evt_CurCall->fn test) and cmscene's call through cm_Kinds[].check.
+- **A function that takes a text id or a string's address in one `int` (txt_Format, io_PrintText)**: callers
+  of a literal pass `(int)"..."` to the one prototype (no cast macro with a `char *` parameter).
+- **The callers read a 16-bit result of an int function (util_Random; `mov si,ax`)**: the units saw another
+  declaration than the defining unit (header drift). tr.c defines `int util_Random(unsigned short n)` (`mov
+  eax,edx` / `xor eax,eax`; an unsigned short definition gives `mov ax,dx`); every calling unit declares
+  `unsigned short util_Random(unsigned short n);  /* @original .. */` in its head, after its includes (dcp check's
+  M5 wants a header to repeat the definition's spelling and a unit's own view in its head; ahm.c had it already),
+  and no header declares it. That declaration replaced 33 util_RandomU / util_RandomS cast macros and main.c's
+  util_RandomInt and made 100 `& 0xffff` masks / 137 `(unsigned short)` casts at the calls redundant (removed, same
+  code); every caller byte except he_RunInnSim's `guests = util_Random(4) + 3` (int read, no mask: he.c's one
+  util_RandomInt cast stays @original; he.c reads 16 bits in 18 other functions, a unit cannot declare both). An
+  `(unsigned short)` cast of an int result is not the same (`and esi,0xffff`, 106 functions fell). The
+  parameter stays unsigned short (an int parameter: 17 functions fall). Not checked across units by VC6 or LINK:
+  undefined behaviour in principle, fine in each unit, as in the original. he_LabIncident's `he_SetLifeByAge(c,
+  util_Random(3) + 1)` pushed without mask: he_SetLifeByAge takes `unsigned short num` (its body read
+  `(unsigned short)num`).
 - **Identifiers that a Windows SDK header defines as macros**: mingw's windows.h includes dlgs.h, which
   defines `ctl1` (0x04A0) and the `cmb*` / `lst*` / `stc*` / `scr*` .. control ids (VC98's DLGS.H has no ctl1).
   Do not name locals after them; lc.c / rt.c's ctl1 / ctl2 locals are exchangeCtl / feeCtl and loadCtls /
