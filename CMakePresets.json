@@ -1,0 +1,65 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/cmake/llvm-mingw-i686.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "plain",
+      "inherits": "base",
+      "displayName": "the game as the original builds it",
+      "binaryDir": "${sourceDir}/build-cmake/plain"
+    },
+    {
+      "name": "play",
+      "inherits": "base",
+      "displayName": "manual testing: 16-bit back buffer in a window, frame dumps, the start shortcut",
+      "binaryDir": "${sourceDir}/build-cmake/play",
+      "cacheVariables": {
+        "GILDEGOLD_FIX_16BPP": "ON",
+        "GILDEGOLD_FRAME_DUMP": "ON",
+        "GILDEGOLD_START": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "plain",
+      "configurePreset": "plain"
+    },
+    {
+      "name": "play",
+      "configurePreset": "play"
+    },
+    {
+      "name": "run",
+      "displayName": "build play, stage, run the game",
+      "configurePreset": "play",
+      "targets": [
+        "run"
+      ]
+    },
+    {
+      "name": "run-plain",
+      "displayName": "build plain, stage, run the game",
+      "configurePreset": "plain",
+      "targets": [
+        "run"
+      ]
+    },
+    {
+      "name": "debug",
+      "displayName": "build play, stage, run under lldb",
+      "configurePreset": "play",
+      "targets": [
+        "debug"
+      ]
+    }
+  ]
+}

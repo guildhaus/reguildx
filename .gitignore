@@ -3,3 +3,4 @@
 __pycache__/
 .venv/
 decompanion.local.toml
+/build-cmake/
