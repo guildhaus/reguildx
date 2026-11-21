@@ -1629,7 +1629,7 @@ void d3_SaveScene(char *name, VFSFILE *f)
     int i, k, n;
 
     out = f;
-    if (f || (out = vfs_Tfopen(name, "wb", (int)vfs_Root))) {
+    if (f || (out = vfs_Tfopen(name, "wb", vfs_Root))) {
         bio_wr_i(out, 0x3a6c00bb);
         bio_wr_s(out, (char *)d3if_MegaCam);
         bio_wr_i(out, ((D3IFBITS *)&d3if_Gray)->bits);

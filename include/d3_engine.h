@@ -202,10 +202,7 @@ extern int d3_TriCount;                /* 0xfc7b60 */
 extern int d3_VertCount;                /* 0xfc2dc4 */
 extern int d3_DrawnVerts;              /* 0xfe75b0, vertices drawn this frame (d3_DrawSorted resets it) */
 /* a byte read as an int bitfield (mov dword; and 0xff): d3_Init passes d3_D3DActive so */
-struct D3BITS8 { unsigned int on : 8; };
-#define d3_D3DActiveBits (*(struct D3BITS8 *)&d3_Active)  /* 0x63345c */
 extern unsigned char d3_EngineReady;          /* 0x633451, engine up: set at the end of d3_Init, cleared in d3_Shutdown */
-struct D3BITS3 { unsigned char mode : 3; };  /* d3_ShadowMode (0xfe7671) is a view of d3d_Config + 1 (data_views.h): bit 0 = object shadows on (d3_UpdateObject / d3_Render); set by d3_ApplyGraphicsOptions */
 extern unsigned char d3_MipSkip;          /* 0x63342c, d3_d3d.c */
 extern int d3_FrameCount;                    /* 0x63343c */
 extern unsigned int d3_SceneFlags;           /* 0x63349c */
@@ -244,9 +241,6 @@ extern float d3_SavedZFar;                  /* 0xfe73bc, d3_ZFar while the fog i
 extern float d3_FogEnd2;                    /* 0xfc5340 */
 extern float d3_FogStart1;                  /* 0xfc29bc */
 extern D3COLORU d3_fog_color;               /* 0x6334a0 */
-#ifndef DATA_VIEWS_H
-extern unsigned char d3d_Caps98d;           /* 0xfe798d, bit 5 = fog supported */
-#endif
 extern struct D3SM *d3sm_Shadow;                  /* 0x633df8 */
 
 typedef struct D3RELOADCTX {        /* context of d3_ReloadMeshCB */
@@ -435,9 +429,6 @@ extern unsigned int d3_LightGeneration;     /* 0x633b10, lightmap generation, D3
 extern unsigned int d3_LightKeyBudgetCulled;  /* 0x5fcc6c, per-frame key budget for culled lights */
 extern unsigned int d3_LightKeyBudgetVisible; /* 0x5fcc70, per-frame key budget for visible lights */
 extern unsigned int d3s_Count;     /* 0x633dc0, d3s.c: the shadow triangles d3s_UpdateObject produced (unsigned: d3_DrawObjectCB tests it with ja) */
-#ifndef DATA_VIEWS_H
-extern int d3_SortMax;                      /* 0xfe73f8 */
-#endif
 extern char d3_ClipInfo[64][0x68];          /* 0xfc3020 */
 void d3s_UpdateObject(D3OBJECT *obj);       /* 0x45ca20, d3s.c */
 void d3s_UpdateObjectAt(D3OBJECT *obj);     /* 0x45ca60, d3s.c */
@@ -507,7 +498,7 @@ typedef struct D3INITCFG {          /* 0x60 bytes, d3_Init's configuration (copi
     int mode;                       /* 0x0c, dd mode, 0: none */
     int d3d;                        /* 0x10, use Direct3D */
     int triple;                     /* 0x14, dd_SetMode's last argument (d3_Init reads its low byte) */
-    int maxpolys;                   /* 0x18, sort buffer entries (d3_SortMax) */
+    int maxpolys;                   /* 0x18, sort buffer entries (the draw functions clip to it) */
     int texcount;                   /* 0x1c */
     int maxhicol;                   /* 0x20 */
     int texParam;                   /* 0x24, tex_Init's 3rd argument */
@@ -544,9 +535,6 @@ extern D3CLIPSTATE d3_ClipState;           /* 0xfc5060 */
 #define d3_ClipFlagB (d3_ClipState.flagB)
 #define d3_Planes (d3_ClipState.planes)
 extern D3OBJECT d3_TopHead;               /* 0xfc5100, list start marker */
-#ifndef DATA_VIEWS_H
-extern int d3_Unkfe7400;                /* 0xfe7400 */
-#endif
 extern char d3_DefaultD3DConfig[];          /* 0x5fb5b4 */
 extern unsigned char dd_BBits, dd_GBits, dd_RBits;  /* 0x1464fbd, 0x1463580, 0x1463570 */
 extern float d3_HalfAngleX;              /* 0xfe7600, atan2(d3_HalfW, d3_ScaleX) (d3_Init), no reader */
@@ -591,7 +579,6 @@ extern float d3_ZOfs;                       /* 0xfc7b64 */
 extern float d3_UOfs, d3_VOfs;              /* 0xfe73ac, 0xfc26ec */
 extern float ts_ScrollV[32], ts_ScrollU[32];    /* 0xfb9120, 0xfb90a0 */
 /* 0x63345d: the first byte of d3_NoTextures (d3.h), read as a byte */
-#define d3_NoTexturesByte (*(unsigned char *)((char *)&d3_Active + 1))  /* 0x63345d */
 int d3d_GetVertexBuffer(void **buf, int *n);                                            /* 0x4364f0, d3_d3d.c */
 void d3d_DrawTriangles(void *unk, struct _D3DTLVERTEX *buf, DWORD num);                                /* 0x436510, d3_d3d.c */
 /* Inline asm: one transformed vertex from a D3PVERT and a texture coordinate pair (u, v at uv). */
@@ -674,9 +661,6 @@ void d3_AddObjectDrawData(D3OBJECT *obj);                                       
 extern int d3_Busy;                         /* 0x633b04, nesting guard of d3_Render/d3_Animate */
 extern unsigned char d3_FogByDistance;          /* 0x6334a5 */
 extern int d3_MirrorObject;                    /* 0x63344c, the object the frame's mirror was built for (0 none) */
-#ifndef DATA_VIEWS_H
-extern unsigned char d3_Unkfb9928;          /* 0xfb9928 */
-#endif
 extern int d3_TextureSwitches;                /* 0xfe75b4 */
 extern int d3_TextureBytes;                /* 0xfc2dc0 */
 extern int d3_StatPolys;                /* 0x633470, frame statistics */

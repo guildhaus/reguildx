@@ -23,7 +23,9 @@ typedef struct AISTORE {                /* 24 bytes, a stock list per building, 
 } AISTORE;
 
 typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he_Events, he_CreateEvent; he_FindEvent / he_NextEvent) */
-    char kind;                          /* 0x00, the message type it was made from, 0: a free record */
+    unsigned char kind;                 /* 0x00, the message type it was made from, 0: a free record (unsigned:
+                                           sv_MoveToGroup / sv_CharStateIcons read it zero-extended, the kinds
+                                           0x87 / 0x8c / 0x8f compare as bytes) */
     char pad01[3];
     int id;                             /* 0x04, the event id (ai_NextEventId at its creation) */
     unsigned short chr;                 /* 0x08, the index in ai_Chars of the character it is for (cm_ExAddCrime: of a
@@ -33,7 +35,7 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
     int from;                           /* 0x10, the message's fromId */
     union {
         int words14[12];                /* 0x14, the message's 12 words from +0x10 */
-        struct {                        /* 0x14, of a group job 0x14 (sv.c SVGROUP): its members counted by the title
+        struct {                        /* 0x14, of a group job 0x14 (AICHAR.job): its members counted by the title
                                            ranks of their building type (sv_CountGroupMembers) */
             int rank1Count;             /* 0x14, the members of the type's first rank */
             int rank2Count;             /* 0x18, those of its second rank */
@@ -57,6 +59,8 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
         int ids[8];                     /* 0x8c, the message's ids[] */
         int helpers[4];                 /* 0x8c, of a helper job 0x8c the characters on it, -1: a free place
                                            (ai_GypsyHelperWindow counts them) */
+        int groupMembers[8];            /* 0x8c, of a group job (AICHAR.job: sv_AddGroupMember, sv_CountGroupMembers)
+                                           the members' netIds, -1: a free slot */
     };
     union {                             /* 0xac..0xeb: the three unions, or a kind's own words over them */
         struct {
@@ -335,7 +339,7 @@ typedef struct AIRECIPE {               /* 0xb8 bytes, a goods list: filled by g
     int amount[16];                     /* 0x68, per entry its amount (gm_ListAmount; the object's count of a stall) */
     int pada8[4];                       /* 0xa8, gm_StallGoodsList: the sum of the stocks, the sum of the amounts, the goods'
                                            value (gm_ItemPrice at 100 times the count); all three fillers: [3] the stall
-                                           object (an ORDOBJ *). One array: split into four fields, the declaration set
+                                           object (an AIOBJ *). One array: split into four fields, the declaration set
                                            flips VC6 tie-breaks in d3_engine.c / sv_t.c */
 } AIRECIPE;
 
@@ -356,9 +360,14 @@ typedef struct AIOBJ {                  /* 0x43 bytes, an object (table behind a
     };
     int objId;                          /* 0x02, the object's own id (0x500190 gives a new one; messages name the
                                            object by it, 0x4fea50 finds it by it) */
-    int ownerId;                        /* 0x06, the id of the building / object / character holding it (gv.h ORDOBJ.ownerId) */
-    int fightSide;                      /* 0x0a, a good shown as a fight scene's "WARE_" object: the id (AICHAR.id) of the
+    int ownerId;                        /* 0x06, the id of the building / object / character holding it (gv.h AIOBJ.ownerId) */
+    union {
+        int holderId;                   /* 0x0a, set at creation (gm_CreateObject): the holder's building id, the holding
+                                           object's holderId or the holding character's netId (a cart: its owner
+                                           character's netId) */
+        int fightSide;                  /* 0x0a, a good shown as a fight scene's "WARE_" object: the id (AICHAR.id) of the
                                            fight side's leader holding it (cm.c: cm_CheckDeath hands it to the defender) */
+    };
     union {
         int unk0e;                      /* 0x0e */
         int count;                      /* 0x0e */
@@ -367,7 +376,7 @@ typedef struct AIOBJ {                  /* 0x43 bytes, an object (table behind a
     char flags13;                       /* 0x13, flags: 0x20 (the guard patrol 0xa6 skips such a cart), 0xa0 set on a sold object (he_RunSale) */
     union {
         int unk14;                      /* 0x14, the object list it holds */
-        int list;                       /* 0x14 */
+        struct AIOBJ *list;             /* 0x14, the head of the objects it holds (AIOBJ.next chains them) */
         unsigned short *items;          /* 0x14, the same as the item ids it points to (ahm_CreateAlchemist removes the first until none is left) */
     };
     struct D3OBJECT *obj;               /* 0x18, the scene object that shows it (sv_DrawItemNames draws its name above it) */
@@ -386,6 +395,10 @@ typedef struct AIOBJ {                  /* 0x43 bytes, an object (table behind a
                     unsigned char lvl1c;        /* 0x1c, a workshop's levels, compared with AIENTRY need1c / need20 */
                     unsigned char lvl1d;        /* 0x1d */
                 };
+                unsigned char cap[2];           /* 0x1c, of the objects 0x2a / 0x116: two capacities from the building
+                                                   kind (gm_SetCapacities) */
+                unsigned char kindData;         /* 0x1c, the first byte of the per-kind data 0x1c .. 0x3a that
+                                                   gm_CreateObject clears (0x1f bytes) before it sets them by kind */
                 struct {
                     int pad1c20;
                     unsigned int flags20;       /* 0x20, of a cart (kind 0x1d): bit 1 (2) is cleared for the carts of the current building when the selection resets (sv_ResetSelection) */
@@ -448,7 +461,8 @@ typedef struct AIOBJ {                  /* 0x43 bytes, an object (table behind a
                                            random 50 .. 99; the round settlement lowers it by twice the building's rank and
                                            drops the report at 5 or less, main.c; the raid adds it to its chance) */
     char pad38[3];
-    void *sceneObj;                     /* 0x3b, the scene character (ch.h CHARACTER) that shows a cart */
+    struct CHARACTER *sceneObj;         /* 0x3b, the scene character (ch.h CHARACTER) that shows a cart (gm_CreateObject
+                                           creates the cart man or the horse, ch_Create) */
     struct AIOBJ *next;                 /* 0x3f, the next object of its list (an inventory, a store) */
 } AIOBJ;
 #pragma pack(pop)
@@ -524,7 +538,7 @@ typedef struct AIMSG {                  /* 0xf8 bytes, given to cm_SendLongMessa
                     unsigned short item;        /* 0x5a, the good to make (AIENTRY.item) */
                 } goodsOrder;
                 struct {                        /* the rank message 0x69 (gv_CheckRankUp) */
-                    unsigned char rank;         /* 0x58, the new rank (AICHAR.b00d) */
+                    unsigned char rank;         /* 0x58, the new rank (AICHAR.level) */
                     char pad59[3];
                     int ch;                     /* 0x5c, the netId of the character who rose */
                 } rankUp;
@@ -665,7 +679,8 @@ typedef struct AIGOOD {                 /* 0x41 bytes, ai_Goods[] */
     union {
         char name[0x25];                /* 0x01 */
         struct {
-            char padname[0x21];
+            char padname[0x20];
+            unsigned char cls;          /* 0x21, the goods class (gm_ClassBuilding's index; f3gm_types.h GMGOOD.cls) */
             unsigned int workTime;      /* 0x22, reasoned: the production time of one unit (the item tooltip shows it, in a building divided by the staff factor; ai_CalcEntryCost divides the margin by it) */
         };
     };

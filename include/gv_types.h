@@ -76,12 +76,6 @@ typedef struct AIDEC {                  /* 0x24 bytes, a record of the AI decisi
     void *fn;                           /* 0x20 */
 } AIDEC;
 
-typedef struct ORDCREDIT {          /* 12 bytes, a credit offer of a bank (gm_GetCreditOffers) */
-    int amount;                     /* 0x0, the sum lent; -1 = the slot is taken */
-    int term;                       /* 0x4, 2 .. 7 */
-    int interest;                   /* 0x8 */
-} ORDCREDIT;
-
 #pragma pack(push, 1)
 typedef struct GVDECMSG {               /* 9 bytes, the data of message 0x46 (cm_SendDecisionValue): an AI decision
                                            record's new value (gv_SetTableRecord, stored by the handler 0x4f27d0) */

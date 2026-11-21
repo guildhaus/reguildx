@@ -51,7 +51,7 @@ typedef struct GMBTYPE {
     unsigned short objs[0x40];          /* 0x023, the objects the type can hold, goods ids (bit 15 = flag) */
     unsigned short parents[0x40][2];    /* 0x0a3, the two goods each of objs needs first (gm_LayoutTree's tree) */
     char pad1a3[0x8c];
-    char title;                         /* 0x22f, the title rank that suits the type's workers (ORDCHAR.title: +0.3 each, gm_StaffFactor) */
+    unsigned char title;                       /* 0x22f, the title rank that suits the type's workers (AICHAR.title: +0.3 each, gm_StaffFactor) */
     char pad230[0x17];
     unsigned char level;                /* 0x247, the type's level 1 .. 3 (ai.h AIBTYPE.level / cap247) */
     unsigned char maxLevel;             /* 0x248, the highest level of the type's line (ai.h AIBTYPE.maxLevel) */
@@ -64,8 +64,8 @@ typedef char gm_AssertGMBTYPE[sizeof(GMBTYPE) == 0x24d ? 1 : -1];
 /* an event of the kind 0x23 (he_FindEvent(1, 0, 0x23)) as gm_BuildingEvents / gm_CreditEvents read it */
 typedef struct GMEVENT23 {
     char pad000[0xac];
-    int bldId;                          /* 0x0ac, the building's id (ORDBLD.id) */
-    int charId;                         /* 0x0b0, the character's netId (ORDCHAR.netId) */
+    int bldId;                          /* 0x0ac, the building's id (AIBLD.id) */
+    int charId;                         /* 0x0b0, the character's netId (AICHAR.netId) */
 } GMEVENT23;
 
 
@@ -174,7 +174,7 @@ typedef struct GMUMLAND {
     unsigned short objects[8];          /* 0x02, object prototypes (gm_FindObjectProto) */
 } GMUMLAND;
 
-/* a player slot (0x2f4 bytes, four of them at ai_PlayerSlots 0x7e3f40, declared char[4][0x2f4]): the town the
+/* a player slot (0x2f4 bytes, four of them at ai_PlayerSlots 0x7e3f40): the town the
    player plays in, read from its city file by init_LoadCityINI (the INI key names in quotes) */
 typedef struct GMPLAYERSLOT {
     char name[0x20];                    /* 0x00, "Stadtname" (ls_WriteSaveHeader copies it into LSHDR.player and
@@ -183,7 +183,7 @@ typedef struct GMPLAYERSLOT {
                                            "%s, %i %s %i", the statistics panel's text 0x1f0e with ai_Time) */
     int mapX;                           /* 0x40, "KartenPosition": the player's place on the map (am.c 0x4948f0 measures */
     int mapY;                           /* 0x44   gm_MapDistance from it to the other slots' places; the save header keeps both) */
-    unsigned char maxPlayers;           /* 0x48, "MaxPlayer" (saved in the save header, LSHDR.playerByte) */
+    char maxPlayers;                    /* 0x48, "MaxPlayer" (saved in the save header, LSHDR.playerByte; signed: init_SetupNewGame reads it with movsx) */
     unsigned char faith;                /* 0x49, "Glaube" */
     char pad04a[2];
     int historyStart;                   /* 0x4c, "HistorieStart" (the year) */

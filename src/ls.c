@@ -15,13 +15,6 @@ struct D3TERRAIN;
 #include "txt.h"
 #include "data_views.h"
 #include "ls.h"
-#define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
-#define ai_PlayerBuildingT (*(struct AIBLD **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) as the AIBLD it points to */
-#define ai_FallbackBuildingT (*(struct AIBLD **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) as the AIBLD it points to */
-#define ai_PlayerSlotsT (*(GMPLAYERSLOT (*)[4])&ai_PlayerSlots)  /* 0x7e3f40, ai_PlayerSlots (cm.h: char[][0x2f4]) as the player slots */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define ai_TimeCopyT (*(AITIME *)&ai_TimeCopy)  /* 0x75e130, ai_TimeCopy (cm.c: int[4]) as the AITIME it holds */
-#define sv_PanelShownT (*(struct AIOBJ **)&sv_PanelShown)  /* 0x6f2310, sv_PanelShown (sv.c: unsigned short *) as the AIOBJ (room object) it points to */
 #include "d3_types.h"
 #define GAPDATA __declspec(align(1)) unsigned char
 
@@ -37,20 +30,15 @@ extern int gm_QueryDepth;
 int ls_Language = 65535;  /* 0x62364c, the language number ( */
 int ls_Version = 65626;  /* 0x623650 */
 const char ls_LanguageNames[][0x40] = { "GERMAN", "ENGLISH", "FRENCH", "ITALIAN", "SPANISH" };  /* 0x5ee978, the language names (5 of */
-extern int gm_PlayerRecords[688];          /* 0x7d5f80, the 16 player records (0xac bytes each; gm_PlayerRecord, f3gm.c) */
-#define gm_PlayerFins (*(AIFIN (*)[16])&gm_PlayerRecords)  /* 0x7d5f80, gm_PlayerRecords (f3gm.c: int[688]) as the 16 AIFIN records it holds */
-/* gm_PlayerRecordBytes: view of gm_PlayerRecords (tools/data_views.py) */
 unsigned char ls_SaveSlot = 0;  /* 0x6f1c38, the slot the save header records */
-/* ai_Unk76fa24: view of cm_SaveAcks (tools/data_views.py) */
 extern int ai_NextCharNumber, ai_NextPlayerNumber;   /* 0x6f1bb8, 0x6f1bbc, 0x6f1bc0 */
-/* ls_RefTargets: view of cm_SendStates (tools/data_views.py) */
 int gv_WriteCrimes();                     /* 0x4f28d0 */
 
 #define LS_W(p, sz) if (vfs_fwrite((p), (sz), 1, f) <= 0) return 0;
 #include "rd_types.h"                 /* G15BK */
 int gv_WriteGraveyard();                     /* 0x4f17f0 */
 
-#define LS_R(p, sz) if (ls_Read((int)(p), (sz), 1, f) == 0) return 0;
+#define LS_R(p, sz) if (ls_Read((p), (sz), 1, f) == 0) return 0;
 
 extern int f3gm_ObjectCount;                /* 0x6f1bdc */
 char d3if_ClearScene(int index);                    /* 0x447e60 */
@@ -87,11 +75,8 @@ extern char hst_Key[];                 /* 0xf83520, the history key ("G12", 0x20
 int gv_ReadEffects();                     /* 0x4ed910 */
 
 /* he_EventTop: view of ai_NextEventId (tools/data_views.py) */
-extern unsigned char he_Events[339968];
-extern char * he_QuickList[10921];
+extern AIJOB he_Events[0x400];  /* 0x6fab40, the 0x400 event records (ls.h cannot see AIJOB) */
 extern int he_EventCount;
-extern void (*he_RunHandlers[5544])(unsigned char *);
-/* ai_Unk75e134 / ai_Unk75e138 / ai_Unk75e13c: views of ai_TimeCopy (data_views.h), the clock copy */
 
 void he_FreeEvents();                    /* 0x53d590 */
 
@@ -132,9 +117,9 @@ int ls_GetLanguage(void)
    1 after the last. */
 
 
-int ls_SaveGame(int name, char *path, unsigned flags)
+int ls_SaveGame(char *name, char *path, unsigned flags)
 {
-    int f;
+    VFSFILE *f;
 
     f = vfs_Tfopen(name, "wb", vfs_Root);
     if (f == 0)
@@ -150,7 +135,7 @@ int ls_SaveGame(int name, char *path, unsigned flags)
     vfs_fwrite(&ai_NextEventId, 4, 1, f);
     vfs_fwrite(&ai_Time, 0xe, 1, f);
     vfs_fwrite(&ai_OwnPlayer, 1, 1, f);
-    vfs_fwrite(ai_PlayerCharC + 4, 4, 1, f);
+    vfs_fwrite(&ai_PlayerChar->netId, 4, 1, f);
     vfs_fwrite(&ai_NextCharNumber, 4, 1, f);
     vfs_fwrite(&ai_NextPlayerNumber, 4, 1, f);
     vfs_fwrite(&ai_CharCount, 4, 1, f);
@@ -204,7 +189,7 @@ int ls_SaveGame(int name, char *path, unsigned flags)
    ls_SavePath. Returns 1, 0 when one of the checked writes fails (the shot buffer is then not freed). */
 
 
-int ls_WriteSaveHeader(int f, unsigned flags)
+int ls_WriteSaveHeader(VFSFILE *f, unsigned flags)
 {
     unsigned char noJob, noByteD, noOffice, noByte9;
     int ref;
@@ -227,7 +212,7 @@ int ls_WriteSaveHeader(int f, unsigned flags)
         return 0;
     if (vfs_fwrite(&flags, 1, 1, f) <= 0)
         return 0;
-    slot = &ai_PlayerSlotsT[ai_OwnPlayer];
+    slot = &ai_PlayerSlots[ai_OwnPlayer];
     strcpy(hdr.player, slot->name);
     hdr.playerWords[0] = slot->mapX;
     hdr.playerWords[1] = slot->mapY;
@@ -244,24 +229,24 @@ int ls_WriteSaveHeader(int f, unsigned flags)
     if (vfs_fwrite(&ai_Time, 0xe, 1, f) <= 0)
         return 0;
     if (ai_PlayerId != 0xffff) {
-        if (vfs_fwrite(ai_Chars[ai_PlayerId] + 0x30, 0x10, 1, f) <= 0)
+        if (vfs_fwrite((char *)&ai_Chars[ai_PlayerId] + 0x30, 0x10, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(ai_Chars[ai_PlayerId] + 0x40, 0x10, 1, f) <= 0)
+        if (vfs_fwrite((char *)&ai_Chars[ai_PlayerId] + 0x40, 0x10, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(ai_Chars[ai_PlayerId] + 0xc, 1, 1, f) <= 0)
+        if (vfs_fwrite((char *)&ai_Chars[ai_PlayerId] + 0xc, 1, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(ai_Chars[ai_PlayerId] + 0x54, 4, 1, f) <= 0)
+        if (vfs_fwrite((char *)&ai_Chars[ai_PlayerId] + 0x54, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(ai_Chars[ai_PlayerId] + 0x164, 1, 1, f) <= 0)
+        if (vfs_fwrite((char *)&ai_Chars[ai_PlayerId] + 0x164, 1, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(ai_Chars[ai_PlayerId] + 0x166, 1, 1, f) <= 0)
+        if (vfs_fwrite((char *)&ai_Chars[ai_PlayerId] + 0x166, 1, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(ai_Chars[ai_PlayerId] + 0xd, 1, 1, f) <= 0)
+        if (vfs_fwrite((char *)&ai_Chars[ai_PlayerId] + 0xd, 1, 1, f) <= 0)
             return 0;
         worth = gm_ConvertMoney(gm_GetWorth(ai_PlayerId), ai_OwnPlayer);
         if (vfs_fwrite(&worth, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(ai_Chars[ai_PlayerId] + 9, 1, 1, f) <= 0)
+        if (vfs_fwrite((char *)&ai_Chars[ai_PlayerId] + 9, 1, 1, f) <= 0)
             return 0;
     } else {
         if (vfs_fwrite(noText, 0x10, 1, f) <= 0)
@@ -279,15 +264,15 @@ int ls_WriteSaveHeader(int f, unsigned flags)
     }
     if (vfs_fwrite(&ls_SaveSlot, 1, 1, f) <= 0)
         return 0;
-    if (ai_PlayerBuildingT != 0)
-        ref = ai_PlayerBuildingT->id;
-    else if (ai_FallbackBuildingT != 0)
-        ref = ai_FallbackBuildingT->id;
+    if (ai_PlayerBuilding != 0)
+        ref = ai_PlayerBuilding->id;
+    else if (ai_FallbackBuilding != 0)
+        ref = ai_FallbackBuilding->id;
     else
         ref = -1;
     vfs_fwrite(&ref, 4, 1, f);
-    if (sv_PanelShownT != 0)
-        ref = sv_PanelShownT->objId;
+    if (sv_PanelShown != 0)
+        ref = sv_PanelShown->objId;
     else
         ref = -1;
     vfs_fwrite(&ref, 4, 1, f);
@@ -321,12 +306,12 @@ void ls_RefsToIds(void)
 
     d3if_SelectScene(0, 1);
     for (k = 0; k < 0x100; k++) {
-        b = &((AIBLD *)ai_Blds)[k];
+        b = &ai_Blds[k];
         if (b->type != 0 && b->object != 0)
-            ((D3OBJECT *)b->object)->owner = (void *)b->id;
+            b->object->owner = (void *)b->id;
     }
     d3if_SelectScene(saved, 1);
-    for (p = cm_SendStates; (int)&p->value < (int)ls_RefTargets + 0x50000; p++) {
+    for (p = cm_SendStates; (int)&p->value < (int)&cm_SendStates[0x8000].value; p++) {
         if (p->value != 0) {
             if (p->kind == 1)
                 p->value = ((AICHAR *)p->value)->netId;
@@ -353,12 +338,12 @@ void ls_IdsToRefs(void)
 
     d3if_SelectScene(0, 1);
     for (k = 0; k < 0xa900; k += 0xa9) {
-        b = (AIBLD *)(ai_Blds + k);
+        b = (AIBLD *)((char *)ai_Blds + k);
         if (b->type != 0 && b->object != 0)
-            ((D3OBJECT *)b->object)->owner = b;
+            b->object->owner = b;
     }
     d3if_SelectScene(saved, 1);
-    for (p = cm_SendStates; (int)&p->value < (int)ls_RefTargets + 0x50000; p++) {
+    for (p = cm_SendStates; (int)&p->value < (int)&cm_SendStates[0x8000].value; p++) {
         if (p->value != 0) {
             if (p->kind == 1)
                 p->value = (int)gm_FindChar(p->value);
@@ -374,7 +359,7 @@ void ls_IdsToRefs(void)
 /* 0x519b50, after a load: the buildings' objects point back to their buildings, the scene is restored (0x44aa10) and the pointers are set again */
 
 
-int ls_RelinkScene(int f)
+int ls_RelinkScene(VFSFILE *f)
 {
     int saved = d3_CurrentScene;
     int k;
@@ -382,15 +367,15 @@ int ls_RelinkScene(int f)
 
     d3if_SelectScene(0, 1);
     for (k = 0; k < 0x100; k++) {
-        b = &((AIBLD *)ai_Blds)[k];
+        b = &ai_Blds[k];
         if (b->type != 0 && b->object != 0)
-            ((D3OBJECT *)b->object)->owner = (void *)b->id;
+            b->object->owner = (void *)b->id;
     }
     d3_SaveScene(0, f);
     for (k = 0; k < 0x100; k++) {
-        b = &((AIBLD *)ai_Blds)[k];
+        b = &ai_Blds[k];
         if (b->type != 0 && b->object != 0)
-            ((D3OBJECT *)b->object)->owner = b;
+            b->object->owner = b;
     }
     d3if_SelectScene(saved, 1);
     return 1;
@@ -398,7 +383,7 @@ int ls_RelinkScene(int f)
 /* 0x519bf0, the object list ai_Objects (0x5008 records of 0x43 bytes; the used ones have a nonzero first word): the count, then each used record in pieces (2, 4, 4, 4, 4, 1, 1 bytes and 0x1f bytes at +0x1c) */
 
 
-int ls_WriteObjects(int f)
+int ls_WriteObjects(VFSFILE *f)
 {
     int n = 0;
     int i;
@@ -427,14 +412,14 @@ int ls_WriteObjects(int f)
 /* 0x519d20, the buildings: the count of the used ones (0x100 AIBLD records of 0xa9 bytes, ai_Blds), then each field by field (+0 .. +0x5c, then by type: 0x1e its 64 vegetation records at AIBLD.plants, 0x48 .. 0x4a gv_WriteGraveyard, 0x4b .. 0x4d ahm_WriteRecord, the others the 0x30 bytes at +0x65), the work settings at +0x99; at the end the building sites (ai_NBauplaetze, then ai_Bauplaetze's name, minimum and maximum corner). Returns 1, 0 when a write fails */
 
 
-int ls_WriteBuildings(int f)
+int ls_WriteBuildings(VFSFILE *f)
 {
     int n = 0, off, i, j;
     char *p;
     AIBLD *b;
     char c;
 
-    p = ai_Blds;
+    p = (char *)ai_Blds;
     for (i = 0x100; i != 0; i--) {
         if (*p != 0)
             n++;
@@ -443,8 +428,8 @@ int ls_WriteBuildings(int f)
     LS_W(&n, 4)
     off = 0;
     do {
-        b = (AIBLD *)(ai_Blds + off);
-        if (ai_Blds[off] != 0) {
+        b = (AIBLD *)((char *)ai_Blds + off);
+        if (((char *)ai_Blds)[off] != 0) {
             LS_W(&b->type, 1)
             LS_W(&b->id, 4)
             LS_W(b->name, 0x20)
@@ -504,42 +489,42 @@ int ls_WriteBuildings(int f)
    0 when a write fails. */
 
 
-int ls_WritePlayerRecords(int f)
+int ls_WritePlayerRecords(VFSFILE *f)
 {
     int k;
 
     for (k = 0; k < 0x10; k++) {
-        LS_W(&gm_PlayerFins[k].w00, 2)
-        LS_W(gm_PlayerFins[k].family, 0x10)
-        LS_W(&gm_PlayerFins[k].incomeA, 4)
-        LS_W(&gm_PlayerFins[k].spyPaid, 4)
-        LS_W(&gm_PlayerFins[k].lootTakings, 4)
-        LS_W(&gm_PlayerFins[k].incomeC, 4)
-        LS_W(&gm_PlayerFins[k].missionMoney[0], 4)
-        LS_W(&gm_PlayerFins[k].missionMoney[1], 4)
-        LS_W(&gm_PlayerFins[k].missionMoney[2], 4)
-        LS_W(&gm_PlayerFins[k].missionMoney[3], 4)
-        LS_W(&gm_PlayerFins[k].upgradeSpent, 4)
-        LS_W(&gm_PlayerFins[k].renovationSpent, 4)
-        LS_W(&gm_PlayerFins[k].loansRepaid, 4)
-        LS_W(&gm_PlayerFins[k].costA, 4)
-        LS_W(&gm_PlayerFins[k].cartSpent, 4)
+        LS_W(&gm_PlayerRecords[k].w00, 2)
+        LS_W(gm_PlayerRecords[k].family, 0x10)
+        LS_W(&gm_PlayerRecords[k].incomeA, 4)
+        LS_W(&gm_PlayerRecords[k].spyPaid, 4)
+        LS_W(&gm_PlayerRecords[k].lootTakings, 4)
+        LS_W(&gm_PlayerRecords[k].incomeC, 4)
+        LS_W(&gm_PlayerRecords[k].missionMoney[0], 4)
+        LS_W(&gm_PlayerRecords[k].missionMoney[1], 4)
+        LS_W(&gm_PlayerRecords[k].missionMoney[2], 4)
+        LS_W(&gm_PlayerRecords[k].missionMoney[3], 4)
+        LS_W(&gm_PlayerRecords[k].upgradeSpent, 4)
+        LS_W(&gm_PlayerRecords[k].renovationSpent, 4)
+        LS_W(&gm_PlayerRecords[k].loansRepaid, 4)
+        LS_W(&gm_PlayerRecords[k].costA, 4)
+        LS_W(&gm_PlayerRecords[k].cartSpent, 4)
         if (ls_Version >= 0x10014) {
-            LS_W(&gm_PlayerFins[k].costB, 4)
-            LS_W(&gm_PlayerFins[k].roundFactors[0], 4)
-            LS_W(&gm_PlayerFins[k].roundFactors[1], 4)
-            LS_W(&gm_PlayerFins[k].missionMoney[4], 4)
-            LS_W(&gm_PlayerFins[k].saved64[0], 4)
-            LS_W(&gm_PlayerFins[k].saved64[1], 4)
-            LS_W(&gm_PlayerFins[k].officeSentences, 4)
+            LS_W(&gm_PlayerRecords[k].costB, 4)
+            LS_W(&gm_PlayerRecords[k].roundFactors[0], 4)
+            LS_W(&gm_PlayerRecords[k].roundFactors[1], 4)
+            LS_W(&gm_PlayerRecords[k].missionMoney[4], 4)
+            LS_W(&gm_PlayerRecords[k].saved64[0], 4)
+            LS_W(&gm_PlayerRecords[k].saved64[1], 4)
+            LS_W(&gm_PlayerRecords[k].officeSentences, 4)
         }
-        LS_W(&gm_PlayerFins[k].roundFactors[2], 4)
-        LS_W(gm_PlayerFins[k].jobByGroup, 0x11)
-        LS_W(&gm_PlayerFins[k].camAngle, 4)
-        LS_W(gm_PlayerFins[k].camPos, 0x10)
-        LS_W(gm_PlayerFins[k].camRot, 0xc)
-        LS_W(&gm_PlayerFins[k].savedA8, 4)
-        LS_W(&gm_PlayerFins[k].saved70, 4)
+        LS_W(&gm_PlayerRecords[k].roundFactors[2], 4)
+        LS_W(gm_PlayerRecords[k].jobByGroup, 0x11)
+        LS_W(&gm_PlayerRecords[k].camAngle, 4)
+        LS_W(gm_PlayerRecords[k].camPos, 0x10)
+        LS_W(gm_PlayerRecords[k].camRot, 0xc)
+        LS_W(&gm_PlayerRecords[k].savedA8, 4)
+        LS_W(&gm_PlayerRecords[k].saved70, 4)
     }
     return 1;
 }
@@ -549,7 +534,7 @@ int ls_WritePlayerRecords(int f)
    scene pointers as their ids, ref54 and picture less their bases 0x59a / 0x639). Returns 1, 0 when a write fails. */
 
 
-int ls_WriteCharacters(int f)
+int ls_WriteCharacters(VFSFILE *f)
 {
     int none;
     int model;
@@ -561,7 +546,7 @@ int ls_WriteCharacters(int f)
     LS_W(&ai_PlayerId, 2)
     cnt = 0;
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].id != 0xffff)
+        if (ai_Chars[i].id != 0xffff)
             cnt++;
     }
     LS_W(&cnt, 4)
@@ -580,13 +565,13 @@ int ls_WriteCharacters(int f)
 
         tmp = -1;
         if (ai_KindBChars[i] != 0) {
-            LS_W(&((AICHAR *)ai_KindBChars[i])->netId, 4)
+            LS_W(&ai_KindBChars[i]->netId, 4)
         } else {
             LS_W(&tmp, 4)
         }
     }
     for (i = 0; i < 768; i++) {
-        c = &ai_CharsT[i];
+        c = &ai_Chars[i];
         if (c->id != 0xffff) {
             LS_W(&c->id, 2)
             LS_W(&c->partyId, 4)
@@ -594,9 +579,9 @@ int ls_WriteCharacters(int f)
             LS_W(&c->netId, 4)
             LS_W(&c->health, 1)
             LS_W(&c->sex, 1)
-            LS_W(&c->w00a, 2)
-            LS_W(&c->b00c, 1)
-            LS_W(&c->b00d, 1)
+            LS_W(&c->age, 2)
+            LS_W(&c->faith, 1)
+            LS_W(&c->level, 1)
             LS_W(&c->f010, 4)
             LS_W(&c->f014, 4)
             LS_W(&c->f018, 4)
@@ -604,15 +589,15 @@ int ls_WriteCharacters(int f)
             LS_W(&c->f020, 4)
             LS_W(&c->v024, 4)
             LS_W(&c->w028, 2)
-            LS_W(&c->v02c, 4)
+            LS_W(&c->ailments, 4)
             LS_W(c->first, 0x10)
             LS_W(c->family, 0x10)
             LS_W(&c->w050, 2)
             cnt = c->ref54 - 0x59a;
             LS_W(&cnt, 4)
-            LS_W(&c->b058, 1)
+            LS_W(&c->generation, 1)
             LS_W(c->relatives, 0x20)
-            LS_W(&c->f07c, 4)
+            LS_W(&c->pregnancy, 4)
             LS_W(c->skills, 5)
             LS_W(c->mood, 0xa8)
             LS_W(&c->jobId, 1)
@@ -635,7 +620,7 @@ int ls_WriteCharacters(int f)
 
                 LS_W(&tmp, 4)
             }
-            LS_W(&c->v174, 4)
+            LS_W(&c->jobDays, 4)
             if (c->job != 0) {
                 LS_W(&c->job->id, 4)
             } else {
@@ -659,10 +644,10 @@ int ls_WriteCharacters(int f)
             LS_W(&c->flags1b4, 0x10)
             LS_W(&c->flags1c8, 4)
             LS_W(&c->flags1cc, 4)
-            LS_W(&c->v1d0, 4)
-            LS_W(c->block1d4, 0x10)
+            LS_W(&c->loyalty, 4)
+            LS_W(c->worth, 0x10)
             LS_W(&c->mood3Rate, 4)
-            LS_W(&c->v1e8, 4)
+            LS_W(&c->flags1e8, 4)
             LS_W(&c->goodsMask, 4)
             LS_W(&c->v1f0, 4)
             LS_W(&c->b1c5, 1)
@@ -705,7 +690,7 @@ CHACTION *ls_ActionAt(int n)
    (empty for none); returns 1, 0 when a write fails */
 
 
-int ls_WriteSceneCharacter(CHARACTER *c, int owner, int f)
+int ls_WriteSceneCharacter(CHARACTER *c, int owner, VFSFILE *f)
 {
     float zero[7];
     char blank[0x40];
@@ -758,7 +743,7 @@ int ls_WriteSceneCharacter(CHARACTER *c, int owner, int f)
    then the action queue ch_Queue: the used actions' character, prev and next pointers turned into indices (the free
    ones cleared), per action whose character index is valid its type (0 when the character's body has no owner) and
    the saved fields, and at the end the indices turned back into pointers. Returns 1, 0 when a write fails */
-int ls_WriteSceneRecords(int f)
+int ls_WriteSceneRecords(VFSFILE *f)
 {
     int cnt = 0, i;
     int n;
@@ -768,12 +753,12 @@ int ls_WriteSceneRecords(int f)
     char flag;
 
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].scene != 0)
+        if (ai_Chars[i].scene != 0)
             cnt++;
     }
     LS_W(&cnt, 4)
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].scene != 0 && ls_WriteSceneCharacter(ai_CharsT[i].scene, ai_CharsT[i].netId, f) == 0)
+        if (ai_Chars[i].scene != 0 && ls_WriteSceneCharacter(ai_Chars[i].scene, ai_Chars[i].netId, f) == 0)
             return 0;
     }
     cnt = 0;
@@ -781,14 +766,14 @@ int ls_WriteSceneRecords(int f)
         AIOBJ *o = ai_Objects;
 
         for (i = 0x5008; i != 0; i--) {
-            if (((AIGOOD *)ai_Goods)[o->id].type == 0x1d)
+            if (ai_Goods[o->id].type == 0x1d)
                 cnt++;
             o++;
         }
     }
     LS_W(&cnt, 4)
     for (i = 0; i < 0x5008; i++) {
-        if (((AIGOOD *)ai_Goods)[ai_Objects[i].id].type == 0x1d) {
+        if (ai_Goods[ai_Objects[i].id].type == 0x1d) {
             c = ai_Objects[i].sceneObj;
             if (ls_WriteSceneCharacter(c, ai_Objects[i].objId, f) == 0)
                 return 0;
@@ -850,7 +835,7 @@ int ls_WriteSceneRecords(int f)
    +0x1dc and the map offset +0x2ec (8). Returns 1, 0 when a write fails. */
 
 
-int ls_WritePlayerSlots(int f)
+int ls_WritePlayerSlots(VFSFILE *f)
 {
     int n;
     int j;
@@ -884,7 +869,7 @@ int ls_WritePlayerSlots(int f)
         }
     }
     for (n = 0; n < 4; n++) {
-        slot = ai_PlayerSlots[n];
+        slot = (char *)&ai_PlayerSlots[n];
         LS_W(slot, 0x20)
         LS_W(slot + 0x40, 8)
         LS_W(slot + 0x48, 1)
@@ -926,7 +911,7 @@ int ls_WritePlayerSlots(int f)
 /* 0x51b890, writes the two relation maps ai_Relations / ai_RelationMemory (0x300 x 0x300 bytes, row by row) */
 
 
-int ls_WriteRelations(int f)
+int ls_WriteRelations(VFSFILE *f)
 {
     int i, j;
 
@@ -944,7 +929,7 @@ int ls_WriteRelations(int f)
    a write fails */
 
 
-int ls_WriteStatistics(int f)
+int ls_WriteStatistics(VFSFILE *f)
 {
     int i, j;
 
@@ -981,11 +966,11 @@ int ls_WriteStatistics(int f)
         LS_W(&ord_StatisticsHistory[i].score, 4)
         LS_W(&ord_StatisticsHistory[i].base, 4)
     }
-    LS_W(gm_IncomeHistory, 0x44)
-    LS_W(gm_IncomeHistory + 0x44, 0x44)
-    LS_W(gm_IncomeHistory + 0x88, 0x44)
-    LS_W(gm_IncomeHistory + 0xcc, 0x44)
-    LS_W(gm_IncomeHistory + 0x110, 0x44)
+    LS_W(gm_IncomeHistory[0], 0x44)
+    LS_W(gm_IncomeHistory[1], 0x44)
+    LS_W(gm_IncomeHistory[2], 0x44)
+    LS_W(gm_IncomeHistory[3], 0x44)
+    LS_W(gm_IncomeHistory[4], 0x44)
     for (i = 0; i < 8; i++) {
         for (j = 0; j < 8; j++) {
             LS_W(&ai_Grid[i][j].a, 2)
@@ -1003,13 +988,13 @@ int ls_WriteAvatars(void *f)
 {
     return gv_WriteAvatars(f);
 }
-/* 0x51bdc0, the save game step that writes the event tables: the number of used he_Jobs records (kind != 0) and the
+/* 0x51bdc0, the save game step that writes the event tables: the number of used he_Events records (kind != 0) and the
    size 0xa0 of their tail, then each used record in pieces (kind, id, chr, netId, from, the 12 words, the three
    clocks, stage, opts, the eight ids one by one, the text: its size and bytes, or a 0 when it has none, and the 0xa0
    bytes from +0xac); then the used carried-goods records (gm_CarryRecs, ref != 0: the id of the event ref points to,
    ttl, hasValue, owner, value, spec, data) and the used AP events (he_ApEvents with income, cost or a name). The
    reader is 0x51fb90. Returns 1, 0 when a write fails */
-int ls_WriteEventTables(int f)
+int ls_WriteEventTables(VFSFILE *f)
 {
   int i;
   int n;
@@ -1019,16 +1004,16 @@ int ls_WriteEventTables(int f)
 
   n = 0;
   for (i = 0; i < 0x400; i++) {
-    if (he_Jobs[i].kind != 0)
+    if (he_Events[i].kind != 0)
       n++;
   }
   LS_W(&n, 4)
   i = 0xa0;                             /* the size of each record's tail from +0xac */
   LS_W(&i, 4)
   for (i = 0; i < 0x400; i++) {
-    if (he_Jobs[i].kind == 0)
+    if (he_Events[i].kind == 0)
       continue;
-    job = &he_Jobs[i];
+    job = &he_Events[i];
     LS_W(&job->kind, 1)
     LS_W(&job->id, 4)
     LS_W(&job->chr, 2)
@@ -1062,7 +1047,7 @@ int ls_WriteEventTables(int f)
   for (i = 0; i < 0x100; i++) {
     if (gm_CarryRecs[i].ref == 0)
       continue;
-    LS_W(&((AIJOB *)gm_CarryRecs[i].ref)->id, 4)
+    LS_W(&gm_CarryRecs[i].ref->id, 4)
     LS_W(&gm_CarryRecs[i].ttl, 1)
     LS_W(&gm_CarryRecs[i].hasValue, 4)
     LS_W(&gm_CarryRecs[i].owner, 4)
@@ -1093,7 +1078,7 @@ int ls_WriteEventTables(int f)
    time and the host */
 
 
-int ls_WriteParties(int f)
+int ls_WriteParties(VFSFILE *f)
 {
   G28REC *p;
   int n;
@@ -1129,7 +1114,7 @@ int ls_WriteParties(int f)
    pairs each). Returns 1, or 0 when a write fails. */
 
 
-int ls_WriteHistory(int f)
+int ls_WriteHistory(VFSFILE *f)
 {
   int n, i, j;
 
@@ -1159,7 +1144,7 @@ int ls_WriteHistory(int f)
    fails. The reader is 0x520310. */
 
 
-int ls_WriteMessageQueues(int f)
+int ls_WriteMessageQueues(VFSFILE *f)
 {
     int idx;
     G17MSG m;
@@ -1201,7 +1186,7 @@ int ls_WriteMessageQueues(int f)
    windX, windY), then the wind option (ai_SaveWind) and the effects (gv_WriteEffects); 0 on a failed write */
 
 
-int ls_WriteEnvironment(int f)
+int ls_WriteEnvironment(VFSFILE *f)
 {
     int i;
 
@@ -1222,7 +1207,7 @@ int ls_WriteEnvironment(int f)
    true when the read returned a positive count */
 
 
-int ls_Read(void *buf, int size, int count, int f)
+int ls_Read(void *buf, int size, int count, VFSFILE *f)
 {
     unsigned got = vfs_fread(buf, size, count, f);
 
@@ -1235,36 +1220,35 @@ unsigned short ai_ScreenImage[19200];  /* 0x766320, the */
 LSHEADER ls_LoadedHeader;  /* 0x76f920, the 0x100-byte header of the loaded save game (id, flag byte, name, ..; ls_ReadSaveHeader fills it up to +0xfc) */
 int cm_SaveAcks[8][2];  /* 0x76fa20 */
 extern char * cm_LoadBuf;                /* 0xf31140 */
-extern int ai_TimeCopy[4];  /* 0x75e130, the clock copy */
-#define LS_RD(p, sz) ls_Read((int)(p), (sz), 1, h)
+#define LS_RD(p, sz) ls_Read((p), (sz), 1, h)
 #define LS_CLOSEFAIL { vfs_fclose(h); return 0; }   /* a reader failed: the file closed */
 #define LS_LOADFAIL { vfs_fclose(h); mem_Free(cm_LoadBuf); cm_LoadBuf = 0; return 0; }   /* a late reader failed: the file closed, the load buffer freed */
 /* 0x51c950, loads a save game: resets the game, reads the header into ls_LoadedHeader (versions 0x10026 .. 0x1005a)
    and the fixed globals, then the readers of the subsystems in the writer's order (a map-only save, header flag 2,
    stops after the scene); a failed reader closes the file (the late ones also free cm_LoadBuf) and returns 0. At the
    end the town scene is prepared and the save path kept in ls_SavePath. Returns 1 */
-int ls_LoadGame(int name, int kind)
+int ls_LoadGame(char *name, int kind)
 {
-    int h;
+    VFSFILE *h;
 
     h = vfs_Tfopen(name, "rb", vfs_Root);
     if (h == 0)
         return 0;
     gm_ResetCharacters();
     ch_DeleteAll();
-    ai_PlayerCharC = 0;
+    ai_PlayerChar = 0;
     ai_JudgeCatholic = 0;
     ai_JudgeProtestant = 0;
     init_FreeScenes();
     if (ls_ReadSaveHeader(h, (int *)&ls_LoadedHeader) == 0 || ls_LoadedHeader.version > 0x1005a || ls_LoadedHeader.version < 0x10026
         || !LS_RD(&ai_NextObjectId, 4) || !LS_RD(&ai_NextEventId, 4) || !LS_RD(&ai_Time, 0xe)
-        || !LS_RD(&ai_OwnPlayer, 1) || !LS_RD(&ai_PlayerCharC, 4) || !LS_RD(&ai_NextCharNumber, 4)
+        || !LS_RD(&ai_OwnPlayer, 1) || !LS_RD(&ai_PlayerChar, 4) || !LS_RD(&ai_NextCharNumber, 4)
         || !LS_RD(&ai_NextPlayerNumber, 4) || !LS_RD(&ai_CharCount, 4))
         goto close;
     if (ls_Version >= 0x10022)
         LS_RD(&ls_SpareInt, 4);
     LS_RD(&ai_Update, sizeof(AIUPDATE));   /* 0xf89580 */
-    ai_TimeCopyT = ai_Time;
+    ai_TimeCopy = ai_Time;
     if ((ls_LoadedHeader.flags & 2) == 0)
         ai_Difficulty = ls_LoadedHeader.difficulty;
     if (ls_Version >= 0x10030)
@@ -1343,7 +1327,7 @@ close:
    into ai_ScreenImage. Returns 1, 0 when a read fails or the version is below 0x10025 */
 
 
-int ls_ReadSaveHeader(int f, int *h)
+int ls_ReadSaveHeader(VFSFILE *f, int *h)
 {
     LSHEADER *hd = (LSHEADER *)h;
     char *shot;
@@ -1410,7 +1394,7 @@ int ls_ReadSaveHeader(int f, int *h)
    init_Detail) and registers the two scene callbacks 0x51d4f0 (0x1c0) / 0x51d530 (0xc0) with 0x438e60. Returns 1 */
 
 
-int ls_LoadScene(int f)
+int ls_LoadScene(VFSFILE *f)
 {
     int saved;
 
@@ -1438,7 +1422,7 @@ int ls_LoadScene(int f)
 /* 0x51d3d0, reads the object list 0x7e3f34 (after 0x4fe830 cleared it): the count, then each record in the pieces of the writer 0x519bf0; the count is kept in 0x6f1bdc. Returns 1 */
 
 
-int ls_ReadObjects(int f)
+int ls_ReadObjects(VFSFILE *f)
 {
     int n, i;
     char *r;
@@ -1469,7 +1453,7 @@ char ls_HookBuildingCB(D3OBJECT *o)
     AIBLD *b;
 
     for (i = 0; i < 0xa900; i += 0xa9) {
-        b = (AIBLD *)(ai_Blds + i);
+        b = (AIBLD *)((char *)ai_Blds + i);
         if (b->type != 0 && (int)o->owner == b->id)
             init_HookObject(o, b, 2);
     }
@@ -1490,7 +1474,7 @@ char ls_ClearObjectFlag(char *o)
    (below 0x10043: cleared, target -1, flag bit 0 set), travel30 = 5000 and no smoke effect; at the end the building
    sites ai_Bauplaetze (ai_NBauplaetze records). Returns 1, 0 when a read fails. */
 
-int ls_ReadBuildings(int f)
+int ls_ReadBuildings(VFSFILE *f)
 {
     int n, k, i, j;
     AIBLD *b;
@@ -1500,7 +1484,7 @@ int ls_ReadBuildings(int f)
     gm_ClearBuildings();
     LS_R(&n, 4)
     for (k = 0; k < n; k++) {
-        b = &((AIBLD *)ai_Blds)[k];
+        b = &ai_Blds[k];
         LS_R(&b->type, 1)
         LS_R(&b->id, 4)
         LS_R(b->name, 0x20)
@@ -1530,7 +1514,7 @@ int ls_ReadBuildings(int f)
         LS_R(&b->level, 1)
         c = b->type;
         if (c == 0x1e) {
-            b->plants = (int)mem_Alloc(0x600, "f3g:PlantMap");
+            b->plants = mem_Alloc(0x600, "f3g:PlantMap");
             for (j = 0; j < 0x40; j++) {
                 LS_R(&((AIMAPENT *)b->plants)[j].id, 4)
                 LS_R(&((AIMAPENT *)b->plants)[j].bldId, 4)
@@ -1544,15 +1528,15 @@ int ls_ReadBuildings(int f)
             }
         } else if (c == 'H' || c == 'I' || c == 'J') {
             if (ls_Version >= 0x10047) {
-                if (gv_ReadGraveyard((void *)f, (unsigned char *)b) == 0)
+                if (gv_ReadGraveyard((void *)f, b) == 0)
                     return 0;
             } else {
                 LS_R(b->kindData, 0x30)
-                b->yard = gv_AllocGraveyard((unsigned char *)b);
+                b->yard = gv_AllocGraveyard(b);
             }
         } else if (c == 'K' || c == 'L' || c == 'M') {
             if (ls_Version >= 0x10049) {
-                if (ahm_ReadRecord((void *)f, (unsigned char *)b) == 0)
+                if (ahm_ReadRecord((void *)f, b) == 0)
                     return 0;
             } else {
                 LS_R(b->kindData, 0x30)
@@ -1584,59 +1568,59 @@ int ls_ReadBuildings(int f)
 /* 0x51db00, reads the 16 player records gm_PlayerRecords (AIFIN, 0xac bytes each; the counterpart of the writer 0x51a1a0): the fields, each version gated (spyPaid from 0x1002c, costB .. officeSentences from 0x10014, roundFactors[2] = 1.0 below 0x10056, the 0x11 (0x0e below 0x10046) jobByGroup bytes from 0x10015, saved70 from 0x10018). Returns 1, 0 when a read fails. */
 
 
-int ls_ReadPlayerRecords(int f)
+int ls_ReadPlayerRecords(VFSFILE *f)
 {
     int k, i, n;
 
     for (k = 0; k < 0x10; k++) {
-        LS_R(&gm_PlayerFins[k].w00, 2)
-        LS_R(gm_PlayerFins[k].family, 0x10)
-        LS_R(&gm_PlayerFins[k].incomeA, 4)
+        LS_R(&gm_PlayerRecords[k].w00, 2)
+        LS_R(gm_PlayerRecords[k].family, 0x10)
+        LS_R(&gm_PlayerRecords[k].incomeA, 4)
         if (ls_Version >= 0x1002c)
-            LS_R(&gm_PlayerFins[k].spyPaid, 4)
-        LS_R(&gm_PlayerFins[k].lootTakings, 4)
-        LS_R(&gm_PlayerFins[k].incomeC, 4)
-        LS_R(&gm_PlayerFins[k].missionMoney[0], 4)
-        LS_R(&gm_PlayerFins[k].missionMoney[1], 4)
-        LS_R(&gm_PlayerFins[k].missionMoney[2], 4)
-        LS_R(&gm_PlayerFins[k].missionMoney[3], 4)
-        LS_R(&gm_PlayerFins[k].upgradeSpent, 4)
-        LS_R(&gm_PlayerFins[k].renovationSpent, 4)
-        LS_R(&gm_PlayerFins[k].loansRepaid, 4)
-        LS_R(&gm_PlayerFins[k].costA, 4)
-        LS_R(&gm_PlayerFins[k].cartSpent, 4)
+            LS_R(&gm_PlayerRecords[k].spyPaid, 4)
+        LS_R(&gm_PlayerRecords[k].lootTakings, 4)
+        LS_R(&gm_PlayerRecords[k].incomeC, 4)
+        LS_R(&gm_PlayerRecords[k].missionMoney[0], 4)
+        LS_R(&gm_PlayerRecords[k].missionMoney[1], 4)
+        LS_R(&gm_PlayerRecords[k].missionMoney[2], 4)
+        LS_R(&gm_PlayerRecords[k].missionMoney[3], 4)
+        LS_R(&gm_PlayerRecords[k].upgradeSpent, 4)
+        LS_R(&gm_PlayerRecords[k].renovationSpent, 4)
+        LS_R(&gm_PlayerRecords[k].loansRepaid, 4)
+        LS_R(&gm_PlayerRecords[k].costA, 4)
+        LS_R(&gm_PlayerRecords[k].cartSpent, 4)
         if (ls_Version >= 0x10014) {
-            LS_R(&gm_PlayerFins[k].costB, 4)
-            LS_R(&gm_PlayerFins[k].roundFactors[0], 4)
-            LS_R(&gm_PlayerFins[k].roundFactors[1], 4)
-            LS_R(&gm_PlayerFins[k].missionMoney[4], 4)
-            LS_R(&gm_PlayerFins[k].saved64[0], 4)
-            LS_R(&gm_PlayerFins[k].saved64[1], 4)
-            LS_R(&gm_PlayerFins[k].officeSentences, 4)
+            LS_R(&gm_PlayerRecords[k].costB, 4)
+            LS_R(&gm_PlayerRecords[k].roundFactors[0], 4)
+            LS_R(&gm_PlayerRecords[k].roundFactors[1], 4)
+            LS_R(&gm_PlayerRecords[k].missionMoney[4], 4)
+            LS_R(&gm_PlayerRecords[k].saved64[0], 4)
+            LS_R(&gm_PlayerRecords[k].saved64[1], 4)
+            LS_R(&gm_PlayerRecords[k].officeSentences, 4)
         }
         if (ls_Version >= 0x10056) {
-            LS_R(&gm_PlayerFins[k].roundFactors[2], 4)
+            LS_R(&gm_PlayerRecords[k].roundFactors[2], 4)
         } else {
-            gm_PlayerFins[k].roundFactors[2] = 1.0f;
+            gm_PlayerRecords[k].roundFactors[2] = 1.0f;
         }
         if (ls_Version >= 0x10015) {
             n = (((ls_Version >= 0x10046) - 1) & 0xfffffffd) + 0x11;
             for (i = 0; i < n; i++)
-                LS_R(&gm_PlayerFins[k].jobByGroup[i], 1)
+                LS_R(&gm_PlayerRecords[k].jobByGroup[i], 1)
         }
-        LS_R(&gm_PlayerFins[k].camAngle, 4)
-        LS_R(gm_PlayerFins[k].camPos, 0x10)
-        LS_R(gm_PlayerFins[k].camRot, 0xc)
-        LS_R(&gm_PlayerFins[k].savedA8, 4)
+        LS_R(&gm_PlayerRecords[k].camAngle, 4)
+        LS_R(gm_PlayerRecords[k].camPos, 0x10)
+        LS_R(gm_PlayerRecords[k].camRot, 0xc)
+        LS_R(&gm_PlayerRecords[k].savedA8, 4)
         if (ls_Version >= 0x10018)
-            LS_R(&gm_PlayerFins[k].saved70, 4)
+            LS_R(&gm_PlayerRecords[k].saved70, 4)
     }
     return 1;
 }
 /* 0x51de70, reads the characters (the counterpart of the header writer 0x5194c0 and the character writer 0x51a4b0): ai_PlayerId, ai_CharCount, the two judge pointers ai_JudgeCatholic / ai_JudgeProtestant and the eight slots of ai_KindBChars (from 0x10016), then ai_CharCount records of the 0x21c bytes of ai_Chars (the id word first, it picks the record): each field from its version (the reference fields +0x54 / +0x18c get their base 0x59a / 0x639 added, +0x174 is 2 instead of 4 below 0x10020), some fields with their defaults for older versions (+0x20c = -1 and +0x190 = 4 below 0x1003e, +0x1cc = 0 below 0x10049); the last chunk +0x210 .. +0x218 from 0x10036. Returns 1, 0 when a read fails. */
 
 
-int ls_ReadCharacters(int f)
+int ls_ReadCharacters(VFSFILE *f)
 {
     int cnt;
     int i;
@@ -1655,7 +1639,7 @@ int ls_ReadCharacters(int f)
     }
     for (i = 0; i < cnt; i++) {
         LS_R(&id, 2)
-        c = &ai_CharsT[id];
+        c = &ai_Chars[id];
         c->id = id;
         if (ls_Version >= 0x1003e) {
             LS_R(&c->partyId, 4)
@@ -1666,9 +1650,9 @@ int ls_ReadCharacters(int f)
         LS_R(&c->netId, 4)
         LS_R(&c->health, 1)
         LS_R(&c->sex, 1)
-        LS_R(&c->w00a, 2)
-        LS_R(&c->b00c, 1)
-        LS_R(&c->b00d, 1)
+        LS_R(&c->age, 2)
+        LS_R(&c->faith, 1)
+        LS_R(&c->level, 1)
         LS_R(&c->f010, 4)
         LS_R(&c->f014, 4)
         LS_R(&c->f018, 4)
@@ -1677,7 +1661,7 @@ int ls_ReadCharacters(int f)
         LS_R(&c->v024, 4)
         if (ls_Version >= 0x1003b) {
             LS_R(&c->w028, 2)
-            LS_R(&c->v02c, 4)
+            LS_R(&c->ailments, 4)
         }
         LS_R(c->first, 0x10)
         if (ls_Version >= 0x10031)
@@ -1685,10 +1669,10 @@ int ls_ReadCharacters(int f)
         LS_R(&c->w050, 2)
         LS_R(&c->ref54, 4)
         c->ref54 += 0x59a;
-        LS_R(&c->b058, 1)
+        LS_R(&c->generation, 1)
         LS_R(c->relatives, 0x20)
         if (ls_Version >= 0x10024)
-            LS_R(&c->f07c, 4)
+            LS_R(&c->pregnancy, 4)
         LS_R(c->skills, 5)
         LS_R(c->mood, 0xa8)
         LS_R(&c->jobId, 1)
@@ -1702,9 +1686,9 @@ int ls_ReadCharacters(int f)
         c->bld2 = 0;
         LS_R(&c->bld2, 4)
         if (ls_Version >= 0x10020) {
-            LS_R(&c->v174, 4)
+            LS_R(&c->jobDays, 4)
         } else {
-            LS_R(&c->v174, 2)
+            LS_R(&c->jobDays, 2)
         }
         c->job = 0;             /* the job id, resolved after the load */
         LS_R(&c->job, 4)
@@ -1730,17 +1714,17 @@ int ls_ReadCharacters(int f)
         } else {
             c->flags1cc = 0;
         }
-        LS_R(&c->v1d0, 4)
-        LS_R(c->block1d4, 0x10)
+        LS_R(&c->loyalty, 4)
+        LS_R(c->worth, 0x10)
         LS_R(&c->mood3Rate, 4)
-        LS_R(&c->v1e8, 4)
+        LS_R(&c->flags1e8, 4)
         LS_R(&c->goodsMask, 4)
         if (ls_Version >= 0x1002a)
             LS_R(&c->v1f0, 4)
         if (ls_Version >= 0x10021)
             LS_R(&c->b1c5, 1)
         LS_R(&model, 4)
-        c->model = (AITASK *)model;
+        c->scene = (CHARACTER *)model;
         if (ls_Version >= 0x10021)
             LS_R(c->ownName, 0x18)
         if (ls_Version >= 0x10036) {
@@ -1757,7 +1741,7 @@ int ls_ReadCharacters(int f)
 /* 0x51e750, reads one ch.c CHARACTER record from the save (allocated by ch_AllocAt from the id read first): its name (+8, 0x20 bytes), the group / script group (+0x2c / +0x30), the flag word +0x8c (bit 5 set when the flag byte read is 1), the full name +0x170 (0x30) and the body name +0x130 (0x40), +0x38 (0x10), +0x48 (0xc), the texts +0x1a8 (from 0x10013) and +0x1e8 (from 0x1005a), the flags &= 0xdffb, then the reference index read last goes to +0x12c (0x51e900 turns it into a pointer). Returns the record */
 
 
-struct CHARACTER *ls_ReadCharacter(int f)
+struct CHARACTER *ls_ReadCharacter(VFSFILE *f)
 {
     int id;
     CHARACTER *c;
@@ -1819,7 +1803,7 @@ struct CHARACTER *ls_ReadCharacter(int f)
    (tiebreak: not measured (dcp headers sample ls_ReadSceneRecords)) */
 
 
-int ls_ReadSceneRecords(int f)
+int ls_ReadSceneRecords(VFSFILE *f)
 {
     int n, i, j, saved, uni;
     CHARACTER *ch;
@@ -1854,13 +1838,13 @@ int ls_ReadSceneRecords(int f)
         if (ch == 0)
             continue;
         part = 0;
-        bld = (AIBLD *)gm_BuildQuery(1, 1, ch->group);
+        bld = gm_BuildQuery(1, 1, ch->group);
         if (bld != 0) {
-            part = (AIOBJ *)gm_Query((void *)bld->objList, 2, 6, 1, ch->scriptGroup);
+            part = gm_Query(bld->objList, 2, 6, 1, ch->scriptGroup);
             if (part != 0 && part->id != 0xfd)
-                uni = init_ObjectSceneUniverse((unsigned short *)part);
+                uni = init_ObjectSceneUniverse(part);
             else
-                uni = init_BuildingSceneUniverse((unsigned char *)bld);
+                uni = init_BuildingSceneUniverse(bld);
         } else {
             uni = 0;
         }
@@ -1897,16 +1881,16 @@ int ls_ReadSceneRecords(int f)
             ch_SetSitAnim(ch, ch->sitAnim);
         }
         own = ch->owner;
-        if (own != 0 && (char *)own >= ai_Chars[0] && (char *)own < ai_Chars[768]) {
+        if (own != 0 && (char *)own >= (char *)&ai_Chars[0] && (char *)own < (char *)&ai_Chars[768]) {
             c = own;
             d3_SetObjectRot(ch->obj, &ch->rot);
             sprintf(ch->obj->name, "sp_%i", c->netId);
             ch->obj->owner = c;
             ch->obj->pickId = c->id | 0x3000000;
-            c->model = (AITASK *)ch;
+            c->scene = ch;
             if (c->job != 0)
                 c->jobKind = c->job->kind;
-            cm_UpdateHandObject((char *)c);
+            cm_UpdateHandObject(c);
         } else if (ch->owner != 0) {
             o = own;
             init_HookObject(ch->obj, own, 1);
@@ -1921,7 +1905,7 @@ int ls_ReadSceneRecords(int f)
             else
                 cart = 0;
             if (cart != 0) {
-                keeper = (AICHAR *)gm_ObjectOwnerChar(own);
+                keeper = gm_ObjectOwnerChar(own);
                 if (keeper != 0 && keeper->ref54 != 0 && (keeper->kind == 5 || keeper->kind == 6 || keeper->kind == 7))
                     colour = (unsigned char)keeper->ref54 + 'g';
                 else
@@ -1981,13 +1965,13 @@ int ls_ReadSceneRecords(int f)
                 }
             }
             if (a->type == '3') {
-                bld = (AIBLD *)gm_BuildQuery(1, 1, a->args[1]);
+                bld = gm_BuildQuery(1, 1, a->args[1]);
                 if (bld != 0) {
-                    part = (AIOBJ *)gm_Query((void *)bld->objList, 2, 6, 1, a->args[2]);
+                    part = gm_Query(bld->objList, 2, 6, 1, a->args[2]);
                     if (part != 0 && part->id != 0xfd)
-                        a->u.scene.universe = a->args[0] = init_ObjectSceneUniverse((unsigned short *)part);
+                        a->u.scene.universe = a->args[0] = init_ObjectSceneUniverse(part);
                     else
-                        a->u.scene.universe = a->args[0] = init_BuildingSceneUniverse((unsigned char *)bld);
+                        a->u.scene.universe = a->args[0] = init_BuildingSceneUniverse(bld);
                 } else {
                     a->u.scene.universe = a->args[0] = 0;
                 }
@@ -2019,7 +2003,7 @@ int ls_ReadSceneRecords(int f)
    there is none. Returns 1, 0 when a read fails. */
 
 
-int ls_ReadPlayerSlots(int f)
+int ls_ReadPlayerSlots(VFSFILE *f)
 {
     int n;
     int b, j, k;
@@ -2053,7 +2037,7 @@ int ls_ReadPlayerSlots(int f)
         }
     }
     for (b = 0; b < 4; b++) {
-        slot = ai_PlayerSlots[b];
+        slot = (char *)&ai_PlayerSlots[b];
         LS_R(slot, 0x20)
         LS_R(slot + 0x40, 8)
         LS_R(slot + 0x48, 1)
@@ -2091,19 +2075,19 @@ int ls_ReadPlayerSlots(int f)
         if (ls_Version >= 0x10037)
             LS_R(slot + 0x2ec, 8)
     }
-    sprintf(buf, "_STADTAUSWAHL_%s_INFO+0", ai_PlayerSlots[0]);
+    sprintf(buf, "_STADTAUSWAHL_%s_INFO+0", ai_PlayerSlots[0].name);
     strupr(buf);
     k = txt_FindKey(buf);
     if (k != -1)
-        strcpy(ai_PlayerSlots[0] + 0x20, txt_Ptrs[k]);
+        strcpy(ai_PlayerSlots[0].townName, txt_Ptrs[k]);
     else
-        strcpy(ai_PlayerSlots[0] + 0x20, ai_PlayerSlots[0]);
+        strcpy(ai_PlayerSlots[0].townName, ai_PlayerSlots[0].name);
     return 1;
 }
 /* 0x51f650, reads the two relation maps ai_Relations / ai_RelationMemory (n x n bytes, a row of 0x300: n = 0x100 below 0x1003a, 0x100 below 0x10042 else 0x300; the second map from 0x10036). Returns 1 */
 
 
-int ls_ReadRelations(int f)
+int ls_ReadRelations(VFSFILE *f)
 {
     int n, i, j;
 
@@ -2129,7 +2113,7 @@ int ls_ReadRelations(int f)
    8 x 8 cells of ai_Grid (a, b, used, average). Returns 1, 0 when a read fails. */
 
 
-int ls_ReadStatistics(int f)
+int ls_ReadStatistics(VFSFILE *f)
 {
     int i, j;
 
@@ -2166,11 +2150,11 @@ int ls_ReadStatistics(int f)
         LS_R(&ord_StatisticsHistory[i].score, 4)
         LS_R(&ord_StatisticsHistory[i].base, 4)
     }
-    LS_R(gm_IncomeHistory, 0x44)
-    LS_R(gm_IncomeHistory + 0x44, 0x44)
-    LS_R(gm_IncomeHistory + 0x88, 0x44)
-    LS_R(gm_IncomeHistory + 0xcc, 0x44)
-    LS_R(gm_IncomeHistory + 0x110, 0x44)
+    LS_R(gm_IncomeHistory[0], 0x44)
+    LS_R(gm_IncomeHistory[1], 0x44)
+    LS_R(gm_IncomeHistory[2], 0x44)
+    LS_R(gm_IncomeHistory[3], 0x44)
+    LS_R(gm_IncomeHistory[4], 0x44)
     for (i = 0; i < 8; i++) {
         for (j = 0; j < 8; j++) {
             LS_R(&ai_Grid[i][j].a, 2)
@@ -2196,7 +2180,7 @@ int ls_ReadAvatars(void *f)
    used gm_CarryRecs records and the used he_ApEvents (counter, key, income, cost and name). Returns 1, 0 when a
    read fails */
 
-int ls_ReadEventTables(int f)
+int ls_ReadEventTables(VFSFILE *f)
 {
     int n, size2, i, idx;
     AIJOB *rec;
@@ -2211,7 +2195,7 @@ int ls_ReadEventTables(int f)
     if (n > 0) {
         do {
             idx = he_EventCount;
-            rec = &he_Jobs[idx];
+            rec = &he_Events[idx];
             LS_R(&rec->kind, 1)
             LS_R(&rec->id, 4)
             LS_R(&rec->chr, 2)
@@ -2248,7 +2232,7 @@ int ls_ReadEventTables(int f)
                 LS_R(&rec->u, size2)
             }
             if ((rec->opts & 8) != 0) {
-                he_QuickList[he_QuickTop] = (char *)rec;
+                he_QuickList[he_QuickTop] = rec;
                 he_QuickTop++;
             }
             he_EventCount++;
@@ -2258,7 +2242,7 @@ int ls_ReadEventTables(int f)
     LS_R(&n, 4)
     for (i = 0; i < n; i++) {
             gm_CarryRecs[i].ref = 0;
-            LS_R(&gm_CarryRecs[i].ref, 4)
+            LS_R(&gm_CarryRecs[i].refId, 4)
             LS_R(&gm_CarryRecs[i].ttl, 1)
             LS_R(&gm_CarryRecs[i].hasValue, 4)
             LS_R(&gm_CarryRecs[i].owner, 4)
@@ -2282,7 +2266,7 @@ int ls_ReadEventTables(int f)
    hours below version 0x1003f) and the host (-1 below 0x10040). Returns 1 */
 
 
-int ls_ReadParties(int f)
+int ls_ReadParties(VFSFILE *f)
 {
     int tmp[0x400];
     int k;
@@ -2325,7 +2309,7 @@ int ls_ReadParties(int f)
 /* 0x520200, reads the history (hst.c) part of a save game, the counterpart of ls_WriteHistory 0x51c450: the texts-on byte hst_TextsOn (then hst_LoadPlayerTexts resets the lists and opens the player's texts), the offsets of the current text and of the next key-list entry (hst_TextCurrent / hst_KeyNext from hst_TextFirst / hst_KeyFirst), the 0x10 bytes of the key hst_Key and the four lists hst_Lists (used flag and eight id/value pairs each). Returns 1, 0 when a read fails. */
 
 
-int ls_ReadHistory(int f)
+int ls_ReadHistory(VFSFILE *f)
 {
     int n, i, j;
 
@@ -2350,7 +2334,7 @@ int ls_ReadHistory(int f)
 /* 0x520310, reads cm's message queues, the counterpart of ls_WriteMessageQueues 0x51c560: the 0x2000 records of cm_RecvPool and the heads cm_RecvQueue / cm_RecvFree, then (all 0x8000 cm_SendStates reset first: free, idx -1, value 0) the records of cm_SendRing (0x2000 of them before version 0x1003c, 0x8000 from it) and its head cm_SendQueue, cm_LastSeq, as many states of cm_SendStates, the group bounds cm_GroupFirstSeq / cm_GroupEndSeq and the three ids cm_LastCharId / cm_LastBuildingId / cm_LastObjectId. The records' prev / next and the heads are saved as record indices (-1 for none) and turned back into pointers. Returns 1, 0 when a read fails. */
 
 
-int ls_ReadMessageQueues(int f)
+int ls_ReadMessageQueues(VFSFILE *f)
 {
     int i, n;
 
@@ -2393,7 +2377,7 @@ int ls_ReadMessageQueues(int f)
    wind table (ai_LoadWind) and the effects (gv_ReadEffects). Returns 1, or 0 when a read fails */
 
 
-int ls_ReadEnvironment(int f)
+int ls_ReadEnvironment(VFSFILE *f)
 {
   int i;
 
@@ -2409,7 +2393,7 @@ int ls_ReadEnvironment(int f)
     return 1;
   return 0;
 }
-/* 0x5206b0, the fix-up after a load, the counterpart of ls_RefsToIds 0x519a00 before a save: it turns the loaded ids back into pointers: the player's character (ai_PlayerChar = gm_FindChar, 0 = fail), the market building (ai_MarketBuilding = gm_BuildQuery (1, 5, 10)), the eight kind 0xb characters (ai_KindBChars, from version 0x10017), the reference fields of the used ai_Chars records (bld / bld2 by gm_FindById, job by he_FindEvent, model cleared), the objects of ai_Objects (an object with an owner is appended to the owner's list: AIBLD.objList, AIOBJ.list or AICHAR.inventory, linked by AIOBJ.next; a cart of goods type 0x1d loses its job24), the events of he_Jobs in scene 0 (the kinds 0x29 0x2d 0x2f 0x11 0x25 5 10 0x26 or those in the event bar re-run their handler he_RunHandlers[kind] with ai_GameState = 2 and the stage cleared, the stage put back after; the kinds 0xd / 0xf / 0x78 / 0x76 / 0x14 get their own fixes), the events of the carried-goods records gm_CarryRecs and the values of cm_SendStates by kind (1 gm_FindChar, 3 gm_FindObjectInst, 2 gm_FindBuildingById, 9 cm_PartyById); it closes with gm_ResetStock. Returns 1, 0 when the player's character is gone */
+/* 0x5206b0, the fix-up after a load, the counterpart of ls_RefsToIds 0x519a00 before a save: it turns the loaded ids back into pointers: the player's character (ai_PlayerChar = gm_FindChar, 0 = fail), the market building (ai_MarketBuilding = gm_BuildQuery (1, 5, 10)), the eight kind 0xb characters (ai_KindBChars, from version 0x10017), the reference fields of the used ai_Chars records (bld / bld2 by gm_FindById, job by he_FindEvent, model cleared), the objects of ai_Objects (an object with an owner is appended to the owner's list: AIBLD.objList, AIOBJ.list or AICHAR.inventory, linked by AIOBJ.next; a cart of goods type 0x1d loses its job24), the events of he_Events in scene 0 (the kinds 0x29 0x2d 0x2f 0x11 0x25 5 10 0x26 or those in the event bar re-run their handler he_RunHandlers[kind] with ai_GameState = 2 and the stage cleared, the stage put back after; the kinds 0xd / 0xf / 0x78 / 0x76 / 0x14 get their own fixes), the events of the carried-goods records gm_CarryRecs and the values of cm_SendStates by kind (1 gm_FindChar, 3 gm_FindObjectInst, 2 gm_FindBuildingById, 9 cm_PartyById); it closes with gm_ResetStock. Returns 1, 0 when the player's character is gone */
 
 
 int ls_FixupAfterLoad(void)
@@ -2419,60 +2403,62 @@ int ls_FixupAfterLoad(void)
     AIOBJ *o, *last;
     AIJOB *j;
 
-    ai_PlayerCharC = (char *)gm_FindChar((int)ai_PlayerCharC);
-    if (ai_PlayerCharC == 0)
+    ai_PlayerChar = gm_FindChar((int)ai_PlayerChar);
+    if (ai_PlayerChar == 0)
         return 0;
-    ai_MarketBuilding = (AIBLD *)gm_BuildQuery(1, 5, 10);
+    ai_MarketBuilding = gm_BuildQuery(1, 5, 10);
     if (ls_Version >= 0x10017) {
         for (i = 0; i < 8; i++)
-            ai_KindBChars[i] = (char *)gm_FindChar((int)ai_KindBChars[i]);
+            ai_KindBChars[i] = gm_FindChar((int)ai_KindBChars[i]);
     }
     for (i = 0; i < 768; i++) {
-        c = &ai_CharsT[i];
+        c = &ai_Chars[i];
         if (c->id != 0xffff) {
             if ((int)c->bld == -1)
                 c->bld = 0;
             else
-                gm_FindById((int *)&c->bld, 0, 0, (int)c->bld);
+                gm_FindById(&c->bld, 0, 0, (int)c->bld);
             if ((int)c->bld2 == -1)
                 c->bld2 = 0;
             else
-                gm_FindById((int *)&c->bld2, 0, 0, (int)c->bld2);
+                gm_FindById(&c->bld2, 0, 0, (int)c->bld2);
             if ((int)c->job == -1)
                 c->job = 0;
             else
-                c->job = (AIJOB *)he_FindEvent(1, 1, (int)c->job);
-            c->model = 0;
+                c->job = he_FindEvent(1, 1, (int)c->job);
+            c->scene = 0;
         }
     }
     for (i = 0; i < f3gm_ObjectCount; i++) {
-        int bld, obj, chr;      /* what gm_FindById finds for an id: a building, an object or a character */
+        AIBLD *bld;             /* what gm_FindById finds for an id: a building, an object or a character */
+        AIOBJ *obj;
+        AICHAR *chr;
 
         o = &ai_Objects[i];
-        if (((AIGOOD *)ai_Goods)[o->id].type == 0x1d)
+        if (ai_Goods[o->id].type == 0x1d)
             o->job24 = 0;
         if (o->ownerId != -1 && gm_FindById(&bld, &obj, &chr, o->ownerId) != 0) {
             if (bld != 0) {
-                if (((AIBLD *)bld)->objList == 0) {
-                    ((AIBLD *)bld)->objList = (int)o;
+                if (bld->objList == 0) {
+                    bld->objList = o;
                 } else {
-                    for (last = (AIOBJ *)((AIBLD *)bld)->objList; last->next != 0; last = last->next)
+                    for (last = bld->objList; last->next != 0; last = last->next)
                         ;
                     last->next = o;
                 }
             } else if (obj != 0) {
-                if (((AIOBJ *)obj)->list == 0) {
-                    ((AIOBJ *)obj)->list = (int)o;
+                if (obj->list == 0) {
+                    obj->list = o;
                 } else {
-                    for (last = (AIOBJ *)((AIOBJ *)obj)->list; last->next != 0; last = last->next)
+                    for (last = obj->list; last->next != 0; last = last->next)
                         ;
                     last->next = o;
                 }
             } else {
-                if (((AICHAR *)chr)->inventory == 0) {
-                    ((AICHAR *)chr)->inventory = (int)o;
+                if (chr->inventory == 0) {
+                    chr->inventory = o;
                 } else {
-                    for (last = (AIOBJ *)((AICHAR *)chr)->inventory; last->next != 0; last = last->next)
+                    for (last = chr->inventory; last->next != 0; last = last->next)
                         ;
                     last->next = o;
                 }
@@ -2481,7 +2467,7 @@ int ls_FixupAfterLoad(void)
     }
     saved = d3_CurrentScene;
     d3if_SelectScene(0, 0);
-    for (j = he_Jobs; (int)j < (int)&he_Jobs[0x400]; j++) {
+    for (j = he_Events; (int)j < (int)&he_Events[0x400]; j++) {
         if (j->kind == 0)
             continue;
         if (j->kind == 0x29 || j->kind == 0x2d || j->kind == 0x2f || j->kind == 0x11 || j->kind == 0x25 || j->kind == 5
@@ -2492,7 +2478,7 @@ int ls_FixupAfterLoad(void)
                 ai_GameState = 2;
                 if (j->kind == 0x11)
                     j->modes &= 0xef;
-                he_RunHandlers[(unsigned char)j->kind]((unsigned char *)j);
+                he_RunHandlers[(unsigned char)j->kind](j);
                 ai_GameState = 0;
                 j->stage = v;
             }
@@ -2500,11 +2486,11 @@ int ls_FixupAfterLoad(void)
         if (j->kind == 0xc) {
             /* nothing (the original tests the kind 0xc first and leaves it alone) */
         } else if (j->kind == 0xd) {
-            int bld;      /* the building under construction */
+            AIBLD *bld;   /* the building under construction */
 
             gm_FindById(&bld, 0, 0, j->constructBld);
             if (bld != 0)
-                he_ShowConstruction((int)j);
+                he_ShowConstruction(j);
         } else if (j->kind == 0xf) {
             o = (AIOBJ *)gm_FindObjectInst(j->from);
             if (o != 0)
@@ -2515,14 +2501,14 @@ int ls_FixupAfterLoad(void)
         } else if (j->kind == 0x76) {
             j->effectObj = 0;
         } else if (j->kind == 0x14) {
-            sv_CountGroupMembers((char *)j);
+            sv_CountGroupMembers(j);
             j->groupSize = (unsigned char)(j->rank1Count + j->rank2Count);
         }
     }
     d3if_SelectScene(saved, 0);
     for (i = 0; i < 0x100; i++) {
         if (gm_CarryRecs[i].ref != 0)
-            gm_CarryRecs[i].ref = (int)he_FindEvent(1, 1, gm_CarryRecs[i].ref);
+            gm_CarryRecs[i].ref = he_FindEvent(1, 1, gm_CarryRecs[i].refId);
     }
     for (i = 0; i < 0x8000; i++) {
         if (cm_SendStates[i].value != 0) {
@@ -2548,7 +2534,7 @@ int ls_SendGame(char *name)
     int len, size, sent, cnt = 0;
     char *buf, *p;
 
-    fh = vfs_Tfopen(name, "rbn", (int)vfs_Root);
+    fh = vfs_Tfopen(name, "rbn", vfs_Root);
     if (fh == 0)
         return 0;
     vfs_fseek(fh, 0, SEEK_END);
@@ -2597,7 +2583,7 @@ int ls_SendGame(char *name)
 
 int ls_ReceiveGame(void)
 {
-    int h;
+    VFSFILE *h;
     LSHDR hdr;
     int i;
 
@@ -2605,21 +2591,21 @@ int ls_ReceiveGame(void)
         sv_PumpMessages();
         sv_PumpNet();
     }
-    h = (int)vfs_MemOpen(cm_LoadBuf, cm_LoadSize, "rb");
+    h = vfs_MemOpen(cm_LoadBuf, cm_LoadSize, "rb");
     if (h == 0) {
         mem_Free(cm_LoadBuf);
         cm_LoadBuf = 0;
         return 0;
     }
-    ai_PlayerCharC = 0;
+    ai_PlayerChar = 0;
     ls_ReadSaveHeader(h, (int *)&hdr);
     if ((hdr.flags & 2) == 0 || hdr.version > 0x1005a)
         LS_LOADFAIL
     if (!LS_RD(&ai_NextObjectId, 4) || !LS_RD(&ai_NextEventId, 4) || !LS_RD(&ai_Time, 0xe)
-        || !LS_RD(&ai_OwnPlayer, 1) || !LS_RD(&ai_PlayerCharC, 4) || !LS_RD(&ai_NextCharNumber, 4)
+        || !LS_RD(&ai_OwnPlayer, 1) || !LS_RD(&ai_PlayerChar, 4) || !LS_RD(&ai_NextCharNumber, 4)
         || !LS_RD(&ai_NextPlayerNumber, 4) || !LS_RD(&ai_CharCount, 4))
         LS_LOADFAIL
-    ai_TimeCopyT = ai_Time;
+    ai_TimeCopy = ai_Time;
     LS_RD(&ls_SpareInt, 4);
     LS_RD(&ai_Update, sizeof(AIUPDATE));   /* 0xf89580 */
     if (ls_Version >= 0x10030)
@@ -2637,8 +2623,8 @@ int ls_ReceiveGame(void)
     if (ls_ReadCharacters(h) == 0)
         LS_LOADFAIL
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].id != 0xffff && ai_CharsT[i].kind == 6)
-            ai_CharsT[i].kind = 5;
+        if (ai_Chars[i].id != 0xffff && ai_Chars[i].kind == 6)
+            ai_Chars[i].kind = 5;
     }
     if (ls_ReadPlayerSlots(h) == 0)
         LS_LOADFAIL

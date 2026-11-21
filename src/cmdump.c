@@ -21,11 +21,9 @@ struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3S
 #include "evt.h"
 #include "data_views.h"
 #include "menu_types.h"
-extern char cm_CutInfos[16][0x35c];
 #define GAPDATA __declspec(align(1)) unsigned char
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
-extern int gm_PlayerRecords[688];
 extern GAPDATA full_data_602568[];
 
 
@@ -33,8 +31,6 @@ extern GAPDATA full_data_602568[];
 #define G17_S(m, o) (*(short *)&(m).data[o])
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
-#define cm_LobbyListIds (*(int (*)[8])((char *)cm_LobbyList + 4))  /* 0x936424, the eight player states (a view) */
-#define cm_LobbyPlayers ((CMLOBBYPLAYER *)cm_LobbyRecords)  /* 0x9364e0, the eight lobby player records (the CMJOIN cm_JoinChar follows at +0x2c0) */
 #define ai_WeaponRecords ((AIWEAPON *)ai_WeaponRecordData)  /* 0x60c7c0, the ten 0x5c-byte weapon records ai_FindWeaponRecord searches (a view) */
 
 #include "f3init.h"
@@ -76,15 +72,6 @@ extern GAPDATA full_data_602568[];
 #include "gv.h"
 #include "poker.h"
 #include "gfx.h"
-#define d3t_CamMoveI (*(int *)&d3t_CamMove)  /* 0x6310e8, d3t_CamMove (d3_tools.c: D3ANIM *) as the int this unit tests */
-#define d2_LastWindowPtrC (*(char **)&d2_LastWindowPtr)  /* 0x6ed980, d2_LastWindowPtr (d2.c: D2WIN *) read bytewise, as this unit does */
-#define d2_ObjsC (*(char **)&d2_Objs)  /* 0xf8f080, d2_Objs (d2.c: D2OBJ *) read bytewise, as this unit does (+ obj * 0x2ec) */
-#define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (cm.h: char *) as the AIGOOD records it points to */
-#define cm_CutInfosT (*(CMCUTINFO (*)[16])&cm_CutInfos)  /* 0x92cae0, cm_CutInfos (char[16][0x35c]) as the cutscene records */
-#define cm_LongMsgCut (*(CMCUTINFO *)&cm_LongMsg)  /* 0xa68d40, cm_LongMsg (cm.h: unsigned char[]) as the cutscene record message 0x26 joins */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (cm.h: char *) as the AIBTYPE records it points to */
-#define ai_TimeCopyT (*(AITIME *)&ai_TimeCopy)  /* 0x75e130, ai_TimeCopy (cm.h: int[4]) as the AITIME copy it holds */
-#define ai_PlayerSlotsT (*(GMPLAYERSLOT (*)[4])&ai_PlayerSlots)  /* 0x7e3f40, ai_PlayerSlots (cm.h: char[][0x2f4]) as the player slots */
 #define CM_KEEPER_FLAG 0x800000     /* flags1c8 bit 23 (he.c HE_LOVER_FLAG: has a keeper; f3gm.c ORD_F1C8_ANEW): message 0x19
                                        may not set it on a character that has it */
 typedef struct CMCUTTYPEMSG {      /* 0x7c bytes, the data of the system message 0x11 cm_RunSceneParty sends (cm_SendExSysMessage) */
@@ -129,20 +116,6 @@ typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of
     D3ANIM *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
     int x, y;                       /* 0x08, the target cell */
 } CMGRENADE;
-#define cm_GrenadesT (*(CMGRENADE (*)[32])&cm_Grenades)  /* 0x935a00, cm_Grenades (char[512]) as the 32 records */
-typedef struct CMBOMB {             /* 8 bytes, one of the 32 bombs of cm_Bombs */
-    D3OBJECT *obj;                  /* the bomb object "ob_BOMBE", 0 = a free slot */
-    unsigned long time;             /* d3_Time when it was laid */
-} CMBOMB;
-#define cm_BombsT (*(CMBOMB (*)[32])&cm_Bombs)  /* 0x935c00, cm_Bombs (sv.h: int[0x40]) as the 32 bomb records */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (cm.h: char[][0x21c]) as the AICHAR records they are */
-#define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
-#define ai_FallbackBuildingT (*(struct AIBLD **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) as the AIBLD it points to */
-#define ai_PlayerBuildingT (*(struct AIBLD **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) as the AIBLD it points to */
-#define cm_FightersT (*(AICHAR (*)[32])&cm_Fighters)  /* 0x930600, cm_Fighters (char[], with the 0x1000 bytes after the 32 records) as its AICHAR records */
-#define ai_SceneCharsT (*(AICHAR *(*)[32])&ai_SceneChars)  /* 0x7603a0, ai_SceneChars (f3init.h: int[32]) as the AICHAR pointers it holds */
-#define cm_FlagObjectsT (*(D3OBJECT *(*)[32])&cm_FlagObjects)  /* 0x935980, cm_FlagObjects (cm.h: char *[]) as the D3OBJECTs it holds */
-#define d2_LastWindowPtrT (*(struct D2WIN **)&d2_LastWindowPtr)  /* 0x6ed980, d2_LastWindowPtr (d2.c: D2WIN *) as the window record */
 typedef struct CMAMOUNTROW {        /* 0x38 bytes, one row of the special-amount list (ai_AmountRowStatus / ai_AmountRow read it
                                        as ints; menu.c GYPSYROW) */
     AICHAR *rec;                    /* 0x00, the character the row shows */
@@ -167,104 +140,78 @@ typedef struct CMGUARDREC {
     char pad0c0[0x50];
     int kind;                       /* 0x110, the kind of arming last asked for (1 .. 3) */
 } CMGUARDREC;
-typedef struct CMFIGHTREC {
-    char pad000[0xc];
-    int owner;                      /* 0x00c, the player whose fight it is (cm_FightOwner) */
-    char pad010[4];
-    int placeId;                    /* 0x014, the defender's building: its type picks the scenario, its role the defender voices */
-    char pad018[0x18];
-    unsigned char nChars;           /* 0x030, the count of charIds */
-    char pad031[3];
-    union {
-        struct {
-            int attackerId;         /* 0x034, the attacking character (cm_FightAttacker) */
-            int defenderId;         /* 0x038, the defending character (cm_FightDefender) */
-        };
-        int charIds[16];            /* 0x034, the netIds of the fight's leading characters, -1 = none (cm_CutInfos[i]
-                                       is the cutscene record of charIds[i]) */
-    };
-    char pad074[8];
-    unsigned char flags;            /* 0x07c, 1 in the open (8: in the town, else the mountain pass), 4 the mountain pass */
-    char pad07d[3];
-    int defenders[16];              /* 0x080, the netIds of the defending fighters, -1 = none */
-    int attackers[16];              /* 0x0c0, the netIds of the attacking fighters, -1 = none */
-    int carts[3];                   /* 0x100, the object ids of the carts in the fight, -1 = none */
-    int attackerBldId;              /* 0x10c, the attacker's building: its role picks the attacker voices */
-    int escort;                     /* 0x110, the carts' escort: the arming kind ai_ArmGateGuards keeps (0 none, 1 .. 3);
-                                       the AI side of a won raid takes the loot when random 0 .. 4 is above it */
-} CMFIGHTREC;
 
 char ai_CharKindNames[10][24] = { "DUMMY_NPC", "MEISTER_NPC", "POLITICIAN_NPC", "AI_NPC", "NPC", "PLAYER", "REMOTE_PLAYER", "RELATIVE_PLAYER", "USED_PLAYER", "INVISIBLE_NPC" };  /* 0x60eae0, the names of the NPC kinds */
 
 /* 0x4e58e0, the debug dump of a person (log of the cutscenes): one line of tab separated fields (time, +4, id, the name of the kind (0x60eae0, 24 bytes each) ...) */
 
-void ai_DumpPersonHead(char *c, char *buf)
+void ai_DumpPersonHead(AICHAR *c, char *buf)
 {
     AICHAR *p;
     char *name;
 
-    p = (AICHAR *)c;
+    p = c;
     if (p->kind >= 10)
         name = "%i\t%i\t%i\t%s\t%s\t%i\t%s\t%i\t%s\t%s\t%s\t%s\t";
     else
         name = ai_CharKindNames[p->kind];
     sprintf(buf, "%i\t%i\t%i\t%s\t%s\t%i\t%s\t%i\t%s\t%s\t%s\t%s\t", ai_Time.year, p->netId, p->id, name, p->name, p->health,
-            txt_SexNames[p->sex], p->w00a, txt_FaithNames[p->b00c], txt_HonourTitles[p->b00d], txt_JobNames[p->jobId],
+            txt_SexNames[p->sex], p->age, txt_FaithNames[p->faith], txt_HonourTitles[p->level], txt_JobNames[p->jobId],
             txt_TitleNames[(unsigned char)p->title]);
 }
 /* 0x4e5980, the debug dump of the floats +0x10 .. +0x20 (the 6th "%5.2f" gets the int +0x24 as the original does), the word +0x28 and the bit fields of +0x2c */
 
-void ai_DumpPersonStats(char *c, char *buf)
+void ai_DumpPersonStats(AICHAR *c, char *buf)
 {
     AICHAR *p;
     unsigned int v;
 
-    p = (AICHAR *)c;
+    p = c;
     sprintf(buf, "%5.2f\t %5.2f\t %5.2f\t %5.2f\t %5.2f\t %5.2f\t %i\t", p->f010, p->f014, p->f018, p->f01c, p->f020, p->v024, p->w028);
-    v = p->v02c;
+    v = p->ailments;
     sprintf(buf + strlen(buf), "%i\t %i\t %i\t %i\t %i\t %i\t %i\t %i\t %i\t", v & 0xf, (v >> 4) & 0xf, (v >> 8) & 0xf, (v >> 0xc) & 3, (v >> 0xe) & 7, (v >> 0x11) & 7,
             (v >> 0x14) & 7, (v >> 0x17) & 3, (v >> 0x19) & 0xf);
 }
 /* 0x4e5a40, the five bytes +0x80 .. +0x84 of a person as a tab separated line */
 
-void ai_DumpPersonSkills(char *c, char *buf)
+void ai_DumpPersonSkills(AICHAR *c, char *buf)
 {
     AICHAR *p;
 
-    p = (AICHAR *)c;
+    p = c;
     sprintf(buf, "%i\t%i\t%i\t%i\t%i\t", p->skills[0], p->skills[1], p->skills[2], p->skills[3], p->skills[4]);
 }
 /* 0x4e5a90, the four names (0x143ab0c) of the bytes +0x166 .. +0x169 of a person */
 
-void ai_DumpPersonOffices(char *c, char *buf)
+void ai_DumpPersonOffices(AICHAR *c, char *buf)
 {
     AICHAR *p;
 
-    p = (AICHAR *)c;
+    p = c;
     sprintf(buf, "%s\t%s\t%s\t%s\t", txt_OfficeNames[p->officeKind], txt_OfficeNames[p->prevOffice], txt_OfficeNames[p->appliedOffice],
             txt_OfficeNames[p->secondOffice]);
 }
 /* 0x4e5af0, the debug dump of a person's money fields (v190, money, spent198, wage, v1a0, v1a4), then its goods value (0x509e60) and its worth (0x50a640) */
 
-void ai_DumpPersonMoney(char *c, char *buf)
+void ai_DumpPersonMoney(AICHAR *c, char *buf)
 {
     AICHAR *p;
 
-    p = (AICHAR *)c;
+    p = c;
     sprintf(buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\t%i\t", p->v190, p->money, p->spent198, p->wage, p->v1a0, p->v1a4, gm_GetGoodsValue(c), gm_GetWorth(p->id));
 }
 /* 0x4e5b50, the debug dump of the 8 relatives of a person (the ids at +0x5c): "%i\t%s" of each one's netId and name, -1 and 0x143b3f4 (txt_NoRelative) when it does not exist */
 
-void ai_DumpPersonRelatives(char *c, char *buf)
+void ai_DumpPersonRelatives(AICHAR *c, char *buf)
 {
     char tmp[0x100];
     int *p;
     AICHAR *o;
     int i;
 
-    p = ((AICHAR *)c)->relatives;
+    p = c->relatives;
     for (i = 8; i != 0; i--) {
-        o = (AICHAR *)gm_FindChar(*p);
+        o = gm_FindChar(*p);
         if (o != 0)
             sprintf(tmp, "%i\t%s", o->netId, o->name);
         else
@@ -275,12 +222,12 @@ void ai_DumpPersonRelatives(char *c, char *buf)
 }
 /* 0x4e5bf0, the debug dump of a person (one line made by 0x4e58e0, 0x4e5980, 0x4e5a40, 0x4e5a90, 0x4e5af0 and 0x4e5b50 in a 0x1fb8 byte buffer; the end of the cut_ code) */
 
-void ai_DebugDumpPerson(char *c)
+void ai_DebugDumpPerson(AICHAR *c)
 {
     char buf[0x1fb8];
     AICHAR *p;
 
-    p = (AICHAR *)c;
+    p = c;
     if (p != 0 && p->id != 0xffff) {
         memset(buf, 0, sizeof(buf));
         ai_DumpPersonHead(c, buf + strlen(buf));

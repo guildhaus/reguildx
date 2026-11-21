@@ -3,7 +3,7 @@
    (io_PrintText into a window, txt_Format into a buffer). The string block starts where f3init.c's ends
    (0x623564) and ends before the language getter 0x519010 (its global 0x62364c opens the "ls" unit).
    Open: the 0x21c character record is untyped; the name builders read it as unsigned char at raw offsets
-   (0x9, 0xd, 0x164.., 0x166; 0x1cc through gv.h's ORDCHAR).
+   (0x9, 0xd, 0x164.., 0x166; 0x1cc through gv.h's AICHAR).
    Open: not included yet (dcp headers conflicts io_text HEADER): d2.h; held by own declarations that differ
    from the owner's: d2_Objs.
    unit of rea 8cef7d5b (src/game/io_text.c); boundaries in decl/text.dcl */
@@ -28,13 +28,11 @@ extern D2WIN d2_Wins[];
 #include "ch.h"
 #include "err.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-#define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
 
 struct AITIME;
 void gm_ClockToDate(struct AITIME *c, unsigned char *out);  /* 0x4fe2c0, f3gm.c: the calendar record of a clock */
 int gm_Season(char *d);                 /* 0x4fe330, f3gm.c: the season of a calendar record */
 
-extern char ai_PlayerSlots[4][0x2f4];      /* 0x7e3f40, the player slots */
 /* 0x5142e0, the display name of the town called name (the player's town, "General"/"Stadt" of the game INI): the first text of the town's "_STADTAUSWAHL_<NAME>_INFO" group of the text table (txt_FindKey finds its number), else the given name itself; copied to out. Returns 1. */
 int io_TownDisplayName(char *name, char *out)
 {
@@ -106,14 +104,14 @@ int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out)
         return 0;
     }
     if (id != 0xfffe) {
-        rec = (unsigned char *)ai_Chars[id];
+        rec = (unsigned char *)&ai_Chars[id];
     } else {
         memset(tmp, 0, 0x21c);
         rec = (unsigned char *)tmp;
         strcpy(CH_NAME(rec), txt_PseudoCharName);
     }
-    if ((char *)rec == ai_PlayerCharC) {
-        strcpy(out, ai_PlayerSlots[ai_OwnPlayer]);
+    if ((char *)rec == (char *)ai_PlayerChar) {
+        strcpy(out, ai_PlayerSlots[ai_OwnPlayer].name);
         if (c == 2)
             strcat(out, "'s");
         return 1;
@@ -223,17 +221,17 @@ int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out)
             sprintf(out, "%s %s", C, A);
         break;
     case 9:
-        if (ORD_CHAR(rec)->flags1cc & 0x3e00) {
-            if (ORD_CHAR(rec)->flags1cc & 0x1000)
+        if (((AICHAR *)rec)->flags1cc & 0x3e00) {
+            if (((AICHAR *)rec)->flags1cc & 0x1000)
                 v = 0x26;
-            else if (ORD_CHAR(rec)->flags1cc & 0x2000)
+            else if (((AICHAR *)rec)->flags1cc & 0x2000)
                 v = 0x27;
-            else if (ORD_CHAR(rec)->flags1cc & 0x800)
+            else if (((AICHAR *)rec)->flags1cc & 0x800)
                 v = 0x25;
-            else if (ORD_CHAR(rec)->flags1cc & 0x400)
+            else if (((AICHAR *)rec)->flags1cc & 0x400)
                 v = 0x24;
             else
-                v = (ORD_CHAR(rec)->flags1cc & 0x200) ? 0x23 : 0;
+                v = (((AICHAR *)rec)->flags1cc & 0x200) ? 0x23 : 0;
         } else {
             v = rec[0x166];
         }
@@ -283,14 +281,14 @@ int io_CharacterNameMarkup(int id, unsigned char c, unsigned char kind, char *ou
         return 0;
     }
     if (id != 0xfffe) {
-        rec = (unsigned char *)ai_Chars[id];
+        rec = (unsigned char *)&ai_Chars[id];
     } else {
         memset(tmp, 0, 0x21c);
         rec = (unsigned char *)tmp;
         strcpy(CH_NAME(rec), txt_PseudoCharName);
     }
-    if ((char *)rec == ai_PlayerCharC) {
-        strcpy(out, ai_PlayerSlots[ai_OwnPlayer]);
+    if ((char *)rec == (char *)ai_PlayerChar) {
+        strcpy(out, ai_PlayerSlots[ai_OwnPlayer].name);
         if (c == 2)
             strcat(out, "s");
         return 1;
@@ -398,17 +396,17 @@ int io_CharacterNameMarkup(int id, unsigned char c, unsigned char kind, char *ou
             sprintf(out, "%s$A%s", C, A);
         break;
     case 9:
-        if (ORD_CHAR(rec)->flags1cc & 0x3e00) {
-            if (ORD_CHAR(rec)->flags1cc & 0x1000)
+        if (((AICHAR *)rec)->flags1cc & 0x3e00) {
+            if (((AICHAR *)rec)->flags1cc & 0x1000)
                 v = 0x26;
-            else if (ORD_CHAR(rec)->flags1cc & 0x2000)
+            else if (((AICHAR *)rec)->flags1cc & 0x2000)
                 v = 0x27;
-            else if (ORD_CHAR(rec)->flags1cc & 0x800)
+            else if (((AICHAR *)rec)->flags1cc & 0x800)
                 v = 0x25;
-            else if (ORD_CHAR(rec)->flags1cc & 0x400)
+            else if (((AICHAR *)rec)->flags1cc & 0x400)
                 v = 0x24;
             else
-                v = (ORD_CHAR(rec)->flags1cc & 0x200) ? 0x23 : 0;
+                v = (((AICHAR *)rec)->flags1cc & 0x200) ? 0x23 : 0;
         } else {
             v = rec[0x166];
         }
@@ -480,7 +478,7 @@ int ls_GetLanguage();                     /* 0x5190a0, the language number */
    vs 2), the 'I' va_arg increment hoisted above the first sprintf, the 'i' table branch reloads buf[pos+1]
    after the args store; (3) slots: dig/st share [esp+0xc], art/k/len [esp+0x14], p/good/grp [esp+0x18] in the
    original (58 slots hunks). */
-int io_PrintText(char *fmt, ...)
+int io_PrintText(intptr_t fmt, ...)
 {
     char buf[0x17d0];                   /* the text being expanded */
     char tmp[0x17d0];                   /* the substitution */
@@ -495,7 +493,8 @@ int io_PrintText(char *fmt, ...)
     char digits1[0x40], digits2[0x40], digits3[0x40];
     va_list ap;
     D2WIN *w;                           /* the window d2_LastWindow on entry */
-    int pos, dig, st, toklen, i, k, n, len, v, id;
+    int pos, dig, st, toklen, i, k, n, len, v;
+    intptr_t id;                        /* a text id, or the address of a string (above 0x4800) */
     int gcase, gender, plural, redraw, drawall;
     char code, c;
     char *s, *art, *p;
@@ -515,15 +514,15 @@ int io_PrintText(char *fmt, ...)
         return -1;
     va_start(ap, fmt);
     memset(buf, 0, sizeof(buf));
-    if ((unsigned)fmt < 0x4800) {
-        s = txt_Ptrs[(int)fmt];
+    if ((uintptr_t)fmt < 0x4800) {
+        s = txt_Ptrs[fmt];
         if (s == 0)
             return -1;
         if (strlen(s) > 0x17c0)
             return -1;
         strncpy(buf, s, 0x17c0);
     } else {
-        strcpy(buf, fmt);
+        strcpy(buf, (char *)fmt);
     }
     for (pos = 0; pos < strlen(buf) && pos <= 0x17d0; pos++) {
         while (buf[pos] == '%' || buf[pos] == '$' || buf[pos] == '{') {
@@ -552,7 +551,7 @@ int io_PrintText(char *fmt, ...)
                 gender = 0xff;
                 if (buf[pos - 1] != '{') {
                     pos++;
-                    id = va_arg(ap, int);
+                    id = va_arg(ap, intptr_t);
                     if (id > 0x4800) {
                         s = (char *)id;
                     } else {
@@ -649,7 +648,7 @@ int io_PrintText(char *fmt, ...)
                 break;
             case 'l':
             case 't':
-                w->args[w->nargs] = va_arg(ap, int);
+                w->args[w->nargs] = va_arg(ap, intptr_t);
                 redraw = 1;
                 w->nargs++;
                 pos++;
@@ -665,7 +664,7 @@ int io_PrintText(char *fmt, ...)
             case 'w':
                 /* the argument is a player index: the city id (word +0x54) of its player slot picks the city
                    name (the text pairs from txt_Ptrs[0x9a8]) */
-                strcpy(tmp, txt_Field(txt_Ptrs[0x9a8 + ai_PlayerCity[va_arg(ap, int)][0] * 2], 1, 8));
+                strcpy(tmp, txt_Field(txt_Ptrs[0x9a8 + ai_PlayerSlots[va_arg(ap, int)].moneyGood * 2], 1, 8));
                 memmove(&buf[pos - 1 + strlen(tmp)], &buf[pos + 1], strlen(buf) + 1 - pos);
                 memcpy(&buf[pos - 1], tmp, strlen(tmp));
                 break;
@@ -1063,7 +1062,7 @@ int io_PrintText(char *fmt, ...)
    original's S gcase==0 tail jumps into G's tail (0x51790f jmp 0x518a26), 'a' else into T's memmove (0x518843
    jmp 0x51815f), ours the other way round (T jumps into a's) and own tails; the I non-dig sprintf pushes
    merge differently; (3) slots: the loop counters k/i of the dot grouping swap [esp+0x10]/[esp+0x14]. */
-void txt_Format(char *out, int id0, ...)
+void txt_Format(char *out, intptr_t id0, ...)
 {
     char buf[0x17d0];                   /* the text being expanded */
     char tmp[0x17d0];                   /* the substitution */
@@ -1079,7 +1078,8 @@ void txt_Format(char *out, int id0, ...)
     char digits4[0x40], digits5[0x40], digits6[0x40];   /* "%G": the number before the token */
     char sign[0x100];                   /* "%I": the grouped number with its sign */
     va_list ap;
-    int pos, dig, st, toklen, i, k, n, len, v, id;
+    int pos, dig, st, toklen, i, k, n, len, v;
+    intptr_t id;                        /* a text id, or the address of a string (above 0x4800) */
     int gcase, gender, plural;
     char code, c;
     char *s, *art, *p;
@@ -1122,7 +1122,7 @@ void txt_Format(char *out, int id0, ...)
             case 'S':
             case 's':
                 pos++;
-                id = va_arg(ap, int);
+                id = va_arg(ap, intptr_t);
                 if (id > 0x4800) {
                     s = (char *)id;
                 } else {
@@ -1299,7 +1299,7 @@ void txt_Format(char *out, int id0, ...)
             case 'w':
                 /* the argument is a player index: the city id (word +0x54) of its player slot picks the city
                    name (the text pairs from txt_Ptrs[0x9a8]) */
-                strcpy(tmp, txt_Field(txt_Ptrs[0x9a8 + ai_PlayerCity[va_arg(ap, int)][0] * 2], 1, 8));
+                strcpy(tmp, txt_Field(txt_Ptrs[0x9a8 + ai_PlayerSlots[va_arg(ap, int)].moneyGood * 2], 1, 8));
                 memmove(&buf[pos - 1 + strlen(tmp)], &buf[pos + 1], strlen(buf) + 1 - pos);
                 memcpy(&buf[pos - 1], tmp, strlen(tmp));
                 break;

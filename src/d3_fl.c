@@ -29,7 +29,6 @@
 #include "vfs.h"
 #include "ch.h"
 #include "cm.h"
-extern const char d3_ScrollPool[];
 
 /* 0xfe79fc / 0xfe7a00 / 0xfe7a04 are d3d_UsedTexFormat.pf2 (+0x2c) + 0x10 / 0x14 / 0x18. */
 #define d3d_TexRMask (d3d_UsedTexFormat.pf2.dwRBitMask)
@@ -1817,7 +1816,7 @@ void d3fl_UpdateWater(unsigned long time, unsigned int n, D3FLREGION *r)
     for (k = 0; k < n; k++, r++) {
         if (r->tex && r->tex->frames > 0 && r->tex->speed > 0)
             r->tex2 = (D3FLTEX *)tex_GetFrame((D3TEXTURE *)r->tex - (D3TEXTURE *)d3_Textures,
-                                   time / d3_AnimDiv[r->tex->speed] % r->tex->frames);
+                                   time / d3_AnimDiv[r->tex->speed - 1] % r->tex->frames);
         dt = time - r->time;
         if (dt > 0) {
             t = (float)dt;
@@ -1984,7 +1983,7 @@ void d3fl_DrawWater(D3FLMAP *map, D3FLTILE *t)
         d3_TriCount += npolys;
         d3_DrawnVerts += npoints;
         d3_VertCount += npoints;
-        npolys = min(npolys, (int)(d3_SortMax - d3_SortCount));
+        npolys = min(npolys, (int)(d3_Cfg.maxpolys - d3_SortCount));
         for (i = npolys, poly = t->wpolys; i > 0; i--, poly++)
             if (poly->flags & 0x80) {
                 reg = &map->regions[poly->region];
@@ -2688,7 +2687,7 @@ void d3fl_Draw(D3FLMAP *map, char water)
                     d3_TriCount += t->npolys;
                     d3_VertCount += t->npoints;
                     d3_DrawnVerts += t->npoints;
-                    npolys = min((unsigned int)t->npolys, d3_SortMax - d3_SortCount);
+                    npolys = min((unsigned int)t->npolys, d3_Cfg.maxpolys - d3_SortCount);
                     for (i = 0, poly = t->polys; i < npolys; i++, poly++)
                         if (poly->flags < 0) {
                             if ((tex = poly->tex) && tex->name[0] == '*' && !(c = tex->cache)->flag) {

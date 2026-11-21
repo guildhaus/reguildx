@@ -21,25 +21,25 @@ table of 8 ints, then the strings "RCPID" .. "alchemy_data.ini"). Starts at 0x4e
 #include "main.h"
 #include "mem.h"
 #include "tr.h"
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (defined below as char[768][0x21c]) as the AICHAR records they are */
 
 
 extern char ch_EmptyName[];  /* 0x631090, the shared empty string "" (ch.c) */
+extern AICHAR ai_Chars[768];   /* 0x770b80, the characters (f3gmt.c) */
 
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: the function masks its argument to 16 bits (0x42ec00: test si,si; and esi,0xffff) and the shuffler passes the count through mov cx,WORD PTR ds:0x6f0e28 (0x4eadd8), so this TU's callers were compiled against the 16-bit parameter and result; every calling unit declares it so) */
 
 /* 0x4eaa50, the character the alchemist object p (building kind 0x1e) belongs to: the character with the id of the record at +0x65; 0 when p is another kind or has no record */
-char *ahm_OwnerChar(unsigned char *p)
+AICHAR *ahm_OwnerChar(AIBLD *p)
 {
-    AHMOBJ *o = (AHMOBJ *)p;
+    AIBLD *o = p;
 
-    if (ai_BTypes[o->kind * 0x24d] == 0x1e && o->rec != 0)
-        return (char *)gm_FindChar(o->rec->id);
+    if (ai_BTypes[o->type].kind == 0x1e && o->ahm != 0)
+        return gm_FindChar(o->ahm->id);
     return 0;
 }
 /* 0x4eaa90, the number of the places in use (the six AHMSLOT at +0xc of the record) of the object of the character c (0x4eaad0), 0 when it has none */
 
-int ahm_UsedSlots(char *c)
+int ahm_UsedSlots(AICHAR *c)
 {
     int n, i;
     AHMSLOT *p;
@@ -47,7 +47,7 @@ int ahm_UsedSlots(char *c)
     if (ahm_HasRecord(c) == 0)
         return 0;
     n = 0;
-    p = ((AHMCHAR *)c)->obj->rec->slots;
+    p = c->bld->ahm->slots;
     for (i = 6; i != 0; i--) {
         if (p->id != 0)
             n++;
@@ -57,56 +57,56 @@ int ahm_UsedSlots(char *c)
 }
 /* 0x4eaad0, 1 when the character c (flag 4 of +0x1cc) has an object (+0x16c) of the building kind 0x1e with a record at +0x65 */
 
-int ahm_HasRecord(char *c)
+int ahm_HasRecord(AICHAR *c)
 {
-    AHMCHAR *ch = (AHMCHAR *)c;
+    AICHAR *ch = c;
 
-    if ((c[0x1cc] & 4) != 0 && ch->obj != 0) {
-        if (ai_BTypes[ch->obj->kind * 0x24d] == 0x1e)
-            return ch->obj->rec != 0;
+    if ((ch->flags1cc & 4) != 0 && ch->bld != 0) {
+        if (ai_BTypes[ch->bld->type].kind == 0x1e)
+            return ch->bld->ahm != 0;
         return 0;
     }
     return 0;
 }
 /* 0x4eab20, the share (byte / 252) number i (0 .. 3) of the record of the character c's object (+8 .. +0xb); -1.0 when it has none */
 
-float ahm_Share(char *c, int i)
+float ahm_Share(AICHAR *c, int i)
 {
     if (ahm_HasRecord(c) != 0) {
         if (i == 0)
-            return (float)((AHMCHAR *)c)->obj->rec->share[0] * 0.003968254f;
+            return (float)(c)->bld->ahm->share[0] * 0.003968254f;
         if (i == 1)
-            return (float)((AHMCHAR *)c)->obj->rec->share[1] * 0.003968254f;
+            return (float)(c)->bld->ahm->share[1] * 0.003968254f;
         if (i == 2)
-            return (float)((AHMCHAR *)c)->obj->rec->share[2] * 0.003968254f;
+            return (float)(c)->bld->ahm->share[2] * 0.003968254f;
         if (i == 3)
-            return (float)((AHMCHAR *)c)->obj->rec->share[3] * 0.003968254f;
+            return (float)(c)->bld->ahm->share[3] * 0.003968254f;
     }
     return -1.0f;
 }
 /* 0x4eabd0, the place of c's record with the id (a forwarding function to 0x4eabe0) */
 
-AHMSLOT *ahm_SlotOf(char *c, int id)
+AHMSLOT *ahm_SlotOf(AICHAR *c, int id)
 {
     return ahm_FindSlot(c, id);
 }
 /* 0x4eabe0, the place of the record of the character c with the good id; 0 when there is none */
 
-AHMSLOT *ahm_FindSlot(char *c, int id)
+AHMSLOT *ahm_FindSlot(AICHAR *c, int id)
 {
     int i;
 
     if (ahm_HasRecord(c) != 0) {
         for (i = 0; i < 6; i++) {
-            if (((AHMCHAR *)c)->obj->rec->slots[i].id == id)
-                return ((AHMCHAR *)c)->obj->rec->slots + i;
+            if (c->bld->ahm->slots[i].id == id)
+                return c->bld->ahm->slots + i;
         }
     }
     return 0;
 }
 /* 0x4eac20, 1 when the number of the places in use (ahm_UsedSlots) is below the limit (the share 2 times the six places) */
 
-int ahm_HasFreeSlot(char *c)
+int ahm_HasFreeSlot(AICHAR *c)
 {
     int n;
 
@@ -187,7 +187,7 @@ AHMGRID *ahm_FindRecipe(int id)
 /* 0x4eaea0, a random entry of the recipe prototype table the character c has no place for yet (a random start and a step that is not a multiple of the count); 0 when
    c may not take more (ahm_HasFreeSlot) */
 
-AHMGRID *ahm_RandomRecipe(char *c)
+AHMGRID *ahm_RandomRecipe(AICHAR *c)
 {
     unsigned int step, pos, k, r;
 
@@ -212,7 +212,7 @@ AHMGRID *ahm_RandomRecipe(char *c)
 /* 0x4eaf50, the research time of the recipe g for the character c, in tenths of minutes (0x3840 = the 1440 minutes of a day times 10): one to two days by the
    recipe's ATTR0 (the float at +4, 0 .. 1: 14400 * (2 - ATTR0)), reduced by up to half by the share 0 (the alchemist's skill) */
 
-int ahm_ResearchTime(char *c, AHMGRID *g)
+int ahm_ResearchTime(AICHAR *c, AHMGRID *g)
 {
     int a, b;
 
@@ -222,7 +222,7 @@ int ahm_ResearchTime(char *c, AHMGRID *g)
 }
 /* 0x4eafa0, the research time in minutes (ahm_ResearchTime / 10): the amount the research event 0x95 (0x56d2d0) counts down by the elapsed minutes (0x4fe280) */
 
-int ahm_ResearchMinutes(char *c, AHMGRID *g)
+int ahm_ResearchMinutes(AICHAR *c, AHMGRID *g)
 {
     return (int)(ahm_ResearchTime(c, g) * 0.1f);
 }
@@ -230,7 +230,7 @@ int ahm_ResearchMinutes(char *c, AHMGRID *g)
    value of the character's place of g) is the time t the rest of the place needs; min(*cap, t) are used and the progress they are worth ((used / t) * (1 - value)) is
    returned; 0.0 when the place is full / not there / nothing is left */
 
-float ahm_ResearchProgress(char *c, AHMGRID *g, int *cap)
+float ahm_ResearchProgress(AICHAR *c, AHMGRID *g, int *cap)
 {
     float s2;
     AHMSLOT *slot;
@@ -256,7 +256,7 @@ float ahm_ResearchProgress(char *c, AHMGRID *g, int *cap)
 /* 0x4eb0b0, the progress the character c makes training the share i in *cap minutes (*cap gets the minutes used): 14400 * (1 - share) is the time the rest of the
    share needs; returns (used / time) * (1 - share), 0.0 when the share is not in [0, 1) */
 
-float ahm_ShareProgress(char *c, int i, int *cap)
+float ahm_ShareProgress(AICHAR *c, int i, int *cap)
 {
     float f;
     int t, m;
@@ -271,7 +271,7 @@ float ahm_ShareProgress(char *c, int i, int *cap)
 }
 /* 0x4eb130, the factor of the place with the good id of the character c: 1.0 + share 1 * the value of the place; 1.0 when it has no place */
 
-float ahm_PlaceFactor(char *c, int id)
+float ahm_PlaceFactor(AICHAR *c, int id)
 {
     AHMSLOT *slot;
 
@@ -287,12 +287,12 @@ float ahm_PlaceFactor(char *c, int id)
    The clamp is max(min(share, 1), 0) written out (each operand evaluated twice, as a MIN / MAX macro pair expands); the share lives in a stack slot,
    case 0x95 in its own variable (the original keeps it in the dead `a` argument slot, 0x96 / 0x97 in the `o` slot). */
 
-int ahm_ResearchState(char *o, int *a, float *f, int flag)
+int ahm_ResearchState(AIBLD *o, int *a, float *f, int flag)
 {
     AHMRESEARCH *ev;
     float s, v;
 
-    ev = (AHMRESEARCH *)he_FindEvent(1, 3, ((AHMOBJ *)o)->id);
+    ev = (AHMRESEARCH *)he_FindEvent(1, 3, o->id);
     while (ev != 0) {
         switch (ev->kind) {
         default:
@@ -328,15 +328,15 @@ int ahm_ResearchState(char *o, int *a, float *f, int flag)
 /* 0x4eb410, restarts the research events (kinds 0x95 .. 0x97) of the object o: the due clock (+0x52) is set to the game clock ai_Time and the event is told
    (0x4c4c60, -2) */
 
-void ahm_RescheduleResearch(char *o)
+void ahm_RescheduleResearch(AIBLD *o)
 {
     AHMRESEARCH *ev;
 
-    ev = (AHMRESEARCH *)he_FindEvent(1, 3, ((AHMOBJ *)o)->id);
+    ev = (AHMRESEARCH *)he_FindEvent(1, 3, o->id);
     while (ev != 0) {
         if (0x95 <= ev->kind && ev->kind <= 0x97) {
             ev->due = ai_Time;
-            cm_SendExSetHE(-2, (char *)ev);
+            cm_SendExSetHE(-2, (struct AIJOB *)ev);
         }
         ev = (AHMRESEARCH *)he_NextEvent();
     }
@@ -465,7 +465,7 @@ int ahm_LoadDfn(void)
     void *f;
     int magic, i;
 
-    f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "rb", (int)vfs_Root);
+    f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "rb", vfs_Root);
     if (f != 0) {
         if (0 < vfs_fread(&magic, 4, 1, f) && magic == 0x61486d52 && 0 < vfs_fread(&ai_PlayerPrototypeCount, 4, 1, f) &&
             ai_PlayerPrototypeCount >= 1 && ai_PlayerPrototypeCount <= 0x64) {
@@ -526,7 +526,7 @@ int ahm_SaveDfn(void)
     int magic, i;
 
     magic = 0x61486d52;
-    f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "wb", (int)vfs_Root);
+    f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "wb", vfs_Root);
     if (f != 0) {
         if (vfs_fwrite(&magic, 4, 1, f) > 0 && vfs_fwrite(&ai_PlayerPrototypeCount, 4, 1, f) > 0) {
             for (i = 0; i < ai_PlayerPrototypeCount; i++) {
@@ -721,11 +721,11 @@ int ahm_StepValue(char *p)
    VC6 factor them into (sum + sum2) * 500 and left an extra fxch; sum2 = 0.0f is assigned before the ahm_OwnerChar call, as the original clears the slot
    before the call. */
 
-int ahm_ObjectValue(unsigned char *p)
+int ahm_ObjectValue(AIBLD *p)
 {
-    AHMOBJ *o = (AHMOBJ *)p;
+    AIBLD *o = p;
     AHMREC *rec;
-    char *c;
+    AICHAR *c;
     float s, sum, sum2, v;
     AHMGRID *g;
     int i;
@@ -734,7 +734,7 @@ int ahm_ObjectValue(unsigned char *p)
     c = ahm_OwnerChar(p);
     if (c == 0)
         return -1;
-    rec = o->rec;
+    rec = o->ahm;
     s = ahm_Share(c, 0);
     sum = s * s;
     s = ahm_Share(c, 1);
@@ -756,9 +756,9 @@ int ahm_ObjectValue(unsigned char *p)
    step's prototype entry, the step's name indexes x / y and the +8 of the recipe entry whose id is the prototype's place id (ahm_FindRecipe); -1 when there is no
    such recipe entry. The prototype is copied with its union assignment: that is what makes VC6 hold the entry's address in a register (lea [s+4]). */
 
-int ahm_SendCreateAlchemist(unsigned char *o, AHMSTEP *s)
+int ahm_SendCreateAlchemist(AIBLD *o, AHMSTEP *s)
 {
-    AHMOBJ *obj = (AHMOBJ *)o;
+    AIBLD *obj = o;
     AHMGRID *g;
     AHMCREATEMSG m;
 
@@ -788,29 +788,29 @@ int ahm_CreateAlchemist(AHMCREATEMSG *m)
     int n, i, j;
     float v;
 
-    gm_FindById((int *)&o, 0, 0, m->building);
+    gm_FindById(&o, 0, 0, m->building);
     if (o == 0)
         return 0xffff;
-    if (ai_BTypes[o->type * 0x24d] != 0x1e)
+    if (ai_BTypes[o->type].kind != 0x1e)
         return 0xffff;
     for (n = 0; n < 0x300; n++)
-        if (ai_CharsT[n].id == 0xffff)
+        if (ai_Chars[n].id == 0xffff)
             break;
     if (n == 0x300) {
         for (n = 0; n < 0x300; n++)
-            if (ai_CharsT[n].kind == 0x0f)
+            if (ai_Chars[n].kind == 0x0f)
                 break;
         if (n == 0x300)
             return 0xffff;
     }
-    if (ai_CharsT[n].kind == 0x0f)
+    if (ai_Chars[n].kind == 0x0f)
         ai_CharCount--;
-    c = &ai_CharsT[n];
+    c = &ai_Chars[n];
     memset(c, 0, sizeof(AICHAR));
-    ai_CharsT[n].netId = -1;
-    ai_CharsT[n].id = 0xffff;
+    ai_Chars[n].netId = -1;
+    ai_Chars[n].id = 0xffff;
     for (i = 0; i < 8; i++)
-        ai_CharsT[n].relatives[i] = -1;
+        ai_Chars[n].relatives[i] = -1;
     c->bld2 = o;
     c->bld = o;
     ai_CharCount++;
@@ -826,14 +826,14 @@ int ahm_CreateAlchemist(AHMCREATEMSG *m)
     ai_NextObjectId++;
     c->mood3Rate = 1.0f;
     c->health = 100;
-    c->w00a = m->proto.plr.attr[4];
+    c->age = m->proto.plr.attr[4];
     c->jobId = 0x52;
     c->officeKind = 0;
     c->title = 0;
     c->ownName[0] = 0;
     c->v190 = 4;
     c->money = 0;
-    c->b00d = 1;
+    c->level = 1;
     c->picture = -1;
     c->partyId = -1;
     c->w050 = 0x7fff;
@@ -854,7 +854,7 @@ int ahm_CreateAlchemist(AHMCREATEMSG *m)
         ai_Relations[c->id][j] = (signed char)util_Random(0x40) - 0x20;
         ai_RelationMemory[c->id][j] = 0;
     }
-    g = (AIOBJ *)gm_Query((void *)o->objList, 1, 0, 0x24b);
+    g = gm_Query(o->objList, 1, 0, 0x24b);
     gm_PlaceOnStage(c->netId, o->id, g != 0 ? g->objId : -1, 0, 0);
     gm_ChooseHeadIcon(&c->id);
     if (o->ahm == 0)
@@ -867,7 +867,7 @@ int ahm_CreateAlchemist(AHMCREATEMSG *m)
     o->ahm->share[2] = m->proto.plr.attr[2];
     o->ahm->share[3] = m->proto.plr.attr[3];
     o->ahm->slots[0].id = m->proto.plr.id;
-    place = (AIOBJ *)gm_Query((void *)o->objList, 2, 6, 0, 0xff);
+    place = gm_Query(o->objList, 2, 6, 0, 0xff);
     if (place != 0) {
         while (place->items != 0)
             gm_RemoveObject(&place->list, *place->items);
@@ -881,14 +881,14 @@ int ahm_CreateAlchemist(AHMCREATEMSG *m)
 }
 /* 0x4ec940, the message 'SsCa' (cm_SendCommand) of the character c with the id and the value v clamped to 0 .. 1; -1 when c has no object (0x4eaad0) */
 
-int ahm_SendSetShare(char *c, int id, float v)
+int ahm_SendSetShare(AICHAR *c, int id, float v)
 {
     AHMORDER m;
 
     if (ahm_HasRecord(c) == 0)
         return -1;
     AHM_ZERO6(&m);
-    m.charId = ((AHMCHAR *)c)->id;
+    m.charId = c->netId;
     m.tag = AHM_CMD_SET_SHARE;
     m.id = id;
     m.value.f = min(max(v, 0.0f), 1.0f);
@@ -897,10 +897,10 @@ int ahm_SendSetShare(char *c, int id, float v)
 /* 0x4eca00, the 'SsCa' handler: sets the share m->id (0 .. 3) of the record rec (+8 .. +0xb) to the value m->value.f times 252 (the inverse of 0x4eab20); 0 for
    another number */
 
-int ahm_SetShare(int *p, char *rec)
+int ahm_SetShare(int *p, AHMREC *rec)
 {
     AHMORDER *m = (AHMORDER *)p;
-    AHMREC *r = (AHMREC *)rec;
+    AHMREC *r = rec;
 
     switch (m->id) {
     case 0:
@@ -921,7 +921,7 @@ int ahm_SetShare(int *p, char *rec)
 }
 /* 0x4ecaa0, the message 'Rdaa' (cm_SendCommand) of the character c with the table entry of id: its id and +8; -1 when c has no object or no free place (0x4eac20) or the entry does not exist */
 
-int ahm_SendAddPlace(char *c, int id)
+int ahm_SendAddPlace(AICHAR *c, int id)
 {
     AHMGRID *g;
     AHMORDER m;
@@ -934,7 +934,7 @@ int ahm_SendAddPlace(char *c, int id)
     if (g == 0)
         return -1;
     AHM_ZERO6(&m);
-    m.charId = ((AHMCHAR *)c)->id;
+    m.charId = c->netId;
     m.tag = AHM_CMD_ADD_PLACE;
     m.id = g->rcp.id;
     m.value.i = g->w[2];
@@ -942,10 +942,10 @@ int ahm_SendAddPlace(char *c, int id)
 }
 /* 0x4ecb30, puts the order p (+8 the id, +0x10 the value) into the first free place of the record rec (6 pairs at +0xc) of the object o (+0x5d the list); 0 when all are in use */
 
-int ahm_AddPlace(int *p, char *rec, unsigned char *o)
+int ahm_AddPlace(int *p, AHMREC *rec, AIBLD *o)
 {
-    AHMOBJ *obj = (AHMOBJ *)o;
-    AHMREC *r = (AHMREC *)rec;
+    AIBLD *obj = o;
+    AHMREC *r = rec;
     AHMORDER *m = (AHMORDER *)p;
     int i;
     AHMGOOD *sp;
@@ -955,7 +955,7 @@ int ahm_AddPlace(int *p, char *rec, unsigned char *o)
     i = 0;
     do {
         if (q->id == 0) {
-            sp = (AHMGOOD *)gm_Query(obj->objs, 2, 6, 0, 0xff);
+            sp = (AHMGOOD *)gm_Query(obj->objList, 2, 6, 0, 0xff);
             if (net_Conn.s != INVALID_SOCKET)   /* a network game: the server's id counter wins */
                 ai_NextObjectId = m->nextObjectId;
             r->slots[i].id = m->id;
@@ -972,21 +972,21 @@ int ahm_AddPlace(int *p, char *rec, unsigned char *o)
 }
 /* 0x4ecbc0, removes the place of the id p[2] from the record rec and from the list of the object o; 0 when there is none */
 
-int ahm_RemovePlace(int *p, char *rec, unsigned char *o)
+int ahm_RemovePlace(int *p, AHMREC *rec, AIBLD *o)
 {
-    AHMOBJ *obj = (AHMOBJ *)o;
-    AHMREC *r = (AHMREC *)rec;
+    AIBLD *obj = o;
+    AHMREC *r = rec;
     int i;
-    char *sp;
+    AIOBJ *sp;
     AHMSLOT *q;
 
     q = r->slots;
     i = 0;
     do {
         if (q->id == p[2]) {
-            sp = gm_Query(obj->objs, 2, 6, 0, 0xff);
+            sp = gm_Query(obj->objList, 2, 6, 0, 0xff);
             if (sp != 0)
-                gm_RemoveObject(sp + 0x14, p[2]);
+                gm_RemoveObject(&sp->list, p[2]);
             r->slots[i].id = 0;
             r->slots[i].v = 0.0f;
             return 1;
@@ -998,7 +998,7 @@ int ahm_RemovePlace(int *p, char *rec, unsigned char *o)
 }
 /* 0x4ecc30, the message 'cRSa' (0x4c61b0) of the character c for the place id with the value v clamped to 0 .. 1; -1 when c has no object or no such place (0x4eabe0) */
 
-int ahm_SendSetPlaceValue(char *c, int id, float v)
+int ahm_SendSetPlaceValue(AICHAR *c, int id, float v)
 {
     AHMORDER m;
 
@@ -1007,7 +1007,7 @@ int ahm_SendSetPlaceValue(char *c, int id, float v)
     if (ahm_SlotOf(c, id) == 0)
         return -1;
     AHM_ZERO6(&m);
-    m.charId = ((AHMCHAR *)c)->id;
+    m.charId = c->netId;
     m.tag = AHM_CMD_SET_PLACE;
     m.id = id;
     m.value.f = min(max(v, 0.0f), 1.0f);
@@ -1015,10 +1015,10 @@ int ahm_SendSetPlaceValue(char *c, int id, float v)
 }
 /* 0x4ecd10, the 'cRSa' handler: sets the value of the place m->id in the record rec to m->value.f; 0 when there is none */
 
-int ahm_SetPlaceValue(int *p, char *rec)
+int ahm_SetPlaceValue(int *p, AHMREC *rec)
 {
     AHMORDER *m = (AHMORDER *)p;
-    AHMREC *r = (AHMREC *)rec;
+    AHMREC *r = rec;
     int i;
 
     for (i = 0; i < 6; i++) {
@@ -1031,7 +1031,7 @@ int ahm_SetPlaceValue(int *p, char *rec)
 }
 /* 0x4ecd50, the message 'SmSa' (0x4c61b0) of the character c with the value v; -1 when c has no object */
 
-int ahm_SendAddValue(char *c, float v)
+int ahm_SendAddValue(AICHAR *c, float v)
 {
     AHMORDER m;
 
@@ -1039,16 +1039,16 @@ int ahm_SendAddValue(char *c, float v)
         return -1;
     AHM_ZERO6(&m);
     m.tag = AHM_CMD_ADD_VALUE;
-    m.charId = ((AHMCHAR *)c)->id;
+    m.charId = c->netId;
     m.value.f = v;
     return cm_SendCommand(&m);
 }
 /* 0x4ecdb0, the 'SmSa' handler: adds m->value.f to the value at +4 of the record rec, clamped to 0 .. 1 (the windows.h min / max macros on the sum in a local; the 0.0f / 1.0f are the pooled literals ai_FloatZero / ai_FloatOne) */
 
-int ahm_AddValue(int *p, char *rec)
+int ahm_AddValue(int *p, AHMREC *rec)
 {
     AHMORDER *m = (AHMORDER *)p;
-    AHMREC *r = (AHMREC *)rec;
+    AHMREC *r = rec;
     float f;
 
     f = m->value.f + r->value;
@@ -1058,7 +1058,7 @@ int ahm_AddValue(int *p, char *rec)
 }
 /* 0x4ece10, the message 'ErFi' (cm_SendCommand) of the character c; -1 when c has no object */
 
-int ahm_SendDelete(char *c)
+int ahm_SendDelete(AICHAR *c)
 {
     AHMORDER m;
 
@@ -1066,28 +1066,28 @@ int ahm_SendDelete(char *c)
         return -1;
     AHM_ZERO6(&m);
     m.tag = AHM_CMD_DELETE;
-    m.charId = ((AHMCHAR *)c)->id;
+    m.charId = c->netId;
     return cm_SendCommand(&m);
 }
 /* 0x4ece60, deletes the alchemist of the record rec (+0 the character id): clears its object pointers, removes the places from the list of the object o, zeroes the record; 0 when the character is gone */
 
-int ahm_DeleteAlchemist(int unused, int *rec, unsigned char *o)
+int ahm_DeleteAlchemist(int unused, int *rec, AIBLD *o)
 {
     AICHAR *c;
-    char *sp;
+    AIOBJ *sp;
     int *q;
     int i;
 
-    c = (AICHAR *)gm_FindChar(rec[0]);
+    c = gm_FindChar(rec[0]);
     if (c != 0) {
-        sp = gm_Query(((AHMOBJ *)o)->objs, 2, 6, 0, 0xff);
+        sp = gm_Query(o->objList, 2, 6, 0, 0xff);
         c->bld2 = 0;
         c->bld = 0;
         q = rec + 3;
         for (i = 6; i != 0; i--) {
             if (*q != 0) {
                 if (sp != 0)
-                    gm_RemoveObject(sp + 0x14, *q);
+                    gm_RemoveObject(&sp->list, *q);
                 *q = 0;
                 q[1] = 0;
             }
@@ -1102,14 +1102,14 @@ int ahm_DeleteAlchemist(int unused, int *rec, unsigned char *o)
 /* 0x4ecf10, writes the record of the object o (+0x65; a blank one with id -1 when it has none) to the file f: id (4), float (4), 4 shares (1 each), 6 places (2 x 4); 1 when all was written */
 
 
-int ahm_WriteRecord(void *f, unsigned char *o)
+int ahm_WriteRecord(void *f, AIBLD *o)
 {
-    AHMOBJ *obj = (AHMOBJ *)o;
+    AIBLD *obj = o;
     AHMREC *r;
     AHMREC blank;
     int i;
 
-    r = obj->rec;
+    r = obj->ahm;
     memset(&blank, 0, 0x3c);
     blank.id = -1;
     if (r == 0)
@@ -1136,9 +1136,9 @@ int ahm_WriteRecord(void *f, unsigned char *o)
 }
 /* 0x4ed040, reads the record of 0x4ecf10 from the file f into the object o (+0x65, allocated when missing); 1 when all was read */
 
-int ahm_ReadRecord(void *f, unsigned char *o)
+int ahm_ReadRecord(void *f, AIBLD *o)
 {
-    AHMOBJ *obj = (AHMOBJ *)o;
+    AIBLD *obj = o;
     AHMREC rec;
     int i;
 
@@ -1160,14 +1160,14 @@ int ahm_ReadRecord(void *f, unsigned char *o)
         if (ls_Read(&rec.slots[i].v, 4, 1, f) == 0)
             return 0;
     }
-    if (obj->rec == 0)
-        obj->rec = mem_Alloc(0x3c, "ahm_AllocAhmInfo");
-    *obj->rec = rec;
+    if (obj->ahm == 0)
+        obj->ahm = mem_Alloc(0x3c, "ahm_AllocAhmInfo");
+    *obj->ahm = rec;
     return 1;
 }
 
-extern char ai_Chars[768][0x21c];
-extern char * ai_BTypes;
+extern AICHAR ai_Chars[768];
+extern struct AIBTYPE *ai_BTypes;
 extern signed char ai_Relations[768][768];
 extern signed char ai_RelationMemory[768][768];
 int ahm_Tab[8] = { 1, 3, 7, 11, 13, 17, 19, 21 };  /* 0x60f1b0 */
@@ -1184,8 +1184,8 @@ int ai_PlayerPrototypeCount = 0;  /* 0x6f0e28 */
 AHMGRID * ai_PlayerPrototypes = 0;  /* 0x6f0e2c */
 int ai_RecipePrototypeCount = 0;  /* 0x6f0e30 */
 AHMGRID * ai_RecipePrototypes = 0;  /* 0x6f0e34 */
-extern char ai_Chars[768][0x21c];
-extern char * ai_BTypes;
+extern AICHAR ai_Chars[768];
+extern struct AIBTYPE *ai_BTypes;
 extern signed char ai_Relations[768][768];
 extern signed char ai_RelationMemory[768][768];
 extern unsigned short d2_HighBitMask;

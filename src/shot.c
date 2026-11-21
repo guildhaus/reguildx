@@ -6,7 +6,6 @@
    cannon constants 0x5eedf4..0x5eee1c follow menu.c's last literal 0x5eedf0.
    Open: the head region is menu.c's (dcp unit split copied the declarations the functions use).
    unit split from menu (dcp unit split); boundaries in decl/text.dcl */
-extern int gm_PlayerRecords[688];
 #include "txt_views.h"
 #include <windows.h>
 #include <ddraw.h>
@@ -55,10 +54,6 @@ extern const unsigned int ai_BuildingTypeMasks[6];
 #include "d3_fl.h"
 #include "dd_vesa.h"
 #include "ch.h"
-#define ai_MarketBuildingV (*(G16BLDVIEW **)&ai_MarketBuilding)  /* 0x6f1bc8, ai_MarketBuilding (ai.c: AIBLD *) as this unit's G16BLDVIEW (its +0x4c / object fields) */
-#define ai_FallbackBuildingB (*(unsigned char **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) read bytewise, as this unit does */
-#define ai_PlayerBuildingB (*(unsigned char **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) read bytewise, as this unit does */
-#define ai_CharsC (*(char (*)[768 * 0x21c])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) read flat, as this unit does */
 #define ai_CharsK ((AICHARKINDVIEW *)((char *)ai_Chars + 2))  /* 0x770b82, the records from their kind byte (ai_HasQuicksavePlayer walks them so) */
 
 extern OPTIONBYTES ai_GfxResolution;
@@ -105,13 +100,13 @@ int sprintf(char *buf, const char *fmt, ...); /* 0x5de652, the CRT's sprintf (no
 /* dcp unit split: the declarations of menu before the moved functions */
 void d2_CentreViewWindows(int view); void d2_SetPointerSprite(int a, int pic); int d2_SetForm(int view, int n);
 void d2_CloseView(int view);
-int io_PrintText(char *fmt, ...); int d2_GetWinObj(int view, int idx, int k);
+int io_PrintText(intptr_t fmt, ...); int d2_GetWinObj(int view, int idx, int k);
 int sv_CreateScrollButtons(int x, int y, int f, int g, int p5, int *b, int *a, int *c); /* 0x52e860, sv.c:
                                            the slider of the form f at (x, y) */
 int d2_GetViewWin(int view, int i);         /* 0x475ff0, d2.h: window i of a view, -1 if out of range */
-int gm_BuildingSkill(unsigned char *b, unsigned k, int flag); /* 0x5092e0, f3gm.c: the building skill (ai.h's
+int gm_BuildingSkill(struct AIBLD *b, unsigned k, int flag); /* 0x5092e0, f3gm.c: the building skill (ai.h's
                                                prototype; f3snd.h's building view is unsigned char *) */
-char *gv_FindAccused(char *c, int max, int *ids, int *cnt);  /* 0x4f41b0, gv.c: the character with the
+struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt);  /* 0x4f41b0, gv.c: the character with the
                                                most records of its table not yet paired with c */
 void cm_SendProofExecuted(int record, int character); /* 0x4c4ed0, cm.c: message 0x24, the pair (character,
                                                record) into the executed table 0x91b6e0 */
@@ -119,7 +114,7 @@ void cm_SendMoneyDelta(int character, int delta); /* 0x4c5f60, cm.c: message 0x5
                                                character's money (+0x194), clamped 0 .. 0x32 */
 int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2); /* 0x53dda0, he.c */
 void d2_SetObjValue(int obj, ...); int d2_GetObjValue(int obj); int d2_CreateWinText(short x, short y, char *text, int win); void d2_SetObjText(int obj, char *text);
-char *itoa(int, char *, int); void d2_SetObjFont(int obj, int font); int sv_RunFrame(int cb, unsigned mask);
+char *itoa(int, char *, int); void d2_SetObjFont(int obj, int font); int sv_RunFrame(void (*cb)(), unsigned mask);
 int d2_CreateRadioGroup(int n, ...); void d2_RadioAdd(int g, int obj); void d2_MenuNavigate(int g); void d2_RaiseViewWindows(int view); void d2_RadioClear(int g);
 #pragma pack(push, 1)
 typedef struct SAVEREQUEST {                /* 0x210, a save file entry (ai_ListFiles) or an empty slot's request */
@@ -165,11 +160,11 @@ extern float sv_FramesPerTick;          /* 0x62378c, sv.c: the frames drawn sinc
                                            0x520ec0 copies the count as a float and clears it) */
 void d2_PlaceWindowScaled(int win, int flags); /* 0x475730, d2.c */
 int d2_RemoveWindow(int win);           /* 0x472ce0, d2.c */
-int io_PrintText(char *fmt, ...);          /* 0x515960, io_text.c: prints a text (id or literal) with its
+int io_PrintText(intptr_t fmt, ...);          /* 0x515960, io_text.c: prints a text (id or literal) with its
                                            tokens into the current window and redraws it */
 extern short d2_ScreenW;                /* 0xfb9072, d2.h */
 extern short d2_ScreenH;                /* 0xfb9070, d2.h */
-extern int d2_DirtyRectLeft[4];         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
+extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
 D2FADEVIEW *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
 void d2_ReleaseFade(D2FADEVIEW *f);        /* 0x476860, d2.h */
 void d2_ClearScreen(void);              /* 0x46e990, d2.h */
@@ -212,7 +207,7 @@ typedef struct SAVEHEADERVIEW {             /* 0xfc */
 } SAVEHEADERVIEW;                           /* 0xfc */
 #pragma pack(pop)
 extern int ls_Version;                      /* 0x623650, ls.c: the version of the save read last */
-int ls_ReadSaveHeader(int f, int *h);      /* 0x51cee0, ls.c: reads a save header into h (no header there) */
+int ls_ReadSaveHeader(struct VFSFILE *f, int *h);      /* 0x51cee0, ls.c: reads a save header into h (no header there) */
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); /* 0x472aa0, d2.h */
 int d2_WinOpenRaw(int x, int y, int w, int h, void *src, int win);  /* 0x46c390, d2.h */
 int d2_WinOpenPic(short x, short y, int pic, int win); /* 0x4731d0, d2.h: creates a picture object */
@@ -277,7 +272,7 @@ void mem_Free(void *p);                 /* 0x422620, d3.h */
 extern unsigned int dd_RMask;           /* 0x1464fa4, dd_vesa.h: the red channel mask of the display */
 extern unsigned int dd_GMask;           /* 0x1464fb0, dd_vesa.h */
 extern unsigned int dd_BMask;           /* 0x146359c, dd_vesa.h */
-int ls_Read(void *buf, int size, int count, int f);   /* 0x51c920, ls.c: vfs_fread items */
+int ls_Read(void *buf, int size, int count, struct VFSFILE *f);   /* 0x51c920, ls.c: vfs_fread items */
 void sv_SetStatusText(char *s);   /* 0x52e330, sv.c */
 int cm_SendExSysMessage(unsigned char id, void *msg);   /* 0x4c4db0, as in cm.h */
 DWORD dd_RGB(unsigned char r, unsigned char g, unsigned char b);   /* 0x41e670, as in dd_vesa.h */
@@ -285,8 +280,8 @@ unsigned int util_Hash(unsigned char *buf, unsigned int len);      /* 0x401000, 
 void sv_PumpNet(void);                                             /* 0x52fe00, sv.c */
 void sv_BroadcastText(unsigned fl, char *t);  /* 0x52fcf0, sv.c: sends t as the network message 0xe and
                                                  shows it until the answer, then clears the status line */
-int ls_WriteSaveHeader(int f, unsigned flags); /* 0x5194c0, ls.c: writes the save header (the flag word) */
-int ls_ReadSaveHeader(int f, int *h);         /* 0x51cee0, ls.c: reads the save header into h */
+int ls_WriteSaveHeader(struct VFSFILE *f, unsigned flags); /* 0x5194c0, ls.c: writes the save header (the flag word) */
+int ls_ReadSaveHeader(struct VFSFILE *f, int *h);         /* 0x51cee0, ls.c: reads the save header into h */
 extern int cm_RequestedSaveSlot;        /* 0x6f25c8, cm.h: the save slot the request asked for */
 extern char cm_RequestedSaveName[];     /* 0x6f25d0, cm.h: the save name the request carried */
 extern int cm_SaveAcks[][2];            /* 0x76fa20, cm.h: 8 slots; [0] = the player's netId, [1] = the
@@ -321,15 +316,15 @@ typedef struct AICHARKINDVIEW {
 } AICHARKINDVIEW;
 #pragma pack(pop)
 struct AIBLD; int ai_ProductionWindow(struct AIBLD *bld); /* 0x58bd60, lc.c: "Handel\Handel_PRODUKTION" */
-int ai_OpenTransport(int rec);             /* 0x5af1a0, lc.c */
-void ai_TradeSearchWindow(unsigned char *cfg, int arg); /* 0x595480, lc.c: "HANDEL\HANDEL_SUCHEN" */
+int ai_OpenTransport(struct AIBLD *rec);             /* 0x5af1a0, lc.c */
+struct AIOBJ; void ai_TradeSearchWindow(struct AIBLD *bld, struct AIOBJ *room); /* 0x595480, lc.c: "HANDEL\HANDEL_SUCHEN" */
 void ai_MasterLetterWindow(struct AIBLD *bld); /* 0x5c3200, lc.c: "ob_MEISTERBRIEF" */
 void ai_MarketContact(struct AIBLD *rec);  /* 0x58f510, lc.c */
-int sv_CheckMoney(char *o, int n);         /* 0x520f90, sv.c: 1 when the object's money (+0x194)
+int sv_CheckMoney(struct AICHAR *o, int n);         /* 0x520f90, sv.c: 1 when the object's money (+0x194)
                                               covers n, else a message box with the text 0x74 */
-int sv_MessageBox(int text, unsigned flags); /* 0x521150, sv.c: the modal message box */
+int sv_MessageBox(intptr_t text, unsigned flags); /* 0x521150, sv.c: the modal message box */
 void sv_CameraFollow(void);                /* 0x52d7a0, sv.c: the per-frame camera follow */
-int d2_RemoveWindow(); int io_PrintText(char *fmt, ...);
+int d2_RemoveWindow(); int io_PrintText(intptr_t fmt, ...);
 int d2_GetObjValue();
 int he_IsMessageKindFiltered(int kind); /* 0x575640, he.c: nonzero when the kind is filtered */
 void he_SetMessageKindFiltered(int kind, int filtered); /* 0x575710, he.c: sets / clears the kind's bit */
@@ -364,7 +359,7 @@ typedef struct GYPSYROW {               /* 0x38 bytes: one row of the special-am
     int pad18[8];
 } GYPSYROW;
 extern struct D2PIC *d2_Pics;              /* 0x6ed918, d2.h: D2PIC * */
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(char *o, int n, unsigned char t);
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 struct AITIME;
 int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
 int ai_PokerStart();
@@ -539,7 +534,7 @@ int ai_SaveWind(struct VFSFILE *f)
    0x10050): the fields of ai_EffectState in ai_SaveWind's order with ls_Read. 0 as soon as a read fails,
    else 1. */
 
-int ai_LoadWind(int f)
+int ai_LoadWind(VFSFILE *f)
 {
     if (!ls_Read(&ai_EffectState.year, 4, 1, f))
         return 0;

@@ -2,6 +2,7 @@
    screen, see src/game/unk_58bbd0.c */
 #ifndef LC_H
 #define LC_H
+struct VFSFILE;
 
 #include "am_types.h"                 /* G9DOMIZIL, the Domizil table's entry (ai_DomizilTable) */
 #include "ai_types.h"                 /* AITIME, the goods-reserve clock (LCSETTINGS.reserveTime) */
@@ -57,7 +58,7 @@ void ai_CheckBuildSites(void);          /* 0x58fb60 */
 void ai_TradeContactChecks(void);       /* 0x5912c0, the pending trade / master checks every contact listener runs once per frame */
 /* The windows the building contacts open (defined far below their callers in the .c). */
 int ai_TransportWindow(struct AIBLD *bld, unsigned int mode);          /* 0x5af1d0, the transport window of a building (sv_UpdatePanel: mode 1) */
-void ai_StorageWindow(struct AIBLD *bld, int list);           /* 0x5b26b0, the store window */
+void ai_StorageWindow(struct AIBLD *bld, struct AIOBJ *list);           /* 0x5b26b0, the store window */
 int ai_ProductionGoodsWindow(struct AIBLD *bld);        /* 0x593150, the goods / production window a kontor contact opens */
 void ai_SpyReportsWindow(struct AIBLD *bld);           /* 0x5a45c0, the spy reports window "locations\diebesgilde\diebesgilde_informationen" of a guild building */
 void ai_GelageWindow(struct AIBLD *bld);                 /* 0x5b9f30, the "special\gelage" window of the kontor contacts */
@@ -65,13 +66,13 @@ void ai_TrainingWindow(struct AIBLD *bld);              /* 0x5bba00, the "specia
 void ai_EquipWindow(struct AIBLD *bld);                 /* 0x5bb350, the equip window of the AUSRUESTEN / weapon-stand plates */
 void ai_BuildingWindow(struct AIBLD *bld);              /* 0x5b84f0, the options window of a building (sell, renovate, upgrade, ...) */
 void ai_ManagedBuildingWindow(struct AIBLD *bld);       /* 0x5b8fc0, its variant for the classes 3 / 5 with the permission 0x10 */
-struct AMOUNTCFG; struct AICHARREC;
-void ai_AmountInfoWindow(int kind, struct AICHARREC *ch);  /* 0x5c1a80, the info box of an amount kind (ch is not read) */
+struct AMOUNTCFG; struct AICHAR;
+void ai_AmountInfoWindow(int kind, struct AICHAR *ch);  /* 0x5c1a80, the info box of an amount kind (ch is not read) */
 void ai_AmountKindMenu(void (*pick)(int kind), char *caption, int withKind8);  /* 0x5c1b40, the seven-button amount kind menu: pick gets the clicked kind */
 void ai_AgendaOfficeList(int kind);  /* 0x5c1e10, the agenda of one office column (ai_AmountKindMenu's callback) */
 void ai_OpenLawBook(int book);  /* 0x5c2160, the law book 0x111 / 0x112 / 0x113 */
 void ai_LawBookInfoWindow(int textId, int lawText);  /* 0x5c2410, the info box of one law */
-int ai_AmountMenu(struct AMOUNTCFG *cfg, char *caption, int prompt, int (*pick)(struct AICHARREC *, int));  /* 0x5c1130, the special-amount menu: returns the chosen character record (0: none) */
+struct AICHAR *ai_AmountMenu(struct AMOUNTCFG *cfg, char *caption, int prompt, int (*pick)(struct AICHAR *, int));  /* 0x5c1130, the special-amount menu: returns the chosen character record (0: none) */
 void ai_PersonnelBook(struct AIBLD *bld, char *model);  /* 0x5aab80, the personnel book of a building (ob_PERSONALBUCH) */
 void ai_MercenaryBook(struct AIBLD *bld, char *model);  /* 0x5ac110, the mercenary book of a building (ob_SOELDNERBUCH) */
 void ai_HelperBook(struct AIBLD *bld, char *model);     /* 0x5ad150, the helpers' book of a building (ob_GEHILFENBUCH) */
@@ -173,7 +174,7 @@ typedef struct G8SETTAIL {              /* the tail a setting's slot table point
 extern G8SETTING *ai_Settings;          /* 0x6f26c0, the head of the production settings chain, 0: none */
 extern char ai_NewsText[1024];          /* 0x6f26c8, the shared text buffer of the unit's news messages (txt_Format into it, he_ShowNews reads it) */
 extern char ai_NewsSecond[1176];        /* 0x6f2ac8, the second text buffer of the news messages that append a part */
-extern struct AICHARREC *ai_InvChar;     /* 0x6f2f60, the character whose inventory the inventory child window lists */
+extern struct AICHAR *ai_InvChar;     /* 0x6f2f60, the character whose inventory the inventory child window lists */
 /* 0x6f2f64: the transport and goods-reserve statics of the unit (one 0x1c-byte record; the fields were the
    ai_TransportEscort / lc_ReserveTime / lc_ReserveCursor / ai_EquipRowCount views of the gap block) */
 typedef struct LCSETTINGS {
@@ -216,8 +217,8 @@ typedef struct AIEQUIPSLOT {            /* 8 bytes, one equipment slot of a row:
     int obj;                            /* 0x04, the slot's object, 0 none */
 } AIEQUIPSLOT;
 typedef struct AIEQUIPROW {             /* 0x40 bytes, one row */
-    struct AICHARREC *ch;               /* 0x00, the scene character shown, 0: a free row */
-    int portrait;                       /* 0x04, the character's portrait picture object (AICHARREC.picture), -1 none */
+    struct AICHAR *ch;               /* 0x00, the scene character shown, 0: a free row */
+    int portrait;                       /* 0x04, the character's portrait picture object (AICHAR.picture), -1 none */
     int frame;                          /* 0x08, the row's frame picture object (picture 0x74c), -1 none */
     int window;                         /* 0x0c, the row's child window (name, health and skill bars), -1 none */
     AIEQUIPSLOT slot[6];                /* 0x10, the six equipment slots: the character's goods as input icons */
@@ -296,40 +297,40 @@ typedef struct G8INVCHAR {
 #pragma pack(pop)
 
 void ai_FreeSettings(void);                                        /* 0x5a8920 */
-int ai_LoadSettings(int f);  /* 0x5a8a20, reads the production settings chain back from the save f (ls_LoadGame); 0 on an error */
+int ai_LoadSettings(struct VFSFILE *f);  /* 0x5a8a20, reads the production settings chain back from the save f (ls_LoadGame); 0 on an error */
 void ai_FreePicture(void);                                         /* 0x5bc0f0 */
 
 /* declared in other units' headers before (moved to the owner) */
-struct AICHARREC; struct LCORDMSG; int ai_DismissalHandler(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5ce950, the dismissal order's ask */
-struct AICHARREC; struct LCORDMSG; int ai_BewitchOrder(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cacd0, the bewitch order's ask */
-struct AICHARREC; struct LCORDMSG; int ai_DismissOfficeAsk(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5ca560 */
-int ai_PenanceWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cca40, the penance order's ask */
-struct AICHARREC; struct LCORDMSG; int ai_ExpelWorkerWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cbe00, the expel-worker order's ask */
+struct AICHAR; struct LCORDMSG; int ai_DismissalHandler(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5ce950, the dismissal order's ask */
+struct AICHAR; struct LCORDMSG; int ai_BewitchOrder(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cacd0, the bewitch order's ask */
+struct AICHAR; struct LCORDMSG; int ai_DismissOfficeAsk(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5ca560 */
+int ai_PenanceWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cca40, the penance order's ask */
+struct AICHAR; struct LCORDMSG; int ai_ExpelWorkerWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cbe00, the expel-worker order's ask */
 int ai_MiracleWindow(void *ch, int *m);  /* 0x5cd2e0 */
-struct AICHARREC; struct LCORDMSG; int ai_HearingWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cba90, the hearing order's ask */
-int ai_ConvertWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cc700, the conversion order's ask */
-struct AICHARREC; struct LCORDMSG; int ai_PeaceWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cc2b0, the peace order's ask */
-int ai_ChangeProfessionWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cd400, the profession change */
-struct AICHARREC; struct LCORDMSG; int ai_HatredWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cb4f0, the hatred order's ask */
-void ai_Interrogate(struct AICHARREC *me, struct AICHARREC *ch);  /* 0x5ce4b0, carries out the interrogation */
-int ai_InterrogationWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5ce610, the interrogation order's ask */
-int ai_InterrogationWindow1(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cede0, the interrogation order's ask, variant 1 */
-int ai_InterrogationWindow2(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cf020, the interrogation order's ask, variant 2 */
-int ai_ChooseProfessionWindow(struct AICHARREC *parent, struct AICHARREC *child);  /* 0x5cf260, the profession chooser: parent apprentices child */
-int ai_UniversityWindow(struct AICHARREC *parent, struct AICHARREC *child);  /* 0x5cf4f0, the university window: the player sends child to study */
-struct AICHARREC; struct LCORDMSG; int ai_LawPrivilegeWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5ca150 */
-struct AICHARREC; struct LCORDMSG; int ai_MisappropriationWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5ca860 */
-struct LCORDMSG; int ai_CourtshipWindow(struct AICHARREC *ch, struct LCORDMSG *m);  /* 0x5c6d00, the courtship order's ask (lc.c LCORDMSG: gv.h ORDMSG) */
-int ai_FaithAccusationWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5ce1a0, the accusation by faith (ai_AccusationWindow's twin) */
-int ai_AccusationWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cde90, the accusation order's ask */
-void ai_ShowCharacterNews(unsigned short *cRec, char *text);  /* 0x5a9110 */
-void ai_ShowEvidenceVoidNews(unsigned short *toldRec, unsigned short *culpritRec);  /* 0x5a9430 */
-void ai_TellGraveNeglect(unsigned short *plRec, int bld);  /* 0x5a9690 */
-void ai_NotifySale(int owner, unsigned short *buyer, int bld, int size, int price, int share);  /* 0x5a96e0, the grave sale news to the graveyard's owner */
-void ai_TellGravesPaid(int plRec, int bld, int paid, int sum);  /* 0x5a9780 */
-void ai_DomizilMessage12(char *ch, char *b, int n);  /* 0x5a9e40, posts the Domizil message 12 (text 0x4071 + n) about the building b to the character ch */
-struct AICHARREC; struct LCORDMSG; int ai_MedicusHandler(struct AICHARREC *ch, struct LCORDMSG *m);  /* 0x5c8bc0, the medicus order's ask (ord_MedicusOrder); m is not read */
-int ai_DivorceDialog(struct AICHARREC *ch, struct LCORDMSG *m);  /* 0x5c8ef0, the divorce order's ask (ord.c 0x4f5800); m is not read */
+struct AICHAR; struct LCORDMSG; int ai_HearingWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cba90, the hearing order's ask */
+int ai_ConvertWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cc700, the conversion order's ask */
+struct AICHAR; struct LCORDMSG; int ai_PeaceWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cc2b0, the peace order's ask */
+int ai_ChangeProfessionWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cd400, the profession change */
+struct AICHAR; struct LCORDMSG; int ai_HatredWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cb4f0, the hatred order's ask */
+void ai_Interrogate(struct AICHAR *me, struct AICHAR *ch);  /* 0x5ce4b0, carries out the interrogation */
+int ai_InterrogationWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5ce610, the interrogation order's ask */
+int ai_InterrogationWindow1(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cede0, the interrogation order's ask, variant 1 */
+int ai_InterrogationWindow2(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cf020, the interrogation order's ask, variant 2 */
+int ai_ChooseProfessionWindow(struct AICHAR *parent, struct AICHAR *child);  /* 0x5cf260, the profession chooser: parent apprentices child */
+int ai_UniversityWindow(struct AICHAR *parent, struct AICHAR *child);  /* 0x5cf4f0, the university window: the player sends child to study */
+struct AICHAR; struct LCORDMSG; int ai_LawPrivilegeWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5ca150 */
+struct AICHAR; struct LCORDMSG; int ai_MisappropriationWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5ca860 */
+struct LCORDMSG; int ai_CourtshipWindow(struct AICHAR *ch, struct LCORDMSG *m);  /* 0x5c6d00, the courtship order's ask (lc.c LCORDMSG: gv.h ORDMSG) */
+int ai_FaithAccusationWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5ce1a0, the accusation by faith (ai_AccusationWindow's twin) */
+int ai_AccusationWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cde90, the accusation order's ask */
+void ai_ShowCharacterNews(struct AICHAR *cRec, char *text);  /* 0x5a9110 */
+void ai_ShowEvidenceVoidNews(struct AICHAR *toldRec, struct AICHAR *culpritRec);  /* 0x5a9430 */
+void ai_TellGraveNeglect(struct AICHAR *plRec, int bld);  /* 0x5a9690 */
+void ai_NotifySale(struct AICHAR *owner, unsigned short *buyer, int bld, int size, int price, int share);  /* 0x5a96e0, the grave sale news to the graveyard's owner */
+void ai_TellGravesPaid(struct AICHAR *plRec, int bld, int paid, int sum);  /* 0x5a9780 */
+void ai_DomizilMessage12(struct AICHAR *ch, struct AIBLD *b, int n);  /* 0x5a9e40, posts the Domizil message 12 (text 0x4071 + n) about the building b to the character ch */
+struct AICHAR; struct LCORDMSG; int ai_MedicusHandler(struct AICHAR *ch, struct LCORDMSG *m);  /* 0x5c8bc0, the medicus order's ask (ord_MedicusOrder); m is not read */
+int ai_DivorceDialog(struct AICHAR *ch, struct LCORDMSG *m);  /* 0x5c8ef0, the divorce order's ask (ord.c 0x4f5800); m is not read */
 int ai_WorkerDismissalWindow(void *ch, int *m);  /* 0x5ce7f0 */
 typedef struct LCMAPMARK {         /* 0x18 bytes, a mark of the town map (LCMAPWIN.marks, rt's building marks) */
     int ctrl;                      /* 0x00, its picture control, -1: not placed yet */
@@ -364,96 +365,96 @@ int ai_OpenTownMap(LCMAPWIN *m);  /* 0x5a78a0, opens the town map window */
 void ai_UpdateTownMap(LCMAPWIN *m);  /* 0x5a7cd0, the town map window's per-frame update */
 void ai_CloseMapWindow(int *m_);  /* 0x5a82f0 */
 unsigned char *ai_FindItemGroup(char *good);  /* 0x5a84d0, the item group (am_types.h G7GRP) of a building's kind byte, 0 when none */
-void ai_GypsyDeliveryText(void *from, int n, void **to);  /* 0x5a9470, the gypsys' delivery news of the sender from (a character) about its n targets to */
-struct AICHARREC; struct LCORDMSG; int ai_BlackmailBuildingListener(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5c9550 */
-struct AICHARREC; struct LCORDMSG; int ai_BlackmailContact(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5c9c50 */
-struct AICHARREC; struct LCORDMSG; int ai_IntimidateContact(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5c9ff0 */
-int ai_CounterEspionage(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cae00, the counter-espionage order's ask */
-int ai_SeatSwapWindow(struct AICHARREC *me, struct LCORDMSG *m);  /* 0x5cb250, the seat swap order's ask */
+void ai_GypsyDeliveryText(struct AICHAR *from, int n, void **to);  /* 0x5a9470, the gypsys' delivery news of the sender from (a character) about its n targets to */
+struct AICHAR; struct LCORDMSG; int ai_BlackmailBuildingListener(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5c9550 */
+struct AICHAR; struct LCORDMSG; int ai_BlackmailContact(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5c9c50 */
+struct AICHAR; struct LCORDMSG; int ai_IntimidateContact(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5c9ff0 */
+int ai_CounterEspionage(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cae00, the counter-espionage order's ask */
+int ai_SeatSwapWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cb250, the seat swap order's ask */
 int ai_AmountLimit(int param_1, int param_2, int param_3, int *param_4);  /* 0x5bd060 */
 void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId);  /* 0x5c4150, the family tree window */
-struct AICHARREC;
-void ai_CharInfoPanel(struct AICHARREC *chr, int other);  /* 0x5c5310, the character info panel */
-void ai_ShowOfficeNews(unsigned short *param_1, char *param_2);  /* 0x5a8cb0 */
+struct AICHAR;
+void ai_CharInfoPanel(struct AICHAR *chr, int other);  /* 0x5c5310, the character info panel */
+void ai_ShowOfficeNews(unsigned short *param_1, struct AICHAR *param_2);  /* 0x5a8cb0 */
 struct LCAMOUNTROW;
 int ai_AmountRow(int x, int y, int win, int font, struct LCAMOUNTROW *row, int titled);  /* 0x5be3b0, one row of a special-amount list (lc.c LCAMOUNTROW) */
 int ai_AmountRowStatus(struct LCAMOUNTROW *row);  /* 0x5be1d0, the corner icons of a special-amount row */
 int ai_DrawAmountRow(int x, int y, int win, struct LCAMOUNTROW *row);  /* 0x5be720, a compact special-amount row at (x, y) (lc.c LCAMOUNTROW) */
 void ai_GameFrame(void);  /* 0x591520 */
 void ai_DropObjectAt(struct D3OBJECT *obj, struct D3VECTOR *target);  /* 0x58feb0 */
-void ai_ShowPurchaseNews(unsigned short *param_1, char *param_2, int param_3, int param_4);  /* 0x5a8c50 */
-void ai_NotifyPlayerOfChar(unsigned short *cRec, unsigned short *pRec);  /* 0x5a9170 */
+void ai_ShowPurchaseNews(unsigned short *param_1, struct AICHAR *param_2, int param_3, int param_4);  /* 0x5a8c50 */
+void ai_NotifyPlayerOfChar(struct AICHAR *cRec, struct AICHAR *pRec);  /* 0x5a9170 */
 void lc_UpdateGoodsReserves(void);  /* 0x5ba750 */
-int ai_DrawSettingGood(int param_1);  /* 0x5a8870 */
-float ai_SettingFactor(int param_1);  /* 0x5a88e0 */
-void ai_ShowPartingNews(unsigned short *param_1, unsigned short *param_2);  /* 0x5a8ee0 */
-void ai_ShowFeudNews(unsigned short *param_1, unsigned short *param_2);  /* 0x5a8f90 */
-void ai_ShowPartnerNews(unsigned short *param_1, unsigned short *param_2);  /* 0x5a9050 */
+int ai_DrawSettingGood(struct AIBLD *param_1);  /* 0x5a8870 */
+float ai_SettingFactor(struct AIBLD *param_1);  /* 0x5a88e0 */
+void ai_ShowPartingNews(struct AICHAR *param_1, struct AICHAR *param_2);  /* 0x5a8ee0 */
+void ai_ShowFeudNews(struct AICHAR *param_1, struct AICHAR *param_2);  /* 0x5a8f90 */
+void ai_ShowPartnerNews(struct AICHAR *param_1, struct AICHAR *param_2);  /* 0x5a9050 */
 int ai_GoodFitsBuilding(void *ch, int good);  /* 0x5bb2d0 */
 int ai_FindBauplaetze(char *prefix, int *list);  /* 0x58f7a0 */
 int ai_InventoryHas(void *ch, int id);  /* 0x5ba6b0 */
 void ai_ObjectAngle(void *out_, int plot);  /* 0x58fd90 */
 void ai_ObjectPosition(void *out, int plot);  /* 0x58fd40 */
-void ai_ShowIndulgenceNews(unsigned short *param_1, char *param_2, int param_3, int param_4, int param_5);  /* 0x5a8b80 */
-void ai_ShowPaymentNews(unsigned short *param_1, char *param_2, int param_3);  /* 0x5a8c00 */
+void ai_ShowIndulgenceNews(unsigned short *param_1, struct AICHAR *param_2, int param_3, int param_4, int param_5);  /* 0x5a8b80 */
+void ai_ShowPaymentNews(unsigned short *param_1, struct AICHAR *param_2, int param_3);  /* 0x5a8c00 */
 int ai_FindUsableGood(int param_1);  /* 0x5ba620 */
 int ai_PassesPartnerFilter(unsigned short me, unsigned short id, struct AMOUNTCFG *cfg, int unused);  /* 0x5c33c0, whether id passes the amount menu's partner filter cfg for me */
-int ai_PassesBuildingFilter(struct AICHARREC *me, struct AMOUNTCFG *cfg, struct AIBLD *bld);  /* 0x5c37a0, whether bld passes the amount menu's building filter cfg for me */
-struct G8USEVIEW; int ai_UseGood(struct AICHARREC *ch, struct G8USEVIEW *use);  /* 0x5cf8a0, uses a Domizil good: ch the character, use the request (am.h G8USE) */
-void ai_SendSwapText(unsigned short *param_1, unsigned short *param_2, unsigned short *param_3);  /* 0x5a9330 */
+int ai_PassesBuildingFilter(struct AICHAR *me, struct AMOUNTCFG *cfg, struct AIBLD *bld);  /* 0x5c37a0, whether bld passes the amount menu's building filter cfg for me */
+struct G8USEVIEW; int ai_UseGood(struct AICHAR *ch, struct G8USEVIEW *use);  /* 0x5cf8a0, uses a Domizil good: ch the character, use the request (am.h G8USE) */
+void ai_SendSwapText(struct AICHAR *param_1, struct AICHAR *param_2, struct AICHAR *param_3);  /* 0x5a9330 */
 
 int ai_SaveSettings(void *param_1);  /* 0x5a8940, saves the settings */
 
 int ai_CourtshipRounds(int idA, int idB);  /* 0x5c6620, the courtship rounds the suitor idA needs for idB (2 .. 15) */
-int ai_ApplyTrialStep(struct AICHARREC *ch, int skill);  /* 0x5d08c0, raises a skill of ch by a trial step (skill 0 .. 4) */
+int ai_ApplyTrialStep(struct AICHAR *ch, int skill);  /* 0x5d08c0, raises a skill of ch by a trial step (skill 0 .. 4) */
 int ai_IsBuildingOpen(struct AIBLD *b, unsigned int *open, unsigned int *close);  /* 0x59e170, whether b is open now, its hours to *open / *close */
-int ai_LiquidateAssets(int to, struct AICHARREC *ch, int amount, char *note);  /* 0x5b92e0, sells ch's assets for the amount, the receipt note */
+int ai_LiquidateAssets(int to, struct AICHAR *ch, int amount, char *note);  /* 0x5b92e0, sells ch's assets for the amount, the receipt note */
 int ai_BuildingHasItem(struct AIBLD *bld, int id);  /* 0x5ba700, whether bld holds an item of the type id */
 int ai_CartAtBuilding(struct AIBLD *bld, struct AIOBJ *cart);  /* 0x5ae8e0, whether the cart is at its building */
 unsigned short ai_DomizilGoodInRange(int from, int to);  /* 0x5a9f10, a Domizil entry whose rank lies in from .. to */
 
 /* the unit's own contact listeners and window openers (defined in lc.c after their callers) */
-void ai_UpdateProdColumns(int win, int part, int ncols, int store, int mode);  /* 0x58cc10 */
+void ai_UpdateProdColumns(int win, int part, int ncols, struct AIOBJ *store, int mode);  /* 0x58cc10 */
 int ai_UpdateProdGoodsList(struct AIBLD *bld, struct AIOBJ *store);  /* 0x58d720 */
 void ai_MarketStandListener(struct AIBLD *market);  /* 0x59a800 */
 void ai_EnterBuilding(struct AIBLD *b, int mainRoom);  /* 0x59e420 */
 void ai_EnterOwnBuilding(struct AIBLD *b);  /* 0x59ee40 */
-void ai_TownCashContact(struct AIBLD *bld, int room);  /* 0x59fca0 */
-void ai_TownHallContact(int building, int room);  /* 0x59fd30 */
-void ai_LawBookContact(struct AIBLD *bld, int room);  /* 0x5a07d0 */
-void ai_GuildLevel2Listener(int building, int room);  /* 0x5a18d0 */
-void ai_GuildLevel3Listener(int building, int room);  /* 0x5a1960 */
-void ai_GuildLevel1Listener(int building, int room);  /* 0x5a1a60 */
-void ai_ConfessionListener(int building, int room);  /* 0x5a2de0 */
-void ai_ProductionWriteContact(int building, int room);  /* 0x5a36c0 */
-void ai_ChurchListener(int building, int room);  /* 0x5a3810 */
-void ai_ChurchContact(int building, int arg);  /* 0x5a39b0 */
-void ai_DungeonContact(int building, int room);  /* 0x5a3b20 */
-void ai_DungeonBribeListener(struct AIBLD *bld, int room);  /* 0x5a3df0 */
-void ai_DungeonEmptyListener(int building, int room);  /* 0x5a3ef0 */
-void ai_ThievesGuildListener(int building, int room);  /* 0x5a4d40 */
-void ai_ThievesGuildEmptyListener(int building, int room);  /* 0x5a4f50 */
-void ai_StorageContact(int building, int room);  /* 0x5a4f70 */
-void ai_TrainingContact(int building, int room);  /* 0x5a5080 */
-void ai_KidnapContact(int building, int room);  /* 0x5a5bc0 */
-void ai_CityWatchListener(struct AIBLD *bld, int room);  /* 0x5a67a0 */
-void ai_GuildHallListener(struct AIBLD *bld, int room);  /* 0x5a6920 */
-void ai_TrainingRoomListener(struct AIBLD *bld, int room);  /* 0x5a6a90 */
-int ai_OpenTransportSell(int building);  /* 0x5af1b0 */
-int ai_OpenTransport(int building);  /* 0x5af1a0, the transport list of the building (ai_TransportWindow mode 1) */
+void ai_TownCashContact(struct AIBLD *bld, struct AIOBJ *room);  /* 0x59fca0 */
+void ai_TownHallContact(struct AIBLD *building, struct AIOBJ *room);  /* 0x59fd30 */
+void ai_LawBookContact(struct AIBLD *bld, struct AIOBJ *room);  /* 0x5a07d0 */
+void ai_GuildLevel2Listener(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a18d0 */
+void ai_GuildLevel3Listener(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a1960 */
+void ai_GuildLevel1Listener(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a1a60 */
+void ai_ConfessionListener(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a2de0 */
+void ai_ProductionWriteContact(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a36c0 */
+void ai_ChurchListener(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a3810 */
+void ai_ChurchContact(struct AIBLD *building, struct AIOBJ *arg);  /* 0x5a39b0 */
+void ai_DungeonContact(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a3b20 */
+void ai_DungeonBribeListener(struct AIBLD *bld, struct AIOBJ *room);  /* 0x5a3df0 */
+void ai_DungeonEmptyListener(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a3ef0 */
+void ai_ThievesGuildListener(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a4d40 */
+void ai_ThievesGuildEmptyListener(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a4f50 */
+void ai_StorageContact(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a4f70 */
+void ai_TrainingContact(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a5080 */
+void ai_KidnapContact(struct AIBLD *building, struct AIOBJ *room);  /* 0x5a5bc0 */
+void ai_CityWatchListener(struct AIBLD *bld, struct AIOBJ *room);  /* 0x5a67a0 */
+void ai_GuildHallListener(struct AIBLD *bld, struct AIOBJ *room);  /* 0x5a6920 */
+void ai_TrainingRoomListener(struct AIBLD *bld, struct AIOBJ *room);  /* 0x5a6a90 */
+int ai_OpenTransportSell(struct AIBLD *building);  /* 0x5af1b0 */
+int ai_OpenTransport(struct AIBLD *building);  /* 0x5af1a0, the transport list of the building (ai_TransportWindow mode 1) */
 struct D3OBJECT *ai_CreateCityPoint(char *city);  /* 0x59a2c0, creates the city point object of a town, 0 when its dummy is missing */
 void ai_LoadTownMap(void);  /* 0x5b2090, loads the town map picture of the own player */
-int ai_OpenTransportBuy(int building);  /* 0x5af1c0 */
+int ai_OpenTransportBuy(struct AIBLD *building);  /* 0x5af1c0 */
 int ai_MapPick(unsigned int flags, int *req, char *name, void (*cb)(), int unused);  /* 0x5b2180 */
-void ai_OpenRobberBribe(int bld);  /* 0x5b4bf0 */
-int ai_DrohbriefWindow(int bld);  /* 0x5b4fb0 */
+void ai_OpenRobberBribe(struct AIBLD *bld);  /* 0x5b4bf0 */
+int ai_DrohbriefWindow(struct AIBLD *bld);  /* 0x5b4fb0 */
 void ai_LeftAlignedText(char *text, int x, int y, int w, int font);  /* 0x5bd1f0 */
-int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, char *caption2,
-                               int (*pick)(struct AICHARREC *, int));  /* 0x5bea50 */
-int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*pick)(struct AICHARREC *, int));  /* 0x5c0970 */
-int ai_PassesMapPickFilter(struct AICHARREC *me, struct AMOUNTCFG *cfg, struct AIBLD *bld);  /* 0x5c39a0 */
-int ai_LawSelectionEntry(struct AIBLD *bld, struct AMOUNTCFG *filter, char *text, void (*cb)(struct AICHARREC *, struct AIBLD *));  /* 0x5c4100 */
-int ai_GiftWindow(struct AICHARREC *giver, struct AICHARREC *chr);  /* 0x5c6050 */
+struct AICHAR *ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, char *caption2,
+                               int (*pick)(struct AICHAR *, int));  /* 0x5bea50 */
+struct AICHAR *ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*pick)(struct AICHAR *, int));  /* 0x5c0970 */
+int ai_PassesMapPickFilter(struct AICHAR *me, struct AMOUNTCFG *cfg, struct AIBLD *bld);  /* 0x5c39a0 */
+int ai_LawSelectionEntry(struct AIBLD *bld, struct AMOUNTCFG *filter, char *text, void (*cb)(struct AICHAR *, struct AIBLD *));  /* 0x5c4100 */
+int ai_GiftWindow(struct AICHAR *giver, struct AICHAR *chr);  /* 0x5c6050 */
 void ai_HandleMapKey(void);  /* 0x591170, a key of the map window */
 void ai_InventoryPanel(void);  /* 0x5bac10, the inventory panel */
 void ai_PlayerStatsPanel(void);  /* 0x5bcc70, the player's stats panel */

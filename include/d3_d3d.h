@@ -75,7 +75,10 @@ typedef struct D3DCONFIG {          /* 12 bytes, render options; d3d_Config hold
     unsigned char subpixel : 1;
     unsigned char unk5 : 1;
     unsigned char mirrors : 1;      /* bit 6: mirror reflections drawn (d3_Render, d3_MirDrawObject) */
-    char pad01[3];
+    unsigned char unk7 : 1;
+    unsigned char shadows : 3;      /* 0x01 bits 0 .. 2, bit 0: object shadows on (d3_UpdateObject / d3_Render); set by
+                                       d3_ApplyGraphicsOptions */
+    char pad02[2];
     int fillmode;                   /* 0x04 */
     int mipfilter;                  /* 0x08 */
 } D3DCONFIG;
@@ -125,7 +128,6 @@ extern LPDIRECTDRAW4 dd_DD;                 /* 0x631204, Dd_vesa.c */
 extern LPDIRECTDRAWSURFACE4 dd_BackBuffer;  /* 0x631208, Dd_vesa.c */
 extern char dd_Cleared;                 /* 0x631222, Dd_vesa.c */
 extern char dd_ZCleared;                    /* 0x631223, Dd_vesa.c */
-extern unsigned char dd_RBits, dd_GBits, dd_BBits;   /* 0x1463570, 0x1463580, 0x1464fbd, dd_vesa.c (d3_d3d.c reads them signed: dd_RBitsC / dd_GBitsC / dd_BBitsC) */
 extern D3COLORU d3_fog_color;               /* 0x6334a0, d3_engine.c */
 extern int dd_Width, dd_Height;             /* 0x1463598, 0x1463594, Dd_vesa.c */
 extern DWORD d3d_MinMipSize;                   /* 0x5f942c, smallest mip dimension kept (4) */

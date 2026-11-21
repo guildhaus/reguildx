@@ -2,7 +2,7 @@
    the avatar table 0x60f310 (32 records of 0xf4 bytes, first name "neVmMaven") and the effect slots 0x6f1008
    (8 of 0x170 bytes, "kugel" 0x611204). 0x4ed170..0x4ef3c0: starts at the first user of the table 0x60f310,
    which begins the .data block after ahm.c's "ahm_AllocAhmInfo" 0x60f2f8; grave.c and gs.c follow. Names are ours.
-   The effect slots are GVEFFECT records read through the gv_EffectsT view: a building's cannon salvos, three parts
+   The effect slots are GVEFFECT records read through the gv_Effects view: a building's cannon salvos, three parts
    each that are SHOTREC cannon balls (menu.h) fired with gv_FireShots (message 0x67, GVSHOTMSG), started by
    gv_StartShot, moved by gv_UpdateEffects and exploded by gv_ExplodeShot; the save game writes gv_LastTime, the cannon
    scene state gv_Cannon (cannon scene of sv_t) and the slots field by field.
@@ -16,8 +16,8 @@
    building's turn step (care wear, lease ends via gv_LeasePrice / gv_OrderExtendGrave, new dead).
    The laws and crimes (gv_Decisions, ai_Crimes, ai_Evidence, the sentences, the rank check) are gs.c's, the
    graveyard grave.c's; this unit keeps their record types (gv.h).
-   Open: gv_FindCrime and gv_EvidenceSlot still read ai_Crimes (cm.c's char[], the 0x2d-byte CRIME records) and ai_Evidence (cm.c, the int pairs) through raw offsets.
-   Open: some functions index ai_PlayerSlots with the stride 0x5e8 where gv_ReserveGrave shows 0x2f4 (gv_PlayerRecs).
+   Open: gv_EvidenceSlot still reads ai_Evidence (cm.c, the int pairs) through raw offsets.
+   Open: some functions index ai_PlayerSlots with the stride 0x5e8 where gv_ReserveGrave shows 0x2f4 (GMPLAYERSLOT).
    Open: head: cm.h redeclares gv functions (gv_GrowGraveyard as struct GVYARD *); cm.c cannot include gv.h yet (two
    calls conflict: gv_CrimeText, gv_PassSentence).
    Open: GVEFFPART duplicates SHOTREC and UNKHITS-style copies remain (am.h G9KIND / G9CANNON view gv's records); gv.h
@@ -34,19 +34,7 @@
 #include "d3_types.h"                 /* D3COLOR, for d3_tools.h */
 #include "d3_tools.h"
 #include "data_views.h"
-#define gv_PlayerAiChar (*(AICHAR **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) as the AICHAR it points to */
-#define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
-#define gv_CrimesT (*(CRIME (*)[0x200])&ai_Crimes)  /* 0x91f700, ai_Crimes (cm.c: char[0x5a00]) as its 0x200 CRIME records */
-#define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
 #define GAPDATA __declspec(align(1)) unsigned char
-#define gv_EffectsT (*(GVEFFECT (*)[8])&gv_Effects)  /* 0x6f1008, gv_Effects (char[0xb80]) as the 8 GVEFFECT slots */
-#define gv_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-typedef struct GVPLAYERREC {           /* 0x2f4 bytes, a player's slot record (ai_PlayerSlots, indexed by ai_OwnPlayer) */
-    char pad00[0x54];
-    unsigned short currency;            /* 0x54, the currency good, as gm_AddNegative / gm_AddObjekt take it */
-    char pad56[0x29e];
-} GVPLAYERREC;
-#define gv_PlayerRecs (*(GVPLAYERREC (*)[4])&ai_PlayerSlots)  /* 0x7e3f40, ai_PlayerSlots (char[4][0x2f4]) as the player records */
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 #include "amt_types.h"
@@ -75,12 +63,10 @@ typedef struct GVPLAYERREC {           /* 0x2f4 bytes, a player's slot record (a
 #include "menu.h"
 #include "net.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-extern int gm_PlayerRecords[688];
 
 extern const float gv_SaleShares[];
 extern const float gv_GraveWear[];
 
-#define gv_AvatarsT (*(GVAVATAR (*)[0x20])&unk_Avatars)  /* 0x60f310, unk_Avatars (char[0x20][0xf4]) as the GVAVATAR records they are */
 #define gv_FindEntryCb(cb) ((int (*)(void *, void *))(cb))  /* @original: gv_FindEntry's callback is int (*)() (gv.h, its callbacks take differing pointer types); the call pushes two pointers (0x4ef8df push esi, 0x4ef8e0 push ebx) and reads an int (0x4ef8e6 test eax) */
 
 /* 0x4ed170, picks a free avatar record (byte +0xf2 = 0) starting at a random one of the 32 (cyclic), marks it used (+0xf2 = 1) after setting the 14 floats at +0x30, +0x3c .. to the floats before them (+0x2c ..)
@@ -95,11 +81,11 @@ char *gv_AllocAvatar(void)
     i = util_Random(0x20);
     n = 0x20;
     do {
-        if (gv_AvatarsT[i].used == 0) {
+        if (gv_Avatars[i].used == 0) {
             for (j = 0; j < 0xe; j++)
-                gv_AvatarsT[i].mood[j][1] = (float)(gv_AvatarsT[i].mood[j][0] * 0.001);
-            gv_AvatarsT[i].used = 1;
-            return unk_Avatars[i];
+                gv_Avatars[i].mood[j][1] = (float)(gv_Avatars[i].mood[j][0] * 0.001);
+            gv_Avatars[i].used = 1;
+            return (char *)&gv_Avatars[i];
         }
         n--;
         i = (i + 1) & 0x1f;
@@ -111,24 +97,17 @@ char *gv_AllocAvatar(void)
 int gv_WriteAvatars(void *f)
 {
     unsigned n, i;
-    char *p;
 
     n = 0x20;
     if (f == 0)
         return 0;
     if (vfs_fwrite(&n, 4, 1, f) == 0)
         return 0;
-    i = 0;
-    if (n > 0) {
-        p = &unk_Avatars[0][0xf2];
-        do {
-            if (vfs_fwrite(p - 0xf2, 4, 1, f) == 0)
-                return 0;
-            if (vfs_fwrite(p, 1, 1, f) == 0)
-                return 0;
-            i++;
-            p += 0xf4;
-        } while (i < n);
+    for (i = 0; i < n; i++) {
+        if (vfs_fwrite(&gv_Avatars[i].id, 4, 1, f) == 0)
+            return 0;
+        if (vfs_fwrite(&gv_Avatars[i].used, 1, 1, f) == 0)
+            return 0;
     }
     return 1;
 }
@@ -145,20 +124,20 @@ int gv_ReadAvatars(void *f)
 
     if (f == 0)
         return 0;
-    if (ls_Read(&n, 4, 1, (int)f) == 0)
+    if (ls_Read(&n, 4, 1, f) == 0)
         return 0;
     if (n != 0x20)
         sprintf(buf, "Inconsisten Avatar count: <Expected: %i> <Found: %i>", 0x20, n);
     for (i = 0; i < 0x20; i++)
-        gv_AvatarsT[i].used = 0xff;
+        gv_Avatars[i].used = 0xff;
     for (i = 0; i < n; i++) {
-        if (ls_Read(&id, 4, 1, (int)f) == 0)
+        if (ls_Read(&id, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&used, 1, 1, (int)f) == 0)
+        if (ls_Read(&used, 1, 1, f) == 0)
             return 0;
         for (j = 0; j < 0x20; j++) {
-            if (gv_AvatarsT[j].id == id) {
-                gv_AvatarsT[j].used = used;
+            if (gv_Avatars[j].id == id) {
+                gv_Avatars[j].used = used;
                 goto next;
             }
         }
@@ -176,9 +155,9 @@ int gv_ReadAvatars(void *f)
         ;
     }
     for (i = 0; i < 0x20; i++) {
-        if (gv_AvatarsT[i].used == 0xff) {
-            sprintf(buf, "Avatar >%s< not found in savegame, initializing to >unused<", gv_AvatarsT[i].name);
-            gv_AvatarsT[i].used = 0;
+        if (gv_Avatars[i].used == 0xff) {
+            sprintf(buf, "Avatar >%s< not found in savegame, initializing to >unused<", gv_Avatars[i].name);
+            gv_Avatars[i].used = 0;
         }
     }
     return 1;
@@ -197,17 +176,17 @@ int gv_EffectNotifyOwner(GVEFFARG *a)
 
     for (i = 0; i < 3; i++) {
         if (a->cur == i) {
-            b = (AIBLD *)gm_BuildQuery(1, 1, a->recs[i].bldId);
+            b = gm_BuildQuery(1, 1, a->recs[i].bldId);
             m = 0;
             if (b != 0 && b->owner != 0xffff) {
-                ch = &gv_CharsT[b->owner];
+                ch = &ai_Chars[b->owner];
                 if (a->recs[i].mode == 1) {
                     m = 2;
                     if (!(a->recs[i].value > 25.0f))
                         m = 1;
                 }
                 if (ch->kind == 6)
-                    ai_DomizilMessage12((char *)ch, (char *)b, m);
+                    ai_DomizilMessage12(ch, b, m);
             }
         }
     }
@@ -244,7 +223,7 @@ int gv_WriteEffects(void *f)
     if (vfs_fwrite(&gv_Cannon.selected, 4, 1, (struct VFSFILE *)f) <= 0)
         return 0;
     for (i = 0; i < 8; i++) {
-        e = &gv_EffectsT[i];
+        e = &gv_Effects[i];
         if (vfs_fwrite(&e->id, 4, 1, (struct VFSFILE *)f) <= 0)
             return 0;
         if (vfs_fwrite(&e->f08, 4, 1, (struct VFSFILE *)f) <= 0)
@@ -328,105 +307,105 @@ int gv_ReadEffects(void *f, int v)
     GVEFFARG *q;
     GVEFFPART *p;
 
-    if (ls_Read(&gv_LastTime.year, 4, 1, (int)f) == 0)
+    if (ls_Read(&gv_LastTime.year, 4, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_LastTime.hour, 2, 1, (int)f) == 0)
+    if (ls_Read(&gv_LastTime.hour, 2, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_LastTime.min, 4, 1, (int)f) == 0)
+    if (ls_Read(&gv_LastTime.min, 4, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_LastTime.sec, 4, 1, (int)f) == 0)
+    if (ls_Read(&gv_LastTime.sec, 4, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_Cannon.bld, 4, 1, (int)f) == 0)
+    if (ls_Read(&gv_Cannon.bld, 4, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_Cannon.spare, 4, 1, (int)f) == 0)
+    if (ls_Read(&gv_Cannon.spare, 4, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_Cannon.camTarget, 12, 1, (int)f) == 0)
+    if (ls_Read(&gv_Cannon.camTarget, 12, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_Cannon.sliderA, 4, 1, (int)f) == 0)
+    if (ls_Read(&gv_Cannon.sliderA, 4, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_Cannon.sliderB, 4, 1, (int)f) == 0)
+    if (ls_Read(&gv_Cannon.sliderB, 4, 1, f) == 0)
         return 0;
-    if (ls_Read(&gv_Cannon.selected, 4, 1, (int)f) == 0)
+    if (ls_Read(&gv_Cannon.selected, 4, 1, f) == 0)
         return 0;
     q = gv_EffectArgs;
     for (i = 0; i < 8; i++) {
-        e = &gv_EffectsT[i];
-        if (ls_Read(&e->id, 4, 1, (int)f) == 0)
+        e = &gv_Effects[i];
+        if (ls_Read(&e->id, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&e->f08, 4, 1, (int)f) == 0)
+        if (ls_Read(&e->f08, 4, 1, f) == 0)
             return 0;
         if (v >= 0x10055) {
-            if (ls_Read(&e->f0c, 4, 1, (int)f) == 0)
+            if (ls_Read(&e->f0c, 4, 1, f) == 0)
                 return 0;
-            if (ls_Read(&e->f10, 4, 1, (int)f) == 0)
+            if (ls_Read(&e->f10, 4, 1, f) == 0)
                 return 0;
         } else {
             e->f0c = 1.0f;
             e->f10 = 1.0f;
         }
-        if (ls_Read(&e->f14, 4, 1, (int)f) == 0)
+        if (ls_Read(&e->f14, 4, 1, f) == 0)
             return 0;
         p = &e->parts[0];
-        if (ls_Read(p->v0, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v0, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v1, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v1, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v2, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v2, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v4, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v4, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->a, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->a, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->b, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->b, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->c, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->c, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->state, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->state, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->steps, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->steps, 4, 1, f) == 0)
             return 0;
         p->time = d3_Time;
         p = &e->parts[1];
-        if (ls_Read(p->v0, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v0, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v1, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v1, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v2, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v2, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v4, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v4, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->a, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->a, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->b, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->b, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->c, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->c, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->state, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->state, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->steps, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->steps, 4, 1, f) == 0)
             return 0;
         p->time = d3_Time;
         p = &e->parts[2];
-        if (ls_Read(p->v0, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v0, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v1, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v1, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v2, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v2, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v4, 16, 1, (int)f) == 0)
+        if (ls_Read(p->v4, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->a, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->a, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->b, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->b, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->c, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->c, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->state, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->state, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->steps, 4, 1, (int)f) == 0)
+        if (ls_Read(&p->steps, 4, 1, f) == 0)
             return 0;
         p->time = d3_Time;
-        if (ls_Read(e->tail, 12, 1, (int)f) == 0)
+        if (ls_Read(e->tail, 12, 1, f) == 0)
             return 0;
         e->arg = q;
         e->cb = gv_EffectNotifyOwner;
@@ -443,10 +422,10 @@ void unk_ResetEffectSlots(void)
 
     memset(gv_Effects, 0, 0xb80);
     for (i = 0; i < 8; i++) {
-        gv_EffectsT[i].id = -1;
-        gv_EffectsT[i].f08 = 1.0f;
-        gv_EffectsT[i].f0c = 1.0f;
-        gv_EffectsT[i].f10 = 1.0f;
+        gv_Effects[i].id = -1;
+        gv_Effects[i].f08 = 1.0f;
+        gv_Effects[i].f0c = 1.0f;
+        gv_Effects[i].f10 = 1.0f;
     }
     gv_LastTime = ai_Time;
     memset(&gv_Cannon.bld, 0, 0x20);
@@ -465,7 +444,7 @@ void gv_FreeEffectObjects(void)
     k = 0;
     do {
         i = 3;
-        q = gv_EffectsT[k].objs;
+        q = gv_Effects[k].objs;
         do {
             if (*q != 0) {
                 d3if_Delete(*q);
@@ -490,10 +469,10 @@ char *gv_FindEffect(int id)
         p = (int *)gv_Effects;
         do {
             if (*p == id)
-                return gv_Effects + i * 0x170;
+                return (char *)&gv_Effects[i];
             p += 0x5c;
             i++;
-        } while ((int)p < (int)(gv_Effects + 8 * 0x170));
+        } while ((int)p < (int)&gv_Effects[8]);
     }
     return 0;
 }
@@ -506,18 +485,18 @@ void gv_ReleaseEffect(int id)
 
     if (id != -1) {
         for (i = 0; i < 8; i++) {
-            if (gv_EffectsT[i].id == id)
+            if (gv_Effects[i].id == id)
                 goto found;
         }
         return;
 found:
-        gv_EffectsT[i].flags |= 4;
+        gv_Effects[i].flags |= 4;
         for (n = 0; n < 3; n++) {
-            if ((gv_EffectsT[i].parts[n].state & 2) != 0)
+            if ((gv_Effects[i].parts[n].state & 2) != 0)
                 return;
         }
-        gv_EffectsT[i].id = -1;
-        gv_EffectsT[i].flags = 0;
+        gv_Effects[i].id = -1;
+        gv_Effects[i].flags = 0;
     }
 }
 
@@ -545,70 +524,70 @@ void gv_UpdateEffects(void)
     step = step * 0.1f;
     d3if_SelectScene(0, 1);
     for (i = 0; i < 8; i++) {
-        if (gv_EffectsT[i].id == -1)
+        if (gv_Effects[i].id == -1)
             continue;
         idle = 0;
-        gv_EffectsT[i].f08 += step;
-        gv_EffectsT[i].f0c += step;
-        gv_EffectsT[i].f10 += step;
-        gv_EffectsT[i].f08 = gv_EffectsT[i].f08 < 1.0f ? gv_EffectsT[i].f08 : 1.0f;
-        gv_EffectsT[i].f0c = gv_EffectsT[i].f0c < 1.0f ? gv_EffectsT[i].f0c : 1.0f;
-        gv_EffectsT[i].f10 = gv_EffectsT[i].f10 < 1.0f ? gv_EffectsT[i].f10 : 1.0f;
-        if ((gv_EffectsT[i].flags & 2) == 0) {
-            if (gv_EffectsT[i].flags & 4)
-                gv_ReleaseEffect(gv_EffectsT[i].id);
+        gv_Effects[i].f08 += step;
+        gv_Effects[i].f0c += step;
+        gv_Effects[i].f10 += step;
+        gv_Effects[i].f08 = gv_Effects[i].f08 < 1.0f ? gv_Effects[i].f08 : 1.0f;
+        gv_Effects[i].f0c = gv_Effects[i].f0c < 1.0f ? gv_Effects[i].f0c : 1.0f;
+        gv_Effects[i].f10 = gv_Effects[i].f10 < 1.0f ? gv_Effects[i].f10 : 1.0f;
+        if ((gv_Effects[i].flags & 2) == 0) {
+            if (gv_Effects[i].flags & 4)
+                gv_ReleaseEffect(gv_Effects[i].id);
             continue;
         }
         for (j = 0; j < 3; j++) {
-            if (gv_EffectsT[i].parts[j].state == 0) {
+            if (gv_Effects[i].parts[j].state == 0) {
                 if (++idle >= 3) {
-                    gv_EffectsT[i].flags &= ~3;
-                    if (gv_EffectsT[i].flags & 4)
-                        gv_ReleaseEffect(gv_EffectsT[i].id);
+                    gv_Effects[i].flags &= ~3;
+                    if (gv_Effects[i].flags & 4)
+                        gv_ReleaseEffect(gv_Effects[i].id);
                 }
-            } else if (gv_EffectsT[i].parts[j].state == 1) {
-                if (gv_EffectsT[i].f14 == 0 ? ai_StepShot((SHOTREC *)&gv_EffectsT[i].parts[j]) : ai_StepShotSlow((SHOTREC *)&gv_EffectsT[i].parts[j])) {
-                    if (gv_EffectsT[i].objs[j] == 0) {
-                        gv_EffectsT[i].objs[j] = d3_CreateObject(0, &d3_Origin, &d3_ZeroRot, "kugel");
-                        gv_EffectsT[i].objs[j]->objectFlags |= 4;
-                        gv_EffectsT[i].objs[j]->stateFlags |= 0xc;
-                        gv_EffectsT[i].objs[j]->objectFlags &= ~8;
+            } else if (gv_Effects[i].parts[j].state == 1) {
+                if (gv_Effects[i].f14 == 0 ? ai_StepShot((SHOTREC *)&gv_Effects[i].parts[j]) : ai_StepShotSlow((SHOTREC *)&gv_Effects[i].parts[j])) {
+                    if (gv_Effects[i].objs[j] == 0) {
+                        gv_Effects[i].objs[j] = d3_CreateObject(0, &d3_Origin, &d3_ZeroRot, "kugel");
+                        gv_Effects[i].objs[j]->objectFlags |= 4;
+                        gv_Effects[i].objs[j]->stateFlags |= 0xc;
+                        gv_Effects[i].objs[j]->objectFlags &= ~8;
                     }
-                    d3_SetObjectPos(gv_EffectsT[i].objs[j], (D3VECTOR *)gv_EffectsT[i].parts[j].v3);
+                    d3_SetObjectPos(gv_Effects[i].objs[j], (D3VECTOR *)gv_Effects[i].parts[j].v3);
                 }
-                if (gv_EffectsT[i].parts[j].state == 3) {
-                    if (gv_EffectsT[i].objs[j] != 0) {
-                        d3if_Delete(gv_EffectsT[i].objs[j]);
-                        gv_EffectsT[i].objs[j] = 0;
+                if (gv_Effects[i].parts[j].state == 3) {
+                    if (gv_Effects[i].objs[j] != 0) {
+                        d3if_Delete(gv_Effects[i].objs[j]);
+                        gv_Effects[i].objs[j] = 0;
                     }
-                    if (gv_EffectsT[i].arg != 0)
-                        gv_EffectsT[i].arg->cur = j;
-                    gv_EffectsT[i].arg->recs[j].bldId = -1;
-                    if (gv_EffectsT[i].cb != 0)
-                        gv_EffectsT[i].cb(gv_EffectsT[i].arg);
-                    gv_EffectsT[i].parts[j].state = 0;
-                    gv_EffectsT[i].tail[j] = 0;
-                } else if (gv_EffectsT[i].parts[j].state == 2) {
+                    if (gv_Effects[i].arg != 0)
+                        gv_Effects[i].arg->cur = j;
+                    gv_Effects[i].arg->recs[j].bldId = -1;
+                    if (gv_Effects[i].cb != 0)
+                        gv_Effects[i].cb(gv_Effects[i].arg);
+                    gv_Effects[i].parts[j].state = 0;
+                    gv_Effects[i].tail[j] = 0;
+                } else if (gv_Effects[i].parts[j].state == 2) {
                     idle++;
-                    if (gv_EffectsT[i].objs[j] != 0) {
-                        d3if_Delete(gv_EffectsT[i].objs[j]);
-                        gv_EffectsT[i].objs[j] = 0;
+                    if (gv_Effects[i].objs[j] != 0) {
+                        d3if_Delete(gv_Effects[i].objs[j]);
+                        gv_Effects[i].objs[j] = 0;
                     }
-                    gv_ExplodeShot(gv_EffectsT[i].flags & 1, gv_EffectsT[i].id, (SHOTREC *)&gv_EffectsT[i].parts[j], gv_EffectsT[i].arg);
-                    if (gv_EffectsT[i].arg != 0)
-                        gv_EffectsT[i].arg->cur = j;
-                    if (gv_EffectsT[i].cb != 0)
-                        gv_EffectsT[i].cb(gv_EffectsT[i].arg);
-                    gv_EffectsT[i].parts[j].state = 0;
-                    gv_EffectsT[i].tail[j] = 0;
-                    gv_EffectsT[i].arg->cur = -1;
+                    gv_ExplodeShot(gv_Effects[i].flags & 1, gv_Effects[i].id, (SHOTREC *)&gv_Effects[i].parts[j], gv_Effects[i].arg);
+                    if (gv_Effects[i].arg != 0)
+                        gv_Effects[i].arg->cur = j;
+                    if (gv_Effects[i].cb != 0)
+                        gv_Effects[i].cb(gv_Effects[i].arg);
+                    gv_Effects[i].parts[j].state = 0;
+                    gv_Effects[i].tail[j] = 0;
+                    gv_Effects[i].arg->cur = -1;
                 }
             }
         }
         if (idle >= 3) {
-            gv_EffectsT[i].flags &= ~3;
-            if (gv_EffectsT[i].flags & 4)
-                gv_ReleaseEffect(gv_EffectsT[i].id);
+            gv_Effects[i].flags &= ~3;
+            if (gv_Effects[i].flags & 4)
+                gv_ReleaseEffect(gv_Effects[i].id);
         }
     }
     d3if_SelectScene(scene, 1);
@@ -666,10 +645,10 @@ void gv_ExplodeShot(int damage, int effectId, SHOTREC *shot, GVEFFARG *out)
     for (i = 0; i < 256; i++) {
         sel = -1;
         m = shot->energy * 0.1f;
-        bld = &ai_BldsT[i];
+        bld = &ai_Blds[i];
         if (bld->id == -1 || bld->type == 0 || bld->object == 0)
             continue;
-        d3_PointToWorld((D3OBJECT *)bld->object, &((D3OBJECT *)bld->object)->pos, (D3VECTOR *)&pos);
+        d3_PointToWorld(bld->object, &bld->object->pos, (D3VECTOR *)&pos);
         dx = c.x - pos.x;
         dy = c.y - pos.y;
         dz = c.z - pos.z;
@@ -681,7 +660,7 @@ void gv_ExplodeShot(int damage, int effectId, SHOTREC *shot, GVEFFARG *out)
         }
         w1 = 1.0f / (fd * 0.005f + 1.0f);
         w2 = 1.0f / ((fd * 0.0002f + 0.005f) * fd + 1.0f);
-        d3t_GetMeshBounds(&mn, &half, (D3OBJECT *)bld->object);
+        d3t_GetMeshBounds(&mn, &half, bld->object);
         half.x -= mn.x;
         half.y -= mn.y;
         half.z -= mn.z;
@@ -753,7 +732,7 @@ void gv_ExplodeShot(int damage, int effectId, SHOTREC *shot, GVEFFARG *out)
     d3t_CreateExplosion(0, &c, 150, radius, height, z, 80.0f, 200);
     snd = sb_GetSample(0, "Explosion");
     if (snd != 0)
-        d3snd_PlayAt(snd, (D3OBJECT *)nearest->object, 0x6b, 12200.0f);
+        d3snd_PlayAt(snd, nearest->object, 0x6b, 12200.0f);
     if (damage != 0) {
         for (i = 0; i < 3; i++) {
             if (h.recs[i].bldId == -1)
@@ -764,9 +743,9 @@ void gv_ExplodeShot(int damage, int effectId, SHOTREC *shot, GVEFFARG *out)
             if (h.recs[i].mode == 1) {
                 msg.type = 0x4f;
                 if (hit->owner == 0xffff)
-                    msg.to = gv_PlayerAiChar->netId;
+                    msg.to = ai_PlayerChar->netId;
                 else
-                    msg.to = gv_CharsT[hit->owner].netId;
+                    msg.to = ai_Chars[hit->owner].netId;
                 msg.fromId = hit->id;
                 msg.time = ai_Time;
                 msg.flags = 2;
@@ -816,7 +795,7 @@ int gv_ReserveEffect(int id)
                 return 1;
             p += 0x5c;
             i++;
-        } while ((int)p < (int)(gv_Effects + 8 * 0x170));
+        } while ((int)p < (int)&gv_Effects[8]);
         if (first >= -1) {
             p = (int *)gv_Effects;
             p[first * 0x5c] = id;
@@ -834,19 +813,19 @@ int gv_StopEffect(int id)
 
     if (id != -1) {
         for (i = 0; i < 8; i++) {
-            if (gv_EffectsT[i].id == id)
+            if (gv_Effects[i].id == id)
                 goto found;
         }
     }
     return 0;
 found:
-    gv_EffectsT[i].flags = 4;
+    gv_Effects[i].flags = 4;
     for (n = 0; n < 3; n++) {
-        if (gv_EffectsT[i].parts[n].state != 0)
+        if (gv_Effects[i].parts[n].state != 0)
             return 1;
     }
-    gv_EffectsT[i].id = -1;
-    gv_EffectsT[i].flags = 0;
+    gv_Effects[i].id = -1;
+    gv_Effects[i].flags = 0;
     return 1;
 }
 typedef struct GVSHOTMSG {              /* 0x80 bytes, the data of message 0x67 (cm_SendShots): a cannon ball fired at a building; the receiver (0x4eee00) starts it as a part of the effect slot */
@@ -955,7 +934,7 @@ char *gv_GetEffect(int id)
     p = (int *)gv_Effects;
     do {
         if (*p == id)
-            return gv_Effects + i * 0x170;
+            return (char *)&gv_Effects[i];
         p += 0x5c;
         i++;
     } while ((int)p < (int)((unsigned)&gv_Effects + 0xb80));
@@ -1011,7 +990,7 @@ void gv_SetEffectCallback(int id, void *cb, void *arg)
                 return;
             }
             e->cb = gv_EffectNotifyOwner;
-            e->arg = &gv_EffectArgs[e - gv_EffectsT];
+            e->arg = &gv_EffectArgs[e - gv_Effects];
         }
     }
 }
@@ -1059,9 +1038,9 @@ void gv_CannonKind(int n, int *out)
    the cost *price = (2 * b + 500) * (a * 0.25 + 1) * d * 32 from the strength b (0 .. 100) and the balls d (1 .. 3);
    1 when o's money reaches *n and its inventory's worth (gm_SumListAmounts) covers the cost */
 
-int gv_CannonCost(char *o, int a, int b, int d, int *n, int *price)
+int gv_CannonCost(AICHAR *o, int a, int b, int d, int *n, int *price)
 {
-    AICHAR *ch = (AICHAR *)o;
+    AICHAR *ch = o;
     int kind, lvl, balls;
     float fl;
 
@@ -1079,9 +1058,9 @@ int gv_CannonCost(char *o, int a, int b, int d, int *n, int *price)
    0x265, else 1 with 0x263, else 0 (the salvo has *balls + 1 balls, am.c 0x4a67a0); *kind = 4 with 0x264, 3 with 0x262, 2 with
    0x25e, 1 with 0x25a, else 0 (the cannon kind of gv_CannonKind / gv_CannonCost) */
 
-void gv_BuildingCannon(char *o, unsigned *balls, unsigned *kind)
+void gv_BuildingCannon(AIBLD *o, unsigned *balls, unsigned *kind)
 {
-    AIBLD *bld = (AIBLD *)o;
+    AIBLD *bld = o;
 
     *kind = 0;
     *balls = 0;
@@ -1107,9 +1086,9 @@ void gv_BuildingCannon(char *o, unsigned *balls, unsigned *kind)
    *speedSpread = 0.2 (0.017 / 0.17 with item 0x25c in its object list), minus 0.003 / 0.03 with item 0x25f and
    minus 0.004 / 0.04 with item 0x260 */
 
-void gv_CannonScatter(char *o, float *spread, float *speedSpread)
+void gv_CannonScatter(AIBLD *o, float *spread, float *speedSpread)
 {
-    AIBLD *bld = (AIBLD *)o;
+    AIBLD *bld = o;
     float x, y;
 
     x = 0.02f;
@@ -1131,12 +1110,12 @@ void gv_CannonScatter(char *o, float *spread, float *speedSpread)
 }
 /* 0x4ef330, a factor of the object o: 1.0 (1.05 with item 0x259), plus 0.05 with item 0x25b and plus 0.05 with item 0x261 */
 
-float gv_CannonItemFactor(char *o)
+float gv_CannonItemFactor(AIBLD *o)
 {
     AIBLD *bld;
     float x;
 
-    bld = (AIBLD *)o;
+    bld = o;
     x = 1.0f;
     if (gm_Query(bld->objList, 2, 6, 0, 0x259) != 0)
         x = 1.05f;
@@ -1150,10 +1129,42 @@ float gv_CannonItemFactor(char *o)
 /* the cannon kinds' balls (5 records, 0x5edfe0..0x5ee01c: this unit's first .rdata, before the literals of
    gv_UpdateEffects 0x4edf80; am.c / sv_t.c read [0 .. 2], the kinds 3 and 4 nothing addresses) */
 const G9BALL ai_CannonBalls[5] = { { 2000.0f, 3000.0f, 0.0599999987f }, { 2450.0f, 3850.0f, 0.0649999976f }, { 3600.0f, 5950.0f, 0.075000003f }, { 4200.0f, 7200.0f, 0.0799999982f }, { 4800.0f, 8600.0f, 0.0850000009f } };  /* 0x5edfe0 */
-char unk_Avatars[0x20][0xf4] = { { 110, 101, 86, 109, 77, 97, 118, 101, 110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 111, 102, 32, 82, 101, 97, 100, 105, 110, 103, 0, 0, 0, 0, 0, 0, 64, 32, 96, 96, 64, 0, 0, 0, 102, 102, 38, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 25, 64, 82, 73, 29, 59, 0, -128, 94, 68, 102, 102, 6, 64, 39, -96, 9, 59, 0, 0, 92, 68, 0, 0, 32, 64, 10, -41, 35, 59, 0, -64, 97, 68, -102, -103, 41, 64, -96, -85, 45, 59, 0, -128, 99, 68, -51, -52, 44, 64, 124, -14, 48, 59, 0, 0, 102, 68, -102, -103, 41, 64, -96, -85, 45, 59, 0, -128, 94, 68, 51, 51, 51, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 48, 64, 88, 57, 52, 59, 0, 64, 98, 68, 102, 102, 22, 64, 117, 2, 26, 59, 0, 0, 92, 68, 0, 0, 48, 64, 88, 57, 52, 59, 0, 0, 100, 68, 51, 51, 35, 64, -26, 29, 39, 59, 0, 0, 97, 68, 0, 0, 48, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 3, 0, 1, 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 71, 65, 82, 110, 82, 97, 110, 103, 97, 114, 111, 101, 107, 0, 0, 0, 0, 0, 0, 0, 76, 104, 117, 116, 105, 101, 110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 84, 10, 96, 64, 84, 0, 0, 0, -51, -52, 44, 64, 124, -14, 48, 59, 0, 0, 102, 68, -102, -103, 25, 64, 82, 73, 29, 59, 0, -128, 94, 68, 102, 102, 6, 64, 39, -96, 9, 59, 0, 0, 92, 68, 0, 0, 32, 64, 10, -41, 35, 59, 0, -64, 97, 68, -102, -103, 41, 64, -96, -85, 45, 59, 0, -128, 99, 68, -51, -52, 44, 64, 124, -14, 48, 59, 0, 0, 102, 68, 102, 102, 22, 64, 117, 2, 26, 59, 0, -128, 94, 68, 51, 51, 51, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 48, 64, 88, 57, 52, 59, 0, 64, 98, 68, -102, -103, 25, 64, 82, 73, 29, 59, 0, 0, 92, 68, -51, -52, 44, 64, 124, -14, 48, 59, 0, 0, 100, 68, 102, 102, 38, 64, -61, 100, 42, 59, 0, 0, 97, 68, 102, 102, 38, 64, -61, 100, 42, 59, 0, 0, 102, 68, 0, 0, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 41, 0, 1, 122, 105, 103, 101, 117, 110, 101, 114, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 101, 78, 87, 115, 83, 119, 105, 110, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 118, 111, 110, 32, 83, 101, 118, 101, 114, 105, 110, 103, 0, 0, 0, 0, 64, -128, 64, 32, 64, 0, 0, 0, 102, 102, 38, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 25, 64, -61, 100, 42, 59, 0, -128, 94, 68, 102, 102, 6, 64, -61, 100, 42, 59, 0, 0, 92, 68, 0, 0, 32, 64, -61, 100, 42, 59, 0, -64, 97, 68, -102, -103, 41, 64, -61, 100, 42, 59, 0, -128, 99, 68, -51, -52, 44, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 41, 64, -61, 100, 42, 59, 0, -128, 94, 68, 51, 51, 51, 64, -61, 100, 42, 59, 0, -64, 100, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 64, 98, 68, 102, 102, 22, 64, -61, 100, 42, 59, 0, 0, 92, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 0, 100, 68, 51, 51, 35, 64, -61, 100, 42, 59, 0, 0, 97, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 0, 102, 68, 0, 0, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 58, 0, 1, 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 95, 88, 69, 68, 68, 101, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 76, 111, 111, 109, 101, 114, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -128, 25, 64, 48, 40, 0, 0, 0, 102, 102, 38, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 25, 64, -61, 100, 42, 59, 0, -128, 94, 68, 102, 102, 6, 64, -61, 100, 42, 59, 0, 0, 92, 68, 0, 0, 32, 64, -61, 100, 42, 59, 0, -64, 97, 68, -102, -103, 41, 64, -61, 100, 42, 59, 0, -128, 99, 68, -51, -52, 44, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 41, 64, -61, 100, 42, 59, 0, -128, 94, 68, 51, 51, 51, 64, -61, 100, 42, 59, 0, -64, 100, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 64, 98, 68, 102, 102, 22, 64, -61, 100, 42, 59, 0, 0, 92, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 0, 100, 68, 51, 51, 35, 64, -61, 100, 42, 59, 0, 0, 97, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 0, 102, 68, 0, 0, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 7, 0, 1, 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 84, 65, 77, 95, 77, 97, 116, 116, 105, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 101, 114, 32, 72, 101, 105, 108, 105, 103, 101, 0, 0, 0, 0, 0, 32, 0, 64, 32, -128, 0, 0, 0, 102, 102, 38, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 25, 64, -61, 100, 42, 59, 0, -128, 94, 68, 102, 102, 6, 64, -61, 100, 42, 59, 0, 0, 92, 68, 0, 0, 32, 64, -61, 100, 42, 59, 0, -64, 97, 68, -102, -103, 41, 64, -61, 100, 42, 59, 0, -128, 99, 68, -51, -52, 44, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 41, 64, -61, 100, 42, 59, 0, -128, 94, 68, 51, 51, 51, 64, -61, 100, 42, 59, 0, -64, 100, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 64, 98, 68, 102, 102, 22, 64, -61, 100, 42, 59, 0, 0, 92, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 0, 100, 68, 51, 51, 35, 64, -61, 100, 42, 59, 0, 0, 97, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 0, 102, 68, 0, 0, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 14, 0, 1, 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 67, 73, 86, 42, 86, 105, 99, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 114, 97, 103, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 64, -128, 32, 64, 0, 0, 0, 102, 102, 38, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 25, 64, -61, 100, 42, 59, 0, -128, 94, 68, 102, 102, 6, 64, -61, 100, 42, 59, 0, 0, 92, 68, 0, 0, 32, 64, -61, 100, 42, 59, 0, -64, 97, 68, -102, -103, 41, 64, -61, 100, 42, 59, 0, -128, 99, 68, -51, -52, 44, 64, -61, 100, 42, 59, 0, 0, 102, 68, -102, -103, 41, 64, -61, 100, 42, 59, 0, -128, 94, 68, 51, 51, 51, 64, -61, 100, 42, 59, 0, -64, 100, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 64, 98, 68, 102, 102, 22, 64, -61, 100, 42, 59, 0, 0, 92, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 0, 100, 68, 51, 51, 35, 64, -61, 100, 42, 59, 0, 0, 97, 68, 0, 0, 48, 64, -61, 100, 42, 59, 0, 0, 102, 68, 0, 0, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 22, 0, 1, 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 77, 103, 84, 115, 70, 114, 97, 110, 99, 111, 105, 115, 32, 100, 101, 0, 0, 0, 0, 0, 83, 97, 105, 110, 116, 45, 71, 101, 114, 109, 97, 105, 110, 0, 0, 0, 21, 0, 84, 21, 126, 0, 0, 0, 0, 0, 48, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, 6, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 19, 64, 10, -41, 35, 59, 0, -64, 97, 68, 102, 102, 6, 64, -96, -85, 45, 59, 0, -128, 99, 68, 0, 0, 32, 64, 124, -14, 48, 59, 0, 0, 102, 68, 0, 0, 64, 64, -96, -85, 45, 59, 0, -128, 94, 68, 0, 0, 64, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 64, 98, 68, -51, -52, 12, 64, 117, 2, 26, 59, 0, 0, 92, 68, 102, 102, 38, 64, 88, 57, 52, 59, 0, 0, 100, 68, 51, 51, 51, 64, -26, 29, 39, 59, 0, 0, 97, 68, 102, 102, 6, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -84, 65, -98, -17, -89, 60, 0, -128, 99, 68, 3, 0, 0, 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 113, 77, 76, 109, 68, 111, 110, 32, 65, 108, 102, 111, 110, 115, 111, 0, 0, 0, 0, 0, 100, 101, 32, 77, 101, 108, 109, 97, 113, 117, 101, 0, 0, 0, 0, 0, 42, 0, 63, 84, 42, 0, 0, 0, 102, 102, 22, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, 19, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 0, 0, 64, 64, 10, -41, 35, 59, 0, -64, 97, 68, 51, 51, 19, 64, -96, -85, 45, 59, 0, -128, 99, 68, -102, -103, 25, 64, 124, -14, 48, 59, 0, 0, 102, 68, 102, 102, 38, 64, -96, -85, 45, 59, 0, -128, 94, 68, 0, 0, 64, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 64, 98, 68, 0, 0, 0, 64, 117, 2, 26, 59, 0, 0, 92, 68, 51, 51, 51, 64, 88, 57, 52, 59, 0, 0, 100, 68, -102, -103, 25, 64, -26, 29, 39, 59, 0, 0, 97, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 3, 0, 0, 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 66, 82, 70, 118, 87, 97, 108, 116, 104, 101, 114, 0, 0, 0, 0, 0, 0, 0, 0, 0, 118, 111, 110, 32, 70, -4, 114, 115, 116, 101, 110, 98, 101, 114, 103, 0, 42, 0, 21, 84, 105, 0, 0, 0, 102, 102, 38, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, 6, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 0, 0, 32, 64, 10, -41, 35, 59, 0, -64, 97, 68, 102, 102, 6, 64, -96, -85, 45, 59, 0, -128, 99, 68, -102, -103, 41, 64, 124, -14, 48, 59, 0, 0, 102, 68, 51, 51, 51, 64, -96, -85, 45, 59, 0, -128, 94, 68, -102, -103, 57, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 64, 98, 68, -51, -52, 12, 64, 117, 2, 26, 59, 0, 0, 92, 68, -51, -52, 44, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 38, 64, -26, 29, 39, 59, 0, 0, 97, 68, 102, 102, 38, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, -82, 65, -98, -17, -89, 60, 0, -128, 99, 68, 3, 0, 0, 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 67, 82, 101, 114, 82, 111, 119, 101, 110, 110, 97, 0, 0, 0, 0, 0, 0, 0, 0, 0, 69, 114, 105, 107, 115, 115, 111, 110, 0, 0, 0, 0, 0, 0, 0, 0, 63, 84, 21, 42, 42, 0, 0, 0, 51, 51, 51, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, 44, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 0, 0, 32, 64, 10, -41, 35, 59, 0, -64, 97, 68, -51, -52, 44, 64, -96, -85, 45, 59, 0, -128, 99, 68, 102, 102, 54, 64, 124, -14, 48, 59, 0, 0, 102, 68, -51, -52, 44, 64, -96, -85, 45, 59, 0, -128, 94, 68, -102, -103, 25, 64, 52, -128, 55, 59, 0, -64, 100, 68, 102, 102, 38, 64, 88, 57, 52, 59, 0, 64, 98, 68, 51, 51, 19, 64, 117, 2, 26, 59, 0, 0, 92, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 0, 100, 68, 0, 0, 32, 64, -26, 29, 39, 59, 0, 0, 97, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 102, 68, -102, -103, -95, 65, -98, -17, -89, 60, 0, -128, 99, 68, 36, 1, 0, 90, 105, 103, 101, 117, 110, 101, 114, 105, 110, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 66, 100, 108, 103, 83, 116, 101, 102, 97, 110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 111, 108, 100, 98, 101, 114, 103, 0, 0, 0, 0, 0, 0, 0, 0, 84, 84, 0, 42, 42, 0, 0, 0, -51, -52, 28, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, 32, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -51, -52, 44, 64, 10, -41, 35, 59, 0, -64, 97, 68, 0, 0, 32, 64, -96, -85, 45, 59, 0, -128, 99, 68, -51, -52, 28, 64, 124, -14, 48, 59, 0, 0, 102, 68, 51, 51, 35, 64, -96, -85, 45, 59, 0, -128, 94, 68, 102, 102, 38, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 64, 98, 68, 51, 51, 35, 64, 117, 2, 26, 59, 0, 0, 92, 68, 102, 102, 22, 64, 88, 57, 52, 59, 0, 0, 100, 68, -102, -103, 25, 64, -26, 29, 39, 59, 0, 0, 97, 68, -102, -103, 9, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -96, 65, -98, -17, -89, 60, 0, -128, 99, 68, 61, 0, 0, 72, 97, 110, 100, 119, 101, 114, 107, 101, 114, 50, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 67, 112, 103, 65, 66, 111, 107, 116, 111, 114, 117, 115, 0, 0, 0, 0, 0, 0, 0, 0, 65, 112, 97, 103, 97, 99, 107, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 126, 0, 126, 0, 0, 0, 102, 102, 54, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, 19, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 0, 0, 64, 64, 10, -41, 35, 59, 0, -64, 97, 68, 51, 51, 19, 64, -96, -85, 45, 59, 0, -128, 99, 68, -51, -52, 60, 64, 124, -14, 48, 59, 0, 0, 102, 68, 0, 0, 64, 64, -96, -85, 45, 59, 0, -128, 94, 68, 0, 0, 64, 64, 52, -128, 55, 59, 0, -64, 100, 68, 102, 102, 6, 64, 88, 57, 52, 59, 0, 64, 98, 68, 0, 0, 0, 64, 117, 2, 26, 59, 0, 0, 92, 68, -102, -103, 57, 64, 88, 57, 52, 59, 0, 0, 100, 68, -102, -103, 25, 64, -26, 29, 39, 59, 0, 0, 97, 68, 51, 51, 19, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -80, 65, -98, -17, -89, 60, 0, -128, 99, 68, 42, 0, 0, 114, 97, 101, 117, 98, 101, 114, 109, 101, 105, 115, 116, 101, 114, 95, 83, 79, 76, 68, 65, 84, 0, 0, 0, 0, -1, -1, 0, 0 }, { 102, 76, 100, 119, 67, 97, 116, 104, 114, 105, 110, 103, 105, 110, 0, 0, 0, 0, 0, 0, 87, 105, 100, 111, 108, 102, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 105, 63, 0, 42, 42, 0, 0, 0, 102, 102, 22, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, 51, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 51, 64, 10, -41, 35, 59, 0, -64, 97, 68, 51, 51, 51, 64, -96, -85, 45, 59, 0, -128, 99, 68, 102, 102, 22, 64, 124, -14, 48, 59, 0, 0, 102, 68, 102, 102, 38, 64, -96, -85, 45, 59, 0, -128, 94, 68, 102, 102, 6, 64, 52, -128, 55, 59, 0, -64, 100, 68, 51, 51, 19, 64, 88, 57, 52, 59, 0, 64, 98, 68, 51, 51, 19, 64, 117, 2, 26, 59, 0, 0, 92, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 100, 68, -102, -103, 25, 64, -26, 29, 39, 59, 0, 0, 97, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, -84, 65, -98, -17, -89, 60, 0, -128, 99, 68, 67, 1, 0, 72, 97, 110, 100, 119, 101, 114, 107, 101, 114, 105, 110, 51, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 66, 72, 78, 115, 69, 103, 105, 110, 104, 97, 114, 100, 0, 0, 0, 0, 0, 0, 0, 0, 69, 105, 115, 101, 110, 104, 101, 98, 101, 114, 0, 0, 0, 0, 0, 0, 84, 63, 0, 21, 84, 0, 0, 0, 51, 51, 35, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, 16, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 102, 102, 38, 64, 10, -41, 35, 59, 0, -64, 97, 68, 0, 0, 16, 64, -96, -85, 45, 59, 0, -128, 99, 68, 0, 0, 48, 64, 124, -14, 48, 59, 0, 0, 102, 68, -51, -52, 44, 64, -96, -85, 45, 59, 0, -128, 94, 68, -102, -103, 41, 64, 52, -128, 55, 59, 0, -64, 100, 68, -51, -52, 28, 64, 88, 57, 52, 59, 0, 64, 98, 68, 0, 0, 48, 64, 117, 2, 26, 59, 0, 0, 92, 68, 0, 0, 16, 64, 88, 57, 52, 59, 0, 0, 100, 68, 51, 51, 35, 64, -26, 29, 39, 59, 0, 0, 97, 68, 51, 51, 19, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 67, 0, 1, 119, 105, 114, 116, 51, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 103, 68, 108, 103, 71, 101, 116, 114, 117, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 111, 108, 100, 103, 105, 101, 114, 0, 0, 0, 0, 0, 0, 0, 0, 84, 84, 63, 0, 21, 0, 0, 0, 0, 0, 16, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, 44, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 51, 64, 10, -41, 35, 59, 0, -64, 97, 68, -51, -52, 44, 64, -96, -85, 45, 59, 0, -128, 99, 68, -102, -103, 9, 64, 124, -14, 48, 59, 0, 0, 102, 68, 51, 51, 35, 64, -96, -85, 45, 59, 0, -128, 94, 68, 51, 51, 19, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 16, 64, 88, 57, 52, 59, 0, 64, 98, 68, 0, 0, 16, 64, 117, 2, 26, 59, 0, 0, 92, 68, -102, -103, 41, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 38, 64, -26, 29, 39, 59, 0, 0, 97, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, -98, 65, -98, -17, -89, 60, 0, -128, 99, 68, 72, 1, 0, 66, 117, 101, 114, 103, 101, 114, 105, 110, 51, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 84, 86, 108, 104, 77, 97, 114, 99, 117, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 72, 101, 108, 118, 101, 116, 105, 99, 117, 115, 0, 0, 0, 0, 0, 0, 84, 84, 21, 42, 21, 0, 0, 0, 102, 102, 54, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, 44, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 51, 64, 10, -41, 35, 59, 0, -64, 97, 68, -51, -52, 44, 64, -96, -85, 45, 59, 0, -128, 99, 68, -102, -103, 41, 64, 124, -14, 48, 59, 0, 0, 102, 68, -51, -52, 28, 64, -96, -85, 45, 59, 0, -128, 94, 68, -51, -52, 12, 64, 52, -128, 55, 59, 0, -64, 100, 68, -102, -103, 41, 64, 88, 57, 52, 59, 0, 64, 98, 68, -102, -103, 9, 64, 117, 2, 26, 59, 0, 0, 92, 68, 102, 102, 54, 64, 88, 57, 52, 59, 0, 0, 100, 68, 51, 51, 19, 64, -26, 29, 39, 59, 0, 0, 97, 68, 102, 102, 38, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, -98, 65, -98, -17, -89, 60, 0, -128, 99, 68, 20, 0, 0, 98, 117, 101, 114, 103, 101, 114, 50, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 115, 108, 102, 83, 68, 97, 114, 105, 111, 110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 83, 116, 117, 114, 109, 102, 101, 108, 115, 0, 0, 0, 0, 0, 0, 0, 0, 21, 42, 84, 105, 0, 0, 0, 0, 0, 16, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, 12, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -102, -103, 25, 64, 10, -41, 35, 59, 0, -64, 97, 68, -51, -52, 12, 64, -96, -85, 45, 59, 0, -128, 99, 68, -51, -52, 28, 64, 124, -14, 48, 59, 0, 0, 102, 68, -102, -103, 57, 64, -96, -85, 45, 59, 0, -128, 94, 68, 0, 0, 64, 64, 52, -128, 55, 59, 0, -64, 100, 68, -102, -103, 41, 64, 88, 57, 52, 59, 0, 64, 98, 68, -51, -52, 44, 64, 117, 2, 26, 59, 0, 0, 92, 68, 51, 51, 19, 64, 88, 57, 52, 59, 0, 0, 100, 68, 51, 51, 19, 64, -26, 29, 39, 59, 0, 0, 97, 68, -51, -52, 12, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -94, 65, -98, -17, -89, 60, 0, -128, 99, 68, 48, 0, 0, 98, 117, 101, 114, 103, 101, 114, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 76, 104, 99, 114, 65, 114, 109, 97, 110, 100, 32, 74, 101, 97, 110, 0, 0, 0, 0, 0, 100, 101, 32, 82, 105, 99, 104, 101, 108, 105, 101, 117, 0, 0, 0, 0, 42, 0, 84, 21, 105, 0, 0, 0, 51, 51, 35, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, 51, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -51, -52, 44, 64, 10, -41, 35, 59, 0, -64, 97, 68, 51, 51, 51, 64, -96, -85, 45, 59, 0, -128, 99, 68, -51, -52, 28, 64, 124, -14, 48, 59, 0, 0, 102, 68, -51, -52, 44, 64, -96, -85, 45, 59, 0, -128, 94, 68, -51, -52, 60, 64, 52, -128, 55, 59, 0, -64, 100, 68, -51, -52, 60, 64, 88, 57, 52, 59, 0, 64, 98, 68, 0, 0, 16, 64, 117, 2, 26, 59, 0, 0, 92, 68, 0, 0, 48, 64, 88, 57, 52, 59, 0, 0, 100, 68, 0, 0, 16, 64, -26, 29, 39, 59, 0, 0, 97, 68, 102, 102, 6, 64, 88, 57, 52, 59, 0, 0, 102, 68, -102, -103, -85, 65, -98, -17, -89, 60, 0, -128, 99, 68, 13, 0, 0, 97, 98, 116, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 108, 71, 80, 83, 83, 97, 115, 99, 104, 97, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 83, 112, 105, 101, 103, 101, 108, 0, 0, 0, 0, 0, 0, 0, 0, 0, 84, 0, 42, 42, 84, 0, 0, 0, 0, 0, 16, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, 12, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -51, -52, 44, 64, 10, -41, 35, 59, 0, -64, 97, 68, -51, -52, 12, 64, -96, -85, 45, 59, 0, -128, 99, 68, 102, 102, 38, 64, 124, -14, 48, 59, 0, 0, 102, 68, 102, 102, 38, 64, -96, -85, 45, 59, 0, -128, 94, 68, 51, 51, 51, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 64, 98, 68, 102, 102, 38, 64, 117, 2, 26, 59, 0, 0, 92, 68, 51, 51, 19, 64, 88, 57, 52, 59, 0, 0, 100, 68, -102, -103, 25, 64, -26, 29, 39, 59, 0, 0, 97, 68, 51, 51, 19, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, -82, 65, -98, -17, -89, 60, 0, -128, 99, 68, 27, 0, 0, 100, 105, 101, 98, 95, 77, 65, 78, 78, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 83, 116, 108, 119, 83, 97, 114, 105, 102, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 87, 101, 108, 116, 101, 110, 115, 116, 101, 105, 110, 0, 0, 0, 0, 0, 42, 105, 42, 0, 63, 0, 0, 0, 51, 51, 35, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, 60, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 51, 64, 10, -41, 35, 59, 0, -64, 97, 68, -51, -52, 60, 64, -96, -85, 45, 59, 0, -128, 99, 68, -51, -52, 12, 64, 124, -14, 48, 59, 0, 0, 102, 68, -102, -103, 57, 64, -96, -85, 45, 59, 0, -128, 94, 68, 102, 102, 38, 64, 52, -128, 55, 59, 0, -64, 100, 68, -51, -52, 28, 64, 88, 57, 52, 59, 0, 64, 98, 68, -51, -52, 12, 64, 117, 2, 26, 59, 0, 0, 92, 68, -102, -103, 41, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 6, 64, -26, 29, 39, 59, 0, 0, 97, 68, 0, 0, 16, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, -86, 65, -98, -17, -89, 60, 0, -128, 99, 68, 35, 0, 1, 80, 97, 116, 114, 105, 122, 105, 101, 114, 95, 77, 65, 78, 78, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 115, 76, 98, 76, 84, 105, 114, 122, 97, 104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 76, 105, 101, 98, 101, 110, 102, 101, 108, 115, 0, 0, 0, 0, 0, 0, 84, 105, 42, 0, 21, 0, 0, 0, 102, 102, 54, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, 51, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 35, 64, 10, -41, 35, 59, 0, -64, 97, 68, 51, 51, 51, 64, -96, -85, 45, 59, 0, -128, 99, 68, 51, 51, 51, 64, 124, -14, 48, 59, 0, 0, 102, 68, 51, 51, 35, 64, -96, -85, 45, 59, 0, -128, 94, 68, 0, 0, 16, 64, 52, -128, 55, 59, 0, -64, 100, 68, -102, -103, 41, 64, 88, 57, 52, 59, 0, 64, 98, 68, 0, 0, 16, 64, 117, 2, 26, 59, 0, 0, 92, 68, 51, 51, 35, 64, 88, 57, 52, 59, 0, 0, 100, 68, -102, -103, 41, 64, -26, 29, 39, 59, 0, 0, 97, 68, 51, 51, 19, 64, 88, 57, 52, 59, 0, 0, 102, 68, -102, -103, -81, 65, -98, -17, -89, 60, 0, -128, 99, 68, 71, 1, 1, 80, 97, 116, 114, 105, 122, 105, 101, 114, 105, 110, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 69, 117, 81, 108, 75, 97, 103, 97, 105, 110, 101, 32, 71, 46, 32, 74, 46, 0, 0, 0, 76, 97, 113, 117, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 84, 0, 42, 84, 63, 0, 0, 0, -102, -103, 41, 64, 88, 57, 52, 59, 0, 0, 102, 68, -102, -103, 25, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 102, 102, 38, 64, 10, -41, 35, 59, 0, -64, 97, 68, -102, -103, 25, 64, -96, -85, 45, 59, 0, -128, 99, 68, -102, -103, 57, 64, 124, -14, 48, 59, 0, 0, 102, 68, 102, 102, 38, 64, -96, -85, 45, 59, 0, -128, 94, 68, -102, -103, 25, 64, 52, -128, 55, 59, 0, -64, 100, 68, 102, 102, 54, 64, 88, 57, 52, 59, 0, 64, 98, 68, 51, 51, 19, 64, 117, 2, 26, 59, 0, 0, 92, 68, 51, 51, 51, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 38, 64, -26, 29, 39, 59, 0, 0, 97, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -86, 65, -98, -17, -89, 60, 0, -128, 99, 68, 26, 1, 1, 66, 117, 101, 114, 103, 101, 114, 105, 110, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 83, 76, 118, 77, 68, 111, 114, 97, 104, 110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 77, 97, 118, 101, 108, 105, 117, 115, 0, 0, 0, 0, 0, 0, 0, 0, 84, 105, 0, 21, 42, 0, 0, 0, -102, -103, 9, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, 38, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -102, -103, 25, 64, 10, -41, 35, 59, 0, -64, 97, 68, 102, 102, 38, 64, -96, -85, 45, 59, 0, -128, 99, 68, 51, 51, 19, 64, 124, -14, 48, 59, 0, 0, 102, 68, -102, -103, 25, 64, -96, -85, 45, 59, 0, -128, 94, 68, -51, -52, 28, 64, 52, -128, 55, 59, 0, -64, 100, 68, 102, 102, 22, 64, 88, 57, 52, 59, 0, 64, 98, 68, 51, 51, 19, 64, 117, 2, 26, 59, 0, 0, 92, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 100, 68, 51, 51, 19, 64, -26, 29, 39, 59, 0, 0, 97, 68, 0, 0, 48, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -86, 65, -98, -17, -89, 60, 0, -128, 99, 68, 64, 0, 1, 72, 97, 110, 100, 119, 101, 114, 107, 101, 114, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 66, 116, 83, 101, 70, 101, 114, 114, 97, 110, 100, 111, 0, 0, 0, 0, 0, 0, 0, 0, 69, 115, 116, 101, 98, 97, 110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 21, 105, 0, 84, 0, 0, 0, 51, 51, 35, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, 12, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 0, 0, 48, 64, 10, -41, 35, 59, 0, -64, 97, 68, -51, -52, 12, 64, -96, -85, 45, 59, 0, -128, 99, 68, -102, -103, 57, 64, 124, -14, 48, 59, 0, 0, 102, 68, 0, 0, 16, 64, -96, -85, 45, 59, 0, -128, 94, 68, -51, -52, 60, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 64, 98, 68, 0, 0, 32, 64, 117, 2, 26, 59, 0, 0, 92, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 54, 64, -26, 29, 39, 59, 0, 0, 97, 68, 102, 102, 6, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, -90, 65, -98, -17, -89, 60, 0, -128, 99, 68, 1, 0, 1, 100, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 108, 78, 82, 98, 70, 114, 105, 101, 100, 114, 105, 99, 104, 0, 0, 0, 0, 0, 0, 0, 66, 101, 114, 110, 111, 117, 108, 108, 105, 0, 0, 0, 0, 0, 0, 0, 105, 21, 21, 0, 126, 0, 0, 0, 102, 102, 54, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, 6, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -102, -103, 25, 64, 10, -41, 35, 59, 0, -64, 97, 68, 102, 102, 6, 64, -96, -85, 45, 59, 0, -128, 99, 68, 51, 51, 19, 64, 124, -14, 48, 59, 0, 0, 102, 68, 51, 51, 51, 64, -96, -85, 45, 59, 0, -128, 94, 68, 0, 0, 64, 64, 52, -128, 55, 59, 0, -64, 100, 68, -102, -103, 57, 64, 88, 57, 52, 59, 0, 64, 98, 68, 0, 0, 32, 64, 117, 2, 26, 59, 0, 0, 92, 68, 51, 51, 19, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 38, 64, -26, 29, 39, 59, 0, 0, 97, 68, -51, -52, 12, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, -83, 65, -98, -17, -89, 60, 0, -128, 99, 68, 58, 0, 1, 80, 114, 105, 101, 115, 116, 101, 114, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 82, 98, 114, 66, 66, 101, 114, 110, 104, 97, 114, 116, 0, 0, 0, 0, 0, 0, 0, 0, 66, 105, 101, 114, 98, 114, 97, 117, 101, 114, 0, 0, 0, 0, 0, 0, 63, 42, 42, 21, 84, 0, 0, 0, 102, 102, 22, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, 19, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 51, 64, 10, -41, 35, 59, 0, -64, 97, 68, 51, 51, 19, 64, -96, -85, 45, 59, 0, -128, 99, 68, -102, -103, 25, 64, 124, -14, 48, 59, 0, 0, 102, 68, -51, -52, 44, 64, -96, -85, 45, 59, 0, -128, 94, 68, 51, 51, 51, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 64, 98, 68, 102, 102, 6, 64, 117, 2, 26, 59, 0, 0, 92, 68, 51, 51, 51, 64, 88, 57, 52, 59, 0, 0, 100, 68, -51, -52, 12, 64, -26, 29, 39, 59, 0, 0, 97, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, -86, 65, -98, -17, -89, 60, 0, -128, 99, 68, 8, 0, 0, 82, 97, 116, 115, 104, 101, 114, 114, 50, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 105, 76, 77, 71, 71, 105, 109, 108, 105, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 90, 119, 101, 114, 103, 101, 110, 104, -10, 104, 0, 0, 0, 0, 0, 0, 42, 21, -87, 84, 21, 0, 0, 0, -51, -52, 28, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, 19, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -51, -52, 44, 64, 10, -41, 35, 59, 0, -64, 97, 68, 51, 51, 19, 64, -96, -85, 45, 59, 0, -128, 99, 68, -51, -52, 44, 64, 124, -14, 48, 59, 0, 0, 102, 68, -51, -52, 12, 64, -96, -85, 45, 59, 0, -128, 94, 68, 51, 51, 51, 64, 52, -128, 55, 59, 0, -64, 100, 68, 102, 102, 6, 64, 88, 57, 52, 59, 0, 64, 98, 68, -51, -52, 12, 64, 117, 2, 26, 59, 0, 0, 92, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 0, 100, 68, 51, 51, 51, 64, -26, 29, 39, 59, 0, 0, 97, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, -92, 65, -98, -17, -89, 60, 0, -128, 99, 68, 49, 0, 0, 72, 97, 110, 100, 119, 101, 114, 107, 101, 114, 50, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 78, 77, 114, 103, 71, 101, 114, 109, 97, 110, 105, 99, 117, 115, 0, 0, 0, 0, 0, 0, 118, 111, 110, 32, 77, 97, 105, 108, 97, 110, 100, 0, 0, 0, 0, 0, 21, 84, 21, 84, 42, 0, 0, 0, 51, 51, 35, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, 16, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -51, -52, 28, 64, 10, -41, 35, 59, 0, -64, 97, 68, 0, 0, 16, 64, -96, -85, 45, 59, 0, -128, 99, 68, 51, 51, 19, 64, 124, -14, 48, 59, 0, 0, 102, 68, -102, -103, 25, 64, -96, -85, 45, 59, 0, -128, 94, 68, 51, 51, 51, 64, 52, -128, 55, 59, 0, -64, 100, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 64, 98, 68, -51, -52, 44, 64, 117, 2, 26, 59, 0, 0, 92, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 38, 64, -26, 29, 39, 59, 0, 0, 97, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -80, 65, -98, -17, -89, 60, 0, -128, 99, 68, 19, 0, 0, 98, 117, 101, 114, 103, 101, 114, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 116, 72, 110, 115, 65, 108, 99, 104, 97, 116, 114, 111, 110, 0, 0, 0, 0, 0, 0, 0, 69, 105, 115, 101, 110, 104, 97, 114, 116, 0, 0, 0, 0, 0, 0, 0, 42, 84, 0, 126, 0, 0, 0, 0, -51, -52, 12, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, 32, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -102, -103, 25, 64, 10, -41, 35, 59, 0, -64, 97, 68, 0, 0, 32, 64, -96, -85, 45, 59, 0, -128, 99, 68, 0, 0, 32, 64, 124, -14, 48, 59, 0, 0, 102, 68, -51, -52, 12, 64, -96, -85, 45, 59, 0, -128, 94, 68, 51, 51, 19, 64, 52, -128, 55, 59, 0, -64, 100, 68, -51, -52, 12, 64, 88, 57, 52, 59, 0, 64, 98, 68, 51, 51, 51, 64, 117, 2, 26, 59, 0, 0, 92, 68, -102, -103, 25, 64, 88, 57, 52, 59, 0, 0, 100, 68, 0, 0, 64, 64, -26, 29, 39, 59, 0, 0, 97, 68, -51, -52, 12, 64, 88, 57, 52, 59, 0, 0, 102, 68, 0, 0, -84, 65, -98, -17, -89, 60, 0, -128, 99, 68, 53, 0, 0, 114, 97, 116, 115, 104, 101, 114, 114, 95, 83, 79, 76, 68, 65, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 82, 115, 109, 82, 71, 101, 114, 104, 97, 114, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 82, 105, 101, 109, 101, 105, 115, 116, 101, 114, 0, 0, 0, 0, 0, 0, 105, 84, 0, 21, 42, 0, 0, 0, -72, 30, 21, 64, 88, 57, 52, 59, 0, 0, 102, 68, 51, 51, 35, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, -51, -52, 44, 64, 10, -41, 35, 59, 0, -64, 97, 68, 51, 51, 35, 64, -96, -85, 45, 59, 0, -128, 99, 68, -82, 71, 49, 64, 124, -14, 48, 59, 0, 0, 102, 68, 0, 0, 32, 64, -96, -85, 45, 59, 0, -128, 94, 68, -51, -52, 28, 64, 52, -128, 55, 59, 0, -64, 100, 68, -10, 40, 28, 64, 88, 57, 52, 59, 0, 64, 98, 68, -102, -103, 41, 64, 117, 2, 26, 59, 0, 0, 92, 68, -72, 30, 21, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 22, 64, -26, 29, 39, 59, 0, 0, 97, 68, 102, 102, 22, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, -82, 65, -98, -17, -89, 60, 0, -128, 99, 68, 25, 0, 1, 98, 117, 101, 114, 103, 101, 114, 51, 95, 68, 73, 67, 75, 69, 82, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 77, 104, 68, 114, 74, 111, 104, 97, 110, 110, 101, 115, 32, 73, 46, 0, 0, 0, 0, 0, 118, 111, 110, 32, 82, -4, 100, 101, 115, 104, 101, 105, 109, 0, 0, 0, 84, 84, 21, 21, 42, 0, 0, 0, -82, 71, 49, 64, 88, 57, 52, 59, 0, 0, 102, 68, 102, 102, 38, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 51, 64, 10, -41, 35, 59, 0, -64, 97, 68, 102, 102, 38, 64, -96, -85, 45, 59, 0, -128, 99, 68, 0, 0, 0, 64, 124, -14, 48, 59, 0, 0, 102, 68, -51, -52, 28, 64, -96, -85, 45, 59, 0, -128, 94, 68, -102, -103, 41, 64, 52, -128, 55, 59, 0, -64, 100, 68, -72, 30, 21, 64, 88, 57, 52, 59, 0, 64, 98, 68, 102, 102, 22, 64, 117, 2, 26, 59, 0, 0, 92, 68, 102, 102, 38, 64, 88, 57, 52, 59, 0, 0, 100, 68, 102, 102, 22, 64, -26, 29, 39, 59, 0, 0, 97, 68, 0, 0, 32, 64, 88, 57, 52, 59, 0, 0, 102, 68, -51, -52, -84, 65, -98, -17, -89, 60, 0, -128, 99, 68, 35, 0, 1, 98, 97, 117, 101, 114, 95, 77, 65, 78, 78, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 }, { 110, 65, 84, 109, 87, 111, 116, 97, 110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 118, 111, 110, 32, 77, 101, 117, 99, 104, 101, 108, 116, 97, 110, 110, 0, 63, 21, 63, 21, 84, 0, 0, 0, -51, -52, 28, 64, 46, -112, 32, 59, 0, 0, 102, 68, 51, 51, 35, 64, 82, 73, 29, 59, 0, -128, 94, 68, 0, 0, 0, 64, 39, -96, 9, 59, 0, 0, 92, 68, 51, 51, 35, 64, 10, -41, 35, 59, 0, -64, 97, 68, 0, 0, 48, 64, -96, -85, 45, 59, 0, -128, 99, 68, 102, 102, 38, 64, 124, -14, 48, 59, 0, 0, 102, 68, 0, 0, 32, 64, -96, -85, 45, 59, 0, -128, 94, 68, -51, -52, 44, 64, 52, -128, 55, 59, 0, -64, 100, 68, -61, -11, 40, 64, 88, 57, 52, 59, 0, 64, 98, 68, 102, 102, 6, 64, 117, 2, 26, 59, 0, 0, 92, 68, -51, -52, 44, 64, 88, 57, 52, 59, 0, 0, 100, 68, -102, -103, 9, 64, -26, 29, 39, 59, 0, 0, 97, 68, 0, 0, 48, 64, 88, 57, 52, 59, 0, 0, 102, 68, -102, -103, -87, 65, -98, -17, -89, 60, 0, -128, 99, 68, 51, 0, 0, 98, 117, 101, 114, 103, 101, 114, 51, 95, 68, 73, 67, 75, 69, 82, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0 } };  /* 0x60f310 */
+GVAVATAR gv_Avatars[0x20] = {
+    { 0x6d56656e, "Maven", "of Reading", { 64, 32, 96, 96, 64 }, { 0 }, { { 2.6f, 0.0026f, 920.0f }, { 2.4f, 0.0024f, 890.0f }, { 2.1f, 0.0021f, 880.0f }, { 2.5f, 0.0025f, 903.0f }, { 2.65f, 0.0026500002f, 910.0f }, { 2.7f, 0.0027f, 920.0f }, { 2.65f, 0.0026500002f, 890.0f }, { 2.8f, 0.0028f, 915.0f }, { 2.75f, 0.00275f, 905.0f }, { 2.35f, 0.00235f, 880.0f }, { 2.75f, 0.00275f, 912.0f }, { 2.55f, 0.0025499999f, 900.0f }, { 2.75f, 0.00275f, 920.0f }, { 20.5f, 0.0205f, 910.0f } }, 3, 0, 1, { 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x6e524147, "Rangaroek", "Lhutien", { 84, 10, 96, 64, 84 }, { 0 }, { { 2.7f, 0.0027f, 920.0f }, { 2.4f, 0.0024f, 890.0f }, { 2.1f, 0.0021f, 880.0f }, { 2.5f, 0.0025f, 903.0f }, { 2.65f, 0.0026500002f, 910.0f }, { 2.7f, 0.0027f, 920.0f }, { 2.35f, 0.00235f, 890.0f }, { 2.8f, 0.0028f, 915.0f }, { 2.75f, 0.00275f, 905.0f }, { 2.4f, 0.0024f, 880.0f }, { 2.7f, 0.0027f, 912.0f }, { 2.6f, 0.0026f, 900.0f }, { 2.6f, 0.0026f, 920.0f }, { 20.5f, 0.0205f, 910.0f } }, 41, 0, 1, { 122, 105, 103, 101, 117, 110, 101, 114, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x73574e65, "Swine", "von Severing", { 64, 128, 64, 32, 64 }, { 0 }, { { 2.6f, 0.0026f, 920.0f }, { 2.4f, 0.0026f, 890.0f }, { 2.1f, 0.0026f, 880.0f }, { 2.5f, 0.0026f, 903.0f }, { 2.65f, 0.0026f, 910.0f }, { 2.7f, 0.0026f, 920.0f }, { 2.65f, 0.0026f, 890.0f }, { 2.8f, 0.0026f, 915.0f }, { 2.75f, 0.0026f, 905.0f }, { 2.35f, 0.0026f, 880.0f }, { 2.75f, 0.0026f, 912.0f }, { 2.55f, 0.0026f, 900.0f }, { 2.75f, 0.0026f, 920.0f }, { 20.5f, 0.0205f, 910.0f } }, 58, 0, 1, { 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x4445585f, "Dex", "Loomer", { 128, 25, 64, 48, 40 }, { 0 }, { { 2.6f, 0.0026f, 920.0f }, { 2.4f, 0.0026f, 890.0f }, { 2.1f, 0.0026f, 880.0f }, { 2.5f, 0.0026f, 903.0f }, { 2.65f, 0.0026f, 910.0f }, { 2.7f, 0.0026f, 920.0f }, { 2.65f, 0.0026f, 890.0f }, { 2.8f, 0.0026f, 915.0f }, { 2.75f, 0.0026f, 905.0f }, { 2.35f, 0.0026f, 880.0f }, { 2.75f, 0.0026f, 912.0f }, { 2.55f, 0.0026f, 900.0f }, { 2.75f, 0.0026f, 920.0f }, { 20.5f, 0.0205f, 910.0f } }, 7, 0, 1, { 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x5f4d4154, "Matti", "der Heilige", { 32, 0, 64, 32, 128 }, { 0 }, { { 2.6f, 0.0026f, 920.0f }, { 2.4f, 0.0026f, 890.0f }, { 2.1f, 0.0026f, 880.0f }, { 2.5f, 0.0026f, 903.0f }, { 2.65f, 0.0026f, 910.0f }, { 2.7f, 0.0026f, 920.0f }, { 2.65f, 0.0026f, 890.0f }, { 2.8f, 0.0026f, 915.0f }, { 2.75f, 0.0026f, 905.0f }, { 2.35f, 0.0026f, 880.0f }, { 2.75f, 0.0026f, 912.0f }, { 2.55f, 0.0026f, 900.0f }, { 2.75f, 0.0026f, 920.0f }, { 20.5f, 0.0205f, 910.0f } }, 14, 0, 1, { 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x2a564943, "Vic", "Frag", { 64, 64, 128, 32, 64 }, { 0 }, { { 2.6f, 0.0026f, 920.0f }, { 2.4f, 0.0026f, 890.0f }, { 2.1f, 0.0026f, 880.0f }, { 2.5f, 0.0026f, 903.0f }, { 2.65f, 0.0026f, 910.0f }, { 2.7f, 0.0026f, 920.0f }, { 2.65f, 0.0026f, 890.0f }, { 2.8f, 0.0026f, 915.0f }, { 2.75f, 0.0026f, 905.0f }, { 2.35f, 0.0026f, 880.0f }, { 2.75f, 0.0026f, 912.0f }, { 2.55f, 0.0026f, 900.0f }, { 2.75f, 0.0026f, 920.0f }, { 20.5f, 0.0205f, 910.0f } }, 22, 0, 1, { 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x7354674d, "Francois de", "Saint-Germain", { 21, 0, 84, 21, 126 }, { 0 }, { { 2.75f, 0.00275f, 920.0f }, { 2.1f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.3f, 0.0025f, 903.0f }, { 2.1f, 0.0026500002f, 910.0f }, { 2.5f, 0.0027f, 920.0f }, { 3.0f, 0.0026500002f, 890.0f }, { 3.0f, 0.0028f, 915.0f }, { 2.5f, 0.00275f, 905.0f }, { 2.2f, 0.00235f, 880.0f }, { 2.6f, 0.00275f, 912.0f }, { 2.8f, 0.0025499999f, 900.0f }, { 2.1f, 0.00275f, 920.0f }, { 21.5f, 0.0205f, 910.0f } }, 3, 0, 0, { 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x6d4c4d71, "Don Alfonso", "de Melmaque", { 42, 0, 63, 84, 42 }, { 0 }, { { 2.35f, 0.00275f, 920.0f }, { 2.3f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 3.0f, 0.0025f, 903.0f }, { 2.3f, 0.0026500002f, 910.0f }, { 2.4f, 0.0027f, 920.0f }, { 2.6f, 0.0026500002f, 890.0f }, { 3.0f, 0.0028f, 915.0f }, { 2.5f, 0.00275f, 905.0f }, { 2.0f, 0.00235f, 880.0f }, { 2.8f, 0.00275f, 912.0f }, { 2.4f, 0.0025499999f, 900.0f }, { 2.4f, 0.00275f, 920.0f }, { 20.5f, 0.0205f, 910.0f } }, 3, 0, 0, { 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x76465242, "Walther", "von F\374rstenberg", { 42, 0, 21, 84, 105 }, { 0 }, { { 2.6f, 0.00275f, 920.0f }, { 2.1f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.5f, 0.0025f, 903.0f }, { 2.1f, 0.0026500002f, 910.0f }, { 2.65f, 0.0027f, 920.0f }, { 2.8f, 0.0026500002f, 890.0f }, { 2.9f, 0.0028f, 915.0f }, { 2.5f, 0.00275f, 905.0f }, { 2.2f, 0.00235f, 880.0f }, { 2.7f, 0.00275f, 912.0f }, { 2.6f, 0.0025499999f, 900.0f }, { 2.6f, 0.00275f, 920.0f }, { 21.8f, 0.0205f, 910.0f } }, 3, 0, 0, { 68, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x72655243, "Rowenna", "Eriksson", { 63, 84, 21, 42, 42 }, { 0 }, { { 2.8f, 0.00275f, 920.0f }, { 2.7f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.5f, 0.0025f, 903.0f }, { 2.7f, 0.0026500002f, 910.0f }, { 2.85f, 0.0027f, 920.0f }, { 2.7f, 0.0026500002f, 890.0f }, { 2.4f, 0.0028f, 915.0f }, { 2.6f, 0.00275f, 905.0f }, { 2.3f, 0.00235f, 880.0f }, { 2.5f, 0.00275f, 912.0f }, { 2.5f, 0.0025499999f, 900.0f }, { 2.4f, 0.00275f, 920.0f }, { 20.2f, 0.0205f, 910.0f } }, 36, 1, 0, { 90, 105, 103, 101, 117, 110, 101, 114, 105, 110, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x676c6442, "Stefan", "Goldberg", { 84, 84, 0, 42, 42 }, { 0 }, { { 2.45f, 0.00275f, 920.0f }, { 2.5f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.7f, 0.0025f, 903.0f }, { 2.5f, 0.0026500002f, 910.0f }, { 2.45f, 0.0027f, 920.0f }, { 2.55f, 0.0026500002f, 890.0f }, { 2.6f, 0.0028f, 915.0f }, { 2.5f, 0.00275f, 905.0f }, { 2.55f, 0.00235f, 880.0f }, { 2.35f, 0.00275f, 912.0f }, { 2.4f, 0.0025499999f, 900.0f }, { 2.15f, 0.00275f, 920.0f }, { 20.0f, 0.0205f, 910.0f } }, 61, 0, 0, { 72, 97, 110, 100, 119, 101, 114, 107, 101, 114, 50, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x41677043, "Boktorus", "Apagack", { 0, 0, 126, 0, 126 }, { 0 }, { { 2.85f, 0.00275f, 920.0f }, { 2.3f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 3.0f, 0.0025f, 903.0f }, { 2.3f, 0.0026500002f, 910.0f }, { 2.95f, 0.0027f, 920.0f }, { 3.0f, 0.0026500002f, 890.0f }, { 3.0f, 0.0028f, 915.0f }, { 2.1f, 0.00275f, 905.0f }, { 2.0f, 0.00235f, 880.0f }, { 2.9f, 0.00275f, 912.0f }, { 2.4f, 0.0025499999f, 900.0f }, { 2.3f, 0.00275f, 920.0f }, { 22.0f, 0.0205f, 910.0f } }, 42, 0, 0, { 114, 97, 101, 117, 98, 101, 114, 109, 101, 105, 115, 116, 101, 114, 95, 83, 79, 76, 68, 65, 84, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x77644c66, "Cathringin", "Widolf", { 105, 63, 0, 42, 42 }, { 0 }, { { 2.35f, 0.00275f, 920.0f }, { 2.8f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.8f, 0.0025f, 903.0f }, { 2.8f, 0.0026500002f, 910.0f }, { 2.35f, 0.0027f, 920.0f }, { 2.6f, 0.0026500002f, 890.0f }, { 2.1f, 0.0028f, 915.0f }, { 2.3f, 0.00275f, 905.0f }, { 2.3f, 0.00235f, 880.0f }, { 2.4f, 0.00275f, 912.0f }, { 2.4f, 0.0025499999f, 900.0f }, { 2.5f, 0.00275f, 920.0f }, { 21.6f, 0.0205f, 910.0f } }, 67, 1, 0, { 72, 97, 110, 100, 119, 101, 114, 107, 101, 114, 105, 110, 51, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x734e4842, "Eginhard", "Eisenheber", { 84, 63, 0, 21, 84 }, { 0 }, { { 2.55f, 0.00275f, 920.0f }, { 2.25f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.6f, 0.0025f, 903.0f }, { 2.25f, 0.0026500002f, 910.0f }, { 2.75f, 0.0027f, 920.0f }, { 2.7f, 0.0026500002f, 890.0f }, { 2.65f, 0.0028f, 915.0f }, { 2.45f, 0.00275f, 905.0f }, { 2.75f, 0.00235f, 880.0f }, { 2.25f, 0.00275f, 912.0f }, { 2.55f, 0.0025499999f, 900.0f }, { 2.3f, 0.00275f, 920.0f }, { 20.6f, 0.0205f, 910.0f } }, 67, 0, 1, { 119, 105, 114, 116, 51, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x676c4467, "Getrud", "Goldgier", { 84, 84, 63, 0, 21 }, { 0 }, { { 2.25f, 0.00275f, 920.0f }, { 2.7f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.8f, 0.0025f, 903.0f }, { 2.7f, 0.0026500002f, 910.0f }, { 2.15f, 0.0027f, 920.0f }, { 2.55f, 0.0026500002f, 890.0f }, { 2.3f, 0.0028f, 915.0f }, { 2.25f, 0.00275f, 905.0f }, { 2.25f, 0.00235f, 880.0f }, { 2.65f, 0.00275f, 912.0f }, { 2.6f, 0.0025499999f, 900.0f }, { 2.4f, 0.00275f, 920.0f }, { 19.8f, 0.0205f, 910.0f } }, 72, 1, 0, { 66, 117, 101, 114, 103, 101, 114, 105, 110, 51, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x686c5654, "Marcus", "Helveticus", { 84, 84, 21, 42, 21 }, { 0 }, { { 2.85f, 0.00275f, 920.0f }, { 2.7f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.8f, 0.0025f, 903.0f }, { 2.7f, 0.0026500002f, 910.0f }, { 2.65f, 0.0027f, 920.0f }, { 2.45f, 0.0026500002f, 890.0f }, { 2.2f, 0.0028f, 915.0f }, { 2.65f, 0.00275f, 905.0f }, { 2.15f, 0.00235f, 880.0f }, { 2.85f, 0.00275f, 912.0f }, { 2.3f, 0.0025499999f, 900.0f }, { 2.6f, 0.00275f, 920.0f }, { 19.8f, 0.0205f, 910.0f } }, 20, 0, 0, { 98, 117, 101, 114, 103, 101, 114, 50, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x53666c73, "Darion", "Sturmfels", { 0, 21, 42, 84, 105 }, { 0 }, { { 2.25f, 0.00275f, 920.0f }, { 2.2f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.4f, 0.0025f, 903.0f }, { 2.2f, 0.0026500002f, 910.0f }, { 2.45f, 0.0027f, 920.0f }, { 2.9f, 0.0026500002f, 890.0f }, { 3.0f, 0.0028f, 915.0f }, { 2.65f, 0.00275f, 905.0f }, { 2.7f, 0.00235f, 880.0f }, { 2.3f, 0.00275f, 912.0f }, { 2.3f, 0.0025499999f, 900.0f }, { 2.2f, 0.00275f, 920.0f }, { 20.25f, 0.0205f, 910.0f } }, 48, 0, 0, { 98, 117, 101, 114, 103, 101, 114, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x7263684c, "Armand Jean", "de Richelieu", { 42, 0, 84, 21, 105 }, { 0 }, { { 2.55f, 0.00275f, 920.0f }, { 2.8f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.7f, 0.0025f, 903.0f }, { 2.8f, 0.0026500002f, 910.0f }, { 2.45f, 0.0027f, 920.0f }, { 2.7f, 0.0026500002f, 890.0f }, { 2.95f, 0.0028f, 915.0f }, { 2.95f, 0.00275f, 905.0f }, { 2.25f, 0.00235f, 880.0f }, { 2.75f, 0.00275f, 912.0f }, { 2.25f, 0.0025499999f, 900.0f }, { 2.1f, 0.00275f, 920.0f }, { 21.45f, 0.0205f, 910.0f } }, 13, 0, 0, { 97, 98, 116, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x5350476c, "Sascha", "Spiegel", { 84, 0, 42, 42, 84 }, { 0 }, { { 2.25f, 0.00275f, 920.0f }, { 2.2f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.7f, 0.0025f, 903.0f }, { 2.2f, 0.0026500002f, 910.0f }, { 2.6f, 0.0027f, 920.0f }, { 2.6f, 0.0026500002f, 890.0f }, { 2.8f, 0.0028f, 915.0f }, { 2.5f, 0.00275f, 905.0f }, { 2.6f, 0.00235f, 880.0f }, { 2.3f, 0.00275f, 912.0f }, { 2.4f, 0.0025499999f, 900.0f }, { 2.3f, 0.00275f, 920.0f }, { 21.85f, 0.0205f, 910.0f } }, 27, 0, 0, { 100, 105, 101, 98, 95, 77, 65, 78, 78, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x776c7453, "Sarif", "Weltenstein", { 42, 105, 42, 0, 63 }, { 0 }, { { 2.55f, 0.00275f, 920.0f }, { 2.95f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.8f, 0.0025f, 903.0f }, { 2.95f, 0.0026500002f, 910.0f }, { 2.2f, 0.0027f, 920.0f }, { 2.9f, 0.0026500002f, 890.0f }, { 2.6f, 0.0028f, 915.0f }, { 2.45f, 0.00275f, 905.0f }, { 2.2f, 0.00235f, 880.0f }, { 2.65f, 0.00275f, 912.0f }, { 2.1f, 0.0025499999f, 900.0f }, { 2.25f, 0.00275f, 920.0f }, { 21.35f, 0.0205f, 910.0f } }, 35, 0, 1, { 80, 97, 116, 114, 105, 122, 105, 101, 114, 95, 77, 65, 78, 78, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x4c624c73, "Tirzah", "Liebenfels", { 84, 105, 42, 0, 21 }, { 0 }, { { 2.85f, 0.00275f, 920.0f }, { 2.8f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.55f, 0.0025f, 903.0f }, { 2.8f, 0.0026500002f, 910.0f }, { 2.8f, 0.0027f, 920.0f }, { 2.55f, 0.0026500002f, 890.0f }, { 2.25f, 0.0028f, 915.0f }, { 2.65f, 0.00275f, 905.0f }, { 2.25f, 0.00235f, 880.0f }, { 2.55f, 0.00275f, 912.0f }, { 2.65f, 0.0025499999f, 900.0f }, { 2.3f, 0.00275f, 920.0f }, { 21.95f, 0.0205f, 910.0f } }, 71, 1, 1, { 80, 97, 116, 114, 105, 122, 105, 101, 114, 105, 110, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x6c517545, "Kagaine G. J.", "Laque", { 84, 0, 42, 84, 63 }, { 0 }, { { 2.65f, 0.00275f, 920.0f }, { 2.4f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.6f, 0.0025f, 903.0f }, { 2.4f, 0.0026500002f, 910.0f }, { 2.9f, 0.0027f, 920.0f }, { 2.6f, 0.0026500002f, 890.0f }, { 2.4f, 0.0028f, 915.0f }, { 2.85f, 0.00275f, 905.0f }, { 2.3f, 0.00235f, 880.0f }, { 2.8f, 0.00275f, 912.0f }, { 2.6f, 0.0025499999f, 900.0f }, { 2.4f, 0.00275f, 920.0f }, { 21.25f, 0.0205f, 910.0f } }, 26, 1, 1, { 66, 117, 101, 114, 103, 101, 114, 105, 110, 95, 70, 82, 65, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x4d764c53, "Dorahn", "Mavelius", { 84, 105, 0, 21, 42 }, { 0 }, { { 2.15f, 0.00275f, 920.0f }, { 2.6f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.4f, 0.0025f, 903.0f }, { 2.6f, 0.0026500002f, 910.0f }, { 2.3f, 0.0027f, 920.0f }, { 2.4f, 0.0026500002f, 890.0f }, { 2.45f, 0.0028f, 915.0f }, { 2.35f, 0.00275f, 905.0f }, { 2.3f, 0.00235f, 880.0f }, { 2.4f, 0.00275f, 912.0f }, { 2.3f, 0.0025499999f, 900.0f }, { 2.75f, 0.00275f, 920.0f }, { 21.25f, 0.0205f, 910.0f } }, 64, 0, 1, { 72, 97, 110, 100, 119, 101, 114, 107, 101, 114, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x65537442, "Ferrando", "Esteban", { 42, 21, 105, 0, 84 }, { 0 }, { { 2.55f, 0.00275f, 920.0f }, { 2.2f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.75f, 0.0025f, 903.0f }, { 2.2f, 0.0026500002f, 910.0f }, { 2.9f, 0.0027f, 920.0f }, { 2.25f, 0.0026500002f, 890.0f }, { 2.95f, 0.0028f, 915.0f }, { 2.5f, 0.00275f, 905.0f }, { 2.5f, 0.00235f, 880.0f }, { 2.5f, 0.00275f, 912.0f }, { 2.85f, 0.0025499999f, 900.0f }, { 2.1f, 0.00275f, 920.0f }, { 20.85f, 0.0205f, 910.0f } }, 1, 0, 1, { 100, 105, 101, 98, 52, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x62524e6c, "Friedrich", "Bernoulli", { 105, 21, 21, 0, 126 }, { 0 }, { { 2.85f, 0.00275f, 920.0f }, { 2.1f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.4f, 0.0025f, 903.0f }, { 2.1f, 0.0026500002f, 910.0f }, { 2.3f, 0.0027f, 920.0f }, { 2.8f, 0.0026500002f, 890.0f }, { 3.0f, 0.0028f, 915.0f }, { 2.9f, 0.00275f, 905.0f }, { 2.5f, 0.00235f, 880.0f }, { 2.3f, 0.00275f, 912.0f }, { 2.6f, 0.0025499999f, 900.0f }, { 2.2f, 0.00275f, 920.0f }, { 21.65f, 0.0205f, 910.0f } }, 58, 0, 1, { 80, 114, 105, 101, 115, 116, 101, 114, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x42726252, "Bernhart", "Bierbrauer", { 63, 42, 42, 21, 84 }, { 0 }, { { 2.35f, 0.00275f, 920.0f }, { 2.3f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.8f, 0.0025f, 903.0f }, { 2.3f, 0.0026500002f, 910.0f }, { 2.4f, 0.0027f, 920.0f }, { 2.7f, 0.0026500002f, 890.0f }, { 2.8f, 0.0028f, 915.0f }, { 2.5f, 0.00275f, 905.0f }, { 2.1f, 0.00235f, 880.0f }, { 2.8f, 0.00275f, 912.0f }, { 2.2f, 0.0025499999f, 900.0f }, { 2.4f, 0.00275f, 920.0f }, { 21.35f, 0.0205f, 910.0f } }, 8, 0, 0, { 82, 97, 116, 115, 104, 101, 114, 114, 50, 95, 75, 85, 84, 84, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x474d4c69, "Gimli", "Zwergenh\366h", { 42, 21, 169, 84, 21 }, { 0 }, { { 2.45f, 0.00275f, 920.0f }, { 2.3f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.7f, 0.0025f, 903.0f }, { 2.3f, 0.0026500002f, 910.0f }, { 2.7f, 0.0027f, 920.0f }, { 2.2f, 0.0026500002f, 890.0f }, { 2.8f, 0.0028f, 915.0f }, { 2.1f, 0.00275f, 905.0f }, { 2.2f, 0.00235f, 880.0f }, { 2.5f, 0.00275f, 912.0f }, { 2.8f, 0.0025499999f, 900.0f }, { 2.4f, 0.00275f, 920.0f }, { 20.55f, 0.0205f, 910.0f } }, 49, 0, 0, { 72, 97, 110, 100, 119, 101, 114, 107, 101, 114, 50, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x67724d4e, "Germanicus", "von Mailand", { 21, 84, 21, 84, 42 }, { 0 }, { { 2.55f, 0.00275f, 920.0f }, { 2.25f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.45f, 0.0025f, 903.0f }, { 2.25f, 0.0026500002f, 910.0f }, { 2.3f, 0.0027f, 920.0f }, { 2.4f, 0.0026500002f, 890.0f }, { 2.8f, 0.0028f, 915.0f }, { 2.5f, 0.00275f, 905.0f }, { 2.7f, 0.00235f, 880.0f }, { 2.4f, 0.00275f, 912.0f }, { 2.6f, 0.0025499999f, 900.0f }, { 2.5f, 0.00275f, 920.0f }, { 22.0f, 0.0205f, 910.0f } }, 19, 0, 0, { 98, 117, 101, 114, 103, 101, 114, 95, 77, 65, 78, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x736e4874, "Alchatron", "Eisenhart", { 42, 84, 0, 126, 0 }, { 0 }, { { 2.2f, 0.00275f, 920.0f }, { 2.5f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.4f, 0.0025f, 903.0f }, { 2.5f, 0.0026500002f, 910.0f }, { 2.5f, 0.0027f, 920.0f }, { 2.2f, 0.0026500002f, 890.0f }, { 2.3f, 0.0028f, 915.0f }, { 2.2f, 0.00275f, 905.0f }, { 2.8f, 0.00235f, 880.0f }, { 2.4f, 0.00275f, 912.0f }, { 3.0f, 0.0025499999f, 900.0f }, { 2.2f, 0.00275f, 920.0f }, { 21.5f, 0.0205f, 910.0f } }, 53, 0, 0, { 114, 97, 116, 115, 104, 101, 114, 114, 95, 83, 79, 76, 68, 65, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x526d7352, "Gerhard", "Riemeister", { 105, 84, 0, 21, 42 }, { 0 }, { { 2.33f, 0.00275f, 920.0f }, { 2.55f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.7f, 0.0025f, 903.0f }, { 2.55f, 0.0026500002f, 910.0f }, { 2.77f, 0.0027f, 920.0f }, { 2.5f, 0.0026500002f, 890.0f }, { 2.45f, 0.0028f, 915.0f }, { 2.44f, 0.00275f, 905.0f }, { 2.65f, 0.00235f, 880.0f }, { 2.33f, 0.00275f, 912.0f }, { 2.35f, 0.0025499999f, 900.0f }, { 2.35f, 0.00275f, 920.0f }, { 21.8f, 0.0205f, 910.0f } }, 25, 0, 1, { 98, 117, 101, 114, 103, 101, 114, 51, 95, 68, 73, 67, 75, 69, 82, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x7244684d, "Johannes I.", "von R\374desheim", { 84, 84, 21, 21, 42 }, { 0 }, { { 2.77f, 0.00275f, 920.0f }, { 2.6f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.8f, 0.0025f, 903.0f }, { 2.6f, 0.0026500002f, 910.0f }, { 2.0f, 0.0027f, 920.0f }, { 2.45f, 0.0026500002f, 890.0f }, { 2.65f, 0.0028f, 915.0f }, { 2.33f, 0.00275f, 905.0f }, { 2.35f, 0.00235f, 880.0f }, { 2.6f, 0.00275f, 912.0f }, { 2.35f, 0.0025499999f, 900.0f }, { 2.5f, 0.00275f, 920.0f }, { 21.6f, 0.0205f, 910.0f } }, 35, 0, 1, { 98, 97, 117, 101, 114, 95, 77, 65, 78, 78, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 },
+    { 0x6d54416e, "Wotan", "von Meucheltann", { 63, 21, 63, 21, 84 }, { 0 }, { { 2.45f, 0.00245f, 920.0f }, { 2.55f, 0.0024f, 890.0f }, { 2.0f, 0.0021f, 880.0f }, { 2.55f, 0.0025f, 903.0f }, { 2.75f, 0.0026500002f, 910.0f }, { 2.6f, 0.0027f, 920.0f }, { 2.5f, 0.0026500002f, 890.0f }, { 2.7f, 0.0028f, 915.0f }, { 2.64f, 0.00275f, 905.0f }, { 2.1f, 0.00235f, 880.0f }, { 2.7f, 0.00275f, 912.0f }, { 2.15f, 0.0025499999f, 900.0f }, { 2.75f, 0.00275f, 920.0f }, { 21.2f, 0.0205f, 910.0f } }, 51, 0, 0, { 98, 117, 101, 114, 103, 101, 114, 51, 95, 68, 73, 67, 75, 69, 82, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1 }, 0 }
+};  /* 0x60f310 */
 AITIME gv_LastTime = {0};  /* 0x6f0e38, the game time ai_Time of the last effect step (gv_UpdateEffects) */
 GVEFFARG gv_EffectArgs[8] = {0};  /* 0x6f0e48, the argument of each effect slot's default callback */
-char gv_Effects[2944] = {0};  /* 0x6f1008, 8 slots of */
-/* ai_PlayerCity: view of ai_PlayerSlots (tools/data_views.py) */
-char gm_IncomeHistory[0x154];  /* 0x91b580, the 17-round history of the five income sums (rows of */
+GVEFFECT gv_Effects[8] = {0};  /* 0x6f1008, 8 slots of */
+int gm_IncomeHistory[5][17];  /* 0x91b580, the 17-round history of the five income sums (five rows of 17 ints; [row][16] is the current sum) */
 extern GVCANNON gv_Cannon;

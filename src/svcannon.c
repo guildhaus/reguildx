@@ -46,9 +46,6 @@ extern GAPDATA full_data_624204[];
 
 
 extern const int sv_PhaseMinutes[24];
-#define d2_DirtyRectTop (*(int *)((char *)&d2_DirtyRectLeft + 0x4))       /* 0xfb9064 */
-#define d2_DirtyRectRight (*(int *)((char *)&d2_DirtyRectLeft + 0x8))     /* 0xfb9068 */
-#define d2_DirtyRectBottom (*(int *)((char *)&d2_DirtyRectLeft + 0xc))    /* 0xfb906c */
 extern float d3s_QuadUV[6];
 extern GAPDATA full_data_5fea38[];
 
@@ -130,13 +127,11 @@ extern GAPDATA full_data_60c7b8[];
 extern GAPDATA full_data_623594[];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 
 
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern const int sv_PhaseMinutes[24];
 extern int d2_PointerObj;
@@ -159,7 +154,6 @@ extern struct D2OBJ *d2_Objs;
 extern GAPDATA full_data_62a634[];
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -175,7 +169,6 @@ extern int d2_LastWindow;
 
 extern GAPDATA full_data_602568[];
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -186,7 +179,6 @@ extern int sv_PopRequest;
 extern unsigned short ai_PlayerId;
 extern volatile unsigned long d3_Time;
 extern GAPDATA full_data_60c7b8[];
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern int d2_PointerObj;
@@ -207,7 +199,6 @@ extern int ai_ClickedObject;
 
 extern GAPDATA full_data_62a450[];
 extern unsigned char kb_Last;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
@@ -218,7 +209,6 @@ extern int d2_LastWindow;
 
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
@@ -229,13 +219,11 @@ extern int d2_LastWindow;
 extern int sv_FrameMask;
 extern int sv_PopRequest;
 
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 
 extern const int sv_PhaseMinutes[24];
 
 
-extern char ai_Chars[768][0x21c];
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -255,7 +243,6 @@ extern int ai_ClickedObject;
 
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-extern char ai_Chars[768][0x21c];
 extern int d2_PointerObj;
 extern int gm_AllowAll;
 extern int d2_ClickedId;
@@ -268,11 +255,9 @@ extern int ai_ClickedObject;
 
 extern int gm_AllowAll;
 extern volatile unsigned long d3_Time;
-extern char ai_Chars[768][0x21c];
 extern int d2_PointerObj;
 extern struct D2OBJ *d2_Objs;
 extern int di_Absolute;
-extern int gm_PlayerRecords[688];
 extern unsigned short ai_PlayerId;
 extern int d2_LastWindow;
 extern unsigned char ai_OwnPlayer;
@@ -290,7 +275,6 @@ extern unsigned char kb_Last;
 
 extern unsigned char kb_Last;
 extern int sv_FrameMask;
-extern char ai_Chars[768][0x21c];
 
 
 #define U_I(a) (*(int *)(a))
@@ -312,8 +296,6 @@ struct SBSAMPLE;
    in the original. A load through that pointer (not the fixed address) is what the unit's functions compile to,
    and the full link relocates the initializer, so the record is ours and no neighbour is touched. */
 extern TUTSTATE *const ai_Tutorial;
-#define S (*(char **)(unsigned)&ai_Tutorial)  /* the tutorial state record (at 0x6fa060): the pointer ai_Tutorial holds */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 typedef struct SHOTENTRY {   /* 0x10 bytes */
     int obj;                 /* +0x0, -1 when empty */
     float dist;              /* +0x4 */
@@ -383,6 +365,7 @@ const float ai_CannonSwitchDist = 100.0f;  /* 0x5eec98, how far the cannon sinks
 #include "menu.h"
 #include "d2.h"
 #include "sv.h"
+#include "sv_quickjump.h"             /* SVQUICKJUMP: sv_QuickJump.panelFlag */
 #include "gfx.h"
 
 /* dcp unit split: the declarations of sv_t before the moved functions */
@@ -393,19 +376,19 @@ int sb_UnloadSampleBank();
 int snd_LoadVoiceBank();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
-struct G5CH; struct G9REC; struct VFSFILE;
-int sv_RunFrame(int cb, unsigned mask);
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(); void sv_ValueBar();
-char * ahm_OwnerChar();
-int sv_CheckGoodAmount(char *o, int n, unsigned char t);
-int sv_MessageBox();
-void txt_Format(char *out, int id0, ...);
+struct AICHAR; struct G9REC; struct VFSFILE;
+int sv_RunFrame(void (*cb)(), unsigned mask);
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_ValueBar();
+struct AICHAR *ahm_OwnerChar();
+int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
+int sv_MessageBox(intptr_t text, unsigned flags);
+void txt_Format(char *out, intptr_t id0, ...);
 int ahm_SendCreateAlchemist();
-int ahm_ResearchState(); char * ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
+int ahm_ResearchState(); struct AICHAR *ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
 
 /* dcp unit split: the definitions of sv_t the functions of svcannon use */
-void ai_AlchemistResearchWindow(unsigned char *obj);
-void ai_AlchemistWindow(unsigned char *obj);
+void ai_AlchemistResearchWindow(struct AIBLD *obj);
+void ai_AlchemistWindow(struct AIBLD *obj);
 
 /* 0x57e230, the table callback of the cannon scene: stores the shot record src (its index 0 .. 2 in src->id)
    in the table ai_ShotTable at that index and marks the table as changed (ai_ShotDirty); answers 1, else 0 for
@@ -419,15 +402,6 @@ int ai_ShotTableStore(SHOTRESULT *src)
     return 1;
 }
 
-#pragma pack(push, 1)
-typedef struct CANNONREC {   /* the tutorial's cannon record (ai_CannonScene's argument), read at its byte offsets */
-    char pad0;
-    int id;                  /* +0x01, the effect id gv_FindEffect takes (GVCANNON.bld) */
-    char pad5[0x5c];
-    D3OBJECT *obj;           /* +0x61, the cannon object the scene is built around */
-} CANNONREC;
-#pragma pack(pop)
-#define CR ((CANNONREC *)rec)
 typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of ai_CannonScene (the other cannon functions still address it by byte offset) */
     D3VECTOR pos;            /* +0x00, d3_PointToWorld of the cannon object; pos.y gets the height of its bounds * 0.8 */
     float pad0c;
@@ -493,7 +467,7 @@ struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);                 /* 0x447190, d3_interface.h */
 char d3if_Show(struct D3OBJECT *obj, char show);        /* 0x4471b0, d3_interface.h */
 void he_ShowObjectInfos(); void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
-void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, char *rec);
+void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void sv_SetStatusText(char *s); void sv_RedrawScreen();
 void d3if_Prerender(char map); 
 
@@ -513,7 +487,7 @@ extern TUTSTATE ai_TutorialState;
    on the quit control sets sv_PopRequest. The teardown fades out again, closes the three windows, removes the two
    objects, deletes the 3D objects, re-enables the listed objects, restores viewport, clip rectangle, scene, sky and
    camera and releases the callback of the run record */
-void ai_CannonScene(char *rec)
+void ai_CannonScene(AIBLD *rec)
 {
     GVEFFECT *run;
     CANNONSCENE sc;
@@ -534,18 +508,18 @@ void ai_CannonScene(char *rec)
     memset(&sc, 0, 0xe4);
     sc.last = d3_Time;
     mask = sv_FrameMask | 0x80;
-    if (!CR->obj)
+    if (!rec->object)
         return;
-    run = (GVEFFECT *)gv_FindEffect(CR->id);
+    run = (GVEFFECT *)gv_FindEffect(rec->id);
     if (!run) {
         m = gv_RequestEffectLoad(rec);
         while (m != -1 && cm_GetSlotState(m) == 0)
             sv_RunFrame(0, 0x20007);
-        run = (GVEFFECT *)gv_FindEffect(CR->id);
+        run = (GVEFFECT *)gv_FindEffect(rec->id);
         if (!run)
             return;
     }
-    gv_SetEffectCallback(CR->id, ai_ShotTableStore, ai_ShotCallbackArg);
+    gv_SetEffectCallback(rec->id, ai_ShotTableStore, ai_ShotCallbackArg);
     mask = (mask & 0xffffdef7) | 0x10000;
     cam3.x = d3_Camera->pos.x;
     cam3.y = d3_Camera->pos.y;
@@ -553,16 +527,16 @@ void ai_CannonScene(char *rec)
     save3.x = d3_Camera->rotation.x;
     save3.y = d3_Camera->rotation.y;
     save3.z = d3_Camera->rotation.z;
-    saved.rect[2] = d2_DirtyRectRight;
-    saved.rect[0] = d2_DirtyRectLeft[0];
-    saved.rect[1] = d2_DirtyRectTop;
-    saved.rect[3] = d2_DirtyRectBottom;
+    saved.rect[2] = d2_DirtyRect.right;
+    saved.rect[0] = d2_DirtyRect.left;
+    saved.rect[1] = d2_DirtyRect.top;
+    saved.rect[3] = d2_DirtyRect.bottom;
     saved.scene = d3_CurrentScene;
     d2_SetPointerSprite(0, 0);
     sv_ClearSelection();
     d2_ClearPointerItems();
     sv_ResetScreenClip();
-    sv_PanelFlag = 0;
+    sv_QuickJump.panelFlag = 0;
     d2_CaptionCopy[0] = 0;
     pb = (unsigned char *)d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x5a, 1);
     while (!(*pb & 4))
@@ -586,10 +560,10 @@ void ai_CannonScene(char *rec)
         }
     }
     d3_SetViewport((float)d2_ScreenW, (float)d2_ScreenH - 150.0f, 0.0f, 75.0f, d3_ZNear, d3_ZFar, d3_ScaleX, d2_ScreenW, d2_ScreenH);
-    d2_DirtyRectRight = 0;
-    d2_DirtyRectLeft[0] = d2_ScreenW;
-    d2_DirtyRectTop = 0x4b;
-    d2_DirtyRectBottom = d2_ScreenH - 0x4b;
+    d2_DirtyRect.right = 0;
+    d2_DirtyRect.left = d2_ScreenW;
+    d2_DirtyRect.top = 0x4b;
+    d2_DirtyRect.bottom = d2_ScreenH - 0x4b;
     sv_SetPanelEnabled(0);
     cam3.x = d3_Camera->pos.x;
     cam3.y = d3_Camera->pos.y;
@@ -600,15 +574,15 @@ void ai_CannonScene(char *rec)
     d3if_SelectScene(0, 0);
     if (d3_Sky)
         d3sky_Init(d3_Sky, 1);
-    d3t_GetObjectBounds(&sc.bmin, &sc.bmax, CR->obj);
-    if (gv_Cannon.bld != CR->id) {
-        gv_Cannon.bld = CR->id;
+    d3t_GetObjectBounds(&sc.bmin, &sc.bmax, rec->object);
+    if (gv_Cannon.bld != rec->id) {
+        gv_Cannon.bld = rec->id;
         gv_Cannon.sliderA = 0;
         gv_Cannon.sliderB = 0;
         gv_Cannon.selected = 0;
         memcpy(gv_Cannon.camTarget, &save3, sizeof(gv_Cannon.camTarget));
     }
-    d3_PointToWorld(CR->obj, &CR->obj->pos, &sc.pos);
+    d3_PointToWorld(rec->object, &rec->object->pos, &sc.pos);
     memcpy(&sc.rot, gv_Cannon.camTarget, sizeof(sc.rot));
     sc.pos.y = (sc.bmax.y - sc.bmin.y) * 0.8f + sc.pos.y;
     {
@@ -643,14 +617,14 @@ void ai_CannonScene(char *rec)
     for (m = 0; m < 3; m++)
         d3if_Show(sc.obj8c[m], 0);
     d3if_Show(sc.obj8c[sc.selected], 1);
-    d3if_ShowTree(CR->obj, 0);
-    he_ShowObjectInfos((int)CR->obj, 0);
+    d3if_ShowTree(rec->object, 0);
+    he_ShowObjectInfos((int)rec->object, 0);
     d2_ClickedId = -1;
     ai_CannonAxes(&sc);
     ai_ShotTable[2].id = -1;
     ai_ShotTable[1].id = -1;
     ai_ShotTable[0].id = -1;
-    while (sv_RunFrame((int)ai_CannonScene, 0x2656c7) != 0) {
+    while (sv_RunFrame(ai_CannonScene, 0x2656c7) != 0) {
         sv_SetPanelEnabled(0);
         sc.now = d3_Time;
         dt = (float)(sc.now - sc.last) * 0.013513514f;
@@ -699,15 +673,15 @@ void ai_CannonScene(char *rec)
         d3if_Delete(sc.obj9c);
     if (sc.obj98)
         d3if_Delete(sc.obj98);
-    d3if_ShowTree(CR->obj, 1);
-    he_ShowObjectInfos((int)CR->obj, 1);
+    d3if_ShowTree(rec->object, 1);
+    he_ShowObjectInfos((int)rec->object, 1);
     for (m = 0; m < n; m++)
         d2_Objs[list[m]].disabled = 0;
     d3_SetViewport((float)(sv_ViewRectRight - sv_ViewRectLeft), (float)(sv_ViewRectBottom - sv_ViewRectTop), (float)sv_ViewRectLeft, (float)sv_ViewRectTop, d3_ZNear, d3_ZFar, d3_ScaleX, d2_ScreenW, d2_ScreenH);
-    d2_DirtyRectRight = saved.rect[2];
-    d2_DirtyRectLeft[0] = saved.rect[0];
-    d2_DirtyRectTop = saved.rect[1];
-    d2_DirtyRectBottom = saved.rect[3];
+    d2_DirtyRect.right = saved.rect[2];
+    d2_DirtyRect.left = saved.rect[0];
+    d2_DirtyRect.top = saved.rect[1];
+    d2_DirtyRect.bottom = saved.rect[3];
     sv_SetPanelEnabled(1);
     sv_RedrawScreen();
     d3if_SelectScene(saved.scene, 0);
@@ -719,7 +693,7 @@ void ai_CannonScene(char *rec)
     d3if_Prerender(1);
     d2_ReleaseFade(pb);
     d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x5a, 10);
-    gv_SetEffectCallback(CR->id, 0, 0);
+    gv_SetEffectCallback(rec->id, 0, 0);
 }
 
 double _CIfmod();
@@ -1053,18 +1027,18 @@ void ai_CannonShotResults(CANNONSCENE *sc)
             if (ai_ShotTable[rec].id == rec) {
                 ai_ShotDirty = 1;
                 for (i = 0; i < 3; i++) {
-                    gm_FindById((int *)&bld, 0, 0, ai_ShotTable[rec].e[i].obj);
+                    gm_FindById(&bld, 0, 0, ai_ShotTable[rec].e[i].obj);
                     if (bld == 0)
                         break;
                     v = 0x4071;
                     if (ai_ShotTable[rec].e[i].a == 1)
                         v = ai_ShotTable[rec].e[i].bf > 25.0f ? 0x4073 : 0x4072;
                     if (i != 0)
-                        io_PrintText("$A");
+                        io_PrintText((intptr_t)"$A");
                     else
-                        io_PrintText("$C");
+                        io_PrintText((intptr_t)"$C");
                     w = bld->owner;
-                    if (w == 0xffff || (void *)&ai_CharsT[w] == (void *)ai_PlayerChar)
+                    if (w == 0xffff || (void *)&ai_Chars[w] == (void *)ai_PlayerChar)
                         io_PrintText(0x406c, bld, v);
                     else
                         io_PrintText(0x406d, (int)w, bld, v);
@@ -1079,7 +1053,7 @@ void ai_CannonShotResults(CANNONSCENE *sc)
                 if (ai_ShotDirty != 0) {
                     ai_ShotDirty = 0;
                     ai_ShotTable[rec].id = -1;
-                    io_PrintText("$C");
+                    io_PrintText((intptr_t)"$C");
                     io_PrintText(0x406e);
                     d2_SetViewEnabled(sc->win74, 1);
                     return;
@@ -1091,9 +1065,9 @@ void ai_CannonShotResults(CANNONSCENE *sc)
     }
 }
 
-float gv_SalvoCharge(); void gv_BuildingCannon(char *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
+float gv_SalvoCharge(); void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
-void txt_Format(char *out, int id0, ...); int gm_CharCurrency(char *c, char p);
+void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
 
 /* 0x57f890, the cannon control panel: rec = the building record, sc = the scene, run = its effect slot. The two
    sliders (sc->kindSlider, clamped to the cannon kind of gv_BuildingCannon, and sc->speedSlider) give the salvo's
@@ -1104,7 +1078,7 @@ void txt_Format(char *out, int id0, ...); int gm_CharCurrency(char *c, char p);
    pitch (ai_CannonPitchRatio) and the run's charge (* 100); the window sc->win_c0 gets the texts 0x4068 / 0x4069 with
    the count and price and the character's currency and money ("%T %a"), each centred at half the window's width
    in font 0x54; the slider values, the barrel and the aim go back to gv_Cannon */
-void ai_CannonPanel(char *rec, CANNONSCENE *sc, GVEFFECT *run)
+void ai_CannonPanel(AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run)
 {
     char buf[0x40];
     int a;
@@ -1132,7 +1106,7 @@ void ai_CannonPanel(char *rec, CANNONSCENE *sc, GVEFFECT *run)
     d2_Objs[sc->selBtn[0]].checked = sc->selected == 0;
     d2_Objs[sc->selBtn[1]].checked = sc->selected == 1;
     d2_Objs[sc->selBtn[2]].checked = sc->selected == 2;
-    m = gv_CannonCost(ai_Chars[ai_PlayerId], a, b, sc->selected + 1, &l1, &l2);
+    m = gv_CannonCost(&ai_Chars[ai_PlayerId], a, b, sc->selected + 1, &l1, &l2);
     if (sc->zoom <= 0.01f && m != 0 && run->charge[sc->selected] >= c && (run->flags & 2) == 0)
         w = 1;
     else
@@ -1143,12 +1117,12 @@ void ai_CannonPanel(char *rec, CANNONSCENE *sc, GVEFFECT *run)
     d2_SetObjValue(sc->pitchBar, 0, 100, (int)(ai_CannonPitchRatio(sc) * 100.0f), 1);
     d2_SetObjValue(sc->chargeBar, 0, 100, (int)(run->charge[sc->selected] * 100.0f), 1);
     d2_SetForm(sc->win_c0, 2);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     m = d2_CreateWinText(0, 0xf, txt_Ptrs[0x4068], d2_LastWindow);
     d2_Objs[m].centred = 1;
     d2_Objs[m].w = d2_Wins[d2_LastWindow].w / 2;
     d2_SetObjFont(m, 0x54);
-    txt_Format(buf, (int)"%T %a", l2, l1);
+    txt_Format(buf, (intptr_t)"%T %a", l2, l1);
     m = d2_CreateWinText(0, 0x23, buf, d2_LastWindow);
     d2_Objs[m].centred = 1;
     d2_Objs[m].w = d2_Wins[d2_LastWindow].w / 2;
@@ -1157,7 +1131,7 @@ void ai_CannonPanel(char *rec, CANNONSCENE *sc, GVEFFECT *run)
     d2_Objs[m].centred = 1;
     d2_Objs[m].w = d2_Wins[d2_LastWindow].w / 2;
     d2_SetObjFont(m, 0x54);
-    txt_Format(buf, (int)"%T %a", gm_CharCurrency(ai_Chars[ai_PlayerId], ai_OwnPlayer), ((AICHAR *)ai_Chars[ai_PlayerId])->money);
+    txt_Format(buf, (intptr_t)"%T %a", gm_CharCurrency(&ai_Chars[ai_PlayerId], ai_OwnPlayer), ai_Chars[ai_PlayerId].money);
     m = d2_CreateWinText(d2_Wins[d2_LastWindow].w / 2, 0x23, buf, d2_LastWindow);
     d2_Objs[m].centred = 1;
     d2_Objs[m].w = d2_Wins[d2_LastWindow].w / 2;
@@ -1185,7 +1159,7 @@ float ai_CannonPitchRatio(CANNONSCENE *sc)
    sc->selected = sel; at the end sc->now = the clock. The half's time and the sink distance are the const data
    ai_CannonSwitchMs / ai_CannonSwitchDist (the original divides by the time: a literal would be a multiply);
    v and w are padded D3VECTOR4s (the original's frame) */
-void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask)
+void ai_CannonSwitchAnim(AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask)
 {
     D3VECTOR4 v;
     D3VECTOR4 w;
@@ -1197,7 +1171,7 @@ void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int
     start = d3_Time;
     if (sel == sc->selected || sel > sc->maxSel)
         return;
-    while (sv_RunFrame((int)ai_CannonSwitchAnim, mask) != 0) {
+    while (sv_RunFrame(ai_CannonSwitchAnim, mask) != 0) {
         ai_CannonPanel(rec, sc, run);
         if ((float)(d3_Time - start) > ai_CannonSwitchMs) {
             sv_PopRequest = 1;
@@ -1232,7 +1206,7 @@ void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int
     d3if_Show(sc->obj8c[sel], 1);
     sc->selected = sel;
     start = d3_Time;
-    while (sv_RunFrame((int)ai_CannonSwitchAnim, mask) != 0) {
+    while (sv_RunFrame(ai_CannonSwitchAnim, mask) != 0) {
         ai_CannonPanel(rec, sc, run);
         if ((float)(d3_Time - start) > ai_CannonSwitchMs) {
             sv_PopRequest = 1;
@@ -1266,7 +1240,7 @@ void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int
     sc->now = d3_Time;
 }
 
-void gv_CannonScatter(char *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
+void gv_CannonScatter(struct AIBLD *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
 
 /* 0x580160, fires the cannon: sc = the scene, rec = the building record. The two sliders give the cannon kind a
@@ -1287,7 +1261,7 @@ int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side
    (500 / 488), size first, 8 spellings of the charge expression (one code), any D3VECTOR4 subset (64; all
    six best for the frame) (tiebreak: not measured (dcp headers sample ai_CannonExplosion)) prior: x87
    stack allocation and the a * 12 ball index (the original computes it after gv_CannonItemFactor) are left */
-void ai_CannonExplosion(CANNONSCENE *sc, char *rec)
+void ai_CannonExplosion(CANNONSCENE *sc, AIBLD *rec)
 {
     SHOTREC shotA;
     SHOTREC shotB;
@@ -1317,7 +1291,7 @@ void ai_CannonExplosion(CANNONSCENE *sc, char *rec)
 
     a = d2_GetObjValue(sc->kindSlider);
     b = d2_GetObjValue(sc->speedSlider);
-    if (gv_CannonCost(ai_Chars[ai_PlayerId], a, b, sc->selected + 1, &cost, &x) == 0)
+    if (gv_CannonCost(&ai_Chars[ai_PlayerId], a, b, sc->selected + 1, &cost, &x) == 0)
         return;
     gv_CannonScatter(rec, &spread, &speedSpread);
     charge = (gv_CannonItemFactor(rec) * ai_CannonBalls[a].b - ai_CannonBalls[a].a) * ((float)b * 0.01f) + ai_CannonBalls[a].a;
@@ -1343,7 +1317,7 @@ void ai_CannonExplosion(CANNONSCENE *sc, char *rec)
         p1.z = t.z + sc->pos.z;
         ai_InitShot(&shotA, &p1, &sc->dir, charge, size, ai_IronDensity);
         ai_ScatterShot(&shotA, spread, &sc->side, spread, &sc->up, speedSpread);
-        h = gv_FireShots((AIBLD *)rec, (AICHAR *)ai_Chars[ai_PlayerId], &shotA, 0, 0, gv_SalvoCharge(a, b, 1), cost, x);
+        h = gv_FireShots(rec, &ai_Chars[ai_PlayerId], &shotA, 0, 0, gv_SalvoCharge(a, b, 1), cost, x);
         x1 = 0;
         y1 = 0;
         z1 = 50;
@@ -1373,7 +1347,7 @@ void ai_CannonExplosion(CANNONSCENE *sc, char *rec)
         ai_InitShot(&shotA, &p2, &sc->dir, charge, size, ai_IronDensity);
         ai_ScatterShot(&shotB, spread, &sc->side, spread, &sc->up, speedSpread);
         ai_ScatterShot(&shotA, spread, &sc->side, spread, &sc->up, speedSpread);
-        h = gv_FireShots((AIBLD *)rec, (AICHAR *)ai_Chars[ai_PlayerId], &shotB, &shotA, 0, gv_SalvoCharge(a, b, 1), cost, x);
+        h = gv_FireShots(rec, &ai_Chars[ai_PlayerId], &shotB, &shotA, 0, gv_SalvoCharge(a, b, 1), cost, x);
         x1 = 5;
         y1 = 0;
         z1 = 40;
@@ -1423,7 +1397,7 @@ void ai_CannonExplosion(CANNONSCENE *sc, char *rec)
         ai_ScatterShot(&shotC, spread, &sc->side, spread, &sc->up, speedSpread);
         ai_ScatterShot(&shotA, spread, &sc->side, spread, &sc->up, speedSpread);
         ai_ScatterShot(&shotB, spread, &sc->side, spread, &sc->up, speedSpread);
-        h = gv_FireShots((AIBLD *)rec, (AICHAR *)ai_Chars[ai_PlayerId], &shotC, &shotA, &shotB, gv_SalvoCharge(a, b, 1), cost, x);
+        h = gv_FireShots(rec, &ai_Chars[ai_PlayerId], &shotC, &shotA, &shotB, gv_SalvoCharge(a, b, 1), cost, x);
         x1 = 5;
         y1 = -3;
         z1 = 40;
@@ -1571,7 +1545,7 @@ void ai_CannonBuildPanel(CANNONSCENE *sc, GVEFFECT *run)
     sc->resultClock = d3_Time;
 }
 
-int he_EventOnBuilding(); int sv_MessageBox();
+int he_EventOnBuilding(); int sv_MessageBox(intptr_t text, unsigned flags);
 
 /* 0x580fe0, whether the building rec may be spied on: 0 when an event already runs on it (he_EventOnBuilding of
    rec->id), the message text 0x3ff7 shown; 1 when it is free */
@@ -1581,12 +1555,12 @@ int ai_CanSpyOn(AIBLD *rec)
 
     r = he_EventOnBuilding(rec->id);
     if (r)
-        sv_MessageBox((int)txt_Ptrs[0x3ff7], 0);
+        sv_MessageBox((intptr_t)txt_Ptrs[0x3ff7], 0);
     return r == 0;
 }
 
-int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(char *o, int n, unsigned char t); short * gm_PlayerRecord(char *c);
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
+int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
 
 /* 0x581020, the cabinet's spy window for the building rec: the form "Locations\Domizil\kabinett_spy" (centred,
    fitted, the default pointer) with the title txt 0x4020 centred over the window's width in font 0x54, a slider of
@@ -1627,7 +1601,7 @@ void ai_CabinetSpyWindow(AIBLD *rec)
     d2_SetObjValue(slider, 0, 2, 0, 1);
     d2_SetList(slider, 3, txt_Ptrs[0x4021], txt_Ptrs[0x4022], txt_Ptrs[0x4023]);
     d2_SetForm(win, 3);
-    i = io_PrintText((char *)0x4024);
+    i = io_PrintText(0x4024);
     btnPay = d2_GetWinObj(win, 3, i);
     btnLeave = d2_GetWinObj(win, 3, i + 1);
     d2_ClickedId = -1;
@@ -1636,23 +1610,23 @@ void ai_CabinetSpyWindow(AIBLD *rec)
 
         i = d2_GetObjValue(slider);
         d2_SetForm(win, 1);
-        io_PrintText("$C");
-        io_PrintText((char *)0x401e, 0x401c);
+        io_PrintText((intptr_t)"$C");
+        io_PrintText(0x401e, 0x401c);
         amount = v[i];
-        io_PrintText((char *)0x401f, amount);
+        io_PrintText(0x401f, amount);
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == btnPay) {
-                if (sv_CheckGoodAmount(ai_Chars[ai_PlayerId], amount, ai_OwnPlayer) != 0 && ai_CanSpyOn(rec) != 0) {
+                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], amount, ai_OwnPlayer) != 0 && ai_CanSpyOn(rec) != 0) {
                     AIMSG msg;
                     int pick;
                     LARGE_INTEGER mask;
-                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(ai_Chars[ai_PlayerId]);
+                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
 
                     if (fin != 0)
                         fin->spyPaid += amount;
-                    cm_SendMoveGoodsUnchecked(-1, ((AICHAR *)ai_Chars[ai_PlayerId])->netId, ai_OwnPlayer, amount);
+                    cm_SendMoveGoodsUnchecked(-1, ai_Chars[ai_PlayerId].netId, ai_OwnPlayer, amount);
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x99;
                     msg.flags = 2;
@@ -1661,13 +1635,13 @@ void ai_CabinetSpyWindow(AIBLD *rec)
                     msg.arg[4] = 3;
                     msg.arg[5] = i;
                     pick = -1;
-                    msg.to = ((AICHAR *)ai_Chars[rec->owner])->netId;
+                    msg.to = ai_Chars[rec->owner].netId;
                     msg.fromId = rec->id;
                     msg.time = ai_Time;
                     msg.arg[1] = rec->id;
                     mask.LowPart = 0x7b4c4a0;
                     mask.HighPart = 0;
-                    ai_PickActionBuilding((struct AIPER *)ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
+                    ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                     msg.arg[0] = pick;
                     id = cm_SendLongMessage((char *)&msg);
                     while (id != -1 && cm_GetSlotState(id) == 0)
@@ -1684,7 +1658,7 @@ void ai_CabinetSpyWindow(AIBLD *rec)
     sv_CameraFollow();
 }
 
-int ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
+struct AICHAR *ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
 
 /* 0x581400, the cabinet's spy window on a character for the building rec: the target is picked in the amount menu
    (AMOUNTCFG flags 1, mode 0x400, kind 6, no ids left out; title txt 0x400d), none -> return. The three steps of
@@ -1721,7 +1695,7 @@ void ai_CabinetSpyOnCharacter(AIBLD *rec)
     q.flags = 1;
     q.mode = 0x400;
     q.kind = 6;
-    p = (AICHAR *)ai_AmountMenu(&q, txt_Ptrs[0x400d], 0, 0);
+    p = ai_AmountMenu(&q, txt_Ptrs[0x400d], 0, 0);
     if (!p)
         return;
     worth += gm_GetWorth(p->id);
@@ -1746,7 +1720,7 @@ void ai_CabinetSpyOnCharacter(AIBLD *rec)
     d2_SetObjValue(slider, 0, 2, 0, 1);
     d2_SetList(slider, 3, txt_Ptrs[0x4011], txt_Ptrs[0x4012], txt_Ptrs[0x4013]);
     d2_SetForm(win, 3);
-    k = io_PrintText((char *)0x4014);
+    k = io_PrintText(0x4014);
     btnPay = d2_GetWinObj(win, 3, k);
     btnLeave = d2_GetWinObj(win, 3, k + 1);
     d2_ClickedId = -1;
@@ -1755,28 +1729,28 @@ void ai_CabinetSpyOnCharacter(AIBLD *rec)
 
         i = d2_GetObjValue(slider);
         d2_SetForm(win, 1);
-        io_PrintText("$C");
-        io_PrintText((char *)0x400e, 0x400c, p->id);
-        io_PrintText((char *)0x400f, amt[i], cost[i]);
+        io_PrintText((intptr_t)"$C");
+        io_PrintText(0x400e, 0x400c, p->id);
+        io_PrintText(0x400f, amt[i], cost[i]);
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == btnPay) {
-                if (sv_CheckGoodAmount(ai_Chars[ai_PlayerId], cost[i], ai_OwnPlayer) != 0 &&
-                    sv_CheckMoney(ai_Chars[ai_PlayerId], amt[i]) == 1 && ai_CanSpyOn(rec) != 0) {
-                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(ai_Chars[ai_PlayerId]);
+                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], cost[i], ai_OwnPlayer) != 0 &&
+                    sv_CheckMoney(&ai_Chars[ai_PlayerId], amt[i]) == 1 && ai_CanSpyOn(rec) != 0) {
+                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
 
                     if (fin != 0)
                         fin->spyPaid += cost[i];
-                    cm_SendMoveGoodsUnchecked(-1, ((AICHAR *)ai_Chars[ai_PlayerId])->netId, ai_OwnPlayer, cost[i]);
-                    gm_SendMoneyDelta(((AICHAR *)ai_Chars[ai_PlayerId])->netId, -amt[i]);
+                    cm_SendMoveGoodsUnchecked(-1, ai_Chars[ai_PlayerId].netId, ai_OwnPlayer, cost[i]);
+                    gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -amt[i]);
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x99;
                     msg.flags = 2;
                     msg.arg[3] = -1;
                     msg.arg[4] = 2;
                     msg.arg[5] = i;
-                    msg.to = ((AICHAR *)ai_Chars[rec->owner])->netId;
+                    msg.to = ai_Chars[rec->owner].netId;
                     msg.fromId = rec->id;
                     msg.time = ai_Time;
                     msg.arg[2] = p->netId;
@@ -1791,7 +1765,7 @@ void ai_CabinetSpyOnCharacter(AIBLD *rec)
                         mask.LowPart = 0x7b4c4a0;
                         mask.HighPart = 0;
                         pick = -1;
-                        ai_PickActionBuilding((struct AIPER *)ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
+                        ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                         msg.arg[0] = pick;
                     }
                     id = cm_SendLongMessage((char *)&msg);
@@ -1840,7 +1814,7 @@ void ai_CabinetSpyByMoney(AIBLD *rec)
     q.flags = 1;
     q.mode = 0x400;
     q.kind = 6;
-    p = (AICHAR *)ai_AmountMenu(&q, txt_Ptrs[0x3ffc], 0, 0);
+    p = ai_AmountMenu(&q, txt_Ptrs[0x3ffc], 0, 0);
     if (!p) {
         sv_CameraFollow();
         return;
@@ -1863,7 +1837,7 @@ void ai_CabinetSpyByMoney(AIBLD *rec)
     d2_SetObjValue(slider, 0, 2, 0, 1);
     d2_SetList(slider, 3, txt_Ptrs[0x4000], txt_Ptrs[0x4001], txt_Ptrs[0x4002]);
     d2_SetForm(win, 3);
-    k = io_PrintText((char *)0x4003);
+    k = io_PrintText(0x4003);
     btnPay = d2_GetWinObj(win, 3, k);
     btnLeave = d2_GetWinObj(win, 3, k + 1);
     d2_ClickedId = -1;
@@ -1872,21 +1846,21 @@ void ai_CabinetSpyByMoney(AIBLD *rec)
 
         i = d2_GetObjValue(slider);
         d2_SetForm(win, 1);
-        io_PrintText("$C");
-        io_PrintText((char *)0x3ffd, 0x3ffb, p->id, n);
-        io_PrintText((char *)0x3ffe, amt[i]);
+        io_PrintText((intptr_t)"$C");
+        io_PrintText(0x3ffd, 0x3ffb, p->id, n);
+        io_PrintText(0x3ffe, amt[i]);
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == btnPay) {
-                if (sv_CheckMoney(ai_Chars[ai_PlayerId], amt[i]) == 1 && ai_CanSpyOn(rec) != 0) {
-                    gm_SendMoneyDelta(((AICHAR *)ai_Chars[ai_PlayerId])->netId, -amt[i]);
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], amt[i]) == 1 && ai_CanSpyOn(rec) != 0) {
+                    gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -amt[i]);
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x99;
                     msg.flags = 2;
                     msg.arg[3] = -1;
                     msg.arg[4] = 1;
-                    msg.to = ((AICHAR *)ai_Chars[rec->owner])->netId;
+                    msg.to = ai_Chars[rec->owner].netId;
                     msg.fromId = rec->id;
                     msg.time = ai_Time;
                     msg.arg[2] = p->netId;
@@ -1902,7 +1876,7 @@ void ai_CabinetSpyByMoney(AIBLD *rec)
                         mask.LowPart = 0x7b4c4a0;
                         mask.HighPart = 0;
                         pick = -1;
-                        ai_PickActionBuilding((struct AIPER *)ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
+                        ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                         msg.arg[0] = pick;
                     }
                     id = cm_SendLongMessage((char *)&msg);
@@ -1920,7 +1894,7 @@ void ai_CabinetSpyByMoney(AIBLD *rec)
     sv_CameraFollow();
 }
 
-void txt_Format(char *out, int id0, ...); int sv_MessageBox();
+void txt_Format(char *out, intptr_t id0, ...); int sv_MessageBox(intptr_t text, unsigned flags);
 
 /* 0x581db0, the cabinet's window on a character for the building rec, message kind 4 (the name is a reasoned guess:
    the form "Locations\Domizil\kabinett" without the slider of the kabinett_spy windows): the target is picked in
@@ -1953,10 +1927,10 @@ void ai_CabinetIntrigueWindow(AIBLD *rec)
     q.flags = 1;
     q.mode = 0x400;
     q.kind = 6;
-    p = (AICHAR *)ai_AmountMenu(&q, txt_Ptrs[0x402c], 0, 0);
+    p = ai_AmountMenu(&q, txt_Ptrs[0x402c], 0, 0);
     if (!he_NoEvent9bFor(p)) {
         txt_Format(text, 0x4030, p->id);
-        sv_MessageBox(text, 0);
+        sv_MessageBox((intptr_t)text, 0);
         return;
     }
     if (!p)
@@ -1968,10 +1942,10 @@ void ai_CabinetIntrigueWindow(AIBLD *rec)
     d2_SetForm(win, 0);
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
-    io_PrintText("$C");
-    io_PrintText((char *)0x402e, 0x402b, price, p->id);
+    io_PrintText((intptr_t)"$C");
+    io_PrintText(0x402e, 0x402b, price, p->id);
     d2_SetForm(win, 2);
-    k = io_PrintText((char *)0x402f);
+    k = io_PrintText(0x402f);
     btnPay = d2_GetWinObj(win, 2, k);
     btnLeave = d2_GetWinObj(win, 2, k + 1);
     d2_ClickedId = -1;
@@ -1982,18 +1956,18 @@ void ai_CabinetIntrigueWindow(AIBLD *rec)
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == btnPay) {
-                if (sv_CheckGoodAmount(ai_Chars[ai_PlayerId], price, ai_OwnPlayer) != 0 &&
-                    sv_CheckMoney(ai_Chars[ai_PlayerId], 0x10) == 1 && ai_CanSpyOn(rec) != 0) {
-                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(ai_Chars[ai_PlayerId]);
+                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], price, ai_OwnPlayer) != 0 &&
+                    sv_CheckMoney(&ai_Chars[ai_PlayerId], 0x10) == 1 && ai_CanSpyOn(rec) != 0) {
+                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
 
                     if (fin != 0)
                         fin->spyPaid += price;
-                    cm_SendMoveGoodsUnchecked(-1, ((AICHAR *)ai_Chars[ai_PlayerId])->netId, ai_OwnPlayer, price);
-                    gm_SendMoneyDelta(((AICHAR *)ai_Chars[ai_PlayerId])->netId, -0x10);
+                    cm_SendMoveGoodsUnchecked(-1, ai_Chars[ai_PlayerId].netId, ai_OwnPlayer, price);
+                    gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -0x10);
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x99;
                     msg.flags = 2;
-                    msg.to = ((AICHAR *)ai_Chars[rec->owner])->netId;
+                    msg.to = ai_Chars[rec->owner].netId;
                     msg.fromId = rec->id;
                     msg.time = ai_Time;
                     msg.arg[1] = rec->id;
@@ -2011,7 +1985,7 @@ void ai_CabinetIntrigueWindow(AIBLD *rec)
                         mask.LowPart = 0x7b4c4a0;
                         mask.HighPart = 0;
                         pick = -1;
-                        ai_PickActionBuilding((struct AIPER *)ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
+                        ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                         msg.arg[0] = pick;
                     }
                     id = cm_SendLongMessage((char *)&msg);
@@ -2084,7 +2058,7 @@ void ai_AlchemistLabContact(AIBLD *rec, AIOBJ *room)
         else if (ai_ClickedObject == production) {
             r = ahm_ResearchState(rec, &a, &b, 0);
             if (r != 0)
-                sv_MessageBox(txt_Ptrs[0x41ac + r], 0x100);
+                sv_MessageBox((intptr_t)(txt_Ptrs[0x41ac + r]), 0x100);
             else
                 ai_ProductionWindow(rec);
         } else if (ai_ClickedObject == recipeBook)
@@ -2120,10 +2094,10 @@ void ai_UnlockRoomWindow(AIBLD *rec, AIOBJ *room)
     d2_SetForm(win, 0);
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
-    io_PrintText("$C");
-    io_PrintText((char *)0x407d, 0x4171, price);
+    io_PrintText((intptr_t)"$C");
+    io_PrintText(0x407d, 0x4171, price);
     d2_SetForm(win, 2);
-    k = io_PrintText((char *)0x407e);
+    k = io_PrintText(0x407e);
     btnPay = d2_GetWinObj(win, 2, k);
     btnLeave = d2_GetWinObj(win, 2, k + 1);
     do {
@@ -2131,9 +2105,9 @@ void ai_UnlockRoomWindow(AIBLD *rec, AIOBJ *room)
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == btnPay) {
-                if (sv_CheckMoney(ai_Chars[ai_PlayerId], price) == 1) {
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], price) == 1) {
                     zero = 0;
-                    gm_SendMoneyDelta(((AICHAR *)ai_Chars[ai_PlayerId])->netId, -price);
+                    gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -price);
                     cm_BeginFieldBlock((char *)room, room->objId);
                     cm_AddFieldDelta(4, 1, 0x1c, &zero);
                     cm_AddFieldDelta(4, 1, 0x20, &zero);
@@ -2170,7 +2144,7 @@ void ai_CannonContact(AIBLD *rec, AIOBJ *room)
         if (room->locked != 0)
             ai_UnlockRoomWindow(rec, room);
         else if (ai_ClickedObject == cannon)
-            ai_CannonScene((char *)rec);
+            ai_CannonScene(rec);
     }
 }
 /* 0x582600, the contacts of the cabinet (kabinett, the room kind 0x266 of the enter-building driver ai_EnterBuilding):

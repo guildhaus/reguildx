@@ -4,9 +4,12 @@
 
 struct D3OBJECT;
 struct AIJOB;
+struct AIMSG;
 struct AICHAR;
 struct AIBLD;
 struct AIOBJ;
+
+typedef void (*HEHANDLER)(struct AIJOB *ev);  /* an event type's alloc or run handler (he_SetEventHandlers, he_AllocHandlers / he_RunHandlers) */
 
 typedef struct HEGFXINFO {              /* 16 bytes, a gfx info: a 3D model shown over an object for an event (he_CreateGfxInfo) */
     int eventId;                        /* 0x0, the event's AIJOB.id */
@@ -14,18 +17,19 @@ typedef struct HEGFXINFO {              /* 16 bytes, a gfx info: a 3D model show
     struct D3OBJECT *parent;            /* 0x8, the object it is shown over (he_CreateGfxObject sets it), 0: a free entry */
     struct D3OBJECT *obj;               /* 0xc, its model object (he_CreateGfxObject) */
 } HEGFXINFO;
+extern HEGFXINFO he_GfxInfos[0x40];     /* 0x7588a0, the gfx infos */
 
-void he_AllocNone(unsigned char *ev);
-void he_RunNone(unsigned char *ev);
+void he_AllocNone(struct AIJOB *ev);
+void he_RunNone(struct AIJOB *ev);
 int he_InitEvents(void);
 void he_FreeEvents(void);
 int he_ReleaseEvents(void);
 int he_FigureContact(struct AICHAR *p, int *bldId, int *contact);  /* 0x55ea60, 1 with the building and contact the character works at, 0: not at work */
 int he_FindFigurePlace(struct AICHAR *p, int *bldId, int *objId, int *scene);  /* 0x55eba0, 1 with the building, object and scene where the character is, 0: none */
-int he_SetEventHandlers(int type, void *alloc, void *run);
+int he_SetEventHandlers(int type, HEHANDLER alloc, HEHANDLER run);
 int he_FreeOldestSlot(void);
-int he_OpenEventSlot(int ev, int x, int y, char *form, int pic);
-void he_ReleaseSlot(int ev);
+int he_OpenEventSlot(struct AIJOB *ev, int x, int y, char *form, int pic);
+void he_ReleaseSlot(struct AIJOB *ev);
 void he_CreateEventBar(void);
 void he_CloseEventSlots(void);
 void he_ShowEventBar(int pl);
@@ -49,6 +53,10 @@ typedef struct HEHINT {                 /* 16 bytes, an entry of the tutorial hi
     int text;                           /* 0x0c, the hint's text id (txt_FindKey, d2_Strings) */
 } HEHINT;
 extern HEHINT he_Hints[128];            /* 0x6fa260, the tutorial hints he_OpenHelpEvents fills and he_RunHint walks */
+extern HEHANDLER he_AllocHandlers[0xa8];  /* 0x74df40, the event alloc handlers by type (he_SetEventHandlers; 0xa7 types) */
+extern HEHANDLER he_RunHandlers[0xa8];    /* 0x758600, the event run handlers by type (he_SetEventHandlers) */
+extern struct AIJOB *he_QuickList[0x100]; /* 0x74db40, the event records shown in the event bar (he_QuickTop the last used) */
+extern struct AIJOB *he_Cursor;         /* 0x7585e0, the record he_NextEvent stands on, 0: the search ended */
 extern int he_TipOrder[0x20];           /* 0x6fa1e0, the tip order: 27 indices into txt_TipTexts (gm_Shuffled fills it) */
 extern HEEVSLOT *he_ActiveSlot;         /* 0x6f262c, the slot of the active event window (0x53dcb0, 0x53daf0), 0 = none */
 extern unsigned char he_SlotConfirmed;  /* 0x6f2630, set by a right click / Enter on the active window of the
@@ -63,22 +71,22 @@ extern char he_OptionsPath[256];         /* 0x6fa0e0, the options INI path he_Lo
 int he_ShowNews(int pid, int from, char *text, int tflags, int news, char *text2);
 void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2);
 
-unsigned char * he_CreateEvent(unsigned char *m);
-void he_FreeEvent(int *r);
-char *he_NextEvent(void);
-char *he_FindEvent(int n, ...);
+struct AIJOB *he_CreateEvent(struct AIMSG *msg);
+void he_FreeEvent(struct AIJOB *r);
+struct AIJOB *he_NextEvent(void);
+struct AIJOB *he_FindEvent(int n, ...);
 int he_NoEvent9aFor(int bldId, struct AICHAR *c);   /* 0x56f360, 1 when no running type 0x9a event has both the building bldId and the netId of the character c */
 int he_NoEvent9bFor(struct AICHAR *a);   /* 0x56f3b0, 1 when no running domicile event 0x9b has the netId of the character a as its partner1 */
-void he_LabIncident(struct AICHAR *c, int ev, struct AIBLD *b, int state);  /* 0x56e070 */
+void he_LabIncident(struct AICHAR *c, struct AIJOB *ev, struct AIBLD *b, int state);  /* 0x56e070 */
 int he_SecretRoomAccuse(struct AICHAR *a, struct AICHAR *b, int c);  /* 0x56f1b0 */
 int he_FindMeetingSlot(int c);           /* 0x56f260 */
 int he_SecretRoomAttack(struct AICHAR *a, struct AICHAR *b, int c);  /* 0x56f2e0 */
 int he_SecretRoomDomizil(int bldId, struct AICHAR *victim);  /* 0x56f3f0 */
 struct AIJOB *he_FindNearestSpying(struct AICHAR *per, struct AICHAR *agent, int skip);  /* 0x56f600 */
-int he_SecretRoomCatchSpy(struct AICHAR *agent, int ev, struct AIJOB *spy);  /* 0x56f740 */
+int he_SecretRoomCatchSpy(struct AICHAR *agent, struct AIJOB *ev, struct AIJOB *spy);  /* 0x56f740 */
 int he_RoomBusy(struct AIBLD *b, unsigned short kind);     /* 0x56ddc0, 1 when the room `kind` of the building b is locked */
-int he_FindMeetingRoom(int ev);                 /* 0x574fe0, the first building of the meeting event's room classes, 0 when none */
-void he_ShowConstruction(int ev);               /* 0x56b780, the construction state of the building event ev */
+struct AIBLD *he_FindMeetingRoom(struct AIJOB *ev);                 /* 0x574fe0, the first building of the meeting event's room classes, 0 when none */
+void he_ShowConstruction(struct AIJOB *ev);               /* 0x56b780, the construction state of the building event ev */
 void he_SpreadGfxInfos(struct D3OBJECT *obj);
 struct D3OBJECT *he_CreateGfxObject(HEGFXINFO *e, char *name, struct D3OBJECT *obj);
 void he_CreateGfxInfo(struct AIJOB *ev, char *name, struct D3OBJECT *parent);
@@ -87,7 +95,7 @@ void he_AddEventGfxInfo(struct AIJOB *ev);
 void he_RemoveStaleGfxInfos(void);
 void he_RemoveGfxInfos(int obj);
 void he_ShowObjectInfos(int obj, int a);
-void he_RecheckEventPerson(unsigned char *r);
+void he_RecheckEventPerson(struct AIJOB *r);
 void he_RecheckPersonEvents(unsigned short *pl);
 void he_RunEvents(void);
 void he_RunQuickList(void);
@@ -105,7 +113,7 @@ typedef struct HEAPEVENT {              /* 0x50 bytes, an AP event (0x100 of the
     char name[0x40];                    /* 0x10, 0x3f characters */
 } HEAPEVENT;
 #pragma pack(pop)
-#define he_ApEvents (*(HEAPEVENT (*)[0x100])((char *)&he_RunHandlers + 0x6a0))  /* 0x758ca0, the AP events (ls.c's he_RunHandlers block holds them) */
+extern HEAPEVENT he_ApEvents[0x100];  /* 0x758ca0, the AP events */
 int he_SumApEvents(int key);
 HEAPEVENT *he_AddApEvent(int key, char *name, int income, int cost);  /* 0x53eec0, registers an AP event, returns it (0 when full) */
 int he_SumApEventCosts(int key);
@@ -126,28 +134,28 @@ void he_PostEvent3a(void);
 void he_PostEvent3b(void);
 void he_PostEvent73(void);
 void he_PostEventA6(void);
-void he_EndEventNow(int r);
-void he_SetEventChar(int r, int pl);
+void he_EndEventNow(struct AIJOB *r);
+void he_SetEventChar(struct AIJOB *r, int pl);
 
 
 
 void he_CharacterBehavior(struct AIJOB *ev, float *pos);
 void he_CharAccident(struct AIJOB *ev, struct AICHAR *c, struct AICHAR *boss, struct AIBLD *bld, float value, int quiet); /* 0x5414a0, a character's accident: carried away ("Unfall") or dead, with the boss's news */
 void he_CharIllness(struct AIJOB *ev, struct AICHAR *c, struct AICHAR *boss, struct AIBLD *bld, int disease, float value); /* 0x5417d0, a character's illness: carried away ("Unfall") or dead, with the boss's news */
-void he_AllocStammtisch(int r);
+void he_AllocStammtisch(struct AIJOB *r);
 
-void he_RunTribute(int ev);
-void he_DrawPairPicks(int ev, struct AICHAR *a, struct AICHAR *b);
-void he_AllocCourtship(int ev);
-void he_DuelAccepted(int ev, struct AICHAR *p2, struct AICHAR *p3);
+void he_RunTribute(struct AIJOB *ev);
+void he_DrawPairPicks(struct AIJOB *ev, struct AICHAR *a, struct AICHAR *b);
+void he_AllocCourtship(struct AIJOB *ev);
+void he_DuelAccepted(struct AIJOB *ev, struct AICHAR *p2, struct AICHAR *p3);
 
-void he_RunFeast(int ev);
+void he_RunFeast(struct AIJOB *ev);
 
-void he_RunRandomMessage(int ev);
+void he_RunRandomMessage(struct AIJOB *ev);
 
-void he_AllocPatrol(int ev);
+void he_AllocPatrol(struct AIJOB *ev);
 
-void he_AllocTribute(int ev);
+void he_AllocTribute(struct AIJOB *ev);
 
 void he_SpawnFounders(void);
 extern const float he_FounderOdds[5];  /* 0x5eebc4 */
@@ -159,36 +167,36 @@ extern HEBLDMODEL he_BuildingModels[37]; /* 0x627e98, the construction models, t
 
 void he_StammtischCommand(unsigned cmd, struct AIBLD *inn, struct AIOBJ *table, int figId); /* 0x541b40, the inn meeting hears of a table request: join / leav / cler / exec / new */
 
-void he_AllocTavern(int ev);
+void he_AllocTavern(struct AIJOB *ev);
 
-void he_RunTavern(int ev);
+void he_RunTavern(struct AIJOB *ev);
 
-void he_AllocQuarrel(int ev);
-void he_RunQuarrel(int ev);
+void he_AllocQuarrel(struct AIJOB *ev);
+void he_RunQuarrel(struct AIJOB *ev);
 
-void he_RunMasterExam(int ev);
+void he_RunMasterExam(struct AIJOB *ev);
 
-void he_AllocFeast(int ev);
+void he_AllocFeast(struct AIJOB *ev);
 
-void he_AllocOffer(int ev);
+void he_AllocOffer(struct AIJOB *ev);
 
-void he_RunWeddingOffer(int ev);
+void he_RunWeddingOffer(struct AIJOB *ev);
 
-void he_RunStammtisch(int ev);
+void he_RunStammtisch(struct AIJOB *ev);
 
 void he_SaveMessageFilter(void);                                       /* 0x575600 */
 
 /* declared in other units' headers before (moved to the owner) */
-int he_NoProtectionEvent(int p);  /* 0x553cc0 */
-int he_NoEvent2ePair(int a, int b);  /* 0x553d10 */
-int he_NoEvent4bPair(int a, int b);  /* 0x553d60 */
+int he_NoProtectionEvent(struct AIBLD *p);  /* 0x553cc0 */
+int he_NoEvent2ePair(struct AICHAR *a, struct AICHAR *b);  /* 0x553d10 */
+int he_NoEvent4bPair(struct AICHAR *a, struct AICHAR *b);  /* 0x553d60 */
 int he_EventOnBuilding(int owner);  /* 0x56f170 */
 int he_NoEvent88Pair(struct AICHAR *a, struct AICHAR *b);  /* 0x570ea0, 1 when no running haunting event 0x88 has b's netId as its character and a's netId as its victim */
 int he_IsMessageKindFiltered(int id);  /* 0x575640 */
-int he_RandomTransporter(char *obj);  /* 0x555210 */
-char *ai_FindCurseEvent(char *a);  /* 0x5741d0 */
+int he_RandomTransporter(struct D3OBJECT *obj);  /* 0x555210 */
+struct AIJOB *ai_FindCurseEvent(struct AIBLD *a);  /* 0x5741d0 */
 int he_HasGraveWork(struct AIBLD *bld, int size, int index);  /* 0x573200, 1 when a work event 0x8d of bld is pending on the grave (size, index) */
-int he_NoEvent35Pair(unsigned short *a, int b, int *count);  /* 0x553db0 */
+int he_NoEvent35Pair(unsigned short *a, struct AICHAR *b, int *count);  /* 0x553db0 */
 
 extern unsigned char he_FindKind;       /* 0x625708, he_FindEvent's filter on AIJOB.kind (key 0), 0xff = any */
 extern int he_FindId;                   /* 0x62570c, its filter on AIJOB.id (key 1), -1 = any */

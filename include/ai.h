@@ -3,7 +3,7 @@ struct AITIME;
    ai_CalcMeisterDiebe, ai_MeisterTrade, ai_MeisterCollectTrans, ai_MeisterTradeFernEinkauf ...). Original file name
    unknown. Names are ours except the ones taken from the strings; the layouts only hold the fields the AI code
    touches. Unified in round 21 from the headers of the round 19 / 20 files and in round 22 (ai2) from the views of
-   the round 21 files (AIEN / AIS / AIENX / AISLX / AICHX / AIBLDX / AIJOBX / AIBTYPEX / AIOBJT / AIWATCHW / AIINFOW
+   the round 21 files (AIEN / AIS / AIENX / AISLX / AICHX / AIBLD / AIJOBX / AIBTYPEX / AIOBJT / AIWATCHW / AIINFOW
    are now fields of the types below). Where two files named the same field differently, an anonymous union keeps
    both names (one offset, one type). */
 #ifndef AI_H
@@ -26,7 +26,7 @@ struct AITIME;
 
 #include "ai_types.h"                /* AITIME, AISTORE, AIOBJ */
 
-#include "ai_char.h"                 /* AITASK, AICHAR */
+#include "ai_char.h"                 /* AICHAR */
 
 typedef struct AIENTRY {                /* 0x58 bytes, ai_Entries[32]: a good the workshop makes */
     int item;                           /* 0x00, index into ai_Goods */
@@ -204,6 +204,8 @@ typedef struct AIFIN {                  /* what gm_PlayerRecord finds for a char
     int savedA8;                        /* 0xa8, an int the save game keeps; no other reader known */
 } AIFIN;                                /* 0xac bytes, the 16 records of gm_PlayerRecords */
 
+extern AIFIN gm_PlayerRecords[16];     /* 0x7d5f80, the player records (gm_PlayerRecord finds a character's) */
+
 typedef struct AIMAPENT {               /* 24 bytes, the AI's view of the vegetation records at AIBLD.plants (rd.h
                                            G15PLANT, the same 0x18-byte layout; ai.c includes rd.h now, so the readers
                                            can take G15PLANT) */
@@ -221,10 +223,10 @@ typedef struct AIMAPENT {               /* 24 bytes, the AI's view of the vegeta
 
 
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-extern char ai_Chars[768][0x21c];        /* 0x770b80, the characters: AICHAR records, defined by ahm.c as char[768][0x21c]; the units that read their fields use their ai_CharsT view */
-extern char *ai_BTypes;                 /* 0x7e3f30, the building types: AIBTYPE records (ahm.c defines char *; ai_BTypesT views) */
-extern char *ai_Blds;                   /* 0x889f74, the buildings: AIBLD records (f3gm.c defines char *; ai_BldsT views) */
-extern char *ai_Goods;                  /* 0x91aaf0, the goods: AIGOOD records, 0x41 bytes each (f3gm.c defines char *; ai_GoodsT views) */
+extern AICHAR ai_Chars[768];             /* 0x770b80, the characters */
+extern AIBTYPE *ai_BTypes;               /* 0x7e3f30, the building types */
+extern AIBLD *ai_Blds;                  /* 0x889f74, the buildings: AIBLD records */
+extern AIGOOD *ai_Goods;                /* 0x91aaf0, the goods: AIGOOD records, 0x41 bytes each */
 extern int ai_NSlots;                   /* 0xf86a28 */
 extern int ai_NEntries;                 /* 0xf86a2c */
 extern AISLOT ai_Slots[128];            /* 0xf86a40 */
@@ -242,18 +244,15 @@ extern AICHAR *ai_Partner;            /* 0x6f0468 */
 extern int ai_TradeMsgCount;                /* 0x6f046c, the trade messages sent since the last reset */
 extern float ai_Rating;               /* 0x6f1ba0, the smoothed game rating (statistics out[5]; the running rating ai_RatingBase follows it) */
 extern unsigned char ai_OwnPlayer;      /* 0x6f1bc5 */
-extern AIBLD *ai_MarketBuilding;             /* 0x6f1bc8, the market building (gm_BuildQuery(1, 5, 10)); @original: f3snd.h declares G16BLDVIEW * (f3snd.c reads its +0x4c / object fields); ai.c reads the AIBLD fields (->id) */
-extern unsigned short *ai_PlayerChar;    /* 0x6f1bf8 */
-extern char *ai_PlayerBuilding;          /* 0x6f2308, the building the player is in: an AIBLD (sv.c defines char *; ai_PlayerBuildingT views) */
-extern char *ai_FallbackBuilding;        /* 0x6f230c, the second current building, used when 0x6f2308 is 0 (sv.c defines char *) */
+extern AIBLD *ai_MarketBuilding;             /* 0x6f1bc8, the market building (gm_BuildQuery(1, 5, 10)) */
+extern AICHAR *ai_PlayerChar;           /* 0x6f1bf8, the player's character */
+extern struct AIBLD *ai_PlayerBuilding;          /* 0x6f2308, the building the player is in: an AIBLD */
+extern struct AIBLD *ai_FallbackBuilding;        /* 0x6f230c, the second current building, used when 0x6f2308 is 0 */
 extern int ai_CurrentPlayer;                /* 0x6f2590, the player index whose turn the local round loop simulates */
 extern int ai_Difficulty;                 /* 0x6f23fc, the game difficulty 0 .. 4 */
 extern AISTORE gm_Offers[];          /* 0x7e4b20 */
 extern AIGRID ai_Grid[8][8];            /* 0x91ae60 */
 extern char *cm_FieldObject;              /* 0xa68d2c */
-#ifndef DATA_VIEWS_H
-extern unsigned int ai_ActionFlags[][37]; /* 0xf83f50, 0x94 byte entries, flags first */
-#endif
 extern int ai_TradeMsgOff;              /* 0xf86a24, read-only in every source: nonzero suppresses the trade
                                            message and its count (never set in this build) */
 extern AIOBJ *ai_Carts[16];             /* 0xf89540, the master's kind-0x1d cart objects without a running
@@ -344,28 +343,28 @@ int cm_SendRelations(int a, int b, int c, int d);                  /* 0x4c4b00 *
 int cm_SendLongMessage(char *msg);                                           /* 0x4c4b70 */
 char * ai_FindWeaponRecord(int id);                                              /* 0x4cd9d0 */
 int gv_EntryIndex(char *r, int *e);                                        /* 0x4ef6b0 */
-int ord_GetGridCell(char *p, int *x, int *y);                               /* 0x4f8300 */
+int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y);                               /* 0x4f8300 */
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);                       /* 0x4fe140 */
 void gm_SetTime(struct AITIME *c, unsigned char hour, unsigned char min, unsigned char sec);                   /* 0x4fe1e0, f3gm.c: sets the time of day of the clock c */
 int gm_MinutesBetween(AITIME *a, AITIME *b);                                  /* 0x4fe280, minutes between two times */
 int gm_FindObjectInst(int id);                                              /* 0x4fe980 */
-int gm_FindById(int *bld, int *obj, int *chr, int id);           /* 0x4fea50 */
-unsigned short * gm_QueryNext(void);                                               /* 0x4ffcc0, next of gm_Query */
-char * gm_Query(void *list, int n, ...);                               /* 0x4ffe90, n (key, value) pairs */
+int gm_FindById(struct AIBLD **bld, struct AIOBJ **obj, struct AICHAR **chr, int id);           /* 0x4fea50 */
+struct AIOBJ *gm_QueryNext(void);                                               /* 0x4ffcc0, next of gm_Query */
+struct AIOBJ *gm_Query(void *list, int n, ...);                               /* 0x4ffe90, n (key, value) pairs */
 int gm_FindMarketObject(int id);                                            /* 0x500ec0 */
-unsigned char * gm_BuildNext(void);                                               /* 0x501030, next of gm_BuildQuery */
-unsigned char * gm_BuildQuery(int n, ...);                                         /* 0x501190, n (key, value) filters; key 6 takes no value */
+struct AIBLD *gm_BuildNext(void);                                               /* 0x501030, next of gm_BuildQuery */
+struct AIBLD *gm_BuildQuery(int n, ...);                                         /* 0x501190, n (key, value) filters; key 6 takes no value */
 int gm_BuildingClass(int type);    /* 0x501d80, the class 0 .. 9 of ai_BTypes[type].kind: kinds 1 .. 0x20 index the byte table 0x501e14 and jump through 0x501dec (1..9), anything else is 0; ai.c dispatches its master / workshop logic on it, f3init.c's init_Betrieb stocks the classes 1 / 4 */
-char * gm_FindBuildingById(int id);                                             /* 0x502020 */
-short * gm_FindChar(int id);                                            /* 0x505df0 */
+struct AIBLD *gm_FindBuildingById(int id);                                             /* 0x502020 */
+struct AICHAR *gm_FindChar(int id);                                            /* 0x505df0 */
 int gm_CharLevel(unsigned short id, int again);                              /* 0x505e60, f3gm.c */
-short * gm_PlayerRecord(char *ch);                                         /* 0x506430 */
+short * gm_PlayerRecord(struct AICHAR *ch);                                         /* 0x506430 */
 float gm_ItemPrice(int item, unsigned char n);                           /* 0x5087f0 */
 float gm_GoodsPrice(unsigned id, unsigned char p);                           /* 0x5089c0, a price */
-int gm_EquipmentValue(unsigned char *b, int level);                                     /* 0x509b10 */
+int gm_EquipmentValue(struct AIBLD *b, int level);                                     /* 0x509b10 */
 int gm_ListAmount(short *l, char *o);                                      /* 0x50aaf0 */
 float gm_Liking(unsigned a, unsigned b, int c);                                 /* 0x50c550 */
-char * he_NextEvent(void);                                             /* 0x53e300, next of he_FindEvent */
-char * he_FindEvent(int n, ...);                                         /* 0x53e400, n (key, value) pairs */
+struct AIJOB *he_NextEvent(void);                                             /* 0x53e300, next of he_FindEvent */
+struct AIJOB *he_FindEvent(int n, ...);                                         /* 0x53e400, n (key, value) pairs */
 
 #endif

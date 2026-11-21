@@ -5,7 +5,7 @@
 
 struct AMTREC;
 #include "am.h"
-struct AIPER;
+struct AICHAR;
 struct AMTKIND;
 
 #pragma pack(push, 1)
@@ -23,7 +23,7 @@ typedef struct G10NPC {                 /* 0x21c bytes, the two opponents at 0xf
 } G10NPC;
 #pragma pack(pop)
 typedef struct G10SEAT {                /* 0x34 bytes; seat 0 is the player, 1 and 2 the NPCs */
-    void *who;                          /* 0x00, AIPER (seat 0) / G10NPC */
+    void *who;                          /* 0x00, AICHAR (seat 0) / G10NPC */
     int model;                          /* 0x04, 0x639 + the model's index (0x4fb770) */
     int card[5];                        /* 0x08, indices into the deck, -1 = none */
     int bet;                            /* 0x1c, what the seat has put into the pot this round (+= stake2) */
@@ -74,7 +74,7 @@ extern G10NPC ai_PokerOpponents[2];                                             
 
 
 
-int ai_PokerStart(AIPER *p, G10GAME *g);                                          /* 0x4a7140 */
+int ai_PokerStart(AICHAR *p, G10GAME *g);                                          /* 0x4a7140 */
 int ai_PokerDealRound(G10GAME *g);                                                    /* 0x4a7430 */
 unsigned short ai_PokerStep(void);                                                        /* 0x4a74e0 */
 int ai_PokerFindPair(int *hand, int shown, int skip, int *out);                         /* 0x4a7650 */

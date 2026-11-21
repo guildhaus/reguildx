@@ -31,7 +31,7 @@
    ord_CountGridObjects shape -> draft, a declaration-set tie-break the probe does not reproduce), so 0x3f / 0x40
    read the player / item head of the goods record through G17GOODSMSG.goods.
    The fight scene (cm_SetupFightScene .. cm_MostThreatenedCellNear) reads its fight record as CMFIGHTREC (a partial
-   layout, defined in this file; cm_FightRecordT views cm_FightRecord as it).
+   layout, cm_types.h; cm_FightRecord points to it).
    Open: types: CMFIGHTSLOT and CMCUTENTRY (cm_types.h) are one 0x2c-byte record in two views (a cutscene entry is sent
    as the fight command's slot, cm_RunCutOrders casts between them); one type for both is unsettled.
    Open: types: CMFIGHTREC (this file) is G28REC's raid view (cm_types.h: defenders 0x80, attackers 0xc0, carts 0x100,
@@ -57,11 +57,9 @@ struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3S
 #include "evt.h"
 #include "data_views.h"
 #include "menu_types.h"
-extern char cm_CutInfos[16][0x35c];
 #define GAPDATA __declspec(align(1)) unsigned char
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
-extern int gm_PlayerRecords[688];
 extern GAPDATA full_data_602568[];
 
 
@@ -69,8 +67,6 @@ extern GAPDATA full_data_602568[];
 #define G17_S(m, o) (*(short *)&(m).data[o])
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
-#define cm_LobbyListIds (*(int (*)[8])((char *)cm_LobbyList + 4))  /* 0x936424, the eight player states (a view) */
-#define cm_LobbyPlayers ((CMLOBBYPLAYER *)cm_LobbyRecords)  /* 0x9364e0, the eight lobby player records (the CMJOIN cm_JoinChar follows at +0x2c0) */
 #define ai_WeaponRecords ((AIWEAPON *)ai_WeaponRecordData)  /* 0x60c7c0, the ten 0x5c-byte weapon records ai_FindWeaponRecord searches (a view) */
 
 #include "f3init.h"
@@ -112,15 +108,6 @@ extern GAPDATA full_data_602568[];
 #include "gv.h"
 #include "poker.h"
 #include "gfx.h"
-#define d3t_CamMoveI (*(int *)&d3t_CamMove)  /* 0x6310e8, d3t_CamMove (d3_tools.c: D3ANIM *) as the int this unit tests */
-#define d2_LastWindowPtrC (*(char **)&d2_LastWindowPtr)  /* 0x6ed980, d2_LastWindowPtr (d2.c: D2WIN *) read bytewise, as this unit does */
-#define d2_ObjsC (*(char **)&d2_Objs)  /* 0xf8f080, d2_Objs (d2.c: D2OBJ *) read bytewise, as this unit does (+ obj * 0x2ec) */
-#define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (cm.h: char *) as the AIGOOD records it points to */
-#define cm_CutInfosT (*(CMCUTINFO (*)[16])&cm_CutInfos)  /* 0x92cae0, cm_CutInfos (char[16][0x35c]) as the cutscene records */
-#define cm_LongMsgCut (*(CMCUTINFO *)&cm_LongMsg)  /* 0xa68d40, cm_LongMsg (cm.h: unsigned char[]) as the cutscene record message 0x26 joins */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (cm.h: char *) as the AIBTYPE records it points to */
-#define ai_TimeCopyT (*(AITIME *)&ai_TimeCopy)  /* 0x75e130, ai_TimeCopy (cm.h: int[4]) as the AITIME copy it holds */
-#define ai_PlayerSlotsT (*(GMPLAYERSLOT (*)[4])&ai_PlayerSlots)  /* 0x7e3f40, ai_PlayerSlots (cm.h: char[][0x2f4]) as the player slots */
 #define CM_KEEPER_FLAG 0x800000     /* flags1c8 bit 23 (he.c HE_LOVER_FLAG: has a keeper; f3gm.c ORD_F1C8_ANEW): message 0x19
                                        may not set it on a character that has it */
 typedef struct CMCUTTYPEMSG {      /* 0x7c bytes, the data of the system message 0x11 cm_RunSceneParty sends (cm_SendExSysMessage) */
@@ -165,20 +152,6 @@ typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of
     D3ANIM *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
     int x, y;                       /* 0x08, the target cell */
 } CMGRENADE;
-#define cm_GrenadesT (*(CMGRENADE (*)[32])&cm_Grenades)  /* 0x935a00, cm_Grenades (char[512]) as the 32 records */
-typedef struct CMBOMB {             /* 8 bytes, one of the 32 bombs of cm_Bombs */
-    D3OBJECT *obj;                  /* the bomb object "ob_BOMBE", 0 = a free slot */
-    unsigned long time;             /* d3_Time when it was laid */
-} CMBOMB;
-#define cm_BombsT (*(CMBOMB (*)[32])&cm_Bombs)  /* 0x935c00, cm_Bombs (sv.h: int[0x40]) as the 32 bomb records */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (cm.h: char[][0x21c]) as the AICHAR records they are */
-#define ai_PlayerCharC (*(char **)&ai_PlayerChar)  /* 0x6f1bf8, ai_PlayerChar (ai.c: unsigned short *) read bytewise, as this unit does (ai_PlayerChar + 4, ch[2]) */
-#define ai_FallbackBuildingT (*(struct AIBLD **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) as the AIBLD it points to */
-#define ai_PlayerBuildingT (*(struct AIBLD **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) as the AIBLD it points to */
-#define cm_FightersT (*(AICHAR (*)[32])&cm_Fighters)  /* 0x930600, cm_Fighters (char[], with the 0x1000 bytes after the 32 records) as its AICHAR records */
-#define ai_SceneCharsT (*(AICHAR *(*)[32])&ai_SceneChars)  /* 0x7603a0, ai_SceneChars (f3init.h: int[32]) as the AICHAR pointers it holds */
-#define cm_FlagObjectsT (*(D3OBJECT *(*)[32])&cm_FlagObjects)  /* 0x935980, cm_FlagObjects (cm.h: char *[]) as the D3OBJECTs it holds */
-#define d2_LastWindowPtrT (*(struct D2WIN **)&d2_LastWindowPtr)  /* 0x6ed980, d2_LastWindowPtr (d2.c: D2WIN *) as the window record */
 typedef struct CMAMOUNTROW {        /* 0x38 bytes, one row of the special-amount list (ai_AmountRowStatus / ai_AmountRow read it
                                        as ints; menu.c GYPSYROW) */
     AICHAR *rec;                    /* 0x00, the character the row shows */
@@ -751,13 +724,15 @@ int cm_SendGroupState(void)
 
 void cm_BeginFieldBlock(char *o, int id)
 {
-    int a, b;
+    AIBLD *a;
+    AIOBJ *b;
+    AICHAR *c;
 
     cm_FieldBlock.id = id;
     cm_FieldBlock.n = 0;
     memset(cm_FieldBlock.buf, 0, sizeof(cm_FieldBlock.buf));
     cm_FieldBlockLen = 0;
-    if (gm_FindById(&a, &b, &id, id) != 0)
+    if (gm_FindById(&a, &b, &c, id) != 0)
         cm_FieldObject = o;
 }
 /* 0x4c3c00, adds n values of size bytes at field as differences to the object's values
@@ -1471,12 +1446,12 @@ int cm_SendLongMessageText(char *msg, unsigned int len, void *extra)
 /* 0x4c4c60, message 0x1d about p (three AITIMEs, its name from cm_EventNames); p + 0xac as the long message.
    Returns cm_QueueSend's result (the callers' slot; the key is pushed as an int and stored as a byte) */
 
-int cm_SendExSetHE(int k, char *p)
+int cm_SendExSetHE(int k, AIJOB *p)
 {
     G17MSG m;
     AIJOB *ev;
 
-    ev = (AIJOB *)p;
+    ev = p;
     m.type = 0x1d;
     m.setHE.id = ev->id;
     m.setHE.start = ev->start;
@@ -1729,7 +1704,7 @@ int cm_SendPlaceOnStage(int charId, int bldId, int objId)
 int cm_SendChrGotoBuilding(int id, int bld, int c, const char *s, int f, const char *s2)
 {
     G17MSG m;
-    char *ch;
+    AICHAR *ch;
     AIBLD *b;
     AIOBJ *o;
 
@@ -1747,18 +1722,18 @@ int cm_SendChrGotoBuilding(int id, int bld, int c, const char *s, int f, const c
     else
         m.go.text[0] = 0;
     ch = gm_FindChar(id);
-    if (ch != 0 && ch[8] == 0)
+    if (ch != 0 && ch->health == 0)
         return -1;
     if (f == 0 && c == -1) {
         o = 0;
-        b = (AIBLD *)gm_FindBuildingById(bld);
+        b = gm_FindBuildingById(bld);
         if (b != 0) {
-            if (gm_IsHomeType((unsigned char *)b) != 0) {
-                o = (AIOBJ *)gm_Query((void *)b->objList, 1, 0, 0xfd);
+            if (gm_IsHomeType(b) != 0) {
+                o = gm_Query(b->objList, 1, 0, 0xfd);
                 if (o != 0)
                     m.go.objId = o->objId;
             } else {
-                o = (AIOBJ *)gm_GetGebaeudeHauptraum((unsigned char *)b);
+                o = gm_GetGebaeudeHauptraum(b);
                 if (o != 0)
                     m.go.objId = o->objId;
             }
@@ -1855,7 +1830,7 @@ int cm_SendHandOverCrimes(int a, int b, int c, int d)
 /* 0x4c55d0, message 0x3d: hires a character of kind b for the building p (the applicant for title c / job d,
    gm_FindApplicant, else a new one) with a home (gm_FindHome) */
 
-int cm_SendMessage3d(char *p, unsigned char b, int c, int d)
+int cm_SendMessage3d(AIBLD *p, unsigned char b, int c, int d)
 {
     G17MSG m;
     AICHAR *q;
@@ -1864,14 +1839,14 @@ int cm_SendMessage3d(char *p, unsigned char b, int c, int d)
     m.type = 0x3d;
     if (p == 0)
         return -1;
-    q = (AICHAR *)gm_FindApplicant((struct ORDBLD *)p, c, d);
-    m.hire.bldId = ((AIBLD *)p)->id;
+    q = gm_FindApplicant(p, c, d);
+    m.hire.bldId = p->id;
     if (q != 0) {
         m.hire.charId = q->netId;
-        r = q->bld2 == 0 ? (AIBLD *)gm_FindHome(q->id, (struct ORDBLD *)p) : 0;
+        r = q->bld2 == 0 ? gm_FindHome(q->id, p) : 0;
     } else {
         m.hire.charId = -1;
-        r = (AIBLD *)gm_FindHome(0xffff, (struct ORDBLD *)p);
+        r = gm_FindHome(0xffff, p);
     }
     if (r != 0)
         m.hire.homeId = r->id;
@@ -2182,8 +2157,8 @@ int cm_SendFightCommand(AICHAR *c, int cmd, CMFIGHTSLOT *f)
     m.type = 0x55;
     m.fight.cmd = (unsigned char)cmd;
     m.fight.slot = *f;
-    if (c != 0 && c->model != 0) {
-        b = c->model->body;
+    if (c != 0 && c->scene != 0) {
+        b = c->scene->obj;
         m.fight.pos.x = b->pos.x;
         m.fight.pos.y = b->pos.y;
         m.fight.pos.z = b->pos.z;
@@ -2192,7 +2167,7 @@ int cm_SendFightCommand(AICHAR *c, int cmd, CMFIGHTSLOT *f)
         m.fight.rot.z = b->rotation.z;
         m.fight.health = c->v024;
         if (cmd == 2) {
-            t = (AICHAR *)cm_FindFighter(m.fight.slot.target);
+            t = cm_FindFighter(m.fight.slot.target);
             if (t != 0)
                 m.fight.slot.health = t->v024;
         }
@@ -2419,14 +2394,14 @@ void cm_SendClearRoute(AIOBJ *o)
 
 int cm_CheckMoveGoods(G17MSG *m)
 {
-    ORDBLD *b;
-    ORDOBJ *o;
-    ORDCHAR *c;
-    int *list;
+    AIBLD *b;
+    AIOBJ *o;
+    AICHAR *c;
+    AIOBJ **list;
 
     if (m->moveGoods.to != -1) {
         m->moveGoods.to = cm_ResolveId((int)m, m->moveGoods.to);
-        if (gm_FindById((int *)&b, (int *)&o, (int *)&c, m->moveGoods.to) == 0)
+        if (gm_FindById(&b, &o, &c, m->moveGoods.to) == 0)
             return 1;
         if (b != 0)
             list = &b->objList;
@@ -2434,7 +2409,7 @@ int cm_CheckMoveGoods(G17MSG *m)
             list = &o->list;
         else
             list = &c->inventory;
-        if (gm_SumSlotAmounts((void *)*list, m->moveGoods.player) - m->moveGoods.amount < 0)
+        if (gm_SumSlotAmounts(*list, m->moveGoods.player) - m->moveGoods.amount < 0)
             return 1;
     }
     return 0;
@@ -2444,17 +2419,17 @@ int cm_CheckMoveGoods(G17MSG *m)
 
 int cm_CheckSellObject(G17MSG *m)
 {
-    ORDBLD *b;
-    ORDOBJ *o;
-    ORDCHAR *c;
+    AIBLD *b;
+    AIOBJ *o;
+    AICHAR *c;
     char *p;
-    ORDCHAR *r;
-    int *list;
-    ORDBLD *bb;                 /* the buyer's building: its own slot in the original, not b again */
+    AICHAR *r;
+    AIOBJ **list;
+    AIBLD *bb;                 /* the buyer's building: its own slot in the original, not b again */
 
     if (m->sell.seller != -1) {
         m->sell.seller = cm_ResolveId((int)m, m->sell.seller);
-        if (gm_FindById((int *)&b, (int *)&o, (int *)&c, m->sell.seller) == 0)
+        if (gm_FindById(&b, &o, &c, m->sell.seller) == 0)
             return 1;
         if (b != 0)
             list = &b->objList;
@@ -2462,19 +2437,19 @@ int cm_CheckSellObject(G17MSG *m)
             list = &o->list;
         else
             list = &c->inventory;
-        p = gm_Query((void *)*list, 1, 0, m->sell.item);
+        p = (char *)gm_Query(*list, 1, 0, m->sell.item);
         if (p == 0)
             return 1;
-        if (((ORDOBJ *)p)->count < m->sell.count)
+        if (((AIOBJ *)p)->count < m->sell.count)
             return 1;
     }
     if (m->sell.buyer != -1) {
         m->sell.buyer = cm_ResolveId((int)m, m->sell.buyer);
-        if (gm_FindById((int *)&bb, (int *)&o, (int *)&c, m->sell.buyer) == 0)
+        if (gm_FindById(&bb, &o, &c, m->sell.buyer) == 0)
             return 1;
         if (bb != 0) {
             if (bb->owner != 0xffff)
-                r = (ORDCHAR *)ai_Chars[bb->owner];
+                r = &ai_Chars[bb->owner];
             else
                 r = 0;
         } else if (o != 0) {
@@ -2482,14 +2457,14 @@ int cm_CheckSellObject(G17MSG *m)
                 if (gm_FreeCapacity((short *)o, m->sell.item, m->sell.count) < m->sell.count)
                     return 1;
             }
-            r = (ORDCHAR *)gm_ObjectBuildingOwner((unsigned short *)o);
+            r = gm_ObjectBuildingOwner(o);
         } else {
-            if (gm_TakeableCount((char *)c, m->sell.item, m->sell.count) < m->sell.count)
+            if (gm_TakeableCount(c, m->sell.item, m->sell.count) < m->sell.count)
                 return 1;
             r = c;
         }
         if (m->sell.price != 0 && r != 0) {
-            if (gm_SumSlotAmounts((void *)r->inventory, m->sell.player) < m->sell.count * m->sell.price)
+            if (gm_SumSlotAmounts(r->inventory, m->sell.player) < m->sell.count * m->sell.price)
                 return 1;
         }
     }
@@ -2500,9 +2475,9 @@ int cm_CheckSellObject(G17MSG *m)
 
 int cm_CheckFieldDeltas(G17MSG *m)
 {
-    ORDBLD *b;
-    ORDOBJ *o;
-    ORDCHAR *c;
+    AIBLD *b;
+    AIOBJ *o;
+    AICHAR *c;
     char *base, *a;
     union {
         unsigned char *b;
@@ -2510,12 +2485,12 @@ int cm_CheckFieldDeltas(G17MSG *m)
         short *s;
         int *i;
     } p;
-    ORDCHAR *r;
+    AICHAR *r;
     unsigned int i, j, n;
     int size, id;
 
     m->fields.id = cm_ResolveId((int)m, m->fields.id);
-    if (gm_FindById((int *)&b, (int *)&o, (int *)&c, m->fields.id) == 0)
+    if (gm_FindById(&b, &o, &c, m->fields.id) == 0)
         return 1;
     if (b != 0)
         base = (char *)b;
@@ -2531,12 +2506,12 @@ int cm_CheckFieldDeltas(G17MSG *m)
         if (c != 0) {
             if (a == (char *)&c->netId)
                 return 1;
-            if (a == (char *)&c->partner) {
-                id = *p.i + c->partner;
-                r = (ORDCHAR *)gm_FindChar(id);
+            if (a == (char *)&c->relatives[0]) {
+                id = *p.i + c->relatives[0];
+                r = gm_FindChar(id);
                 if (r == 0)
                     return 1;
-                if (r->partner != -1 && r->partner != c->netId)
+                if (r->relatives[0] != -1 && r->relatives[0] != c->netId)
                     return 1;
             }
         }
@@ -2561,13 +2536,13 @@ int cm_CheckFieldDeltas(G17MSG *m)
 
 int cm_CheckSetField(G17MSG *m)
 {
-    ORDBLD *b;
-    ORDOBJ *o;
-    ORDCHAR *c;
+    AIBLD *b;
+    AIOBJ *o;
+    AICHAR *c;
     char *base;
 
     m->setField.objId = cm_ResolveId((int)m, m->setField.objId);
-    if (gm_FindById((int *)&b, (int *)&o, (int *)&c, m->setField.objId) == 0)
+    if (gm_FindById(&b, &o, &c, m->setField.objId) == 0)
         return 1;
     if (b != 0)
         base = (char *)b;
@@ -2587,7 +2562,7 @@ int cm_CheckOwnership(G17MSG *m)
 {
     AIBLD *b;
 
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->owner.bldId);
+    b = gm_BuildQuery(1, 1, m->owner.bldId);
     if (b != 0 && (b->flags5a & 2))
         return 0;
     return 1;
@@ -2615,16 +2590,16 @@ int cm_CheckDarkCorner(G17MSG *m)
     int i;
 
     if (m->script.op == 0x636c6572) {               /* 'cler' */
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->script.bldId);
+        b = gm_BuildQuery(1, 1, m->script.bldId);
         if (b != 0) {
-            o = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12c);
+            o = gm_Query(b->objList, 2, 6, 0, 0x12c);
             if (o != 0)
                 return ai_Time.year - o->cornerYear <= 1;
         }
     } else if (m->script.op == 0x62757920) {        /* 'buy ' */
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->script.bldId);
+        b = gm_BuildQuery(1, 1, m->script.bldId);
         if (b != 0) {
-            o = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12c);
+            o = gm_Query(b->objList, 2, 6, 0, 0x12c);
             if (o != 0) {
                 for (i = 0; i < 3; i++)
                     if (o->recs[i] == m->script.offer)
@@ -2647,8 +2622,8 @@ int cm_CheckTableRequest(G17MSG *m)
     unsigned short k;
 
     if (m->table.op == 'join') {
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->table.bldId);
-        if (b != 0 && (t = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12d)) != 0) {
+        b = gm_BuildQuery(1, 1, m->table.bldId);
+        if (b != 0 && (t = gm_Query(b->objList, 2, 6, 0, 0x12d)) != 0) {
             for (i = 0; i < 4; i++)
                 if (t->seats[i] == m->table.charId)
                     return 1;
@@ -2659,22 +2634,22 @@ int cm_CheckTableRequest(G17MSG *m)
                 return 0;
         }
     } else if (m->table.op == 'leav') {
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->table.bldId);
-        if (b != 0 && (t = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12d)) != 0) {
+        b = gm_BuildQuery(1, 1, m->table.bldId);
+        if (b != 0 && (t = gm_Query(b->objList, 2, 6, 0, 0x12d)) != 0) {
             for (i = 0; i < 4; i++)
                 if (t->seats[i] == m->table.charId)
                     break;
             if (i < 4)
                 return 0;
         }
-    } else if (m->table.op == 'cler' && (b = (AIBLD *)gm_BuildQuery(1, 1, m->table.bldId)) != 0) {
+    } else if (m->table.op == 'cler' && (b = gm_BuildQuery(1, 1, m->table.bldId)) != 0) {
         k = b->owner;
         if (k != 0xffff) {
-            c = &ai_CharsT[k];
-            if (c != 0 && c != (AICHAR *)ai_PlayerChar && c->health != 0 && c->kind != 0xf)
+            c = &ai_Chars[k];
+            if (c != 0 && c != ai_PlayerChar && c->health != 0 && c->kind != 0xf)
                 return 1;
         }
-        return gm_Query((void *)b->objList, 2, 6, 0, 0x12d) == 0;
+        return gm_Query(b->objList, 2, 6, 0, 0x12d) == 0;
     }
     return 1;
 }
@@ -2689,7 +2664,7 @@ int cm_CheckCutsceneReady(G17MSG *m)
     if (m->ready.partyId == -1)
         return 1;
     for (i = 0; i < 0x10; i++) {
-        c = (AICHAR *)gm_FindChar(m->ready.members[i]);
+        c = gm_FindChar(m->ready.members[i]);
         if (c != 0 && (c->kind == 6 || c->kind == 7) && c->partyId != -1 && c->partyId != m->ready.partyId)
             return 1;
     }
@@ -2750,7 +2725,7 @@ int cm_ExLoadBlock(G17MSG *m, G17STAT *s)
 
 int cm_ExCreateBuilding(G17MSG *m, G17STAT *s)
 {
-    ORDBLD *b;
+    AIBLD *b;
     unsigned short k;
     int id;
 
@@ -2762,18 +2737,18 @@ int cm_ExCreateBuilding(G17MSG *m, G17STAT *s)
         id = cm_ResolveId((int)m, m->build.owner);
         m->build.owner = id;
         for (k = 0; k < 0x300; k++)
-            if (ai_CharsT[k].id != 0xffff && ai_CharsT[k].netId == id)
+            if (ai_Chars[k].id != 0xffff && ai_Chars[k].netId == id)
                 break;
         if (k >= 0x300)
             return 1;
     }
-    b = (ORDBLD *)gm_CreateBuilding(m->build.kind, k);
+    b = (AIBLD *)gm_CreateBuilding(m->build.kind, k);
     if (b == 0)
         return 1;
     cm_LastBuildingId = b->id;
     b->flags5aw = m->build.flags;
     if (m->build.hasBlock != 0)
-        memcpy(&b->v65, m->build.block, 0x30);
+        memcpy(b->kindData, m->build.block, 0x30);
     if (s != 0) {
         s->state = 1;
         s->kind = 2;
@@ -2786,7 +2761,7 @@ int cm_ExCreateBuilding(G17MSG *m, G17STAT *s)
 
 int cm_ExCreateCharacter(G17MSG *m, G17STAT *s)
 {
-    struct ORDBLD *b;
+    struct AIBLD *b;
     unsigned int k;
 
     if (net_Conn.s != INVALID_SOCKET)
@@ -2798,18 +2773,18 @@ int cm_ExCreateCharacter(G17MSG *m, G17STAT *s)
         b = 0;
     } else {
         m->chr.bldId = cm_ResolveId((int)m, m->chr.bldId);
-        b = (struct ORDBLD *)gm_BuildQuery(1, 1, m->chr.bldId);
+        b = gm_BuildQuery(1, 1, m->chr.bldId);
         if (b == 0)
             return 1;
     }
     k = gm_CreateCharacter(m->chr.type, m->chr.parent1, m->chr.parent2, m->chr.age, b, m->chr.job, m->chr.title, m->chr.a8);
     if (k == 0xffff)
         return 1;
-    cm_LastCharId = ai_CharsT[k].netId;
+    cm_LastCharId = ai_Chars[k].netId;
     if (s != 0) {
         s->state = 1;
         s->kind = 1;
-        s->value = (int)&ai_CharsT[k];
+        s->value = (int)&ai_Chars[k];
     }
     return 0;
 }
@@ -2821,7 +2796,7 @@ int cm_ExCreateNamedCharacter(G17MSG *m, G17STAT *s)
 {
     AICHAR *c;
     AIFIN *t;
-    char *r;
+    AICHAR *r;
     unsigned int k;
     int type;
 
@@ -2837,21 +2812,21 @@ int cm_ExCreateNamedCharacter(G17MSG *m, G17STAT *s)
     k = gm_CreateCharacter(type, m->named.parent1, m->named.parent2, m->named.age, 0, m->named.job, 0, m->named.a8);
     if (k == 0xffff)
         return 1;
-    cm_LastCharId = ai_CharsT[k].netId;
-    strncpy(ai_CharsT[k].first, m->named.first, 0x10);
-    c = &ai_CharsT[k];
-    t = (AIFIN *)gm_PlayerRecord((char *)c);
+    cm_LastCharId = ai_Chars[k].netId;
+    strncpy(ai_Chars[k].first, m->named.first, 0x10);
+    c = &ai_Chars[k];
+    t = (AIFIN *)gm_PlayerRecord(c);
     if (t != 0) {
-        t->w00 = ai_CharsT[k].w050;
+        t->w00 = ai_Chars[k].w050;
         strncpy(t->family, m->named.family, 0x10);
-        strncpy(ai_CharsT[k].family, m->named.family, 0x10);
-        r = gm_FindChar(ai_CharsT[k].relatives[1]);
+        strncpy(ai_Chars[k].family, m->named.family, 0x10);
+        r = gm_FindChar(ai_Chars[k].relatives[1]);
         if (r != 0)
-            strncpy(((AICHAR *)r)->family, m->named.family, 0x10);
+            strncpy(r->family, m->named.family, 0x10);
         t->camAngle = -1.0f;
     }
-    ai_CharsT[k].ref54 = m->named.ref54;
-    ai_CharsT[k].b00c = m->named.b00c;
+    ai_Chars[k].ref54 = m->named.ref54;
+    ai_Chars[k].faith = m->named.b00c;
     if (s != 0) {
         s->state = 1;
         s->kind = 1;
@@ -2864,7 +2839,7 @@ int cm_ExCreateNamedCharacter(G17MSG *m, G17STAT *s)
 
 int cm_ExTakeOverCharacter(G17MSG *m, G17STAT *s)
 {
-    char *c;
+    AICHAR *c;
     int k;
 
     k = gm_TakeOverCharacter(m->takeover.taker, m->takeover.taken);
@@ -2876,9 +2851,9 @@ int cm_ExTakeOverCharacter(G17MSG *m, G17STAT *s)
 
             c = gm_FindChar(m->takeover.taken);
             if (gv_FindHeldEntry(c, (unsigned char **)&y, (int *)&x) != 0)     /* y the graveyard building, x the entry (gv.h GVENTRY, its size first) */
-                gv_OrderBury((int *)c, (char *)y, *x, (unsigned char)gv_EntryIndex((char *)y->yard, x));
+                gv_OrderBury((int *)c, y, *x, (unsigned char)gv_EntryIndex((char *)y->yard, x));
             s->kind = 1;
-            s->value = (int)ai_Chars[k];
+            s->value = (int)&ai_Chars[k];
         } else {
             s->kind = 0;
             s->value = 0;
@@ -2891,15 +2866,15 @@ int cm_ExTakeOverCharacter(G17MSG *m, G17STAT *s)
 
 int cm_ExDeleteObject(G17MSG *m, G17STAT *s)
 {
-    ORDBLD *b;
-    ORDOBJ *o;
-    ORDCHAR *c;
+    AIBLD *b;
+    AIOBJ *o;
+    AICHAR *c;
 
     m->del.objectId = (unsigned short)cm_ResolveId((int)m, m->del.objectId);
-    if (gm_FindById((int *)&b, (int *)&o, (int *)&c, m->del.objectId) == 0)
+    if (gm_FindById(&b, &o, &c, m->del.objectId) == 0)
         return 1;
     if (b != 0) {
-        if (gm_FreeBuilding((char *)b) != 0)
+        if (gm_FreeBuilding(b) != 0)
             return 1;
     } else {
         if (o != 0)
@@ -2919,12 +2894,12 @@ int cm_ExMoveGoods(G17MSG *m, G17STAT *s)
         ai_NextObjectId = m->moveGoods.objectId;
     if (m->moveGoods.to != -1) {
         m->moveGoods.to = cm_ResolveId((int)m, m->moveGoods.to);
-        if (gm_TakeObjekt(m->moveGoods.to, ai_PlayerSlotsT[m->moveGoods.player].moneyGood, m->moveGoods.amount) == 0)
+        if (gm_TakeObjekt(m->moveGoods.to, ai_PlayerSlots[m->moveGoods.player].moneyGood, m->moveGoods.amount) == 0)
             return 1;
     }
     if (m->moveGoods.from != -1) {
         m->moveGoods.from = cm_ResolveId((int)m, m->moveGoods.from);
-        if (gm_AddObjekt(m->moveGoods.from, ai_PlayerSlotsT[m->moveGoods.player].moneyGood, m->moveGoods.amount) == 0)
+        if (gm_AddObjekt(m->moveGoods.from, ai_PlayerSlots[m->moveGoods.player].moneyGood, m->moveGoods.amount) == 0)
             return 1;
     }
     if (s != 0)
@@ -2940,11 +2915,11 @@ int cm_ExMoveGoodsUnchecked(G17MSG *m, G17STAT *s)
         ai_NextObjectId = m->moveGoods.objectId;
     if (m->moveGoods.to != -1) {
         m->moveGoods.to = cm_ResolveId((int)m, m->moveGoods.to);
-        gm_AddNegative(m->moveGoods.to, ai_PlayerSlotsT[m->moveGoods.player].moneyGood, m->moveGoods.amount);
+        gm_AddNegative(m->moveGoods.to, ai_PlayerSlots[m->moveGoods.player].moneyGood, m->moveGoods.amount);
     }
     if (m->moveGoods.from != -1) {
         m->moveGoods.from = cm_ResolveId((int)m, m->moveGoods.from);
-        gm_AddObjekt(m->moveGoods.from, ai_PlayerSlotsT[m->moveGoods.player].moneyGood, m->moveGoods.amount);
+        gm_AddObjekt(m->moveGoods.from, ai_PlayerSlots[m->moveGoods.player].moneyGood, m->moveGoods.amount);
     }
     if (s != 0)
         s->state = 1;
@@ -2990,10 +2965,10 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
     AIBLD *x2;
     AICHAR *z;
     AIBLD *x1;
-    int *p;
+    AIOBJ **p;
     AIOBJ *o;
     AICHAR *r2;
-    int *q;
+    AIOBJ **q;
     char buf[0x200];
 
     r1 = 0;
@@ -3011,26 +2986,26 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
         ai_NextObjectId = m->sell.objectId;
     if (m->sell.seller != -1) {
         m->sell.seller = cm_ResolveId((int)m, m->sell.seller);
-        if (gm_FindById((int *)&x1, (int *)&y, (int *)&z, m->sell.seller) == 0)
+        if (gm_FindById(&x1, &y, &z, m->sell.seller) == 0)
             return 1;
         if (x1 != 0) {
             p = &x1->objList;
             if (x1->owner != 0xffff)
-                r1 = &ai_CharsT[x1->owner];
+                r1 = &ai_Chars[x1->owner];
             else
                 r1 = 0;
         } else if (y != 0) {
             if (y->type == 0x2a || y->type == 0x1db || y->type == 0x1dc || y->type == 0x116 || y->type == 0x1dd)
                 ys = y;
             p = &y->list;
-            r1 = (AICHAR *)gm_ObjectBuildingOwner((unsigned short *)y);
+            r1 = gm_ObjectBuildingOwner(y);
             if (r1 == 0)
                 return 1;
         } else {
             r1 = z;
             p = &z->inventory;
         }
-        o = (AIOBJ *)gm_Query((void *)*p, 1, 0, m->sell.item);
+        o = gm_Query(*p, 1, 0, m->sell.item);
         if (o == 0) {
             sprintf(buf, "cm_ExSellObjekt(): Object not found: ObjProt:%i Menge:%i CmdCnt:", m->sell.item, m->sell.count, m->seq);
             return 1;
@@ -3044,16 +3019,16 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
             return 1;
         }
         if (m->sell.price != 0 && r1 != 0)
-            gm_SumSlotAmounts((void *)r1->inventory, m->sell.player);
+            gm_SumSlotAmounts(r1->inventory, m->sell.player);
     }
     if (m->sell.buyer != -1) {
         m->sell.buyer = cm_ResolveId((int)m, m->sell.buyer);
-        if (gm_FindById((int *)&x2, (int *)&y, (int *)&z, m->sell.buyer) == 0)
+        if (gm_FindById(&x2, &y, &z, m->sell.buyer) == 0)
             return 1;
         if (x2 != 0) {
             q = &x2->objList;
             if (x2->owner != 0xffff)
-                r2 = &ai_CharsT[x2->owner];
+                r2 = &ai_Chars[x2->owner];
             else
                 r2 = 0;
         } else if (y != 0) {
@@ -3063,29 +3038,29 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
                 && gm_FreeCapacity((short *)y, m->sell.item, m->sell.count) < m->sell.count)
                 return 1;
             q = &y->list;
-            r2 = (AICHAR *)gm_ObjectBuildingOwner((unsigned short *)y);
+            r2 = gm_ObjectBuildingOwner(y);
         } else {
             q = &z->inventory;
             r2 = z;
         }
-        if (ai_GoodsT[m->sell.item].type == 0x1d)
+        if (ai_Goods[m->sell.item].type == 0x1d)
             o2 = 0;
         else
-            o2 = (AIOBJ *)gm_Query((void *)*q, 1, 0, m->sell.item);
+            o2 = gm_Query(*q, 1, 0, m->sell.item);
         if (m->sell.price != 0 && r2 != 0) {
-            if (gm_SumSlotAmounts((void *)r2->inventory, m->sell.player) < m->sell.count * m->sell.price)
+            if (gm_SumSlotAmounts(r2->inventory, m->sell.player) < m->sell.count * m->sell.price)
                 return 1;
         }
     }
     if (ys != 0 && r2 != 0) {
-        if ((AICHAR *)gm_ObjectBuildingOwner((unsigned short *)o) != r2 && o->reserve != 0) {
+        if (gm_ObjectBuildingOwner(o) != r2 && o->reserve != 0) {
             if (gm_ListAmount((short *)ys, (char *)o) - ((unsigned int)(gm_ListStock((short *)ys, o->type) * o->reserve) >> 2)
                 < (unsigned int)m->sell.count)
                 return 1;
         }
     }
     if (r2 != 0 && x2 == 0 && y2 == 0 && y == 0) {
-        m->sell.count = gm_TakeableCount((char *)r2, m->sell.item, m->sell.count);
+        m->sell.count = gm_TakeableCount(r2, m->sell.item, m->sell.count);
         if (m->sell.count == 0)
             return 1;
     }
@@ -3106,15 +3081,15 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
     if (m->sell.seller != -1) {
         o->count -= m->sell.count;
         if (o->count <= 0) {
-            if (ai_GoodsT[m->sell.item].type != 2 && ai_GoodsT[m->sell.item].type != 6)
+            if (ai_Goods[m->sell.item].type != 2 && ai_Goods[m->sell.item].type != 6)
                 gm_RemoveObject(p, m->sell.item);
             else if (x1 != 0)
-                gm_RemoveObjectFromBuilding((int)x1, m->sell.item);
+                gm_RemoveObjectFromBuilding(x1, m->sell.item);
             else
                 return 1;
         }
         if (m->sell.price != 0) {
-            gm_AddObjekt(r1->netId, ai_PlayerSlotsT[m->sell.player].moneyGood, m->sell.count * m->sell.price);
+            gm_AddObjekt(r1->netId, ai_PlayerSlots[m->sell.player].moneyGood, m->sell.count * m->sell.price);
             if (ys != 0 && ys->type == 0x1db)
                 r1->v1a4 += m->sell.count * m->sell.price;
             else if (ys != 0 && ys->type == 0x1dc)
@@ -3126,9 +3101,9 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
     if (m->sell.buyer != -1) {
         if (o2 != 0) {
             o2->count += m->sell.count;
-        } else if (ai_GoodsT[m->sell.item].type == 2 || ai_GoodsT[m->sell.item].type == 6) {
+        } else if (ai_Goods[m->sell.item].type == 2 || ai_Goods[m->sell.item].type == 6) {
             if (x2 != 0)
-                o2 = (AIOBJ *)gm_AllocRaum((unsigned char *)x2, m->sell.item);
+                o2 = (AIOBJ *)gm_AllocRaum(x2, m->sell.item);
             if (o2 == 0)
                 return 1;
         } else {
@@ -3136,7 +3111,7 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
             if (o2 == 0)
                 return 1;
             if (y2 != 0) {
-                AIGOOD *gd = &ai_GoodsT[m->sell.item];
+                AIGOOD *gd = &ai_Goods[m->sell.item];
 
                 o2->count++;
                 if ((gd->type == 0x17 || gd->type == 0x25)
@@ -3146,7 +3121,7 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
         }
         cm_LastObjectId = o2->objId;
         if (m->sell.price != 0 && r2 != 0) {
-            gm_TakeObjekt(r2->netId, ai_PlayerSlotsT[m->sell.player].moneyGood, m->sell.count * m->sell.price);
+            gm_TakeObjekt(r2->netId, ai_PlayerSlots[m->sell.player].moneyGood, m->sell.count * m->sell.price);
             if (y2 != 0 && y2->type == 0x1db)
                 r2->v1a0 += m->sell.count * m->sell.price;
             else if (y2 != 0 && y2->type == 0x1dc)
@@ -3157,7 +3132,7 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
     }
     if (ys != 0 && (ys->type == 0x2a || ys->type == 0x116) && r1 != 0 && m->sell.price != 0
         && r1->id == ai_PlayerId) {
-        x1 = (AIBLD *)gm_FindBuildingById(ys->ownerId);
+        x1 = gm_FindBuildingById(ys->ownerId);
         if (x1 != 0) {
             txt_Format(buf, 0x7c, x1->type * 14 + 0x48e, m->sell.price);
             sv_SetStatusText(buf);
@@ -3196,19 +3171,19 @@ int cm_ExMakeGoods(G17MSG *m, G17STAT *s)
     if (net_Conn.s != INVALID_SOCKET)
         ai_NextObjectId = m->make.objectId;
     m->make.objId = cm_ResolveId((int)m, m->make.objId);
-    if (gm_FindById(0, (int *)&y, 0, m->make.objId) == 0)
+    if (gm_FindById(0, &y, 0, m->make.objId) == 0)
         return 1;
     if (y->type != 0x2a && y->type != 0x116)
         return 1;
-    r = (AICHAR *)gm_ObjectBuildingOwner((unsigned short *)y);
+    r = gm_ObjectBuildingOwner(y);
     if (r == 0)
         return 1;
-    g = &ai_GoodsT[m->make.item];
+    g = &ai_Goods[m->make.item];
     n = m->make.runs;
     pp = g->need;
     for (i = 4; i != 0; i--, pp++) {
         if (pp[4] != 0) {
-            o = (AIOBJ *)gm_Query((void *)y->list, 1, 0, pp[4]);
+            o = gm_Query(y->list, 1, 0, pp[4]);
             if (o != 0) {
                 if (n >= gm_ListAmount((short *)y, (char *)o) / *pp)
                     n = gm_ListAmount((short *)y, (char *)o) / *pp;
@@ -3227,7 +3202,7 @@ int cm_ExMakeGoods(G17MSG *m, G17STAT *s)
     }
     for (i = 0; i < 4; i++) {
         if (g->in[i] != 0) {
-            o = (AIOBJ *)gm_Query((void *)y->list, 1, 0, g->in[i]);
+            o = gm_Query(y->list, 1, 0, g->in[i]);
             if (o == 0) {
                 if (s != 0)
                     s->kind = 8;
@@ -3241,7 +3216,7 @@ int cm_ExMakeGoods(G17MSG *m, G17STAT *s)
                 gm_RemoveObject(&y->list, g->in[i]);
         }
     }
-    o = (AIOBJ *)gm_Query((void *)y->list, 1, 0, m->make.item);
+    o = gm_Query(y->list, 1, 0, m->make.item);
     if (o != 0) {
         o->count += g->batch * n;
     } else {
@@ -3257,13 +3232,13 @@ int cm_ExMakeGoods(G17MSG *m, G17STAT *s)
             o->reserve = 4;
     }
     v = (int)(gm_ItemPrice(m->make.item, 100) * n);
-    b = (AIBLD *)gm_ObjectBuilding((int)y);
+    b = gm_ObjectBuilding(y);
     if (b != 0)
         b->roundSums[0] += v;
     st = (GMSTOCK *)gm_FindGoods(ai_OwnPlayer, m->make.item);
     if (st != 0)
         st->daily[0] += g->batch * n;
-    f = (AIFIN *)gm_PlayerRecord((char *)r);
+    f = (AIFIN *)gm_PlayerRecord(r);
     if (f != 0)
         f->madeValue += v;
     if (s != 0) {
@@ -3284,12 +3259,12 @@ int cm_ExMoveObject(G17MSG *m, G17STAT *s)
     AIBLD *x;
     AIOBJ *y;
     AICHAR *z;
-    int *from;
-    int *to;
+    AIOBJ **from;
+    AIOBJ **to;
     AIOBJ *prev;
 
     m->move.from = cm_ResolveId((int)m, m->move.from);
-    if (gm_FindById((int *)&x, (int *)&y, (int *)&z, m->move.from) == 0)
+    if (gm_FindById(&x, &y, &z, m->move.from) == 0)
         return 1;
     if (x != 0)
         from = &x->objList;
@@ -3298,7 +3273,7 @@ int cm_ExMoveObject(G17MSG *m, G17STAT *s)
     else
         from = &z->inventory;
     m->move.to = cm_ResolveId((int)m, m->move.to);
-    if (gm_FindById((int *)&x, (int *)&y, (int *)&z, m->move.to) == 0)
+    if (gm_FindById(&x, &y, &z, m->move.to) == 0)
         return 1;
     if (x != 0)
         to = &x->objList;
@@ -3308,10 +3283,10 @@ int cm_ExMoveObject(G17MSG *m, G17STAT *s)
         to = &z->inventory;
     m->move.objId = cm_ResolveId((int)m, m->move.objId);
     prev = 0;
-    for (y = (AIOBJ *)*from; y != 0; y = y->next) {
+    for (y = *from; y != 0; y = y->next) {
         if (y->objId == m->move.objId) {
             if (prev == 0)
-                *from = (int)y->next;
+                *from = y->next;
             else
                 prev->next = y->next;
             break;
@@ -3321,8 +3296,8 @@ int cm_ExMoveObject(G17MSG *m, G17STAT *s)
     if (y == 0)
         return 1;
     y->ownerId = m->move.to;
-    y->next = (AIOBJ *)*to;
-    *to = (int)y;
+    y->next = *to;
+    *to = y;
     if (s != 0)
         s->state = 1;
     return 0;
@@ -3332,15 +3307,15 @@ int cm_ExMoveObject(G17MSG *m, G17STAT *s)
 
 int cm_ExRemoveGoods(G17MSG *m, G17STAT *s)
 {
-    ORDOBJ *y;
+    AIOBJ *y;
     AIOBJ *o;
 
     m->removeGoods.objId = cm_ResolveId((int)m, m->removeGoods.objId);
-    if (gm_FindById(0, (int *)&y, 0, m->removeGoods.objId) == 0)
+    if (gm_FindById(0, &y, 0, m->removeGoods.objId) == 0)
         return 1;
     if (y->type != 0x2a && y->type != 0x116)
         return 1;
-    o = (AIOBJ *)gm_Query((void *)y->list, 1, 0, m->removeGoods.item);
+    o = gm_Query(y->list, 1, 0, m->removeGoods.item);
     if (o == 0)
         return 1;
     if (o->count != 1)
@@ -3375,7 +3350,10 @@ int cm_ExCreateObject(G17MSG *m, G17STAT *s)
 
 int cm_ExFieldDeltas(G17MSG *m, G17STAT *s)
 {
-    char *x, *y, *z, *base;
+    AIBLD *x;
+    AIOBJ *y;
+    AICHAR *z;
+    char *base;
     union {
         char *b;
         short *s;
@@ -3391,15 +3369,15 @@ int cm_ExFieldDeltas(G17MSG *m, G17STAT *s)
     int size, id;
 
     id = cm_ResolveId((int)m, m->fields.id);
-    if (gm_FindById((int *)&x, (int *)&y, (int *)&z, id) == 0)
+    if (gm_FindById(&x, &y, &z, id) == 0)
         return 1;
     m->fields.id = id;
     if (x != 0)
-        base = x;
+        base = (char *)x;
     else if (y != 0)
-        base = y;
+        base = (char *)y;
     else
-        base = z;
+        base = (char *)z;
     p.b = m->fields.buf;
     for (i = 0; i < m->fields.n; i++) {
         size = (char)*p.b++;
@@ -3430,7 +3408,10 @@ int cm_ExFieldDeltas(G17MSG *m, G17STAT *s)
 
 int cm_ExFieldValues(G17MSG *m, G17STAT *s)
 {
-    char *x, *y, *z, *base;
+    AIBLD *x;
+    AIOBJ *y;
+    AICHAR *z;
+    char *base;
     union {
         char *b;
         short *s;
@@ -3446,14 +3427,14 @@ int cm_ExFieldValues(G17MSG *m, G17STAT *s)
     int size;
 
     m->fields.id = cm_ResolveId((int)m, m->fields.id);
-    if (gm_FindById((int *)&x, (int *)&y, (int *)&z, m->fields.id) == 0)
+    if (gm_FindById(&x, &y, &z, m->fields.id) == 0)
         return 1;
     if (x != 0)
-        base = x;
+        base = (char *)x;
     else if (y != 0)
-        base = y;
+        base = (char *)y;
     else
-        base = z;
+        base = (char *)z;
     p.b = m->fields.buf;
     for (i = 0; i < m->fields.n; i++) {
         size = (char)*p.b++;
@@ -3491,7 +3472,7 @@ int cm_ExMoodDeltas(G17MSG *m, G17STAT *s)
     unsigned int i, k;
 
     m->fields.id = cm_ResolveId((int)m, m->fields.id);
-    if (gm_FindById(0, 0, (int *)&chr, m->fields.id) == 0)
+    if (gm_FindById(0, 0, &chr, m->fields.id) == 0)
         return 1;
     p.b = m->fields.buf;
     for (i = 0; i < m->fields.n; i++) {
@@ -3508,7 +3489,9 @@ int cm_ExMoodDeltas(G17MSG *m, G17STAT *s)
 
 int cm_ExSetField(G17MSG *m, G17STAT *s)
 {
-    char *x, *y, *z;
+    AIBLD *x;
+    AIOBJ *y;
+    AICHAR *z;
     union {
         char *c;
         unsigned char *b;
@@ -3519,11 +3502,11 @@ int cm_ExSetField(G17MSG *m, G17STAT *s)
     m->setField.objId = cm_ResolveId((int)m, m->setField.objId);
     if (gm_FindById(&x, &y, &z, m->setField.objId) == 0)
         return 1;
-    a.c = x;
+    a.c = (char *)x;
     if (a.c == 0) {
-        a.c = y;
+        a.c = (char *)y;
         if (a.c == 0)
-            a.c = z;
+            a.c = (char *)z;
     }
     a.c += m->setField.offset;
     switch (m->setField.size) {
@@ -3549,7 +3532,9 @@ int cm_ExSetField(G17MSG *m, G17STAT *s)
 
 int cm_ExFloatDelta(G17MSG *m, G17STAT *s)
 {
-    char *x, *y, *z;
+    AIBLD *x;
+    AIOBJ *y;
+    AICHAR *z;
     union {
         char *c;
         float *f;
@@ -3558,11 +3543,11 @@ int cm_ExFloatDelta(G17MSG *m, G17STAT *s)
     m->floatDelta.id = cm_ResolveId((int)m, m->floatDelta.id);
     if (gm_FindById(&x, &y, &z, m->floatDelta.id) == 0)
         return 1;
-    a.c = z;
+    a.c = (char *)z;
     if (a.c == 0) {
-        a.c = y;
+        a.c = (char *)y;
         if (a.c == 0)
-            a.c = x;
+            a.c = (char *)x;
     }
     a.c += m->floatDelta.field;
     *a.f += m->floatDelta.delta;
@@ -3617,7 +3602,7 @@ int cm_ExRelations(G17MSG *m, G17STAT *s)
         for (i = 0; i < 0x300; i++) {
             for (j = 0; j < 0x300; j++) {
                 v = ai_Relations[i][j];
-                if (i != j && ai_CharsT[i].id != 0xffff && ai_CharsT[j].id != 0xffff) {
+                if (i != j && ai_Chars[i].id != 0xffff && ai_Chars[j].id != 0xffff) {
                     if (v > hi)
                         v += dn;
                     else if (v < lo)
@@ -3629,20 +3614,20 @@ int cm_ExRelations(G17MSG *m, G17STAT *s)
         }
     } else {
         for (ci = 0; ci < 0x300; ci++)
-            if (ai_CharsT[ci].netId == to)
+            if (ai_Chars[ci].netId == to)
                 break;
-        if (ci >= 0x300 || ai_CharsT[ci].id == 0xffff)
+        if (ci >= 0x300 || ai_Chars[ci].id == 0xffff)
             return 1;
         if (kind == 3) {
-            v = ai_CharsT[ci].partner;
+            v = ai_Chars[ci].partner;
             for (j = 0; j < 0x300; j++)
-                if (ai_CharsT[j].netId != v)
+                if (ai_Chars[j].netId != v)
                     ai_RelationMemory[j][ci] = (signed char)(int)(ai_RelationMemory[j][ci] * m->rel.scale);
         } else {
             for (cj = 0; cj < 0x300; cj++)
-                if (ai_CharsT[cj].netId == from)
+                if (ai_Chars[cj].netId == from)
                     break;
-            if (cj >= 0x300 || ai_CharsT[cj].id == 0xffff)
+            if (cj >= 0x300 || ai_Chars[cj].id == 0xffff)
                 return 1;
             if (kind == 2) {
                 v = ai_Relations[cj][ci];
@@ -3680,7 +3665,7 @@ int cm_ExLongMessage(G17MSG *m, G17STAT *s)
     char *t1, *t2;
 
     memcpy(&msg, cm_LongMsg, sizeof msg);
-    c = (AICHAR *)gm_FindChar(msg.to);
+    c = gm_FindChar(msg.to);
     if (net_Conn.s != INVALID_SOCKET) {
         if (msg.flags & 1) {
             if (c == 0)
@@ -3694,7 +3679,7 @@ int cm_ExLongMessage(G17MSG *m, G17STAT *s)
     }
     if (msg.type == 0x11 && he_IsMessageKindFiltered(msg.arg[0]) != 0)
         return 0;
-    ev = (AIJOB *)he_CreateEvent((unsigned char *)&msg);
+    ev = he_CreateEvent(&msg);
     if (ev == 0)
         return 1;
     if (ev->kind == 0x11) {
@@ -3731,7 +3716,7 @@ int cm_ExSetHE(G17MSG *m, G17STAT *s)
         s->kind = 4;
         s->value = 0;
     }
-    ev = (AIJOB *)he_FindEvent(1, 1, m->setHE.id);
+    ev = he_FindEvent(1, 1, m->setHE.id);
     if (ev == 0) {
         sprintf(buf, "cm_ExSetHE(): He not found. id:%i name:%s", m->setHE.id, m->setHE.name);
         return 1;
@@ -3769,7 +3754,7 @@ int cm_ExTime(G17MSG *m, G17STAT *s)
         memset(&ai_Watch, 0, 0xb00);
         if (cm_RunCharacters) {
             ai_TradeMsgCount = 0;
-            for (c = (AICHAR *)ai_Chars; (int)c < (int)ai_Chars[0x300]; c++) {
+            for (c = ai_Chars; (int)c < (int)&ai_Chars[0x300]; c++) {
                 if (c->id != 0xffff)
                     ai_RunMasterEvaluation(c);
             }
@@ -3836,18 +3821,18 @@ int cm_ExSysMessage(G17MSG *m, G17STAT *s)
             ai_Time.sec = msg.sys.time.sec;
             ai_Time.min = msg.sys.time.min;
             ai_Time.hour = msg.sys.time.hour;
-            ai_TimeCopyT = ai_Time;
+            ai_TimeCopy = ai_Time;
             if (k == 0)
                 tb_SetFunctionOff(sv_UpdateClock, 0);
             break;
         case 4:
-            b = (struct AIBLD *)gm_BuildQuery(1, 1, msg.sys.arg[0]);
+            b = gm_BuildQuery(1, 1, msg.sys.arg[0]);
             if (b != 0) {
-                o = (AIOBJ *)gm_Query((void *)b->objList, 1, 1, msg.sys.arg[1]);
+                o = gm_Query(b->objList, 1, 1, msg.sys.arg[1]);
                 if (o != 0)
-                    init_ShowBuildingScene((unsigned char *)b, o->id);
+                    init_ShowBuildingScene(b, o->id);
                 else
-                    init_ShowBuildingScene((unsigned char *)b, 0xfd);
+                    init_ShowBuildingScene(b, 0xfd);
             }
             break;
         case 5:
@@ -3880,7 +3865,7 @@ int cm_ExSysMessage(G17MSG *m, G17STAT *s)
                 if (msg.sys.arg[4] == 1)
                     ai_GameOver = 1;
                 if (ai_MissionMode == 5)
-                    ai_SetFirstMission(ai_CharsT[ai_PlayerId].netId, msg.sys.arg[8]);
+                    ai_SetFirstMission(ai_Chars[ai_PlayerId].netId, msg.sys.arg[8]);
             } else
                 ret = 2;
             break;
@@ -3912,7 +3897,7 @@ int cm_ExSysMessage(G17MSG *m, G17STAT *s)
             break;
         case 17:
             if (ai_PlayerId != 0xffff) {
-                if (ai_CharsT[ai_PlayerId].partyId != msg.sys.arg[0] || msg.sys.arg[0] == -1)
+                if (ai_Chars[ai_PlayerId].partyId != msg.sys.arg[0] || msg.sys.arg[0] == -1)
                     cm_NoticeCount++;
             }
             break;
@@ -3955,12 +3940,12 @@ int cm_ExKillCharacter(G17MSG *m, G17STAT *s)
 
     if (s != 0)
         s->state = 2;
-    c = (AICHAR *)gm_FindChar(m->kill.netId);
+    c = gm_FindChar(m->kill.netId);
     if (c != 0) {
         ok = 1;
         sv_MoveToGroup(0, 0, c->id, 0);
-        if (c->model != 0 && c->model->scriptId != -1)
-            evt_Stop(evt_FindById(c->model->scriptId));
+        if (c->scene != 0 && c->scene->scriptId != -1)
+            evt_Stop(evt_FindById(c->scene->scriptId));
         gm_KillSpieler(c->id, m->kill.mode);
     }
     if (s != 0 && ok)
@@ -3990,17 +3975,17 @@ int cm_ExAddStraftat(G17MSG *m, G17STAT *s)
         ai_NextCrimeId = ai_NextCrimeId + 1;
     slot = gv_FreeCrimeSlot();
     if (slot != -1) {
-        c = (AICHAR *)gm_FindChar(m->crime.culprit);
+        c = gm_FindChar(m->crime.culprit);
         if (c != 0 && c->kind == 6)
             ai_CountMissionEvent(c, 0x17);
-        rec = &((CRIME *)ai_Crimes)[slot];
+        rec = &ai_Crimes[slot];
         *rec = m->crime;
         rec->id = ai_NextCrimeId;
         sprintf(buf, "cm_ExAddStraftat(): Executed---- st_id = %i, taeter = %i, opfer = %i", ai_NextCrimeId,
                 m->crime.culprit, m->crime.victim);
         place = m->crime.place;
         if (place == -1) {
-            c = (AICHAR *)gm_FindChar(m->crime.victim);
+            c = gm_FindChar(m->crime.victim);
             if (c != 0) {
                 if (c->bld2 != 0)
                     place = c->bld2->id;
@@ -4012,22 +3997,22 @@ int cm_ExAddStraftat(G17MSG *m, G17STAT *s)
                 util_Seed(m->crime.seed);
         }
         ord_AddGridAmount(place, m->crime.law, &x, &y);
-        gm_FindById((int *)&b, 0, 0, place);
+        gm_FindById(&b, 0, 0, place);
         if (b == 0)
             ord_RandomCellPoint(x, y, &pos);
         else if (b->object != 0) {
-            pos.x = ((D3OBJECT *)b->object)->pos.x;
-            pos.y = ((D3OBJECT *)b->object)->pos.y;
-            pos.z = ((D3OBJECT *)b->object)->pos.z;
+            pos.x = b->object->pos.x;
+            pos.y = b->object->pos.y;
+            pos.z = b->object->pos.z;
         }
-        for (j = (AIJOB *)he_FindEvent(1, 0, 0x18); j != 0; j = (AIJOB *)he_NextEvent()) {
-            if (j->id4 == ((CRIME *)ai_Crimes)[slot].culprit) {
-                if (gv_AddEvidence(rec->id, ai_CharsT[j->chr].netId) == 0)
+        for (j = he_FindEvent(1, 0, 0x18); j != 0; j = he_NextEvent()) {
+            if (j->id4 == ai_Crimes[slot].culprit) {
+                if (gv_AddEvidence(rec->id, ai_Chars[j->chr].netId) == 0)
                     break;
                 if (s != 0) {
-                    c = (AICHAR *)gm_FindChar(j->id4);
+                    c = gm_FindChar(j->id4);
                     if (c != 0)
-                        ai_NotifyPlayerOfChar((unsigned short *)c, (unsigned short *)&ai_CharsT[j->chr]);
+                        ai_NotifyPlayerOfChar(c, &ai_Chars[j->chr]);
                 }
             }
         }
@@ -4098,12 +4083,12 @@ int cm_ExSendCutInfo(G17MSG *m, G17STAT *s)
     int i;
 
     for (i = 0; i < 16; i++) {
-        if (cm_CutInfosT[i].playerId == m->cut.playerId) {
+        if (cm_CutInfos[i].playerId == m->cut.playerId) {
             if (cm_CurrentFight != 0 && *cm_CurrentFight == m->cut.fightId) {
-                cm_CutInfosT[i] = cm_LongMsgCut;
-                cm_CutInfosT[i].recvFlag = 0;
-                sprintf(buf, "cm_ExSendCutInfo: PlayerId:%i Valid:%i  Ready:%i  Time:%i", cm_CutInfosT[i].playerId,
-                        cm_CutInfosT[i].valid, cm_CutInfosT[i].ready, d3_Time);
+                memcpy(&cm_CutInfos[i], cm_LongMsg, sizeof(CMCUTINFO));
+                cm_CutInfos[i].recvFlag = 0;
+                sprintf(buf, "cm_ExSendCutInfo: PlayerId:%i Valid:%i  Ready:%i  Time:%i", cm_CutInfos[i].playerId,
+                        cm_CutInfos[i].valid, cm_CutInfos[i].ready, d3_Time);
             }
             break;
         }
@@ -4117,7 +4102,7 @@ int cm_ExSendCutInfo(G17MSG *m, G17STAT *s)
     if (s != 0) {
         s->state = 1;
         s->kind = 8;
-        s->value = (int)&cm_CutInfosT[i];
+        s->value = (int)&cm_CutInfos[i];
     }
     return 0;
 }
@@ -4219,12 +4204,12 @@ int cm_ExRemoveOwned(G17MSG *m, G17STAT *s)
 
     if (s != 0)
         s->state = 2;
-    gm_FindById((int *)&bld, (int *)&obj, (int *)&chr, m->remove.holder);
+    gm_FindById(&bld, &obj, &chr, m->remove.holder);
     if (bld != 0) {
         if (m->remove.objId == -1)
             r = gm_RemoveOwned(&bld->objList, m->remove.entry);
         else {
-            obj = (AIOBJ *)gm_Query((void *)bld->objList, 2, 6, 1, m->remove.objId);
+            obj = gm_Query(bld->objList, 2, 6, 1, m->remove.objId);
             if (obj != 0)
                 r = gm_RemoveOwned(&obj->list, m->remove.entry);
             else
@@ -4263,22 +4248,22 @@ int cm_ExSetPlant(G17MSG *m, G17STAT *s)
 
     if (net_Conn.s != INVALID_SOCKET)
         veg_NextId = m->plant.id;
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->plant.bldId);
+    b = gm_BuildQuery(1, 1, m->plant.bldId);
     if (b != 0) {
         t = veg_FindType(m->plant.type);
         if (t != 0 && m->plant.fall == 0) {
-            if (veg_Fits((G15PLANT *)b->plants, m->plant.x, m->plant.z, t->size) != 0)
+            if (veg_Fits(b->plants, m->plant.x, m->plant.z, t->size) != 0)
                 fits = 1;
         } else
             fits = 1;
         if (m->plant.fall != 0) {
-            o = veg_FindPlantAt((G15PLANT *)b->plants, m->plant.x, m->plant.z);
+            o = veg_FindPlantAt(b->plants, m->plant.x, m->plant.z);
             if (o != 0 && o->fallId != -1)
                 return 1;
         } else if (m->plant.fallId != -1) {
-            o = veg_FindPlantAt((G15PLANT *)b->plants, m->plant.x, m->plant.z);
+            o = veg_FindPlantAt(b->plants, m->plant.x, m->plant.z);
             if (o != 0 && o->fallId == m->plant.fallId) {
-                d3if_SelectScene(init_BuildingUniverse[(unsigned char)ai_BTypesT[b->type].kind], 1);
+                d3if_SelectScene(init_BuildingUniverse[(unsigned char)ai_BTypes[b->type].kind], 1);
                 d3if_Delete((struct D3OBJECT *)o->obj);
                 o->obj = 0;
                 veg_LoadModel(o, 0);
@@ -4293,8 +4278,8 @@ int cm_ExSetPlant(G17MSG *m, G17STAT *s)
             return 0;
         }
         if (fits != 0) {
-            d3if_SelectScene(init_BuildingUniverse[(unsigned char)ai_BTypesT[b->type].kind], 1);
-            o = veg_SetPlant((G15PLANT *)b->plants, m->plant.x, m->plant.z, m->plant.type, m->plant.fall);
+            d3if_SelectScene(init_BuildingUniverse[(unsigned char)ai_BTypes[b->type].kind], 1);
+            o = veg_SetPlant(b->plants, m->plant.x, m->plant.z, m->plant.type, m->plant.fall);
             d3if_SelectScene(save, 1);
         }
         if (o != 0) {
@@ -4367,7 +4352,7 @@ int cm_ExChrWalkToDummy(G17MSG *m, G17STAT *s)
     D3OBJECT *o;
     CHACTION *r;
     int i = 0;
-    char *b = 0;
+    AIBLD *b = 0;
     int save;
 
     sprintf(buf, "sp_%i", m->place.netId);
@@ -4380,7 +4365,7 @@ int cm_ExChrWalkToDummy(G17MSG *m, G17STAT *s)
         b = gm_FindBuildingById(m->place.bldId);
     save = d3_CurrentScene;
     if (m->place.objId != -1)
-        i = init_ObjectSceneUniverse(i);
+        i = init_ObjectSceneUniverse((struct AIOBJ *)i);
     else if (m->place.bldId != -1)
         i = init_BuildingSceneUniverse(b);
     else
@@ -4420,7 +4405,7 @@ int cm_ExChrMoveToUniverse(G17MSG *m, G17STAT *s)
     AIBLD *b = 0;
     AIOBJ *q = 0;
     CHACTION *r;
-    short *c;
+    AICHAR *c;
     D3OBJECT *o;
     int x = -1;
     int k, v, save;
@@ -4430,20 +4415,20 @@ int cm_ExChrMoveToUniverse(G17MSG *m, G17STAT *s)
     if (p == 0)
         return 1;
     if (m->place.bldId != -1) {
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->place.bldId);
+        b = gm_BuildQuery(1, 1, m->place.bldId);
         if (b == 0)
             return 2;
     }
     if (m->place.objId != -1) {
-        q = (AIOBJ *)gm_Query((void *)b->objList, 1, 1, m->place.objId);
+        q = gm_Query(b->objList, 1, 1, m->place.objId);
         if (q == 0)
             return 3;
     }
     if (q != 0 && q->id != 0xfd)
-        k = init_ObjectSceneUniverse((unsigned short *)q);
-    else if (b != 0 && gm_IsHomeType((unsigned char *)b) != 0) {
-        k = init_BuildingSceneUniverse((unsigned char *)b);
-        q = (AIOBJ *)gm_Query((void *)b->objList, 1, 0, 0xfd);
+        k = init_ObjectSceneUniverse(q);
+    else if (b != 0 && gm_IsHomeType(b) != 0) {
+        k = init_BuildingSceneUniverse(b);
+        q = gm_Query(b->objList, 1, 0, 0xfd);
     } else
         k = 0;
     if (k >= 0) {
@@ -4455,7 +4440,7 @@ int cm_ExChrMoveToUniverse(G17MSG *m, G17STAT *s)
         if (k != 0) {
             c = gm_FindChar(m->place.netId);
             if (c != 0)
-                gm_SelectModelVariant((char *)c);
+                gm_SelectModelVariant(c);
         }
         ch_AddAction(p, 0x38, 0);
         if (k != 0) {
@@ -4567,7 +4552,7 @@ int cm_ExPlaceOnStage(G17MSG *m, G17STAT *s)
    building through the gate of its room (ch_UseGate) and its transporter, out of another building through its
    door ("dummy_EINGANG"), a walk (0x2d) to the door ("dummy_TUER") of the target, the scene change 0x33 between
    two 0x38 actions, then the room's gate or the sit-down 0x39. Each action gets the message's reason.
-   @deep s2: g = &ai_GoodsT[q->id] named at both gate sites (cm_ExChrUseGates's form) 319 -> 273; door
+   @deep s2: g = &ai_Goods[q->id] named at both gate sites (cm_ExChrUseGates's form) 319 -> 273; door
    block stores x,y,z then hasPos (the original jumps into the other branch's tail at the z store); goto
    done -> q==0 chained as if/else-if (same code); memcpy -> strcpy of TRANSPORTER_ENTRY (same code). Tree:
    draft 275 ins / 1622 bytes. Hunk 1 (every scratch register behind it rotates): the inline strcpy at 4648
@@ -4617,28 +4602,28 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
     p = ch_FindByName(buf);
     if (p == 0)
         return 1;
-    from = (AIBLD *)gm_BuildQuery(1, 0, 0x44);
+    from = gm_BuildQuery(1, 0, 0x44);
     if (m->go.bldId != -1) {
-        to = (AIBLD *)gm_BuildQuery(1, 1, m->go.bldId);
+        to = gm_BuildQuery(1, 1, m->go.bldId);
         if (to == 0)
             return 1;
     } else
         to = from;
     if (p->group != -1)
-        cb = (AIBLD *)gm_BuildQuery(1, 1, p->group);
+        cb = gm_BuildQuery(1, 1, p->group);
     save = d3_CurrentScene;
-    if (cb != 0 && gm_IsHomeType((unsigned char *)cb) != 0) {
+    if (cb != 0 && gm_IsHomeType(cb) != 0) {
         scene = d3t_SceneIndex(p->scene);
         d3if_SelectScene(scene, 1);
         if (scene < 0)
             return 0;
         if (p->scriptGroup != -1) {
-            q = (AIOBJ *)gm_Query((void *)cb->objList, 1, 1, p->scriptGroup);
+            q = gm_Query(cb->objList, 1, 1, p->scriptGroup);
             if (q != 0 && q->id != 0xfd) {
-                g = &ai_GoodsT[q->id];
+                g = &ai_Goods[q->id];
                 sprintf(gate, "dummy_gate_ob_%s", strupr(g->name));
-                q2 = (AIOBJ *)gm_Query((void *)cb->objList, 1, 0, 0xfd);
-                k = init_BuildingSceneUniverse((unsigned char *)cb);
+                q2 = gm_Query(cb->objList, 1, 0, 0xfd);
+                k = init_BuildingSceneUniverse(cb);
                 if (k >= 0 && q2 != 0) {
                     ch_StandUp(p, "sitzend/aufstehen");
                     r = ch_UseGate(p, gate, "dummy_gate_ob_AUSSEN_RAUM", k, cb->id, q2->objId);
@@ -4648,7 +4633,7 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
             }
         }
         if (to->id != cb->id) {
-            k = init_BuildingSceneUniverse((unsigned char *)cb);
+            k = init_BuildingSceneUniverse(cb);
             if (k < 0)
                 return 0;
             d3if_SelectScene(k, 1);
@@ -4678,7 +4663,7 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
                 if (o != 0)
                     d3_PointToWorld(o, &o->pos, (D3VECTOR *)&v);
                 else
-                    d3_PointToWorld((D3OBJECT *)cb->object, &((D3OBJECT *)cb->object)->pos, (D3VECTOR *)&v);
+                    d3_PointToWorld(cb->object, &cb->object->pos, (D3VECTOR *)&v);
                 r->move.pos.x = v.x;
                 r->move.pos.y = v.y;
                 r->move.pos.z = v.z;
@@ -4712,7 +4697,7 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
                 if (o != 0)
                     d3_PointToWorld(o, &o->pos, (D3VECTOR *)&v);
                 else if (cb->object != 0)
-                    d3_PointToWorld((D3OBJECT *)cb->object, &((D3OBJECT *)cb->object)->pos, (D3VECTOR *)&v);
+                    d3_PointToWorld(cb->object, &cb->object->pos, (D3VECTOR *)&v);
                 else
                     err_Message("cm_ExChrGotoBuilding(): start->D3Object is NULL!");
                 r->move.hasPos = 1;
@@ -4722,7 +4707,7 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
             }
         }
     }
-    if (gm_IsHomeType((unsigned char *)to) == 0) {
+    if (gm_IsHomeType(to) == 0) {
         d3if_SelectScene(0, 1);
         if (m->go.text[0] != 0)
             o = d3_FindObject(0, 0x100, 0, m->go.text);
@@ -4735,7 +4720,7 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
                     o = d3_FindObjectNoCase((int)to->object, 0x100, 0, "dummy_TUER");
             }
             if (o == 0)
-                o = (D3OBJECT *)to->object;
+                o = to->object;
         }
         if (o != 0) {
             hm = (D3SM *)d3_Scenes[0].hmap;
@@ -4748,13 +4733,13 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
         }
         if (m->go.noObject == 0) {
             if (m->go.objId != -1)
-                i = init_ObjectSceneUniverse((unsigned short *)gm_Query((void *)to->objList, 1, 1, m->go.objId));
+                i = init_ObjectSceneUniverse(gm_Query(to->objList, 1, 1, m->go.objId));
             else
                 i = 0;
             if (i >= 0) {
                 if (m->go.objId == -1)
                     err_Message("cm_ExChrGotoBuilding(): invalid room-id (cm_ID_NONE)");
-                else if (gm_Query((void *)to->objList, 1, 1, m->go.objId) == 0)
+                else if (gm_Query(to->objList, 1, 1, m->go.objId) == 0)
                     err_Message("cm_ExChrGotoBuilding(): invalid room-id (raum==NULL)");
                 ch_AddAction(p, 0x38, 0);
                 r = ch_AddAction(p, 0x33, i, to->id, m->go.objId);
@@ -4784,11 +4769,11 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
             }
         }
         if (m->go.noObject == 0) {
-            q = (AIOBJ *)gm_Query((void *)to->objList, 1, 1, m->go.objId);
+            q = gm_Query(to->objList, 1, 1, m->go.objId);
             if (q == 0)
-                q = (AIOBJ *)gm_Query((void *)to->objList, 1, 0, 0xfd);
+                q = gm_Query(to->objList, 1, 0, 0xfd);
             if (q == 0) {
-                i = init_BuildingSceneUniverse((unsigned char *)to);
+                i = init_BuildingSceneUniverse(to);
                 if (i >= 0) {
                     ch_AddAction(p, 0x38, 0);
                     r = ch_AddAction(p, 0x33, i, to->id, -1);
@@ -4800,7 +4785,7 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
                 }
             } else if (q->id == 0xfd) {
                 if (to->id != p->group) {
-                    k = init_BuildingSceneUniverse((unsigned char *)to);
+                    k = init_BuildingSceneUniverse(to);
                     if (k < 0)
                         return 0;
                     ch_AddAction(p, 0x38, 0);
@@ -4826,8 +4811,8 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
                     }
                 }
             } else {
-                i = init_ObjectSceneUniverse((unsigned short *)q);
-                g = &ai_GoodsT[q->id];
+                i = init_ObjectSceneUniverse(q);
+                g = &ai_Goods[q->id];
                 sprintf(gate, "dummy_gate_ob_%s", strupr(g->name));
                 if (cb != 0) {
                     r = ch_UseGate(p, "dummy_EINGANG", gate, i, cb->id, q->objId);
@@ -4863,21 +4848,21 @@ int cm_ExChrUseGates(G17MSG *m, G17STAT *s)
     p = ch_FindByName(buf);
     if (p == 0)
         return 1;
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->gate.bldId);
-    q = (AIOBJ *)gm_Query((void *)b->objList, 1, 1, m->gate.objId);
+    b = gm_BuildQuery(1, 1, m->gate.bldId);
+    q = gm_Query(b->objList, 1, 1, m->gate.objId);
     if (p->scriptGroup != -1)
-        r = (AIOBJ *)gm_Query((void *)b->objList, 1, 1, p->scriptGroup);
+        r = gm_Query(b->objList, 1, 1, p->scriptGroup);
     else
-        r = (AIOBJ *)gm_Query((void *)b->objList, 1, 0, 0xfd);
+        r = gm_Query(b->objList, 1, 0, 0xfd);
     if (q->id == 0xfd) {
-        k = init_BuildingSceneUniverse((unsigned char *)b);
+        k = init_BuildingSceneUniverse(b);
         sprintf(gate2, "dummy_gate_ob_AUSSEN_RAUM");
     } else {
-        g = &ai_GoodsT[q->id];
-        k = init_ObjectSceneUniverse((unsigned short *)q);
+        g = &ai_Goods[q->id];
+        k = init_ObjectSceneUniverse(q);
         sprintf(gate2, "dummy_gate_ob_%s", strupr(g->name));
     }
-    g = &ai_GoodsT[r->id];
+    g = &ai_Goods[r->id];
     sprintf(gate, "dummy_gate_ob_%s", strupr(g->name));
     if (k >= 0)
         ch_UseGate(p, gate, gate2, k, b->id, q->objId);
@@ -4916,13 +4901,13 @@ int cm_ExOwnership(G17MSG *m, G17STAT *s)
     AIBLD *b;
     AICHAR *c1, *c2;
 
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->owner.bldId);
+    b = gm_BuildQuery(1, 1, m->owner.bldId);
     if (b == 0)
         return 1;
-    c1 = (AICHAR *)gm_FindChar(m->owner.ownerId);
+    c1 = gm_FindChar(m->owner.ownerId);
     if (c1 == 0 && m->owner.ownerId != -1)
         return 1;
-    c2 = (AICHAR *)gm_FindChar(m->owner.masterId);
+    c2 = gm_FindChar(m->owner.masterId);
     if (c2 == 0 && m->owner.masterId != -1)
         return 2;
     gm_AssignBuilding(b, c2->id, c1->id);
@@ -4942,13 +4927,13 @@ int cm_ExSetHome(G17MSG *m, G17STAT *s)
     AIBLD *b, *o;
     AICHAR *c;
 
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->home.bldId);
+    b = gm_BuildQuery(1, 1, m->home.bldId);
     if (b == 0)
         return 1;
-    c = (AICHAR *)gm_FindChar(m->home.charId);
+    c = gm_FindChar(m->home.charId);
     if (c == 0 && m->home.charId != -1)
         return 1;
-    if (ai_BTypesT[b->type].kind == 1) {
+    if (ai_BTypes[b->type].kind == 1) {
         ord_GetKindRecord(b->type, kind);
         if (b->residents >= (unsigned short)kind[0])
             return 1;
@@ -4956,7 +4941,7 @@ int cm_ExSetHome(G17MSG *m, G17STAT *s)
     }
     o = c->bld2;
     if (o != 0) {
-        if (ai_BTypesT[o->type].kind == 1 && o->residents > 0)
+        if (ai_BTypes[o->type].kind == 1 && o->residents > 0)
             o->residents--;
     }
     c->bld2 = b;
@@ -4988,26 +4973,26 @@ int cm_ExGebUpgrade(G17MSG *m, G17STAT *s)
 
     if (net_Conn.s != (unsigned int)-1)
         ai_NextObjectId = m->upgrade.nextObjId;
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->upgrade.bldId);
+    b = gm_BuildQuery(1, 1, m->upgrade.bldId);
     if (b == 0)
         return 1;
-    t = &ai_BTypesT[b->type];
+    t = &ai_BTypes[b->type];
     if (t->cap247 >= t->maxLevel) {
         err_Message("cm_ExSetGebUpgrade(): already highest level");
         return 1;
     }
     b->type++;
     b->level = b->level + (100 - b->level) / 2;
-    gm_SetCapacities((unsigned char *)b);
-    gm_StockBuildingObjects((char *)b);
+    gm_SetCapacities(b);
+    gm_StockBuildingObjects(b);
     if (t->kind == 0x1d)
-        gv_GrowGraveyard((unsigned char *)b);
+        gv_GrowGraveyard(b);
     strcpy(name, "gb_");
-    strcat(name, ai_BTypesT[b->type].name);
+    strcat(name, ai_BTypes[b->type].name);
     strupr(name + 2);
     for (i = 0; i < 4; i++) {
         if (t->kind == 0x21) {
-            if (ai_CharsT[b->owner].sex == 1)
+            if (ai_Chars[b->owner].sex == 1)
                 sprintf(path, "%sgebaeude/*%s_A.ogr", ai_DataPath, name);
             else
                 sprintf(path, "%sgebaeude/*%s_B.ogr", ai_DataPath, name);
@@ -5018,7 +5003,7 @@ int cm_ExGebUpgrade(G17MSG *m, G17STAT *s)
         if (vfs_GetPath(path, vfs_Root, vfs_Root, found) != 0) {
             save = d3_CurrentScene;
             d3if_SelectScene(0, 1);
-            d3_PointToWorld((D3OBJECT *)b->object, &((D3OBJECT *)b->object)->pos, (D3VECTOR *)&v);
+            d3_PointToWorld(b->object, &b->object->pos, (D3VECTOR *)&v);
             o = d3_LoadGroup(path, 0, 0);
             if (o == 0) {
                 sprintf(name, "cm_ExGebUpgrade(): Could not load 3D-Object-Group '%s'...", path);
@@ -5026,7 +5011,7 @@ int cm_ExGebUpgrade(G17MSG *m, G17STAT *s)
             } else {
                 float radius, key;
 
-                d3_DirToWorld((struct D3OBJECT *)b->object, &d3_ZAxis, &dir);
+                d3_DirToWorld(b->object, &d3_ZAxis, &dir);
                 rot.x = 0;
                 rot.y = 0;
                 rot.z = 0;
@@ -5035,8 +5020,8 @@ int cm_ExGebUpgrade(G17MSG *m, G17STAT *s)
                 d3_SetObjectRot(o, &rot);
                 ai_DropObjectAt(o, (D3VECTOR *)&v);
                 if (d3_QuadTree != 0)
-                    d3q_RemoveObject((D3OBJECT *)b->object, (D3QNODE *)d3_QuadTree);
-                d3if_Delete((D3OBJECT *)b->object);
+                    d3q_RemoveObject(b->object, (D3QNODE *)d3_QuadTree);
+                d3if_Delete(b->object);
                 if (o->info == 0)
                     d3_InflateObject(o);
                 if (o->material != 0) {
@@ -5050,7 +5035,7 @@ int cm_ExGebUpgrade(G17MSG *m, G17STAT *s)
                     }
                 }
                 init_HookObject(o, b, 2);
-                sv_CreateBanners((char *)b);
+                sv_CreateBanners(b);
                 if (b->object != 0) {
                     season = gm_ClockSeason(&ai_Time);
                     if (season == 1)
@@ -5061,11 +5046,11 @@ int cm_ExGebUpgrade(G17MSG *m, G17STAT *s)
                         init_TextureSet = 2;
                     else if (season == 3)
                         init_TextureSet = 3;
-                    init_TextureSetHook((int)b->object);
-                    d3_ForEachObject2(d3_DefaultScene, (D3OBJECT *)b->object, 0x2c0, (void (*)(D3OBJECT *))init_StripTorches);
+                    init_TextureSetHook(b->object);
+                    d3_ForEachObject2(d3_DefaultScene, b->object, 0x2c0, init_StripTorches);
                     key = (float)sv_DayPhase + sv_DayPhaseFrac;
-                    d3_ForEachObject(d3_DefaultScene, (D3OBJECT *)b->object, 0x21e, (D3OBJECTCB)d3_SetLightKeyCB, &key);
-                    d3_RelightObjects((D3OBJECT *)b->object);
+                    d3_ForEachObject(d3_DefaultScene, b->object, 0x21e, (D3OBJECTCB)d3_SetLightKeyCB, &key);
+                    d3_RelightObjects(b->object);
                     if (b->smokeEffect != -1) {
                         sc = evt_FindById(b->smokeEffect);
                         if (sc != 0)
@@ -5099,25 +5084,25 @@ int cm_ExBuildingDestroyed(G17MSG *m, G17STAT *s)
     AIBLD **bld;
     EVTSCRIPT *sc;
 
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->destroy.bldId);
+    b = gm_BuildQuery(1, 1, m->destroy.bldId);
     if (b == 0)
         return 1;
-    if ((char *)b == sv_SelectedObject)
+    if (b == sv_SelectedObject)
         sv_ResetSelection();
-    for (o = (AIOBJ *)gm_Query(0, 2, 7, 4, 0x1d); o != 0; o = (AIOBJ *)gm_QueryNext()) {
+    for (o = gm_Query(0, 2, 7, 4, 0x1d); o != 0; o = gm_QueryNext()) {
         if (o->bldId == b->id)
-            gm_FreeObject((int)o);
+            gm_FreeObject(o);
     }
     /* the bld of every character record (the end is the field of the record after the table) */
-    for (bld = &ai_CharsT[0].bld; (int)bld < (int)&ai_CharsT[0x300].bld;
+    for (bld = &ai_Chars[0].bld; (int)bld < (int)&ai_Chars[0x300].bld;
          bld = (AIBLD **)((char *)bld + sizeof(AICHAR))) {
         if (*bld == b)
             *bld = 0;
     }
     d3if_SelectScene(0, 1);
     if (d3_QuadTree != 0)
-        d3q_RemoveObject((D3OBJECT *)b->object, (D3QNODE *)d3_QuadTree);
-    d3if_Delete((D3OBJECT *)b->object);
+        d3q_RemoveObject(b->object, (D3QNODE *)d3_QuadTree);
+    d3if_Delete(b->object);
     if (b->smokeEffect != -1) {
         sc = evt_FindById(b->smokeEffect);
         if (sc != 0)
@@ -5125,7 +5110,7 @@ int cm_ExBuildingDestroyed(G17MSG *m, G17STAT *s)
         b->smokeEffect = -1;
     }
     d3if_SelectScene(save, 1);
-    gm_FreeBuilding((char *)b);
+    gm_FreeBuilding(b);
     if (s != 0) {
         s->state = 2;
         s->kind = 0;
@@ -5167,18 +5152,18 @@ int cm_ExHire(G17MSG *m, G17STAT *s)
     else
         m->hire.seed = rand();
     util_Seed(m->hire.seed);
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->hire.bldId);
+    b = gm_BuildQuery(1, 1, m->hire.bldId);
     if (b == 0)
         return 1;
-    c = (AICHAR *)gm_FindChar(m->hire.charId);
+    c = gm_FindChar(m->hire.charId);
     if (m->hire.homeId != -1) {
-        home = (AIBLD *)gm_BuildQuery(1, 1, m->hire.homeId);
+        home = gm_BuildQuery(1, 1, m->hire.homeId);
         if (home == 0)
             return 1;
     } else if (c != 0)
         home = c->bld2;
     if (c == 0 || c->bld != 0)
-        c = (AICHAR *)gm_SpawnCharacter(6, m->hire.kind, 0x12, m->hire.job, m->hire.title, (char *)home);
+        c = (AICHAR *)gm_SpawnCharacter(6, m->hire.kind, 0x12, m->hire.job, m->hire.title, home);
     if (c == 0) {
         if (s != 0) {
             s->state = 2;
@@ -5194,35 +5179,35 @@ int cm_ExHire(G17MSG *m, G17STAT *s)
     else
         c->jobId = 0;
     c->kind = m->hire.kind;
-    if (c->model == 0) {
+    if (c->scene == 0) {
         if (home != 0) {
-            t = (AIOBJ *)gm_HomeObject((unsigned char *)home);
+            t = gm_HomeObject(home);
             if (t != 0 && t->objId != -1)
                 gm_PlaceOnStage(c->netId, home->id, t->objId, 0, 0);
         } else {
-            t = (AIOBJ *)gm_BuildingMainObject((unsigned char *)b);
+            t = gm_BuildingMainObject(b);
             if (t != 0 && t->objId != -1)
                 gm_PlaceOnStage(c->netId, b->id, t->objId, 0, 0);
         }
     }
     title = m->hire.title;
     if (title != 2 && title != 1 && title != 0x10 && title != 0xf && title != 0x14 && title != 0x13) {
-        w = (AIWEAPON *)cm_CharWeapon((char *)c);
+        w = (AIWEAPON *)cm_CharWeapon(c);
         if (w->id != 0) {
             gm_TakeObjekt(c->netId, w->id, 1);
-            cm_UpdateHandObject((char *)c);
+            cm_UpdateHandObject(c);
         }
     } else {
-        w = (AIWEAPON *)cm_CharWeapon((char *)c);
+        w = (AIWEAPON *)cm_CharWeapon(c);
         if (w->id == 0) {
             gm_CreateObject(c->netId, 0x154, 1);
-            cm_UpdateHandObject((char *)c);
+            cm_UpdateHandObject(c);
         }
     }
     c->bld = b;
     if (home != 0)
-        gm_MoveIntoHome((char *)c, (char *)home);
-    c->v174 = 0;
+        gm_MoveIntoHome(c, home);
+    c->jobDays = 0;
     c->flags1c8 &= ~0x2000;
     ai_ResetJob(c);
     memcpy(&c->flags1b4, &b->workSet, sizeof(b->workSet));
@@ -5235,7 +5220,6 @@ int cm_ExHire(G17MSG *m, G17STAT *s)
     }
     return 0;
 }
-#define CM_CHR(c) ((CHARACTER *)(c)->model)  /* AICHAR.model (ai.h: AITASK *) as the CHARACTER it is */
 
 /* 0x4cb4a0, handler of message 0x3e (cm_SendCharModel): the character charId gets the model "<body>_<name>": a new
    scene object at the old one's place and angles (its name, owner and pick id kept), relit and marked as a
@@ -5254,12 +5238,12 @@ int cm_ExCharModel(G17MSG *m, G17STAT *s)
     char *p, *q;
     int save;
 
-    c = (AICHAR *)gm_FindChar(m->model.charId);
-    if (c == 0 || c->model == 0)
+    c = gm_FindChar(m->model.charId);
+    if (c == 0 || c->scene == 0)
         return 1;
     save = d3_CurrentScene;
-    d3if_SelectScene(d3t_SceneIndex(CM_CHR(c)->scene), 1);
-    ch = CM_CHR(c);
+    d3if_SelectScene(d3t_SceneIndex(c->scene->scene), 1);
+    ch = c->scene;
     pos.x = ch->obj->pos.x;
     pos.y = ch->obj->pos.y;
     pos.z = ch->obj->pos.z;
@@ -5269,15 +5253,15 @@ int cm_ExCharModel(G17MSG *m, G17STAT *s)
     owner = ch->obj->owner;
     t = d3_CreateObject(0, (D3VECTOR *)&pos, &rot, m->model.name);
     if (t != 0) {
-        strcpy(t->name, CM_CHR(c)->obj->name);
-        strcpy(CM_CHR(c)->name, m->model.name);
-        d3if_Delete(CM_CHR(c)->obj);
-        CM_CHR(c)->obj = t;
-        CM_CHR(c)->obj->owner = owner;
-        CM_CHR(c)->obj->pickId = 0x3000000;
-        d3_RelightObject(CM_CHR(c)->obj);
-        CM_CHR(c)->obj->stateFlags = (CM_CHR(c)->obj->stateFlags & 0xf7) | 4;
-        CM_CHR(c)->obj->kind = 2;
+        strcpy(t->name, c->scene->obj->name);
+        strcpy(c->scene->name, m->model.name);
+        d3if_Delete(c->scene->obj);
+        c->scene->obj = t;
+        c->scene->obj->owner = owner;
+        c->scene->obj->pickId = 0x3000000;
+        d3_RelightObject(c->scene->obj);
+        c->scene->obj->stateFlags = (c->scene->obj->stateFlags & 0xf7) | 4;
+        c->scene->obj->kind = 2;
         strcpy(buf, m->model.name);
         p = strrchr(buf, '_');
         if (p != 0) {
@@ -5285,11 +5269,11 @@ int cm_ExCharModel(G17MSG *m, G17STAT *s)
             q = strrchr(p, '_');
             if (q != 0)
                 *q = 0;
-            strcpy(CM_CHR(c)->body, p);
+            strcpy(c->scene->body, p);
             p[-1] = 0;
-            strcpy(CM_CHR(c)->fullname, buf);
+            strcpy(c->scene->fullname, buf);
         } else
-            CM_CHR(c)->body[0] = ch_EmptyName[0];
+            c->scene->body[0] = ch_EmptyName[0];
         d3if_SelectScene(save, 1);
         if (s != 0) {
             s->state = 2;
@@ -5362,8 +5346,8 @@ int cm_ExUpdateSmoke(G17MSG *m, G17STAT *s)
 {
     AIBLD *b;
 
-    b = (AIBLD *)gm_BuildQuery(1, 1, m->smoke.bldId);
-    if (b != 0 && b->object != 0 && gm_IsHomeType((unsigned char *)b) == 0)
+    b = gm_BuildQuery(1, 1, m->smoke.bldId);
+    if (b != 0 && b->object != 0 && gm_IsHomeType(b) == 0)
         sv_UpdateChimneySmoke(b);
     if (s != 0) {
         s->state = 1;
@@ -5379,9 +5363,9 @@ int cm_ExSkillsChanged(G17MSG *m, G17STAT *s)
 {
     AICHAR *c;
 
-    c = (AICHAR *)gm_FindChar(m->skills.charId);
+    c = gm_FindChar(m->skills.charId);
     if (c != 0 && c->bld2 != 0)
-        gm_ShowBuildingObjects((unsigned char *)c->bld2);
+        gm_ShowBuildingObjects(c->bld2);
     if (s != 0) {
         s->state = 1;
         s->kind = 0;
@@ -5441,11 +5425,11 @@ int cm_ExChangePlayerHe(G17MSG *m, G17STAT *s)
 {
     AICHAR *c;
 
-    c = (AICHAR *)gm_FindChar(m->clear.charId);
+    c = gm_FindChar(m->clear.charId);
     if (c == 0)
         err_Message("cm_ExChangePlayerHe(): invalid sp->id");
     if (c->id != 0xffff)
-        sv_MoveToGroup((unsigned char *)c->bld, (short *)m->clear.room, c->id, 0);
+        sv_MoveToGroup(c->bld, (struct AIOBJ *)m->clear.room, c->id, 0);
     if (s != 0) {
         s->state = 1;
         s->kind = 0;
@@ -5460,7 +5444,7 @@ int cm_ExSetJob(G17MSG *m, G17STAT *s)
 {
     AICHAR *c;
 
-    c = (AICHAR *)gm_FindChar(m->setJob.charId);
+    c = gm_FindChar(m->setJob.charId);
     if (c == 0)
         return 1;
     gm_SetJob(c->id, m->setJob.job);
@@ -5496,7 +5480,7 @@ int cm_ExSpawnCharacter(G17MSG *m, G17STAT *s)
     else {
         k = cm_ResolveId((int)m, m->spawn.bldId);
         m->spawn.bldId = k;
-        b = (AIBLD *)gm_BuildQuery(1, 1, k);
+        b = gm_BuildQuery(1, 1, k);
         if (b == 0)
             return 1;
     }
@@ -5504,20 +5488,20 @@ int cm_ExSpawnCharacter(G17MSG *m, G17STAT *s)
     if (id == 0xffff)
         return 1;
     if (m->spawn.objId != -1 && (t = (AIOBJ *)gm_FindObjectInst(m->spawn.objId)) != 0)
-        gm_PlaceOnStage(ai_CharsT[id].netId, b->id, t->objId, 0, 0);
+        gm_PlaceOnStage(ai_Chars[id].netId, b->id, t->objId, 0, 0);
     else
-        gm_PlaceOnStage(ai_CharsT[id].netId, b->id, -1, 0, 0);
-    ai_CharsT[id].bld = 0;
-    ai_CharsT[id].kind = 0xd;
+        gm_PlaceOnStage(ai_Chars[id].netId, b->id, -1, 0, 0);
+    ai_Chars[id].bld = 0;
+    ai_Chars[id].kind = 0xd;
     if (m->spawn.item != 0) {
-        gm_CreateObject(ai_CharsT[id].netId, m->spawn.item, 1);
-        cm_UpdateHandObject((char *)&ai_CharsT[id]);
+        gm_CreateObject(ai_Chars[id].netId, m->spawn.item, 1);
+        cm_UpdateHandObject(&ai_Chars[id]);
     }
-    cm_LastCharId = ai_CharsT[id].netId;
+    cm_LastCharId = ai_Chars[id].netId;
     if (s != 0) {
         s->state = 1;
         s->kind = 1;
-        s->value = (int)&ai_CharsT[id];
+        s->value = (int)&ai_Chars[id];
     }
     return 0;
 }
@@ -5531,7 +5515,7 @@ int cm_ExFreeObject(G17MSG *m, G17STAT *s)
     t = gm_FindObjectInst(m->freeObject.objId);
     if (t == 0)
         return 1;
-    gm_FreeObject(t);
+    gm_FreeObject((AIOBJ *)t);
     if (s != 0) {
         s->state = 1;
         s->kind = 0;
@@ -5560,7 +5544,7 @@ int cm_ExChat(G17MSG *m, G17STAT *s)
             cm_ChatLog[0] = 0;
     }
     for (i = 0; i < 8; i++) {
-        if (m->chat.to[i] == ai_CharsT[ai_PlayerId].netId) {
+        if (m->chat.to[i] == ai_Chars[ai_PlayerId].netId) {
             found = 1;
             break;
         }
@@ -5597,7 +5581,7 @@ int cm_ExCreateGeb(G17MSG *m, G17STAT *s)
     D3OBJECT *o;
     int scene, i;
 
-    c = (AICHAR *)gm_FindChar(m->geb.owner);
+    c = gm_FindChar(m->geb.owner);
     if (c == 0)
         return 1;
     if (net_Conn.s != -1)
@@ -5610,7 +5594,7 @@ int cm_ExCreateGeb(G17MSG *m, G17STAT *s)
         char name[MAX_PATH];
 
         strcpy(name, "gb_");
-        strcat(name, ai_BTypesT[b->type].name);
+        strcat(name, ai_BTypes[b->type].name);
         strupr(name + 2);
         for (i = 0; i < 4; i++) {
             if (i != 0)
@@ -5648,7 +5632,7 @@ int cm_ExCreateGeb(G17MSG *m, G17STAT *s)
                         }
                     } else
                         err_Message("cm_ExCreateGeb(): could not lc_GetGebaeudeBauplatz()...");
-                    sv_CreateBanners((char *)b);
+                    sv_CreateBanners(b);
                     rd_BuildRoad(b->object, b->type);
                 }
                 d3if_SelectScene(scene, 1);
@@ -5669,12 +5653,12 @@ int cm_ExCreateGeb(G17MSG *m, G17STAT *s)
 int cm_ExCharHalt(G17MSG *m, G17STAT *s)
 {
     AICHAR *c;
-    AITASK *g;
+    CHARACTER *g;
 
-    c = (AICHAR *)gm_FindChar(m->halt.charId);
+    c = gm_FindChar(m->halt.charId);
     if (c == 0)
         return 1;
-    g = c->model;
+    g = c->scene;
     if (g != 0 && g->scriptId != -1)
         evt_Stop(evt_FindById(g->scriptId));
     if (s != 0) {
@@ -5757,12 +5741,12 @@ int cm_ExCutEntry(G17MSG *m, G17STAT *s)
     char *c;
     int i;
 
-    if (m->cutEntry.fightId != ai_CharsT[ai_PlayerId].partyId)
+    if (m->cutEntry.fightId != ai_Chars[ai_PlayerId].partyId)
         return 1;
     for (i = 0; i < 16; i++) {
-        if (cm_CutInfosT[i].playerId == m->cutEntry.playerId) {
-            rec = &cm_CutInfosT[i];
-            c = cm_FindFighter(m->cutEntry.entry.charId);
+        if (cm_CutInfos[i].playerId == m->cutEntry.playerId) {
+            rec = &cm_CutInfos[i];
+            c = (char *)cm_FindFighter(m->cutEntry.entry.charId);
             if (c == 0)
                 c = (char *)gm_FindChar(m->cutEntry.entry.charId);
             if (c != 0) {
@@ -5790,11 +5774,11 @@ int cm_ExCutEntryUpdate(G17MSG *m, G17STAT *s)
     CMCUTENTRY *r;
     int i;
 
-    if (m->cutEntry.fightId != ai_CharsT[ai_PlayerId].partyId)
+    if (m->cutEntry.fightId != ai_Chars[ai_PlayerId].partyId)
         return 1;
     for (i = 0; i < 16; i++) {
-        if (cm_CutInfosT[i].playerId == m->cutEntry.playerId) {
-            r = (CMCUTENTRY *)cm_CutEntrySlot((char *)&cm_CutInfosT[i], cm_FindFighter(m->cutEntry.entry.charId));
+        if (cm_CutInfos[i].playerId == m->cutEntry.playerId) {
+            r = (CMCUTENTRY *)cm_CutEntrySlot((char *)&cm_CutInfos[i], (char *)cm_FindFighter(m->cutEntry.entry.charId));
             if (r->state == m->cutEntry.entry.state) {
                 if (r->state != 2 || r->stateArg == m->cutEntry.entry.stateArg)
                     *r = m->cutEntry.entry;
@@ -5816,9 +5800,9 @@ int cm_ExDamage(G17MSG *m, G17STAT *s)
 {
     AICHAR *r;
 
-    r = (AICHAR *)cm_FindFighter(m->damage.netId);
+    r = cm_FindFighter(m->damage.netId);
     if (r != 0) {
-        cm_ShowDamage((char *)r, m->damage.damage, 0);
+        cm_ShowDamage(r, m->damage.damage, 0);
         r->v024 -= m->damage.damage;
         r->health = m->damage.health;
     }
@@ -5847,10 +5831,10 @@ int cm_ExDarkCorner(G17MSG *m, G17STAT *s)
         s->value = 0;
     }
     if (m->script.op == 0x636c6572) {               /* 'cler' */
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->script.bldId);
+        b = gm_BuildQuery(1, 1, m->script.bldId);
         if (b == 0)
             return 1;
-        q = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12c);
+        q = gm_Query(b->objList, 2, 6, 0, 0x12c);
         if (q == 0)
             return 1;
         if (ai_Time.year - q->cornerYear > 1) {
@@ -5864,10 +5848,10 @@ int cm_ExDarkCorner(G17MSG *m, G17STAT *s)
         c = (unsigned short *)gm_FindChar(m->script.netId);
         if (c == 0)
             return 1;
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->script.bldId);
+        b = gm_BuildQuery(1, 1, m->script.bldId);
         if (b == 0)
             return 1;
-        q = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12c);
+        q = gm_Query(b->objList, 2, 6, 0, 0x12c);
         if (q == 0)
             return 1;
         k = m->script.offer;
@@ -5879,7 +5863,7 @@ int cm_ExDarkCorner(G17MSG *m, G17STAT *s)
             return 1;
         q->recs[i] = -1;
         if (ai_PlayerId == b->owner)
-            ai_ShowPurchaseNews(c, ai_Chars[ai_PlayerId], (int)b, m->script.price);
+            ai_ShowPurchaseNews(c, &ai_Chars[ai_PlayerId], (int)b, m->script.price);
     }
     if (s != 0)
         s->state = 1;
@@ -5904,10 +5888,10 @@ int cm_ExTableRequest(G17MSG *m, G17STAT *s)
         s->value = 0;
     }
     if (m->table.op == 0x6a6f696e) {               /* 'join' */
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->table.bldId);
+        b = gm_BuildQuery(1, 1, m->table.bldId);
         if (b == 0)
             return 1;
-        q = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12d);
+        q = gm_Query(b->objList, 2, 6, 0, 0x12d);
         if (q == 0)
             return 1;
         for (i = 0; i < 4; i++) {
@@ -5928,10 +5912,10 @@ int cm_ExTableRequest(G17MSG *m, G17STAT *s)
         return 0;
     }
     if (m->table.op == 0x6c656176) {               /* 'leav' */
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->table.bldId);
+        b = gm_BuildQuery(1, 1, m->table.bldId);
         if (b == 0)
             return 1;
-        q = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12d);
+        q = gm_Query(b->objList, 2, 6, 0, 0x12d);
         if (q == 0)
             return 1;
         for (j = 0; j < 4; j++) {
@@ -5948,15 +5932,15 @@ int cm_ExTableRequest(G17MSG *m, G17STAT *s)
         return 0;
     }
     if (m->table.op == 0x636c6572) {               /* 'cler' */
-        b = (AIBLD *)gm_BuildQuery(1, 1, m->table.bldId);
+        b = gm_BuildQuery(1, 1, m->table.bldId);
         if (b == 0)
             return 1;
         if (b->owner != 0xffff) {
-            ch = &ai_CharsT[b->owner];
-            if (ch != 0 && (char *)ch != ai_PlayerCharC && ch->health != 0 && ch->kind != 0xf)
+            ch = &ai_Chars[b->owner];
+            if (ch != 0 && (char *)ch != (char *)ai_PlayerChar && ch->health != 0 && ch->kind != 0xf)
                 return 1;
         }
-        q = (AIOBJ *)gm_Query((void *)b->objList, 2, 6, 0, 0x12d);
+        q = gm_Query(b->objList, 2, 6, 0, 0x12d);
         if (q == 0)
             return 1;
         if (s != 0) {
@@ -5976,11 +5960,11 @@ int cm_ExTableRequest(G17MSG *m, G17STAT *s)
 
 void cm_PlaceFighter(AICHAR *c, D3VECTOR *pos, D3VECTOR *rot, int v)
 {
-    if (c != 0 && c->model != 0) {
-        if (d3_VecEqual(&c->model->body->pos, pos, 8.0f) == 0)
-            d3_SetObjectPos(c->model->body, pos);
-        if (d3_VecEqual(&c->model->body->rotation, rot, 8.0f) == 0)
-            d3_SetObjectRot(c->model->body, rot);
+    if (c != 0 && c->scene != 0) {
+        if (d3_VecEqual(&c->scene->obj->pos, pos, 8.0f) == 0)
+            d3_SetObjectPos(c->scene->obj, pos);
+        if (d3_VecEqual(&c->scene->obj->rotation, rot, 8.0f) == 0)
+            d3_SetObjectRot(c->scene->obj, rot);
         c->v024 = v;
     }
 }
@@ -5994,7 +5978,7 @@ int cm_ExFightCommand(G17MSG *m, G17STAT *s)
 
     if (cm_CurrentFight == 0 || *cm_CurrentFight != m->fight.fight)
         return 1;
-    c = (AICHAR *)cm_FindFighter(m->fight.slot.id);
+    c = cm_FindFighter(m->fight.slot.id);
     switch (m->fight.cmd) {
     case 2:                                         /* attack */
         if (c->health != 0) {
@@ -6066,7 +6050,7 @@ int cm_ExChrDelete(G17MSG *m, G17STAT *s)
         s->kind = 0;
         s->value = 0;
     }
-    c = (AICHAR *)gm_FindChar(m->chrDelete.charId);
+    c = gm_FindChar(m->chrDelete.charId);
     if (c != 0 && c->scene != 0) {
         ch_Delete(c->scene);
         c->scene = 0;
@@ -6091,7 +6075,7 @@ int cm_ExCancelParty(G17MSG *m, G17STAT *s)
     for (i = 0; i < q->used; i++) {
         id = q->members[i];
         if (id != -1) {
-            c = (AICHAR *)gm_FindChar(id);
+            c = gm_FindChar(id);
             if (c != 0 && c->partyId == q->id)
                 c->partyId = -1;
         }
@@ -6124,7 +6108,7 @@ int cm_ExCutsceneReady(G17MSG *m, G17STAT *s)
     if (q != 0)
         q->state = 1;
     for (i = 0; i < 16; i++) {
-        c = (AICHAR *)gm_FindChar(m->ready.members[i]);
+        c = gm_FindChar(m->ready.members[i]);
         if (c != 0)
             c->partyId = m->ready.partyId;
     }
@@ -6143,7 +6127,7 @@ int cm_ExMoneyDelta(G17MSG *m, G17STAT *s)
     AICHAR *c;
     int v;
 
-    c = (AICHAR *)gm_FindChar(m->money.charId);
+    c = gm_FindChar(m->money.charId);
     if (s != 0) {
         s->state = 2;
         s->kind = 0;
@@ -6169,7 +6153,7 @@ int cm_ExHeldRounds(G17MSG *m, G17STAT *s)
     AICHAR *c;
     int v;
 
-    c = (AICHAR *)gm_FindChar(m->heldRounds.charId);
+    c = gm_FindChar(m->heldRounds.charId);
     if (s != 0) {
         s->state = 2;
         s->kind = 0;
@@ -6183,7 +6167,7 @@ int cm_ExHeldRounds(G17MSG *m, G17STAT *s)
     c->heldRounds = c->heldRounds > 0 ? c->heldRounds : 0;
     if (c->id == ai_PlayerId && ai_GameState != 0 && c->heldRounds > 0)
         sv_PopTo(ai_GameFrame);
-    amt_ClearOfficesIfAll((char *)c, m->heldRounds.all);
+    amt_ClearOfficesIfAll(c, m->heldRounds.all);
     if (s != 0)
         s->state = 1;
     return 0;
@@ -6222,7 +6206,7 @@ int cm_ExAddSkill(G17MSG *m, G17STAT *s)
         s->kind = 0;
         s->value = 0;
     }
-    c = (AICHAR *)gm_FindChar(m->skill.charId);
+    c = gm_FindChar(m->skill.charId);
     if (c == 0)
         return 1;
     k = m->skill.skill;
@@ -6262,17 +6246,17 @@ int cm_ExSpyReport(G17MSG *m, G17STAT *s)
         s->kind = 0;
         s->value = 0;
     }
-    a = (AIBLD *)gm_FindBuildingById(m->spy.rep.bld);
+    a = gm_FindBuildingById(m->spy.rep.bld);
     if (a == 0)
         return 1;
-    b = (AIBLD *)gm_FindBuildingById(m->spy.bldId);
+    b = gm_FindBuildingById(m->spy.bldId);
     if (b == 0)
         return 1;
-    q = (AIOBJ *)gm_Query((void *)b->objList, 1, 0, 0xca);
+    q = gm_Query(b->objList, 1, 0, 0xca);
     while (q != 0) {
         if (((CMSPYREPORT *)q)->report.bld == a->id)
             goto found;
-        q = (AIOBJ *)gm_QueryNext();
+        q = gm_QueryNext();
     }
     q = (AIOBJ *)gm_CreateObject(b->id, 0xca, 1);
     if (q == 0)
@@ -6389,7 +6373,7 @@ int cm_ExRaiseDead(G17MSG *m, G17STAT *s)
     if (s != 0) {
         s->state = 1;
         s->kind = 1;
-        s->value = (int)ai_Chars[id];
+        s->value = (int)&ai_Chars[id];
     }
     return 0;
 }
@@ -6418,7 +6402,7 @@ int cm_ExCreateAlchemist(G17MSG *m, G17STAT *s)
     if (s != 0) {
         s->state = 1;
         s->kind = 1;
-        s->value = (int)ai_Chars[id];
+        s->value = (int)&ai_Chars[id];
     }
     return 0;
 }
@@ -6430,8 +6414,8 @@ int cm_ExCreateAlchemist(G17MSG *m, G17STAT *s)
 int cm_ExAlchemistOrder(G17MSG *m, G17STAT *s)
 {
     AHMORDER *o;
-    AHMCHAR *c;
-    AHMOBJ *g;
+    AICHAR *c;
+    AIBLD *g;
     int r;
 
     if (s != 0) {
@@ -6439,33 +6423,33 @@ int cm_ExAlchemistOrder(G17MSG *m, G17STAT *s)
         s->kind = 0;
         s->value = 0;
     }
-    c = (AHMCHAR *)gm_FindChar(((AHMORDER *)m->data)->charId);
+    c = gm_FindChar(((AHMORDER *)m->data)->charId);
     if (c == 0)
         return -1;
-    if (ahm_HasRecord((char *)c) == 0)
+    if (ahm_HasRecord(c) == 0)
         return -2;
     o = (AHMORDER *)m->data;
     switch ((unsigned int)o->tag) {
     case AHM_CMD_ADD_VALUE:
-        r = ahm_AddValue((int *)o, (char *)c->obj->rec);
+        r = ahm_AddValue((int *)o, c->bld->ahm);
         break;
     case AHM_CMD_DELETE:
-        g = c->obj;
-        r = ahm_DeleteAlchemist((int)o, (int *)g->rec, (unsigned char *)g);
+        g = c->bld;
+        r = ahm_DeleteAlchemist((int)o, (int *)g->ahm, g);
         break;
     case AHM_CMD_SET_SHARE:
-        r = ahm_SetShare((int *)o, (char *)c->obj->rec);
+        r = ahm_SetShare((int *)o, c->bld->ahm);
         break;
     case AHM_CMD_SET_PLACE:
-        r = ahm_SetPlaceValue((int *)o, (char *)c->obj->rec);
+        r = ahm_SetPlaceValue((int *)o, c->bld->ahm);
         break;
     case AHM_CMD_ADD_PLACE:
-        g = c->obj;
-        r = ahm_AddPlace((int *)o, (char *)g->rec, (unsigned char *)g);
+        g = c->bld;
+        r = ahm_AddPlace((int *)o, g->ahm, g);
         break;
     case AHM_CMD_REMOVE_PLACE:
-        g = c->obj;
-        r = ahm_RemovePlace((int *)o, (char *)g->rec, (unsigned char *)g);
+        g = c->bld;
+        r = ahm_RemovePlace((int *)o, g->ahm, g);
         break;
     default:
         return -3;
@@ -6596,7 +6580,7 @@ int cm_ExClearRoute(G17MSG *m, G17STAT *s)
         s->state = 1;
     return 0;
 }
-/* 0x4cd350, a free slot of the eight CMLOBBYPLAYER records of cm_LobbyRecords (id 0), 0: none */
+/* 0x4cd350, a free slot of the eight CMLOBBYPLAYER records of cm_LobbyPlayers (id 0), 0: none */
 
 char *cm_LobbyFreeRecord()
 {
@@ -6693,7 +6677,7 @@ void cm_LobbyClearChat()
     cm_LobbyChatNext = 0;
     cm_LobbyChatCount = 0;
 }
-/* 0x4cd510, all players of the list (cm_LobbyListIds[8]) have state 1 and their number is the one asked for */
+/* 0x4cd510, all players of the list (cm_LobbyList[1 .. 8]) have state 1 and their number is the one asked for */
 
 int cm_LobbyAllReady()
 {
@@ -6709,8 +6693,8 @@ int cm_LobbyAllReady()
         return 0;
     cnt = 0;
     for (i = 0; i < 8; i++) {
-        if (cm_LobbyListIds[i] != 0) {
-            q = cm_LobbyFindPlayer(cm_LobbyListIds[i]);
+        if (cm_LobbyList[1 + i] != 0) {
+            q = cm_LobbyFindPlayer(cm_LobbyList[1 + i]);
             if (q == 0)
                 return 0;
             if (q->ready == 1)
@@ -6725,7 +6709,7 @@ int cm_LobbyAllReady()
 void cm_LobbyStart(int lobbyId, int value)
 {
     memset(cm_LobbyList, 0, 0x24);
-    memset(cm_LobbyRecords, 0, 0x2b8);
+    memset(cm_LobbyPlayers, 0, sizeof(cm_LobbyPlayers));
     cm_LobbyStateFlags.open = 1;
     cm_LobbyPlayerId = lobbyId;
     cm_LobbyHelloValue = value;
@@ -6916,42 +6900,12 @@ typedef struct CMGUARDREC {
     char pad0c0[0x50];
     int kind;                       /* 0x110, the kind of arming last asked for (1 .. 3) */
 } CMGUARDREC;
-typedef struct CMFIGHTREC {
-    char pad000[0xc];
-    int owner;                      /* 0x00c, the player whose fight it is (cm_FightOwner) */
-    char pad010[4];
-    int placeId;                    /* 0x014, the defender's building: its type picks the scenario, its role the defender voices */
-    char pad018[0x18];
-    unsigned char nChars;           /* 0x030, the count of charIds */
-    char pad031[3];
-    union {
-        struct {
-            int attackerId;         /* 0x034, the attacking character (cm_FightAttacker) */
-            int defenderId;         /* 0x038, the defending character (cm_FightDefender) */
-        };
-        int charIds[16];            /* 0x034, the netIds of the fight's leading characters, -1 = none (cm_CutInfos[i]
-                                       is the cutscene record of charIds[i]) */
-    };
-    char pad074[8];
-    unsigned char flags;            /* 0x07c, 1 in the open (8: in the town, else the mountain pass), 4 the mountain pass */
-    char pad07d[3];
-    int defenders[16];              /* 0x080, the netIds of the defending fighters, -1 = none */
-    int attackers[16];              /* 0x0c0, the netIds of the attacking fighters, -1 = none */
-    int carts[3];                   /* 0x100, the object ids of the carts in the fight, -1 = none */
-    int attackerBldId;              /* 0x10c, the attacker's building: its role picks the attacker voices */
-    int escort;                     /* 0x110, the carts' escort: the arming kind ai_ArmGateGuards keeps (0 none, 1 .. 3);
-                                       the AI side of a won raid takes the loot when random 0 .. 4 is above it */
-} CMFIGHTREC;
 
 extern unsigned int ai_MissionSeed;
-extern int ai_TimeCopy[4];
-extern char * sv_SelectedObject;
+extern struct AIBLD *sv_SelectedObject;
 extern char cm_ChatLog[2048];
 extern int cm_SaveAcks[8][2];
-/* ai_CharSex: view of ai_Chars (tools/data_views.py) */
-/* ai_Unk770cec: view of ai_Chars (tools/data_views.py) */
 extern int ai_Evidence[0x800][2];
-extern char ai_Crimes[0x5a00];
 extern int cm_SavedScene;
 extern int cm_DuelRight;
 extern int cm_DuelLeft;
@@ -6963,21 +6917,19 @@ extern CMKIND cm_Kinds[12];
 extern char cm_SceneState[1152];
 extern int cm_SceneChars[16];
 extern int cm_SavedNoGroup;
-extern char cm_CutInfos[16][0x35c];
 extern float cm_OrderChances[0xb4];
 extern char * cm_PointList[32];
 extern CMPORTRAIT cm_Portraits[6];
 extern G18POP cm_DamagePops[16];
-extern char cm_Fighters[21376];
-extern char * cm_FlagObjects[32];
-extern char cm_Grenades[512];
+extern AICHAR cm_Fighters[32];
+extern struct D3OBJECT *cm_FlagObjects[32];
 extern float cm_FightCellScale;
 extern int cm_CharInfoWins[32];
 extern G18LOG cm_LobbyChat[15];
 extern int cm_LobbyChatNext;
 extern unsigned int cm_LobbyList[9];
 extern CMNETGAME cm_NetGame;
-extern char cm_LobbyRecords[752];
+extern CMLOBBYPLAYER cm_LobbyPlayers[8];
 extern int cm_LobbyPlayerId;
 extern int cm_LobbyHelloValue;
 extern G17MSG cm_RecvPool[0x2000];
@@ -7007,7 +6959,6 @@ extern unsigned int cm_GroupFirstSeq;
 extern char d2_CaptionCopy[0x80];
 extern int cm_PickCellX;
 extern int cm_PickCellZ;
-/* ai_Unkfd7c50: view of d3_Scenes (tools/data_views.py) */
 /* txt_HonourTitles: view of txt_Ptrs (build/mk_txt_views.py) */
 /* txt_JobNames: view of txt_Ptrs (build/mk_txt_views.py) */
 /* txt_TitleNames: view of txt_Ptrs (build/mk_txt_views.py) */
@@ -7047,8 +6998,7 @@ int cm_NoticeCount = 0;  /* 0x6f0cd4 */
 int cm_LobbyChatCount = 0;  /* 0x6f0cd8, the lines in the ring (at most 15) */
 int cm_LobbyChatPos = 0;  /* 0x6f0cdc, the index of the line the chat window reads next (cm_LobbyChatFirst / 0x4cd4c0) */
 extern unsigned int ai_MissionSeed;
-extern int ai_TimeCopy[4];
-extern char * sv_SelectedObject;
+extern struct AIBLD *sv_SelectedObject;
 extern char cm_ChatLog[2048];
 extern int cm_SaveAcks[8][2];
 /* ai_Unk770d8c: view of ai_Chars (tools/data_views.py) */
@@ -7059,7 +7009,8 @@ CMLOBBYSTATE cm_LobbyStateFlags;  /* 0x936400, the lobby state cm_LobbyState han
                                     (tools/exe/commongaps.py); 20 taken */
 unsigned int cm_LobbyList[9];  /* 0x936420, the count then the eight player states (0x24 bytes) */
 CMNETGAME cm_NetGame;  /* 0x936460, the network game (hdr.players 0x936496, mode 0x9364dc) */
-char cm_LobbyRecords[752];  /* 0x9364e0 */
+CMLOBBYPLAYER cm_LobbyPlayers[8];  /* 0x9364e0, the eight lobby player records */
+CMJOIN cm_JoinChar;  /* 0x9367a0, the joined character (main_JoinNetworkGame) */
 int cm_LobbyPlayerId;  /* 0x9367d0, this player's lobby id */
 int cm_LobbyHelloValue;  /* 0x9367d4, the hello answer's second value */
 G17MSG cm_RecvPool[0x2000];  /* 0x9367e0, the free receive records */
@@ -7091,7 +7042,6 @@ int cm_LastSeq;  /* 0xf81168 .. */
 unsigned cm_LoadReceived;  /* 0xf81220 / */
 extern AIWATCH ai_Watch;
 extern char d2_CaptionCopy[0x80];
-/* ai_Unkf8f39c: view of d2_Wins (tools/data_views.py) */
 extern int cm_PickCellX;
 extern int cm_PickCellZ;
 /* txt_AmountUnit: view of txt_Ptrs (build/mk_txt_views.py) */

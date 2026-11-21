@@ -45,9 +45,9 @@ typedef struct AIACT {                  /* 0x94 bytes, an AI action (table at 0x
 
 typedef struct AIGRP {                  /* 0x34 bytes, a feast group: the host and up to four guests (ai_EvalFest 0x494ac0;
                                            he.c's feast event 0x5437c0 fills one) */
-    struct AIC4 *leader;                /* 0x00, the host (am.h AIC4, an ai_Chars record) */
+    struct AICHAR *leader;                /* 0x00, the host (am.h AICHAR, an ai_Chars record) */
     struct {
-        struct AIC4 *ch;                /* 0x04, a guest */
+        struct AICHAR *ch;                /* 0x04, a guest */
         int d;                          /* 0x08, the guest's verdict ai_EvalFest writes: the feast's level less the
                                            guest's (gm_CharLevel), clamped to -2 .. 2; the feast's news line 0x1788
                                            tells it with the text 0x178f + 3 * d + a random 0 .. 2 (he.c 0x5437c0) */

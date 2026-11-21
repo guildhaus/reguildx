@@ -317,7 +317,7 @@ void veg_HidePlants(G15PLANT *p)
    they are pooled literals. Left: as prior, plus the WorldToCell argument stores (hunks 0x4bcdf7,
    0x4bce1b) and the slots at 0x4bd144. */
 
-int rd_BuildRoad(char *obj, int name)
+int rd_BuildRoad(struct D3OBJECT *obj, int name)
 {
     G15BKFIND f;
     G15BK *bk;
@@ -326,7 +326,7 @@ int rd_BuildRoad(char *obj, int name)
     float dx, dz;
     float x, z, step;
     int i, j, k;
-    char *o;
+    struct D3OBJECT *o;
     int px, pz;
     int ok;
     char buf[0x40];
@@ -424,7 +424,7 @@ int rd_BuildRoad(char *obj, int name)
     o = d3_FindObject(obj, 0x100, 0, "dummy_TUER");
     if (o == 0)
         o = obj;
-    d3_PointToWorld(o, o + 0x4c, v);
+    d3_PointToWorld(o, &o->pos, v);
     ok = 0;
     if (d3_GetHeightAt((char *)rd_Road.grid, v, &px, &pz, 0)) {
         if (rd_PathToRoad(&rd_Road, px, pz, -1, -1)) {
@@ -460,7 +460,7 @@ fail:
             }
         }
     }
-    if ((d3_Scene0Flags & 2) == 0)
+    if ((d3_Scenes[0].sceneFlags & 2) == 0)
         d3fl_MakeDivide(rd_Road.map);
     return 1;
 }
@@ -668,7 +668,6 @@ void rd_FillQuad(G15ROAD *r, float *c, unsigned char v, int t)
 }
 
 extern G15ROAD rd_Road;
-/* d3_Scene0Flags: view of d3_Scenes (tools/data_views.py) */
 G15TREE veg_Types[] = { { 439, "TANNE", 3, 1, 4, 0 }, { 440, "BUCHE", 5, 1, 4, 0 }, { 441, "EICHE", 5, 2, 8, 0 }, { 0, "", 0, 1, 0, 0 } };  /* 0x602860 */
 int veg_NextId = 0;  /* 0x6f0748, the next plant id */
 G15ROAD rd_Road;  /* 0xf81300 */

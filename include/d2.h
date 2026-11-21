@@ -54,15 +54,6 @@ typedef struct D2BUF {              /* a drawing surface with its picture buffer
     D2SURF *srcSurf;                /* 0x1a8, the surface the shapes were drawn on */
 } D2BUF;
 
-#pragma pack(push, 1)
-typedef struct D2SND {              /* 0x11 bytes, d2_AnimView[]: what a type 4 object (D2OBJ::input) plays */
-    int unk00;                      /* 0x00 */
-    char unk04;
-    short x, y;                     /* 0x05 */
-    char pad09[8];
-} D2SND;
-#pragma pack(pop)
-
 typedef struct D2RGB { unsigned char r, g, b; } D2RGB;
 
 typedef struct D2SEG {              /* 0x10c bytes, one piece of the text being laid out, d2_TextSegs[] */
@@ -215,10 +206,7 @@ extern D2OBJ *d2_PendingCaptionObj;  /* 0x6ed9bc, the object whose caption is dr
 extern D2INPUT *d2_FocusedInput;       /* 0x6ed9dc, the focused input */
 extern int d2_ClipLeft;            /* 0x6f0458, clip left */
 extern int d2_ClipTop;            /* 0x6f045c, clip top */
-extern int d2_DirtyRectLeft[4];         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
-#define d2_DirtyRectTop (*(int *)((char *)&d2_DirtyRectLeft + 0x4))       /* 0xfb9064 */
-#define d2_DirtyRectRight (*(int *)((char *)&d2_DirtyRectLeft + 0x8))     /* 0xfb9068 */
-#define d2_DirtyRectBottom (*(int *)((char *)&d2_DirtyRectLeft + 0xc))    /* 0xfb906c */
+extern D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
 extern D2PICHDR *d2_FontPic;      /* 0x6ed948, the font "_FONT" */
 extern D2TEX *d2_CaptionTex;         /* 0x6ed960, sprite behind captions / texts */
 extern D2OBJ **d2_DrawOrder;        /* 0x6ed964, objects in drawing order (0x300) */
@@ -377,7 +365,7 @@ void d2_DrawWindowText(void *surf, int win);                     /* 0x46fba0, la
 void d2_DrawWindowBackground(D2WIN *w, void *surf);                    /* 0x4713c0, draws the background of a window */
 void d2_SetBackgroundTexture(char *name, int win);          /* 0x4721e0 */
 void d2_CreateScrollButtons(int x, int y, int win, int obj, int pic); /* 0x472270, creates the scroll buttons */
-int d2_CreateWindow();  /* 0x472390, creates a window, its index; -1 none free, 0 no surface. d2.c defines it K&R style (short x, y, w, h; unsigned int flags): every caller, d2.c's own after the definition too, pushes promoted ints (movsx) */
+int d2_CreateWindow();  /* 0x472390, creates a window, its index; -1 none free, 0 no surface. @original why: d2.c defines it K&R style (short x, y, w, h; unsigned int flags); every caller, d2.c's own after the definition too, pushes promoted ints (movsx; byte-matched d2_CreateChildWindow) */
 void d2_ScrollWindowBy(int a, int b, int win);                   /* 0x472760, scrolls a window */
 void d2_ResizeWindow(short w, short h, int win);               /* 0x472800, resizes a window */
 void d2_FinishFades(void);                                    /* 0x472a60 */
@@ -401,7 +389,8 @@ void d2_RaiseViewWindows(int view);                                /* 0x4741a0, 
 /* 0x4741f0..0x476c00 (round 18) */
 int d2_BlitPartToDD(int sx, int sy, int w, int h, D2SURF *src, int x, int y, struct IDirectDrawSurface4 *dst); /* 0x4794c0 */
 int d2_BlitPartFromDD(int sx, int sy, int w, int h, struct IDirectDrawSurface4 *src, int x, int y, D2SURF *dst); /* 0x479610, blits a part of a DirectDraw surface onto a D2SURF */
-struct VFSFILE * vfs_Tfopen(char *name, char *mode, int unk);                            /* 0x430470 */
+struct VFSDIR;
+struct VFSFILE * vfs_Tfopen(char *name, char *mode, struct VFSDIR *dir);                            /* 0x430470 */
 unsigned int vfs_fread(void *buf, int size, int n, struct VFSFILE *f);                             /* 0x430bd0 */
 int vfs_fseek(struct VFSFILE *f, long offset, int origin);                                    /* 0x430fa0 */
 int vfs_fclose(struct VFSFILE *f);                                                        /* 0x430aa0 */

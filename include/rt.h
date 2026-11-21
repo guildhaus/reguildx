@@ -19,10 +19,7 @@ typedef struct RTMARK {                 /* 8 bytes, rt_Marks[8] */
 extern RTMARK rt_Marks[8];          /* 0xf812a0 */
 extern int rt_MarkCount;                /* 0x6f0750, the marks used */
 extern unsigned char ai_OwnPlayer;      /* 0x6f1bc5, the player */
-#ifndef DATA_VIEWS_H
-extern char ai_Unkfd7c50[];            /* 0xfd7c50 (as cm.h) */
-#endif
-extern D2OBJ *d2_Objs;  /* 0xf8f080, 0x2ec bytes each (d2.c); this header's unit adds byte offsets through d2_ObjsC */
+extern D2OBJ *d2_Objs;  /* 0xf8f080, 0x2ec bytes each (d2.c) */
 
 extern int d2_ClickedId;                /* 0xf8a668 */
 extern int d2_LastWindow;                /* 0x6ed938, window created last */

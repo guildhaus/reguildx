@@ -43,9 +43,6 @@ extern GAPDATA full_data_624204[];
 
 
 extern const int sv_PhaseMinutes[24];
-#define d2_DirtyRectTop (*(int *)((char *)&d2_DirtyRectLeft + 0x4))       /* 0xfb9064 */
-#define d2_DirtyRectRight (*(int *)((char *)&d2_DirtyRectLeft + 0x8))     /* 0xfb9068 */
-#define d2_DirtyRectBottom (*(int *)((char *)&d2_DirtyRectLeft + 0xc))    /* 0xfb906c */
 extern float d3s_QuadUV[6];
 extern GAPDATA full_data_5fea38[];
 
@@ -127,13 +124,11 @@ extern GAPDATA full_data_60c7b8[];
 extern GAPDATA full_data_623594[];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 
 
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern const int sv_PhaseMinutes[24];
 extern int d2_PointerObj;
@@ -156,7 +151,6 @@ extern struct D2OBJ *d2_Objs;
 extern GAPDATA full_data_62a634[];
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -172,7 +166,6 @@ extern int d2_LastWindow;
 
 extern GAPDATA full_data_602568[];
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -183,7 +176,6 @@ extern int sv_PopRequest;
 extern unsigned short ai_PlayerId;
 extern volatile unsigned long d3_Time;
 extern GAPDATA full_data_60c7b8[];
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern int d2_PointerObj;
@@ -204,7 +196,6 @@ extern int ai_ClickedObject;
 
 extern GAPDATA full_data_62a450[];
 extern unsigned char kb_Last;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
@@ -215,7 +206,6 @@ extern int d2_LastWindow;
 
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
@@ -226,13 +216,11 @@ extern int d2_LastWindow;
 extern int sv_FrameMask;
 extern int sv_PopRequest;
 
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 
 extern const int sv_PhaseMinutes[24];
 
 
-extern char ai_Chars[768][0x21c];
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -252,7 +240,6 @@ extern int ai_ClickedObject;
 
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-extern char ai_Chars[768][0x21c];
 extern int d2_PointerObj;
 extern int gm_AllowAll;
 extern int d2_ClickedId;
@@ -265,11 +252,9 @@ extern int ai_ClickedObject;
 
 extern int gm_AllowAll;
 extern volatile unsigned long d3_Time;
-extern char ai_Chars[768][0x21c];
 extern int d2_PointerObj;
 extern struct D2OBJ *d2_Objs;
 extern int di_Absolute;
-extern int gm_PlayerRecords[688];
 extern unsigned short ai_PlayerId;
 extern int d2_LastWindow;
 extern unsigned char ai_OwnPlayer;
@@ -287,7 +272,6 @@ extern unsigned char kb_Last;
 
 extern unsigned char kb_Last;
 extern int sv_FrameMask;
-extern char ai_Chars[768][0x21c];
 
 
 #define U_I(a) (*(int *)(a))
@@ -309,8 +293,6 @@ struct SBSAMPLE;
    in the original. A load through that pointer (not the fixed address) is what the unit's functions compile to,
    and the full link relocates the initializer, so the record is ours and no neighbour is touched. */
 extern TUTSTATE *const ai_Tutorial;
-#define S (*(char **)(unsigned)&ai_Tutorial)  /* the tutorial state record (at 0x6fa060): the pointer ai_Tutorial holds */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 typedef struct SHOTENTRY {   /* 0x10 bytes */
     int obj;                 /* +0x0, -1 when empty */
     float dist;              /* +0x4 */
@@ -391,23 +373,15 @@ int sb_UnloadSampleBank();
 int snd_LoadVoiceBank();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
-struct G5CH; struct G9REC; struct VFSFILE;
-int sv_RunFrame(int cb, unsigned mask);
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(); void sv_ValueBar();
-char * ahm_OwnerChar();
-int sv_CheckGoodAmount(char *o, int n, unsigned char t);
-int sv_MessageBox();
-void txt_Format(char *out, int id0, ...);
+struct AICHAR; struct G9REC; struct VFSFILE;
+int sv_RunFrame(void (*cb)(), unsigned mask);
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_ValueBar();
+struct AICHAR *ahm_OwnerChar();
+int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
+int sv_MessageBox(intptr_t text, unsigned flags);
+void txt_Format(char *out, intptr_t id0, ...);
 int ahm_SendCreateAlchemist();
-int ahm_ResearchState(); char * ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
-#pragma pack(push, 1)
-typedef struct CANNONREC {   /* the tutorial's cannon record (ai_CannonScene's argument), read at its byte offsets */
-    char pad0;
-    int id;                  /* +0x01, the effect id gv_FindEffect takes (GVCANNON.bld) */
-    char pad5[0x5c];
-    D3OBJECT *obj;           /* +0x61, the cannon object the scene is built around */
-} CANNONREC;
-#pragma pack(pop)
+int ahm_ResearchState(); struct AICHAR *ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
 typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of ai_CannonScene (the other cannon functions still address it by byte offset) */
     D3VECTOR pos;            /* +0x00, d3_PointToWorld of the cannon object; pos.y gets the height of its bounds * 0.8 */
     float pad0c;
@@ -473,7 +447,7 @@ struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);                 /* 0x447190, d3_interface.h */
 char d3if_Show(struct D3OBJECT *obj, char show);        /* 0x4471b0, d3_interface.h */
 void he_ShowObjectInfos(); void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
-void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, char *rec);
+void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void sv_SetStatusText(char *s); void sv_RedrawScreen();
 void d3if_Prerender(char map); 
 double _CIfmod();
@@ -486,30 +460,30 @@ typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: thr
 } CANNONROT;
 void d3_DirToWorld();
 int gm_FindById();
-float gv_SalvoCharge(); void gv_BuildingCannon(char *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
+float gv_SalvoCharge(); void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
-void txt_Format(char *out, int id0, ...); int gm_CharCurrency(char *c, char p);
-void gv_CannonScatter(char *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
+void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
+void gv_CannonScatter(struct AIBLD *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
-int he_EventOnBuilding(); int sv_MessageBox();
-int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(char *o, int n, unsigned char t); short * gm_PlayerRecord(char *c);
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
-int ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
-void txt_Format(char *out, int id0, ...); int sv_MessageBox();
+int he_EventOnBuilding(); int sv_MessageBox(intptr_t text, unsigned flags);
+int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
+struct AICHAR *ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
+void txt_Format(char *out, intptr_t id0, ...); int sv_MessageBox(intptr_t text, unsigned flags);
 void sv_ReleaseNamePlates(void); int sv_RegisterNamePlate(); void ai_StorageWindow();
 void ai_AlchemistResearchWindow(); void ai_AlchemistWindow();
 void cm_BeginFieldBlock(char *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 
 /* dcp unit split: the definitions of sv_t the functions of svgrave use */
-void ai_AlchemistResearchWindow(unsigned char *obj);
-void ai_AlchemistWindow(unsigned char *obj);
+void ai_AlchemistResearchWindow(struct AIBLD *obj);
+void ai_AlchemistWindow(struct AIBLD *obj);
 void ai_CannonAim(CANNONSCENE *sc, float dt);
 void ai_CannonAxes(CANNONSCENE *sc);
 int ai_CannonFireCheck(CANNONSCENE *sc);
 void ai_CannonShotResults(CANNONSCENE *sc);
 float ai_CannonPitchRatio(CANNONSCENE *sc);
-void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask);
-void ai_CannonExplosion(CANNONSCENE *sc, char *rec);
+void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask);
+void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void ai_ShotTableReset(void);
 extern const int ai_GravePics[4];
 extern const int ai_GravePicsAlt[4];
@@ -528,12 +502,12 @@ void ai_GraveSizeButtons(AIBLD *rec, int *w)
 
     yard = rec->yard;
     d2_SetForm(w[0], 6);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     for (i = 0; i < 4; i++) {
         w[8 + i] = d2_WinOpenPic(i * 0x6c + 6, 0, ai_GravePics[i], w[4]);
         d2_Objs[w[8 + i]].interactive = 1;
         d2_Objs[w[8 + i]].style = 3;
-        d2_Objs[w[8 + i]].user = ai_Goods + ai_GraveGoods[i] * 0x41;
+        d2_Objs[w[8 + i]].user = &ai_Goods[ai_GraveGoods[i]];
     }
     d2_SetObjEnabled(w[9], yard->open[1]);
     d2_SetObjEnabled(w[10], yard->open[2]);
@@ -551,7 +525,7 @@ void ai_GraveSizeButtons(AIBLD *rec, int *w)
     d2_Objs[w[w[12] + 8]].checked = 1;
 }
 
-int sv_CreateScrollButtons(); unsigned gv_FindEntry(void *a, unsigned char *o, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
+int sv_CreateScrollButtons(); unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
 
 /* a row of the graveyard contact window's grave list (w + 0xd, 0x10 rows of 4 dwords; ai_GraveList fills them) */
 typedef struct GVROW {
@@ -614,11 +588,11 @@ void ai_GraveList(AIBLD *rec, int *w, int sel)
     if (sel == w[0xc])
         saved = d2_Wins[w[2]].scrollY;
     d2_SetForm(w[0], 2);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_SetForm(w[0], 4);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     sv_CreateScrollButtons(0, 0, w[5], w[2], 0x35, a, b, &sel);
-    e = (GVENTRY *)gv_FindEntry(0, (unsigned char *)rec, 0, 0, w[0xc]);
+    e = (GVENTRY *)gv_FindEntry(0, rec, 0, 0, w[0xc]);
     n = 0;
     if (e) {
         row = ((GVWIN *)w)->rows;
@@ -634,7 +608,7 @@ void ai_GraveList(AIBLD *rec, int *w, int sel)
                 d2_WinOpenPic(0xf, n * 0x35 + 9, 0x7de, w[2]);
             d2_Objs[row->btn].interactive = 1;
             d2_Objs[row->btn].style = 3;
-            e = (GVENTRY *)gv_FindEntry(0, (unsigned char *)rec, (unsigned)e, 0, w[0xc]);
+            e = (GVENTRY *)gv_FindEntry(0, rec, (unsigned)e, 0, w[0xc]);
             n++;
             row++;
         } while (e);
@@ -702,7 +676,7 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
     int bar;
     GVITEM *items;
     GVITEM *item;
-    short *c;
+    AICHAR *c;
     int x;
     int y;
     int k;
@@ -729,11 +703,11 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
     if (clicked == w[0x4d])
         saved = d2_Wins[w[3]].scrollY;
     d2_SetForm(w[0], 3);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_SetForm(w[0], 5);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_SetForm(w[0], 7);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     sv_CreateScrollButtons(0, 0, w[6], w[3], d2_Wins[w[3]].h, &up, &down, &bar);
     d2_SetForm(w[0], 3);
     for (i = 0; i < n; i++) {
@@ -760,7 +734,7 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
         d2_SetObjFont(k, 0x54);
         y += 0x12;
         for (k = 0; k < 5; k++, y += 0xd) {
-            txt_Format(buf, "%s:", 0x16b7 + k);
+            txt_Format(buf, (intptr_t)"%s:", 0x16b7 + k);
             x = d2_CreateWinText(0x28, y, buf, w[3]);
             d2_Objs[x].w = 300;
             d2_SetObjFont(x, 0x54);
@@ -769,20 +743,20 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
     }
     d2_Wins[w[3]].scrollY = saved;
     d2_SetForm(w[0], 7);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     if (e->id == -1) {
         char buf[0x100];
 
         buf[0] = 0;
         txt_Format(buf, 0x4100, ai_GraveNames[e->size]);
-        io_PrintText("$Z%s", buf);
+        io_PrintText((intptr_t)"$Z%s", buf);
     } else {
         char buf[0x100];
 
         c = gm_FindChar(e->id);
         buf[0] = 0;
         if (c) {
-            txt_Format(buf, "%1N3", (unsigned short)*c);
+            txt_Format(buf, (intptr_t)"%1N3", c->id);
         } else {
             for (i = 0; i < n; i++) {
                 if (items[i].grave->id == e->id) {
@@ -791,11 +765,11 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
                 }
             }
         }
-        io_PrintText("$7<$R%s$0<$4>$L%s$A$0>", 0x4101, buf);
-        txt_Format(buf, "AD %i", e->until + 0x578);
-        io_PrintText("$7<$R%s$0<$4>$L%s$A$0>", 0x4102, buf);
-        txt_Format(buf, "%i %%", (int)(100.0f * (e->b0c / 255.0f)));
-        io_PrintText("$7<$R%s$0<$4>$L%s$A$0>", 0x4103, buf);
+        io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4101, buf);
+        txt_Format(buf, (intptr_t)"AD %i", e->until + 0x578);
+        io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4102, buf);
+        txt_Format(buf, (intptr_t)"%i %%", (int)(100.0f * (e->b0c / 255.0f)));
+        io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4103, buf);
         if (flag == 1) {
             w[0x4e] = d2_WinCreateSlider((d2_Wins[d2_LastWindow].w - 0xb4) / 2, d2_Wins[d2_LastWindow].h - 0x21, 0xbf,
                                          txt_Ptrs[0x42f1], d2_LastWindow);
@@ -812,12 +786,12 @@ void ai_GraveDeadName(GVGRAVE *e, char *out)
 {
     if (e->v2c) {
         if (e->sex == 0)
-            txt_Format(out, (char *)(unsigned)"%s %s %s", e->v2c + 0x253, e->first, e->family);
+            txt_Format(out, (intptr_t)"%s %s %s", e->v2c + 0x253, e->first, e->family);
         else
-            txt_Format(out, (char *)(unsigned)"%s %s %s", e->v2c + 0x27b, e->first, e->family);
+            txt_Format(out, (intptr_t)"%s %s %s", e->v2c + 0x27b, e->first, e->family);
         return;
     }
-    txt_Format(out, (char *)(unsigned)"%s %s", e->first, e->family);
+    txt_Format(out, (intptr_t)"%s %s", e->first, e->family);
 }
 /* 0x583150, the second line of a dead person in a grave (ai_GraveDetail): the two texts the record points to at
    +0x30 / +0x34 as text ids (their male v30 + 0x114 / nameId + 0x130 or female + 0x11e / + 0x18f forms by g->sex;
@@ -826,19 +800,19 @@ void ai_GraveDeadDescription(GVGRAVE *g, char *out)
 {
     if (g->v30 && g->nameId) {
         if (g->sex == 0)
-            txt_Format(out, "%s, %s", g->v30 + 0x114, g->nameId + 0x130);
+            txt_Format(out, (intptr_t)"%s, %s", g->v30 + 0x114, g->nameId + 0x130);
         else
-            txt_Format(out, "%s, %s", g->v30 + 0x11e, g->nameId + 0x18f);
+            txt_Format(out, (intptr_t)"%s, %s", g->v30 + 0x11e, g->nameId + 0x18f);
     } else if (g->v30) {
         if (g->sex == 0)
-            txt_Format(out, "%s", g->v30 + 0x114);
+            txt_Format(out, (intptr_t)"%s", g->v30 + 0x114);
         else
-            txt_Format(out, "%s", g->v30 + 0x11e);
+            txt_Format(out, (intptr_t)"%s", g->v30 + 0x11e);
     } else if (g->nameId) {
         if (g->sex == 0)
-            txt_Format(out, "%s", g->nameId + 0x130);
+            txt_Format(out, (intptr_t)"%s", g->nameId + 0x130);
         else
-            txt_Format(out, "%s", g->nameId + 0x18f);
+            txt_Format(out, (intptr_t)"%s", g->nameId + 0x18f);
     } else {
         *out = 0;
     }
@@ -909,7 +883,7 @@ void ai_GraveWindow(GVPICK *out, AIBLD *rec, char *title, int flag, void (*cb)(A
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
     w[1] = d2_LastWindow;
-    io_PrintText("$C$Z%s", title);
+    io_PrintText((intptr_t)"$C$Z%s", title);
     d2_SetForm(win, 2);
     w[2] = d2_LastWindow;
     d2_SetForm(win, 3);
@@ -1082,11 +1056,11 @@ void ai_RentGraveDetail(int *w)
     }
     saved = d2_Wins[w[2]].scrollY;
     d2_SetForm(w[0], 2);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_SetForm(w[0], 3);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_SetForm(w[0], 5);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     sv_CreateScrollButtons(0, 0, w[4], w[2], d2_Wins[w[2]].h, &up, &down, &bar);
     d2_SetForm(w[0], 2);
     for (i = 0; i < n; i++) {
@@ -1110,7 +1084,7 @@ void ai_RentGraveDetail(int *w)
         d2_SetObjFont(k, 0x54);
         y += 0x12;
         for (k = 0; k < 5; k++, y += 0xd) {
-            txt_Format(buf, "%s:", 0x16b7 + k);
+            txt_Format(buf, (intptr_t)"%s:", 0x16b7 + k);
             x = d2_CreateWinText(0x28, y, buf, w[2]);
             d2_Objs[x].w = 300;
             d2_SetObjFont(x, 0x54);
@@ -1119,13 +1093,13 @@ void ai_RentGraveDetail(int *w)
     }
     d2_Wins[w[2]].scrollY = saved;
     d2_SetForm(w[0], 5);
-    io_PrintText("$C");
-    txt_Format(buf, "%1N3", ai_CharsT[ai_PlayerId].id);
-    io_PrintText("$7<$R%s$0<$4>$L%s$A$0>", 0x4101, buf);
-    txt_Format(buf, "AD %i", e->until + 0x578);
-    io_PrintText("$7<$R%s$0<$4>$L%s$A$0>", 0x4102, buf);
-    txt_Format(buf, "%i %%", (int)(100.0f * (e->b0c / 255.0f)));
-    io_PrintText("$7<$R%s$0<$4>$L%s$A$0>", 0x4103, buf);
+    io_PrintText((intptr_t)"$C");
+    txt_Format(buf, (intptr_t)"%1N3", ai_Chars[ai_PlayerId].id);
+    io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4101, buf);
+    txt_Format(buf, (intptr_t)"AD %i", e->until + 0x578);
+    io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4102, buf);
+    txt_Format(buf, (intptr_t)"%i %%", (int)(100.0f * (e->b0c / 255.0f)));
+    io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4103, buf);
 }
 /* 0x583b70, opens the graveyard detail window (209 B): w = the window list (7 the selected entry record), title
    = its title; 0 without a selected entry, else the form "Locations\Friedhof\RentAGrave2" (d2_OpenForm (0, 0),
@@ -1147,7 +1121,7 @@ int ai_GraveDetailOpen(int *w, char *title)
     sv_FitForm(d2_LastWindow);
     d2_SetForm(w[0], 1);
     w[1] = d2_LastWindow;
-    io_PrintText("$C$Z%s", title);
+    io_PrintText((intptr_t)"$C$Z%s", title);
     d2_SetForm(w[0], 2);
     w[2] = d2_LastWindow;
     d2_SetForm(w[0], 3);
@@ -1156,7 +1130,7 @@ int ai_GraveDetailOpen(int *w, char *title)
     w[5] = d2_LastWindow;
     d2_SetForm(w[0], 4);
     w[6] = d2_LastWindow;
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     ai_RentGraveDetail(w);
     return 1;
 }
@@ -1172,12 +1146,12 @@ void ai_GraveSizeButtonsAt(AIBLD *rec, int win, int section, int *btns, int *sel
 
     yard = rec->yard;
     d2_SetForm(win, section);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     for (i = 0; i < 4; i++) {
         btns[i] = d2_WinOpenPic(i * 0x6c + 6, 0, ai_GravePics[i], d2_LastWindow);
         d2_Objs[btns[i]].interactive = 1;
         d2_Objs[btns[i]].style = 3;
-        d2_Objs[btns[i]].user = ai_Goods + ai_GraveGoods[i] * 0x41;
+        d2_Objs[btns[i]].user = &ai_Goods[ai_GraveGoods[i]];
     }
     d2_SetObjEnabled(btns[1], yard->open[1]);
     d2_SetObjEnabled(btns[2], yard->open[2]);
@@ -1202,7 +1176,7 @@ int gv_OrderSetGraveHolder(); int gv_SizeOpen();
    centred, fitted), the texts 0x410f / 0x410e and the two entries 0x4111 / +1 (d2_GetWinObj), d2_ClickedId
    cleared; the pump loop (this window, 0x677c7): a right button release (dm_L.rup) or the second entry sets
    sv_PopRequest, the first sets the grave holder (0, rec, a, b) and returns 1; the close of the window, the result */
-int ai_GraveFreeConfirm(char *rec, int a, unsigned char b)
+int ai_GraveFreeConfirm(AIBLD *rec, int a, unsigned char b)
 {
     int win;
     int b1;
@@ -1259,7 +1233,7 @@ int ai_GraveSizeEnable(AIBLD *rec, int from, unsigned char entry, int *btns, int
         d2_Objs[btns[i]].checked = 0;
     }
     for (i = from + 1; i < 4; i++) {
-        if (gv_SizeOpen((char *)rec->yard, i)) {
+        if (gv_SizeOpen(rec->yard, i)) {
             any = 1;
             d2_SetObjEnabled(btns[i], 1);
             if (first == -1)
@@ -1316,14 +1290,14 @@ int ai_GraveMoveConfirm(AIBLD *rec, int from, unsigned char entry, int to)
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == yes) {
-                if (cost == 0 || sv_CheckGoodAmount(ai_Chars[ai_PlayerId], cost, ai_OwnPlayer)) {
-                    h = gv_OrderMoveGrave((int *)ai_Chars[ai_PlayerId], to, (char *)rec, from, entry, cost);
+                if (cost == 0 || sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], cost, ai_OwnPlayer)) {
+                    h = gv_OrderMoveGrave((int *)&ai_Chars[ai_PlayerId], to, rec, from, entry, cost);
                     while (h != -1 && cm_GetSlotState(h) == 0)
                         sv_RunFrame(0, 0x20007);
                     sv_FrameMask = 0x677c7;
                     if (cm_GetSlotState(h) == 2) {
                         txt_Format(buf, 0x411b, 0x4112, ai_GraveNames[to]);
-                        sv_MessageBox((int)buf, 0x100);
+                        sv_MessageBox((intptr_t)buf, 0x100);
                     } else {
                         sv_PopRequest = 1;
                         r = 1;
@@ -1333,7 +1307,7 @@ int ai_GraveMoveConfirm(AIBLD *rec, int from, unsigned char entry, int to)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_GraveMoveConfirm, 0x677c7));
+    } while (sv_RunFrame(ai_GraveMoveConfirm, 0x677c7));
     d2_CloseView(win);
     return r;
 }
@@ -1346,7 +1320,7 @@ int ai_GraveMoveConfirm(AIBLD *rec, int from, unsigned char entry, int to)
    sv_PopRequest, the window enabled again; a clicked button != the selection -> the selection, the buttons and the
    confirm redone; the close of the window, the result */
 
-int ai_GraveMoveWindow(char *rec, int a, unsigned char b)
+int ai_GraveMoveWindow(AIBLD *rec, int a, unsigned char b)
 {
     int win;
     int btn;
@@ -1364,11 +1338,11 @@ int ai_GraveMoveWindow(char *rec, int a, unsigned char b)
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
     io_PrintText(0x4113, 0x4112);
-    ai_GraveSizeButtonsAt((AIBLD *)rec, win, 2, btns, &sel);
+    ai_GraveSizeButtonsAt(rec, win, 2, btns, &sel);
     d2_SetForm(win, 3);
-    i = io_PrintText("%ia[%s]", 0x4119);
+    i = io_PrintText((intptr_t)"%ia[%s]", 0x4119);
     btn = d2_GetWinObj(win, 3, i);
-    d2_SetObjEnabled(btn, ai_GraveSizeEnable((AIBLD *)rec, a, b, btns, &sel));
+    d2_SetObjEnabled(btn, ai_GraveSizeEnable(rec, a, b, btns, &sel));
     d2_ClickedId = -1;
     for (;;) {
         if (dm_L.rup != 0) {
@@ -1376,7 +1350,7 @@ int ai_GraveMoveWindow(char *rec, int a, unsigned char b)
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == btn) {
                 d2_SetViewEnabled(win, 0);
-                if (ai_GraveMoveConfirm((AIBLD *)rec, a, b, sel) == 1) {
+                if (ai_GraveMoveConfirm(rec, a, b, sel) == 1) {
                     r = 1;
                     sv_PopRequest = 1;
                 }
@@ -1385,8 +1359,8 @@ int ai_GraveMoveWindow(char *rec, int a, unsigned char b)
                 for (i = 0; i < 4; i++) {
                     if (d2_PointerObj == btns[i] && i != sel) {
                         sel = i;
-                        ai_GraveSizeButtonsAt((AIBLD *)rec, win, 2, btns, &sel);
-                        d2_SetObjEnabled(btn, ai_GraveSizeEnable((AIBLD *)rec, a, b, btns, &sel));
+                        ai_GraveSizeButtonsAt(rec, win, 2, btns, &sel);
+                        d2_SetObjEnabled(btn, ai_GraveSizeEnable(rec, a, b, btns, &sel));
                         break;
                     }
                 }
@@ -1403,7 +1377,7 @@ int ai_GraveMoveWindow(char *rec, int a, unsigned char b)
    (ai_GraveFreeConfirm on the grave) and 0x4119 (ai_GraveMoveWindow, the move to another size; disabled when the entry is
    already of size 3), each run with the window disabled and closing it when it answers 1; a right click
    closes it */
-void ai_GraveDetailButtons(char *rec, int *w)
+void ai_GraveDetailButtons(AIBLD *rec, int *w)
 {
     int btns[2];
     int first;
@@ -1431,7 +1405,7 @@ void ai_GraveDetailButtons(char *rec, int *w)
                 d2_SetViewEnabled(w[0], 1);
             }
         }
-    } while (sv_RunFrame((int)ai_GraveDetailButtons, 0x677c7));
+    } while (sv_RunFrame(ai_GraveDetailButtons, 0x677c7));
 }
 /* 0x584520, confirms renting a grave: rec = the graveyard building, size = the grave size. The lease costs
    gv_LeasePrice of the player's character (full care) unless the player owns the graveyard. The form
@@ -1455,7 +1429,7 @@ int ai_GraveRentConfirm(AIBLD *rec, int size)
     if (rec->owner == ai_PlayerId)
         cost = 0;
     else
-        cost = gv_LeasePrice((unsigned short *)ai_Chars[ai_PlayerId], 0xff, size, 1, &share);
+        cost = gv_LeasePrice((unsigned short *)&ai_Chars[ai_PlayerId], 0xff, size, 1, &share);
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\Friedhof");
     d2_SetPointerSprite(0, 0);
     d2_CentreViewWindows(win);
@@ -1476,14 +1450,14 @@ int ai_GraveRentConfirm(AIBLD *rec, int size)
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == yes) {
-                if (cost == 0 || sv_CheckGoodAmount(ai_Chars[ai_PlayerId], cost, ai_OwnPlayer)) {
-                    h = gv_OrderReserveGrave((int *)ai_Chars[ai_PlayerId], (char *)rec, size, 10, cost);
+                if (cost == 0 || sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], cost, ai_OwnPlayer)) {
+                    h = gv_OrderReserveGrave((int *)&ai_Chars[ai_PlayerId], rec, size, 10, cost);
                     while (h != -1 && cm_GetSlotState(h) == 0)
                         sv_RunFrame(0, 0x20007);
                     sv_FrameMask = 0x677c7;
                     if (cm_GetSlotState(h) == 2) {
                         txt_Format(buf, 0x411b, (rec->owner == ai_PlayerId) + 0x4108, ai_GraveNames[size]);
-                        sv_MessageBox((int)buf, 0x100);
+                        sv_MessageBox((intptr_t)buf, 0x100);
                     } else {
                         sv_PopRequest = 1;
                         r = 1;
@@ -1493,7 +1467,7 @@ int ai_GraveRentConfirm(AIBLD *rec, int size)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_GraveRentConfirm, 0x677c7));
+    } while (sv_RunFrame(ai_GraveRentConfirm, 0x677c7));
     d2_CloseView(win);
     return r;
 }
@@ -1505,7 +1479,7 @@ int ai_GraveRentConfirm(AIBLD *rec, int size)
    == 1 -> sv_PopRequest, the window enabled again; a clicked button != the selection -> the selection and the
    buttons redone; the close of the window */
 
-void ai_RentGraveSelect(char *rec)
+void ai_RentGraveSelect(AIBLD *rec)
 {
     int win;
     int btn;
@@ -1521,9 +1495,9 @@ void ai_RentGraveSelect(char *rec)
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
     io_PrintText(0x410a, 0x4108);
-    ai_GraveSizeButtonsAt((AIBLD *)rec, win, 2, btns, &sel);
+    ai_GraveSizeButtonsAt(rec, win, 2, btns, &sel);
     d2_SetForm(win, 3);
-    i = io_PrintText("%ia[%s]", 0x4117);
+    i = io_PrintText((intptr_t)"%ia[%s]", 0x4117);
     btn = d2_GetWinObj(win, 3, i);
     d2_ClickedId = -1;
     for (;;) {
@@ -1532,14 +1506,14 @@ void ai_RentGraveSelect(char *rec)
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == btn) {
                 d2_SetViewEnabled(win, 0);
-                if (ai_GraveRentConfirm((AIBLD *)rec, sel) == 1)
+                if (ai_GraveRentConfirm(rec, sel) == 1)
                     sv_PopRequest = 1;
                 d2_SetViewEnabled(win, 1);
             } else {
                 for (i = 0; i < 4; i++) {
                     if (d2_PointerObj == btns[i] && i != sel) {
                         sel = i;
-                        ai_GraveSizeButtonsAt((AIBLD *)rec, win, 2, btns, &sel);
+                        ai_GraveSizeButtonsAt(rec, win, 2, btns, &sel);
                         break;
                     }
                 }
@@ -1552,7 +1526,7 @@ void ai_RentGraveSelect(char *rec)
     }
 }
 
-int sv_MessageBoxGreen(); void sv_OpenPlayerBar(int a, char k); void sv_ClosePlayerBar(void);
+int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_OpenPlayerBar(struct AIBLD *a, char k); void sv_ClosePlayerBar(void);
 
 /* 0x584900, the "GRAEBER_PFLEGEN" callback of the graveyard window (ai_GraveWindow, a function pointer only):
    sends a selected character to tend the picked grave. When a work is already pending on the grave
@@ -1575,7 +1549,7 @@ int ai_GraveCare(AIBLD *rec, GVPICK *pick)
 
     r = 0;
     if (he_HasGraveWork(rec, pick->size, pick->index) != 0) {
-        sv_MessageBoxGreen((int)txt_Ptrs[0x411e], (int)txt_Ptrs[0x411f], 0);
+        sv_MessageBoxGreen((intptr_t)txt_Ptrs[0x411e], (intptr_t)txt_Ptrs[0x411f], 0);
         return 0;
     }
     sv_OpenPlayerBar(rec, 0);
@@ -1598,18 +1572,18 @@ int ai_GraveCare(AIBLD *rec, GVPICK *pick)
             if (d2_PointerObj == yes) {
                 c = 0;
                 for (i = 0; i < 0x300; i++) {
-                    if (ai_CharsT[i].selected) {
-                        c = &ai_CharsT[i];
+                    if (ai_Chars[i].selected) {
+                        c = &ai_Chars[i];
                         break;
                     }
                 }
                 if (c == 0) {
-                    sv_MessageBox(txt_Ptrs[0x4093], 0);
+                    sv_MessageBox((intptr_t)txt_Ptrs[0x4093], 0);
                 } else {
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x8d;
                     msg.flags = 1;
-                    msg.to = ai_CharsT[rec->owner].netId;
+                    msg.to = ai_Chars[rec->owner].netId;
                     msg.fromId = rec->id;
                     msg.time = ai_Time;
                     msg.graveWork.size = pick->size;
@@ -1625,14 +1599,14 @@ int ai_GraveCare(AIBLD *rec, GVPICK *pick)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_GraveCare, 0x677c7));
+    } while (sv_RunFrame(ai_GraveCare, 0x677c7));
     d2_CloseView(win);
     sv_ClosePlayerBar();
     sv_ClearSelection();
     return r;
 }
 
-int gv_RoomForRaised(unsigned char *o, int *n); int gv_OrderRaiseDead(); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
+int gv_RoomForRaised(struct AIBLD *o, int *n); int gv_OrderRaiseDead(); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
 
 /* 0x584b70, the "GEHILFEN_ERSCHAFFEN" callback of the graveyard window (ai_GraveWindow, a function pointer
    only): raises the picked dead person as a helper. gv_RoomForRaised counts the yard's raised: -1 -> 0; 0 (the
@@ -1657,11 +1631,11 @@ int ai_GraveRaiseHelper(AIBLD *rec, GVPICK *pick)
     EVTSCRIPT *sc;
 
     r = 0;
-    v = gv_RoomForRaised((unsigned char *)rec, &n);
+    v = gv_RoomForRaised(rec, &n);
     if (v != 1) {
         if (v == 0) {
             txt_Format(buf, 0x4135, n, 0x229, rec);
-            sv_MessageBox((int)buf, 0);
+            sv_MessageBox((intptr_t)buf, 0);
         }
         return 0;
     }
@@ -1685,7 +1659,7 @@ int ai_GraveRaiseHelper(AIBLD *rec, GVPICK *pick)
                 if (pick->grave->id == -1) {
                     sv_PopRequest = 1;
                 } else {
-                    h = gv_OrderRaiseDead((char *)rec, pick->entry->size, pick->index, pick->id, 0x1c);
+                    h = gv_OrderRaiseDead(rec, pick->entry->size, pick->index, pick->id, 0x1c);
                     while (h != -1 && cm_GetSlotState(h) == 0)
                         sv_RunFrame(0, 0x20007);
                     c = (AICHAR *)cm_GetSlotValue(h);
@@ -1701,13 +1675,13 @@ int ai_GraveRaiseHelper(AIBLD *rec, GVPICK *pick)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_GraveRaiseHelper, 0x677c7));
+    } while (sv_RunFrame(ai_GraveRaiseHelper, 0x677c7));
     d2_CloseView(win);
     return r;
 }
 
-int sv_CheckCharacterFlag(int id); char * he_FindEvent(int n, ...); char * he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
-void ai_InitProductionTables(void); int ai_UpdateProdGoodsList(); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, int param_4);
+int sv_CheckCharacterFlag(struct AIBLD *id); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
+void ai_InitProductionTables(void); int ai_UpdateProdGoodsList(); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4);
 
 /* 0x584d70, the helpers window of a building (the form "HANDEL\HANDEL_SUCHEN"): rec = the building. Its type
    offers two helper kinds (0x225 / 0x226, of the type kind 0x1f 0x293 / 0x294) and a third (0x227 / 0x295) from
@@ -1739,8 +1713,8 @@ void ai_GypsyHelperWindow(AIBLD *rec)
     int x;
 
     kinds[2] = 0x227;
-    res = gm_Query((void *)rec->objList, 2, 6, 0, 0x2a);
-    type = &((AIBTYPE *)ai_BTypes)[rec->type];
+    res = (char *)gm_Query(rec->objList, 2, 6, 0, 0x2a);
+    type = &ai_BTypes[rec->type];
     if (type->kind == 0x1f) {
         kinds[0] = 0x293;
         kinds[1] = 0x294;
@@ -1758,10 +1732,10 @@ void ai_GypsyHelperWindow(AIBLD *rec)
             n = 3;
         }
     }
-    if (sv_CheckCharacterFlag((char *)rec) != 0)
+    if (sv_CheckCharacterFlag(rec) != 0)
         return;
     memset(counts, 0, sizeof(counts));
-    for (job = (AIJOB *)he_FindEvent(2, 0, 0x8c, 3, rec->id); job != 0; job = (AIJOB *)he_NextEvent()) {
+    for (job = he_FindEvent(2, 0, 0x8c, 3, rec->id); job != 0; job = he_NextEvent()) {
         for (i = 0; i < 3; i++) {
             if (job->u.w.lo == kinds[i]) {
                 for (j = 0; j < 4; j++)
@@ -1779,7 +1753,7 @@ void ai_GypsyHelperWindow(AIBLD *rec)
         io_PrintText(0x421e);
     else
         io_PrintText(0x4128);
-    sv_OpenPlayerBar((int)rec, 0);
+    sv_OpenPlayerBar(rec, 0);
     ai_InitProductionTables();
     d2_CentreViewWindows(win);
     d2_SetForm(win, 2);
@@ -1798,11 +1772,11 @@ void ai_GypsyHelperWindow(AIBLD *rec)
     d2_SetPointerSprite(0, 0);
     ai_UpdateProdGoodsList(rec, res);
     ai_LayoutProdGoodsList(win, 1, 0, rec);
-    while (sv_RunFrame((int)ai_GypsyHelperWindow, 0x677c7)) {
+    while (sv_RunFrame(ai_GypsyHelperWindow, 0x677c7)) {
         ai_UpdateProdGoodsList(rec, res);
         ai_LayoutProdGoodsList(win, 1, 0, rec);
         memset(counts, 0, sizeof(counts));
-        for (job = (AIJOB *)he_FindEvent(2, 0, 0x8c, 3, rec->id); job != 0; job = (AIJOB *)he_NextEvent()) {
+        for (job = he_FindEvent(2, 0, 0x8c, 3, rec->id); job != 0; job = he_NextEvent()) {
             for (i = 0; i < 3; i++) {
                 if (job->u.w.lo == kinds[i]) {
                     for (j = 0; j < 4; j++)
@@ -1823,14 +1797,14 @@ void ai_GypsyHelperWindow(AIBLD *rec)
                 else if (counts[i] > 1)
                     txt_Format(line, 0x4220, counts[i], 0x22d, kinds[i] * 2 + 0x9a8);
                 else
-                    txt_Format(line, "%s", kinds[i] * 2 + 0x9a8);
+                    txt_Format(line, (intptr_t)"%s", kinds[i] * 2 + 0x9a8);
             } else {
                 if (counts[i] == 1)
                     txt_Format(line, 0x4129, 0x228, kinds[i] * 2 + 0x9a8);
                 else if (counts[i] > 1)
                     txt_Format(line, 0x412a, counts[i], 0x228, kinds[i] * 2 + 0x9a8);
                 else
-                    txt_Format(line, "%s", kinds[i] * 2 + 0x9a8);
+                    txt_Format(line, (intptr_t)"%s", kinds[i] * 2 + 0x9a8);
             }
             d2_SetCaption(id, line);
         }
@@ -1848,14 +1822,14 @@ void ai_GypsyHelperWindow(AIBLD *rec)
                 memset(&msg, 0, sizeof(msg));
                 msg.type = 0x8c;
                 msg.flags = 1;
-                msg.to = ai_CharsT[rec->owner].netId;
+                msg.to = ai_Chars[rec->owner].netId;
                 msg.fromId = rec->id;
                 msg.time = ai_Time;
                 msg.itemId = kinds[sel];
                 k = 0;
                 for (j = 0; j < 0x300 && k < 4; j++) {
-                    if (ai_CharsT[j].selected)
-                        msg.ids[k++] = ai_CharsT[j].netId;
+                    if (ai_Chars[j].selected)
+                        msg.ids[k++] = ai_Chars[j].netId;
                 }
                 for (j = k; j < 4; j += 2)
                     msg.ids[j] = -1;
@@ -1866,7 +1840,7 @@ void ai_GypsyHelperWindow(AIBLD *rec)
                     sv_FrameMask = 0x677c7;
                     sv_ClearSelection();
                 } else {
-                    sv_MessageBox(txt_Ptrs[0x4093], 4);
+                    sv_MessageBox((intptr_t)txt_Ptrs[0x4093], 4);
                     sv_ClearSelection();
                 }
             }
@@ -1905,10 +1879,10 @@ void ai_GraveFogWindow(AIBLD *rec)
     int k;
     int cost;
 
-    txt_Format(buf, (char *)0x40c8, 0x40b6);
+    txt_Format(buf, 0x40c8, 0x40b6);
     if (he_FindEvent(2, 0, 0x90, 3, rec->id) != 0) {
         snd_QueueVoice(-1, 0, "_NACHRICHTEN_FRIEDHOF_14", 0, 100);
-        sv_MessageBox(buf, 0);
+        sv_MessageBox((intptr_t)buf, 0);
         return;
     }
     AI_ZERO(&cfg, sizeof(cfg));
@@ -1946,7 +1920,7 @@ void ai_GraveFogWindow(AIBLD *rec)
     d2_ClickedId = -1;
     do {
         d2_SetForm(win, 3);
-        io_PrintText("$C");
+        io_PrintText((intptr_t)"$C");
         cost = (d2_GetObjValue(factor2) + 2) * (d2_GetObjValue(factor1) + 2);
         io_PrintText(0x40b9);
         io_PrintText(0x40ba, cost);
@@ -1954,11 +1928,11 @@ void ai_GraveFogWindow(AIBLD *rec)
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == btnOrder) {
-                if (sv_CheckMoney(ai_Chars[ai_PlayerId], cost) == 1) {
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], cost) == 1) {
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x90;
                     msg.flags = 2;
-                    msg.to = ((AICHAR *)ai_Chars[ai_PlayerId])->netId;
+                    msg.to = ai_Chars[ai_PlayerId].netId;
                     msg.fromId = rec->id;
                     msg.time = ai_Time;
                     msg.arg[1] = d2_GetObjValue(factor1);
@@ -1992,7 +1966,7 @@ typedef struct GVSEANCE {
    green message box txt 0x40cc / 0x40cd and 0. Else the title txt 0x40ce (0x40cc), the entries 0x40cf .. 0x40d1
    (the prices 4 / 6 / 8) and the cancel entry 0x40d2; a right click or cancel closes it; an entry the player can
    pay (sv_CheckMoney) sets out->kind (1 .. 3) and out->cost and closes it with 1 */
-int ai_SeanceWindow(char *unused, GVDETAILWIN *w, GVSEANCE *out)
+int ai_SeanceWindow(AIBLD *unused, GVDETAILWIN *w, GVSEANCE *out)
 {
     int cost[3];
     int win;
@@ -2013,8 +1987,8 @@ int ai_SeanceWindow(char *unused, GVDETAILWIN *w, GVSEANCE *out)
     cost[2] = 8;
     out->graveId = w->items[w->selected].grave->id;
     out->grave = *w->items[w->selected].grave;
-    if (ai_CharsT[ai_PlayerId].flags1cc & 8) {
-        sv_MessageBoxGreen(txt_Ptrs[0x40cc], txt_Ptrs[0x40cd], 0);
+    if (ai_Chars[ai_PlayerId].flags1cc & 8) {
+        sv_MessageBoxGreen((intptr_t)txt_Ptrs[0x40cc], (intptr_t)txt_Ptrs[0x40cd], 0);
         return 0;
     }
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\Seance");
@@ -2038,11 +2012,11 @@ int ai_SeanceWindow(char *unused, GVDETAILWIN *w, GVSEANCE *out)
                 sv_PopRequest = 1;
             } else {
                 if (d2_PointerObj == btn1)
-                    kind = sv_CheckMoney(ai_Chars[ai_PlayerId], 4);
+                    kind = sv_CheckMoney(&ai_Chars[ai_PlayerId], 4);
                 else if (d2_PointerObj == btn2)
-                    kind = sv_CheckMoney(ai_Chars[ai_PlayerId], 6) * 2;
+                    kind = sv_CheckMoney(&ai_Chars[ai_PlayerId], 6) * 2;
                 else if (d2_PointerObj == btn3)
-                    kind = sv_CheckMoney(ai_Chars[ai_PlayerId], 8) * 3;
+                    kind = sv_CheckMoney(&ai_Chars[ai_PlayerId], 8) * 3;
                 else
                     continue;
                 if (kind != 0) {
@@ -2091,9 +2065,9 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
     script = (int)evt_Load("LOCATIONS\\KRYPTA\\SEANCE_KRYPTA.esc");
     if (script != 0) {
         GVGRAVE *g = &ev->grave;
-        name1 = (char *)gm_NameRecord(ai_CharsT[ai_PlayerId].sex, ai_CharsT[ai_PlayerId].jobId);
+        name1 = (char *)gm_NameRecord(ai_Chars[ai_PlayerId].sex, ai_Chars[ai_PlayerId].jobId);
         if (name1 == 0)
-            gm_NameRecord(ai_CharsT[ai_PlayerId].sex, 0);   /* @original drops the result: name1 stays 0 */
+            gm_NameRecord(ai_Chars[ai_PlayerId].sex, 0);   /* @original drops the result: name1 stays 0 */
         name2 = (char *)gm_NameRecord(g->sex, g->nameId);
         if (name2 == 0)
             name2 = (char *)gm_NameRecord(g->sex, 0);
@@ -2162,7 +2136,7 @@ void ai_SeanceRollFormulas(int n, int *ids, int *variants, int base)
     }
 }
 
-int snd_VoiceVariant(); char *gv_FindAccused(char *c, int max, int *ids, int *cnt); float gv_SeanceChance(); float util_RandomF();
+int snd_VoiceVariant(); struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt); float gv_SeanceChance(); float util_RandomF();
 void cm_SendProofExecuted(int a, int b); 
 
 /* 0x585cb0, the seance kind 1, the ghost of the dead person (rec = the graveyard, ev = the seance window's
@@ -2188,9 +2162,9 @@ void ai_SeanceGhost(AIBLD *rec, GVSEANCE *ev)
 
     snd_VoiceVariant(ev->grave.id, ev->grave.sex);
     script = ai_SeanceRitual((char *)rec, ev);
-    accuser = (AICHAR *)gv_FindAccused(ai_Chars[ai_PlayerId], 4, ids, &cnt);
+    accuser = gv_FindAccused(&ai_Chars[ai_PlayerId], 4, ids, &cnt);
     mode = accuser == 0;
-    f = gv_SeanceChance((char *)rec);
+    f = gv_SeanceChance(rec);
     if (util_RandomF() + f - 0.1f < 1.0f)
         mode = 2;
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\Friedhof");
@@ -2203,14 +2177,14 @@ void ai_SeanceGhost(AIBLD *rec, GVSEANCE *ev)
     voice = snd_VoiceVariant(ev->grave.id, ev->grave.sex);
     if (mode == 0) {
         for (i = 0; i < cnt; i++)
-            cm_SendProofExecuted(ids[i], ai_CharsT[ai_PlayerId].netId);
-        he_SetLifeByAge(&ai_CharsT[ai_PlayerId], 1);
+            cm_SendProofExecuted(ids[i], ai_Chars[ai_PlayerId].netId);
+        he_SetLifeByAge(&ai_Chars[ai_PlayerId], 1);
         io_PrintText(0x40ef, 0x40cc, accuser->id);
         snd_QueueVoice(voice, 0, "GEIST_KOMMT", util_Random(8), 0xfa);
     } else if (mode == 1) {
         r = util_Random(0x200);
         n = (r + 0x200) << 5;
-        cm_SendMoveGoods(ai_CharsT[ai_PlayerId].netId, -1, ai_OwnPlayer, n);
+        cm_SendMoveGoods(ai_Chars[ai_PlayerId].netId, -1, ai_OwnPlayer, n);
         io_PrintText(0x40f0, 0x40cc, n);
         snd_QueueVoice(voice, 0, "GEIST_KOMMT", util_Random(8), 0xfa);
     } else {
@@ -2246,21 +2220,21 @@ void ai_SeanceSacrifice(AIBLD *rec, GVSEANCE *ev)
     mode = 0;
     voice = snd_VoiceVariant(ev->grave.id, ev->grave.sex);
     script = ai_SeanceRitual((char *)rec, ev);
-    f = gv_SeanceChance((char *)rec);
+    f = gv_SeanceChance(rec);
     if (util_RandomF() + f - 0.4f < 1.0f) {
         mode = 2;
     } else {
         amount = min(max((int)(gm_GetWorth(ai_PlayerId) * 0.25f), 0x27100), 0xc3500);
-        cm_SendMoveGoods(ai_CharsT[ai_PlayerId].netId, -1, ai_OwnPlayer, amount);
+        cm_SendMoveGoods(ai_Chars[ai_PlayerId].netId, -1, ai_OwnPlayer, amount);
         memset(&msg, 0, sizeof(msg));
         msg.type = 0x8e;
-        msg.to = ai_CharsT[ai_PlayerId].netId;
+        msg.to = ai_Chars[ai_PlayerId].netId;
         msg.fromId = rec->id;
         msg.time = ai_Time;
         msg.flags = 1;
         msg.arg[0] = amount;
         cm_SendLongMessage((char *)&msg);
-        he_SetLifeByAge(&ai_CharsT[ai_PlayerId], 3);
+        he_SetLifeByAge(&ai_Chars[ai_PlayerId], 3);
     }
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\Friedhof");
     d2_SetPointerSprite(0, 0);
@@ -2285,7 +2259,7 @@ void ai_SeanceSacrifice(AIBLD *rec, GVSEANCE *ev)
         evt_Stop((EVTSCRIPT *)script);
 }
 
-void ai_FindWantedItems(struct G5CH *p, int n, struct G9REC *rec, int *st);
+void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);
 
 /* 0x586200, the seance kind 2, the ghost's gift (rec = the graveyard, ev = the seance window's result): the dead
    person's voice and the ritual as in ai_SeanceGhost. The fifteen gifts 0x2b8 .. 0x2c6 are looked up in the
@@ -2328,7 +2302,7 @@ void ai_SeanceGift(AIBLD *rec, GVSEANCE *ev)
     gifts[12].item = 0x2c0;
     gifts[13].item = 0x2be;
     gifts[14].item = 0x2b9;
-    ai_FindWantedItems((struct G5CH *)ai_Chars[ai_PlayerId], 0xf, gifts, st);
+    ai_FindWantedItems(&ai_Chars[ai_PlayerId], 0xf, gifts, st);
     if ((st[0] == 6 && st[2] == 0) || st[1] == 0xf) {
         mode = 1;
     } else {
@@ -2338,7 +2312,7 @@ void ai_SeanceGift(AIBLD *rec, GVSEANCE *ev)
         item = gifts[i].item;
         mode = 0;
     }
-    f = gv_SeanceChance((char *)rec);
+    f = gv_SeanceChance(rec);
     if (util_RandomF() + f - 0.2f < 1.0f)
         mode = 2;
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\Friedhof");
@@ -2349,14 +2323,14 @@ void ai_SeanceGift(AIBLD *rec, GVSEANCE *ev)
     d2_ClickedId = -1;
     d2_SetForm(win, 1);
     if (mode == 0) {
-        cm_SendExSellObject(ai_CharsT[ai_PlayerId].netId, -1, item, 1, ai_OwnPlayer, 0);
-        he_SetLifeByAge(&ai_CharsT[ai_PlayerId], 2);
+        cm_SendExSellObject(ai_Chars[ai_PlayerId].netId, -1, item, 1, ai_OwnPlayer, 0);
+        he_SetLifeByAge(&ai_Chars[ai_PlayerId], 2);
         io_PrintText(0x40f2, 0x40cc, item * 2 + 0x9a8);
         snd_PlayVoice(voice, 0, "GEIST_KOMMT", util_Random(8));
     } else if (mode == 1) {
         r = util_Random(0x400);
         n = (r + 1000) << 5;
-        cm_SendMoveGoods(ai_CharsT[ai_PlayerId].netId, -1, ai_OwnPlayer, n);
+        cm_SendMoveGoods(ai_Chars[ai_PlayerId].netId, -1, ai_OwnPlayer, n);
         io_PrintText(0x40f3, 0x40cc, n);
         snd_PlayVoice(voice, 0, "GEIST_KOMMT", util_Random(8));
     } else {
@@ -2375,7 +2349,7 @@ void ai_SeanceGift(AIBLD *rec, GVSEANCE *ev)
    frame (pump 0x677c7) a right click closes it; a click on one of the eight items selects it (w->selected) and
    opens the seance window for it (ai_SeanceWindow, w disabled meanwhile); a seance chosen there closes it with
    1, out holding the choice */
-int ai_SeancePick(char *rec, GVDETAILWIN *w, GVSEANCE *out)
+int ai_SeancePick(AIBLD *rec, GVDETAILWIN *w, GVSEANCE *out)
 {
     int r;
     int i;
@@ -2421,7 +2395,7 @@ void ai_GraveSeance(AIBLD *rec)
     char line[0x100];
     GVENTRY *e;
 
-    e = (GVENTRY *)gv_FindEntry(ai_Chars[ai_PlayerId], (unsigned char *)rec, 0, gv_EntrySameId, 0xff);
+    e = (GVENTRY *)gv_FindEntry((char *)&ai_Chars[ai_PlayerId], rec, 0, gv_EntrySameId, 0xff);
     if (e != 0) {
         w.entry = e;
         w.size = e->size;
@@ -2431,12 +2405,12 @@ void ai_GraveSeance(AIBLD *rec)
             sv_CameraFollow();
             return;
         }
-        e = (GVENTRY *)ai_SeancePick((char *)rec, &w, &out);
+        e = (GVENTRY *)ai_SeancePick(rec, &w, &out);
         d2_CloseView(w.win);
         if (e != 0) {
-            cm_SendSetField(((AICHAR *)ai_Chars[ai_PlayerId])->netId, 0x1cc, 4, SEANCE_HELD, 0);
+            cm_SendSetField(ai_Chars[ai_PlayerId].netId, 0x1cc, 4, SEANCE_HELD, 0);
             if (out.cost != 0)
-                gm_SendMoneyDelta(((AICHAR *)ai_Chars[ai_PlayerId])->netId, -out.cost);
+                gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -out.cost);
             switch (out.kind) {
             case 1:
                 ai_SeanceGhost(rec, &out);
@@ -2451,25 +2425,25 @@ void ai_GraveSeance(AIBLD *rec)
         }
         sv_CameraFollow();
     } else {
-        sv_MessageBox(txt_Ptrs[0x40d5], 0);
+        sv_MessageBox((intptr_t)txt_Ptrs[0x40d5], 0);
     }
 }
 
-void ai_EndCharExtra(char *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(char *a, int b);
+void ai_EndCharExtra(struct AICHAR *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(struct AICHAR *a, int b);
 
 /* 0x5867c0, the graveyard "Schlag" action (114 B): when the character under the pointer (ai_PickedChar) exists
    with the at-work flag bit 0 of +0x1b4 and the left button (dm_L.lup) is latched: ends its extra (ai_EndCharExtra,
    0), sends the player character's relation change towards it (-5, 0), then starts its role pose
    "locations/friedhof/schlag_FRIEDHOF.esc" (sv_StartPoseScript) and marks that script to run in its own scene */
-void ai_GraveyardSchlag(char *unused)
+void ai_GraveyardSchlag(AIBLD *unused)
 {
     AICHAR *c;
     EVTSCRIPT *script;
 
-    c = (AICHAR *)ai_PickedChar;
+    c = ai_PickedChar;
     if (c != 0 && (c->flags1b4 & 1) != 0 && dm_L.lup != 0) {
-        ai_EndCharExtra((char *)c, 0);
-        c = (AICHAR *)ai_PickedChar;
+        ai_EndCharExtra(c, 0);
+        c = ai_PickedChar;
         cm_SendRelations(ai_CharInts[ai_PlayerId][0], c->netId, -5, 0);
         script = (EVTSCRIPT *)sv_StartPoseScript((char *)ai_PickedChar, "locations/friedhof/schlag_FRIEDHOF.esc");
         if (script != 0)
@@ -2485,7 +2459,7 @@ void sv_ReleaseNamePlates(void); void ai_TradeContactChecks(void);
    A clicked contact: with 0x200 the "Schlag" script (ai_GraveyardSchlag) first, then that contact's handler;
    GRAB_MIETEN needs the permission bit 0x80. No click: with gm_AllowAll the keys 0x1e / 0x2f / 0x22 / 0x23 /
    0x19 / 0x16 / 0x11 open the handlers directly (a cheat path, a reasoned guess) */
-void ai_GraveyardContact(char *rec)
+void ai_GraveyardContact(AIBLD *rec)
 {
     int c_altern, c_heim, c_zut, c_graeber, c_gehilfen, c_vers, c_liege, c_trans, c_mieten;
 
@@ -2515,37 +2489,37 @@ void ai_GraveyardContact(char *rec)
             if (ai_BuildingPerms & 0x200) {
                 ai_GraveyardSchlag(rec);
                 if (ai_ClickedObject == c_altern)
-                    ai_GraveAgeContact((AIBLD *)rec);
+                    ai_GraveAgeContact(rec);
                 else if (ai_ClickedObject == c_heim)
-                    ai_GraveHauntContact((AIBLD *)rec);
+                    ai_GraveHauntContact(rec);
                 else if (ai_ClickedObject == c_zut)
-                    ai_GypsyHelperWindow((AIBLD *)rec);
+                    ai_GypsyHelperWindow(rec);
                 else if (ai_ClickedObject == c_graeber)
                     ai_GraveCareContact(rec);
                 else if (ai_ClickedObject == c_gehilfen)
                     ai_GraveHelperContact(rec);
                 else if (ai_ClickedObject == c_vers)
-                    ai_GraveInsuranceContact((AIBLD *)rec);
+                    ai_GraveInsuranceContact(rec);
                 else if (ai_ClickedObject == c_liege)
                     ai_GravePlanContact(rec);
                 else if (ai_ClickedObject == c_trans)
                     ai_OpenTransport(rec);
             }
             if ((ai_BuildingPerms & 0x80) && ai_ClickedObject == c_mieten)
-                ai_GraveRentContact((AIBLD *)rec);
+                ai_GraveRentContact(rec);
         } else if (gm_AllowAll != 0) {
             if (kb_Last == 0x1e)
-                ai_GraveAgeContact((AIBLD *)rec);
+                ai_GraveAgeContact(rec);
             else if (kb_Last == 0x2f)
-                ai_GraveInsuranceContact((AIBLD *)rec);
+                ai_GraveInsuranceContact(rec);
             else if (kb_Last == 0x22)
-                ai_GraveFogWindow((AIBLD *)rec);
+                ai_GraveFogWindow(rec);
             else if (kb_Last == 0x23)
-                ai_GraveHauntContact((AIBLD *)rec);
+                ai_GraveHauntContact(rec);
             else if (kb_Last == 0x19)
                 ai_GraveCareContact(rec);
             else if (kb_Last == 0x16)
-                ai_GraveRentContact((AIBLD *)rec);
+                ai_GraveRentContact(rec);
             else if (kb_Last == 0x11)
                 ai_GraveHelperContact(rec);
         }
@@ -2553,7 +2527,7 @@ void ai_GraveyardContact(char *rec)
     }
 }
 
-int ai_AmountMenu(); int sv_CheckMoney();
+struct AICHAR *ai_AmountMenu(); int sv_CheckMoney();
 
 /* 0x586ab0, the graveyard contact HEIMSUCHUNG (the haunting) for the graveyard rec: the target is picked in the
    amount menu (AMOUNTCFG flags 1, mode 0x400, kind 6, no ids left out; title txt 0x4095), none -> the camera
@@ -2587,7 +2561,7 @@ void ai_GraveHauntContact(AIBLD *rec)
     q.flags = 1;
     q.mode = 0x400;
     q.kind = 6;
-    p = (AICHAR *)ai_AmountMenu(&q, txt_Ptrs[0x4095], 0, 0);
+    p = ai_AmountMenu(&q, txt_Ptrs[0x4095], 0, 0);
     if (p == 0) {
         sv_CameraFollow();
         return;
@@ -2599,9 +2573,9 @@ void ai_GraveHauntContact(AIBLD *rec)
     d2_SetForm(win, 0);
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
-    slider = d2_GetWinObj(win, 1, io_PrintText((char *)0x4098, 0x4097, p->id, p->id));
+    slider = d2_GetWinObj(win, 1, io_PrintText(0x4098, 0x4097, p->id, p->id));
     d2_SetForm(win, 2);
-    k = io_PrintText((char *)0x4099);
+    k = io_PrintText(0x4099);
     btnPay = d2_GetWinObj(win, 2, k);
     btnLeave = d2_GetWinObj(win, 2, k + 1);
     d2_SetObjValue(slider, 4, 0xc, 4);
@@ -2613,23 +2587,23 @@ void ai_GraveHauntContact(AIBLD *rec)
             if (d2_PointerObj == btnPay) {
                 poor = 0;
                 n = d2_GetObjValue(slider);
-                if (sv_CheckMoney(ai_Chars[ai_PlayerId], n) == 0)
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], n) == 0)
                     poor = 1;
                 f = 0;
                 for (i = 0; i < 0x300; i++) {
-                    if (ai_CharsT[i].selected) {
-                        f = &ai_CharsT[i];
+                    if (ai_Chars[i].selected) {
+                        f = &ai_Chars[i];
                         break;
                     }
                 }
                 if (f == 0) {
-                    sv_MessageBox(txt_Ptrs[0x4093], 0);
+                    sv_MessageBox((intptr_t)txt_Ptrs[0x4093], 0);
                 } else if (poor == 0) {
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x88;
                     msg.flags = 2;
                     msg.arg[3] = n;
-                    msg.to = ((AICHAR *)ai_Chars[rec->owner])->netId;
+                    msg.to = ai_Chars[rec->owner].netId;
                     msg.fromId = rec->id;
                     msg.time = ai_Time;
                     msg.arg[1] = p->netId;
@@ -2645,7 +2619,7 @@ void ai_GraveHauntContact(AIBLD *rec)
                         mask.LowPart = 0x7b4c4a0;
                         mask.HighPart = 0;
                         pick = -1;
-                        ai_PickActionBuilding((struct AIPER *)ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
+                        ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                         msg.arg[0] = pick;
                     }
                     id = cm_SendLongMessage((char *)&msg);
@@ -2653,7 +2627,7 @@ void ai_GraveHauntContact(AIBLD *rec)
                         sv_RunFrame(0, 0x20007);
                     sv_FrameMask = 0x677c7;
                     sv_PopRequest = 1;
-                    sv_MessageBox(txt_Ptrs[0x409a], 0);
+                    sv_MessageBox((intptr_t)txt_Ptrs[0x409a], 0);
                 }
             } else if (d2_PointerObj == btnLeave) {
                 sv_PopRequest = 1;
@@ -2694,7 +2668,7 @@ void ai_GraveAgeContact(AIBLD *rec)
     q.flags = 1;
     q.mode = 0x400;
     q.kind = 6;
-    p = (AICHAR *)ai_AmountMenu(&q, txt_Ptrs[0x40a1], 0, 0);
+    p = ai_AmountMenu(&q, txt_Ptrs[0x40a1], 0, 0);
     if (p == 0) {
         sv_CameraFollow();
         return;
@@ -2706,9 +2680,9 @@ void ai_GraveAgeContact(AIBLD *rec)
     d2_SetForm(win, 0);
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
-    io_PrintText((char *)0x40a4, 0x40a3, p->id, 4);
+    io_PrintText(0x40a4, 0x40a3, p->id, 4);
     d2_SetForm(win, 2);
-    k = io_PrintText((char *)0x40a5);
+    k = io_PrintText(0x40a5);
     btnPay = d2_GetWinObj(win, 2, k);
     btnLeave = d2_GetWinObj(win, 2, k + 1);
     d2_ClickedId = -1;
@@ -2721,23 +2695,23 @@ void ai_GraveAgeContact(AIBLD *rec)
             if (d2_PointerObj == btnPay) {
                 poor = 0;
                 f = 0;
-                if (sv_CheckMoney(ai_Chars[ai_PlayerId], 4) == 0)
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 4) == 0)
                     poor = 1;
                 for (i = 0; i < 0x300; i++) {
-                    if (ai_CharsT[i].selected) {
-                        f = &ai_CharsT[i];
+                    if (ai_Chars[i].selected) {
+                        f = &ai_Chars[i];
                         break;
                     }
                 }
                 if (poor == 0) {
                     if (f == 0) {
-                        sv_MessageBox(txt_Ptrs[0x4093], 0);
+                        sv_MessageBox((intptr_t)txt_Ptrs[0x4093], 0);
                     } else {
                         memset(&msg, 0, sizeof(msg));
                         msg.type = 0x89;
                         msg.flags = 1;
                         msg.arg[3] = 4;
-                        msg.to = ((AICHAR *)ai_Chars[rec->owner])->netId;
+                        msg.to = ai_Chars[rec->owner].netId;
                         msg.fromId = rec->id;
                         msg.time = ai_Time;
                         msg.arg[2] = f->netId;
@@ -2753,7 +2727,7 @@ void ai_GraveAgeContact(AIBLD *rec)
                             mask.LowPart = 0x7b4c4a0;
                             mask.HighPart = 0;
                             pick = -1;
-                            ai_PickActionBuilding((struct AIPER *)ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
+                            ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                             msg.arg[0] = pick;
                         }
                         id = cm_SendLongMessage((char *)&msg);
@@ -2761,7 +2735,7 @@ void ai_GraveAgeContact(AIBLD *rec)
                             sv_RunFrame(0, 0x20007);
                         sv_FrameMask = 0x677c7;
                         txt_Format(line, 0x40a7, f->id);
-                        sv_MessageBox(line, 0);
+                        sv_MessageBox((intptr_t)line, 0);
                         sv_PopRequest = 1;
                     }
                 }
@@ -2778,7 +2752,7 @@ void ai_GraveAgeContact(AIBLD *rec)
 /* 0x5871c0, the graveyard "GRAB_MIETEN" contact (30 B): opens the grave window (ai_GraveWindow: no output, rec,
    the title text 0x4104, flag 0, no callback), then follows the camera again (sv_CameraFollow) */
 
-void ai_GravePlanContact(char *rec)
+void ai_GravePlanContact(AIBLD *rec)
 {
     ai_GraveWindow(0, rec, txt_Ptrs[0x4104], 0, 0);
     sv_CameraFollow();
@@ -2798,7 +2772,7 @@ void ai_GraveRentContact(AIBLD *rec)
     GVDETAILWIN w;
     char line[0x100];
 
-    e = (GVENTRY *)gv_FindEntry(ai_Chars[ai_PlayerId], (unsigned char *)rec, 0, gv_EntrySameId, 0xff);
+    e = (GVENTRY *)gv_FindEntry((char *)&ai_Chars[ai_PlayerId], rec, 0, gv_EntrySameId, 0xff);
     if (e != 0) {
         w.entry = e;
         w.size = e->size;
@@ -2806,14 +2780,14 @@ void ai_GraveRentContact(AIBLD *rec)
         txt_Format(line, 0x4107, ai_GraveNames[e->size]);
         if (ai_GraveDetailOpen((int *)&w, line) == 0)
             return;
-        ai_GraveDetailButtons((char *)rec, (int *)&w);
+        ai_GraveDetailButtons(rec, (int *)&w);
         d2_CloseView(w.win);
         sv_CameraFollow();
-    } else if (gv_FindReservedEntry(ai_Chars[ai_PlayerId], &bld, (int *)&e) == 0) {
-        ai_RentGraveSelect((char *)rec);
+    } else if (gv_FindReservedEntry((char *)&ai_Chars[ai_PlayerId], &bld, (int *)&e) == 0) {
+        ai_RentGraveSelect(rec);
         sv_CameraFollow();
     } else {
-        sv_MessageBox(txt_Ptrs[0x42f8], 0);
+        sv_MessageBox((intptr_t)txt_Ptrs[0x42f8], 0);
     }
 }
 /* 0x587300, the graveyard "GRAEBER_PFLEGEN" contact (50 B): when no character of the graveyard's staff shows the
@@ -2821,7 +2795,7 @@ void ai_GraveRentContact(AIBLD *rec)
    0x411e, flag 1 = the detail's slider picks, the callback ai_GraveCare) and follows the camera again
    (sv_CameraFollow) */
 
-void ai_GraveCareContact(char *rec)
+void ai_GraveCareContact(AIBLD *rec)
 {
     if (sv_CheckCharacterFlag(rec) != 0)
         return;
@@ -2833,7 +2807,7 @@ void ai_GraveCareContact(char *rec)
    text 0x4131, flag 0 = a dead person is picked, the callback ai_GraveRaiseHelper) and follows the camera again
    (sv_CameraFollow) */
 
-void ai_GraveHelperContact(char *rec)
+void ai_GraveHelperContact(AIBLD *rec)
 {
     if (sv_CheckCharacterFlag(rec) == 0)
         ai_GraveWindow(0, rec, txt_Ptrs[0x4131], 0, (void (*)(AIBLD *, GVPICK *))ai_GraveRaiseHelper);
@@ -2861,9 +2835,9 @@ void ai_GraveInsuranceContact(AIBLD *rec)
     d2_SetForm(win, 0);
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
-    io_PrintText((char *)0x40f6, 0x40f5, 0x228);
+    io_PrintText(0x40f6, 0x40f5, 0x228);
     d2_SetForm(win, 2);
-    i = io_PrintText((char *)0x40f7);
+    i = io_PrintText(0x40f7);
     btnTake = d2_GetWinObj(win, 2, i);
     btnLeave = d2_GetWinObj(win, 2, i + 1);
     d2_ClickedId = -1;
@@ -2874,18 +2848,18 @@ void ai_GraveInsuranceContact(AIBLD *rec)
             if (d2_PointerObj == btnTake) {
                 f = 0;
                 for (i = 0; i < 0x300; i++) {
-                    if (ai_CharsT[i].selected) {
-                        f = &ai_CharsT[i];
+                    if (ai_Chars[i].selected) {
+                        f = &ai_Chars[i];
                         break;
                     }
                 }
                 if (f == 0) {
-                    sv_MessageBox(txt_Ptrs[0x4093], 0);
+                    sv_MessageBox((intptr_t)txt_Ptrs[0x4093], 0);
                 } else {
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x8a;
                     msg.flags = 1;
-                    msg.to = ((AICHAR *)ai_Chars[rec->owner])->netId;
+                    msg.to = ai_Chars[rec->owner].netId;
                     msg.fromId = rec->id;
                     msg.time = ai_Time;
                     msg.arg[0] = f->netId;
@@ -2913,7 +2887,7 @@ void ai_GraveInsuranceContact(AIBLD *rec)
    the storage ("contact_LAGER", ai_ContactTextStorage, 0xe); then the "Schlag" action (ai_GraveyardSchlag). A
    clicked plate (ai_ClickedObject) opens its window: ai_ProductionWindow, ai_OpenTransport, ai_MasterLetterWindow,
    ai_HelperBook (with the plate's name) or ai_StorageWindow (with the building's object list) */
-void ai_GraveyardTradeContact(char *rec)
+void ai_GraveyardTradeContact(AIBLD *rec)
 {
     int c0, c1, c2, c3, c4;
 
@@ -2935,15 +2909,15 @@ void ai_GraveyardTradeContact(char *rec)
         }
         if (ai_ClickedObject != 0) {
             if (ai_ClickedObject == c0)
-                ai_ProductionWindow((struct AIBLD *)rec);
+                ai_ProductionWindow(rec);
             else if (ai_ClickedObject == c1)
-                ai_OpenTransport((int)rec);
+                ai_OpenTransport(rec);
             else if (ai_ClickedObject == c2)
-                ai_MasterLetterWindow((struct AIBLD *)rec);
+                ai_MasterLetterWindow(rec);
             else if (ai_ClickedObject == c3)
-                ai_HelperBook((struct AIBLD *)rec, "ob_GEHILFENBUCH");
+                ai_HelperBook(rec, "ob_GEHILFENBUCH");
             else if (ai_ClickedObject == c4)
-                ai_StorageWindow((int)rec, ((AIBLD *)rec)->objList);
+                ai_StorageWindow(rec, rec->objList);
         }
     }
 }
@@ -2951,14 +2925,14 @@ void ai_GraveyardTradeContact(char *rec)
    pump 0x67fff) the "contact_SEANCE" name plate is registered (sv_RegisterNamePlate, text 0x4169, look 0x16); a
    click on it (ai_ClickedObject) opens the seance (ai_GraveSeance) */
 
-void ai_GraveyardSeanceContact(char *rec)
+void ai_GraveyardSeanceContact(AIBLD *rec)
 {
     int c;
 
     while (sv_RunFrame(ai_GraveyardSeanceContact, 0x67fff) != 0) {
         c = sv_RegisterNamePlate("contact_SEANCE", txt_Ptrs[0x4169], 0x16);
         if (ai_ClickedObject != 0 && ai_ClickedObject == c)
-            ai_GraveSeance((AIBLD *)rec);
+            ai_GraveSeance(rec);
     }
 }
 /* 0x587700, the confirm of the graveyard's worker upgrade (ai_UpgradeWorkerWindow) for the graveyard rec, the
@@ -2972,12 +2946,12 @@ int ai_UpgradeWorkerSend(AIBLD *rec, AICHAR *ch, int sel)
     AIOBJ *obj;
 
     txt_Format(line, 0x413a, ch->id);
-    if (sv_MessageBox(line, 1) != 0) {
-        obj = (AIOBJ *)gm_Query((void *)rec->objList, 1, 0, 0x211);
+    if (sv_MessageBox((intptr_t)line, 1) != 0) {
+        obj = gm_Query(rec->objList, 1, 0, 0x211);
         memset(&msg, 0, sizeof(msg));
         msg.type = 0x8f;
         msg.flags = 1;
-        msg.to = ((AICHAR *)ai_Chars[ai_PlayerId])->netId;
+        msg.to = ai_Chars[ai_PlayerId].netId;
         msg.fromId = rec->id;
         msg.time = ai_Time;
         if (obj != 0)
@@ -2992,7 +2966,7 @@ int ai_UpgradeWorkerSend(AIBLD *rec, AICHAR *ch, int sel)
     return 0;
 }
 
-float gm_GetSkill(char *c, int skill); int gm_ClockSeason(); char * he_FindEvent(int n, ...);
+float gm_GetSkill(struct AICHAR *c, int skill); int gm_ClockSeason(); struct AIJOB *he_FindEvent(int n, ...);
 
 /* 0x587810, the graveyard's worker upgrade window for the graveyard rec (the contact of ai_GraveyardFogContact): nothing
    while sv_CheckCharacterFlag (rec) holds. Outside the season 2 of the game clock (gm_ClockSeason) and without
@@ -3021,13 +2995,13 @@ void ai_UpgradeWorkerWindow(AIBLD *rec)
         return;
     if (gm_AllowAll == 0 && n != 2) {
         txt_Format(line, 0x413b);
-        sv_MessageBox(line, 4);
+        sv_MessageBox((intptr_t)line, 4);
         sv_CameraFollow();
         return;
     }
     if (he_FindEvent(2, 0, 0x8f, 3, rec->id) != 0) {
         txt_Format(line, 0x413c);
-        sv_MessageBox(line, 4);
+        sv_MessageBox((intptr_t)line, 4);
         sv_CameraFollow();
         return;
     }
@@ -3037,9 +3011,9 @@ void ai_UpgradeWorkerWindow(AIBLD *rec)
     d2_SetForm(win, 0);
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
-    io_PrintText((char *)0x4138);
+    io_PrintText(0x4138);
     d2_SetForm(win, 3);
-    n = io_PrintText((char *)0x4139, 0x228);
+    n = io_PrintText(0x4139, 0x228);
     btn1 = d2_GetWinObj(win, 3, n);
     btn2 = d2_GetWinObj(win, 3, n + 1);
     btn4 = d2_GetWinObj(win, 3, n + 2);
@@ -3048,21 +3022,21 @@ void ai_UpgradeWorkerWindow(AIBLD *rec)
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         for (i = 0; i < 0x300; i++) {
-            if (ai_CharsT[i].selected) {
-                f = &ai_CharsT[i];
+            if (ai_Chars[i].selected) {
+                f = &ai_Chars[i];
                 break;
             }
         }
         if (f != 0) {
-            if (gm_GetSkill((char *)f, 1) >= 1.0)
+            if (gm_GetSkill(f, 1) >= 1.0)
                 d2_SetObjEnabled(btn1, 0);
             else
                 d2_SetObjEnabled(btn1, 1);
-            if (gm_GetSkill((char *)f, 2) >= 1.0)
+            if (gm_GetSkill(f, 2) >= 1.0)
                 d2_SetObjEnabled(btn2, 0);
             else
                 d2_SetObjEnabled(btn2, 1);
-            if (gm_GetSkill((char *)f, 4) >= 1.0)
+            if (gm_GetSkill(f, 4) >= 1.0)
                 d2_SetObjEnabled(btn4, 0);
             else
                 d2_SetObjEnabled(btn4, 1);
@@ -3077,7 +3051,7 @@ void ai_UpgradeWorkerWindow(AIBLD *rec)
             else
                 continue;
             if (f == 0)
-                sv_MessageBox(txt_Ptrs[0x4093], 0);
+                sv_MessageBox((intptr_t)txt_Ptrs[0x4093], 0);
             else if (ai_UpgradeWorkerSend(rec, f, sel) != 0)
                 sv_PopRequest = 1;
         }
@@ -3093,7 +3067,7 @@ void ai_UpgradeWorkerWindow(AIBLD *rec)
    look 0x28) and the fog of horror ("contact_NEBEL_DES_GRAUENS", text 0x40b4, look 0x13). A clicked plate
    (ai_ClickedObject) opens ai_UpgradeWorkerWindow or ai_GraveFogWindow (rec) */
 
-void ai_GraveyardFogContact(char *rec)
+void ai_GraveyardFogContact(AIBLD *rec)
 {
     int c0, c1;
 
@@ -3107,7 +3081,7 @@ void ai_GraveyardFogContact(char *rec)
         }
         if (ai_ClickedObject != 0) {
             if (ai_ClickedObject == c0)
-                ai_UpgradeWorkerWindow((AIBLD *)rec);
+                ai_UpgradeWorkerWindow(rec);
             else if (ai_ClickedObject == c1)
                 ai_GraveFogWindow(rec);
         }
@@ -3123,21 +3097,21 @@ int gm_BuildingJob();
    prototypes 0x211 / 0x205 clears bit 0. When the building's owner is the character: 0x4461 set and, when one of
    the six job bytes at bldg + 0x223 is v (a 0 byte ends the scan), 0x2200; x of the prototype 0x21b -> 0x5000.
    gm_AllowAll set: -1 */
-int ai_PermissionBits1d(char *ch, char *b, char *x)
+int ai_PermissionBits1d(AICHAR *ch, AIBLD *b, char *x)
 {
     AIBTYPE *bldg;
     int v;
     int f;
     int i;
 
-    bldg = &((AIBTYPE *)ai_BTypes)[((AIBLD *)b)->type];
-    v = gm_TitleJob(((AICHAR *)ch)->id, gm_BuildingJob((unsigned char)bldg->kind));
+    bldg = &ai_BTypes[b->type];
+    v = gm_TitleJob(ch->id, gm_BuildingJob((unsigned char)bldg->kind));
     f = 0x81;
-    if (((AIBLD *)b)->masterId == ((AICHAR *)ch)->id)
+    if (b->masterId == ch->id)
         f = 0x10bd;
-    if (x != 0 && (((ORDOBJ *)x)->type == 0x211 || ((ORDOBJ *)x)->type == 0x205))
+    if (x != 0 && (((AIOBJ *)x)->type == 0x211 || ((AIOBJ *)x)->type == 0x205))
         f &= ~1;
-    if (((AIBLD *)b)->owner == ((AICHAR *)ch)->id) {
+    if (b->owner == ch->id) {
         f |= 0x4461;
         for (i = 0; i < 6; i++) {
             if ((&bldg->jobBytes)[i] == 0)
@@ -3148,7 +3122,7 @@ int ai_PermissionBits1d(char *ch, char *b, char *x)
             }
         }
     }
-    if (x != 0 && ((ORDOBJ *)x)->type == 0x21b)
+    if (x != 0 && ((AIOBJ *)x)->type == 0x21b)
         f |= 0x5000;
     if (gm_AllowAll != 0)
         return -1;
@@ -3161,13 +3135,13 @@ int ai_PermissionBits1d(char *ch, char *b, char *x)
    pose) use) */
 
 
-void ai_EndCharExtra(char *ch, int f)
+void ai_EndCharExtra(AICHAR *ch, int f)
 {
-    AICHAR *c = (AICHAR *)ch;
+    AICHAR *c = ch;
     EVTSCRIPT *script;
 
-    if (c->model->scriptId != -1) {
-        script = evt_FindById(c->model->scriptId);
+    if (c->scene->scriptId != -1) {
+        script = evt_FindById(c->scene->scriptId);
         if (script != 0)
             evt_Stop(script);
     }
@@ -3179,7 +3153,7 @@ void ai_EndCharExtra(char *ch, int f)
    a second different one (y) at random, and runs the script "locations\friedhof\gespraeche.esc" with
    (x's model, a, b): a / b the speaker's line set, netId % 3, or 3 + (netId & 1) for sex 1; b = -1 without y */
 
-void ai_GraveyardChatter(char *unused)
+void ai_GraveyardChatter(AIBLD *unused)
 {
     AICHAR *list[0x20];
     int cnt;
@@ -3189,7 +3163,7 @@ void ai_GraveyardChatter(char *unused)
     AICHAR *x;
     AICHAR *y;
     AICHAR *c;
-    int *slot;
+    AICHAR **slot;
     EVTSCRIPT *script;
 
     y = 0;
@@ -3202,8 +3176,8 @@ void ai_GraveyardChatter(char *unused)
     if (gm_AllowAll == 0 && util_RandomF() < 0.9f)
         return;
     for (slot = ai_SceneChars; (int)slot < (int)(ai_SceneChars + 0x20); slot++) {
-        c = (AICHAR *)*slot;
-        if (c != 0 && c->kind == 0x14 && c->model != 0 && (void *)c->model->scene == (void *)d3_DefaultScene)
+        c = *slot;
+        if (c != 0 && c->kind == 0x14 && c->scene != 0 && (void *)c->scene->scene == (void *)d3_DefaultScene)
             list[cnt++] = c;
     }
     if (cnt == 0)
@@ -3232,7 +3206,7 @@ void ai_GraveyardChatter(char *unused)
     }
     script = evt_Load("locations\\friedhof\\gespraeche.esc");
     if (script != 0)
-        evt_RunScriptArgs(script, 3, (int)x->model, a, b);
+        evt_RunScriptArgs(script, 3, (int)x->scene, a, b);
 }
 /* 0x587de0, clears the 0x4000-byte table ai_TurnTable (17 B), called from main.c main_OpenEngine 0x532160 right after
    ai_InitStates; the table has no other reader or writer in the binary, so its role is the function's name */
@@ -3243,17 +3217,17 @@ void ai_ClearTurnTable(void)
 }
 
 /* dcp unit split: the declarations that moved to svtip (copies: drop what svgrave does not use) */
-int gm_BuildingKindCost(int c, int kind); char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
+int gm_BuildingKindCost(struct AICHAR *c, int kind); char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
 float gm_GoodsPrice(unsigned id, unsigned char p);
-int ai_AmountRowStatus(); int ai_DrawAmountRow(); short * gm_FindChar(int id); int gm_TitlesLeft();
-char * gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, unsigned char *b, unsigned short *o, int c);
+int ai_AmountRowStatus(); int ai_DrawAmountRow(); struct AICHAR *gm_FindChar(int id); int gm_TitlesLeft();
+struct AIBLD *gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
 int sv_CreateScrollButtons(); void d2_RadioClear(int g);
 unsigned vfs_fwrite(void *buf, int size, int n, struct VFSFILE *f);
 int ls_Read();
 void * mem_Alloc(int size, char *tag); char dd_Lock(void); void dd_Unlock(); unsigned char bmp_Save24(char *path, int w, int h, unsigned char *data); void mem_Free(void *p);
 void ai_Quicksave(void); void ai_ApplyOptions(); void cm_RaiseSpeedLevel(void); void cm_LowerSpeedLevel(void);
-int gm_BuildingMainObject(unsigned char *b); void *gm_GetGebaeudeHauptraum(unsigned char *b);
-unsigned char * gm_BuildNext(void); unsigned char * gm_BuildQuery(int n, ...);
+struct AIOBJ *gm_BuildingMainObject(struct AIBLD *b); struct AIOBJ *gm_GetGebaeudeHauptraum(struct AIBLD *b);
+struct AIBLD *gm_BuildNext(void); struct AIBLD *gm_BuildQuery(int n, ...);
 
 /* the unit's data in the original's order: .rdata the grave tables 0x5eecb0 .. 0x5eecf0 (named constants after the cannon
    literals, before lc.c's); .data ai_GraveChatterAt 0x62a538 (the plain block after sv_t.c's strings); the

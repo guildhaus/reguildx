@@ -3,6 +3,7 @@
    units that declare the tables without the rest of d2.h: types only. d2.h includes it. */
 #ifndef D2_TYPES_H
 #define D2_TYPES_H
+#include "portable.h"                /* intptr_t (D2WIN.args) */
 
 struct IDirectDrawSurface4;          /* <ddraw.h> */
 
@@ -96,7 +97,7 @@ typedef struct D2WIN {              /* 0x3c4 bytes, d2_Wins[0..0x60] */
     short font;                     /* 0x27c */
     char pad27e[2];
     int active;                     /* 0x280 */
-    int args[0x40];                 /* 0x284, parameters of the text commands ("%l" "%t" "%m" "%i" tokens of io_PrintText) */
+    intptr_t args[0x40];            /* 0x284, parameters of the text commands ("%l" "%t" "%m" "%i" tokens of io_PrintText; "%t" a text id or a string) */
     int nargs;                      /* 0x384, args used */
     int bgpic;                      /* 0x388, tiled background picture, -1 = none */
     int tileBackground;             /* 0x38c, 1: the background is the tiled d2_BackgroundTile */

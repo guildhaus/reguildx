@@ -33,10 +33,6 @@ typedef unsigned int SOCKET;            /* <winsock.h>, for net.h (as ai.c) */
 #include "d2.h"
 #include "gfx.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-#define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
-#define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 /* AI_ZERO_AT with the destination local assigned inside: @original the token callbacks store the size temp
    (0x200) before n1 = buf and read both slots into edi / ebx (ai_TokenRandomChurchProfession, byte) */
 #define AI_ZERO_BUF(var, dst, size) {                               \
@@ -121,7 +117,7 @@ int ai_NotInLists(int id)
 
 int ai_IsLivingCharacter(unsigned short id)
 {
-    if (ai_CharsT[id].id != 0xffff && ai_CharsT[id].health > 0 && ai_CharsT[id].kind < 10)
+    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 && ai_Chars[id].kind < 10)
         return 1;
     return 0;
 }
@@ -129,8 +125,8 @@ int ai_IsLivingCharacter(unsigned short id)
 
 int ai_IsLivingPlayer(unsigned short id)
 {
-    if (ai_CharsT[id].id != 0xffff && ai_CharsT[id].health > 0
-        && (ai_CharsT[id].kind == 6 || ai_CharsT[id].kind == 7 || ai_CharsT[id].kind == 5))
+    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0
+        && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7 || ai_Chars[id].kind == 5))
         return 1;
     return 0;
 }
@@ -138,8 +134,8 @@ int ai_IsLivingPlayer(unsigned short id)
 
 int ai_IsLivingNonPlayer(unsigned short id)
 {
-    if (ai_CharsT[id].id != 0xffff && ai_CharsT[id].health > 0 && ai_CharsT[id].kind < 10
-        && ai_CharsT[id].kind != 6 && ai_CharsT[id].kind != 7)
+    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 && ai_Chars[id].kind < 10
+        && ai_Chars[id].kind != 6 && ai_Chars[id].kind != 7)
         return 1;
     return 0;
 }
@@ -147,8 +143,8 @@ int ai_IsLivingNonPlayer(unsigned short id)
 
 int ai_IsLivingHuman(unsigned short id)
 {
-    if (ai_CharsT[id].id != 0xffff && ai_CharsT[id].health > 0
-        && (ai_CharsT[id].kind == 6 || ai_CharsT[id].kind == 7))
+    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0
+        && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7))
         return 1;
     return 0;
 }
@@ -156,7 +152,7 @@ int ai_IsLivingHuman(unsigned short id)
 
 int ai_IsLivingInhabitant(unsigned short id)
 {
-    if (ai_CharsT[id].id != 0xffff && ai_CharsT[id].health > 0 && ai_CharsT[id].kind == 0)
+    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 && ai_Chars[id].kind == 0)
         return 1;
     return 0;
 }
@@ -180,10 +176,10 @@ int ai_TokenMayor(int mode, G12ARG *args, int k, char *fmt, char *out)
         for (i = 0; ; i++) {
             if (i >= 768)
                 return 0;
-            if (ai_IsLivingCharacter((unsigned short)i) && ai_CharsT[i].officeKind == 0x0f)
+            if (ai_IsLivingCharacter((unsigned short)i) && ai_Chars[i].officeKind == 0x0f)
                 break;
         }
-        c = &ai_CharsT[i];
+        c = &ai_Chars[i];
         if (mode == 0)
             args[k].id = c->netId;
         if (c == 0)
@@ -192,7 +188,7 @@ int ai_TokenMayor(int mode, G12ARG *args, int k, char *fmt, char *out)
     n1 = (int)buf;
     AI_ZERO((char *)n1, 0x200);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4ae280, the BISCHOF token of a history text (callback 0x601b10[1], name 0x601730[1]): a bishop (officeKind
@@ -210,12 +206,12 @@ int ai_TokenBishop(int mode, G12ARG *args, int k, char *fmt, char *out)
             return 0;
     } else {
         i = 0;
-        while (!(ai_IsLivingCharacter((unsigned short)i) && ai_CharsT[i].officeKind == 0x1a
-                 || ai_CharsT[i].officeKind == 0x15)) {
+        while (!(ai_IsLivingCharacter((unsigned short)i) && ai_Chars[i].officeKind == 0x1a
+                 || ai_Chars[i].officeKind == 0x15)) {
             if (++i >= 768)
                 return 0;
         }
-        c = &ai_CharsT[i];
+        c = &ai_Chars[i];
         if (mode == 0)
             args[k].id = c->netId;
         if (c == 0)
@@ -224,7 +220,7 @@ int ai_TokenBishop(int mode, G12ARG *args, int k, char *fmt, char *out)
     n1 = (int)buf;
     AI_ZERO((char *)n1, 0x200);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4ae3a0, the RND_GILDENMEISTER token of a history text (callback 0x601b10[2], name 0x601730[2]): a random
@@ -254,9 +250,9 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (ai_IsLivingCharacter((unsigned short)i) && ai_CharsT[i].secondOffice >= 0x1e
-                    && ai_CharsT[i].secondOffice <= 0x21) {
-                    c = &ai_CharsT[i];
+                if (ai_IsLivingCharacter((unsigned short)i) && ai_Chars[i].secondOffice >= 0x1e
+                    && ai_Chars[i].secondOffice <= 0x21) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -266,9 +262,9 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (ai_IsLivingNonPlayer((unsigned short)i) && ai_CharsT[i].secondOffice >= 0x1e
-                    && ai_CharsT[i].secondOffice <= 0x21) {
-                    c = &ai_CharsT[i];
+                if (ai_IsLivingNonPlayer((unsigned short)i) && ai_Chars[i].secondOffice >= 0x1e
+                    && ai_Chars[i].secondOffice <= 0x21) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -279,12 +275,12 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && ai_CharsT[i].secondOffice >= 0x1e
-                    && ai_CharsT[i].secondOffice <= 0x21) {
-                    pick = &ai_CharsT[i];
-                } else if (ai_IsLivingHuman((unsigned short)i) && ai_CharsT[i].secondOffice >= 0x1e
-                           && ai_CharsT[i].secondOffice <= 0x21) {
-                    c = &ai_CharsT[i];
+                if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && ai_Chars[i].secondOffice >= 0x1e
+                    && ai_Chars[i].secondOffice <= 0x21) {
+                    pick = &ai_Chars[i];
+                } else if (ai_IsLivingHuman((unsigned short)i) && ai_Chars[i].secondOffice >= 0x1e
+                           && ai_Chars[i].secondOffice <= 0x21) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -298,13 +294,13 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 
-#define G12_B(i, o) (((unsigned char *)&ai_CharsT[i])[o])
-#define G12_TITLED(i) (ai_CharsT[i].officeKind > 0 && ai_CharsT[i].officeKind != 0x0f && ai_CharsT[i].officeKind != 0x1a \
-                       && ai_CharsT[i].officeKind != 0x15)
+#define G12_B(i, o) (((unsigned char *)&ai_Chars[i])[o])
+#define G12_TITLED(i) (ai_Chars[i].officeKind > 0 && ai_Chars[i].officeKind != 0x0f && ai_Chars[i].officeKind != 0x1a \
+                       && ai_Chars[i].officeKind != 0x15)
 
 /* 0x4ae600, the RND_AMTSTRAEGERIN token of a history text (callback 0x601b10[3], name 0x601730[3]): a character
    with byte 9 == 1, an ordinary title (G12_TITLED) and in none of the lists of 0x4adfb0; the selection as in
@@ -331,9 +327,9 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (G12_B(i, 9) == 1 && ai_IsLivingCharacter((unsigned short)i) && ai_NotInLists(ai_CharsT[i].netId)
+                if (G12_B(i, 9) == 1 && ai_IsLivingCharacter((unsigned short)i) && ai_NotInLists(ai_Chars[i].netId)
                     && G12_TITLED(i)) {
-                    c = &ai_CharsT[i];
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -343,9 +339,9 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (G12_B(i, 9) == 1 && ai_IsLivingNonPlayer((unsigned short)i) && ai_NotInLists(ai_CharsT[i].netId)
+                if (G12_B(i, 9) == 1 && ai_IsLivingNonPlayer((unsigned short)i) && ai_NotInLists(ai_Chars[i].netId)
                     && G12_TITLED(i)) {
-                    c = &ai_CharsT[i];
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -358,11 +354,11 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
             while (n != 0) {
                 if (G12_B(i, 9) == 1) {
                     if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)) {
-                        if (ai_NotInLists(ai_CharsT[i].netId))
-                            pick = &ai_CharsT[i];
-                    } else if (ai_IsLivingHuman((unsigned short)i) && ai_NotInLists(ai_CharsT[i].netId)
+                        if (ai_NotInLists(ai_Chars[i].netId))
+                            pick = &ai_Chars[i];
+                    } else if (ai_IsLivingHuman((unsigned short)i) && ai_NotInLists(ai_Chars[i].netId)
                                && G12_TITLED(i)) {
-                        c = &ai_CharsT[i];
+                        c = &ai_Chars[i];
                         break;
                     }
                 }
@@ -377,7 +373,7 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4ae900, the same as 0x4ae600 for a man (byte 9 == 0; 0x4ae600, RND_AMTSTRAEGERIN, takes byte 9 == 1)
@@ -406,8 +402,8 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
             n = 0x300;
             while (n != 0) {
                 if (G12_B(i, 9) == 0 && ai_IsLivingCharacter((unsigned short)i) && G12_TITLED(i)
-                    && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                    && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -418,8 +414,8 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
             n = 0x300;
             while (n != 0) {
                 if (G12_B(i, 9) == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)
-                    && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                    && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -432,11 +428,11 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
             while (n != 0) {
                 if (G12_B(i, 9) == 0) {
                     if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)) {
-                        if (ai_NotInLists(ai_CharsT[i].netId))
-                            pick = &ai_CharsT[i];
+                        if (ai_NotInLists(ai_Chars[i].netId))
+                            pick = &ai_Chars[i];
                     } else if (ai_IsLivingHuman((unsigned short)i) && G12_TITLED(i)
-                               && ai_NotInLists(ai_CharsT[i].netId)) {
-                        c = &ai_CharsT[i];
+                               && ai_NotInLists(ai_Chars[i].netId)) {
+                        c = &ai_Chars[i];
                         break;
                     }
                 }
@@ -451,7 +447,7 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4aec00, the same as 0x4ae600 for anybody (no sex test); mode 2 gives no token
@@ -481,8 +477,8 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (ai_IsLivingCharacter((unsigned short)i) && G12_TITLED(i) && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                if (ai_IsLivingCharacter((unsigned short)i) && G12_TITLED(i) && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -492,8 +488,8 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i) && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                if (ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i) && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -505,11 +501,11 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
             n = 0x300;
             while (n != 0) {
                 if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)) {
-                    if (ai_NotInLists(ai_CharsT[i].netId))
-                        pick = &ai_CharsT[i];
+                    if (ai_NotInLists(ai_Chars[i].netId))
+                        pick = &ai_Chars[i];
                 } else if (ai_IsLivingHuman((unsigned short)i) && G12_TITLED(i)
-                           && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                           && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -523,7 +519,7 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 
@@ -576,8 +572,8 @@ int ai_TokenRichestInhabitant(int mode, G12ARG *args, int k, char *fmt, char *ou
     } else {
         for (i = 0; i < 0x300; i++) {
             if (ai_IsLivingCharacter((unsigned short)i) && (filt == 0 || G12_B(i, 9) == sex)
-                && (v = gm_GetWorth((unsigned short)i)) > best && ai_NotInLists(ai_CharsT[i].netId)) {
-                c = &ai_CharsT[i];
+                && (v = gm_GetWorth((unsigned short)i)) > best && ai_NotInLists(ai_Chars[i].netId)) {
+                c = &ai_Chars[i];
                 best = v;
             }
         }
@@ -586,7 +582,7 @@ int ai_TokenRichestInhabitant(int mode, G12ARG *args, int k, char *fmt, char *ou
     }
     if (mode == 0)
         args[k].id = c->netId;
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4af090, text token for the building of type 0x16 with the highest 0x509b10 rating */
@@ -601,12 +597,12 @@ int ai_TokenBestInn(int mode, G12ARG *args, int k, char *fmt, char *out)
     if (mode == 2)
         return 0;
     if (mode == 1) {
-        gm_FindById((int *)&pick, 0, 0, args[k].id);
+        gm_FindById(&pick, 0, 0, args[k].id);
         if (pick == 0)
             return 0;
     } else {
         for (b = gm_BuildQuery(1, 5, 0x16); b != 0; b = gm_BuildNext()) {
-            v = gm_EquipmentValue((void *)b, b->level);
+            v = gm_EquipmentValue(b, b->level);
             if (v > best) {
                 pick = b;
                 best = v;
@@ -620,7 +616,7 @@ int ai_TokenBestInn(int mode, G12ARG *args, int k, char *fmt, char *out)
     n1 = (int)buf;
     AI_ZERO((char *)n1, 0x200);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_Format(out, (int)buf, pick);
+    txt_Format(out, (intptr_t)buf, pick);
     return 1;
 }
 /* 0x4af1b0, text token (mode 2 only): fmt "...-n" gives n percent of the wealth (0x50a640) of the character
@@ -660,7 +656,7 @@ int ai_TokenMoney(int mode, G12ARG *args, int k, char *fmt, char *out)
         }
         ai_SplitTokenFormat(fmt, buf, &n1, &n2);
         n1 = atoi(fmt + n1);
-        txt_Format(out, (int)buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
+        txt_Format(out, (intptr_t)buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
         return 1;
     }
     return 0;
@@ -684,7 +680,7 @@ int ai_TokenCityTreasury(int mode, G12ARG *args, int k, char *fmt, char *out)
     if (o == 0)
         return 0;
     for (o = gm_Query(o->list, 1, 5); o != 0; o = gm_QueryNext()) {
-        if (ai_GoodsT[o->id].type == 9) {
+        if (ai_Goods[o->id].type == 9) {
             v = o->count;
             break;
         }
@@ -694,13 +690,13 @@ int ai_TokenCityTreasury(int mode, G12ARG *args, int k, char *fmt, char *out)
     AI_ZERO((char *)n2, cnt);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
     n1 = atoi(fmt + n1);
-    txt_Format(out, (int)buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
+    txt_Format(out, (intptr_t)buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
     return 1;
 }
 
 /* 0x4af3f0, the same as 0x4aec00 for a character whose byte 0x164 is 13..18 */
 /* jobs 13 .. 18 are the church offices (the token's name, RND_ ... church profession) */
-#define G12_CHURCHJOB(i) (ai_CharsT[i].jobId >= 13 && ai_CharsT[i].jobId <= 18)
+#define G12_CHURCHJOB(i) (ai_Chars[i].jobId >= 13 && ai_Chars[i].jobId <= 18)
 
 /* 0x4af3f0, text token for a living character holding a church office (job 13 .. 18) and in none of the lists of
    0x4adfb0: fmt "...-n", n 0 any character, 1 (the default) a non-player, 2 a non-player first, else a human taking
@@ -727,8 +723,8 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (ai_IsLivingCharacter((unsigned short)i) && G12_CHURCHJOB(i) && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                if (ai_IsLivingCharacter((unsigned short)i) && G12_CHURCHJOB(i) && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -738,8 +734,8 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (ai_IsLivingNonPlayer((unsigned short)i) && G12_CHURCHJOB(i) && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                if (ai_IsLivingNonPlayer((unsigned short)i) && G12_CHURCHJOB(i) && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -751,11 +747,11 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
             n = 0x300;
             while (n != 0) {
                 if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_CHURCHJOB(i)) {
-                    if (ai_NotInLists(ai_CharsT[i].netId))
-                        pick = &ai_CharsT[i];
+                    if (ai_NotInLists(ai_Chars[i].netId))
+                        pick = &ai_Chars[i];
                 } else if (ai_IsLivingHuman((unsigned short)i) && G12_CHURCHJOB(i)
-                           && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                           && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -769,7 +765,7 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4af6c0, text token for one of the five richest characters (0x50a640) passing a predicate: fmt "...-n"
@@ -832,10 +828,10 @@ int ai_TokenRandomRich(int mode, G12ARG *args, int k, char *fmt, char *out)
     } else {
         for (i = 0; i < 0x300; i++) {
             if (pred((unsigned short)i) && (v = gm_GetWorth((unsigned short)i)) > score[4]
-                && ai_NotInLists(ai_CharsT[i].netId)) {
+                && ai_NotInLists(ai_Chars[i].netId)) {
                 score[4] = v;
                 found |= 1;
-                ids[4] = ai_CharsT[i].id;
+                ids[4] = ai_Chars[i].id;
                 for (j = 3; j >= 0; j--) {
                     t = score[j + 1];
                     v = score[j];
@@ -851,11 +847,11 @@ int ai_TokenRandomRich(int mode, G12ARG *args, int k, char *fmt, char *out)
         }
         if (found == 0)
             return 0;
-        c = &ai_CharsT[ids[util_Random(5)]];
+        c = &ai_Chars[ids[util_Random(5)]];
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4af8d0, text token for the first character in the lists of 0x4adfb0 who passes 0x4ae120; fmt "...-n" as in
@@ -905,7 +901,7 @@ int ai_TokenRandomNpcInhabitant(int mode, G12ARG *args, int k, char *fmt, char *
                 if (mode == 0)
                     args[k].id = c->netId;
             }
-            txt_Format(out, (int)buf, c->id);
+            txt_Format(out, (intptr_t)buf, c->id);
             return 1;
         }
     }
@@ -913,10 +909,10 @@ int ai_TokenRandomNpcInhabitant(int mode, G12ARG *args, int k, char *fmt, char *
 }
 /* jobs 19 .. 69 without 31 .. 33, 40 .. 45 and 52 .. 57: the merchant trades (the token's name, RND_HANDELSHERR);
    @original the job byte is read at each test (a local gives another strength-reduced base) */
-#define G12_MERCHANTJOB(i) (ai_CharsT[i].jobId >= 19 && ai_CharsT[i].jobId <= 69                         \
-                            && (ai_CharsT[i].jobId < 31 || ai_CharsT[i].jobId > 33)                    \
-                            && (ai_CharsT[i].jobId < 40 || ai_CharsT[i].jobId > 45)                    \
-                            && (ai_CharsT[i].jobId < 52 || ai_CharsT[i].jobId > 57))
+#define G12_MERCHANTJOB(i) (ai_Chars[i].jobId >= 19 && ai_Chars[i].jobId <= 69                         \
+                            && (ai_Chars[i].jobId < 31 || ai_Chars[i].jobId > 33)                    \
+                            && (ai_Chars[i].jobId < 40 || ai_Chars[i].jobId > 45)                    \
+                            && (ai_Chars[i].jobId < 52 || ai_Chars[i].jobId > 57))
 
 /* 0x4afa20, one of the five richest characters (0x50a640) passing 0x4adff0 with a merchant job
    (G12_MERCHANTJOB)
@@ -956,10 +952,10 @@ int ai_TokenRandomMerchant(int mode, G12ARG *args, int k, char *fmt, char *out)
         for (i = 0; i < 0x300; i++) {
             if (G12_MERCHANTJOB(i)
                 && ai_IsLivingCharacter((unsigned short)i) && (v = gm_GetWorth((unsigned short)i)) > score[4]
-                && ai_NotInLists(ai_CharsT[i].netId)) {
+                && ai_NotInLists(ai_Chars[i].netId)) {
                 score[4] = v;
                 found |= 1;
-                ids[4] = ai_CharsT[i].id;
+                ids[4] = ai_Chars[i].id;
                 for (j = 3; j >= 0; j--) {
                     t = score[j + 1];
                     v = score[j];
@@ -975,11 +971,11 @@ int ai_TokenRandomMerchant(int mode, G12ARG *args, int k, char *fmt, char *out)
         }
         if (found == 0)
             return 0;
-        c = &ai_CharsT[ids[util_Random(5)]];
+        c = &ai_Chars[ids[util_Random(5)]];
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4afc30, text token for a random character passing 0x4ae0d0 / 0x4adfb0, searched with a random step
@@ -1014,8 +1010,8 @@ int ai_TokenRandomPlayer(int mode, G12ARG *args, int k, char *fmt, char *out)
             i = util_Random(0x300);
             n = 0x300;
             while (n != 0) {
-                if (ai_IsLivingHuman((unsigned short)i) && ai_NotInLists(ai_CharsT[i].netId)) {
-                    c = &ai_CharsT[i];
+                if (ai_IsLivingHuman((unsigned short)i) && ai_NotInLists(ai_Chars[i].netId)) {
+                    c = &ai_Chars[i];
                     break;
                 }
                 n--;
@@ -1027,7 +1023,7 @@ int ai_TokenRandomPlayer(int mode, G12ARG *args, int k, char *fmt, char *out)
         if (mode == 0)
             args[k].id = c->netId;
     }
-    txt_Format(out, (int)buf, c->id);
+    txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4afdd0, the FEST text command (callback 0x601b50[0], name 0x601070[0]) "-n" (n > 0): sends message 0x53
@@ -1042,7 +1038,7 @@ int ai_CommandFest(int a, int b, char *fmt)
     if (atoi(fmt + 1) > 0) {
         memset(&msg, 0, sizeof(msg));
         msg.type = 0x53;
-        msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+        msg.to = ai_PlayerChar->netId;
         msg.fromId = -1;
         msg.flags = 1;
         msg.thiefClass = 0;     /* @original a byte store at 0x58 (the field's name is the thief message's) */
@@ -1069,9 +1065,9 @@ int ai_CommandSiegeStart(void)
     msg.time.min = 0;
     msg.flags = 1;
     for (i = 0; i < 0x300; i++) {
-        if (ai_CharsT[i].kind == 6 || ai_CharsT[i].kind == 7) {
-            msg.to = ai_CharsT[i].netId;
-            msg.car = ai_CharsT[i].netId;
+        if (ai_Chars[i].kind == 6 || ai_Chars[i].kind == 7) {
+            msg.to = ai_Chars[i].netId;
+            msg.car = ai_Chars[i].netId;
             cm_SendLongMessage(&msg);
         }
     }
@@ -1086,7 +1082,7 @@ int ai_CommandUprising(void)
 
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x7d;
-    msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+    msg.to = ai_PlayerChar->netId;
     msg.fromId = -1;
     msg.flags = 1;
     msg.car = 1;
@@ -1113,7 +1109,7 @@ int ai_CommandFire(void)
 
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x4e;
-    msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+    msg.to = ai_PlayerChar->netId;
     msg.fromId = -1;
     msg.car = -1;
     msg.flags = 1;
@@ -1132,7 +1128,7 @@ int ai_CommandTornado(void)
 
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x50;
-    msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+    msg.to = ai_PlayerChar->netId;
     msg.fromId = -1;
     msg.car = -1;
     msg.flags = 2;
@@ -1177,7 +1173,7 @@ int ai_CommandCityTreasury(int a, int b, char *fmt)
             if (o == 0)
                 return 0;
             for (g = gm_Query(o->list, 1, 5); g != 0; g = gm_QueryNext()) {
-                if (ai_GoodsT[g->id].type == 9)
+                if (ai_Goods[g->id].type == 9)
                     break;
             }
             if (g == 0)
@@ -1217,8 +1213,8 @@ int ai_CommandWealthTax(int a, int b, char *fmt)
     f = n * 0.01f;
     for (i = 0; i < 0x300; i++) {
         if (ai_IsLivingCharacter((unsigned short)i)) {
-            w = gm_GetWorth(ai_CharsT[i].id);
-            cm_SendMoveGoodsUnchecked(o->objId, ai_CharsT[i].netId, 0, (int)(w * f));
+            w = gm_GetWorth(ai_Chars[i].id);
+            cm_SendMoveGoodsUnchecked(o->objId, ai_Chars[i].netId, 0, (int)(w * f));
         }
     }
     return 1;
@@ -1280,7 +1276,7 @@ int ai_CommandOfficeStanding(G12ARG *args, int k, char *fmt)
                 n = atoi(fmt + 1) * sign[i] * 2;
                 for (i = 0; i < 0x300; i++) {
                     if (ai_IsLivingCharacter((unsigned short)i) && (G12_B(i, 0x166) != 0 || G12_B(i, 0x169) != 0))
-                        cm_SendRelations(c->netId, ai_CharsT[i].netId, n, 1);
+                        cm_SendRelations(c->netId, ai_Chars[i].netId, n, 1);
                 }
                 return 1;
             }
@@ -1296,7 +1292,7 @@ int ai_CommandKillPlayer(G12ARG *args, int k)
     AICHAR *c;
 
     if (args != 0 && k < 8 && (c = gm_FindChar(args[k].id)) != 0) {
-        gm_AddHealth(c->id, (int)-(gm_CharacterHealth((short *)c) + 1.0f));
+        gm_AddHealth(c->id, (int)-(gm_CharacterHealth(c) + 1.0f));
         return 1;
     }
     return 0;
@@ -1353,7 +1349,7 @@ int ai_CommandExecution(G12ARG *args, int k, char *fmt)
         int list[16];
 
         party.thing = -1;
-        party.host = ai_CharsT[ai_PlayerId].netId;
+        party.host = ai_Chars[ai_PlayerId].netId;
         party.variant = (unsigned char)kinds[i];
         list[1] = -1;
         party.kind = 5;
@@ -1363,11 +1359,11 @@ int ai_CommandExecution(G12ARG *args, int k, char *fmt)
         list[2] = ai_JudgeCatholic->netId;
         list[3] = ai_JudgeProtestant->netId;
         for (i = 0; i < 0x300; i++) {
-            if (ai_CharsT[i].netId != c->netId && ai_IsLivingNonPlayer((unsigned short)i)) {
-                if (ai_CharsT[i].officeKind != 0)
-                    list[1] = ai_CharsT[i].netId;
+            if (ai_Chars[i].netId != c->netId && ai_IsLivingNonPlayer((unsigned short)i)) {
+                if (ai_Chars[i].officeKind != 0)
+                    list[1] = ai_Chars[i].netId;
             } else if (n < 16 && ai_IsLivingHuman((unsigned short)i)) {
-                list[n++] = ai_CharsT[i].netId;
+                list[n++] = ai_Chars[i].netId;
             }
         }
         if (list[1] == -1)
@@ -1427,7 +1423,7 @@ int ai_CommandOfficeInventoryPlus(int a, int b, char *fmt)
         return 0;
     for (i = 0; i < 0x300; i++) {
         if (ai_IsLivingCharacter((unsigned short)i) && (G12_B(i, 0x166) != 0 || G12_B(i, 0x169) != 0))
-            cm_SendExSellObject(ai_CharsT[i].netId, -1, v, 1, ai_OwnPlayer, 0);
+            cm_SendExSellObject(ai_Chars[i].netId, -1, v, 1, ai_OwnPlayer, 0);
     }
     return 1;
 }
@@ -1586,7 +1582,7 @@ int ai_CommandFaithChange(int a, int b, char *fmt)
         return 0;
     cnt = 0;
     for (i = 0; i < 0x300; i++) {
-        if (ai_CharsT[i].id != 0xffff && ai_CharsT[i].kind <= 4 && G12_B(i, 0x0c) == rel)
+        if (ai_Chars[i].id != 0xffff && ai_Chars[i].kind <= 4 && G12_B(i, 0x0c) == rel)
             cnt++;
     }
     n = (int)((float)cnt * p * 0.01f);
@@ -1595,7 +1591,7 @@ int ai_CommandFaithChange(int a, int b, char *fmt)
     m = max(min(m, n / 3), 1);
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x81;
-    msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+    msg.to = ai_PlayerChar->netId;
     msg.ch = rel;
     msg.fromId = -1;
     msg.flags = 2;
@@ -1616,7 +1612,7 @@ int ai_CommandRiot(void)
 
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x7d;
-    msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+    msg.to = ai_PlayerChar->netId;
     msg.fromId = -1;
     msg.flags = 1;
     msg.car = 0;
@@ -1634,7 +1630,7 @@ typedef struct G12OBJ {                 /* 0x18 bytes, filled by 0x4e6ec0 (hmt.h
 } G12OBJ;
 
 int amt_GetFirstOffice(unsigned int k, struct AMTREC *out);                                         /* 0x4e6ec0, defined elsewhere */
-int amt_SendOfficeMessage(unsigned char a, char *b, char *c, int d, unsigned char e);                /* 0x4e6680, defined elsewhere */
+int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e);                /* 0x4e6680, defined elsewhere */
 
 /* 0x4b1060, the GILDENSITZE_BRACH text command (callback 0x601b50[17]): frees the holders of the offices
    0x1e..0x21 (0x4e6680) and sends message 0x80 (arg 4), today 8:00 */
@@ -1656,7 +1652,7 @@ int ai_CommandBreakGuildSeats(int a, int b, char *fmt)
     atoi(fmt + 1);
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x80;
-    msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+    msg.to = ai_PlayerChar->netId;
     msg.fromId = -1;
     msg.flags = 2;
     msg.car = 4;
@@ -1735,7 +1731,7 @@ int ai_CommandDemand(int a, int b, char *fmt)
         for (i = 0; i < 0x55; i++) {
             p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
             if (p->item != 0 && p->amount != 0
-                && ai_GoodsT[p->item].type == 8) {
+                && ai_Goods[p->item].type == 8) {
                 e = *p;
                 e.mean = (f + 1.0f) * e.demand;
                 e.price = gm_ItemPrice(p->item, 100) * (f + 1.0f);
@@ -1747,7 +1743,7 @@ int ai_CommandDemand(int a, int b, char *fmt)
         for (i = 0; i < 0x55; i++) {
             p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
             if (p->item != 0 && p->amount != 0
-                && ai_GoodsT[p->item].type == 0x20) {
+                && ai_Goods[p->item].type == 0x20) {
                 e = *p;
                 e.mean = (f + 1.0f) * e.demand;
                 e.price = gm_ItemPrice(p->item, 100) * (f + 1.0f);
@@ -1776,8 +1772,8 @@ int ai_CommandMercenariesPlunder(void)
             memset(&msg, 0, sizeof(msg));
             t.hour = i % 4 + 10;
             msg.type = 0x57;
-            msg.to = ai_CharsT[i].netId;
-            msg.fromId = ai_CharsT[i].netId;
+            msg.to = ai_Chars[i].netId;
+            msg.fromId = ai_Chars[i].netId;
             msg.flags = 1;
             msg.time = t;
             cm_SendLongMessage(&msg);
@@ -1802,8 +1798,8 @@ int ai_CommandMercenariesMaraud(void)
             memset(&msg, 0, sizeof(msg));
             t.hour = i % 4 + 13;
             msg.type = 0x58;
-            msg.to = ai_CharsT[i].netId;
-            msg.fromId = ai_CharsT[i].netId;
+            msg.to = ai_Chars[i].netId;
+            msg.fromId = ai_Chars[i].netId;
             msg.flags = 1;
             msg.time = t;
             cm_SendLongMessage(&msg);
@@ -1834,7 +1830,7 @@ int ai_CommandRemoteTradeRaider(int a, int b, char *fmt)
     if (n > 0) {
         memset(&msg, 0, sizeof(msg));
         msg.type = 0x51;
-        msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+        msg.to = ai_PlayerChar->netId;
         msg.fromId = -1;
         msg.flags = 0x12;
         ((unsigned char *)&msg.arg[0])[0] = (unsigned char)n;
@@ -1860,8 +1856,8 @@ int ai_CommandViewDonation(void)
         if (ai_IsLivingHuman((unsigned short)i)) {
             memset(&msg, 0, sizeof(msg));
             msg.type = 0x54;
-            msg.to = ai_CharsT[i].netId;
-            msg.fromId = ai_CharsT[i].netId;
+            msg.to = ai_Chars[i].netId;
+            msg.fromId = ai_Chars[i].netId;
             msg.flags = 9;
             msg.time = t;
             cm_SendLongMessage(&msg);
@@ -1887,8 +1883,8 @@ int ai_CommandParticipation(void)
         if (ai_IsLivingHuman((unsigned short)i)) {
             memset(&msg, 0, sizeof(msg));
             msg.type = 0x55;
-            msg.to = ai_CharsT[i].netId;
-            msg.fromId = ai_CharsT[i].netId;
+            msg.to = ai_Chars[i].netId;
+            msg.fromId = ai_Chars[i].netId;
             msg.flags = 9;
             msg.time = t;
             cm_SendLongMessage(&msg);
@@ -1946,7 +1942,7 @@ int ai_CommandComments(void)
             hst_KeyNext = pos + 6;
             memset(&msg, 0, sizeof(msg));
             msg.type = 0x52;
-            msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+            msg.to = ai_PlayerChar->netId;
             msg.car = pos - hst_KeyFirst;
             msg.fromId = -1;
             msg.flags = 0x12;
@@ -1975,7 +1971,7 @@ int ai_CommandPlague(int a, int b, char *fmt)
     n = max(min(10, n), 1);
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x59;
-    msg.to = ((AICHAR *)ai_PlayerChar)->netId;
+    msg.to = ai_PlayerChar->netId;
     msg.car = n;
     msg.fromId = -1;
     msg.flags = 2;
@@ -2016,7 +2012,6 @@ int ai_CommandInventoryPlus(G12ARG *args, int k, char *fmt)
 int hst_TextFirst = -1;  /* 0x601058, first text of the history file */
 int hst_TextLast = -1;  /* 0x60105c, last text of the history file */
 int hst_TextCurrent = -1;  /* 0x601060, the current text */
-extern char ai_PlayerSlots[4][0x2f4];
 unsigned char hst_TextsOn = 0;  /* 0x6f0724, history texts on */
 
 /* 0x4b1d20, resets the lists hst_Lists and opens the player's history texts "historie\text_H_<name>"
@@ -2035,7 +2030,7 @@ void hst_LoadPlayerTexts(void)
     }
     hst_TextFirst = -1;
     hst_TextLast = -1;
-    sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer]);
+    sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer].name);
     if (txt_Files[txt_FindFile(path)].buf == 0 && !txt_ReloadTextFile(path)) {
         hst_TextsOn = 0;
         return;
@@ -2063,7 +2058,7 @@ void hst_ResetPlayerTexts(void)
             hst_Lists[i].e[j].v = 0xffff;
         }
     }
-    sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer]);
+    sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer].name);
     txt_FreeFile(path);
     hst_TextFirst = -1;
     hst_TextLast = -1;
@@ -2245,7 +2240,9 @@ int hst_ParseContext(char *src, char *out, G12ARG *ctx)
 }
 
 char hst_ListModes[2][5] = { "_SET", "_USE" };  /* 0x601b00, the modes of a list reference: "_SET", "_USE" */
-#define hst_ListModeSet (*(int *)((char *)&hst_ListModes + 0x0))  /* 0x601b00, hst_ListModes[0] ("_SET") as one dword */
+#define hst_ListModeSet (*(int *)((char *)&hst_ListModes + 0x0))  /* 0x601b00, hst_ListModes[0] ("_SET") as one dword; @original why: the
+   readers compare a label's 4-byte tag with the first four characters of the 5-byte mode strings (one dword load each, the
+   second at the odd address 0x601b05): no C type puts an int at +5 of char[2][5], the string data is read as an int (view) */
 #define hst_ListModeUse (*(int *)((char *)&hst_ListModes + 0x5))  /* 0x601b05, hst_ListModes[1] ("_USE") as one dword */
 
 /* 0x4b2380, leaked name (its messages): text k (or a string above 0x4800) "[_SET_n..." / "[_USE_n...":
@@ -2574,7 +2571,7 @@ void hst_ParseText_Real(char *out, int k)
     }
     if (open != 0 || hash != 0)
         return;
-    txt_Format(out, (int)"%s", buf);
+    txt_Format(out, (intptr_t)"%s", buf);
 }
 
 /* G12_COPY2: G12_COPY with destination and source in variables */
@@ -2656,13 +2653,13 @@ int hst_ParseDate(int k, int mode, int *year, char *name)
     } else if (mode & 2) {
         switch (known) {
         case 0:
-            txt_Format(name, (int)"%s, %i %s %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.day, date.month + 0x4f, date.year);
+            txt_Format(name, (intptr_t)"%s, %i %s %i", ai_PlayerSlots[ai_OwnPlayer].townName, date.day, date.month + 0x4f, date.year);
             break;
         case 1:
-            txt_Format(name, (int)"%s, %s %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.month + 0x4f, date.year);
+            txt_Format(name, (intptr_t)"%s, %s %i", ai_PlayerSlots[ai_OwnPlayer].townName, date.month + 0x4f, date.year);
             break;
         case 2:
-            txt_Format(name, (int)"%s, %i", ai_PlayerSlots[ai_OwnPlayer] + 0x20, date.year);
+            txt_Format(name, (intptr_t)"%s, %i", ai_PlayerSlots[ai_OwnPlayer].townName, date.year);
             break;
         }
     }
@@ -2717,8 +2714,8 @@ void d2_CreateScrollButtons(int x, int y, int win, int obj, int pic);           
 int sv_CreateScrollForm(void);                                                          /* 0x52fa10, defined elsewhere */
 void sv_ScrollFormAnimate(void);                                                         /* 0x52fad0, defined elsewhere */
 void sv_DestroyScrollForm(void);                                                         /* 0x52fa90, defined elsewhere */
-int io_PrintText(char *fmt, ...);                                               /* 0x515960, defined elsewhere */
-int sv_RunFrame(int cb, unsigned mask);                                      /* 0x5309a0, defined elsewhere */
+int io_PrintText(intptr_t fmt, ...);                                               /* 0x515960, defined elsewhere */
+int sv_RunFrame(void (*cb)(), unsigned mask);                                      /* 0x5309a0, defined elsewhere */
 extern int sv_PopRequest;                /* 0x6f22a0 */
 
 /* 0x4b3350, the history dialog: shows the events of last year (0x4b3280) one after the other */
@@ -2738,14 +2735,14 @@ void hst_LastYearDialog(void)
     d2_SetForm(view, 1);
     win = d2_LastWindow;
     d2_SetForm(view, 2);
-    io_PrintText((char *)0x10b0);
+    io_PrintText(0x10b0);
     d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
     vis = &d2_Wins[win].visible;
     *vis = 0x18;
     d2_SetForm(view, 1);
-    io_PrintText("$C%s", text);
+    io_PrintText((intptr_t)"$C%s", text);
     d2_SetForm(view, 3);
-    io_PrintText("$C$Z$[%s$]", name);
+    io_PrintText((intptr_t)"$C$Z$[%s$]", name);
     d2_ClickedId = -1;
     do {
         sv_ScrollFormAnimate();
@@ -2756,15 +2753,15 @@ void hst_LastYearDialog(void)
                 sv_PopRequest = 1;
             } else {
                 d2_SetForm(view, 2);
-                io_PrintText((char *)0x10b0);
+                io_PrintText(0x10b0);
                 d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
                 *vis = 0x18;
                 d2_SetForm(view, 1);
-                io_PrintText("$C%s", text);
+                io_PrintText((intptr_t)"$C%s", text);
                 d2_LastWindowPtr->scrollY = 0;
                 d2_LastWindowPtr->scrollStep = 2;
                 d2_SetForm(view, 3);
-                io_PrintText("$C$Z$[%s$]", name);
+                io_PrintText((intptr_t)"$C$Z$[%s$]", name);
             }
         }
     } while (sv_RunFrame(hst_LastYearDialog, 0x66087));
@@ -2821,14 +2818,14 @@ void hst_LastYearCmdDialog(int cmd)
     d2_SetForm(view, 1);
     win = d2_LastWindow;
     d2_SetForm(view, 2);
-    io_PrintText((char *)0x10b0);
+    io_PrintText(0x10b0);
     d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
     vis = &d2_Wins[win].visible;
     *vis = 0x18;
     d2_SetForm(view, 1);
-    io_PrintText("$C%s", text);
+    io_PrintText((intptr_t)"$C%s", text);
     d2_SetForm(view, 3);
-    io_PrintText("$C$Z$[%s$]", name);
+    io_PrintText((intptr_t)"$C$Z$[%s$]", name);
     d2_ClickedId = -1;
     do {
         sv_ScrollFormAnimate();
@@ -2839,18 +2836,18 @@ void hst_LastYearCmdDialog(int cmd)
                 sv_PopRequest = 1;
             } else {
                 d2_SetForm(view, 2);
-                io_PrintText((char *)0x10b0);
+                io_PrintText(0x10b0);
                 d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
                 *vis = 0x18;
                 d2_SetForm(view, 1);
-                io_PrintText("$C%s", text);
+                io_PrintText((intptr_t)"$C%s", text);
                 d2_LastWindowPtr->scrollY = 0;
                 d2_LastWindowPtr->scrollStep = 2;
                 d2_SetForm(view, 3);
-                io_PrintText("$C$Z$[%s$]", name);
+                io_PrintText((intptr_t)"$C$Z$[%s$]", name);
             }
         }
-    } while (sv_RunFrame((void (*)(void))hst_LastYearCmdDialog, 0x66087));
+    } while (sv_RunFrame(hst_LastYearCmdDialog, 0x66087));
     sv_DestroyScrollForm();
 }
 
@@ -2882,7 +2879,6 @@ void hst_YearlyHistory(int cmd)
     }
 }
 
-extern char ai_PlayerSlots[4][0x2f4];
 char hst_Key[0x20];  /* 0xf83520, the key to look for */
 G12ROW hst_Lists[4];  /* 0xf83540 */
 int hst_SeedPending;  /* 0xf83650 */

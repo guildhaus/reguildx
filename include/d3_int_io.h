@@ -184,7 +184,8 @@ typedef void (*D3IOPROGRESS)(int a, int i, int n);
 
 D3OBJECT *d3_CloneObject(D3OBJECT *src);                                                /* 0x43d180, d3_engine.c */
 char d3_LoadScene(char *name, void *f, D3IOPROGRESS progress);                    /* 0x44be60 */
-struct VFSFILE * vfs_Tfopen(char *name, char *mode, int unk);                                    /* 0x430470, vfs.c */
+struct VFSDIR;
+struct VFSFILE * vfs_Tfopen(char *name, char *mode, struct VFSDIR *dir);                                    /* 0x430470, vfs.c */
 int vfs_fclose(struct VFSFILE *f);                                                                /* 0x430aa0, vfs.c */
 D3OBJECT *d3_LoadGroup(char *name, void *f, D3OBJECT *parent);                    /* 0x44c3f0 */
 

@@ -4,7 +4,6 @@
    (0x6f3500, between shot's ai_EffectState 0x6f3300 and menu's ai_Options 0x6f35c0: the groups in reverse link order).
    bprobe at 0x5d9c30 / 0x5d9de0 / 0x5d9f50: no change.
    unit 0x005d9de0..0x005dbc10; boundaries in decl/text.dcl */
-extern int gm_PlayerRecords[688];
 #include "txt_views.h"
 #include <windows.h>
 #include <ddraw.h>
@@ -50,10 +49,6 @@ extern int gm_PlayerRecords[688];
 #include "dd_vesa.h"
 #include "ch.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-#define ai_MarketBuildingV (*(G16BLDVIEW **)&ai_MarketBuilding)  /* 0x6f1bc8, ai_MarketBuilding (ai.c: AIBLD *) as this unit's G16BLDVIEW (its +0x4c / object fields) */
-#define ai_FallbackBuildingB (*(unsigned char **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) read bytewise, as this unit does */
-#define ai_PlayerBuildingB (*(unsigned char **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) read bytewise, as this unit does */
-#define ai_CharsC (*(char (*)[768 * 0x21c])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) read flat, as this unit does */
 #define ai_CharsK ((AICHARKINDVIEW *)((char *)ai_Chars + 2))  /* 0x770b82, the records from their kind byte (ai_HasQuicksavePlayer walks them so) */
 
 extern OPTIONBYTES ai_GfxResolution;
@@ -100,13 +95,13 @@ int sprintf(char *buf, const char *fmt, ...); /* 0x5de652, the CRT's sprintf (no
 /* dcp unit split: the declarations of menu before the moved functions */
 void d2_CentreViewWindows(int view); void d2_SetPointerSprite(int a, int pic); int d2_SetForm(int view, int n);
 void d2_CloseView(int view);
-int io_PrintText(char *fmt, ...); int d2_GetWinObj(int view, int idx, int k);
+int io_PrintText(intptr_t fmt, ...); int d2_GetWinObj(int view, int idx, int k);
 int sv_CreateScrollButtons(int x, int y, int f, int g, int p5, int *b, int *a, int *c); /* 0x52e860, sv.c:
                                            the slider of the form f at (x, y) */
 int d2_GetViewWin(int view, int i);         /* 0x475ff0, d2.h: window i of a view, -1 if out of range */
-int gm_BuildingSkill(unsigned char *b, unsigned k, int flag); /* 0x5092e0, f3gm.c: the building skill (ai.h's
+int gm_BuildingSkill(struct AIBLD *b, unsigned k, int flag); /* 0x5092e0, f3gm.c: the building skill (ai.h's
                                                prototype; f3snd.h's building view is unsigned char *) */
-char *gv_FindAccused(char *c, int max, int *ids, int *cnt);  /* 0x4f41b0, gv.c: the character with the
+struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt);  /* 0x4f41b0, gv.c: the character with the
                                                most records of its table not yet paired with c */
 void cm_SendProofExecuted(int record, int character); /* 0x4c4ed0, cm.c: message 0x24, the pair (character,
                                                record) into the executed table 0x91b6e0 */
@@ -114,7 +109,7 @@ void cm_SendMoneyDelta(int character, int delta); /* 0x4c5f60, cm.c: message 0x5
                                                character's money (+0x194), clamped 0 .. 0x32 */
 int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2); /* 0x53dda0, he.c */
 void d2_SetObjValue(int obj, ...); int d2_GetObjValue(int obj); int d2_CreateWinText(short x, short y, char *text, int win); void d2_SetObjText(int obj, char *text);
-char *itoa(int, char *, int); void d2_SetObjFont(int obj, int font); int sv_RunFrame(int cb, unsigned mask);
+char *itoa(int, char *, int); void d2_SetObjFont(int obj, int font); int sv_RunFrame(void (*cb)(), unsigned mask);
 int d2_CreateRadioGroup(int n, ...); void d2_RadioAdd(int g, int obj); void d2_MenuNavigate(int g); void d2_RaiseViewWindows(int view); void d2_RadioClear(int g);
 #pragma pack(push, 1)
 typedef struct SAVEREQUEST {                /* 0x210, a save file entry (ai_ListFiles) or an empty slot's request */
@@ -160,11 +155,11 @@ extern float sv_FramesPerTick;          /* 0x62378c, sv.c: the frames drawn sinc
                                            0x520ec0 copies the count as a float and clears it) */
 void d2_PlaceWindowScaled(int win, int flags); /* 0x475730, d2.c */
 int d2_RemoveWindow(int win);           /* 0x472ce0, d2.c */
-int io_PrintText(char *fmt, ...);          /* 0x515960, io_text.c: prints a text (id or literal) with its
+int io_PrintText(intptr_t fmt, ...);          /* 0x515960, io_text.c: prints a text (id or literal) with its
                                            tokens into the current window and redraws it */
 extern short d2_ScreenW;                /* 0xfb9072, d2.h */
 extern short d2_ScreenH;                /* 0xfb9070, d2.h */
-extern int d2_DirtyRectLeft[4];         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
+extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
 D2FADEVIEW *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
 void d2_ReleaseFade(D2FADEVIEW *f);        /* 0x476860, d2.h */
 void d2_ClearScreen(void);              /* 0x46e990, d2.h */
@@ -207,7 +202,7 @@ typedef struct SAVEHEADERVIEW {             /* 0xfc */
 } SAVEHEADERVIEW;                           /* 0xfc */
 #pragma pack(pop)
 extern int ls_Version;                      /* 0x623650, ls.c: the version of the save read last */
-int ls_ReadSaveHeader(int f, int *h);      /* 0x51cee0, ls.c: reads a save header into h (no header there) */
+int ls_ReadSaveHeader(struct VFSFILE *f, int *h);      /* 0x51cee0, ls.c: reads a save header into h (no header there) */
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); /* 0x472aa0, d2.h */
 int d2_WinOpenRaw(int x, int y, int w, int h, void *src, int win);  /* 0x46c390, d2.h */
 int d2_WinOpenPic(short x, short y, int pic, int win); /* 0x4731d0, d2.h: creates a picture object */
@@ -274,7 +269,7 @@ void mem_Free(void *p);                 /* 0x422620, d3.h */
 extern unsigned int dd_RMask;           /* 0x1464fa4, dd_vesa.h: the red channel mask of the display */
 extern unsigned int dd_GMask;           /* 0x1464fb0, dd_vesa.h */
 extern unsigned int dd_BMask;           /* 0x146359c, dd_vesa.h */
-int ls_Read(void *buf, int size, int count, int f);   /* 0x51c920, ls.c: vfs_fread items */
+int ls_Read(void *buf, int size, int count, struct VFSFILE *f);   /* 0x51c920, ls.c: vfs_fread items */
 void sv_SetStatusText(char *s);   /* 0x52e330, sv.c */
 int cm_SendExSysMessage(unsigned char id, void *msg);   /* 0x4c4db0, as in cm.h */
 DWORD dd_RGB(unsigned char r, unsigned char g, unsigned char b);   /* 0x41e670, as in dd_vesa.h */
@@ -282,8 +277,8 @@ unsigned int util_Hash(unsigned char *buf, unsigned int len);      /* 0x401000, 
 void sv_PumpNet(void);                                             /* 0x52fe00, sv.c */
 void sv_BroadcastText(unsigned fl, char *t);  /* 0x52fcf0, sv.c: sends t as the network message 0xe and
                                                  shows it until the answer, then clears the status line */
-int ls_WriteSaveHeader(int f, unsigned flags); /* 0x5194c0, ls.c: writes the save header (the flag word) */
-int ls_ReadSaveHeader(int f, int *h);         /* 0x51cee0, ls.c: reads the save header into h */
+int ls_WriteSaveHeader(struct VFSFILE *f, unsigned flags); /* 0x5194c0, ls.c: writes the save header (the flag word) */
+int ls_ReadSaveHeader(struct VFSFILE *f, int *h);         /* 0x51cee0, ls.c: reads the save header into h */
 extern int cm_RequestedSaveSlot;        /* 0x6f25c8, cm.h: the save slot the request asked for */
 extern char cm_RequestedSaveName[];     /* 0x6f25d0, cm.h: the save name the request carried */
 extern int cm_SaveAcks[][2];            /* 0x76fa20, cm.h: 8 slots; [0] = the player's netId, [1] = the
@@ -318,15 +313,15 @@ typedef struct AICHARKINDVIEW {
 } AICHARKINDVIEW;
 #pragma pack(pop)
 struct AIBLD; int ai_ProductionWindow(struct AIBLD *bld); /* 0x58bd60, lc.c: "Handel\Handel_PRODUKTION" */
-int ai_OpenTransport(int rec);             /* 0x5af1a0, lc.c */
-void ai_TradeSearchWindow(unsigned char *cfg, int arg); /* 0x595480, lc.c: "HANDEL\HANDEL_SUCHEN" */
+int ai_OpenTransport(struct AIBLD *rec);             /* 0x5af1a0, lc.c */
+struct AIOBJ; void ai_TradeSearchWindow(struct AIBLD *bld, struct AIOBJ *room); /* 0x595480, lc.c: "HANDEL\HANDEL_SUCHEN" */
 void ai_MasterLetterWindow(struct AIBLD *bld); /* 0x5c3200, lc.c: "ob_MEISTERBRIEF" */
 void ai_MarketContact(struct AIBLD *rec);  /* 0x58f510, lc.c */
-int sv_CheckMoney(char *o, int n);         /* 0x520f90, sv.c: 1 when the object's money (+0x194)
+int sv_CheckMoney(struct AICHAR *o, int n);         /* 0x520f90, sv.c: 1 when the object's money (+0x194)
                                               covers n, else a message box with the text 0x74 */
-int sv_MessageBox(int text, unsigned flags); /* 0x521150, sv.c: the modal message box */
+int sv_MessageBox(intptr_t text, unsigned flags); /* 0x521150, sv.c: the modal message box */
 void sv_CameraFollow(void);                /* 0x52d7a0, sv.c: the per-frame camera follow */
-int d2_RemoveWindow(); int io_PrintText(char *fmt, ...);
+int d2_RemoveWindow(); int io_PrintText(intptr_t fmt, ...);
 int d2_GetObjValue();
 int he_IsMessageKindFiltered(int kind); /* 0x575640, he.c: nonzero when the kind is filtered */
 void he_SetMessageKindFiltered(int kind, int filtered); /* 0x575710, he.c: sets / clears the kind's bit */
@@ -361,7 +356,7 @@ typedef struct GYPSYROW {               /* 0x38 bytes: one row of the special-am
     int pad18[8];
 } GYPSYROW;
 extern struct D2PIC *d2_Pics;              /* 0x6ed918, d2.h: D2PIC * */
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(char *o, int n, unsigned char t);
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 struct AITIME;
 int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
 int ai_PokerStart();
@@ -485,7 +480,7 @@ int ai_PokerGame(void)
     int d;
 
     lastPhase = -1;
-    rec = (PLAYERRECVIEW *)gm_PlayerRecord(ai_CharsC + ai_PlayerId * 0x21c);
+    rec = (PLAYERRECVIEW *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
     if (rec == 0)
         return 0;
     worth = gm_ConvertMoney(gm_GetWorth(ai_PlayerId), ai_OwnPlayer);
@@ -494,7 +489,7 @@ int ai_PokerGame(void)
         kb_Down[0x1e] = 0;
         if (ai_OpenPokerWindow() == 0)
             return 0;
-        if (ai_PokerStart((struct AIPER *)(ai_CharsC + ai_PlayerId * 0x21c), (struct G10GAME *)&ai_PokerState) == 0) {
+        if (ai_PokerStart((struct AICHAR *)((char *)&ai_Chars[ai_PlayerId]), (struct G10GAME *)&ai_PokerState) == 0) {
             ai_ClosePokerWindow();
             return 0;
         }
@@ -510,7 +505,7 @@ int ai_PokerGame(void)
             if (d2_ClickedId != -1) {
                 if (ai_PokerUi.buttons[1] == d2_PointerObj) {
                     txt_Format(msg, 0x4263);
-                    if (sv_MessageBox((int)msg, 0x101) != 0)
+                    if (sv_MessageBox((intptr_t)msg, 0x101) != 0)
                         sv_PopRequest = 1;
                 }
                 if (ai_PokerUi.buttons[4] == d2_PointerObj) {
@@ -535,16 +530,16 @@ int ai_PokerGame(void)
                         s[d] = c;
                         s++;
                     } while (c != 0);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                     if (d2_ClickedId != -1 && ai_PokerUi.buttons[0] == d2_PointerObj) {
                         ai_PokerState.bet = gm_PlayerFactor(d2_GetObjValue(ai_PokerUi.betSlider), ai_OwnPlayer);
                         mask = ai_PokerStep();
                     }
                 } else {
                     sprintf(text, txt_Ptrs[0x424f], ai_PokerState.seat[ai_PokerState.actor].who->vname, ai_PokerState.seat[ai_PokerState.actor].who->nname);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                     txt_Format(text, 0x4251, ai_PokerState.minBet);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                     if (d2_ClickedId != -1 && ai_PokerUi.buttons[3] == d2_PointerObj)
                         mask = ai_PokerStep();
                 }
@@ -552,14 +547,14 @@ int ai_PokerGame(void)
             case 2:
                 d2_SetForm(ai_PokerUi.window, 4);
                 txt_Format(text, 0x4252, ai_PokerState.pot);
-                io_PrintText(text);
+                io_PrintText((intptr_t)text);
                 txt_Format(text, util_Random(3) + 0x4253, 0x4256);
-                io_PrintText(text);
+                io_PrintText((intptr_t)text);
                 if (ai_PokerState.actor != 0) {
                     txt_Format(text, 0x425a, ai_PokerState.bet);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                 } else {
-                    io_PrintText(txt_Ptrs[0x4259]);
+                    io_PrintText((intptr_t)txt_Ptrs[0x4259]);
                 }
                 ai_PokerSeatPanel(1, 3, ai_PokerState.seat[1].card);
                 ai_PokerSeatPanel(2, 3, ai_PokerState.seat[2].card);
@@ -583,14 +578,14 @@ int ai_PokerGame(void)
             case 4:
                 d2_SetForm(ai_PokerUi.window, 4);
                 txt_Format(text, 0x4252, ai_PokerState.pot);
-                io_PrintText(text);
+                io_PrintText((intptr_t)text);
                 txt_Format(text, util_Random(3) + 0x4253, 0x4257);
-                io_PrintText(text);
+                io_PrintText((intptr_t)text);
                 if (ai_PokerState.actor != 0) {
                     txt_Format(text, 0x425a, ai_PokerState.bet);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                 } else {
-                    io_PrintText(txt_Ptrs[0x4259]);
+                    io_PrintText((intptr_t)txt_Ptrs[0x4259]);
                 }
                 if (lastPhase != 4) {
                     lastPhase = 4;
@@ -617,8 +612,8 @@ int ai_PokerGame(void)
             case 6:
                 d2_SetForm(ai_PokerUi.window, 4);
                 txt_Format(text, 0x4252, ai_PokerState.pot);
-                io_PrintText(text);
-                io_PrintText(txt_Ptrs[0x425b]);
+                io_PrintText((intptr_t)text);
+                io_PrintText((intptr_t)txt_Ptrs[0x425b]);
                 d2_Objs[ai_PokerUi.panel[0].slot[0]].greyed = 0;
                 d2_Objs[ai_PokerUi.panel[0].slot[1]].greyed = 0;
                 d2_Objs[ai_PokerUi.panel[0].slot[2]].greyed = 1;
@@ -674,20 +669,20 @@ int ai_PokerGame(void)
                 d2_Objs[ai_PokerUi.panel[0].slot[1]].style = 0;
                 d2_SetForm(ai_PokerUi.window, 4);
                 txt_Format(text, 0x4252, ai_PokerState.pot);
-                io_PrintText(text);
+                io_PrintText((intptr_t)text);
                 if (ai_PokerState.seat[1].dropped != -1) {
                     sprintf(text, txt_Ptrs[0x425c], ai_PokerState.seat[1].who->vname, ai_PokerState.seat[1].who->nname);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                 } else {
                     sprintf(text, txt_Ptrs[0x425d], ai_PokerState.seat[1].who->vname, ai_PokerState.seat[1].who->nname);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                 }
                 if (ai_PokerState.seat[2].dropped != -1) {
                     sprintf(text, txt_Ptrs[0x425c], ai_PokerState.seat[2].who->vname, ai_PokerState.seat[2].who->nname);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                 } else {
                     sprintf(text, txt_Ptrs[0x425d], ai_PokerState.seat[2].who->vname, ai_PokerState.seat[2].who->nname);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                 }
                 if (d2_ClickedId != -1 && ai_PokerUi.buttons[3] == d2_PointerObj)
                     mask = ai_PokerStep();
@@ -695,14 +690,14 @@ int ai_PokerGame(void)
             case 8:
                 d2_SetForm(ai_PokerUi.window, 4);
                 txt_Format(text, 0x4252, ai_PokerState.pot);
-                io_PrintText(text);
+                io_PrintText((intptr_t)text);
                 txt_Format(text, util_Random(3) + 0x4253, 0x4258);
-                io_PrintText(text);
+                io_PrintText((intptr_t)text);
                 if (ai_PokerState.actor != 0) {
                     txt_Format(text, 0x425a, ai_PokerState.bet);
-                    io_PrintText(text);
+                    io_PrintText((intptr_t)text);
                 } else {
-                    io_PrintText(txt_Ptrs[0x4259]);
+                    io_PrintText((intptr_t)txt_Ptrs[0x4259]);
                 }
                 ai_PokerSeatPanel(1, 5, ai_PokerState.seat[1].card);
                 ai_PokerSeatPanel(2, 5, ai_PokerState.seat[2].card);
@@ -733,7 +728,7 @@ int ai_PokerGame(void)
                     txt_Format(text, 0x4265, ai_PokerState.winRank + 0x4266, ai_PokerState.pot);
                 else
                     txt_Format(text, 0x4264, ai_PokerState.seat[(unsigned short)ai_PokerState.winner].who->vname, ai_PokerState.seat[(unsigned short)ai_PokerState.winner].who->nname, ai_PokerState.winRank + 0x4266, ai_PokerState.pot);
-                io_PrintText(text);
+                io_PrintText((intptr_t)text);
                 break;
             case 11:
                 if (d2_ClickedId != -1) {
@@ -742,7 +737,7 @@ int ai_PokerGame(void)
                 }
                 break;
             }
-        } while (sv_RunFrame((int)ai_PokerGame, 0x777c7) != 0);
+        } while (sv_RunFrame(ai_PokerGame, 0x777c7) != 0);
         ai_ClosePokerWindow();
         return 1;
     } else {
@@ -751,8 +746,8 @@ int ai_PokerGame(void)
             return 0;
         d2_CentreViewWindows(ai_PokerUi.window);
         txt_Format(text, 0x4239, 0x4238);
-        io_PrintText(text);
-        while (sv_RunFrame((int)ai_PokerGame, 0x777c7) != 0) {
+        io_PrintText((intptr_t)text);
+        while (sv_RunFrame(ai_PokerGame, 0x777c7) != 0) {
             if (dm_L.rup != 0 || kb_Down[1] != 0)
                 sv_PopRequest = 1;
         }
@@ -778,7 +773,7 @@ void ai_PokerSeatPanel(int seat, int n, int *cards)
     int o, pic, x, w, h, i;
 
     d2_LastWindow = ai_PokerUi.panel[seat].win;
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     w = d2_Wins[d2_LastWindow].w;
     h = d2_Wins[d2_LastWindow].h;
     x = (w - 0xc4) / 2;
@@ -792,7 +787,7 @@ void ai_PokerSeatPanel(int seat, int n, int *cards)
         pic = ai_PokerState.seat[seat].model;
         d2_WinOpenPic(x - 0x37, h / 2 - d2_Pics[pic].h / 2, pic, ai_PokerUi.panel[seat].win);
     } else {
-        pic = ((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->pic;
+        pic = ((AICHARVIEW *)&ai_Chars[ai_PlayerId])->pic;
         d2_WinOpenPic(x - 0x37, h / 2 - d2_Pics[pic].h / 2, pic, ai_PokerUi.panel[0].win);
     }
     for (i = 0; i < n; i++, x += 0x20) {
@@ -832,7 +827,7 @@ void ai_PokerWindow2(void)
     d2_SetPointerSprite(0, 0);
     d2_CentreViewWindows(form);
     d2_SetForm(form, 1);
-    io_PrintText((char *)0x423e);
+    io_PrintText(0x423e);
     d2_SetForm(form, 3);
     sv_ButtonRow(d2_LastWindow, 0, ids, 1, txt_Ptrs[0x4249]);
     d2_SetForm(form, 2);
@@ -841,8 +836,8 @@ void ai_PokerWindow2(void)
     d2_SetForm(form, 4);
     sv_CreateScrollButtons(0, 0, d2_LastWindow, win, 0x35, &c, &b, &a);
     d2_SetForm(form, 2);
-    io_PrintText((char *)0x4247);
-    io_PrintText((char *)0x4248);
+    io_PrintText(0x4247);
+    io_PrintText(0x4248);
     o = d2_WinOpenPic(0x5, 0xa0, 0x779, d2_LastWindow);
     d2_Objs[o].highlighted = 1;
     o = d2_WinOpenPic(0x25, 0xa0, 0x77a, d2_LastWindow);
@@ -954,6 +949,6 @@ void ai_PokerWindow2(void)
             sv_PopRequest = 1;
         if (d2_ClickedId != -1 && d2_PointerObj == ids[0])
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_PokerWindow2, 0x777c7) != 0);
+    } while (sv_RunFrame(ai_PokerWindow2, 0x777c7) != 0);
     d2_CloseView(form);
 }

@@ -193,7 +193,8 @@ extern struct VFSDIR *vfs_Root;              /* 0x6333fc */
 void err_Message(char *msg);                                                            /* 0x4222b0 */
 void * mem_Alloc(int size, char *tag);                                                   /* 0x4223c0 */
 void mem_Free(void *p);                                                                 /* 0x422620 */
-struct VFSFILE * vfs_Tfopen(char *name, char *mode, int unk);                                    /* 0x430470 */
+struct VFSDIR;
+struct VFSFILE * vfs_Tfopen(char *name, char *mode, struct VFSDIR *dir);                                    /* 0x430470 */
 void evt_Error(EVTSCRIPT *sc, char *pos, char *msg);                                    /* 0x4273d0, reports a script error: prefixes "Line N:" from the line table, appends text and line to the 31-entry evt_Log ring (evt_LogPos wraps at 30) and formats the console message; no return */
 EVTVAR *evt_AddGlobal(char *name, void *data, int type);                                /* 0x427570, registers the global variable name (type, data, count 1), growing evt_Globals by 0x300 entries when fewer than 0x30 are free; returns it */
 EVTVAR *evt_AddLocal(EVTSCRIPT *sc, int type, int count, char *name);                   /* 0x4276a0, allocates count values of type (1 int 4, 2 byte 1, 6 string 0x60, 7 float 4) on the script stack in the first free of the frame's 8 locals; reports "Stack Overflow!" (and stops) above 0x400 and "Too many locals!" when all 8 are taken; returns the entry or 0 */

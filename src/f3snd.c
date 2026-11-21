@@ -62,13 +62,6 @@
 #include "bio.h"
 #include "cm.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-#define ai_MarketBuildingV (*(G16BLDVIEW **)&ai_MarketBuilding)  /* 0x6f1bc8, ai_MarketBuilding (ai.c: AIBLD *) as this unit's G16BLDVIEW (its +0x4c / object fields) */
-#define ai_FallbackBuildingB (*(unsigned char **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) read bytewise, as this unit does */
-#define ai_PlayerBuildingB (*(unsigned char **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) read bytewise, as this unit does */
-#define ai_PlayerBuildingT (*(struct AIBLD **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) as the AIBLD it points to */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define ai_CharsC (*(char (*)[768 * 0x21c])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) read flat, as this unit does */
 /* 0x4c01b0, stops the queue: restores the music after a fanfare (fade back to 1.0), frees every queued sound */
 void snd_ClearQueue(void)
 {
@@ -181,7 +174,7 @@ void snd_UpdateQueue(void)
    spelling: without it VC6 folds both constants into one) */
 #define SND_RAINVOL(x, d) ((int)((float)((x) * 88.9f) / (d)))
 
-/* 0x4c0470, the rain sounds by the rain level *d3t_Rain (near / far loops louder the lower / higher the camera
+/* 0x4c0470, the rain sounds by the rain level d3t_Rain->count (near / far loops louder the lower / higher the camera
    is above the ground, drops "Tropfen_s"), then now and then a gust ("Boehe_*", chance and interval by season from
    the table 0x602ba8); everything stops without a scene, with sound off or when the season changed */
 void snd_UpdateRain(void)
@@ -210,7 +203,7 @@ void snd_UpdateRain(void)
     w = 0;
     f = d3_Camera->pos.y - d3t_GetMeanHeight(&d3_Camera->pos);
     memcpy(&snd_TimeCopy, &ai_Time, 14);
-    if (d3t_Rain == 0 || (n = *d3t_Rain) == 0) {
+    if (d3t_Rain == 0 || (n = d3t_Rain->count) == 0) {
         SND_STOP(snd_RainHeavyFar);
         SND_STOP(snd_RainHeavyNear);
         SND_STOP(snd_RainMediumFar);
@@ -314,7 +307,7 @@ void snd_UpdateAnimals(void)
     char *name;
     int k;
     AIBTYPE *bt;
-    unsigned short *panel;
+    AIOBJ *panel;
 
     if (d3_Terrain != 0 && snd_AmbientOn != 0) {
         n = 0;
@@ -334,7 +327,7 @@ void snd_UpdateAnimals(void)
         }
         h = (2000.0f - d3_Camera->pos.y - d3t_GetMeanHeight(&d3_Camera->pos)) * 0.0005f;
         if (d3t_Rain != 0)
-            n = *d3t_Rain;
+            n = d3t_Rain->count;
         if (t - snd_Animals[snd_AnimalSeason][0].last > rand() % 2000 + snd_Animals[snd_AnimalSeason][0].interval && n < 0x15e) {
             snd_Animals[snd_AnimalSeason][0].last = t;
             if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][0].chance > 1.0f)
@@ -400,8 +393,8 @@ void snd_UpdateAnimals(void)
                 sb_PlaySample(0, "Gackern_s", rand() % snd_Animals[snd_AnimalSeason][2].count + 1, 0x3f,
                     (int)(h * snd_Animals[snd_AnimalSeason][2].vol * 127.0f), 0, 0);
         }
-        if (snd_AmbientTrack != 0 && ai_MarketBuildingV != 0) {
-            d3_PointToWorld(ai_MarketBuildingV->object, ai_MarketBuildingV->object + 0x4c, v);
+        if (snd_AmbientTrack != 0 && ai_MarketBuilding != 0) {
+            d3_PointToWorld(ai_MarketBuilding->object, &ai_MarketBuilding->object->pos, v);
             k = ch_CountAt(0, 0, v, 900.0f) * 0x14;
             if (k >= 0x7f)
                 k = 0x7f;
@@ -419,10 +412,10 @@ void snd_UpdateAnimals(void)
         snd_Animals[snd_AnimalSeason][2].last = t;
         snd_Animals[snd_AnimalSeason][4].last = t;
     }
-    if (ai_PlayerBuildingT != 0 && snd_AmbientOn != 0) {
-        bt = &ai_BTypesT[ai_PlayerBuildingT->type];
+    if (ai_PlayerBuilding != 0 && snd_AmbientOn != 0) {
+        bt = &ai_BTypes[ai_PlayerBuilding->type];
         panel = sv_PanelShown;
-        if (bt->kind == 0x16 && panel != 0 && *panel == 0x120) {
+        if (bt->kind == 0x16 && panel != 0 && panel->type == 0x120) {
             int c;
 
             if (snd_AtmoTrack == 0) {
@@ -440,12 +433,12 @@ void snd_UpdateAnimals(void)
             c = ch_Count(d3_CurrentScene, 0) * 6;
             vol = 64.0f < c ? 64.0f : c;
             if (snd_AtmoTrack == 0) {
-                if (ai_PlayerBuildingT->smokeEffect == -1)
+                if (ai_PlayerBuilding->smokeEffect == -1)
                     return;
                 snd_AtmoTrack = msx_PlayAmbient("Athmos\\Athmo_Handwerk.mp3", (int)vol);
                 return;
             }
-            if (ai_PlayerBuildingT->smokeEffect == -1) {
+            if (ai_PlayerBuilding->smokeEffect == -1) {
                 msx_StopAmbient(snd_AtmoTrack);
                 snd_AtmoTrack = 0;
                 return;
@@ -453,7 +446,7 @@ void snd_UpdateAnimals(void)
             msx_SetTrackVolume(snd_AtmoTrack, (int)vol);
             return;
         }
-        if (bt->kind == 7 && panel != 0 && *panel == 0xf7) {
+        if (bt->kind == 7 && panel != 0 && panel->type == 0xf7) {
             int c;
 
             c = ch_Count(d3_CurrentScene, 0) * 6;
@@ -477,17 +470,17 @@ void snd_UpdateAnimals(void)
 
 void snd_EnterBuilding(void)
 {
-    unsigned char *b;
+    AIBLD *b;
     unsigned int kind;
     int season;
     int i, k, j, n;
     G16TRACKS *e;
 
-    b = ai_PlayerBuildingB;
-    if (b == 0 && (b = ai_FallbackBuildingB) == 0)
+    b = ai_PlayerBuilding;
+    if (b == 0 && (b = ai_FallbackBuilding) == 0)
         return;
     k = 0;
-    kind = (unsigned char)ai_BTypes[*b * 0x24d];
+    kind = ai_BTypes[b->type].kind;
     season = gm_ClockSeason(&ai_Time);
     i = snd_FindActiveTrack();
     if (i >= 0) {
@@ -524,7 +517,7 @@ void snd_EnterBuilding(void)
     }
     for (n = 0; snd_BuildingTracks[n].kind != 0; n++) {
         e = &snd_BuildingTracks[n];
-        if (e->kind == kind && (e->room == 0 || e->room == (unsigned int)*sv_PanelShown)
+        if (e->kind == kind && (e->room == 0 || e->room == (unsigned int)sv_PanelShown->type)
             && (season == e->season || e->season == -1))
             goto found;
     }
@@ -676,9 +669,9 @@ void snd_UpdateMusic(void)
 {
     unsigned int t;
     int i;
-    unsigned short *room;
-    unsigned char *b;
-    unsigned char *b2;
+    AIOBJ *room;
+    AIBLD *b;
+    AIBLD *b2;
     MSXTRACK *trk;
     short prio;
     unsigned int kind;
@@ -730,23 +723,23 @@ void snd_UpdateMusic(void)
             sprintf(snd_MusicLog, "Pause starting at %d, pauseLength is %d ", t, snd_PauseLength);
             return;
         }
-        b2 = ai_FallbackBuildingB;
+        b2 = ai_FallbackBuilding;
         room = sv_PanelShown;
         if (!(t - snd_LastDecision > 40000 && trk != snd_SpecialTrack
-              && (ai_PlayerBuildingB != 0 && snd_TrackBuilding != ai_PlayerBuildingB || b2 != 0 && snd_TrackBuilding != b2
-                  || ai_PlayerBuildingB == 0 && b2 == 0 && snd_TrackBuilding != 0))
-            && (snd_TrackRoom == room || snd_TrackBuilding == 0 || ai_BTypesT[*snd_TrackBuilding].kind != 2))
+              && (ai_PlayerBuilding != 0 && snd_TrackBuilding != ai_PlayerBuilding || b2 != 0 && snd_TrackBuilding != b2
+                  || ai_PlayerBuilding == 0 && b2 == 0 && snd_TrackBuilding != 0))
+            && (snd_TrackRoom == room || snd_TrackBuilding == 0 || ai_BTypes[snd_TrackBuilding->type].kind != 2))
             return;
         i = snd_FindActiveTrack();
-        snd_TrackBuilding = ai_PlayerBuildingB;
-        if (ai_PlayerBuildingB == 0)
+        snd_TrackBuilding = ai_PlayerBuilding;
+        if (ai_PlayerBuilding == 0)
             snd_TrackBuilding = b2;
         snd_TrackRoom = room;
         prio = snd_LocationTracks[i].prio;
         if (util_Random(0x80) < prio) {
             k = 0;
             if (snd_TrackBuilding != 0)
-                kind = ai_BTypesT[*snd_TrackBuilding].kind;
+                kind = ai_BTypes[snd_TrackBuilding->type].kind;
             else
                 kind = 0x2694;
             while (snd_LocationTracks[i].kinds[k] != 0 && snd_LocationTracks[i].kinds[k] != kind)
@@ -767,9 +760,9 @@ void snd_UpdateMusic(void)
         if (snd_PauseStart != 0 && snd_PauseLength + snd_PauseStart >= t)
             return;
         snd_PauseStart = 0;
-        b = ai_PlayerBuildingB;
+        b = ai_PlayerBuilding;
         if (b == 0)
-            b = ai_FallbackBuildingB;
+            b = ai_FallbackBuilding;
         snd_TrackBuilding = b;
         snd_LastDecision = t;
         if (snd_TrackBuilding != 0)
@@ -846,7 +839,7 @@ int snd_FindVoiceSample(int id, int bank, char *text, int var)
     isvar = 0;
     if (id != -7) {
         if (id < 0x300 && id >= 0) {
-            c = &ai_CharsT[id];
+            c = &ai_Chars[id];
             if (c->sex == 1)
                 sprintf(sfx, "_W%i", (c->netId & 1) + 1);
             else if (c->sex == 0)
@@ -939,7 +932,7 @@ int snd_LoadVoiceBank(char *name, int a)
    robbers 0x10, mercenaries 0x13, addon kinds 0x1d / 0x20 / 0x1f / 0x1e, else craftsmen) and the greeting of
    its kind */
 
-void snd_LoadBuildingVoices(unsigned char *b)
+void snd_LoadBuildingVoices(AIBLD *b)
 {
     char greet[0x100];
     char order[0x100];
@@ -948,7 +941,7 @@ void snd_LoadBuildingVoices(unsigned char *b)
 
     greet[0] = ch_EmptyName[0];
     memset(greet + 1, 0, sizeof(greet) - 1);
-    t = ai_BTypes + *b * 0x24d;
+    t = (char *)ai_BTypes + b->type * 0x24d;
     if (*t == 4) {
         strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_DIEBE.sbf");
         strcpy(click, "ARBEITER_KOMMENTARE_KLICK_DIEBE.sbf");
@@ -1053,7 +1046,7 @@ void snd_PlaySelectedClick(void)
 
     for (i = 0, p = ai_Selected; (int)p < (int)(ai_Selected + 0x300 * 0x21c); p += 0x21c, i++) {
         if (*p != 0) {
-            snd_PlayWorkerClick((G16CHARCLICK *)(ai_CharsC + i * 0x21c));
+            snd_PlayWorkerClick((G16CHARCLICK *)&ai_Chars[i]);
             return;
         }
     }
@@ -1083,7 +1076,7 @@ void snd_PlayFavourComment(void)
     if (snd_VoiceBankOrders == 0)
         snd_VoiceBankOrders = snd_LoadVoiceBank("ARBEITER_KOMMENTARE_BEFEHL_HANDWERK.sbf", 0);
     for (i = 0; i < 0x20; i++) {
-        c = (AICHAR *)ai_SceneChars[i];
+        c = ai_SceneChars[i];
         if (c != 0 && c->selected != 0) {
             if (c->sex == 0) {
                 men++;
@@ -1129,10 +1122,10 @@ void snd_PlayFavourComment(void)
 /* 0x4c2f30, plays the greeting of the character a's building: the player's favour for the building's owner
    (gm_Liking / 33) picks "_SCHLECHTE_GUNST" (0), "_MITTLERE_GUNST" (1) or "_GUTE_GUNST" (2 and up); with the
    building's goods list empty (AIRECIPE.count 0) the variation is 3, else the random r. a is the character's
-   scene record (AITASK). x is volatile because the original reloads it from its slot before every use
+   scene record (CHARACTER). x is volatile because the original reloads it from its slot before every use
 (matching trick, do not clean). @deep deep s43: without volatile (int x, int x[1], an ok flag from an if / else of the two list calls: all one code, 12 ins) VC6 threads the decided x test: on the count == 0 path x is known 1, so it keeps x in eax (mov eax,1 before the je) and drops the arm-0 reload; the original stores 1 to the slot, joins, and reloads x in each of the three level arms, i.e. nothing in the original let VC6 know x at the join. With volatile only the pop esi placement is left (ours before the je, the original between test ebx and jne). Also tried: x = 0 after util_Random (14), the three arms as one call with x ? 3 : r each (91). Open: the ordinary construct that blocks the jump threading (x's address escaping, x set through a pointer / another variable, a different flag form). prior: near-byte sweep s22: left the pop esi placed before je (ours) vs after the test ebx (original) around the goods-list call; not worked (the volatile x is the open question: an ordinary form that spills x is the first lever). */
 
-void ai_FavourComment(char *a)
+void ai_FavourComment(CHARACTER *a)
 {
     volatile int x;
     AIRECIPE out;
@@ -1143,13 +1136,13 @@ void ai_FavourComment(char *a)
 
     x = 0;
     r = util_Random(3);
-    c = (AICHAR *)((AITASK *)a)->body->owner;
+    c = (AICHAR *)a->obj->owner;
     if (c == 0)
         return;
     g = c->bld;
     level = (int)gm_Liking((unsigned short)ai_PlayerId, g->owner, 1) / 33;
     /* the three building kinds with their own goods list, all others the generic one */
-    if ((g->type == 0x20 || g->type == 0x1f || g->type == 0x1e) ? gm_BuildingGoodsList17((char *)g, (unsigned *)&out, 0) : gm_BuildingGoodsList((char *)g, (unsigned *)&out, 0)) {
+    if ((g->type == 0x20 || g->type == 0x1f || g->type == 0x1e) ? gm_BuildingGoodsList17(g, (unsigned *)&out, 0) : gm_BuildingGoodsList(g, (unsigned *)&out, 0)) {
         if (out.count == 0)
             x = 1;
     }
@@ -1176,14 +1169,14 @@ void ai_FavourComment(char *a)
 
 void snd_StartMarketAmbience(void)
 {
-    char *o;
+    struct D3OBJECT *o;
     struct SBSAMPLE *smp;
 
     if (snd_AmbientTrack == 0) {
-        o = ai_MarketBuildingV->object;
+        o = ai_MarketBuilding->object;
         if (o != 0) {
             smp = sb_GetSample(0, "Athmo_Marktplatz_Mono_4Bit");
-            snd_AmbientTrack = d3snd_Attach(smp, (struct D3OBJECT *)o, 0x7f, 2200.0f);
+            snd_AmbientTrack = d3snd_Attach(smp, o, 0x7f, 2200.0f);
             if (snd_AmbientTrack != 0) {
                 d3snd_SetHold(snd_AmbientTrack, 1);
                 d3snd_Play(snd_AmbientTrack, 0, 0, 0);
@@ -1204,7 +1197,7 @@ void snd_StopMarketAmbience(void)
     }
 }
 
-extern int * d3t_Rain;
+extern struct D3TRAIN *d3t_Rain;
 float snd_VoiceVolume = 1.0f;  /* 0x602b08, voice volume (1.0, scaled by 127) */
 char snd_GustNames[3][0x32] = { "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" };  /* 0x602b10, "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" */
 G16SEASON snd_Gusts[] = { { 0.699999988f, 0.5f, 16000 }, { 0.300000012f, 0.200000003f, 27000 }, { 0.899999976f, 0.600000024f, 12000 }, { 0.5f, 0.400000006f, 20000 } };  /* 0x602ba8, by season */
@@ -1234,8 +1227,8 @@ struct SBSAMPLE *snd_Locusts = 0;  /* 0x6f0b98, hpLocusts */
 int snd_AnimalSeason = 0;  /* 0x6f0b9c, the season */
 void * snd_AtmoTrack = 0;  /* 0x6f0ba0, the atmosphere mp3 (MSXTRACK *) */
 char snd_LastTrack[256] = {0};  /* 0x6f0ba8, the outdoor track played last */
-unsigned char * snd_TrackBuilding = 0;  /* 0x6f0ca8, the building of the track */
-unsigned short *snd_TrackRoom = 0;  /* 0x6f0cac, the room of the track */
+struct AIBLD *snd_TrackBuilding = 0;  /* 0x6f0ca8, the building of the track */
+struct AIOBJ *snd_TrackRoom = 0;  /* 0x6f0cac, the room of the track */
 unsigned int snd_PauseLength = 0;  /* 0x6f0cb0, the pause length */
 int snd_MusicSeason = 0;  /* 0x6f0cb4, the season of the music */
 unsigned int snd_LastDecision = 0;  /* 0x6f0cb8, time of the last track decision */
@@ -1244,7 +1237,7 @@ int snd_VoiceBankClick = 0;  /* 0x6f0cc0, voice bank: click comments */
 int snd_VoiceBankNoise = 0;  /* 0x6f0cc4, voice bank: click noises */
 int snd_UnreadBss = 0;  /* 0x6f0cc8, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 int snd_VoiceBankGreeting = 0;  /* 0x6f0ccc, voice bank: greeting */
-extern int * d3t_Rain;
+extern struct D3TRAIN *d3t_Rain;
 /* ai_Selected: view of ai_Chars (tools/data_views.py) */
 SNDRAIN snd_Rain;  /* 0xf81240, the rain sounds' state: one common of 72 bytes (tools/exe/commongaps.py: the copy of
                       ai_Time, 14 bytes, starts the f3snd group 32-aligned at 0xf81240 and each loop handle lies 8 after

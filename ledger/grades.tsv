@@ -890,7 +890,7 @@ exe	0x0044a9e0	d3_SceneVersion	d3_interface	byte	readable
 exe	0x0044aa10	d3_SaveScene	d3_interface	byte	readable		
 exe	0x0044abb0	rd_object	d3_int_io	byte	readable		
 exe	0x0044b920	d3io_ReadFloor	d3_int_io	byte	readable		
-exe	0x0044be60	d3_LoadScene	d3_int_io	byte	readable		
+exe	0x0044be60	d3_LoadScene	d3_int_io	shape	readable		
 exe	0x0044c3f0	d3_LoadGroup	d3_int_io	byte	readable		
 exe	0x0044c510	d3io_SetStockDir	d3_io_t	byte	readable		
 exe	0x0044c530	d3io_StockFile	d3_io_t	byte	readable		
@@ -1014,7 +1014,7 @@ exe	0x00454890	d3_MirCreateOutline	d3_mir	shape	readable	deep
 exe	0x00454be0	d3_MirCreatePlanes	d3_mir	byte	readable		
 exe	0x00454ec0	d3_MirTransform	d3_mir	byte	readable		
 exe	0x00454f70	d3_MirBoxInPlanes	d3_mir	byte	readable		
-exe	0x004550e0	d3_MirDrawObject	d3_mir	shape	readable		
+exe	0x004550e0	d3_MirDrawObject	d3_mir	byte	readable		
 exe	0x004554b0	d3_MirBeginFrame	d3_mir	byte	readable		
 exe	0x00455630	par_Init	d3_par	byte	readable		
 exe	0x004556b0	par_DeleteAll	d3_par	byte	readable		
@@ -2099,7 +2099,7 @@ exe	0x004be3b0	rt_ChooseTabGood	rt	byte	readable
 exe	0x004be790	rt_OpenSlotControls	rt	byte	readable		
 exe	0x004be8e0	rt_RemoveControls	rt	byte	readable		
 exe	0x004be930	rt_InitControls	rt	byte	readable		
-exe	0x004be940	rt_EditPointDialog	rt	shape	readable		
+exe	0x004be940	rt_EditPointDialog	rt	shape	readable		byte+readable -> shape+readable at 178f1397: tie-break: gm_Query / gm_QueryNext return struct AIOBJ * (the rt.c casts of their results went, f3gm.h / cm.h / ahm.h prototypes); dcp's sweep proves the text byte under another declaration set [waits for: the unit's declaration set (G.tiebreak)]
 exe	0x004bf080	rt_CartSettingsDialog	rt	byte	readable		
 exe	0x004bf360	rt_SetMarkPic	rt	byte	readable		
 exe	0x004bf3b0	rt_UpdateMarkPics	rt	byte	readable		
@@ -2509,7 +2509,7 @@ exe	0x004d8b50	cm_DrawFightTime	cmscene	byte	readable
 exe	0x004d8c40	cm_DeleteSceneChars	cmscene	byte	readable		
 exe	0x004d8c70	cm_StackPicture	cmscene	byte	readable		
 exe	0x004d8cb0	cm_TallyStack	cmscene	byte	readable		
-exe	0x004d8e20	cm_RunCouncilSession	cmscene	draft	readable		
+exe	0x004d8e20	cm_RunCouncilSession	cmscene	byte	readable		
 exe	0x004da9e0	cm_AskDeposeVote	cmscene	byte	readable		
 exe	0x004dab50	cm_AskElectVote	cmscene	byte	readable		
 exe	0x004dada0	cm_SessionAskPlayer	cmscene	byte	readable		
@@ -3196,7 +3196,7 @@ exe	0x0050f0b0	init_CreateOpeningObjects	f3init	byte	readable
 exe	0x0050f340	init_StockMarketStalls	f3init	byte	readable		
 exe	0x0050f570	init_Betrieb	f3init	shape	readable	deep	
 exe	0x0050f750	init_OpenBuilding	f3init	byte	readable		
-exe	0x0050f910	init_OpenTown	f3init	draft	readable	deep	
+exe	0x0050f910	init_OpenTown	f3init	shape	readable	deep	
 exe	0x00510730	init_CollectSiteObject	f3init	byte	readable		
 exe	0x00510770	init_LoadSiteScene	f3init	byte	readable		
 exe	0x00510ad0	init_InitTown	f3init	byte	readable		
@@ -3270,7 +3270,7 @@ exe	0x0051c560	ls_WriteMessageQueues	ls	byte	readable
 exe	0x0051c870	ls_WriteEnvironment	ls	byte	readable		
 exe	0x0051c920	ls_Read	ls	byte	readable		
 exe	0x0051c950	ls_LoadGame	ls	byte	readable		
-exe	0x0051cee0	ls_ReadSaveHeader	ls	shape	readable		
+exe	0x0051cee0	ls_ReadSaveHeader	ls	byte	readable		
 exe	0x0051d2d0	ls_LoadScene	ls	byte	readable		
 exe	0x0051d3d0	ls_ReadObjects	ls	byte	readable		
 exe	0x0051d4f0	ls_HookBuildingCB	ls	byte	readable		
@@ -3312,7 +3312,7 @@ exe	0x00522040	sv_PanelImage	sv	byte	readable
 exe	0x00522100	sv_SetPanelEnabled	sv	byte	readable		
 exe	0x00522280	sv_ClosePanelWidgets	sv	byte	readable		
 exe	0x005223c0	sv_DestroyScreen	sv	byte	readable		
-exe	0x005224a0	sv_LoadGroundplan	sv	byte	readable		
+exe	0x005224a0	sv_LoadGroundplan	sv	shape	readable		byte+readable -> shape+readable at 8a44773b: tie-break: the text-id-or-string APIs take intptr_t (portable.h in sv.h ..), then sv.h's struct AIOBJ; dcp's sweep proves the text byte under another declaration set [waits for: the unit's declaration set (G.tiebreak)]
 exe	0x005229b0	sv_UpdateGroundplan	sv	byte	readable		
 exe	0x00522ec0	sv_SetResearchClass	sv	byte	readable		
 exe	0x00522f10	sv_UpdateCityPanel	sv	byte	readable		
@@ -3771,7 +3771,7 @@ exe	0x00561190	he_RunRansom	he	byte	readable
 exe	0x00561470	he_AllocEvent39_3e	he	byte	readable		
 exe	0x005614c0	he_RunRansomDemand	he	byte	readable		
 exe	0x005619a0	he_AllocBurglary	he	byte	readable		
-exe	0x00561a20	he_RunBurglary	he	shape	readable	deep	
+exe	0x00561a20	he_RunBurglary	he	byte	readable		
 exe	0x005628e0	he_RunBuildingSpying	he	shape	readable	deep	
 exe	0x00563070	he_AllocAmbush	he	byte	readable		
 exe	0x005630f0	he_RunAmbush	he	byte	readable		
@@ -3878,7 +3878,7 @@ exe	0x00571990	he_AllocDeathDue	he_b	byte	readable
 exe	0x005719e0	he_RunDeathDue	he_b	byte	readable		
 exe	0x00571ac0	he_AllocGraveTraining	he_b	byte	readable		
 exe	0x00571c30	he_RunGraveTraining	he_b	byte	readable		
-exe	0x00571f60	he_AllocMeeting	he_b	shape	readable	deep	
+exe	0x00571f60	he_AllocMeeting	he_b	byte	readable		
 exe	0x005720f0	he_CatchMeetingDisease	he_b	shape	readable	deep	
 exe	0x00572310	he_SpreadMeetingDisease	he_b	byte	readable		
 exe	0x005725b0	he_RunMeeting	he_b	byte	readable		
@@ -4003,7 +4003,7 @@ exe	0x00578370	ai_TutorialStop	sv_t	byte	readable
 exe	0x00578440	ai_TutorialFreeRuns	sv_t	byte	readable		
 exe	0x005784a0	ai_TutorialInitMainIntro	sv_t	byte	readable		
 exe	0x00578570	ai_TutorialInitChapter1	sv_t	byte	readable		
-exe	0x00578e40	ai_TutorialInitChapter2	sv_t	byte	readable		
+exe	0x00578e40	ai_TutorialInitChapter2	sv_t	shape	readable		
 exe	0x00579570	ai_TutorialInitChapter3	sv_t	shape	readable		
 exe	0x0057aa80	ai_TutorialInitChapter4	sv_t	byte	readable		
 exe	0x0057aeb0	ai_TutorialInitChapter5	sv_t	byte	readable		
@@ -4120,7 +4120,7 @@ exe	0x0058af50	lobby_ChoosePlayer	lobby	byte	readable
 exe	0x0058b880	lobby_ChooseProfession	lobby	byte	readable		
 exe	0x0058ba70	lobby_ShowChat	lobby	byte	readable		
 exe	0x0058bbd0	ai_InitProductionTables	lc	byte	readable		
-exe	0x0058bd60	ai_ProductionWindow	lc	byte	readable		
+exe	0x0058bd60	ai_ProductionWindow	lc	shape	readable		byte+readable -> shape+readable at d4643a01: tie-break: the text-id-or-string APIs take intptr_t (portable.h in io_text.h / cm.h / sv.h / amt.h / menu.h / d2_types.h, the call casts); dcp's sweep proves the text byte under another declaration set [waits for: the unit's declaration set (G.tiebreak)]
 exe	0x0058c680	ai_UpdateResourceColumns	lc	byte	readable		
 exe	0x0058cc10	ai_UpdateProdColumns	lc	byte	readable		
 exe	0x0058d720	ai_UpdateProdGoodsList	lc	byte	readable		
@@ -4178,7 +4178,7 @@ exe	0x00594e50	ai_CriminalContact	lc	byte	readable
 exe	0x005950e0	ai_FarTradeContact	lc	byte	readable		
 exe	0x00595170	ai_SmithyContact	lc	byte	readable		
 exe	0x00595330	ai_CarpenterContact	lc	byte	readable		
-exe	0x00595480	ai_TradeSearchWindow	lc	byte	readable		
+exe	0x00595480	ai_TradeSearchWindow	lc	shape	readable		byte+readable -> shape+readable at d4643a01: tie-break: the text-id-or-string APIs take intptr_t (portable.h in io_text.h / cm.h / sv.h / amt.h / menu.h / d2_types.h, the call casts); dcp's sweep proves the text byte under another declaration set [waits for: the unit's declaration set (G.tiebreak)]
 exe	0x00595a00	ai_AquariumSearchWindow	lc	byte	readable		
 exe	0x00595ed0	ai_PerfumeryContact	lc	byte	readable		
 exe	0x00596060	ai_IdleContact	lc	byte	readable		
@@ -4445,7 +4445,7 @@ exe	0x005bc0f0	ai_FreePicture	lcdom	byte	readable
 exe	0x005bc110	ai_ChooseCoatOfArms	lcdom	byte	readable		
 exe	0x005bc420	ai_OpenMoneyInfoPage	lcdom	byte	readable		
 exe	0x005bc6d0	ai_OpenBuildingListPage	lcdom	byte	readable		
-exe	0x005bc790	ai_BuildingDetailWindow	lcdom	shape	readable		
+exe	0x005bc790	ai_BuildingDetailWindow	lcdom	byte	readable		
 exe	0x005bc9c0	ai_OpenMasterListPage	lcdom	byte	readable		
 exe	0x005bcc70	ai_PlayerStatsPanel	lcdom	shape	readable	deep	
 exe	0x005bd060	ai_AmountLimit	lcamt	byte	readable		
@@ -4505,7 +4505,7 @@ exe	0x005c39a0	ai_PassesMapPickFilter	lcamt	byte	readable
 exe	0x005c3bb0	ai_PickBuildingChar	lcamt	byte	readable		
 exe	0x005c4100	ai_LawSelectionEntry	lcamt	byte	readable		
 exe	0x005c4150	ai_FamilyTreeWindow	lcamt	draft	readable	deep	
-exe	0x005c5310	ai_CharInfoPanel	lcamt	shape	readable	deep	
+exe	0x005c5310	ai_CharInfoPanel	lcamt	shape	readable		byte+readable -> shape+readable at d4643a01: tie-break: the text-id-or-string APIs take intptr_t (portable.h in io_text.h / cm.h / sv.h / amt.h / menu.h / d2_types.h, the call casts); dcp's sweep proves the text byte under another declaration set [waits for: the unit's declaration set (G.tiebreak)]
 exe	0x005c6050	ai_GiftWindow	lcamt	byte	readable		
 exe	0x005c64c0	ai_FindCandidateIds	lcamt	byte	readable		
 exe	0x005c6530	ai_MarriageTest	lcamt	byte	readable		

@@ -51,7 +51,8 @@ int txt_FindKey(char *key);                                                     
 
 /* The virtual file system (vfs.c); the file handle is a VFSFILE * there. */
 extern struct VFSDIR *vfs_Root;                  /* 0x6333fc */
-struct VFSFILE * vfs_Tfopen(char *name, char *mode, int unk);                                    /* 0x430470 */
+struct VFSDIR;
+struct VFSFILE * vfs_Tfopen(char *name, char *mode, struct VFSDIR *dir);                                    /* 0x430470 */
 int vfs_fclose(struct VFSFILE *f);                                                                /* 0x430aa0 */
 unsigned int vfs_fread(void *buf, int size, int n, struct VFSFILE *f);                                     /* 0x430bd0 */
 int vfs_fseek(struct VFSFILE *f, long offset, int origin);                                        /* 0x430fa0 */

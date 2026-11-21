@@ -3,7 +3,7 @@
    grid statistics that follow (0x4f82a0 ..). Split from gv.c: the table sits right after gv's strings, and
    0x4f5d50 matches only when 0x4f2870 is not defined above it in the same file.
    Open: no ord.h yet; the unit's declarations and views live in gv.h, shared with gv.c.
-   Open: gv.h's ORDBLD duplicates ai.h's AIBLD.
+   Open: gv.h's AIBLD duplicates ai.h's AIBLD.
    unit of rea 8cef7d5b (src/game/ord.c); boundaries in decl/text.dcl */
 #include <windows.h>
 #include <stdio.h>
@@ -31,13 +31,8 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
 #define ORD_FLAG_BLOCKED 0x400000  /* the privilege flag that blocks the misappropriation order (0x4f6b40) */
 
-/* ai_RatingBase as the int out[6] of the statistics record: the original moves the float's bits with a dword mov
-   (0x4f9e22), so the caller's record takes them as they are */
-#define ORD_RATINGBASE_BITS (*(int *)&ai_RatingBase)  /* 0x6f1b9c */
 
 /* the clock's hour as am.h / cm.h / amt.h declare it: a view of gv.h's ai_Time (0x770ae0 + 4), so it is not
    an object of its own in the data area */
@@ -100,7 +95,7 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
     __asm rep movsb                                                 \
 }
 
-/* the statistics record views of 0x4f9020 (unit-private: gv.h's ORDCHAR is the shared character view) */
+/* the statistics record views of 0x4f9020 (unit-private: gv.h's AICHAR is the shared character view) */
 typedef struct ORDSAVE {                /* the saved record of 0x4f9020 (15 words) */
     float col[4];                       /* 0x00, ORDSTATS */
     int chars;                          /* 0x10 */
@@ -112,13 +107,13 @@ typedef struct ORDSAVE {                /* the saved record of 0x4f9020 (15 word
     AITIME clock;                       /* 0x2c, the clock stamp (ord_StatisticsClock) */
 } ORDSAVE;
 typedef struct ORDCHARKIND {            /* the character record seen from its kind byte */
-    unsigned char kind;                 /* 0x00 (ORDCHAR + 0x02) */
+    unsigned char kind;                 /* 0x00 (AICHAR + 0x02) */
     char pad01[5];
-    unsigned char health;               /* 0x06 (ORDCHAR + 0x08) */
+    unsigned char health;               /* 0x06 (AICHAR + 0x08) */
     char pad07[4];
-    unsigned char level;                /* 0x0b (ORDCHAR + 0x0d) */
+    unsigned char level;                /* 0x0b (AICHAR + 0x0d) */
     char pad0c[0x72];
-    unsigned char stats[5];             /* 0x7e (ORDCHAR + 0x80), the five skill bytes 0x4f9020 averages */
+    unsigned char stats[5];             /* 0x7e (AICHAR + 0x80), the five skill bytes 0x4f9020 averages */
     char pad83[0x21c - 0x83];
 } ORDCHARKIND;
 #define ORD_CHARKINDS ((ORDCHARKIND *)((char *)ai_Chars + 2))
@@ -130,7 +125,7 @@ ORDMSGREC ord_MessageRecord;  /* 0x91b480, the record the messages carry */
 ORDSTATS ord_Statistics; /* 0x91b4c0, the last statistics (ord_UpdateStatistics) */
 unsigned gm_OwnNameHeads[136];  /* 0x91ac40 */
 AIGRID ai_Grid[8][8]; /* 0x91ae60 */
-char gm_CharacterStatistics[128];  /* 0x91b500, the character statistics ( */
+GMCHARSTATS gm_CharacterStatistics;  /* 0x91b500, the character statistics (gm_CountCharacters fills them) */
 
 /* 0x4f4e20, the order "apply for office" (table 0x611768 entry 0; c the character, m the message: m[0] the
    kind 1 = do / 3 = ask, the text at m + 5): only when c has no partner (partner = -1) or the partner record
@@ -138,28 +133,28 @@ char gm_CharacterStatistics[128];  /* 0x91b500, the character statistics ( */
    (its result | 2), the do of a player (kind 6) looks for the player's first office event (0x53e400 (1, 0,
    0x41)) and writes the text 0x1ce2 with the event's target id, else the text 0x1ce1, into m + 5; returns 1
    (not handled) or 2
-@deep s42 (36 -> 15 ins, size 242 -> 246 of 251): the event search as a found flag (found = 1; break; .. if (!found) the 0x1ce1 text) gives the original's loop return through r (mov eax,esi); the outer form if (m[0] == 3 || m[0] == 1) { r = 1; if (partner ok) { r = 2; .. } return r; } return 1; gives the original's registers m ebx / c edi / r esi and the RET1 block at the end. Left: the m-test failure returns early before push esi/edi (shrink-wrapped, its own return-1 copy; the original pushes all three first and jne's to the one RET1 at the end) and the partner failure goes through mov esi,1 (r = 1) where the original jumps straight into RET1 (mov eax,1: r = 1 known on both failure paths). Rounds (scratch af1..af7): r = 1 at the top (r1def, 40: const 1 becomes a register candidate, cmp eax,edi), else r = 1 / Y1-Y4 / N1-N4 / ok flags / r = 1 per failure (X5, 51: two RET1 copies inline): all worse; climb 2 rounds from r1def: nothing. Next: a form where both failures reach one return with r = 1 known and the m guard is no early return (pushes in the prologue). prior: meaning settled, only allocation/layout left: the original's m = ebx, c = edi, r = esi (ours m = edi, c = ebx, r = esi), its return-1 block sits at the end of the function (ours inline before the body), and its loop return is mov eax,esi where ours constant-folds mov eax,2. Read vs tools/disasm.py 0x4f4e20. Tried and kept (no WORSE, 240 -> 191 differing bytes): r = 2 + if/else-if with a shared return r (the 0x4f4ff0 idiom), typed ORDCHAR/ORDEVENT views (gv.h). Tried and reverted (build shows the same m = edi allocation): spell.py menu push-pop/dup-tail/reload leads; early-return guard if (!(...)) return 1; explicit else return 1; goto fail: label at the end; int partner = c->partner temp; char kind = c->kind temp; partner + kind temps; declaration-order permutations of o/p/r; unsigned r; unsigned char *o; int *m copy (int *msg = m, copy-propagated back). Needs match-deep's register-allocation toolbox (spell 'push-pop: the block the callee-saved register crosses' / vargen ren). */
+@deep s42 (36 -> 15 ins, size 242 -> 246 of 251): the event search as a found flag (found = 1; break; .. if (!found) the 0x1ce1 text) gives the original's loop return through r (mov eax,esi); the outer form if (m[0] == 3 || m[0] == 1) { r = 1; if (partner ok) { r = 2; .. } return r; } return 1; gives the original's registers m ebx / c edi / r esi and the RET1 block at the end. Left: the m-test failure returns early before push esi/edi (shrink-wrapped, its own return-1 copy; the original pushes all three first and jne's to the one RET1 at the end) and the partner failure goes through mov esi,1 (r = 1) where the original jumps straight into RET1 (mov eax,1: r = 1 known on both failure paths). Rounds (scratch af1..af7): r = 1 at the top (r1def, 40: const 1 becomes a register candidate, cmp eax,edi), else r = 1 / Y1-Y4 / N1-N4 / ok flags / r = 1 per failure (X5, 51: two RET1 copies inline): all worse; climb 2 rounds from r1def: nothing. Next: a form where both failures reach one return with r = 1 known and the m guard is no early return (pushes in the prologue). prior: meaning settled, only allocation/layout left: the original's m = ebx, c = edi, r = esi (ours m = edi, c = ebx, r = esi), its return-1 block sits at the end of the function (ours inline before the body), and its loop return is mov eax,esi where ours constant-folds mov eax,2. Read vs tools/disasm.py 0x4f4e20. Tried and kept (no WORSE, 240 -> 191 differing bytes): r = 2 + if/else-if with a shared return r (the 0x4f4ff0 idiom), typed AICHAR/ORDEVENT views (gv.h). Tried and reverted (build shows the same m = edi allocation): spell.py menu push-pop/dup-tail/reload leads; early-return guard if (!(...)) return 1; explicit else return 1; goto fail: label at the end; int partner = c->partner temp; char kind = c->kind temp; partner + kind temps; declaration-order permutations of o/p/r; unsigned r; unsigned char *o; int *m copy (int *msg = m, copy-propagated back). Needs match-deep's register-allocation toolbox (spell 'push-pop: the block the callee-saved register crosses' / vargen ren). */
 
-unsigned ord_ApplyForOffice(ORDCHAR *c, int *m)
+unsigned ord_ApplyForOffice(AICHAR *c, int *m)
 {
     ORDEVENT *ev;
-    ORDCHAR *ch;
+    AICHAR *ch;
     unsigned short *p;
     int r, found;
 
     if (m[0] == 3 || m[0] == 1) {
         r = 1;
-        if (c->partner == -1
-            || ((ch = (ORDCHAR *)gm_FindChar(c->partner)) != 0 && (ch->health == 0 || ch->kind == 0x0f))) {
+        if (c->relatives[0] == -1
+            || ((ch = gm_FindChar(c->relatives[0])) != 0 && (ch->health == 0 || ch->kind == 0x0f))) {
             r = 2;
             if (m[0] == 3) {
-                r = ai_CourtshipWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+                r = ai_CourtshipWindow(c, (struct LCORDMSG *)m);
                 r |= 2;
             } else if (m[0] == 1 && c->kind == 6) {
                 found = 0;
                 ev = (ORDEVENT *)he_FindEvent(1, 0, 0x41);
                 while (ev != 0) {
-                    if (ev->ownerId == ORD_CHARS[ai_PlayerId].netId) {
+                    if (ev->ownerId == ai_Chars[ai_PlayerId].netId) {
                         p = (unsigned short *)gm_FindChar(ev->targetId);
                         txt_Format(m + 5, 0x1ce2, *p);
                         found = 1;
@@ -168,7 +163,7 @@ unsigned ord_ApplyForOffice(ORDCHAR *c, int *m)
                     ev = (ORDEVENT *)he_NextEvent();
                 }
                 if (!found)
-                    txt_Format(m + 5, "%s", 0x1ce1);
+                    txt_Format(m + 5, (intptr_t)"%s", 0x1ce1);
             }
         }
         return r;
@@ -177,255 +172,255 @@ unsigned ord_ApplyForOffice(ORDCHAR *c, int *m)
 }
 /* 0x4f4f20, an order handler (c the character, m the message, kind 1 or 3): characters of level 3 or more: 4; a player (+2 = 6) with kind 3 gets the text 0x1d34 (level + 0x114, + 10 with +9) shown through 0x4f8200; kind 1 writes text 0x1d33 into m + 0x14; 1 for other kinds, else 2 @deep s42: original layout (dcp disasm): guard; lvl test jae -> r=4 block; r=2 (edi) + kind-3 test (jne -> kind-1 test at the end); kind-3 body + return copy; THEN the r = 4 block (mov edi,4 / mov eax,edi / own epilogue copy); then kind-1 test + body, whose failures jne into its own return copy. One shared return r (r unfolded in edi), m in esi. Rounds (scratch lo1..lo6, ~120 whole-function forms): lt-else (if lvl < 3 {..} else r = 4) gives jae but r=4 at the very end (32, m/r swapped); r = 4 default + if (lvl < 3) {r = 2; ..} (29, same); chain-r2guard (r = 2 before the guard) gives the original's registers m esi / r edi (r lives longer -> prio below m) but r=4 inline (21); returns per arm (D: 22) fold r into constants (no edi); switch (m[0]) inner, guard as if (m[0]==3 || m[0]==1) {..} return 1 / r = 1 default, kind-1 as a separate if after the if/else with r == 2 / lvl < 3 re-tests: all worse. climb 3 rounds: only the r = 2 move (24, meaning kept). Left: a source whose IL puts the r = 4 block between the kind-3 and the kind-1 code with one shared return (c2tail --il merge shows IL = source order), and r's priority below m's. prior: meaning settled and readable; remaining diff is allocation/scheduling only (97/208 bytes, 38 code bytes): the original keeps m in esi and r in edi (ours m = edi, r = esi, the same rank order), its r = 4 return block sits at 0x4f4fad between the kind-3 text block and the kind-1 text block (ours puts it after the if/else), and the r = 2 setup order differs. Won by the last-bytes pass: the complete-constant ternary (c[9] != 0 ? 0x11e : 0x114) + level instead of (c[9] ? 10 : 0) + 0x114 + level gives the original's and eax,0xa; add eax,0x114; add eax,ecx (notes/vc6-matching.md round entry; the same spelling is owed to the other level/job handlers, 0x253 variants: (c[9] ? 0x27b : 0x253) + job), and dropping the unsigned char lv local (read c[0xd] twice) keeps the byte load in cl and removes the 4-byte frame slot. Tried and reverted: level check forms (>=3 with r=4 inline, nested if/else, inverted <3 with else r=4, early return 4), r = 2 before/after the level check, a single final return r vs early returns, declaration order of r and buf. The 0x4f4ff0 idiom and the else-if chain gave the best byte counts. Needs match-deep's allocation toolbox (vargen ren / the push-pop: block the callee-saved register crosses lead). */
 
-int ord_LevelOrder(char *c, int *m)
+int ord_LevelOrder(AICHAR *c, int *m)
 {
     char buf[0x100];
     int r;
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] >= 3) {
+    if (c->level >= 3) {
         r = 4;
     } else {
         r = 2;
-        if (m[0] == 3 && c[2] == 6) {
-            txt_Format(buf, 0x1d34, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+        if (m[0] == 3 && c->kind == 6) {
+            txt_Format(buf, 0x1d34, (c->sex != 0 ? 0x11e : 0x114) + c->level);
             ord_PrivilegeDialog(buf, 0, 0x657c7);
-        } else if (m[0] == 1 && c[2] == 6)
-            txt_Format(m + 5, "%s", 0x1d33);
+        } else if (m[0] == 1 && c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1d33);
     }
     return r;
 }
 /* 0x4f4ff0, an order handler for a player (+2 = 6) or a kind 5 character; kind 3 of a player goes to ai_ChangeProfessionWindow (| 2), kind 1 of a player writes text 0x1d35 into m + 0x14; 1 when not handled, else 2 */
 
-int ord_ChangeProfessionOrder(char *c, int *m)
+int ord_ChangeProfessionOrder(AICHAR *c, int *m)
 {
     int r;
 
     r = 2;
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if (c[2] != 6 && c[2] != 5)
+    if (c->kind != 6 && c->kind != 5)
         return 1;
-    if (m[0] == 3 && ORD_CHAR(c)->kind == 6) {
-        r = ai_ChangeProfessionWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+    if (m[0] == 3 && c->kind == 6) {
+        r = ai_ChangeProfessionWindow(c, (struct LCORDMSG *)m);
         r |= 2;
-    } else if (m[0] == 1 && ORD_CHAR(c)->kind == 6)
-        txt_Format(ORD_MSG(m)->text, "%s", 0x1d35);
+    } else if (m[0] == 1 && c->kind == 6)
+        txt_Format(ORD_MSG(m)->text, (intptr_t)"%s", 0x1d35);
     return r;
 }
 /* 0x4f5070, the medicus order: a sick character (v024 below -20, the int read as a double, or v02c's
    bits above 0xf) that is not already waiting on the flag 0x40 opens the medicus privilege window (kind 3)
    or, for a player's do (kind 1, kind 6), gets the text 0x1d3a into m + 0x14; else 1 (not handled), 2 */
 
-int ord_MedicusOrder(char *c, int *m)
+int ord_MedicusOrder(AICHAR *c, int *m)
 {
     int k;
 
     k = m[0];
-    if ((k == 3 || k == 1) && (ORD_CHAR(c)->flags1c8 & 0x40) == 0
-        && (ORD_CHAR(c)->v024 < -20.0 || (ORD_CHAR(c)->v02c & 0xfffffff0) != 0)) {
+    if ((k == 3 || k == 1) && (c->flags1c8 & 0x40) == 0
+        && (c->v024 < -20.0 || (c->ailments & 0xfffffff0) != 0)) {
         if (k == 3)
-            return ai_MedicusHandler((struct AICHARREC *)c, (struct LCORDMSG *)m);
-        if (k == 1 && ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1d3a);
+            return ai_MedicusHandler(c, (struct LCORDMSG *)m);
+        if (k == 1 && c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1d3a);
         return 2;
     }
     return 1;
 }
 /* 0x4f50f0, an order handler (c, m; kinds 1 / 3): characters with the byte +0x166 = 0xd are not handled; so are those that already own an order 0x2c (0x53e400 (1, 0, 0x2c) .. +0xac = c's id); kind 3 goes to ai_AccusationWindow, kind 1 of a player gets the text 0x1d44; else 2 */
 
-int ord_AccusationOrder(char *c, int *m)
+int ord_AccusationOrder(AICHAR *c, int *m)
 {
-    char *o;
+    AIJOB *o;
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if (ORD_CHAR(c)->job == 0xd)
+    if (c->officeKind == 0xd)
         return 1;
     o = he_FindEvent(1, 0, 0x2c);
     if (o != 0) {
         do {
-            if (((ORDEVENT *)o)->ownerId == ORD_CHAR(c)->netId)
+            if (((ORDEVENT *)o)->ownerId == c->netId)
                 return 1;
             o = he_NextEvent();
         } while (o != 0);
     }
     if (m[0] == 3) {
-        ai_AccusationWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+        ai_AccusationWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d44);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d44);
     return 2;
 }
 /* 0x4f5190, an order handler (c, m; kinds 1 / 3): not for characters with the flag 0x100 of +0x1c8; kind 3 goes to 0x5c9550, kind 1 of a player writes the text 0x1d54; else 2 */
 
-int ord_BlackmailBuildingOrder(char *c, int *m)
+int ord_BlackmailBuildingOrder(AICHAR *c, int *m)
 {
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((ORD_CHAR(c)->flags1c8 & 0x100) != 0)
+    if ((c->flags1c8 & 0x100) != 0)
         return 1;
     if (m[0] == 3) {
-        ai_BlackmailBuildingListener((struct AICHARREC *)c, (struct LCORDMSG *)m);
+        ai_BlackmailBuildingListener(c, (struct LCORDMSG *)m);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d54);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d54);
     return 2;
 }
 /* 0x4f5200, an order handler (c the character, m the message, kind 1 or 3) for level 3 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d5f (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d5e into m + 0x14; else 2 */
 
-int ord_Level3Order(char *c, int *m)
+int ord_Level3Order(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] > 3)
+    if (c->level > 3)
         return 4;
-    if ((unsigned char)c[0xd] < 3)
+    if (c->level < 3)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1d5f, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1d5f, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d5e);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d5e);
     return 2;
 }
 /* 0x4f52e0, an order handler (c, m; kinds 1 / 3): characters below level 3 (c[0xd]) are not handled; kind 3 goes to 0x5c9ff0, kind 1 of a player writes the text 0x1d60; else 2 */
 
-int ord_IntimidateOrder(char *c, int *m)
+int ord_IntimidateOrder(AICHAR *c, int *m)
 {
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] < 3)
+    if (c->level < 3)
         return 1;
     if (m[0] == 3) {
-        ai_IntimidateContact((struct AICHARREC *)c, (struct LCORDMSG *)m);
+        ai_IntimidateContact(c, (struct LCORDMSG *)m);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d60);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d60);
     return 2;
 }
 /* 0x4f5350, an order handler (c, m; kinds 1 / 3): not for level below 3 or the flag 0x400 of +0x1c8; kind 3 goes to 0x5c9c50, kind 1 of a player writes the text 0x1d65; else 2 */
 
-int ord_BlackmailContactOrder(char *c, int *m)
+int ord_BlackmailContactOrder(AICHAR *c, int *m)
 {
-    if ((m[0] == 3 || m[0] == 1) && (unsigned char)c[0xd] >= 3 && (ORD_CHAR(c)->flags1c8 & 0x400) == 0) {
+    if ((m[0] == 3 || m[0] == 1) && c->level >= 3 && (c->flags1c8 & 0x400) == 0) {
         if (m[0] == 3) {
-            ai_BlackmailContact((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_BlackmailContact(c, (struct LCORDMSG *)m);
             return 2;
         }
-        if (m[0] == 1 && c[2] == 6)
-            txt_Format(m + 5, "%s", 0x1d65);
+        if (m[0] == 1 && c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1d65);
         return 2;
     }
     return 1;
 }
 /* 0x4f53c0, an order handler (c the character, m the message, kind 1 or 3) for level 4 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d85 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d84 into m + 0x14; else 2 */
 
-int ord_Level4Order(char *c, int *m)
+int ord_Level4Order(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] > 4)
+    if (c->level > 4)
         return 4;
-    if ((unsigned char)c[0xd] < 4)
+    if (c->level < 4)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1d85, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1d85, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d84);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d84);
     return 2;
 }
 /* 0x4f54a0, an order handler (c the character, m the message, kind 1 or 3) for level 4 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d87 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d86 into m + 0x14; else 2 */
 
-int ord_Level4Order2(char *c, int *m)
+int ord_Level4Order2(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] > 4)
+    if (c->level > 4)
         return 4;
-    if ((unsigned char)c[0xd] < 4)
+    if (c->level < 4)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1d87, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1d87, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d86);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d86);
     return 2;
 }
 /* 0x4f5580, an order handler (c the character, m the message, kind 1 or 3) for levels 4 .. 5 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d89 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1d88 into m + 0x14; else 2 */
 
-int ord_Level4To5Order(char *c, int *m)
+int ord_Level4To5Order(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] >= 6)
+    if (c->level >= 6)
         return 4;
-    if ((unsigned char)c[0xd] < 4)
+    if (c->level < 4)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1d89, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1d89, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 1, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d88);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d88);
     return 2;
 }
 /* 0x4f5660, an order handler (c the character, m the message, kind 1 or 3) for level 5 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d8b (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d8a into m + 0x14; else 2 */
 
-int ord_Level5UpOrder(char *c, int *m)
+int ord_Level5UpOrder(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] < 5)
+    if (c->level < 5)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1d8b, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1d8b, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d8a);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d8a);
     return 2;
 }
 /* 0x4f5730, an order handler (c the character, m the message, kind 1 or 3) for level 5 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d8d (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d8c into m + 0x14; else 2 */
 
-int ord_Level5UpOrder2(char *c, int *m)
+int ord_Level5UpOrder2(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] < 5)
+    if (c->level < 5)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1d8d, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1d8d, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d8c);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d8c);
     return 2;
 }
 /* 0x4f5800, the divorce order handler (c the character, m the message, kind 1 or 3) for level 5 and up (c[0xd]):
@@ -433,71 +428,71 @@ int ord_Level5UpOrder2(char *c, int *m)
    (the scan stops at the first one; the office test in it never holds); kind 3 opens ai_DivorceDialog, kind 1 of a
    player (+2 = 6) writes the text 0x1d8e into m + 0x14; else 2; 1 when not allowed */
 
-int ord_DivorceOrder(char *c, int *m)
+int ord_DivorceOrder(AICHAR *c, int *m)
 {
-    AICHAR *ch = (AICHAR *)c;
+    AICHAR *ch = c;
     AICHAR *partner;
     int i;
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if (ch->b00d < 5)
+    if (ch->level < 5)
         return 1;
     for (i = 0; i < 0x300; i++) {
-        if (ai_CharsT[i].id != 0xffff && (ai_CharsT[i].officeKind != 0x12 || ai_CharsT[i].officeKind <= 0x15))
+        if (ai_Chars[i].id != 0xffff && (ai_Chars[i].officeKind != 0x12 || ai_Chars[i].officeKind <= 0x15))
             break;
     }
     if (ch->relatives[0] == -1)
         return 1;
     if (i >= 0x300)
         return 1;
-    partner = (AICHAR *)gm_FindChar(ch->relatives[0]);
+    partner = gm_FindChar(ch->relatives[0]);
     if (partner == 0)
         return 1;
     if (partner->health == 0)
         return 1;
     if (m[0] == 3)
-        return ai_DivorceDialog((struct AICHARREC *)c, (struct LCORDMSG *)m);
+        return ai_DivorceDialog(c, (struct LCORDMSG *)m);
     if (m[0] == 1 && ch->kind == 6)
-        txt_Format(m + 5, "%s", 0x1d8e);
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d8e);
     return 2;
 }
 /* 0x4f58e0, an order handler (c the character, m the message, kind 1 or 3) for level 6 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d93 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1d92 into m + 0x14; else 2 */
 
-int ord_Level6UpOrder(char *c, int *m)
+int ord_Level6UpOrder(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] < 6)
+    if (c->level < 6)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1d93, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1d93, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 1, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d92);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d92);
     return 2;
 }
 /* 0x4f59b0, an order handler (c the character, m the message, kind 1 or 3) for level 6 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d95 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1d94 into m + 0x14; else 2 */
 
-int ord_Level6UpOrder2(char *c, int *m)
+int ord_Level6UpOrder2(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] < 6)
+    if (c->level < 6)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1d95, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1d95, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 1, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d94);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d94);
     return 2;
 }
 /* 0x4f5a80, the wage report order (table 0x611768 entry 17; c the character, m the message, kinds 1 / 3) for
@@ -507,110 +502,110 @@ int ord_Level6UpOrder2(char *c, int *m)
    the amount at +4 / +8 / +0xc), shown through ord_PrivilegeDialog (mode 1); kind 1 writes the text 0x1d96 into
    m + 5; else 2 */
 
-int ord_WageReportOrder(char *c, int *m)
+int ord_WageReportOrder(AICHAR *c, int *m)
 {
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if (ORD_CHAR(c)->job == 0 && ORD_CHAR(c)->job2 == 0 && (ORD_CHAR(c)->flags1cc & 0xe00) == 0)
+    if (c->officeKind == 0 && c->secondOffice == 0 && (c->flags1cc & 0xe00) == 0)
         return 1;
-    if (m[0] == 3 && ORD_CHAR(c)->kind == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         ORDWAGES o;
         char buf[0x400];
         int base;
 
-        gm_CharacterWages(ORD_CHAR(c)->id, 0, (unsigned char *)&o);
+        gm_CharacterWages(c->id, 0, (unsigned char *)&o);
         memset(buf, 0, sizeof buf);
-        base = (ORD_CHAR(c)->textVariant != 0 ? 0x27b : 0x253);
-        txt_Format(buf, "$Z%s$N", 0x1d96);
-        if (ORD_CHAR(c)->job != 0)
-            txt_Format(buf + strlen(buf), 0x1d97, ORD_CHAR(c)->job + base, o.amount);
-        if (ORD_CHAR(c)->job2 != 0)
-            txt_Format(buf + strlen(buf), 0x1d97, ORD_CHAR(c)->job2 + base, o.amount2);
+        base = (c->sex != 0 ? 0x27b : 0x253);
+        txt_Format(buf, (intptr_t)"$Z%s$N", 0x1d96);
+        if (c->officeKind != 0)
+            txt_Format(buf + strlen(buf), 0x1d97, c->officeKind + base, o.amount);
+        if (c->secondOffice != 0)
+            txt_Format(buf + strlen(buf), 0x1d97, c->secondOffice + base, o.amount2);
         if (o.kind != 0)
             txt_Format(buf + strlen(buf), 0x1d97, o.kind + base, o.amount3);
         ord_PrivilegeDialog(buf, 1, 0x657c7);
-    } else if (m[0] == 1 && ORD_CHAR(c)->kind == 6)
-        txt_Format(m + 5, "%s", 0x1d96);
+    } else if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d96);
     return 2;
 }
 /* 0x4f5c30, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4): clears the text at m + 0x14; kinds 3 / 1: only for characters with +0x166 != 0 (text 0x1d98 for a player), 9 when they have the flag 0x200 of +0x1c8, 1 with 0x200000, kind 3 runs 0x5ca560, result | 2; kinds 4 / 2: only when c has the flag 0x100 and the message's character m[0x87] has +0x166 != 0 and not 0x200000; kind 4 runs 0x5ca560, result | 0xa */
 
-int ord_DismissOfficeOrder(char *c, int *m)
+int ord_DismissOfficeOrder(AICHAR *c, int *m)
 {
     int r;
-    char *t;
+    AICHAR *t;
 
     r = 0;
     ORD_MSG(m)->text[0] = 0;
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->job == 0)
+        if (c->officeKind == 0)
             return 1;
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(ORD_MSG(m)->text, "%s", 0x1d98);
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if (c->kind == 6)
+            txt_Format(ORD_MSG(m)->text, (intptr_t)"%s", 0x1d98);
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200000) != 0)
+        if ((c->flags1c8 & 0x200000) != 0)
             return 1;
         if (m[0] == 3)
-            r = ai_DismissOfficeAsk((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            r = ai_DismissOfficeAsk(c, (struct LCORDMSG *)m);
         return r | 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        if (ORD_CHAR(t)->job == 0)
+        if (t->officeKind == 0)
             return 1;
-        if ((ORD_CHAR(t)->flags1c8 & 0x200000) != 0)
+        if ((t->flags1c8 & 0x200000) != 0)
             return 1;
         if (m[0] == 4) {
-            r = ai_DismissOfficeAsk((struct AICHARREC *)c, (struct LCORDMSG *)m);
-        } else if (ORD_CHAR(c)->kind == 6)
-            txt_Format(ORD_MSG(m)->text, "%s", 0x1d98);
+            r = ai_DismissOfficeAsk(c, (struct LCORDMSG *)m);
+        } else if (c->kind == 6)
+            txt_Format(ORD_MSG(m)->text, (intptr_t)"%s", 0x1d98);
         return r | 0xa;
     }
     return 1;
 }
 /* 0x4f5d50, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f5d50: the table record 1 of 0x4f2870 (the byte rec[0] goes to m[1] and, for a player, into the text at m + 0x14 through 0x4f2fe0), the flag 0x80000 of +0x1c8 of the character (and of m[0x87] for 2 / 4) blocks; kind 3 / 4 sets m[0x85] = 1 and runs the law window 0x5ca150; result | 2 (| 0xa for 4 / 2) */
 
-int ord_LawOrder(char *c, int *m)
+int ord_LawOrder(AICHAR *c, int *m)
 {
     int rec[9];
     int r;
-    char *t;
+    AICHAR *t;
 
     r = 0;
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->job == 0)
+        if (c->officeKind == 0)
             return 1;
         if (gv_FindTableRecord(c, 1, rec) == 0)
             return 1;
-        if (ORD_CHAR(c)->kind == 6)
+        if (c->kind == 6)
             gv_TableRecordText(ORD_MSG(m)->text, rec[0] & 0xff);
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
-        if ((ORD_CHAR(c)->flags1c8 & 0x80000) != 0)
+        if ((c->flags1c8 & 0x80000) != 0)
             return 1;
         m[1] = rec[0] & 0xff;
         if (m[0] == 3) {
             ORD_MSG(m)->answerFlag = 1;
-            r = ai_LawPrivilegeWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            r = ai_LawPrivilegeWindow(c, (struct LCORDMSG *)m);
         }
         return r | 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        if (ORD_CHAR(t)->job == 0)
+        if (t->officeKind == 0)
             return 1;
-        if ((ORD_CHAR(t)->flags1c8 & 0x80000) != 0)
+        if ((t->flags1c8 & 0x80000) != 0)
             return 1;
         if (gv_FindTableRecord(t, 1, rec) == 0)
             return 1;
         m[1] = rec[0] & 0xff;
         if (m[0] == 4) {
             ORD_MSG(m)->answerFlag = 1;
-            r = ai_LawPrivilegeWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
-        } else if (ORD_CHAR(c)->kind == 6)
+            r = ai_LawPrivilegeWindow(c, (struct LCORDMSG *)m);
+        } else if (c->kind == 6)
             gv_TableRecordText(ORD_MSG(m)->text, rec[0] & 0xff);
         return r | 0xa;
     }
@@ -618,45 +613,45 @@ int ord_LawOrder(char *c, int *m)
 }
 /* 0x4f5f00, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f5d50: the table record 2 of 0x4f2870 (the byte rec[0] goes to m[1] and, for a player, into the text at m + 0x14 through 0x4f2fe0), the flag 0x100000 of +0x1c8 of the character (and of m[0x87] for 2 / 4) blocks; kind 3 / 4 sets ORD_MSG(m)->answerFlag = 2 and runs 0x5ca150; result | 2 (| 0xa for 4 / 2) */
 
-int ord_LawOrder2(char *c, int *m)
+int ord_LawOrder2(AICHAR *c, int *m)
 {
     int rec[9];
     int r;
-    char *t;
+    AICHAR *t;
 
     r = 0;
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->job == 0)
+        if (c->officeKind == 0)
             return 1;
         if (gv_FindTableRecord(c, 2, rec) == 0)
             return 1;
-        if (ORD_CHAR(c)->kind == 6)
+        if (c->kind == 6)
             gv_TableRecordText(ORD_MSG(m)->text, rec[0] & 0xff);
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
-        if ((ORD_CHAR(c)->flags1c8 & 0x100000) != 0)
+        if ((c->flags1c8 & 0x100000) != 0)
             return 1;
         m[1] = rec[0] & 0xff;
         if (m[0] == 3) {
             ORD_MSG(m)->answerFlag = 2;
-            r = ai_LawPrivilegeWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            r = ai_LawPrivilegeWindow(c, (struct LCORDMSG *)m);
         }
         return r | 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        if (ORD_CHAR(t)->job == 0)
+        if (t->officeKind == 0)
             return 1;
-        if ((ORD_CHAR(t)->flags1c8 & 0x100000) != 0)
+        if ((t->flags1c8 & 0x100000) != 0)
             return 1;
         if (gv_FindTableRecord(t, 2, rec) == 0)
             return 1;
         m[1] = rec[0] & 0xff;
         if (m[0] == 4) {
             ORD_MSG(m)->answerFlag = 2;
-            r = ai_LawPrivilegeWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
-        } else if (ORD_CHAR(c)->kind == 6)
+            r = ai_LawPrivilegeWindow(c, (struct LCORDMSG *)m);
+        } else if (c->kind == 6)
             gv_TableRecordText(ORD_MSG(m)->text, rec[0] & 0xff);
         return r | 0xa;
     }
@@ -664,861 +659,861 @@ int ord_LawOrder2(char *c, int *m)
 }
 /* 0x4f60b0, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da0 (0x25e, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d9f into m + 0x14; else 2 */
 
-int ord_Job11Order(char *c, int *m)
+int ord_Job11Order(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if (c[0x166] != 0xb)
+    if (c->officeKind != 0xb)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da0, (c[9] != 0 ? 0x286 : 0x25e));
+        txt_Format(buf, 0x1da0, (c->sex != 0 ? 0x286 : 0x25e));
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1d9f);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1d9f);
     return 2;
 }
 /* 0x4f6180, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da2 (0x253 + the job, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da1 into m + 0x14; else 2 */
 
-int ord_JobMultiOrder(char *c, int *m)
+int ord_JobMultiOrder(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x166] != 0x1b && (unsigned char)c[0x166] != 0xf && (unsigned char)c[0x166] != 0x15 && (unsigned char)c[0x166] != 0xd)
+    if (c->officeKind != 0x1b && c->officeKind != 0xf && c->officeKind != 0x15 && c->officeKind != 0xd)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da2, (c[9] != 0 ? 0x27b : 0x253) + (unsigned char)c[0x166]);
+        txt_Format(buf, 0x1da2, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1da1);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1da1);
     return 2;
 }
 /* 0x4f6270, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da4 (0x26f, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da3 into m + 0x14; else 2 */
 
-int ord_Job28Order(char *c, int *m)
+int ord_Job28Order(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x169] != 0x1c)
+    if (c->secondOffice != 0x1c)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da4, (c[9] != 0 ? 0x297 : 0x26f));
+        txt_Format(buf, 0x1da4, (c->sex != 0 ? 0x297 : 0x26f));
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1da3);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1da3);
     return 2;
 }
 /* 0x4f6340, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da6 (0x270, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da5 into m + 0x14; else 2 */
 
-int ord_Job29Order(char *c, int *m)
+int ord_Job29Order(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x169] != 0x1d)
+    if (c->secondOffice != 0x1d)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da6, (c[9] != 0 ? 0x298 : 0x270));
+        txt_Format(buf, 0x1da6, (c->sex != 0 ? 0x298 : 0x270));
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1da5);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1da5);
     return 2;
 }
 /* 0x4f6410, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da8 (0x275, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da7 into m + 0x14; else 2 */
 
-int ord_Job34Order(char *c, int *m)
+int ord_Job34Order(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x169] != 0x22)
+    if (c->secondOffice != 0x22)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da8, (c[9] != 0 ? 0x29d : 0x275));
+        txt_Format(buf, 0x1da8, (c->sex != 0 ? 0x29d : 0x275));
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1da7);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1da7);
     return 2;
 }
 /* 0x4f64e0, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1daa (0x253 + the job, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da9 into m + 0x14; else 2 */
 
-int ord_JobRangeOrder(char *c, int *m)
+int ord_JobRangeOrder(AICHAR *c, int *m)
 {
     char buf[0x200];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x169] < 0x1e || (unsigned char)c[0x169] > 0x21)
+    if (c->secondOffice < 0x1e || c->secondOffice > 0x21)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1daa, (c[9] != 0 ? 0x27b : 0x253) + (unsigned char)c[0x169]);
+        txt_Format(buf, 0x1daa, (c->sex != 0 ? 0x27b : 0x253) + c->secondOffice);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1da9);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1da9);
     return 2;
 }
 /* 0x4f65c0, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dac (0x253 + the job, + 0x28 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dab into m + 0x14; else 2 */
 
-int ord_JobMultiOrder2(char *c, int *m)
+int ord_JobMultiOrder2(AICHAR *c, int *m)
 {
     char buf[0x400];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x166] != 0x14 && (unsigned char)c[0x166] != 0x18 && (unsigned char)c[0x166] != 0x19)
+    if (c->officeKind != 0x14 && c->officeKind != 0x18 && c->officeKind != 0x19)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dac, (c[9] != 0 ? 0x27b : 0x253) + (unsigned char)c[0x166]);
+        txt_Format(buf, 0x1dac, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
         ord_PrivilegeDialog(buf, 1, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1dab);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1dab);
     return 2;
 }
 /* 0x4f66b0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) for the jobs 0x16 / 0x19 / 0x12 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): a player's text 0x1dad (m + 0x14), 9 with the flag 0x200, kind 3 / 4 run 0x5cacd0, 0xa for 4 / 2, else 2 */
 
-int ord_BewitchOrder(char *c, int *m)
+int ord_BewitchOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (c[2] == 6)
-            txt_Format(m + 5, "%s", 0x1dad);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dad);
+        j = c->officeKind;
         if (j != 0x16 && j != 0x19 && j != 0x12)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_BewitchOrder((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_BewitchOrder(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x16 && j != 0x19 && j != 0x12)
             return 1;
         if (m[0] == 4) {
-            ai_BewitchOrder((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_BewitchOrder(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (c[2] == 6)
-            txt_Format(m + 5, "%s", 0x1dad);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dad);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f67c0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the jobs 0x13 / 0x14 / 0x18 / 0x1a, runs 0x5cae00, text 0x1db6 */
 
-int ord_CounterEspionageOrder(char *c, int *m)
+int ord_CounterEspionageOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (c[2] == 6)
-            txt_Format(m + 5, "%s", 0x1db6);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1db6);
+        j = c->officeKind;
         if (j != 0x13 && j != 0x14 && j != 0x18 && j != 0x1a)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_CounterEspionage((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_CounterEspionage(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x13 && j != 0x14 && j != 0x18 && j != 0x1a)
             return 1;
         if (m[0] == 4) {
-            ai_CounterEspionage((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_CounterEspionage(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (c[2] == 6)
-            txt_Format(m + 5, "%s", 0x1db6);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1db6);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f68d0, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dbc ((c[9] != 0 ? 0x28c : 0x264)) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dbb into m + 0x14; else 2 */
 
-int ord_Job17Order(char *c, int *m)
+int ord_Job17Order(AICHAR *c, int *m)
 {
     char buf[0x400];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x166] != 0x11)
+    if (c->officeKind != 0x11)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dbc, (c[9] != 0 ? 0x28c : 0x264));
+        txt_Format(buf, 0x1dbc, (c->sex != 0 ? 0x28c : 0x264));
         ord_PrivilegeDialog(buf, 1, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1dbb);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1dbb);
     return 2;
 }
 /* 0x4f69a0, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dbe ((c[9] != 0 ? 0x28c : 0x264)) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dbd into m + 0x14; else 2 */
 
-int ord_Job17Order2(char *c, int *m)
+int ord_Job17Order2(AICHAR *c, int *m)
 {
     char buf[0x400];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x166] != 0x11)
+    if (c->officeKind != 0x11)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dbe, (c[9] != 0 ? 0x28c : 0x264));
+        txt_Format(buf, 0x1dbe, (c->sex != 0 ? 0x28c : 0x264));
         ord_PrivilegeDialog(buf, 1, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1dbd);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1dbd);
     return 2;
 }
-/* 0x4f6a70, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc0 (ORD_CHAR(c)->id) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dbf into m + 0x14; else 2 */
+/* 0x4f6a70, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc0 (c->id) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dbf into m + 0x14; else 2 */
 
-int ord_JobMultiOrder4(char *c, int *m)
+int ord_JobMultiOrder4(AICHAR *c, int *m)
 {
     char buf[0x400];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x166] != 0xe && (unsigned char)c[0x166] != 0xa)
+    if (c->officeKind != 0xe && c->officeKind != 0xa)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dc0, ORD_CHAR(c)->id);
+        txt_Format(buf, 0x1dc0, c->id);
         ord_PrivilegeDialog(buf, 1, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1dbf);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1dbf);
     return 2;
 }
 /* 0x4f6b40, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) for the job 0xe, text 0x1dc1, blocked by the flag 0x400000 of +0x1c8, runs 0x5ca860, result | 2 (| 0xa) */
 
-int ord_MisappropriationOrder(char *c, int *m)
+int ord_MisappropriationOrder(AICHAR *c, int *m)
 {
     int r;
-    char *t;
+    AICHAR *t;
 
     r = 0;
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(ORD_MSG(m)->text, "%s", 0x1dc1);
-        if (ORD_CHAR(c)->job != 0xe)
+        if (c->kind == 6)
+            txt_Format(ORD_MSG(m)->text, (intptr_t)"%s", 0x1dc1);
+        if (c->officeKind != 0xe)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
-        if ((ORD_CHAR(c)->flags1c8 & ORD_FLAG_BLOCKED) != 0)
+        if ((c->flags1c8 & ORD_FLAG_BLOCKED) != 0)
             return 1;
         if (m[0] == 3)
-            r = ai_MisappropriationWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            r = ai_MisappropriationWindow(c, (struct LCORDMSG *)m);
         return r | 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        if (ORD_CHAR(t)->job != 0xe)
+        if (t->officeKind != 0xe)
             return 1;
-        if ((ORD_CHAR(t)->flags1c8 & ORD_FLAG_BLOCKED) != 0)
+        if ((t->flags1c8 & ORD_FLAG_BLOCKED) != 0)
             return 1;
         if (m[0] == 4) {
-            r = ai_MisappropriationWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
-        } else if (ORD_CHAR(c)->kind == 6)
-            txt_Format(ORD_MSG(m)->text, "%s", 0x1dc1);
+            r = ai_MisappropriationWindow(c, (struct LCORDMSG *)m);
+        } else if (c->kind == 6)
+            txt_Format(ORD_MSG(m)->text, (intptr_t)"%s", 0x1dc1);
         return r | 0xa;
     }
     return 1;
 }
-/* 0x4f6c60, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc5 (ORD_CHAR(c)->id) shown through 0x4f8200 (mode 2); kind 1 writes text 0x1dc4 into m + 0x14; else 2 */
+/* 0x4f6c60, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc5 (c->id) shown through 0x4f8200 (mode 2); kind 1 writes text 0x1dc4 into m + 0x14; else 2 */
 
-int ord_Job10Order(char *c, int *m)
+int ord_Job10Order(AICHAR *c, int *m)
 {
     char buf[0x800];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x166] != 0xa)
+    if (c->officeKind != 0xa)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dc5, ORD_CHAR(c)->id);
+        txt_Format(buf, 0x1dc5, c->id);
         ord_PrivilegeDialog(buf, 2, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1dc4);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1dc4);
     return 2;
 }
-/* 0x4f6d30, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc7 (ORD_CHAR(c)->id) shown through 0x4f8200 (mode 2); kind 1 writes text 0x1dc6 into m + 0x14; else 2 */
+/* 0x4f6d30, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc7 (c->id) shown through 0x4f8200 (mode 2); kind 1 writes text 0x1dc6 into m + 0x14; else 2 */
 
-int ord_Job15Order(char *c, int *m)
+int ord_Job15Order(AICHAR *c, int *m)
 {
     char buf[0x800];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x166] != 0xf)
+    if (c->officeKind != 0xf)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dc7, ORD_CHAR(c)->id);
+        txt_Format(buf, 0x1dc7, c->id);
         ord_PrivilegeDialog(buf, 2, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1dc6);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1dc6);
     return 2;
 }
 /* 0x4f6e00, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0xf, 0x15, 0x1b (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5cb250, a player's text 0x1dc8 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_SeatSwapOrder(char *c, int *m)
+int ord_SeatSwapOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1dc8);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dc8);
+        j = c->officeKind;
         if (j != 0xf && j != 0x15 && j != 0x1b)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_SeatSwapWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_SeatSwapWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0xf && j != 0x15 && j != 0x1b)
             return 1;
         if (m[0] == 4) {
-            ai_SeatSwapWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_SeatSwapWindow(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1dc8);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dc8);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f6f10, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x18 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5cb4f0, a player's text 0x1dce (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_HatredOrder(char *c, int *m)
+int ord_HatredOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1dce);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dce);
+        j = c->officeKind;
         if (j != 0x18)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_HatredWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_HatredWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x18)
             return 1;
         if (m[0] == 4) {
-            ai_HatredWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_HatredWindow(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1dce);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dce);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f7000, an order handler (c, m; kinds 1 / 3) for the jobs 0x17 / 0x13 (+0x166): a player (+2 = 6) with kind 3 gets the text 0x1dd5 (0x253 + the job, + 0x28 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dd4 into m + 0x14; else 2 */
 
-int ord_JobMultiOrder3(char *c, int *m)
+int ord_JobMultiOrder3(AICHAR *c, int *m)
 {
     char buf[0x400];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0x166] != 0x17 && (unsigned char)c[0x166] != 0x13)
+    if (c->officeKind != 0x17 && c->officeKind != 0x13)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
+    if (m[0] == 3 && c->kind == 6) {
         memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dd5, (c[9] != 0 ? 0x27b : 0x253) + (unsigned char)c[0x166]);
+        txt_Format(buf, 0x1dd5, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
         ord_PrivilegeDialog(buf, 1, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1dd4);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1dd4);
     return 2;
 }
 /* 0x4f70f0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x17, 0x13, 0x14, 0xd (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5cba90, a player's text 0x1dd6 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_HearingOrder(char *c, int *m)
+int ord_HearingOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1dd6);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dd6);
+        j = c->officeKind;
         if (j != 0x17 && j != 0x13 && j != 0x14 && j != 0xd)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_HearingWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_HearingWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x17 && j != 0x13 && j != 0x14 && j != 0xd)
             return 1;
         if (m[0] == 4) {
-            ai_HearingWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_HearingWindow(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1dd6);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dd6);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f7200, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x16, 0x19 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5cbe00, a player's text 0x1ddb (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_ExpelWorkerOrder(char *c, int *m)
+int ord_ExpelWorkerOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1ddb);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1ddb);
+        j = c->officeKind;
         if (j != 0x16 && j != 0x19)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_ExpelWorkerWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_ExpelWorkerWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x16 && j != 0x19)
             return 1;
         if (m[0] == 4) {
-            ai_ExpelWorkerWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_ExpelWorkerWindow(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1ddb);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1ddb);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f7300, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x15, 0x1a (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs ai_ConvertWindow, a player's text 0x1de0 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_ConvertOrder(char *c, int *m)
+int ord_ConvertOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1de0);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1de0);
+        j = c->officeKind;
         if (j != 0x15 && j != 0x1a)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_ConvertWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_ConvertWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x15 && j != 0x1a)
             return 1;
         if (m[0] == 4) {
-            ai_ConvertWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_ConvertWindow(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1de0);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1de0);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f7400, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x1b (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs ai_PeaceWindow, a player's text 0x1de3 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_PeaceOrder(char *c, int *m)
+int ord_PeaceOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1de3);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1de3);
+        j = c->officeKind;
         if (j != 0x1b)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_PeaceWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_PeaceWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x1b)
             return 1;
         if (m[0] == 4) {
-            ai_PeaceWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_PeaceWindow(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1de3);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1de3);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f74f0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x18 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs ai_PenanceWindow, a player's text 0x1de9 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_PenanceOrder(char *c, int *m)
+int ord_PenanceOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1de9);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1de9);
+        j = c->officeKind;
         if (j != 0x18)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_PenanceWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_PenanceWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x18)
             return 1;
         if (m[0] == 4) {
-            ai_PenanceWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_PenanceWindow(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1de9);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1de9);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f75e0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x12, 0x16 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5ce1a0, a player's text 0x1dec (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_SpyTargetFlagOrder(char *c, int *m)
+int ord_SpyTargetFlagOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1dec);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dec);
+        j = c->officeKind;
         if (j != 0x12 && j != 0x16)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
-            ai_FaithAccusationWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_FaithAccusationWindow(c, (struct LCORDMSG *)m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x12 && j != 0x16)
             return 1;
         if (m[0] == 4) {
-            ai_FaithAccusationWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            ai_FaithAccusationWindow(c, (struct LCORDMSG *)m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1dec);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1dec);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f76e0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x1a (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs ai_MiracleWindow, a player's text 0x1df5 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_MiracleOrder(char *c, int *m)
+int ord_MiracleOrder(AICHAR *c, int *m)
 {
-    char *t;
+    AICHAR *t;
     unsigned char j;
 
     if (m[0] == 3 || m[0] == 1) {
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1df5);
-        j = ORD_CHAR(c)->job;
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1df5);
+        j = c->officeKind;
         if (j != 0x1a)
             return 1;
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if (m[0] == 3)
             ai_MiracleWindow(c, m);
         return 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        j = ORD_CHAR(t)->job;
+        j = t->officeKind;
         if (j != 0x1a)
             return 1;
         if (m[0] == 4) {
             ai_MiracleWindow(c, m);
             return 0xa;
         }
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1df5);
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1df5);
         return 0xa;
     }
     return 1;
 }
 /* 0x4f77d0, an order handler (c, m; kind 1 or 3) for level 7 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1e02 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e01 into m + 0x14; else 2 */
 
-int ord_Level7Order(char *c, int *m)
+int ord_Level7Order(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] > 7)
+    if (c->level > 7)
         return 4;
-    if ((unsigned char)c[0xd] < 7)
+    if (c->level < 7)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1e02, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1e02, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1e01);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e01);
     return 2;
 }
 /* 0x4f78b0, an order handler (c, m; kind 1 or 3) for level 8 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1e04 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e03 into m + 0x14; else 2 */
 
-int ord_Level8Order(char *c, int *m)
+int ord_Level8Order(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] > 8)
+    if (c->level > 8)
         return 4;
-    if ((unsigned char)c[0xd] < 8)
+    if (c->level < 8)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1e04, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1e04, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1e03);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e03);
     return 2;
 }
 /* 0x4f7990, an order handler (c, m; kind 1 or 3) for level 9 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1e06 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e05 into m + 0x14; else 2 */
 
-int ord_Level9UpOrder(char *c, int *m)
+int ord_Level9UpOrder(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((unsigned char)c[0xd] < 9)
+    if (c->level < 9)
         return 1;
-    if (m[0] == 3 && c[2] == 6) {
-        txt_Format(buf, 0x1e06, (c[9] != 0 ? 0x11e : 0x114) + (unsigned char)c[0xd]);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1e06, (c->sex != 0 ? 0x11e : 0x114) + c->level);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && c[2] == 6)
-        txt_Format(m + 5, "%s", 0x1e05);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e05);
     return 2;
 }
 /* 0x4f7a60, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4): clears the text at m + 0x14; characters need the flag 0x800 of +0x1cc (and m[0x87] for 2 / 4), 0x80000 of +0x1cc blocks; text 0x1e07 for a player, 9 with the flag 0x200 of +0x1c8, kind 3 / 4 run 0x5ce610, result | 2 (| 0xa for 4 / 2) */
 
-int ord_InterrogationOrder(char *c, int *m)
+int ord_InterrogationOrder(AICHAR *c, int *m)
 {
     int r;
-    char *t;
+    AICHAR *t;
 
     r = 0;
     ORD_MSG(m)->text[0] = 0;
     if (m[0] == 3 || m[0] == 1) {
-        if ((ORD_CHAR(c)->flags1cc & 0x800) == 0)
+        if ((c->flags1cc & 0x800) == 0)
             return 1;
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1e07);
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1e07);
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
-        if ((ORD_CHAR(c)->flags1cc & 0x80000) != 0)
+        if ((c->flags1cc & 0x80000) != 0)
             return 1;
         if (m[0] == 3)
-            r = ai_InterrogationWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            r = ai_InterrogationWindow(c, (struct LCORDMSG *)m);
         return r | 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        if ((ORD_CHAR(t)->flags1cc & 0x800) == 0)
+        if ((t->flags1cc & 0x800) == 0)
             return 1;
-        if ((ORD_CHAR(t)->flags1cc & 0x80000) != 0)
+        if ((t->flags1cc & 0x80000) != 0)
             return 1;
         if (m[0] == 4) {
-            r = ai_InterrogationWindow((struct AICHARREC *)c, (struct LCORDMSG *)m);
-        } else if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1e07);
+            r = ai_InterrogationWindow(c, (struct LCORDMSG *)m);
+        } else if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1e07);
         return r | 0xa;
     }
     return 1;
 }
 /* 0x4f7b80, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4): clears the text at m + 0x14; characters need the flag 0x800 of +0x1cc (and m[0x87] for 2 / 4), 0x40000 of +0x1cc blocks; text 0x1e0d for a player, 9 with the flag 0x200 of +0x1c8, kind 3 / 4 run 0x5ce950, result | 2 (| 0xa for 4 / 2) */
 
-int ord_DismissalOrder(char *c, int *m)
+int ord_DismissalOrder(AICHAR *c, int *m)
 {
     int r;
-    char *t;
+    AICHAR *t;
 
     r = 0;
     ORD_MSG(m)->text[0] = 0;
     if (m[0] == 3 || m[0] == 1) {
-        if ((ORD_CHAR(c)->flags1cc & 0x800) == 0)
+        if ((c->flags1cc & 0x800) == 0)
             return 1;
-        if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1e0d);
-        if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+        if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1e0d);
+        if ((c->flags1c8 & 0x200) != 0)
             return 9;
-        if ((ORD_CHAR(c)->flags1cc & 0x40000) != 0)
+        if ((c->flags1cc & 0x40000) != 0)
             return 1;
         if (m[0] == 3)
-            r = ai_DismissalHandler((struct AICHARREC *)c, (struct LCORDMSG *)m);
+            r = ai_DismissalHandler(c, (struct LCORDMSG *)m);
         return r | 2;
     }
     if (m[0] == 4 || m[0] == 2) {
-        if ((ORD_CHAR(c)->flags1c8 & 0x100) == 0 || (t = (char *)ORD_MSG(m)->partner) == 0)
+        if ((c->flags1c8 & 0x100) == 0 || (t = ORD_MSG(m)->partner) == 0)
             return 1;
-        if ((ORD_CHAR(t)->flags1cc & 0x800) == 0)
+        if ((t->flags1cc & 0x800) == 0)
             return 1;
-        if ((ORD_CHAR(t)->flags1cc & 0x40000) != 0)
+        if ((t->flags1cc & 0x40000) != 0)
             return 1;
         if (m[0] == 4) {
-            r = ai_DismissalHandler((struct AICHARREC *)c, (struct LCORDMSG *)m);
-        } else if (ORD_CHAR(c)->kind == 6)
-            txt_Format(m + 5, "%s", 0x1e0d);
+            r = ai_DismissalHandler(c, (struct LCORDMSG *)m);
+        } else if (c->kind == 6)
+            txt_Format(m + 5, (intptr_t)"%s", 0x1e0d);
         return r | 0xa;
     }
     return 1;
 }
 /* 0x4f7ca0, an order handler (c, m; kinds 1 / 3) for characters with the flag 0x800 of +0x1cc: a player (+2 = 6) with kind 3 gets the text 0x1e12 (0x278, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e11 into m + 0x14; else 2 */
 
-int ord_Flag800Order(char *c, int *m)
+int ord_Flag800Order(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((ORD_CHAR(c)->flags1cc & 0x800) == 0)
+    if ((c->flags1cc & 0x800) == 0)
         return 1;
-    if (m[0] == 3 && ORD_CHAR(c)->kind == 6) {
-        txt_Format(buf, 0x1e12, (ORD_CHAR(c)->textVariant != 0 ? 0x2a0 : 0x278));
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1e12, (c->sex != 0 ? 0x2a0 : 0x278));
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && ORD_CHAR(c)->kind == 6)
-        txt_Format(m + 5, "%s", 0x1e11);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e11);
     return 2;
 }
 /* 0x4f7d70, an order handler (c, m; kinds 1 / 3) for characters with the flag 0x800 of +0x1cc: a player (+2 = 6) with kind 3 gets the text 0x1e14 (0x278, + 0x28 with +9, extra argument 0x16b9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e13 into m + 0x14; else 2 */
 
-int ord_Flag800Order2(char *c, int *m)
+int ord_Flag800Order2(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((ORD_CHAR(c)->flags1cc & 0x800) == 0)
+    if ((c->flags1cc & 0x800) == 0)
         return 1;
-    if (m[0] == 3 && ORD_CHAR(c)->kind == 6) {
-        txt_Format(buf, 0x1e14, (ORD_CHAR(c)->textVariant != 0 ? 0x2a0 : 0x278), 0x16b9);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1e14, (c->sex != 0 ? 0x2a0 : 0x278), 0x16b9);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && ORD_CHAR(c)->kind == 6)
-        txt_Format(m + 5, "%s", 0x1e13);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e13);
     return 2;
 }
 /* 0x4f7e40, an order handler (c, m; kinds 1 / 3): clears the text at m + 0x14; not for characters with the flag 0x100 of +0x1c8, they need 0x200 of +0x1cc; text 0x1e15 for a player, 9 with the flag 0x200, 1 with 0x40000 of +0x1c8; kind 3 runs 0x5cede0, result | 2 */
 
-int ord_InterrogationOrder2(char *c, int *m)
+int ord_InterrogationOrder2(AICHAR *c, int *m)
 {
     int r;
 
@@ -1526,42 +1521,42 @@ int ord_InterrogationOrder2(char *c, int *m)
     ORD_MSG(m)->text[0] = 0;
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((ORD_CHAR(c)->flags1c8 & 0x100) != 0)
+    if ((c->flags1c8 & 0x100) != 0)
         return 1;
-    if ((ORD_CHAR(c)->flags1cc & 0x200) == 0)
+    if ((c->flags1cc & 0x200) == 0)
         return 1;
-    if (ORD_CHAR(c)->kind == 6)
-        txt_Format(m + 5, "%s", 0x1e15);
-    if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+    if (c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e15);
+    if ((c->flags1c8 & 0x200) != 0)
         return 9;
-    if ((ORD_CHAR(c)->flags1c8 & 0x40000) != 0)
+    if ((c->flags1c8 & 0x40000) != 0)
         return 1;
     if (m[0] == 3)
-        r = ai_InterrogationWindow1((struct AICHARREC *)c, (struct LCORDMSG *)m);
+        r = ai_InterrogationWindow1(c, (struct LCORDMSG *)m);
     return r | 2;
 }
 /* 0x4f7ef0, an order handler (c, m; kinds 1 / 3) for characters with the flag 0x200 of +0x1cc: a player (+2 = 6) with kind 3 gets the text 0x1e1b (0x276, + 0x28 with +9, extra argument 0x16ba) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e1a into m + 0x14; else 2 */
 
-int ord_Flag200Order(char *c, int *m)
+int ord_Flag200Order(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((ORD_CHAR(c)->flags1cc & 0x200) == 0)
+    if ((c->flags1cc & 0x200) == 0)
         return 1;
-    if (m[0] == 3 && ORD_CHAR(c)->kind == 6) {
-        txt_Format(buf, 0x1e1b, (ORD_CHAR(c)->textVariant != 0 ? 0x29e : 0x276), 0x16ba);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1e1b, (c->sex != 0 ? 0x29e : 0x276), 0x16ba);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && ORD_CHAR(c)->kind == 6)
-        txt_Format(m + 5, "%s", 0x1e1a);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e1a);
     return 2;
 }
 /* 0x4f7fc0, an order handler (c, m; kinds 1 / 3): clears the text at m + 0x14; not for characters with the flag 0x100 of +0x1c8, they need 0x400 of +0x1cc; text 0x1e1c for a player, 9 with the flag 0x200, 1 with 0x40000 of +0x1c8; kind 3 runs 0x5cf020, result | 2 */
 
-int ord_InterrogationOrder3(char *c, int *m)
+int ord_InterrogationOrder3(AICHAR *c, int *m)
 {
     int r;
 
@@ -1569,53 +1564,53 @@ int ord_InterrogationOrder3(char *c, int *m)
     ORD_MSG(m)->text[0] = 0;
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((ORD_CHAR(c)->flags1c8 & 0x100) != 0)
+    if ((c->flags1c8 & 0x100) != 0)
         return 1;
-    if ((ORD_CHAR(c)->flags1cc & 0x400) == 0)
+    if ((c->flags1cc & 0x400) == 0)
         return 1;
-    if (ORD_CHAR(c)->kind == 6)
-        txt_Format(m + 5, "%s", 0x1e1c);
-    if ((ORD_CHAR(c)->flags1c8 & 0x200) != 0)
+    if (c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e1c);
+    if ((c->flags1c8 & 0x200) != 0)
         return 9;
-    if ((ORD_CHAR(c)->flags1c8 & 0x40000) != 0)
+    if ((c->flags1c8 & 0x40000) != 0)
         return 1;
     if (m[0] == 3)
-        r = ai_InterrogationWindow2((struct AICHARREC *)c, (struct LCORDMSG *)m);
+        r = ai_InterrogationWindow2(c, (struct LCORDMSG *)m);
     return r | 2;
 }
 /* 0x4f8070, an order handler (c, m; kinds 1 / 3) for characters with the flag 0x400 of +0x1cc: a player (+2 = 6) with kind 3 gets the text 0x1e22 (0x277, + 0x28 with +9, extra argument 0x16bb) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e21 into m + 0x14; else 2 */
 
-int ord_Flag400Order(char *c, int *m)
+int ord_Flag400Order(AICHAR *c, int *m)
 {
     char buf[0x100];
 
     if (m[0] != 3 && m[0] != 1)
         return 1;
-    if ((ORD_CHAR(c)->flags1cc & 0x400) == 0)
+    if ((c->flags1cc & 0x400) == 0)
         return 1;
-    if (m[0] == 3 && ORD_CHAR(c)->kind == 6) {
-        txt_Format(buf, 0x1e22, (ORD_CHAR(c)->textVariant != 0 ? 0x29f : 0x277), 0x16bb);
+    if (m[0] == 3 && c->kind == 6) {
+        txt_Format(buf, 0x1e22, (c->sex != 0 ? 0x29f : 0x277), 0x16bb);
         ord_PrivilegeDialog(buf, 0, 0x657c7);
         return 2;
     }
-    if (m[0] == 1 && ORD_CHAR(c)->kind == 6)
-        txt_Format(m + 5, "%s", 0x1e21);
+    if (m[0] == 1 && c->kind == 6)
+        txt_Format(m + 5, (intptr_t)"%s", 0x1e21);
     return 2;
 }
 /* 0x4f8140, an order handler (c, m; kinds 1 / 3) for the jobs 1 .. 0x1b (+0x166): kind 3 of a player runs 0x5ce7f0, kind 1 writes the text 0x1e23 (m + 0x14); else 2 (1 for other jobs and kinds) */
 
-int ord_DismissWorkerOrder(char *c, int *m)
+int ord_DismissWorkerOrder(AICHAR *c, int *m)
 {
     unsigned char j;
     int r = 2;
 
     if (m[0] == 3 || m[0] == 1) {
-        j = ORD_CHAR(c)->job;
+        j = c->officeKind;
         if (j != 0 && j <= 0x1b) {
-            if (m[0] == 3 && ORD_CHAR(c)->kind == 6)
+            if (m[0] == 3 && c->kind == 6)
                 return ai_WorkerDismissalWindow(c, m);
-            if (m[0] == 1 && ORD_CHAR(c)->kind == 6) {
-                txt_Format(ORD_MSG(m)->text, "%s", 0x1e23);
+            if (m[0] == 1 && c->kind == 6) {
+                txt_Format(ORD_MSG(m)->text, (intptr_t)"%s", 0x1e23);
                 return 2;
             }
         } else
@@ -1625,16 +1620,16 @@ int ord_DismissWorkerOrder(char *c, int *m)
     return r;
 }
 unsigned short ord_OrderTexts[0x3a] = { 0x1ce1, 0x1d33, 0x1d3a, 0x1d44, 0x1d50, 0x1d5e, 0x1d35, 0x1d60, 0x1d65, 0x1d84, 0x1d86, 0x1d88, 0x1d8a, 0x1d8c, 0x1d8e, 0x1d92, 0x1d94, 0x1d96, 0x1d98, 0x1d9d, 0x1d9e, 0x1d9f, 0x1da1, 0x1da3, 0x1da5, 0x1da7, 0x1da9, 0x1dab, 0x1dad, 0x1db6, 0x1dbb, 0x1dbd, 0x1dbf, 0x1dc1, 0x1dc4, 0x1dc6, 0x1dc8, 0x1dce, 0x1dd4, 0x1dd6, 0x1ddb, 0x1de0, 0x1de3, 0x1de9, 0x1dec, 0x1df5, 0x1e01, 0x1e03, 0x1e05, 0x1e07, 0x1e0d, 0x1e11, 0x1e13, 0x1e15, 0x1e1a, 0x1e1c, 0x1e21, 0x1e23 };  /* 0x6116f0, the text of each order number, parallel to ord_OrderHandlers (the first handler writes 0x1ce1, the last 0x1e23); no surviving instruction reads it (its reader was removed by /OPT:REF) */
-int (*ord_OrderHandlers[0x3a])(char *c, int *m) = { ord_ApplyForOffice, ord_LevelOrder, ord_MedicusOrder, ord_AccusationOrder, ord_BlackmailBuildingOrder, ord_Level3Order, ord_ChangeProfessionOrder, ord_IntimidateOrder, ord_BlackmailContactOrder, ord_Level4Order, ord_Level4Order2, ord_Level4To5Order, ord_Level5UpOrder, ord_Level5UpOrder2, ord_DivorceOrder, ord_Level6UpOrder, ord_Level6UpOrder2, ord_WageReportOrder, ord_DismissOfficeOrder, ord_LawOrder, ord_LawOrder2, ord_Job11Order, ord_JobMultiOrder, ord_Job28Order, ord_Job29Order, ord_Job34Order, ord_JobRangeOrder, ord_JobMultiOrder2, ord_BewitchOrder, ord_CounterEspionageOrder, ord_Job17Order, ord_Job17Order2, ord_JobMultiOrder4, ord_MisappropriationOrder, ord_Job10Order, ord_Job15Order, ord_SeatSwapOrder, ord_HatredOrder, ord_JobMultiOrder3, ord_HearingOrder, ord_ExpelWorkerOrder, ord_ConvertOrder, ord_PeaceOrder, ord_PenanceOrder, ord_SpyTargetFlagOrder, ord_MiracleOrder, ord_Level7Order, ord_Level8Order, ord_Level9UpOrder, ord_InterrogationOrder, ord_DismissalOrder, ord_Flag800Order, ord_Flag800Order2, ord_InterrogationOrder2, ord_Flag200Order, ord_InterrogationOrder3, ord_Flag400Order, ord_DismissWorkerOrder };  /* 0x611768, the order handler of each order number (ord.c's .data block: the table, then its strings 0x611850..) */
+int (*ord_OrderHandlers[0x3a])(AICHAR *c, int *m) = { ord_ApplyForOffice, ord_LevelOrder, ord_MedicusOrder, ord_AccusationOrder, ord_BlackmailBuildingOrder, ord_Level3Order, ord_ChangeProfessionOrder, ord_IntimidateOrder, ord_BlackmailContactOrder, ord_Level4Order, ord_Level4Order2, ord_Level4To5Order, ord_Level5UpOrder, ord_Level5UpOrder2, ord_DivorceOrder, ord_Level6UpOrder, ord_Level6UpOrder2, ord_WageReportOrder, ord_DismissOfficeOrder, ord_LawOrder, ord_LawOrder2, ord_Job11Order, ord_JobMultiOrder, ord_Job28Order, ord_Job29Order, ord_Job34Order, ord_JobRangeOrder, ord_JobMultiOrder2, ord_BewitchOrder, ord_CounterEspionageOrder, ord_Job17Order, ord_Job17Order2, ord_JobMultiOrder4, ord_MisappropriationOrder, ord_Job10Order, ord_Job15Order, ord_SeatSwapOrder, ord_HatredOrder, ord_JobMultiOrder3, ord_HearingOrder, ord_ExpelWorkerOrder, ord_ConvertOrder, ord_PeaceOrder, ord_PenanceOrder, ord_SpyTargetFlagOrder, ord_MiracleOrder, ord_Level7Order, ord_Level8Order, ord_Level9UpOrder, ord_InterrogationOrder, ord_DismissalOrder, ord_Flag800Order, ord_Flag800Order2, ord_InterrogationOrder2, ord_Flag200Order, ord_InterrogationOrder3, ord_Flag400Order, ord_DismissWorkerOrder };  /* 0x611768, the order handler of each order number (ord.c's .data block: the table, then its strings 0x611850..) */
 /* 0x4f81c0, the order dispatcher: the handler number id (below 0x3a, else 0x40) of the table 0x611768 (0x4f4e20 .. 0x4f8140, one per order) runs on the character c (0x40 without one, 1 for a character whose kind +2 is 10 or more) and the message m */
 
-int ord_DispatchOrder(int id, char *c, int *m)
+int ord_DispatchOrder(int id, AICHAR *c, int *m)
 {
     if (id >= 0x3a)
         return 0x40;
     if (c == 0)
         return 0x40;
-    if ((unsigned char)c[2] >= 10)
+    if (c->kind >= 10)
         return 1;
     return ord_OrderHandlers[id](c, m);
 }
@@ -1652,7 +1647,7 @@ int ord_PrivilegeDialog(char *text, int mode, int arg)
         v = d2_OpenForm(0, 0, "privillegien\\prv_very_big");
     d2_CentreViewWindows(v);
     d2_SetForm(v, 1);
-    io_PrintText(text);
+    io_PrintText((intptr_t)text);
     d2_ClickedId = -1;
     while (sv_RunFrame(ord_PrivilegeDialog, arg) != 0) {
         if (dm_L.rup != 0)
@@ -1669,8 +1664,8 @@ int ord_PrivilegeDialog(char *text, int mode, int arg)
 void ord_ResetStatistics(void)
 {
     memset(&ord_MessageRecord, 0, 0x24);
-    memset(gm_IncomeHistory, 0, 0x154);
-    memset(gm_CharacterStatistics, 0, 0x68);
+    memset(gm_IncomeHistory, 0, sizeof(gm_IncomeHistory));
+    memset(&gm_CharacterStatistics, 0, sizeof(gm_CharacterStatistics));
     memset(ai_Grid, 0, 0x600);
     memset(ord_StatisticsHistory, 0, 0x140);
     memset(&ord_Statistics, 0, 0x28);
@@ -1679,7 +1674,7 @@ void ord_ResetStatistics(void)
 }
 /* 0x4f8300, the 8 x 8 grid cell of a position: d3_GetHeightAt gives the cell on scene 0's height map (d3_Scenes[0].hmap) and x / y are divided by the map's cell count per side (D3SM.size, +0x20) over 8; 0 when the call fails */
 
-int ord_GetGridCell(char *p, int *x, int *y)
+int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y)
 {
     D3SM *hmap;
     int n;
@@ -1725,7 +1720,7 @@ int ord_GetGridCell(char *p, int *x, int *y)
 void ord_CountGridObjects(void)
 {
     float f[64];
-    ORDBLD *b;
+    AIBLD *b;
     int y;
     int x;
     int i;
@@ -1734,13 +1729,13 @@ void ord_CountGridObjects(void)
     for (i = 0; i < 8; i++)
         for (j = 0; j < 8; j++)
             ai_Grid[i][j].used = 0;
-    b = (ORDBLD *)gm_BuildQuery(1, 6);
+    b = gm_BuildQuery(1, 6);
     while (b != 0) {
-        if (b->object != 0 && ord_GetGridCell((char *)&b->object->pos, &x, &y) != 0) {
-            f[y + x * 8] = (float)gm_EquipmentValue((unsigned char *)b, b->level);
+        if (b->object != 0 && ord_GetGridCell(&b->object->pos, &x, &y) != 0) {
+            f[y + x * 8] = (float)gm_EquipmentValue(b, b->level);
             ORD_CELLS[y + x * 8].used++;
         }
-        b = (ORDBLD *)gm_BuildNext();
+        b = gm_BuildNext();
     }
     for (i = 0; i < 8; i++) {
         for (j = 0; j < 8; j++) {
@@ -1764,7 +1759,7 @@ typedef struct ORDKIND {
 void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py)
 {
     AIDEC rec;
-    ORDBLD *b;
+    AIBLD *b;
     int x;
     int y;
     int xhi;
@@ -1775,11 +1770,11 @@ void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py)
     int j;
 
     gv_GetTableRecord(kind, (int *)&rec);
-    gm_FindById((int *)&b, 0, 0, who);
+    gm_FindById(&b, 0, 0, who);
     x = util_Random(8);
     y = util_Random(8);
     if (b != 0 && b->object != 0) {
-        ord_GetGridCell((char *)&b->object->pos, &x, &y);
+        ord_GetGridCell(&b->object->pos, &x, &y);
         ORD_CELLS[y + x * 8].b += rec.guilt;
         xhi = x + 1 > 8 ? 8 : x + 1;
         yhi = y + 1 > 8 ? 8 : y + 1;
@@ -1798,7 +1793,7 @@ void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py)
 void ord_SubGridAmount(int who, unsigned char kind)
 {
     AIDEC rec;
-    ORDBLD *b;
+    AIBLD *b;
     int x;
     int y;
     int xhi;
@@ -1809,11 +1804,11 @@ void ord_SubGridAmount(int who, unsigned char kind)
     int j;
 
     gv_GetTableRecord(kind, (int *)&rec);
-    gm_FindById((int *)&b, 0, 0, who);
+    gm_FindById(&b, 0, 0, who);
     x = util_Random(8);
     y = util_Random(8);
     if (b != 0 && b->object != 0) {
-        ord_GetGridCell((char *)&b->object->pos, &x, &y);
+        ord_GetGridCell(&b->object->pos, &x, &y);
         ORD_CELLS[y + x * 8].b -= rec.guilt;
         xhi = x + 1 > 8 ? 8 : x + 1;
         yhi = y + 1 > 8 ? 8 : y + 1;
@@ -1845,7 +1840,7 @@ char ord_RandomCellPoint(int x, int y, D3VECTOR *out)
    chances each) of a random one of the 20 kinds of the table (4 x 5), through gm_BuildQuery(1, 5, kind),
 until 16 are collected; then one of them at random @deep deep s43: flip.py --want 'mov eax, DWORD PTR _kinds' names only meaning changes and idx as short / char (one temp fewer: the rotation is decided at the idx expression). Tried, = control: idx = U(4)*5; idx += U(5), the inner loop as for, list[n++], the first id stored as list[n] / n++ / n = 1 first, tries before n; worse: idx inline (30), a k temp for U(5) (13), n++ / k++ swapped (10), n = 0 in an else (66), kinds as int [4][5] with [U(4)][U(5)] (30-35), climb 3 rounds (nothing). prior: near-byte sweep s22: goto done -> break (same code, kept). Left regs 8: kinds[idx] loaded into edx (original eax) and the list store's [esi+1] in eax (original edx): one scratch rotation step. = control: break / n < 16 in the inner condition, the kinds as an initializer; worse: k = 0 before idx (10), return in the loop (60), the c == 0 guard first (72). climb round 1: nothing. */
 
-int ord_RandomObjectId(char *c)
+int ord_RandomObjectId(AICHAR *c)
 {
     int kinds[20];
     int list[16];
@@ -1853,7 +1848,7 @@ int ord_RandomObjectId(char *c)
     int tries;
     int k;
     int idx;
-    ORDBLD *o;
+    AIBLD *o;
 
     kinds[0] = 1;
     kinds[1] = 2;
@@ -1879,19 +1874,19 @@ int ord_RandomObjectId(char *c)
         return -1;
     n = 0;
     tries = 0x20;
-    if (ORD_CHAR(c)->bld != 0 && ORD_CHAR(c)->bld->object != 0) {
-        list[0] = ORD_CHAR(c)->bld->id;
+    if (c->bld != 0 && c->bld->object != 0) {
+        list[0] = c->bld->id;
         n = 1;
     }
-    if (ORD_CHAR(c)->bld2 != 0 && ORD_CHAR(c)->bld2->object != 0) {
-        list[n] = ORD_CHAR(c)->bld2->id;
+    if (c->bld2 != 0 && c->bld2->object != 0) {
+        list[n] = c->bld2->id;
         n++;
     }
     while (n < 16 && tries != 0) {
         tries--;
         idx = util_Random(4) * 5 + util_Random(5);
         k = 0;
-        o = (ORDBLD *)gm_BuildQuery(1, 5, kinds[idx]);
+        o = gm_BuildQuery(1, 5, kinds[idx]);
         while (o != 0 && k < 3) {
             if (n >= 16)
                 break;
@@ -1900,7 +1895,7 @@ int ord_RandomObjectId(char *c)
                 n++;
                 k++;
             }
-            o = (ORDBLD *)gm_BuildNext();
+            o = gm_BuildNext();
         }
     }
     return list[util_Random(n)];
@@ -1940,7 +1935,7 @@ void ord_RebuildGridSums(void)
     int x;
     int y;
     float w;
-    ORDBLD *b;
+    AIBLD *b;
     AIBTYPE *bt;
     struct D3OBJECT *q;
     int n;
@@ -1959,20 +1954,20 @@ void ord_RebuildGridSums(void)
         }
     }
     for (n = 0; n < 0x200; n++) {
-        p = &((CRIME *)ai_Crimes)[n];
+        p = &ai_Crimes[n];
         if (p->state == 0 || p->id == -1)
             continue;
         r = *p;
-        b = (ORDBLD *)gm_BuildQuery(1, 1, r.place);
+        b = gm_BuildQuery(1, 1, r.place);
         if (b == 0 || b->type == 0)
             continue;
-        bt = &ai_BTypesT[b->type];
+        bt = &ai_BTypes[b->type];
         q = b->object;
         if (q == 0)
             continue;
         if ((bt->kind >= 0xb && bt->kind <= 0xd) || bt->kind == 0x10)
             continue;
-        if (ord_GetGridCell((char *)&q->pos, &x, &y) == 0)
+        if (ord_GetGridCell(&q->pos, &x, &y) == 0)
             continue;
         gv_GetTableRecord(r.law, (int *)&dec);
         w = (float)r.count / dec.crimeCount * dec.guilt;
@@ -2012,8 +2007,8 @@ void ord_ComputeStatistics(float *out)
     int sumA, sumC, sumD, s58, s54, s50, s4c;
     float cntf, f, m, sum, w, g;
     float q3, q1, q2, income;               /* the inverted shares and the income rating of out[9] */
-    ORDCHAR *c;
-    ORDBLD *p;
+    AICHAR *c;
+    AIBLD *p;
     unsigned char *b;
     unsigned char *bt;
     unsigned short *t;
@@ -2029,7 +2024,7 @@ void ord_ComputeStatistics(float *out)
     sum = 0;
     ord_RebuildGridSums();
     for (i = 0; i < 0x300; i++) {
-        c = &ORD_CHARS[i];
+        c = &ai_Chars[i];
         if (c->id == 0xffff || c->kind != 0 && c->kind != 1)
             continue;
         cnt++;
@@ -2039,7 +2034,7 @@ void ord_ComputeStatistics(float *out)
             bt = (unsigned char *)ai_BTypes + c->bld->type * 0x24d;
             n0++;
             if (c->bld->object != 0 && (*bt < 0xb || *bt > 0xd) && *bt != 0x10
-                && ord_GetGridCell((char *)&c->bld->object->pos, &x, &y) != 0)
+                && ord_GetGridCell(&c->bld->object->pos, &x, &y) != 0)
                 ai_Grid[x][y].buildingCount += 1.0f;
         }
         if (c->bld2 != 0) {
@@ -2048,7 +2043,7 @@ void ord_ComputeStatistics(float *out)
             bt = (unsigned char *)ai_BTypes + c->bld2->type * 0x24d;
             n1++;
             if (c->bld2->object != 0 && (*bt < 0xb || *bt > 0xd) && *bt != 0x10
-                && ord_GetGridCell((char *)&c->bld2->object->pos, &x, &y) != 0)
+                && ord_GetGridCell(&c->bld2->object->pos, &x, &y) != 0)
                 ai_Grid[x][y].buildingCount += 1.0f;
         }
     }
@@ -2056,7 +2051,7 @@ void ord_ComputeStatistics(float *out)
     s58 = 0;
     s4c = 0;
     s54 = 0;
-    p = (ORDBLD *)ai_Blds;
+    p = ai_Blds;
     for (i = 0; i < 0x100; i++, p++) {
         if (p->type == 0 || p->type >= 0x44 || p->owner == 0xffff)
             continue;
@@ -2153,7 +2148,7 @@ void ord_UpdateStatistics(void)
    @deep deep s26: climb round 1 (148 mutants, 100 codes): nothing below 8 ins / 91 bytes. Left: the same
    level / w hunk (the level byte in eax and w + l + 4l through edx in ours, the original level in edx and
    w updated in place: add esi,edx; lea esi,[esi+edx*4]). prior: headers sample: insensitive (32, one
-   codegen). Kept (47 ins/160 B -> 8 ins): the character walk as an index loop over ORD_CHARS[j] /
+   codegen). Kept (47 ins/160 B -> 8 ins): the character walk as an index loop over ai_Chars[j] /
    ORD_CHARKINDS[j] (the original's jl pointer compare and the kind+2 base), and n = 0; w = 0 at the top of
    the function (the original zeroes n's own slot first: frame 0x18 -> 0x1c, n no longer packed into the
    dead parameter slot). Left: one hunk in the counted body, ours 'xor eax,eax; inc edi; mov al,[ecx+0xb];
@@ -2196,7 +2191,7 @@ void ord_LoadStatistics(void *p)
     for (i = 0; i < 5; i++)
         sum[i] = 0;
     for (j = 0; j < 768; j++) {
-        if (ORD_CHARS[j].id != 0xffff && ORD_CHARKINDS[j].kind < 10 && ORD_CHARKINDS[j].health > 0) {
+        if (ai_Chars[j].id != 0xffff && ORD_CHARKINDS[j].kind < 10 && ORD_CHARKINDS[j].health > 0) {
             n++;
             w += ORD_CHARKINDS[j].level * 5;
             for (i = 0; i < 5; i++)
@@ -2314,7 +2309,7 @@ void ord_UpdateMessageEvent(void)
         }
         if (r.phase == 1) {
             msg.kind = 0x59;
-            msg.netId = ORD_CHAR(ai_PlayerChar)->netId;
+            msg.netId = ai_PlayerChar->netId;
             msg.target = -1;
             msg.time = ai_Time;
             msg.mode = 2;
@@ -2328,7 +2323,7 @@ void ord_UpdateMessageEvent(void)
             cm_SendLongMessage((char *)&msg);
         } else if (r.phase == 2) {
             msg.kind = 0x4e;
-            msg.netId = ORD_CHAR(ai_PlayerChar)->netId;
+            msg.netId = ai_PlayerChar->netId;
             msg.target = -1;
             msg.value = -1;
             msg.mode = 1;
@@ -2342,7 +2337,7 @@ void ord_UpdateMessageEvent(void)
             cm_SendLongMessage((char *)&msg);
         } else if (r.phase == 3) {
             msg.kind = 0x50;
-            msg.netId = ORD_CHAR(ai_PlayerChar)->netId;
+            msg.netId = ai_PlayerChar->netId;
             msg.target = -1;
             msg.time = ai_Time;
             msg.mode = 2;
@@ -2397,19 +2392,19 @@ float ord_BuildingCapacityRatio(void)
     int a;
     int b;
     int i;
-    char *p;
-    char *r;
+    AIBLD *p;
+    AIBTYPE *r;
 
     a = 0;
     b = 0;
-    p = ai_Blds + 0xa9;
+    p = &ai_Blds[1];
     for (i = 0; i < 0x20; i++) {
-        if (*p != 0) {
-            r = ai_BTypes + (unsigned char)*p * 0x24d;
-            a += (unsigned char)r[0x247];
-            b += (unsigned char)r[0x248];
+        if (p->type != 0) {
+            r = &ai_BTypes[p->type];
+            a += r->level;
+            b += r->maxLevel;
         }
-        p += 0xa9;
+        p++;
     }
     if (b != 0)
         return (float)a / b;
@@ -2471,40 +2466,40 @@ void ord_ReportStatistics(void)
         ids[2] = 0x1c01;
         ids[3] = 0x1c07;
         if (m < 0.3) {
-            txt_Format(tierText, "%s%s", ids[k], ids[k] + 1);
+            txt_Format(tierText, (intptr_t)"%s%s", ids[k], ids[k] + 1);
             any = 1;
         } else if (m < 0.5) {
-            txt_Format(tierText, "%s%s", ids[k + 2], ids[k + 2] + 1);
+            txt_Format(tierText, (intptr_t)"%s%s", ids[k + 2], ids[k + 2] + 1);
             any = 1;
         } else {
-            txt_Format(tierText, "%s%s", ids[k + 4], ids[k + 4] + 1);
+            txt_Format(tierText, (intptr_t)"%s%s", ids[k + 4], ids[k + 4] + 1);
             any = 1;
         }
     }
     if (d > 0.55) {
         txt_Format(sentence, 0x1c0d, txt0, txt1, txt2, txt3, 0x1c0e);
         for (i = 0; i < 768; i++)
-            if (ORD_CHARS[i].kind == 6) {
-                he_ShowNews(ORD_CHARS[i].netId, -1, sentence, 1, 0x5f8, 0);
+            if (ai_Chars[i].kind == 6) {
+                he_ShowNews(ai_Chars[i].netId, -1, sentence, 1, 0x5f8, 0);
                 if (any)
-                    he_ShowNews(ORD_CHARS[i].netId, -1, tierText, 0, 0x5f8, 0);
+                    he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
             }
         return;
     }
     if (d < 0.45) {
         txt_Format(sentence, 0x1c0f, txt0, txt1, txt2, txt3, 0x1c10);
         for (i = 0; i < 768; i++)
-            if (ORD_CHARS[i].kind == 6) {
-                he_ShowNews(ORD_CHARS[i].netId, -1, sentence, 1, 0x5f8, 0);
+            if (ai_Chars[i].kind == 6) {
+                he_ShowNews(ai_Chars[i].netId, -1, sentence, 1, 0x5f8, 0);
                 if (any)
-                    he_ShowNews(ORD_CHARS[i].netId, -1, tierText, 0, 0x5f8, 0);
+                    he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
             }
         return;
     }
     if (any) {
         for (i = 0; i < 768; i++)
-            if (ORD_CHARS[i].kind == 6)
-                he_ShowNews(ORD_CHARS[i].netId, -1, tierText, 0, 0x5f8, 0);
+            if (ai_Chars[i].kind == 6)
+                he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
     }
 }
 /* 0x4f9c00, advances the float 0x6f1b9c by the time since the stamp 0x91b470 (14 bytes, the layout of the clock 0x770ae0): 0x4fe280 (stamp, clock) gives the elapsed steps k; no step: the stamp is set to the clock; otherwise, when the float 0x6f1ba0 is not 0 and the clock's hour (word at +4) is between 7 and 0x14, 0x6f1b9c += k * the float 0x91aaf4, clamped to 0x6f1ba0 * 0.25, and the stamp = the clock */
@@ -2586,6 +2581,6 @@ float ord_GetStatistics(int *o)
     if (o == 0)
         return 0.0f;
     memcpy(o, &ord_Statistics, 0x28);
-    o[6] = ORD_RATINGBASE_BITS;
+    ((ORDSTATS *)o)->base = ai_RatingBase;
     return ((ORDSTATS *)o)->score;
 }

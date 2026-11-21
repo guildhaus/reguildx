@@ -22,10 +22,6 @@
 #include "lc.h"
 #include "amt_ai.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-#define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
-#define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 #define AI_PARTNER_FILTER_MINOR_SERVANT 0x600c00  /* the ai_PassesPartnerFilter bits of the 0x15 / 0x16 messages: underage (0x400), office +0x166/+0x169 (0x800), kind 5 (0x200000) or works for a master (0x400000) */
 #define AI_PARTNER_FILTER_MINOR_SERVANT_MALE 0x600c01  /* as AI_PARTNER_FILTER_MINOR_SERVANT and a male candidate: bit 0 rejects sex 1 (AICHAR.sex 0 male / 1 female) */
 #define GAPDATA __declspec(align(1)) unsigned char
@@ -99,8 +95,8 @@ int ai_MsgOfficeApplicantPayment(G14MSG *m)
             goto found;
         if (r[i].state == 3 && r[i].cnt != 0) {
             for (j = 0; j < 768; j++) {
-                if (ai_CharsT[j].appliedOffice == r[i].kind && (ai_CharsT[j].kind == 3 || ai_CharsT[j].kind == 4)) {
-                    p = &ai_CharsT[j];
+                if (ai_Chars[j].appliedOffice == r[i].kind && (ai_Chars[j].kind == 3 || ai_Chars[j].kind == 4)) {
+                    p = &ai_Chars[j];
                     break;
                 }
             }
@@ -413,7 +409,9 @@ int ai_MsgPayPct1to3BuildingType11(G14MSG *m)
     AICHAR *c;
     double k;
     LARGE_INTEGER mask;
-    int v, r, o;
+    int v;
+    AIBLD *r;
+    int o;
     char buf[0x200];
 
     c = gm_FindChar(m->id);
@@ -423,7 +421,7 @@ int ai_MsgPayPct1to3BuildingType11(G14MSG *m)
         return 0x400;
     mask.LowPart = 1 << 22;  /* 0x400000: the building kind bit of the filter */
     mask.HighPart = 0;
-    if (!ai_PickActionBuilding((AIPER *)c, 6, mask.QuadPart, 0, 100.0f, &o))
+    if (!ai_PickActionBuilding(c, 6, mask.QuadPart, 0, 100.0f, &o))
         return 0x400;
     if (!gm_FindById(&r, 0, 0, o))
         return 0x400;
@@ -491,9 +489,9 @@ int ai_MsgPartnerRelation4to10Type15(G14MSG *m)
     if (c == 0)
         return 1;
     fl = AI_PARTNER_FILTER_MINOR_SERVANT;  /* the partner filter bits of ai_PassesPartnerFilter */
-    if (!ai_FindPartnersRandomWalk((AIPER *)c, 1, &fl, 0.0f, 100.0f, &id))
+    if (!ai_FindPartnersRandomWalk(c, 1, &fl, 0.0f, 100.0f, &id))
         return 0x400;
-    p = &ai_CharsT[id];
+    p = &ai_Chars[id];
     n = util_Random(4) * 2 + 4;
     cm_SendRelations(c->netId, p->netId, n, 1);
     txt_Format(buf, m->type + 0x12e7, p->id, p->id);
@@ -514,9 +512,9 @@ int ai_MsgPartnerRelation6to14Type16(G14MSG *m)
     if (c == 0)
         return 1;
     fl = AI_PARTNER_FILTER_MINOR_SERVANT;
-    if (!ai_FindPartnersRandomWalk((AIPER *)c, 1, &fl, 33.0f, 100.0f, &id))
+    if (!ai_FindPartnersRandomWalk(c, 1, &fl, 33.0f, 100.0f, &id))
         return 0x400;
-    p = &ai_CharsT[id];
+    p = &ai_Chars[id];
     n = util_Random(5) * 2 + 6;
     cm_SendRelations(c->netId, p->netId, n, 1);
     txt_Format(buf, m->type + 0x12e7, p->id, p->id);
@@ -537,9 +535,9 @@ int ai_MsgPartnerRelation6to18Type17(G14MSG *m)
     if (c == 0)
         return 1;
     fl = AI_PARTNER_FILTER_MINOR_SERVANT_MALE;
-    if (!ai_FindPartnersRandomWalk((AIPER *)c, 1, &fl, 33.0f, 100.0f, &id))
+    if (!ai_FindPartnersRandomWalk(c, 1, &fl, 33.0f, 100.0f, &id))
         return 0x400;
-    p = &ai_CharsT[id];
+    p = &ai_Chars[id];
     n = util_Random(7) * 2 + 6;
     cm_SendRelations(c->netId, p->netId, n, 1);
     txt_Format(buf, m->type + 0x12e7, p->id, p->id);
@@ -567,7 +565,7 @@ int ai_MsgBuildingOwnerRelationsType18(G14MSG *m)
         return 0x400;
     for (b = gm_BuildQuery(1, 5, 7); b != 0 && n < 16; b = gm_BuildNext()) {
         if (b->owner != 0xffff)
-            ids[n++] = ai_CharsT[b->owner].netId;
+            ids[n++] = ai_Chars[b->owner].netId;
     }
     if (n == 0)
         return 0x400;
@@ -607,8 +605,8 @@ int ai_MsgOfficeGroupRelationsType19(G14MSG *m)
     if (c->secondOffice >= 0x1e && c->secondOffice <= 0x21 && (g = gm_TitleGroup(c->jobId)) != 0
         && !ai_InventoryHas(c, 0x290)) {
         for (i = 0; i < 768; i++) {
-            if (ai_CharsT[i].kind != 6 && ai_CharsT[i].kind != 7 && g == gm_TitleGroup(ai_CharsT[i].jobId))
-                cm_SendRelations(c->netId, ai_CharsT[i].netId, util_Random(8) + 1, 1);
+            if (ai_Chars[i].kind != 6 && ai_Chars[i].kind != 7 && g == gm_TitleGroup(ai_Chars[i].jobId))
+                cm_SendRelations(c->netId, ai_Chars[i].netId, util_Random(8) + 1, 1);
         }
         k = util_Random(4) + 1.0;
         v = (int)(gm_GetWorth(c->id) * k * 0.01);
@@ -645,9 +643,9 @@ int ai_MsgPartnerRelationMinus6to14Type1a(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     fl = AI_PARTNER_FILTER_MINOR_SERVANT;
-    if (!ai_FindPartnersRandomWalk((AIPER *)c, 1, &fl, 0.0f, 100.0f, &id))
+    if (!ai_FindPartnersRandomWalk(c, 1, &fl, 0.0f, 100.0f, &id))
         return 0x400;
-    p = &ai_CharsT[id];
+    p = &ai_Chars[id];
     n = util_Random(5) * 2 + 6;
     cm_SendRelations(c->netId, p->netId, -n, 1);
     txt_Format(buf, m->type + 0x12e7, p->id, p->id, p->id);
@@ -670,9 +668,9 @@ int ai_MsgPartnerRelationMinus10to38Type1b(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     fl = AI_PARTNER_FILTER_MINOR_SERVANT;
-    if (!ai_FindPartnersRandomWalk((AIPER *)c, 1, &fl, 0.0f, 100.0f, &id))
+    if (!ai_FindPartnersRandomWalk(c, 1, &fl, 0.0f, 100.0f, &id))
         return 0x400;
-    p = &ai_CharsT[id];
+    p = &ai_Chars[id];
     if (p == 0)
         return 0x400;
     n = util_Random(15) * 2 + 10;
@@ -696,9 +694,9 @@ int ai_MsgPartnerRelationMinus4to18Type1c(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     fl = AI_PARTNER_FILTER_MINOR_SERVANT;
-    if (!ai_FindPartnersRandomWalk((AIPER *)c, 1, &fl, 0.0f, 100.0f, &id))
+    if (!ai_FindPartnersRandomWalk(c, 1, &fl, 0.0f, 100.0f, &id))
         return 0x400;
-    p = &ai_CharsT[id];
+    p = &ai_Chars[id];
     n = util_Random(8) * 2 + 4;
     cm_SendRelations(c->netId, p->netId, -n, 1);
     txt_Format(buf, m->type + 0x12e7, p->id, p->id);
@@ -734,8 +732,8 @@ int ai_MsgWorkerHealthLossType1d(G14MSG *m)
     k = 0;
     b = a[util_Random(n)];
     for (i = 0; i < 768 && k < 6; i++) {
-        if (ai_CharsT[i].kind != 0xffff && ai_CharsT[i].bld == b && ai_CharsT[i].title != 0)
-            a[k++] = &ai_CharsT[i];
+        if (ai_Chars[i].kind != 0xffff && ai_Chars[i].bld == b && ai_Chars[i].title != 0)
+            a[k++] = &ai_Chars[i];
     }
     if (k != 0)
         p = a[util_Random(k)];
@@ -778,8 +776,8 @@ int ai_MsgWorkerKilledType1e(G14MSG *m)
     k = 0;
     b = a[util_Random(n)];
     for (i = 0; i < 768 && k < 6; i++) {
-        if (ai_CharsT[i].kind != 0xffff && ai_CharsT[i].bld == b && ai_CharsT[i].title != 0)
-            a[k++] = &ai_CharsT[i];
+        if (ai_Chars[i].kind != 0xffff && ai_Chars[i].bld == b && ai_Chars[i].title != 0)
+            a[k++] = &ai_Chars[i];
     }
     if (k > 2) {
         s = util_Random(k);
@@ -824,7 +822,7 @@ int ai_MsgWorkerOwnHealthLossType1f(G14MSG *m)
     w = -1;
     b = a[util_Random(n)];
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].kind != 0xffff && ai_CharsT[i].bld == b && ai_CharsT[i].title != 0)
+        if (ai_Chars[i].kind != 0xffff && ai_Chars[i].bld == b && ai_Chars[i].title != 0)
             w = i;
     }
     if (w == -1 || b == 0)
@@ -901,9 +899,9 @@ int ai_MsgCartFillDropType22(G14MSG *m)
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
         o = (AIOBJ *)gm_FindObjectInst(j->u.id);
         if (o != 0 && o->fightSide == c->id) {
-            gm_FindById((int *)&u, 0, 0, j->id3);
-            gm_FindById((int *)&w, 0, 0, j->id2);
-            if ((u != 0 && gm_IsHomeType((unsigned char *)u)) || (w != 0 && gm_IsHomeType((unsigned char *)w))) {
+            gm_FindById(&u, 0, 0, j->id3);
+            gm_FindById(&w, 0, 0, j->id2);
+            if ((u != 0 && gm_IsHomeType(u)) || (w != 0 && gm_IsHomeType(w))) {
                 if ((w != 0 && u != 0 && w->type == 0x47) || u->type == 0x47) {
                     js[n] = j;
                     os[n] = o;
@@ -917,16 +915,16 @@ int ai_MsgCartFillDropType22(G14MSG *m)
     r = util_Random(n);
     j = js[r];
     o = os[r];
-    gm_FindById((int *)&w, 0, 0, j->id2);
-    gm_FindById((int *)&u, 0, 0, j->id3);
+    gm_FindById(&w, 0, 0, j->id2);
+    gm_FindById(&u, 0, 0, j->id3);
     v = (unsigned char)(o->fill * ((util_Random(0x23) + 0x3c) * 0.01f));
     cm_BeginFieldBlock((char *)o, o->objId);
     cm_AddFieldDelta(1, 1, 0x12, &v);
     cm_SendFieldDeltas();
     if (w->type == 0x47)
-        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot], ai_PlayerSlots[0]);
+        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot].name, ai_PlayerSlots[0].name);
     else
-        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0], ai_PlayerSlots[u->playerSlot]);
+        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0].name, ai_PlayerSlots[u->playerSlot].name);
     he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x603, 0);
     return 0;
 }
@@ -954,9 +952,9 @@ int ai_MsgJobTime(G14MSG *m)
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
         o = (AIOBJ *)gm_FindObjectInst(j->u.id);
         if (o != 0 && o->fightSide == c->id) {
-            gm_FindById((int *)&u, 0, 0, j->id3);
-            gm_FindById((int *)&w, 0, 0, j->id2);
-            if ((u != 0 && gm_IsHomeType((unsigned char *)u)) || (w != 0 && gm_IsHomeType((unsigned char *)w))) {
+            gm_FindById(&u, 0, 0, j->id3);
+            gm_FindById(&w, 0, 0, j->id2);
+            if ((u != 0 && gm_IsHomeType(u)) || (w != 0 && gm_IsHomeType(w))) {
                 if ((w != 0 && u != 0 && w->type == 0x47) || u->type == 0x47) {
                     js[n] = j;
                     os[n] = o;
@@ -971,18 +969,18 @@ int ai_MsgJobTime(G14MSG *m)
     j = js[r];
     o = os[r];
     s = (int)gm_ItemPrice(o->id, o->fill);
-    for (e = (AIOBJ *)gm_Query(o->list, 2, 5, 6); e != 0; e = (AIOBJ *)gm_QueryNext())
+    for (e = gm_Query(o->list, 2, 5, 6); e != 0; e = gm_QueryNext())
         s = (int)(gm_ItemPrice(e->id, o->fill) * e->count + s);
     j->end = ai_Time;
     cm_SendMoveObject(-1, -1, o->objId);
     cm_SendExSetHE(-1, j);
-    gm_FindById((int *)&w, 0, 0, j->id2);
-    gm_FindById((int *)&u, 0, 0, j->id3);
+    gm_FindById(&w, 0, 0, j->id2);
+    gm_FindById(&u, 0, 0, j->id3);
     if (w != 0 && u != 0) {
         if (w->type == 0x47)
-            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot], ai_PlayerSlots[0], s);
+            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot].name, ai_PlayerSlots[0].name, s);
         else
-            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0], ai_PlayerSlots[u->playerSlot], s);
+            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0].name, ai_PlayerSlots[u->playerSlot].name, s);
         he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x5ef, 0);
     }
     return 0;
@@ -1006,11 +1004,11 @@ int ai_MsgJobEndPlayerType24(G14MSG *m)
     if (c == 0)
         return 1;
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
-        gm_FindById(0, (int *)&o, 0, j->u.id);
+        gm_FindById(0, &o, 0, j->u.id);
         if (o != 0 && o->fightSide == c->id) {
-            gm_FindById((int *)&u, 0, 0, j->id3);
-            gm_FindById((int *)&w, 0, 0, j->id2);
-            if ((u != 0 && gm_IsHomeType((unsigned char *)u)) || (w != 0 && gm_IsHomeType((unsigned char *)w))) {
+            gm_FindById(&u, 0, 0, j->id3);
+            gm_FindById(&w, 0, 0, j->id2);
+            if ((u != 0 && gm_IsHomeType(u)) || (w != 0 && gm_IsHomeType(w))) {
                 if (w->type == 0x47 || u->type == 0x47) {
                     js[n] = j;
                     os[n] = o;
@@ -1024,13 +1022,13 @@ int ai_MsgJobEndPlayerType24(G14MSG *m)
     n = util_Random(n);
     j = js[n];
     o = os[n];
-    gm_FindById((int *)&w, 0, 0, j->id2);
-    gm_FindById((int *)&u, 0, 0, j->id3);
+    gm_FindById(&w, 0, 0, j->id2);
+    gm_FindById(&u, 0, 0, j->id3);
     if (w->type == 0x47)
-        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot], ai_PlayerSlots[0], ai_PlayerSlots[0]);
+        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot].name, ai_PlayerSlots[0].name, ai_PlayerSlots[0].name);
     else
-        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0], ai_PlayerSlots[u->playerSlot],
-                     ai_PlayerSlots[u->playerSlot]);
+        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0].name, ai_PlayerSlots[u->playerSlot].name,
+                     ai_PlayerSlots[u->playerSlot].name);
     he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x5ef, 0);
     return 0;
 }
@@ -1056,11 +1054,11 @@ int ai_MsgJobEndPayType25(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
-        gm_FindById(0, (int *)&o, 0, j->u.id);
+        gm_FindById(0, &o, 0, j->u.id);
         if (o != 0 && o->fightSide == c->id) {
-            gm_FindById((int *)&u, 0, 0, j->id3);
-            gm_FindById((int *)&w, 0, 0, j->id2);
-            if ((u != 0 && gm_IsHomeType((unsigned char *)u)) || (w != 0 && gm_IsHomeType((unsigned char *)w))) {
+            gm_FindById(&u, 0, 0, j->id3);
+            gm_FindById(&w, 0, 0, j->id2);
+            if ((u != 0 && gm_IsHomeType(u)) || (w != 0 && gm_IsHomeType(w))) {
                 if ((w != 0 && u != 0 && w->type == 0x47) || u->type == 0x47) {
                     js[n] = j;
                     os[n] = o;
@@ -1077,13 +1075,13 @@ int ai_MsgJobEndPayType25(G14MSG *m)
     n = util_Random(n);
     j = js[n];
     o = os[n];
-    gm_FindById((int *)&w, 0, 0, j->id2);
-    gm_FindById((int *)&u, 0, 0, j->id3);
+    gm_FindById(&w, 0, 0, j->id2);
+    gm_FindById(&u, 0, 0, j->id3);
     if (w != 0 && u != 0) {
         if (w->type == 0x47)
-            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0]);
+            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0].name);
         else
-            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[u->playerSlot], v);
+            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[u->playerSlot].name, v);
         he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x5ef, 0);
     }
     return 0;
@@ -1109,11 +1107,11 @@ int ai_MsgJobBothEndsType26(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
-        gm_FindById(0, (int *)&o, 0, j->u.id);
+        gm_FindById(0, &o, 0, j->u.id);
         if (o != 0 && o->fightSide == c->id) {
-            gm_FindById((int *)&u, 0, 0, j->id3);
-            gm_FindById((int *)&w, 0, 0, j->id2);
-            if ((u != 0 && gm_IsHomeType((unsigned char *)u)) || (w != 0 && gm_IsHomeType((unsigned char *)w))) {
+            gm_FindById(&u, 0, 0, j->id3);
+            gm_FindById(&w, 0, 0, j->id2);
+            if ((u != 0 && gm_IsHomeType(u)) || (w != 0 && gm_IsHomeType(w))) {
                 if ((w != 0 && u != 0 && w->type != 0x47) || u->type != 0x47) {
                     js[n] = j;
                     os[n] = o;
@@ -1128,8 +1126,8 @@ int ai_MsgJobBothEndsType26(G14MSG *m)
     n = util_Random(n);
     j = js[n];
     o = os[n];
-    gm_FindById((int *)&w, 0, 0, j->id2);
-    gm_FindById((int *)&u, 0, 0, j->id3);
+    gm_FindById(&w, 0, 0, j->id2);
+    gm_FindById(&u, 0, 0, j->id3);
     if (w != 0 && u != 0) {
         txt_Format(buf, m->type + 0x12e7, w, u, s);
         he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x5ef, 0);
@@ -1153,11 +1151,11 @@ int ai_MsgJobBothEndsType27(G14MSG *m)
     if (c == 0)
         return 1;
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
-        gm_FindById(0, (int *)&o, 0, j->u.id);
+        gm_FindById(0, &o, 0, j->u.id);
         if (o != 0 && o->fightSide == c->id) {
-            gm_FindById((int *)&u, 0, 0, j->id3);
-            gm_FindById((int *)&w, 0, 0, j->id2);
-            if ((u != 0 && gm_IsHomeType((unsigned char *)u)) || (w != 0 && gm_IsHomeType((unsigned char *)w))) {
+            gm_FindById(&u, 0, 0, j->id3);
+            gm_FindById(&w, 0, 0, j->id2);
+            if ((u != 0 && gm_IsHomeType(u)) || (w != 0 && gm_IsHomeType(w))) {
                 if (w->type != 0x47 || u->type != 0x47) {
                     js[n] = j;
                     os[n] = o;
@@ -1172,8 +1170,8 @@ int ai_MsgJobBothEndsType27(G14MSG *m)
     n = util_Random(n);
     j = js[n];
     o = os[n];
-    gm_FindById((int *)&w, 0, 0, j->id2);
-    gm_FindById((int *)&u, 0, 0, j->id3);
+    gm_FindById(&w, 0, 0, j->id2);
+    gm_FindById(&u, 0, 0, j->id3);
     if (w != 0 && u != 0) {
         txt_Format(buf, m->type + 0x12e7, w, u, s);
         he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x5ef, 0);
@@ -1207,11 +1205,11 @@ int ai_MsgJobEndDateType29(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
-        gm_FindById(0, (int *)&o, 0, j->u.id);
+        gm_FindById(0, &o, 0, j->u.id);
         if (o != 0 && o->fightSide == c->id) {
-            gm_FindById((int *)&u, 0, 0, j->id3);
-            gm_FindById((int *)&w, 0, 0, j->id2);
-            if ((u != 0 && gm_IsHomeType((unsigned char *)u)) || (w != 0 && gm_IsHomeType((unsigned char *)w))) {
+            gm_FindById(&u, 0, 0, j->id3);
+            gm_FindById(&w, 0, 0, j->id2);
+            if ((u != 0 && gm_IsHomeType(u)) || (w != 0 && gm_IsHomeType(w))) {
                 if ((u != 0 && w != 0 && w->type == 0x47) || u->type == 0x47) {
                     js[n] = j;
                     os[n] = o;
@@ -1227,15 +1225,15 @@ int ai_MsgJobEndDateType29(G14MSG *m)
     n = util_Random(n);
     j = js[n];
     o = os[n];
-    gm_FindById((int *)&w, 0, 0, j->id2);
-    gm_FindById((int *)&u, 0, 0, j->id3);
+    gm_FindById(&w, 0, 0, j->id2);
+    gm_FindById(&u, 0, 0, j->id3);
     if (w != 0 && u != 0) {
         if (w->type == 0x47)
-            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot], ai_PlayerSlots[0], &t,
-                         ai_PlayerSlots[0]);
+            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot].name, ai_PlayerSlots[0].name, &t,
+                         ai_PlayerSlots[0].name);
         else
-            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0], ai_PlayerSlots[u->playerSlot], &t,
-                         ai_PlayerSlots[u->playerSlot]);
+            txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0].name, ai_PlayerSlots[u->playerSlot].name, &t,
+                         ai_PlayerSlots[u->playerSlot].name);
         he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x5ef, 0);
     }
     return 0;
@@ -1258,11 +1256,11 @@ int ai_MsgJobEndValueType2a(G14MSG *m)
     if (c == 0)
         return 1;
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
-        gm_FindById(0, (int *)&o, 0, j->u.id);
+        gm_FindById(0, &o, 0, j->u.id);
         if (o != 0 && o->fightSide == c->id) {
-            gm_FindById((int *)&u, 0, 0, j->id3);
-            gm_FindById((int *)&w, 0, 0, j->id2);
-            if ((u != 0 && gm_IsHomeType((unsigned char *)u)) || (w != 0 && gm_IsHomeType((unsigned char *)w))) {
+            gm_FindById(&u, 0, 0, j->id3);
+            gm_FindById(&w, 0, 0, j->id2);
+            if ((u != 0 && gm_IsHomeType(u)) || (w != 0 && gm_IsHomeType(w))) {
                 if (w->type == 0x47 || u->type == 0x47) {
                     js[n] = j;
                     os[n] = o;
@@ -1277,13 +1275,13 @@ int ai_MsgJobEndValueType2a(G14MSG *m)
     n = util_Random(n);
     j = js[n];
     o = os[n];
-    gm_FindById((int *)&w, 0, 0, j->id2);
-    gm_FindById((int *)&u, 0, 0, j->id3);
+    gm_FindById(&w, 0, 0, j->id2);
+    gm_FindById(&u, 0, 0, j->id3);
     if (w->type == 0x47)
-        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot], ai_PlayerSlots[0], s, ai_PlayerSlots[0]);
+        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[w->playerSlot].name, ai_PlayerSlots[0].name, s, ai_PlayerSlots[0].name);
     else
-        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0], ai_PlayerSlots[u->playerSlot], s,
-                     ai_PlayerSlots[u->playerSlot]);
+        txt_Format(buf, m->type + 0x12e7, ai_PlayerSlots[0].name, ai_PlayerSlots[u->playerSlot].name, s,
+                     ai_PlayerSlots[u->playerSlot].name);
     he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x5ef, 0);
     return 0;
 }
@@ -1318,8 +1316,8 @@ int ai_MsgWorkerStop(G14MSG *m)
     k = 0;
     b = a[util_Random(n)];
     for (i = 0; i < 768 && k < 6; i++) {
-        if (ai_CharsT[i].kind == 0 && ai_CharsT[i].bld == b && ai_CharsT[i].title != 0)
-            a[k++] = &ai_CharsT[i];
+        if (ai_Chars[i].kind == 0 && ai_Chars[i].bld == b && ai_Chars[i].title != 0)
+            a[k++] = &ai_Chars[i];
     }
     if (k > 2)
         p = a[util_Random(k)];
@@ -1368,8 +1366,8 @@ int ai_MsgWorkerTitleType2c(G14MSG *m)
     k = 0;
     b = a[util_Random(n)];
     for (i = 0; i < 768 && k < 6; i++) {
-        if (ai_CharsT[i].kind == 0 && ai_CharsT[i].bld == b && ai_CharsT[i].title != 0)
-            a[k++] = &ai_CharsT[i];
+        if (ai_Chars[i].kind == 0 && ai_Chars[i].bld == b && ai_Chars[i].title != 0)
+            a[k++] = &ai_Chars[i];
     }
     if (k > 1)
         p = a[util_Random(k)];
@@ -1410,9 +1408,9 @@ int ai_MsgFreeBuildingObjectType2e(G14MSG *m)
     k = 0;
     r = util_Random(0x14) + 0x19;
     b = a[util_Random(n)];
-    t = &ai_BTypesT[b->type];
+    t = &ai_BTypes[b->type];
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].kind == 0 && ai_CharsT[i].bld == b) {
+        if (ai_Chars[i].kind == 0 && ai_Chars[i].bld == b) {
             if (gm_Liking(c->id, i, 1) < r)
                 goto none;
             if (++k >= t->k231 + t->k232)
@@ -1428,7 +1426,7 @@ int ai_MsgFreeBuildingObjectType2e(G14MSG *m)
         msg.fromId = b->id;
         msg.flags = 1;
         msg.n = msg.fromId;
-        msg.to = ai_CharsT[ai_PlayerId].netId;
+        msg.to = ai_Chars[ai_PlayerId].netId;
         msg.time = ai_Time;
         /* the text id at 0x64 is the message's 16-bit news text field (freeBuilding.textId) */
         msg.freeBuilding.textId = m->type + 0x12e7;
@@ -1464,8 +1462,8 @@ int ai_MsgWorkerAddSkillType2f(G14MSG *m)
         return 0x400;
     b = a[util_Random(n)];
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].kind == 1 && ai_CharsT[i].bld == b) {
-            p = &ai_CharsT[i];
+        if (ai_Chars[i].kind == 1 && ai_Chars[i].bld == b) {
+            p = &ai_Chars[i];
             break;
         }
     }
@@ -1504,8 +1502,8 @@ int ai_MsgWorkerLoseSkillType30(G14MSG *m)
         return 0x400;
     b = a[util_Random(n)];
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].kind == 1 && ai_CharsT[i].bld == b) {
-            p = &ai_CharsT[i];
+        if (ai_Chars[i].kind == 1 && ai_Chars[i].bld == b) {
+            p = &ai_Chars[i];
             break;
         }
     }
@@ -1566,8 +1564,8 @@ int ai_MsgBuildingGetsItemType31(G14MSG *m)
         }
     }
     for (i = lo; i < hi; i += d) {
-        if (ai_CharsT[i].kind != 6 && ai_CharsT[i].kind != 7 && ai_CharsT[i].kind < 10 && ai_CharsT[i].id != 0xffff) {
-            a[k++] = &ai_CharsT[i];
+        if (ai_Chars[i].kind != 6 && ai_Chars[i].kind != 7 && ai_Chars[i].kind < 10 && ai_Chars[i].id != 0xffff) {
+            a[k++] = &ai_Chars[i];
             if (k == 16)
                 break;
         }
@@ -1708,7 +1706,7 @@ int ai_MsgLoseGood(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     for (e = gm_Query(c->inventory, 1, 5); e != 0 && n < 6; e = gm_QueryNext()) {
-        if (ai_GoodsT[e->id].type != 9)
+        if (ai_Goods[e->id].type != 9)
             a[n++] = e;
     }
     if (n == 0)
@@ -1794,7 +1792,7 @@ int ai_MsgPayPct1to4Type3c(G14MSG *m)
     c = gm_FindChar(m->id);
     if (c == 0)
         return 1;
-    if (c->v02c == 0)
+    if (c->ailments == 0)
         return 0x400;
     k = util_Random(4) + 1.0;
     v = (int)(gm_GetWorth(c->id) * k * 0.01);
@@ -1817,7 +1815,7 @@ int ai_MsgSeasonAilingType3d(G14MSG *m)
     c = gm_FindChar(m->id);
     if (c == 0)
         return 1;
-    if (c->v02c == 0)
+    if (c->ailments == 0)
         return 0x400;
     t = ai_Time;
     gm_ClockToDate(&t, d);

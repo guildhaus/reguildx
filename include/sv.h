@@ -2,6 +2,8 @@
    selection, the clock): its functions and data as the definitions spell them. Names are ours. */
 #ifndef SV_H
 #define SV_H
+struct AIOBJ;
+#include "portable.h"                /* intptr_t: a text id or a string in one parameter */
 
 #include "sv_types.h"
 #include <windows.h>                    /* MSG (sv_Message) */
@@ -13,11 +15,12 @@ typedef struct SVSKYREC {               /* 0x4c bytes, a sky layer: the texture 
     float voffset;                      /* +0x48, -0.25 */
 } SVSKYREC;
 #pragma pack(push, 1)
-typedef struct SVDAYPHASE {             /* 10 bytes, a phase of the day in sv_DayTables (sv_FillDayPhases) */
-    char hour;                          /* +0 */
-    char min;                           /* +1 */
-    int sec;                            /* +2, the second of the day it starts at */
-    char pad6[4];                       /* +6, 0 (the last phase's are the first sky key's colour) */
+typedef struct SVDAYPHASE {             /* 10 bytes, a phase of the day in sv_DayPhases (sv_FillDayPhases) */
+    int unk0;                           /* +0, 0 in every record, no reader known (the table starts at 0x623ba4: six
+                                           records end exactly at the sky keys 0x623be0) */
+    char hour;                          /* +4 */
+    char min;                           /* +5 */
+    int sec;                            /* +6, the second of the day it starts at */
 } SVDAYPHASE;
 #pragma pack(pop)
 typedef struct SVACTIVITY {             /* 0x20 bytes, an activity of sv_Activities (sv_RegisterActivity; the he.c scripts
@@ -35,15 +38,15 @@ void sv_UpdateFramesPerTick(void);                                      /* 0x520
 void sv_InitTick(void);                                                 /* 0x520ee0 */
 void sv_UnregisterTick(void);                                           /* 0x520f10 */
 void sv_ResetScreenClip(void);                                          /* 0x520f20 */
-int sv_CheckMoney(char *o, int n);                                      /* 0x520f90 */
-int sv_CheckCharacterFlag(int id);                                      /* 0x520fe0 */
-int sv_CheckGoodAmount(char *o, int n, unsigned char t);                     /* 0x521040 */
-int sv_CheckStock(short *p, int stock, int n, unsigned char t);           /* 0x5210a0 */
-int sv_MessageBox(int text, unsigned flags);                            /* 0x521150 */
-int sv_MessageBoxGreen(int a, int b, unsigned flags);                   /* 0x521410 */
-int sv_MessageBoxYesNo(int text, unsigned flags);                       /* 0x5216a0 */
+int sv_CheckMoney(struct AICHAR *o, int n);                                      /* 0x520f90 */
+int sv_CheckCharacterFlag(struct AIBLD *id);                                      /* 0x520fe0 */
+int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);                     /* 0x521040 */
+int sv_CheckStock(short *p, struct AIOBJ *stock, int n, unsigned char t);           /* 0x5210a0 */
+int sv_MessageBox(intptr_t text, unsigned flags);                            /* 0x521150 */
+int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags);                   /* 0x521410 */
+int sv_MessageBoxYesNo(intptr_t text, unsigned flags);                       /* 0x5216a0 */
 int sv_OpenMessageBox(int text, unsigned char flags);                   /* 0x521900 */
-void sv_SelectPanelObject(unsigned char *o, int b, char *c);            /* 0x521960 */
+void sv_SelectPanelObject(struct AIBLD *o, int b, char *c);             /* 0x521960 */
 void sv_DrawPanelPointer(void);                                         /* 0x521ba0 */
 void sv_SceneLoadProgress(int kind, int cur, int total);                /* 0x521c10 */
 void sv_BuildScreenLayout(int s);                                       /* 0x521e70 */
@@ -53,19 +56,19 @@ void sv_ClosePanelWidgets(void);                                                
 void sv_DestroyScreen(void);                                            /* 0x5223c0 */
 void sv_LoadGroundplan(void);                                                /* 0x5224a0 */
 void sv_UpdateGroundplan(unsigned flags);                                      /* 0x5229b0 */
-void sv_SetResearchClass(unsigned char *o);                             /* 0x522ec0 */
+void sv_SetResearchClass(struct AIBLD *o);                             /* 0x522ec0 */
 void sv_UpdateCityPanel(unsigned char a, int b);                              /* 0x522f10 */
 void sv_RedrawScreen(void);                                             /* 0x524010 */
-void sv_AddGroupMember(int c, char *g);                                      /* 0x524100 */
-void sv_RemoveGroupMember(int c, char *g);                              /* 0x524160 */
-int sv_UsedGroupSlots(char *g);                                         /* 0x5241b0 */
-void sv_CountGroupMembers(char *g);                                     /* 0x5241d0 */
-void sv_MoveToGroup(unsigned char *o, short *it, int c, char *g);       /* 0x524260 */
-int sv_IsAtDoor(char *g, char *o);                                     /* 0x524770 */
-int sv_IsCartAtDoor(char *g, unsigned char *o);                            /* 0x524810 */
-int sv_CharStateIcons(char *c, int *out);                                    /* 0x524900 */
-void sv_UpdateMemberList(unsigned char *g);                                    /* 0x524990 */
-void sv_OpenPlayerBar(int a, char k);                                   /* 0x525220 */
+struct AIJOB; void sv_AddGroupMember(int c, struct AIJOB *g);                                      /* 0x524100 */
+void sv_RemoveGroupMember(int c, struct AIJOB *g);                              /* 0x524160 */
+int sv_UsedGroupSlots(struct AIJOB *g);                                         /* 0x5241b0 */
+void sv_CountGroupMembers(struct AIJOB *g);                                     /* 0x5241d0 */
+void sv_MoveToGroup(struct AIBLD *o, struct AIOBJ *it, int c, struct AIJOB *g);       /* 0x524260 */
+int sv_IsAtDoor(struct AICHAR *g, struct AIBLD *o);                                     /* 0x524770 */
+int sv_IsCartAtDoor(char *g, struct AIBLD *o);                            /* 0x524810 */
+int sv_CharStateIcons(struct AICHAR *c, int *out);                                    /* 0x524900 */
+void sv_UpdateMemberList(struct AIBLD *g);                                    /* 0x524990 */
+void sv_OpenPlayerBar(struct AIBLD *a, char k);                                   /* 0x525220 */
 void sv_ClosePlayerBar(void);                                           /* 0x525440 */
 int sv_ClockSeason(void *t);                                            /* 0x525480 */
 char sv_SetSkyLightColors(struct D3OBJECT *o, void *ctx);                                           /* 0x525490 */
@@ -80,21 +83,21 @@ void sv_BorderCameraView(void);                                                /
 int sv_ScrollCamera(void);                                                 /* 0x5263a0 */
 int sv_MouseCamera(void);                                                 /* 0x526cf0 */
 int sv_UpdateCamera(void);                                                 /* 0x527640 */
-void sv_FlyCameraToObject(int o);                                               /* 0x527840 */
-void sv_CameraToObject(int o);                                               /* 0x527bb0 */
+void sv_FlyCameraToObject(struct AIBLD *o);                                               /* 0x527840 */
+void sv_CameraToObject(struct AIBLD *o);                                               /* 0x527bb0 */
 void sv_FlyCameraToModel(int m);                                               /* 0x527e90 */
 void sv_MoveCameraToView(void);                                                /* 0x528140 */
 struct D3OBJECT; struct AIBLD; char sv_CreateBannerCB(struct D3OBJECT *part, struct AIBLD *b);                             /* 0x528180 */
 char sv_ColourBannerCB(struct D3OBJECT *o, struct AIBLD *b);                                    /* 0x528290 */
-void sv_CreateBanners(char *b);                                             /* 0x5282f0 */
+void sv_CreateBanners(struct AIBLD *b);                                             /* 0x5282f0 */
 void sv_ColourBanners(int c);                                               /* 0x528390 */
 struct AIBLD; void sv_UpdateChimneySmoke(struct AIBLD *b);                                /* 0x528490 */
 char sv_CollectBannerCB(char *o, int *p);                                     /* 0x528660 */
-void sv_RemoveBanners(char *b);                                             /* 0x5286a0 */
+void sv_RemoveBanners(struct AIBLD *b);                                             /* 0x5286a0 */
 void sv_RefreshBanners(void);                                                /* 0x528770 */
 int sv_AddPanelButton(int x, int y, int text);                               /* 0x528800 */
 struct AIBLD; void sv_OpenBuildingPanel(struct AIBLD *b);                                /* 0x528860 */
-void sv_OpenItemPanel(unsigned short *p);                                   /* 0x528b80 */
+void sv_OpenItemPanel(struct AIOBJ *p);                                   /* 0x528b80 */
 struct AIOBJ; void sv_OpenCartPanel(struct AIOBJ *c);                                /* 0x528d90 */
 void sv_OpenDefaultPanel(void);                                                /* 0x528ee0 */
 struct AICHAR; void sv_OpenPersonPanel(struct AICHAR *c);                                 /* 0x5290f0 */
@@ -106,10 +109,10 @@ void sv_HoverPick(void);                                                /* 0x52a
 void sv_ResetSelection(void);                                                /* 0x52adb0 */
 void sv_ClearSelection(void);                                           /* 0x52ae40 */
 void sv_HandleObjects(void);                                                /* 0x52ae70 */
-void sv_CollectGroupCharacters(char *b);                                /* 0x52b2a0 */
+void sv_CollectGroupCharacters(struct AIBLD *b);                                /* 0x52b2a0 */
 int sv_RegisterActivity(int kind, char *name, int dayOnly, int icon, int valueOff);            /* 0x52b350 */
 int sv_ActivityName(struct AICHAR *c, struct AIBLD *b, char *out);                 /* 0x52b3c0 */
-int sv_StartPoseScript(char *a, int b);                                       /* 0x52b490 */
+int sv_StartPoseScript(struct AICHAR *a, int b);                                       /* 0x52b490 */
 void sv_RunLocationScripts(struct AIBLD *a);                                      /* 0x52b500 */
 void sv_RunFramesUntilStopped(int id);                                              /* 0x52bb70 */
 void sv_SendSelectedToBuilding(void);                                                /* 0x52bbc0 */
@@ -154,7 +157,7 @@ void sv_BookBack(SVBOOK *bk);                                           /* 0x52f
 int sv_CreateScrollForm(void);                                                 /* 0x52fa10 */
 void sv_DestroyScrollForm(void);                                                /* 0x52fa90 */
 void sv_ScrollFormAnimate(void);                                                /* 0x52fad0 */
-void sv_PopTo(int v);                                                   /* 0x52fb50 */
+void sv_PopTo(void (*v)());                                                   /* 0x52fb50 */
 int sv_PumpMessages(void);                                              /* 0x52fb80 */
 void sv_NetworkSyncWait(unsigned fl);                                   /* 0x52fc10 */
 void sv_BroadcastText(unsigned fl, char *t);                            /* 0x52fcf0 */
@@ -166,7 +169,7 @@ void sv_UpdateWeather(void);                                                /* 0
 void sv_WeatherFrame(void);                                                /* 0x530670 */
 void sv_AdvanceGame(void);                                                /* 0x5307f0 */
 void sv_SetScreenCenter(unsigned fl);                                   /* 0x530900 */
-int sv_RunFrame(int cb, unsigned mask);                                 /* 0x5309a0 */
+int sv_RunFrame(void (*cb)(), unsigned mask);                                 /* 0x5309a0 */
 void sv_UpdateClock(void);                                              /* 0x5315c0 */
 
 extern const int sv_PhaseMinutes[24];                          /* 0x5eeab8 */
@@ -215,9 +218,7 @@ extern int sv_BarToggle;                                    /* 0x6238a4 */
 extern SVSKYREC sv_SkyFair[4];                              /* 0x6238a8 */
 extern SVSKYREC sv_SkyMedium[3];                            /* 0x6239d8 */
 extern SVSKYREC sv_SkyHeavy[3];                             /* 0x623ac0 */
-extern char sv_DayTables[278];                              /* 0x623ba8 */
-extern int ai_Unk623cc0[];                                  /* 0x623cc0 */
-extern int ai_Unk623e10[];                                  /* 0x623e10 */
+extern SVDAYPHASE sv_DayPhases[6];                          /* 0x623ba4 */
 extern int sv_LampPhase;                                    /* 0x623e80 */
 extern int sv_LoadSlider;                                    /* 0x623e84 */
 extern int sv_PanelEnabled;                                    /* 0x623e88 */
@@ -266,9 +267,9 @@ extern float sv_CameraHeightFactor;                         /* 0x6f22d4 */
 extern float sv_CameraAngleFactor;                          /* 0x6f22d8 */
 extern char * sv_FocusObject;                               /* 0x6f22ec */
 extern int sv_SelectedModel;                                    /* 0x6f2304 */
-extern char * ai_PlayerBuilding;                            /* 0x6f2308 */
-extern char * ai_FallbackBuilding;                          /* 0x6f230c */
-extern unsigned short * sv_PanelShown;                      /* 0x6f2310 */
+extern struct AIBLD *ai_PlayerBuilding;                            /* 0x6f2308 */
+extern struct AIBLD *ai_FallbackBuilding;                          /* 0x6f230c */
+extern struct AIOBJ *sv_PanelShown;                         /* 0x6f2310 */
 extern int ai_SelectedCount;                                    /* 0x6f2334 */
 extern int sv_ResearchClass;                                /* 0x6f233c */
 extern char sv_LampSwitches;                                   /* 0x6f2340 */
@@ -277,8 +278,8 @@ extern char sv_MessageBoxGreenOpen;                         /* 0x6f2351 */
 extern char sv_MessageBoxYesNoOpen;                         /* 0x6f2352 */
 extern int sv_LoadFrame;                                  /* 0x6f2354 */
 extern int sv_ScreenDirty;                                  /* 0x6f2358 */
-extern int sv_GroundplanBuilding;                                    /* 0x6f235c */
-extern int sv_GroundplanRoom;                                    /* 0x6f2360 */
+extern struct AIBLD *sv_GroundplanBuilding;                                    /* 0x6f235c */
+extern struct AIOBJ *sv_GroundplanRoom;                                 /* 0x6f2360 */
 extern int sv_BarMoved;                                   /* 0x6f2364 */
 extern char sv_PlayerBarKind;                                   /* 0x6f2368 */
 extern int sv_DayPhase;                                    /* 0x6f236c */
@@ -304,7 +305,7 @@ extern int sv_PickX;  /* 0x623e98 */
 extern int sv_PickY;  /* 0x623e9c */
 extern int sv_HoverLast;  /* 0x6f1c4c */
 extern int sv_HoverItem;  /* 0x6f22f0 */
-extern int sv_HoverBuilding;  /* 0x6f22f4 */
+extern struct AIBLD *sv_HoverBuilding;  /* 0x6f22f4 */
 extern int sv_ClickedContact;  /* 0x6f22fc */
 extern int sv_HoverContact;  /* 0x6f2300 */
 extern int sv_HoverBldPerms;  /* 0x6f2324 */
@@ -312,39 +313,39 @@ extern int sv_HoverItemPerms;  /* 0x6f2328 */
 extern int sv_HoverCharPerms;  /* 0x6f232c */
 extern int sv_PointerSpriteFor;  /* 0x6f23dc */
 extern char * sv_LastPicked;  /* 0x6f23e0 */
-extern char *sv_PermsBuilding;  /* 0x6f23e4, the building ai_BuildingPerms was last computed for */
-extern unsigned short *sv_PermsRoom;  /* 0x6f23e8, its room */
+extern struct AIBLD *sv_PermsBuilding;  /* 0x6f23e4, the building ai_BuildingPerms was last computed for */
+extern struct AIOBJ *sv_PermsRoom;    /* 0x6f23e8, its room */
 extern unsigned short sv_DisabledWidgets[0x300];  /* 0x6f1c90 */
 extern int sv_DisabledCount;  /* 0x6f23ec */
 extern unsigned char sv_BookPhase;  /* 0x6f23f0 */
 extern unsigned char sv_OtherSelected;  /* 0x6f2338 */
-extern int sv_ShownBuilding;  /* 0x6f23bc */
-extern int sv_ShownFallback;  /* 0x6f23c0 */
-extern int sv_ShownObject;  /* 0x6f23c4 */
+extern struct AIBLD *sv_ShownBuilding;  /* 0x6f23bc */
+extern struct AIBLD *sv_ShownFallback;  /* 0x6f23c0 */
+extern struct AIBLD *sv_ShownObject;  /* 0x6f23c4 */
 extern int sv_ShownRoom;  /* 0x6f23c8 */
 extern int sv_ShownItem;  /* 0x6f23cc */
-extern int sv_ShownChar;  /* 0x6f23d0 */
+extern struct AICHAR *sv_ShownChar;  /* 0x6f23d0 */
 extern int sv_ShownOther;  /* 0x6f23d4 */
 extern int sv_ShownCount;  /* 0x6f23d8 */
 extern unsigned char ai_GameState;                          /* 0x6f25ac */
 typedef struct SVQUICKJUMP SVQUICKJUMP;  /* the info panel's quick jump record: sv_quickjump.h */
 extern SVQUICKJUMP sv_QuickJump;                            /* 0x75e8c0 */
-#define sv_PanelFlag (*(int *)&sv_QuickJump)                 /* 0x75e8c0, 1 while the info panel is up: the first field of SVQUICKJUMP (panelFlag) */
-extern int sv_SelectionFlags[0xc0];                         /* 0x75e920 */
+extern unsigned char sv_SelectionFlags[0x300];               /* 0x75e920, one selection byte per character */
 extern int sv_SkyScene;                                    /* 0x75ec20 */
 extern MSG sv_Message;                                     /* 0x75ec40, the window message sv_PumpMessages reads */
 extern unsigned short * sv_SelectedItem;                       /* 0x75ec5c */
 extern SVACTIVITY sv_Activities[0x30];                          /* 0x75ec80 */
-extern int ai_Unk75f280[576];                               /* 0x75f280 */
-extern float sv_ViewPos[4];                                 /* 0x75fb80, the stored camera position (X/Y/Z views: data_views.h) */
+extern SVMEMBERROW sv_MemberRows[0x20];                     /* 0x75f280, the member list rows */
+extern SVFRAME sv_Frames[0x80];                             /* 0x75f780, the frame stack, indexed by sv_FrameDepth */
+extern float sv_ViewPos[4];                                 /* 0x75fb80, the stored camera position */
 extern float sv_ViewRot[4];                                 /* 0x75fb90, its rotation */
 extern float sv_SkyScale;                                  /* 0x760420 */
 extern SVBAND sv_Band;                                       /* 0x760440 */
 #define sv_BandActive (sv_Band.active)                          /* 0x760440 */
 extern int sv_Season;                                        /* 0x760454, the game clock's season (written by main) */
-extern int sv_ClickedBuilding;                               /* 0x760458 */
+extern struct AIBLD *sv_ClickedBuilding;                               /* 0x760458 */
 extern int sv_ClickedItem;                                   /* 0x76045c */
-extern int sv_ClickedChar;                                   /* 0x760460 */
+extern struct AICHAR *sv_ClickedChar;                                   /* 0x760460 */
 extern int sv_SkyPhase;                                    /* 0x760464 */
 extern SVCLIMATE sv_Climate;                                /* 0x760480 */
 #define sv_CloudChance (sv_Climate.cloudChance)               /* 0x760480 */
@@ -358,21 +359,14 @@ extern int sv_CityPanelOn;                                    /* 0x623eb4 */
 extern unsigned char sv_InMissionComplete;                    /* 0x6f23f1 */
 extern struct AIOBJ *sv_LastRoom;              /* 0x6f2314, the room whose handler ai_EnterBuilding ran last (cleared on entering a building) */
 extern int sv_PendingMoney;                    /* 0x6f22dc, the money the money panel adds to the player's (the credit window: the limit minus the amount chosen; the transport window: minus the goods' total) */
-extern int d3t_Snow;                                    /* 0x76061c */
-extern int d3_SkyLayers[6];                                 /* 0x760620, the sky layer handles (sv creates 0 .. 2) */
+extern struct D3TSNOW *d3t_Snow;                        /* 0x76061c, the snow system (d3t_CreateSnow) */
+extern struct D3SKYLAYER *d3_SkyLayers[6];                                 /* 0x760620, the sky layer handles (sv creates 0 .. 2) */
 extern char sv_StatusText[128];                             /* 0x761f40 */
 extern SVBUBBLE sv_Bubbles[0x40];                           /* 0x761fc0, the 64 speech bubble records */
-#ifndef DATA_VIEWS_H
-extern int sv_BubbleObjects[4286];                          /* 0x761fc8, the object field (+8) of each bubble record */
-#endif
-extern int sv_SelectedChar;                                    /* 0x7662c0 */
+extern struct AICHAR *sv_SelectedChar;                                    /* 0x7662c0 */
 extern int sv_GroundplanButtons[15];                                /* 0x7662e0 */
 extern int sv_SelectedExtra;                                       /* 0x76631c */
-extern int cm_Bombs[0x40];                                  /* 0x935c00 */
 extern int d2_HitWindow;                                    /* 0xf8aad0 */
-extern int d2_DirtyRectLeft[4];         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
-#define d2_DirtyRectTop (*(int *)((char *)&d2_DirtyRectLeft + 0x4))       /* 0xfb9064 */
-#define d2_DirtyRectRight (*(int *)((char *)&d2_DirtyRectLeft + 0x8))     /* 0xfb9068 */
-#define d2_DirtyRectBottom (*(int *)((char *)&d2_DirtyRectLeft + 0xc))    /* 0xfb906c */
+extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
 
 #endif

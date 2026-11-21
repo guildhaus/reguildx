@@ -6,7 +6,7 @@
    G13TYPE.offerSpeech, G13MIS.progress / fulfilled stand on their users (the _AUFTRAEGE_VERGABE speech,
    ai_CountMissionEvent and the completion flag of he.c 0x56ce40). AIFIN.missionMoney (ai.h) holds the five saved
    money statistics of the player record the money conditions read (no writer in the build).
-   Open: the mission conditions read AICHAR / AIBLD bytes through the G13_B view and (AIBLD *) casts of gm_BuildQuery (type debt).
+   Open: the mission conditions read AICHAR / AIBLD bytes through the G13_B view and casts of gm_BuildQuery (type debt).
    Open: not included yet (dcp headers conflicts mission HEADER): d2.h; held by own declarations that differ
    from the owner's: d2_Radios.
    unit of rea 8cef7d5b (src/game/unk_4b39f0.c); boundaries in decl/text.dcl */
@@ -28,10 +28,6 @@
 #include "sblib.h"
 #include "sv.h"
 #include "gv.h"
-#define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
-#define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 /* 0x4b39f0, clears the running missions */
 int ai_ClearMissions(void)
 {
@@ -201,8 +197,8 @@ void d2_CentreViewWindows(int view);                                            
 void d2_CloseView(int view);                                                     /* 0x4758f0 */
 int d2_SetForm(int view, int n);                                                 /* 0x475f70 */
 extern int d2_ClickedId;                /* 0xf8a668 */
-int io_PrintText(char *fmt, ...);                                                /* 0x515960, defined elsewhere */
-int sv_RunFrame(int cb, unsigned mask);                                      /* 0x5309a0, defined elsewhere */
+int io_PrintText(intptr_t fmt, ...);                                                /* 0x515960, defined elsewhere */
+int sv_RunFrame(void (*cb)(), unsigned mask);                                      /* 0x5309a0, defined elsewhere */
 int snd_PlayVoice(int id, int bank, char *text, int var);                             /* 0x4c2760, plays a speech sample */
 int sb_IsPlaying(struct SBSAMPLE *s);                                                       /* 0x426f20 */
 void sb_Stop(struct SBSAMPLE *s, int fade);                                                 /* 0x427290 */
@@ -222,14 +218,14 @@ int ai_MissionOfferDialog(int type, int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintText((char *)(t->text + 1));
-    io_PrintText("$N");
-    io_PrintText((char *)0x7d);
-    io_PrintText("$N");
-    io_PrintText((char *)0x7e);
+    io_PrintText(t->text + 1);
+    io_PrintText((intptr_t)"$N");
+    io_PrintText(0x7d);
+    io_PrintText((intptr_t)"$N");
+    io_PrintText(0x7e);
     sprintf(name, "_AUFTRAEGE_VERGABE_HS_%.2d", t->offerSpeech);
     snd = snd_PlayVoice(-7, 0, name, -1);
-    while (sv_RunFrame((void (*)(void))ai_MissionOfferDialog, id)) {
+    while (sv_RunFrame(ai_MissionOfferDialog, id)) {
         if (dm_L.rup != 0 || d2_ClickedId == 1)
             sv_PopRequest = 1;
         if (d2_ClickedId == 0) {
@@ -276,7 +272,7 @@ int ai_ChooseMissionType(int kind)
     view = d2_OpenForm(0, 0, "special\\CHOOSE_MISSION");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1ace);
+    io_PrintText(0x1ace);
     d2_SetForm(view, 2);
     win = d2_LastWindow;
     d2_SetForm(view, 0);
@@ -284,11 +280,11 @@ int ai_ChooseMissionType(int kind)
     d2_SetForm(view, 2);
     g = d2_CreateRadioGroup(0);
     for (t = ai_FindMissionType(kind, 0); t != 0; t = ai_FindMissionType(kind, t)) {
-        o = d2_GetWinObj(view, 2, io_PrintText("%ia[%s]$N", t->text));
+        o = d2_GetWinObj(view, 2, io_PrintText((intptr_t)"%ia[%s]$N", t->text));
         d2_Objs[o].user = t;
         d2_RadioAdd(g, o);
     }
-    while (sv_RunFrame((void (*)(void))ai_ChooseMissionType, 0x1c6)) {
+    while (sv_RunFrame(ai_ChooseMissionType, 0x1c6)) {
         d2_MenuNavigate(g);
         if (dm_L.rup != 0 || kb_Last == 1 || d2_ClickedId == 1)
             sv_PopRequest = 1;
@@ -337,7 +333,7 @@ int ai_ChooseMission(void)
     view = d2_OpenForm(0, 0, "Menu\\CHOOSEHISTORY");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 0);
-    first = io_PrintText((char *)0x1ac5, 0x1ac7, 0x1ac8, 0x1ac9, 0x1aca, 0x1acb, 0x1acc);
+    first = io_PrintText(0x1ac5, 0x1ac7, 0x1ac8, 0x1ac9, 0x1aca, 0x1acb, 0x1acc);
     o0 = d2_GetWinObj(view, 0, first);
     o1 = d2_GetWinObj(view, 0, first + 1);
     o2 = d2_GetWinObj(view, 0, first + 2);
@@ -345,11 +341,11 @@ int ai_ChooseMission(void)
     o4 = d2_GetWinObj(view, 0, first + 4);
     o5 = d2_GetWinObj(view, 0, first + 5);
     if (ai_NumPlayers > 1)
-        o6 = d2_GetWinObj(view, 0, io_PrintText("%it[%s]", 0, 0x1acd));
+        o6 = d2_GetWinObj(view, 0, io_PrintText((intptr_t)"%it[%s]", 0, 0x1acd));
     g = d2_CreateRadioGroup(6, o0, o1, o2, o3, o4, o5);
     d2_RadioSelect(g, 0);
-    d2_RadioAdd(g, d2_GetWinObj(view, 0, io_PrintText((char *)0x7e)));
-    while (sv_RunFrame((void (*)(void))ai_ChooseMission, sv_FrameMask)) {
+    d2_RadioAdd(g, d2_GetWinObj(view, 0, io_PrintText(0x7e)));
+    while (sv_RunFrame(ai_ChooseMission, sv_FrameMask)) {
         d2_MenuNavigate(g);
         if (dm_L.rup != 0 || kb_Last == 1 || d2_ClickedId == 1) {
             r = 0xff;
@@ -398,7 +394,7 @@ int ai_ChooseMissionFrom(int n)
     view = d2_OpenForm(0, 0, "Menu\\CHOOSEHISTORY");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 0);
-    first = io_PrintText((char *)0x1b9f);
+    first = io_PrintText(0x1b9f);
     o0 = d2_GetWinObj(view, 0, first);
     o1 = d2_GetWinObj(view, 0, first + 1);
     o2 = d2_GetWinObj(view, 0, first + 2);
@@ -429,7 +425,7 @@ int ai_ChooseMissionFrom(int n)
         sel = 0;
     }
     d2_RadioSelect(g, sel);
-    while (sv_RunFrame((void (*)(void))ai_ChooseMission, sv_FrameMask)) {
+    while (sv_RunFrame(ai_ChooseMission, sv_FrameMask)) {
         d2_MenuNavigate(g);
         if (d2_ClickedId == 0) {
             if (d2_PointerObj == o6) {
@@ -504,7 +500,7 @@ int ai_CondTitlesLeft(AICHAR *c, G13TYPE *t)
 {
     return gm_TitlesLeft(G13_B(c, 0x164)) >= t->goal;
 }
-/* 0x4b45c0, mission condition (types 3 / 10 / 24): the character's rank (byte 0x0d, AICHAR.b00d) reaches
+/* 0x4b45c0, mission condition (types 3 / 10 / 24): the character's rank (byte 0x0d, AICHAR.level) reaches
    t->goal, held for t->threshold minutes */
 
 int ai_CondRankTimed(AICHAR *c, int x, G13TYPE *t)
@@ -523,7 +519,7 @@ int ai_CondWorth(AICHAR *c, G13TYPE *t)
 
 int ai_CondMoney(AICHAR *c, G13TYPE *t)
 {
-    return gm_ConvertMoney(gm_CharCurrency((void *)c, ai_OwnPlayer), ai_OwnPlayer) >= t->goal;
+    return gm_ConvertMoney(gm_CharCurrency(c, ai_OwnPlayer), ai_OwnPlayer) >= t->goal;
 }
 /* 0x4b4670, mission condition (types 4 / 9 / 29): at least t->goal of the character's five skills (bytes
    0x80 .. 0x84, each / 42) reach t->threshold */
@@ -552,10 +548,10 @@ int gm_BuildingTypeOfJob(int k);                                                
    >= 5 whose v65 is its netId and that was created more than t->threshold minutes ago */
 int ai_CondOldBuilding(AICHAR *c, G13TYPE *t)
 {
-    ORDBLD *b;
+    AIBLD *b;
 
-    for (b = (ORDBLD *)gm_BuildQuery(2, 4, c->id, 5, 2); b != 0; b = (ORDBLD *)gm_BuildNext()) {
-        if (b->type >= 5 && b->v65 == c->netId
+    for (b = gm_BuildQuery(2, 4, c->id, 5, 2); b != 0; b = gm_BuildNext()) {
+        if (b->type >= 5 && b->ownerNetId == c->netId
             && gm_MinutesBetween(&b->created, &ai_Time) > t->threshold)
             return 1;
     }
@@ -577,7 +573,7 @@ int ai_HasThreeStockedBuildings(AICHAR *c, G13TYPE *t)
     n = 0;
     for (b = gm_BuildQuery(2, 4, c->id, 5, k); n < 3 && b != 0; b = gm_BuildNext()) {
         ok = 1;
-        bt = &ai_BTypesT[b->type];
+        bt = &ai_BTypes[b->type];
         for (j = 0; j < 0x40 && bt->slot[j] != 0; j++) {
             if (!gm_Query(b->objList, 2, 6, 0, bt->slot[j] & 0x7fff)) {
                 ok = 0;
@@ -641,9 +637,9 @@ int ai_CondCharShare(AICHAR *c, G13TYPE *t)
     n = 0;
     same = 0;
     for (i = 0; i < 0x300; i++) {
-        if (ai_CharsT[i].kind < 10) {
+        if (ai_Chars[i].kind < 10) {
             n++;
-            if (G13_B(&ai_CharsT[i], 0x0c) == G13_B(c, 0x0c))
+            if (G13_B(&ai_Chars[i], 0x0c) == G13_B(c, 0x0c))
                 same++;
         }
     }
@@ -818,8 +814,8 @@ int ai_CondPlayerHoldsNoBuilding(AICHAR *c, G13TYPE *t)
 {
     AIBLD *b;
 
-    for (b = (AIBLD *)gm_BuildQuery(1, 6); b != 0; b = gm_BuildNext()) {
-        if (b->owner != 0xffff && ai_CharsT[b->owner].kind == 5)
+    for (b = gm_BuildQuery(1, 6); b != 0; b = gm_BuildNext()) {
+        if (b->owner != 0xffff && ai_Chars[b->owner].kind == 5)
             return 0;
     }
     return 1;
@@ -948,9 +944,9 @@ void ai_CharBuildingShare(AICHAR *c, int k, G13STAT *s)
 
     same = 0;
     if (k != 0)
-        b = (AIBLD *)gm_BuildQuery(1, 5, k);
+        b = gm_BuildQuery(1, 5, k);
     else
-        b = (AIBLD *)gm_BuildQuery(1, 6);
+        b = gm_BuildQuery(1, 6);
     n = 0;
     for (; b != 0; b = gm_BuildNext(), n++) {
         if (b->owner == c->id)
@@ -974,13 +970,13 @@ void ai_PlayerShare(int k, G13STAT *s)
 
     same = 0;
     if (k != 0)
-        b = (AIBLD *)gm_BuildQuery(1, 5, k);
+        b = gm_BuildQuery(1, 5, k);
     else
-        b = (AIBLD *)gm_BuildQuery(1, 6);
+        b = gm_BuildQuery(1, 6);
     n = 0;
     for (; b != 0; b = gm_BuildNext(), n++) {
         w = b->owner;
-        if (w != 0xffff && (ai_CharsT[w].kind == 6 || ai_CharsT[w].kind == 7))
+        if (w != 0xffff && (ai_Chars[w].kind == 6 || ai_Chars[w].kind == 7))
             same++;
     }
     s->same = same;
@@ -1017,12 +1013,12 @@ void ai_MissionInfoDialog(int type, int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintText((char *)(t->text + 1));
-    io_PrintText("$N");
-    io_PrintText((char *)0x7d);
+    io_PrintText(t->text + 1);
+    io_PrintText((intptr_t)"$N");
+    io_PrintText(0x7d);
     sprintf(name, "_AUFTRAEGE_VERGABE_HS_%.2d", t->offerSpeech);
     snd = snd_PlayVoice(-7, 0, name, -1);
-    while (sv_RunFrame((void (*)(void))ai_MissionInfoDialog, id)) {
+    while (sv_RunFrame(ai_MissionInfoDialog, id)) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (d2_ClickedId == 0)
@@ -1072,33 +1068,33 @@ void ai_MissionSuccessDialog(G13TYPE *t, int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1b9b);
+    io_PrintText(0x1b9b);
     d2_SetForm(view, 2);
-    io_PrintText("$C");
-    ok = d2_GetWinObj(view, 2, io_PrintText((char *)0x7d));
+    io_PrintText((intptr_t)"$C");
+    ok = d2_GetWinObj(view, 2, io_PrintText(0x7d));
     if (sb_IsInit()) {
         snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 0);
         G13_PLAY(snd, ok, id);
     } else
         G13_WAIT(ok, id);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1b9c);
+    io_PrintText(0x1b9c);
     if (sb_IsInit()) {
         snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 1);
         G13_PLAY(snd, ok, id);
     } else
         G13_WAIT(ok, id);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1b9d);
+    io_PrintText(0x1b9d);
     if (sb_IsInit()) {
         snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 2);
         G13_PLAY(snd, ok, id);
     } else
         G13_WAIT(ok, id);
     d2_SetForm(view, 1);
-    io_PrintText("$C");
-    io_PrintText((char *)0x1b9e);
-    io_PrintText((char *)(int)(t->text + 2));
+    io_PrintText((intptr_t)"$C");
+    io_PrintText((intptr_t)0x1b9e);
+    io_PrintText(t->text + 2);
     if (sb_IsInit()) {
         sprintf(name, "_AUFTRAEGE_ERFOLG_HS_%.2d", t->speech);
         snd = snd_PlayVoice(-7, 0, name, -1);
@@ -1118,12 +1114,12 @@ void ai_MissionEndDialog(int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1b99);
-    io_PrintText("$N");
+    io_PrintText(0x1b99);
+    io_PrintText((intptr_t)"$N");
     d2_SetForm(view, 2);
-    io_PrintText((char *)0x7d);
+    io_PrintText(0x7d);
     id |= 0x80;
-    while (sv_RunFrame((void (*)(void))ai_MissionEndDialog, id)) {
+    while (sv_RunFrame(ai_MissionEndDialog, id)) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         else if (d2_ClickedId == 0)
@@ -1133,7 +1129,7 @@ void ai_MissionEndDialog(int id)
 }
 
 extern int ai_GameOver;
-void sv_PopTo(int v);                                             /* 0x52fb50, defined elsewhere */
+void sv_PopTo(void (*v)());                                             /* 0x52fb50, defined elsewhere */
 void main_GameLoop(int ctl);                                                         /* 0x53bb20, defined elsewhere */
 
 /* 0x4b5950, sets ai_GameOver and runs 0x53bb20 through 0x52fb50 */
@@ -1160,7 +1156,7 @@ void ai_MissionCompleteDialog(int id)
     G13MIS *nm;
     int again, quit, o1, o2, o3, view, h;
 
-    c = &ai_CharsT[ai_PlayerId];
+    c = &ai_Chars[ai_PlayerId];
     again = 0;
     quit = 0;
     nm = 0;
@@ -1174,10 +1170,10 @@ void ai_MissionCompleteDialog(int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1b95, c->id);
-    o1 = d2_GetWinObj(view, 1, io_PrintText((char *)0x1b96, 0x1b98));
-    o2 = d2_GetWinObj(view, 1, io_PrintText((char *)0x1b96, 0x1b99));
-    o3 = d2_GetWinObj(view, 1, io_PrintText((char *)0x1b96, 0x1b9a));
+    io_PrintText(0x1b95, c->id);
+    o1 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b98));
+    o2 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b99));
+    o3 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b9a));
     d2_ClickedId = -1;
     do {
         if (d2_ClickedId != -1) {
@@ -1212,7 +1208,7 @@ void ai_MissionCompleteDialog(int id)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((void (*)(void))ai_MissionCompleteDialog, id | 0x80));
+    } while (sv_RunFrame(ai_MissionCompleteDialog, id | 0x80));
     d2_CloseView(view);
     if (again)
         ai_MissionInfoDialog(nm->type, id);
@@ -1239,7 +1235,7 @@ void ai_MissionNextDialog(int id)
     again = 0;
     quit = 0;
     t = 0;
-    c = &ai_CharsT[ai_PlayerId];
+    c = &ai_Chars[ai_PlayerId];
     for (i = 0; i < 0x80; i++) {
         if (ai_Missions[i].type != 0 && ai_Missions[i].owner == c->netId) {
             t = ai_GetMissionType(ai_Missions[i].type);
@@ -1253,11 +1249,11 @@ void ai_MissionNextDialog(int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1b94, c->id);
+    io_PrintText(0x1b94, c->id);
     if (next > -1 && next < 4)
-        o1 = d2_GetWinObj(view, 1, io_PrintText((char *)0x1b96, 0x1b98));
-    o2 = d2_GetWinObj(view, 1, io_PrintText((char *)0x1b96, 0x1b99));
-    o3 = d2_GetWinObj(view, 1, io_PrintText((char *)0x1b96, 0x1b9a));
+        o1 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b98));
+    o2 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b99));
+    o3 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b9a));
     d2_ClickedId = -1;
     flags = id | 0x80;
     do {
@@ -1284,7 +1280,7 @@ void ai_MissionNextDialog(int id)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((void (*)(void))ai_MissionNextDialog, flags));
+    } while (sv_RunFrame(ai_MissionNextDialog, flags));
     d2_CloseView(view);
     if (again) {
         nm = ai_NewRandomMission(c->netId, next, 1);
@@ -1319,7 +1315,7 @@ void ai_MissionResultDialog(int id)
     int r, view;
 
     r = 0;
-    c = &ai_CharsT[ai_PlayerId];
+    c = &ai_Chars[ai_PlayerId];
     t = ai_GetMissionType(ai_Missions[0].type);
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
@@ -1327,7 +1323,7 @@ void ai_MissionResultDialog(int id)
     id = (id & ~9) | 0x100;
     ai_MissionSuccessDialog(t, id);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1b95, c->id);
+    io_PrintText(0x1b95, c->id);
     d2_ClickedId = -1;
     do {
         if (ai_MissionPartner == -1) {
@@ -1337,7 +1333,7 @@ void ai_MissionResultDialog(int id)
                 r = (ai_MissionMode != 5) + 1;
             sv_PopRequest = 1;
         }
-    } while (sv_RunFrame((void (*)(void))ai_MissionResultDialog, id | 0x80));
+    } while (sv_RunFrame(ai_MissionResultDialog, id | 0x80));
     d2_CloseView(view);
     if (r == 1)
         ai_MissionInfoDialog(ai_Missions[0].type, id);
@@ -1359,14 +1355,14 @@ void ai_MissionPartnerDialog(int id)
     view = d2_OpenForm(0, 0, "special\\mission");
     d2_CentreViewWindows(view);
     d2_SetForm(view, 1);
-    io_PrintText((char *)0x1b97, c->id, c->id);
+    io_PrintText(0x1b97, c->id, c->id);
     d2_ClickedId = -1;
     do {
         if (ai_MissionPartner == -1) {
             r = (ai_GameOver != 0) + 1;
             sv_PopRequest = 1;
         }
-    } while (sv_RunFrame((void (*)(void))ai_MissionPartnerDialog, id | 0x80));
+    } while (sv_RunFrame(ai_MissionPartnerDialog, id | 0x80));
     d2_CloseView(view);
     if (r == 2)
         ai_QuitGame(id);
@@ -1395,7 +1391,7 @@ void ai_MissionCompleteSingle(int id)
 
     t = 0;
     next = -1;
-    c = &ai_CharsT[ai_PlayerId];
+    c = &ai_Chars[ai_PlayerId];
     for (i = 0; i < 0x80; i++) {
         if (ai_Missions[i].type != 0 && ai_Missions[i].owner == c->netId) {
             t = ai_GetMissionType(ai_Missions[i].type);
@@ -1439,7 +1435,7 @@ void ai_MissionCompleteSingle(int id)
 void ai_MissionCompleteSequence(int id)
 {
     if (net_Conn.s != -1) {
-        if (ai_CharsT[ai_PlayerId].netId == ai_MissionPartner)
+        if (ai_Chars[ai_PlayerId].netId == ai_MissionPartner)
             ai_MissionCompleteByMode(id);
         else
             ai_MissionResultByMode(id);
@@ -1475,7 +1471,7 @@ int ai_SaveMissions(void *f)
     return 1;
 }
 
-int ls_Read(void *buf, int size, int n, int f);                             /* 0x51c920, ls.c: true when the fread returned a positive count */
+int ls_Read(void *buf, int size, int n, struct VFSFILE *f);                             /* 0x51c920, ls.c: true when the fread returned a positive count */
 
 /* 0x4b63b0, loads the mission kind and the running missions from f (cf. 0x4b62e0) */
 int ai_LoadMissions(void *f)

@@ -2,6 +2,9 @@
    ai.h includes it. */
 #ifndef AI_BLD_H
 #define AI_BLD_H
+#include "ai_types.h"                /* AITIME */
+struct D3OBJECT;
+struct G15PLANT;
 #pragma pack(push, 1)
 typedef struct AIWORKSET {              /* 0x10 bytes, a building's work settings (AIBLD.workSet), AICHAR.flags1b4 .. target */
     unsigned int flags;                 /* 0x0, the order flags (AICHAR.flags1b4; ls_ReadBuildings sets bit 0 for saves
@@ -10,6 +13,11 @@ typedef struct AIWORKSET {              /* 0x10 bytes, a building's work setting
     int prod;                           /* 0x8, AICHAR.prod */
     int target;                         /* 0xc, AICHAR.target, a building id or -1 */
 } AIWORKSET;
+typedef struct ORDCREDIT {          /* 12 bytes, a credit offer of a bank (gm_GetCreditOffers) */
+    int amount;                     /* 0x0, the sum lent; -1 = the slot is taken */
+    int term;                       /* 0x4, 2 .. 7 */
+    int interest;                   /* 0x8 */
+} ORDCREDIT;
 typedef struct AIBLD {                  /* 0xa9 bytes, ai_Blds[256] */
     unsigned char type;                 /* 0x00, index into ai_BTypes */
     int id;                             /* 0x01 */
@@ -22,7 +30,7 @@ typedef struct AIBLD {                  /* 0xa9 bytes, ai_Blds[256] */
         };
     };
     unsigned short owner;               /* 0x27, index into ai_Chars */
-    unsigned short mainRoom;            /* 0x29, the room (scene record) the building's panel opens with: sv_UpdatePanel passes it to ai_TechTreeWindow where it passes *sv_PanelShown for a shown room (reasoned) */
+    unsigned short mainRoom;            /* 0x29, the room (scene record) the building's panel opens with: sv_UpdatePanel passes it to ai_TechTreeWindow where it passes sv_PanelShown->type for a shown room (reasoned) */
     int saved2b;                        /* 0x2b, saved and loaded whole (ls_WriteBuildings); no reader read yet */
     unsigned char saved2f;              /* 0x2f, saved and loaded (ls_WriteBuildings); no reader read yet */
     int travel30;                       /* 0x30, he_AllocTransport sums it over the start and the goal building into
@@ -45,9 +53,9 @@ typedef struct AIBLD {                  /* 0xa9 bytes, ai_Blds[256] */
     };
     char level;                         /* 0x5c, the building's level 0 .. 100 (renovation below a rolled
                                            threshold, 100 - level in the renovation message, am.c) */
-    int objList;                        /* 0x5d, head of the building's object-instance list (gm_Query 0x4ffe90,
+    struct AIOBJ *objList;              /* 0x5d, head of the building's object-instance list (gm_Query 0x4ffe90,
                                            released with gm_RemoveObject) */
-    char *object;                       /* 0x61, its 3D object in the scene */
+    struct D3OBJECT *object;            /* 0x61, its 3D object in the scene */
     union {
         char kindData[0x30];            /* 0x65 .. 0x95, the part the building's kind gives its meaning (ls_WriteBuildings
                                            saves it whole for the kinds without a writer of their own) */
@@ -62,6 +70,8 @@ typedef struct AIBLD {                  /* 0xa9 bytes, ai_Blds[256] */
                         int buyOutBase;                 /* 0x65, of a class 2 building: with buyOutExtra what its buy-out pays
                                                            half of, and set to that payment (lc.c ai_BuildingWindow; reasoned) */
                         int playerSlot;                 /* 0x65, of a kind 0x47 building: its ai_PlayerSlots index (sv_OpenBuildingPanel) */
+                        int ownerNetId;                 /* 0x65, of a class 4 building: the netId of the character it belongs to
+                                                           (sv_SelectPanelObject selects it for that player only) */
                         int interest;                   /* 0x65, of a bank: the interest rate its owner sets, 5 .. 0x28 (lc.c ai_CreditReleaseWindow
                                                            sends it as the field delta 0x65) */
                         unsigned char residents;        /* 0x65, of a home (AIBTYPE.kind 1): the characters whose bld2 it is, below the
@@ -74,7 +84,7 @@ typedef struct AIBLD {                  /* 0xa9 bytes, ai_Blds[256] */
                                                            cancels one otherwise) */
                     };
                     union {
-                        int daySum;                         /* 0x69, a per-day sum (gv.h ORDBLD.daySum; gm_BuildingBalance adds it to a kind 7 building's income), cleared for the kind 7 buildings at every round start (main_BeginPlayerRound) */
+                        int daySum;                         /* 0x69, a per-day sum (gm_BuildingBalance adds it to a kind 7 building's income), cleared for the kind 7 buildings at every round start (main_BeginPlayerRound) */
                         int messengerFee;                   /* 0x69, of a bank: the money messenger's fee in percent, 3 .. 0xf
                                                                (lc.c ai_ExchangeFeesWindow sends it as the field 0x69) */
                         int buyOutExtra;                    /* 0x69, of a class 2 building: see buyOutBase (lc.c ai_BuildingWindow) */
@@ -91,20 +101,21 @@ typedef struct AIBLD {                  /* 0xa9 bytes, ai_Blds[256] */
                 } inn;
             };
             union {
-                int plants;                     /* 0x71, the 64 G15PLANT records (0x18 bytes each, rd.h) of the
+                struct G15PLANT *plants;        /* 0x71, the 64 G15PLANT records (0x18 bytes each, rd.h) of the
                                                    building's vegetation map (rd.c: veg_Fits / veg_FindPlantId) */
-                struct {                        /* 0x71, of a bank: the credit offers kept for the player (ORDCREDIT,
-                                                   gv_types.h / gv.h ORDBLD.credits, 12 bytes each) */
-                    int amount;
-                    int term;
-                    int interest;
-                } credits[3];
+                ORDCREDIT credits[3];           /* 0x71, of a bank: the credit offers kept for the player
+                                                   (gm_GetCreditOffers) */
             };
+        };
+        struct {
+            int padCreated;
+            AITIME created;             /* 0x69, of the classes 4 .. 7 the game time the building was created
+                                           (gm_CreateBuilding; mission.c's goals measure its age) */
         };
     };
     int smokeEffect;                    /* 0x95, the id of the running chimney smoke effect (evt_FindById), -1 none (sv.c 0x528490) */
     AIWORKSET workSet;                  /* 0x99, the work settings a hired worker takes over into AICHAR flags1b4 ..
-                                           target (cm_ExHire copies the 16 bytes; lc.c LCWORKSET) */
+                                           target (cm_ExHire copies the 16 bytes; AICHAR.workSet) */
 } AIBLD;
 
 typedef struct AIBTYPE {                /* 0x24d bytes, ai_BTypes[] */

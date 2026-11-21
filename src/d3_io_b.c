@@ -461,7 +461,7 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
     int time, nv, nuv, ofs;
     D3BAVEC v, w, mn, mx;
 
-    f = vfs_Tfopen(path, "rb", (int)vfs_Root);
+    f = vfs_Tfopen(path, "rb", vfs_Root);
     if (f) {
         vfs_fread(&hdr, 4, 1, f);
         tag = bgi_ReadId(f);
@@ -742,7 +742,7 @@ char d3_BGFCanWeld(char *path)
     char c;
     char ret = 1;
 
-    f = vfs_Tfopen(path, "rb", (int)vfs_Root);
+    f = vfs_Tfopen(path, "rb", vfs_Root);
     if (f) {
         vfs_fread(&hdr, 4, 1, f);
         bio_rd_c(f, &c);
@@ -767,7 +767,7 @@ VFSFILE *d3_OpenFastChunk(char *path)
     VFSFILE *f;
     int hdr, len, id, tag;
 
-    f = vfs_Tfopen(path, "rb", (int)vfs_Root);
+    f = vfs_Tfopen(path, "rb", vfs_Root);
     if (f) {
         vfs_fread(&hdr, 4, 1, f);
         while (1) {

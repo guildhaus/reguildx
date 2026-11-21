@@ -80,7 +80,7 @@ unsigned char bmp_GetInfo(char *path, int *w, int *h, int *bpp)
     unsigned char ret = 0;
     VFSFILE *f;
 
-    f = vfs_Tfopen(path, "rb", (int)vfs_Root);
+    f = vfs_Tfopen(path, "rb", vfs_Root);
     if (f) {
         vfs_fseek(f, sizeof(BITMAPFILEHEADER), SEEK_SET);
         vfs_fread(&bi, 1, sizeof(bi), f);
@@ -114,7 +114,7 @@ unsigned char bmp_Load(char *path, unsigned char *data, unsigned char *pal, int 
     int pitch, dither, height;
     int i, x, y, n;
 
-    f = vfs_Tfopen(path, "rb", (int)vfs_Root);
+    f = vfs_Tfopen(path, "rb", vfs_Root);
     if (!f)
         goto fail;
     vfs_fseek(f, sizeof(BITMAPFILEHEADER), SEEK_SET);
@@ -345,7 +345,7 @@ unsigned char bmp_Save24(char *path, int w, int h, unsigned char *data)
     bi.bmiHeader.biWidth = w;
     bi.bmiHeader.biHeight = h;
     bi.bmiHeader.biBitCount = 24;
-    f = vfs_Tfopen(path, "wbn", (int)vfs_Root);
+    f = vfs_Tfopen(path, "wbn", vfs_Root);
     if (f) {
     row = mem_Alloc(w * 3, "!bmp:SaveBMP24(temp_row)");
     vfs_fwrite(&bf, sizeof(bf), 1, f);

@@ -32,6 +32,7 @@
 #include "d3_sky.h"
 #include "d3_vec.h"
 #include "d3_engine.h"
+extern unsigned char d3_NoTextures;  /* 0x63345d, defined below; ecmd.c declares it int (it stores a dword) */
 #include "d3_anim.h"
 /* d3_mir.h types d3_MirDrawObject / d3_MirBeginFrame with D3MIRROR *; d3_engine.h keeps the D3OBJECT * views. */
 #define d3_MirDrawObject d3_Unk4550e0_mirview
@@ -42,6 +43,7 @@
 #include "d3_light.h"
 #include "data_views.h"
 #include "d3_d3d.h"
+#include "dd_vesa_types.h"
 #include "d3_fl.h"
 #include "d3_int_io.h"
 #include "d3_interface.h"
@@ -708,7 +710,7 @@ char d3_DrawObjectCB(D3OBJECT *obj)
                 if (!(m->zMax < d3_MaxZ))
                     d3_MaxZ = (m->zMax);
             }
-            if (obj->objectFlags >> 2 & d3_Hardware & d3_ShadowMode.mode & 1) {
+            if (obj->objectFlags >> 2 & d3_Hardware & d3d_Config.shadows & 1) {
                 d3s_Count = 0;
                 d3s_UpdateObject(obj);
                 if (d3s_Count > 0)
@@ -730,7 +732,7 @@ char d3_DrawObjectCB(D3OBJECT *obj)
             d3_MirBeginFrame(obj, &d3_Mirror);
             if (obj == d3s_Object || s->flags.f.b[0] < 0xff || (s->flags.f.b[2] & 1))
                 base = 0x4000;
-            n = min(s->info.ntris, d3_SortMax - (int)d3_SortCount);
+            n = min(s->info.ntris, d3_Cfg.maxpolys - (int)d3_SortCount);
             if (d3_Hardware) {
                 for (t = (D3PTRI *)s->info.tris; n > 0; n--, t++) {
                     if (t->flags & 0x80) {
@@ -765,7 +767,7 @@ char d3_DrawObjectCB(D3OBJECT *obj)
                 }
             }
         } else {
-            if ((obj->flags >> 1 | dirty) & obj->objectFlags >> 2 & d3_ShadowMode.mode & d3_Hardware & 1) {
+            if ((obj->flags >> 1 | dirty) & obj->objectFlags >> 2 & d3d_Config.shadows & d3_Hardware & 1) {
                 d3s_Count = 0;
                 if (dirty)
                     d3s_UpdateObjectAt(obj);
@@ -839,7 +841,7 @@ void d3_SetFog(float start, float end, D3COLOR color)
 {
     char on;
 
-    if (d3_Hardware && (d3d_Caps98d & 0x20)) {
+    if (d3_Hardware && d3d_UsedCard.info.fogvertex) {
         if (start < end) {
             on = 1;
             d3_SetFogRange(start, end);
@@ -923,7 +925,7 @@ void d3_DrawSortedD3D(void)
             p = vb;
             n = 0;
             cur = (D3TEXV *)t->tex;
-            if (!d3_NoTexturesByte && cur && cur->d3dtex != oldtext) {
+            if (!d3_NoTextures && cur && cur->d3dtex != oldtext) {
                 oldtext = cur->d3dtex;
 #line 1219 "D:\\develop\\Units\\d3\\d3_engine.c"
                 D3DCHECK(d3d_Device->lpVtbl->SetTexture(d3d_Device, 0, oldtext));
@@ -1431,7 +1433,7 @@ char d3_Init(D3INITCFG *cfg, HWND wnd, int unk)
     d3_AllocObjectPolys(d3s_Object->info);
     d3s_Object->info->nkeys = 0;
     d3s_Object->info->ntris = 0;
-    d3_SetHardwareMode(d3_D3DActiveBits.on);
+    d3_SetHardwareMode(d3_D3DActive);
     d3_EngineReady = 1;
     d3_SetViewport(d3_Cfg.viewW, d3_Cfg.viewH, d3_Cfg.viewX, d3_Cfg.viewY, d3_Cfg.zn, d3_Cfg.zf, d3_Cfg.scale,
                    d3_Cfg.w, d3_Cfg.h);
@@ -1542,8 +1544,8 @@ void d3_Shutdown(void)
 
 void d3_ApplyGraphicsOptions(unsigned char a, unsigned char b, unsigned char c, unsigned char mode, int e)
 {
-    if (d3_ShadowMode.mode != mode || d3_MipSkip != c) {
-        d3_ShadowMode.mode = mode;
+    if (d3d_Config.shadows != mode || d3_MipSkip != c) {
+        d3d_Config.shadows = mode;
         d3_ForEachObject2(d3_DefaultScene, 0, 0xc0, d3s_ResetShadows);
     }
     d3fl_SetMips(a);
@@ -2550,7 +2552,7 @@ void d3_Render(unsigned int mask, char flag)
         d3_ObjectsDrawn = 0;
         d3_ObjectsTested = 0;
         d3_ForEachObject(d3_DefaultScene, 0, mask, (D3OBJECTCB)d3_DrawObjectCB, 0);
-        if (D3_MESH(d3s_Object)->surf[0].info.ntris > 0 && d3_ShadowMode.mode)
+        if (D3_MESH(d3s_Object)->surf[0].info.ntris > 0 && d3d_Config.shadows)
             ((D3OBJECTCB)d3_DrawObjectCB)(d3s_Object, 0);
         for (ps = d3_ParHead; ps != &d3_ParEnd; ps = next) {
             next = ps->next;
@@ -2639,7 +2641,6 @@ D3SCENE *d3_DefaultScene = d3_Scenes;  /* 0x5fb5b0, the current scene (d3.h) */
    which the interface's scene select saves and restores; d3d_SetConfig reads only the first three) */
 char d3_DefaultD3DConfig[] = { 94, 1, 0, 0, 3, 0, 0, 0, 2, 0, 0, 0, 4, 0, 0, 0 };  /* 0x5fb5b4 */
 int d3if_SceneState1 = 15;  /* 0x5fb5c4, the scene pair's second dword (d3_interface.c's write-only state) */
-/* d3d_Caps98d: view of d3d_UsedCard (tools/data_views.py) */
 char d3_EditorMode = 0;  /* 0x633438, editor / tool mode (reasoned guess: the ortho view cameras, the type-6 lights
                             and the on=0 relight; only ever set 0 in this build) */
 int d3_FrameCount = 0;  /* 0x63343c */
@@ -2651,7 +2652,8 @@ unsigned char d3_Hardware = 0;  /* 0x633450 */
 unsigned char d3_EngineReady = 0;  /* 0x633451, engine up: set at the end of d3_Init, cleared in d3_Shutdown */
 unsigned int d3_ClipOut = 0;  /* 0x633454, vertices in the clipped polygon */
 unsigned int d3_ClipIn = 0;  /* 0x633458, vertices in the polygon to clip */
-D3ACTIVE d3_Active = { 0 };  /* 0x63345c, d3_D3DActive and d3_NoTextures (d3.h) */
+unsigned char d3_D3DActive = 0;  /* 0x63345c, a Direct3D device was created */
+unsigned char d3_NoTextures = 0;  /* 0x63345d, textures off (ecmd.c's ocmd_SetNoTextures; d3_DrawSortedD3D tests the byte) */
 int d3_UnreadBss2[2] = {0};  /* 0x633464, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 int d3_ClipExtraTris = 0;  /* 0x63346c */
 int d3_StatPolys = 0;  /* 0x633470, frame statistics */
@@ -2677,7 +2679,6 @@ unsigned int d3_Fps10Frames = 0;  /* 0x6334b4 */
 extern D3PARTSYS d3_ParEnd;
 /* d3_ParTail: view of d3_ParEnd (tools/data_views.py) */
 /* d3_ParHead: view of d3if_ParList (the head node's next field) */
-/* d3_Unkfb9928: view of d3_Mirror (tools/data_views.py) */
 extern struct VFSDIR *d3io_StockDir;
 float d3_ZFar;  /* 0xfc2564 */
 D3ANIMDATA d3anim_Head; /* 0xfc2580, the head sentinel of the animation cache list (d3_anim.c): its next is the first animation */
@@ -2736,8 +2737,6 @@ D3SORTENT * d3_RadixSrc;  /* 0xfe73c0 */
 float d3_ViewH;  /* 0xfe73c4 */
 float d3_ViewW;  /* 0xfe73c8 */
 D3INITCFG d3_Cfg;  /* 0xfe73e0 */
-/* d3_SortMax: view of d3_Cfg (tools/data_views.py) */
-/* d3_Unkfe7400: view of d3_Cfg (tools/data_views.py) */
 D3ANIMDATA d3anim_Tail; /* 0xfe7440, the end sentinel of the animation cache list (d3_anim.c): new animations are linked in before it */
 int d3_DrawnVerts;  /* 0xfe75b0, vertices drawn this frame (d3_DrawSorted resets it) */
 int d3_TextureSwitches;  /* 0xfe75b4 */
@@ -2763,4 +2762,3 @@ int d3s_SpanLen;  /* 0xfe73a0 */
 unsigned short * d3s_Dst16;  /* 0xfe73b0 */
 int d3s_Area;  /* 0xfe73b8 */
 int d3s_Fill;  /* 0xfe75ac */
-/* d3_ShadowMode: view of d3d_Config (tools/data_views.py) */

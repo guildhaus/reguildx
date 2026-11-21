@@ -782,7 +782,7 @@ D3IOPATH *d3_LoadObjectAnim(char *file, D3IOOBJ *obj, char reload)
         d3anim_FreePath((D3OBJECT *)obj);
     path = d3io_StockFile(file, ".oam");
     if ((path != 0 && obj->type == 4) || obj->type == 3) {
-        f = vfs_Tfopen(path, "rb", (int)vfs_Root);
+        f = vfs_Tfopen(path, "rb", vfs_Root);
         bio_rd_i(f, &magic);
         if (magic == 0x3a610001) {
             p = (D3IOPATH *)mem_Alloc(0x44, "d3_io:ObjAnim");

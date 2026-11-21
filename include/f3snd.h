@@ -46,19 +46,8 @@ typedef struct G16TRACKS {              /* 0x24c bytes, snd_BuildingTracks[]: tr
     char names[6][0x60];                /* 0x0c */
 } G16TRACKS;
 
-#pragma pack(push, 1)
-typedef struct G16BLDVIEW {             /* the market building as f3snd reads it (AIBLD in ai.h, which f3snd
-                                           includes now: the view can give way to AIBLD) */
-    char pad61[0x61];
-    char *object;                       /* 0x61, its 3D object in the scene */
-} G16BLDVIEW;
-#pragma pack(pop)
 
-typedef struct G16TRACKHANDLES {        /* 0x8 bytes, snd_TrackHandles: the music track and a copy of it,
-                                           always written together (0x4c1bd0, 0x4c18a0) */
-    struct MSXTRACK *current;           /* 0x00, the music track */
-    struct MSXTRACK *copy;              /* 0x04, a copy of current, never read */
-} G16TRACKHANDLES;
+#include "f3snd_types.h"               /* G16TRACKHANDLES */
 
 typedef struct G16CHARCLICK {           /* the click-comment view of the start of a character record (0x770b80) */
     unsigned short id;                  /* 0x00, the character id */
@@ -75,21 +64,20 @@ extern int snd_SfxEnabled;              /* 0x6f257c, the "sfx" setting of game.I
 extern int snd_MusicSeason;                /* 0x6f0cb4, the season of the music */
 extern unsigned int snd_PauseLength;       /* 0x6f0cb0, the pause length */
 extern unsigned int snd_LastDecision;       /* 0x6f0cb8, time of the last track decision */
-extern unsigned char *snd_TrackBuilding;     /* 0x6f0ca8, the building of the track */
-extern unsigned short *snd_TrackRoom;                /* 0x6f0cac, the room of the track */
+extern struct AIBLD *snd_TrackBuilding;     /* 0x6f0ca8, the building of the track */
+extern struct AIOBJ *snd_TrackRoom;                  /* 0x6f0cac, the room of the track */
 extern struct MSXTRACK *snd_SpecialTrack; /* 0x6f0b74, the special track of snd_PlaySpecialTrack */
 extern int snd_AmbientSaved;            /* 0x6f0b78, 1 while the ambient flag is off and saved (0x4c23f0) */
 extern unsigned int snd_AmbientOnSaved; /* 0x6f0b64, the saved snd_AmbientOn */
 extern char snd_MusicLog[];             /* 0x6f0860, a debug text */
 extern char ch_EmptyName[];             /* 0x631090, "" */
-extern char ai_Chars[768][0x21c];        /* 0x770b80, the characters (ahm.c); f3snd.c reads them flat (ai_CharsC) */
 extern int snd_VoiceBankOrders;         /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
 extern int snd_VoiceBankClick;          /* 0x6f0cc0, voice bank: click comments */
 extern int snd_VoiceBankNoise;          /* 0x6f0cc4, voice bank: click noises */
 extern int snd_VoiceBankGreeting;       /* 0x6f0ccc, voice bank: greeting */
 extern G16LOC snd_LocationTracks[];           /* 0x6094d0 */
 extern G16TRACKS snd_BuildingTracks[];        /* 0x602d70 */
-extern char *ai_FallbackBuilding;        /* 0x6f230c, the second current building, used when 0x6f2308 is 0 (sv.c defines char *) */
+extern struct AIBLD *ai_FallbackBuilding;        /* 0x6f230c, the second current building, used when 0x6f2308 is 0 */
 extern unsigned short ai_PlayerId;      /* 0x6f25b8, the player (as am.h / cm.h / gv.h declare it) */
 extern G16TRACKHANDLES snd_TrackHandles; /* 0x6f0b6c, the music track and its copy */
 extern char snd_DebugText[];             /* 0x6f0a60, a debug text */
@@ -101,9 +89,9 @@ extern struct SBSAMPLE *snd_LocustsPerm;   /* 0x6f0b94, hpLocustsPerm: the summe
 extern struct SBSAMPLE *snd_Locusts;       /* 0x6f0b98, hpLocusts: the cricket sample */
 extern int snd_AnimalSeason;                /* 0x6f0b9c, the season */
 extern struct D3SOUND *snd_AmbientTrack;    /* 0x6f0b80, the d3snd handle of the ambient track (bird song, market ambience) */
-extern struct AIBLD *ai_MarketBuilding;        /* 0x6f1bc8, the market building (ai.c; f3snd.c reads it through ai_MarketBuildingV) */
-extern char *ai_PlayerBuilding;          /* 0x6f2308, the building the player is in: an AIBLD (sv.c defines char *; ai_PlayerBuildingT views) */
-extern unsigned short * sv_PanelShown;             /* 0x6f2310, its room */
+extern struct AIBLD *ai_MarketBuilding;        /* 0x6f1bc8, the market building (ai.c) */
+extern struct AIBLD *ai_PlayerBuilding;          /* 0x6f2308, the building the player is in: an AIBLD */
+extern struct AIOBJ *sv_PanelShown;                /* 0x6f2310, its room */
 extern void *snd_AtmoTrack;              /* 0x6f0ba0, the atmosphere mp3 (MSXTRACK *) */
 extern int d3_CurrentScene;             /* 0x633444 */        /* 0x602ba8 */
 extern char snd_GustNames[3][0x32];     /* 0x602b10, "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" */
@@ -113,7 +101,7 @@ extern int snd_Season;                  /* 0x6f0b8c, the season */
 extern unsigned int snd_LastGust;       /* 0x6f0b90, time of the last gust */
 #include "ai_types.h"                /* AITIME */
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-extern int *d3t_Rain;               /* 0x760618, the rain level */
+extern struct D3TRAIN *d3t_Rain;    /* 0x760618, the rain system (its count: the rain level) */
 extern struct SBBANK *snd_Bank;                    /* 0x6f2404, the sample bank */
 typedef struct SNDRAIN {                /* 0x48 bytes, snd_UpdateRain's state */
     AITIME time;                        /* 0x00, a copy of ai_Time (14 bytes) */
@@ -168,7 +156,7 @@ int snd_FindVoiceSample(int id, int bank, char *text, int var);
 int snd_PlayVoice(int id, int bank, char *text, int var);
 int snd_QueueVoice(int id, int bank, char *text, int var, unsigned int delay);
 int snd_LoadVoiceBank(char *name, int a);
-void snd_LoadBuildingVoices(unsigned char *b);
+void snd_LoadBuildingVoices(struct AIBLD *b);
 void snd_UnloadBuildingVoices(void);
 void snd_PlayWorkerClick(G16CHARCLICK *c);
 void snd_PlaySelectedClick(void);

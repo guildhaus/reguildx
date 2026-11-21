@@ -14,11 +14,10 @@
    nop fill end at 0x575860; the unit's one .data block starts at 0x62918c (ai_TutorialChapterOn, then the "FT"
    state names) and its literals climb in function order to 0x62aa58; the network lobby (0x589f10) is a unit of
    its own. The original file name is unknown (no leaked tag). Names are ours.
-   Open: type debt - TUTSTATE / TUTRUN / TUTSTEP / TUTMARK are typed in sv_t.h and the tutorial code up
-   to ai_TutorialWindow and the chapter transition callbacks use them; most later functions still reach the
-   state record through the S / U_I byte-offset macros; the message (AIMSG, ai.h) is typed from
+   Open: type debt - TUTSTATE / TUTRUN / TUTSTEP / TUTMARK are typed in sv_t.h and every function reaches
+   the state record through ai_Tutorial; the message (AIMSG, ai.h) is typed from
    ai_CabinetSpyWindow on, earlier senders and the contact-list records still use byte offsets; the cannon
-   scene struct (CANNONSCENE, CANNONREC) is typed from ai_CannonScene to ai_CannonBuildPanel.
+   scene struct (CANNONSCENE) is typed from ai_CannonScene to ai_CannonBuildPanel.
    The unit's .rdata: ai_Tutorial 0x5eec60 and ai_TutorialConst5, then its literal 400.0f 0x5eec68; the cannon
    object svcannon (0x57e230) and the graveyard object svgrave (0x582730) follow; the cannon scene, the cabinet and
    the graveyard parts of the description above are theirs.
@@ -69,9 +68,6 @@ extern GAPDATA full_data_624204[];
 
 
 extern const int sv_PhaseMinutes[24];
-#define d2_DirtyRectTop (*(int *)((char *)&d2_DirtyRectLeft + 0x4))       /* 0xfb9064 */
-#define d2_DirtyRectRight (*(int *)((char *)&d2_DirtyRectLeft + 0x8))     /* 0xfb9068 */
-#define d2_DirtyRectBottom (*(int *)((char *)&d2_DirtyRectLeft + 0xc))    /* 0xfb906c */
 extern float d3s_QuadUV[6];
 extern GAPDATA full_data_5fea38[];
 
@@ -153,13 +149,11 @@ extern GAPDATA full_data_60c7b8[];
 extern GAPDATA full_data_623594[];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 
 
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern const int sv_PhaseMinutes[24];
 extern int d2_PointerObj;
@@ -182,7 +176,6 @@ extern struct D2OBJ *d2_Objs;
 extern GAPDATA full_data_62a634[];
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -198,7 +191,6 @@ extern int d2_LastWindow;
 
 extern GAPDATA full_data_602568[];
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -209,7 +201,6 @@ extern int sv_PopRequest;
 extern unsigned short ai_PlayerId;
 extern volatile unsigned long d3_Time;
 extern GAPDATA full_data_60c7b8[];
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern int d2_PointerObj;
@@ -230,7 +221,6 @@ extern int ai_ClickedObject;
 
 extern GAPDATA full_data_62a450[];
 extern unsigned char kb_Last;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
@@ -241,7 +231,6 @@ extern int d2_LastWindow;
 
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
@@ -252,13 +241,11 @@ extern int d2_LastWindow;
 extern int sv_FrameMask;
 extern int sv_PopRequest;
 
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 
 extern const int sv_PhaseMinutes[24];
 
 
-extern char ai_Chars[768][0x21c];
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -278,7 +265,6 @@ extern int ai_ClickedObject;
 
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-extern char ai_Chars[768][0x21c];
 extern int d2_PointerObj;
 extern int gm_AllowAll;
 extern int d2_ClickedId;
@@ -291,11 +277,9 @@ extern int ai_ClickedObject;
 
 extern int gm_AllowAll;
 extern volatile unsigned long d3_Time;
-extern char ai_Chars[768][0x21c];
 extern int d2_PointerObj;
 extern struct D2OBJ *d2_Objs;
 extern int di_Absolute;
-extern int gm_PlayerRecords[688];
 extern unsigned short ai_PlayerId;
 extern int d2_LastWindow;
 extern unsigned char ai_OwnPlayer;
@@ -313,10 +297,8 @@ extern unsigned char kb_Last;
 
 extern unsigned char kb_Last;
 extern int sv_FrameMask;
-extern char ai_Chars[768][0x21c];
 
 
-#define U_I(a) (*(int *)(a))
 
 
 void ai_TutorialHideText2();
@@ -336,8 +318,6 @@ struct SBSAMPLE;
    and the full link relocates the initializer, so the record is ours and no neighbour is touched. */
 TUTSTATE *const ai_Tutorial = &ai_TutorialState;  /* 0x5eec60, the pointer to the tutorial state record */
 const int ai_TutorialConst5 = 5;  /* 0x5eec64, the tutorial object's second named constant (after ai_Tutorial, before its literal 400.0f); no reader in the surviving code (name from the value: its meaning is open) */
-#define S (*(char **)(unsigned)&ai_Tutorial)  /* the tutorial state record (at 0x6fa060): the pointer ai_Tutorial holds */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 typedef struct SHOTENTRY {   /* 0x10 bytes */
     int obj;                 /* +0x0, -1 when empty */
     float dist;              /* +0x4 */
@@ -400,6 +380,7 @@ SHOTRESULT ai_ShotTable[3];  /* 0x6f9f60, the cannon scene's shot results (the c
 #include "menu.h"
 #include "d2.h"
 #include "sv.h"
+#include "sv_quickjump.h"             /* SVQUICKJUMP: sv_QuickJump.panelFlag */
 #include "gfx.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 
@@ -418,7 +399,7 @@ int ai_TutorialTick(void)
     if (!ai_Tutorial->host->slot)
         return -4;
     if (he_ActiveSlot == ai_Tutorial->host->slot && ai_Tutorial->state != 2) {
-        if (d3t_CamMoving || sv_PanelFlag) {
+        if (d3t_CamMoving || sv_QuickJump.panelFlag) {
             he_ActivateSlot(0);
             return 0;
         }
@@ -435,7 +416,7 @@ int ai_TutorialTick(void)
     if (!ai_TutorialRunning)
         return 0;
     ai_TutorialProgressSlider();
-    if (d3t_CamMoving || sv_PanelFlag)
+    if (d3t_CamMoving || sv_QuickJump.panelFlag)
         return 0;
     switch (ai_Tutorial->state) {
     case 1:                     /* start the run record */
@@ -654,31 +635,31 @@ void unk_SetEndGameGate(void)
     ai_TutorialRunning = 1;
 }
 /* 0x576040, one event of the tutorial run (a the event index, b / c its kind / result, d only for the hook): the
-   run's stepHook gets all four as an int[4] when it has one; else, for a run of mode 2, the event that meets the
+   run's stepHook gets all four as a TUTEVENT when it has one; else, for a run of mode 2, the event that meets the
    run's goal (or the second text window's text2Goal) moves the states 4 / 9 / 0xa on (phase 1: next 5 or back to 4;
    phase 3: 4 -> 9, 9 -> 0xa or back to 4, 0xa -> 0xb); for the other modes the goal event in the states 4 / 0xa
    switches to goalState (c == 0) or 0xb, and a timed goal (3) to goalState once tailTime has passed. Counts the
    handled events in campaignSteps */
 
-void ai_CampaignStep(int a, int b, int c, int d)
+void ai_CampaignStep(int a, void *b, int c, int d)
 {
-    int p[4];
-    int (*hook)(int *);
+    TUTEVENT p;
+    int (*hook)(TUTEVENT *);
 
     if (!ai_TutorialOn)
         return;
     if (!ai_Tutorial->run)
         return;
-    p[0] = a;
-    p[1] = b;
-    p[2] = c;
-    p[3] = d;
+    p.event = a;
+    p.obj = b;
+    p.stage = c;
+    p.arg = d;
     if (ai_Tutorial->run->mode != 2) {
         if (ai_Tutorial->next != 4 && ai_Tutorial->next != 0xa)
             return;
         hook = ai_Tutorial->run->stepHook;
         if (hook) {
-            hook(p);
+            hook(&p);
             ai_Tutorial->campaignSteps++;
             return;
         }
@@ -706,7 +687,7 @@ void ai_CampaignStep(int a, int b, int c, int d)
         return;
     hook = ai_Tutorial->run->stepHook;
     if (hook) {
-        hook(p);
+        hook(&p);
         return;
     }
     if (ai_Tutorial->phase == 1) {
@@ -763,13 +744,13 @@ void ai_CampaignStep(int a, int b, int c, int d)
     }
     ai_Tutorial->campaignSteps++;
 }
-/* 0x576340, asks the current run record's query callback: hands it the four arguments as an int[4] and returns
+/* 0x576340, asks the current run record's query callback: hands it the four arguments as a TUTEVENT and returns
    its answer; 1 (no objection) while the tutorial is off, no run is current or the run has no callback, 0 while
    tb_Paused is set */
 
-int ai_ScriptQuery(int a, int b, int c, int d)
+int ai_ScriptQuery(int a, void *b, int c, int d)
 {
-    int args[4];
+    TUTEVENT args;
 
     if (!ai_TutorialOn)
         return 1;
@@ -779,11 +760,11 @@ int ai_ScriptQuery(int a, int b, int c, int d)
         return 0;
     if (!ai_Tutorial->run->query)
         return 1;
-    args[0] = a;
-    args[1] = b;
-    args[2] = c;
-    args[3] = d;
-    return ai_Tutorial->run->query(args);
+    args.event = a;
+    args.obj = b;
+    args.stage = c;
+    args.arg = d;
+    return ai_Tutorial->run->query(&args);
 }
 /* 0x5763c0, 1 when the current run record's allow mask (TUTRUN.allowMask) has a bit of `mask`, else 0; 1 while
    the tutorial is off (ai_TutorialOn) and when the state record holds no run, 0 in the phase 2 or the state 5 and
@@ -827,12 +808,12 @@ int ai_RunAllowsWindow(void)
         return 0;
     return 1;
 }
-/* 0x576490, a callback predicate on the first of the four step arguments (a pointer to the int[4]): 0 for the
+/* 0x576490, a callback predicate on the first of the four step arguments (TUTEVENT.event): 0 for the
    kinds 0x19 / 0x1b / 0x29, else 1 (Ghidra missed this start; it ends the 80 byte record of 0x576460 at 0x5764ae) */
 
-int ai_TutorialQueryDefault(int *p)
+int ai_TutorialQueryDefault(TUTEVENT *p)
 {
-    if (*p == 0x19 || *p == 0x1b || *p == 0x29)
+    if (p->event == 0x19 || p->event == 0x1b || p->event == 0x29)
         return 0;
     return 1;
 }
@@ -840,14 +821,14 @@ int ai_TutorialQueryDefault(int *p)
    building of the type kind 0x12 while the panel shows the room 0x74, else 1 (allow); the other callbacks fall
    back to it */
 
-int ai_QueryDefault(int *args)
+int ai_QueryDefault(TUTEVENT *args)
 {
     AIBLD *bld;
 
-    if (args[0] != 0x1a || !args[1])
+    if (args->event != 0x1a || !args->obj)
         return 1;
-    bld = (AIBLD *)args[1];
-    if (((AIBTYPE *)ai_BTypes)[bld->type].kind == 0x12 && *sv_PanelShown == 0x74)
+    bld = args->obj;
+    if (ai_BTypes[bld->type].kind == 0x12 && sv_PanelShown->type == 0x74)
         return 0;
     return 1;
 }
@@ -855,57 +836,57 @@ int ai_QueryDefault(int *args)
    allowed only with the argument 0x10e, the event 0x1a on it is refused while the panel shows the room 0x10e;
    the event 0x1b is refused, everything else allowed */
 
-int ai_QueryBuilding0f(int *args)
+int ai_QueryBuilding0f(TUTEVENT *args)
 {
-    if (args[0] == 0x19 && args[1]) {
-        if (((AIBTYPE *)ai_BTypes)[((AIBLD *)args[1])->type].kind == 0xf && args[3] == 0x10e)
+    if (args->event == 0x19 && args->obj) {
+        if (ai_BTypes[((AIBLD *)args->obj)->type].kind == 0xf && args->arg == 0x10e)
             return 1;
         return 0;
     }
-    if (args[0] == 0x1a && args[1]) {
-        if (((AIBTYPE *)ai_BTypes)[((AIBLD *)args[1])->type].kind == 0xf && *sv_PanelShown == 0x10e)
+    if (args->event == 0x1a && args->obj) {
+        if (ai_BTypes[((AIBLD *)args->obj)->type].kind == 0xf && sv_PanelShown->type == 0x10e)
             return 0;
         return 1;
     }
-    return args[0] != 0x1b;
+    return args->event != 0x1b;
 }
 /* 0x576590, the query callback of the run record FTInitChapter2Step3: allows only the event 0x19 on a building
    of the type kind 0xf with the argument 0x110, refuses everything else */
 
-int ai_QueryChapter2Step3(int *args)
+int ai_QueryChapter2Step3(TUTEVENT *args)
 {
-    if (args[0] == 0x19 && args[1]
-            && ((AIBTYPE *)ai_BTypes)[((AIBLD *)args[1])->type].kind == 0xf && args[3] == 0x110)
+    if (args->event == 0x19 && args->obj
+            && ai_BTypes[((AIBLD *)args->obj)->type].kind == 0xf && args->arg == 0x110)
         return 1;
     return 0;
 }
 /* 0x5765e0, 1 for the kind 0x1a with a record */
 
-int ai_QueryChapter2Step4(int *p)
+int ai_QueryChapter2Step4(TUTEVENT *p)
 {
-    if (p[0] == 0x1a && p[1])
+    if (p->event == 0x1a && p->obj)
         return 1;
     return 0;
 }
 /* 0x576600, the query callback of the run record FTInitChapter2Step5: refuses the event 0x19 on a building of
    another type kind than 0xf, allows everything else */
 
-int ai_QueryChapter2Step5(int *args)
+int ai_QueryChapter2Step5(TUTEVENT *args)
 {
-    if (args[0] == 0x19 && args[1]
-            && ((AIBTYPE *)ai_BTypes)[((AIBLD *)args[1])->type].kind != 0xf)
+    if (args->event == 0x19 && args->obj
+            && ai_BTypes[((AIBLD *)args->obj)->type].kind != 0xf)
         return 0;
     return 1;
 }
 /* 0x576640, the query callback of the run record FTInitChapter2Step6: refuses the event 0x19 on a building of
    another type kind than 0xf or 2, allows everything else */
 
-int ai_QueryChapter2Step6(int *args)
+int ai_QueryChapter2Step6(TUTEVENT *args)
 {
     AIBTYPE *type;
 
-    if (args[0] == 0x19 && args[1]) {
-        type = &((AIBTYPE *)ai_BTypes)[((AIBLD *)args[1])->type];
+    if (args->event == 0x19 && args->obj) {
+        type = &ai_BTypes[((AIBLD *)args->obj)->type];
         if (type->kind != 0xf && type->kind != 2)
             return 0;
     }
@@ -914,12 +895,12 @@ int ai_QueryChapter2Step6(int *args)
 /* 0x576680, the query callback of the run record FTInitChapter2Step7: refuses the event 0x19 on a building of
    another type kind than 0xf, 2 or 0x12, allows everything else */
 
-int ai_QueryChapter2Step7(int *args)
+int ai_QueryChapter2Step7(TUTEVENT *args)
 {
     AIBTYPE *type;
 
-    if (args[0] == 0x19 && args[1]) {
-        type = &((AIBTYPE *)ai_BTypes)[((AIBLD *)args[1])->type];
+    if (args->event == 0x19 && args->obj) {
+        type = &ai_BTypes[((AIBLD *)args->obj)->type];
         if (type->kind != 0xf && type->kind != 2 && type->kind != 0x12)
             return 0;
     }
@@ -929,16 +910,16 @@ int ai_QueryChapter2Step7(int *args)
    the state 4 to 9, with 1 the state 9 back to 4 and 0xa to 0xb; the event 7 on a record whose byte +2 is 5
    switches the state 9 to 0xa; each switch restarts the step clock and answers 1, anything else answers 3 */
 
-int ai_StepChapter1Step5(int *args)
+int ai_StepChapter1Step5(TUTEVENT *args)
 {
-    if (args[0] == 0xa) {
-        if (args[2] == 0 && ai_Tutorial->next == 4) {
+    if (args->event == 0xa) {
+        if (args->stage == 0 && ai_Tutorial->next == 4) {
             ai_Tutorial->state = 9;
             ai_Tutorial->next = 9;
             ai_Tutorial->stepAt = d3_Time;
             return 1;
         }
-        if (args[2] == 1) {
+        if (args->stage == 1) {
             if (ai_Tutorial->next == 9) {
                 ai_Tutorial->state = 4;
                 ai_Tutorial->next = 4;
@@ -952,7 +933,7 @@ int ai_StepChapter1Step5(int *args)
                 return 1;
             }
         }
-    } else if (args[0] == 7 && args[1] && ai_Tutorial->next == 9 && ((unsigned char *)args[1])[2] == 5) {
+    } else if (args->event == 7 && args->obj && ai_Tutorial->next == 9 && ((AICHAR *)args->obj)->kind == 5) {
         ai_Tutorial->state = 0xa;
         ai_Tutorial->next = 0xa;
         ai_Tutorial->stepAt = d3_Time;
@@ -962,12 +943,12 @@ int ai_StepChapter1Step5(int *args)
 }
 /* 0x5767d0, the kind 0xd with a building whose table byte is 0xa moves the pending state to 0xb (1), else 3 */
 
-int ai_StepChapter1Step10(int *p)
+int ai_StepChapter1Step10(TUTEVENT *p)
 {
     AIBTYPE *type;
 
-    if (p[0] == 0xd && p[1]) {
-        type = &((AIBTYPE *)ai_BTypes)[((AIBLD *)p[1])->type];
+    if (p->event == 0xd && p->obj) {
+        type = &ai_BTypes[((AIBLD *)p->obj)->type];
         if (type->kind == 0xa) {
             ai_Tutorial->state = 0xb;
             ai_Tutorial->next = 0xb;
@@ -980,15 +961,15 @@ int ai_StepChapter1Step10(int *p)
 /* 0x576830, the kinds 0x17 / 0x18 set the pending state 0xa / 0xb (1), else 3. Ends at 0x57689f; 0x5768a0 is a
    new start without nop padding */
 
-int ai_StepChapter2Step1(int *p)
+int ai_StepChapter2Step1(TUTEVENT *p)
 {
-    if (p[0] == 0x17) {
+    if (p->event == 0x17) {
         ai_Tutorial->state = 0xa;
         ai_Tutorial->next = 0xa;
         ai_Tutorial->stepAt = d3_Time;
         return 1;
     }
-    if (p[0] == 0x18) {
+    if (p->event == 0x18) {
         ai_Tutorial->state = 0xb;
         ai_Tutorial->next = 0xb;
         ai_Tutorial->stepAt = d3_Time;
@@ -1005,16 +986,16 @@ void ai_HookChapter2Step2(int arg)
 
     if (arg)
         return;
-    b = (AIBLD *)gm_BuildQuery(1, 5, 0xf);
+    b = gm_BuildQuery(1, 5, 0xf);
     if (b)
         b->mainRoom = 0x10e;
 }
 /* 0x5768d0, the kind 0x19 with a record whose word is 0x10e moves the pending state to 0xb (1), else 3 */
 
-int ai_StepChapter2Step2(int *p)
+int ai_StepChapter2Step2(TUTEVENT *p)
 {
-    if (p[0] == 0x19 && p[1]) {
-        unsigned short *room = (unsigned short *)(unsigned)p[1];
+    if (p->event == 0x19 && p->obj) {
+        unsigned short *room = p->obj;
 
         if (*room == 0x10e) {
             ai_Tutorial->state = 0xb;
@@ -1027,10 +1008,10 @@ int ai_StepChapter2Step2(int *p)
 }
 /* 0x576920, the same as 0x5768d0 for the kind 0x19 and the record word 0x110 */
 
-int ai_StepChapter2Step3(int *p)
+int ai_StepChapter2Step3(TUTEVENT *p)
 {
-    if (p[0] == 0x19 && p[1]) {
-        unsigned short *room = (unsigned short *)(unsigned)p[1];
+    if (p->event == 0x19 && p->obj) {
+        unsigned short *room = p->obj;
 
         if (*room == 0x110) {
             ai_Tutorial->state = 0xb;
@@ -1043,10 +1024,10 @@ int ai_StepChapter2Step3(int *p)
 }
 /* 0x576970, the same for the kind 0x1a and the record word 0x110 */
 
-int ai_StepChapter2Step4(int *p)
+int ai_StepChapter2Step4(TUTEVENT *p)
 {
-    if (p[0] == 0x1a && p[1]) {
-        unsigned short *room = (unsigned short *)(unsigned)p[1];
+    if (p->event == 0x1a && p->obj) {
+        unsigned short *room = p->obj;
 
         if (*room == 0x110) {
             ai_Tutorial->state = 0xb;
@@ -1061,17 +1042,17 @@ int ai_StepChapter2Step4(int *p)
    state is 4 (state 0xa), the kind 0x1c in any state (state 0xb); else 3. Ends 0x576a7f; 0x576a80 is a new start
    without nop padding */
 
-int ai_StepChapter2Step5(int *p)
+int ai_StepChapter2Step5(TUTEVENT *p)
 {
     AIBLD *b;
 
-    if (p[0] == 0x1b) {
-        if (!p[1])
+    if (p->event == 0x1b) {
+        if (!p->obj)
             goto next;
         if (ai_Tutorial->next != 4)
             goto next;
-        b = (AIBLD *)p[1];
-        if (((AIBTYPE *)ai_BTypes)[b->type].kind != 0xd)
+        b = p->obj;
+        if (ai_BTypes[b->type].kind != 0xd)
             goto fail;
         ai_Tutorial->state = 0xa;
         ai_Tutorial->next = 0xa;
@@ -1079,11 +1060,11 @@ int ai_StepChapter2Step5(int *p)
         return 1;
     }
 next:
-    if (p[0] == 0x1c) {
-        if (!p[1])
+    if (p->event == 0x1c) {
+        if (!p->obj)
             goto fail;
-        b = (AIBLD *)p[1];
-        if (((AIBTYPE *)ai_BTypes)[b->type].kind != 0xd)
+        b = p->obj;
+        if (ai_BTypes[b->type].kind != 0xd)
             goto fail;
         ai_Tutorial->state = 0xb;
         ai_Tutorial->next = 0xb;
@@ -1098,21 +1079,21 @@ fail:
 
 void ai_HookChapter2Step5(int arg)
 {
-    char *r;
+    AIBLD *r;
 
     if (arg != 1)
         return;
-    r = (char *)gm_BuildQuery(1, 5, 0xa);
+    r = gm_BuildQuery(1, 5, 0xa);
     if (r)
-        sv_SelectPanelObject((unsigned char *)r, -1, (char *)(unsigned)&ch_EmptyName);
+        sv_SelectPanelObject(r, -1, (char *)(unsigned)&ch_EmptyName);
 }
 /* 0x576ab0, the kinds 0x19 / 0x1a with a record whose word is 0x13: the kind 0x19 only in the pending state 4
    (state 0xa), the kind 0x1a in any state (state 0xb); else 3 */
 
-int ai_StepChapter2Step6(int *p)
+int ai_StepChapter2Step6(TUTEVENT *p)
 {
-    if (p[0] == 0x19 && p[1] && ai_Tutorial->next == 4) {
-        unsigned short *room = (unsigned short *)(unsigned)p[1];
+    if (p->event == 0x19 && p->obj && ai_Tutorial->next == 4) {
+        unsigned short *room = p->obj;
 
         if (*room != 0x13)
             return 3;
@@ -1121,8 +1102,8 @@ int ai_StepChapter2Step6(int *p)
         ai_Tutorial->stepAt = d3_Time;
         return 1;
     }
-    if (p[0] == 0x1a && p[1]) {
-        unsigned short *room = (unsigned short *)(unsigned)p[1];
+    if (p->event == 0x1a && p->obj) {
+        unsigned short *room = p->obj;
 
         if (*room == 0x13) {
             ai_Tutorial->state = 0xb;
@@ -1135,10 +1116,10 @@ int ai_StepChapter2Step6(int *p)
 }
 /* 0x576b50, the kind 0x19 with a record whose word is 0x74 moves the pending state to 0xb (1), else 3 */
 
-int ai_StepChapter2Step7(int *p)
+int ai_StepChapter2Step7(TUTEVENT *p)
 {
-    if (p[0] == 0x19 && p[1]) {
-        unsigned short *room = (unsigned short *)(unsigned)p[1];
+    if (p->event == 0x19 && p->obj) {
+        unsigned short *room = p->obj;
 
         if (*room == 0x74) {
             ai_Tutorial->state = 0xb;
@@ -1150,23 +1131,23 @@ int ai_StepChapter2Step7(int *p)
     return 3;
 }
 /* 0x576ba0, a transition callback on the kinds 0x2b / 0x10 for a building (table 0x7e3f30, byte 0x12) whose word
-   +0x27 is the player's 0x6f25b8: the kind 0x2b with the step word p[3] 0xc / 0x1df and the flag +0x38 clear sets
-   the flag and the state 0xa, and answers 3; the kind 0x10 sets the pending state 9 (p[2] 0), 0xb / 4 (p[2] 1 by
+   +0x27 is the player's 0x6f25b8: the kind 0x2b with the step word p->arg 0xc / 0x1df and the flag +0x38 clear sets
+   the flag and the state 0xa, and answers 3; the kind 0x10 sets the pending state 9 (p->stage 0), 0xb / 4 (p->stage 1 by
    the flag +0x38), applies it and answers 1 */
 
-int ai_StepChapter4Step2(int *p)
+int ai_StepChapter4Step2(TUTEVENT *p)
 {
     int kind;
 
-    if (p[0] == 0x2b && p[1]) {
-        kind = ((AIBLD *)p[1])->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind != 0x12)
+    if (p->event == 0x2b && p->obj) {
+        kind = ((AIBLD *)p->obj)->type;
+        if (ai_BTypes[kind].kind != 0x12)
             return 3;
-        if (((AIBLD *)p[1])->owner != ai_PlayerId)
+        if (((AIBLD *)p->obj)->owner != ai_PlayerId)
             return 3;
         if (ai_Tutorial->goalDone)
             return 3;
-        if (p[3] != 0xc && p[3] != 0x1df)
+        if (p->arg != 0xc && p->arg != 0x1df)
             return 3;
         ai_Tutorial->goalDone = 1;
         ai_Tutorial->next = 0xa;
@@ -1174,16 +1155,16 @@ int ai_StepChapter4Step2(int *p)
         ai_Tutorial->stepAt = d3_Time;
         return 3;
     }
-    if (p[0] != 0x10 || !p[1])
+    if (p->event != 0x10 || !p->obj)
         return 3;
-    kind = ((AIBLD *)p[1])->type;
-    if (((AIBTYPE *)ai_BTypes)[kind].kind != 0x12)
+    kind = ((AIBLD *)p->obj)->type;
+    if (ai_BTypes[kind].kind != 0x12)
         return 3;
-    if (((AIBLD *)p[1])->owner != ai_PlayerId)
+    if (((AIBLD *)p->obj)->owner != ai_PlayerId)
         return 3;
-    if (p[2] == 0 && !ai_Tutorial->goalDone)
+    if (p->stage == 0 && !ai_Tutorial->goalDone)
         ai_Tutorial->next = 9;
-    if (p[2] == 1) {
+    if (p->stage == 1) {
         if (ai_Tutorial->goalDone == 1)
             ai_Tutorial->next = 0xb;
         else
@@ -1196,39 +1177,39 @@ int ai_StepChapter4Step2(int *p)
 /* 0x576cd0, a predicate: 1 for the kinds 0x1a / 0x19 / 0x1c, and for the kind 0x2b on the player's building (byte
    0x12, word +0x27 = 0x6f25b8) with the step word 0xc / 0x1df; else 0 */
 
-int ai_QueryChapter4Step2(int *p)
+int ai_QueryChapter4Step2(TUTEVENT *p)
 {
     int kind;
 
-    if (p[0] == 0x2b && p[1]) {
-        kind = ((AIBLD *)p[1])->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind == 0x12
-                && ((AIBLD *)p[1])->owner == ai_PlayerId
-                && (p[3] == 0xc || p[3] == 0x1df))
+    if (p->event == 0x2b && p->obj) {
+        kind = ((AIBLD *)p->obj)->type;
+        if (ai_BTypes[kind].kind == 0x12
+                && ((AIBLD *)p->obj)->owner == ai_PlayerId
+                && (p->arg == 0xc || p->arg == 0x1df))
             return 1;
     }
-    if (p[0] == 0x1a || p[0] == 0x19 || p[0] == 0x1c)
+    if (p->event == 0x1a || p->event == 0x19 || p->event == 0x1c)
         return 1;
     return 0;
 }
 /* 0x576d40, the twin of ai_StepChapter4Step2 (0x576ba0) for the kinds 0x2b / 0x11: on a building of the type kind
-   0x12 that the player owns, the kind 0x2b with the step word p[3] 0x78 / 0x79 / 0x7a and the goal not met yet
-   meets the goal and switches to the state 0xa (answers 3); the kind 0x11 sets the pending state 9 (p[2] 0, goal
-   open), 0xb / 4 (p[2] 1, by the goal), applies it and answers 1 */
+   0x12 that the player owns, the kind 0x2b with the step word p->arg 0x78 / 0x79 / 0x7a and the goal not met yet
+   meets the goal and switches to the state 0xa (answers 3); the kind 0x11 sets the pending state 9 (p->stage 0, goal
+   open), 0xb / 4 (p->stage 1, by the goal), applies it and answers 1 */
 
-int ai_StepChapter4Step4(int *p)
+int ai_StepChapter4Step4(TUTEVENT *p)
 {
     int kind;
 
-    if (p[0] == 0x2b && p[1]) {
-        kind = ((AIBLD *)p[1])->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind != 0x12)
+    if (p->event == 0x2b && p->obj) {
+        kind = ((AIBLD *)p->obj)->type;
+        if (ai_BTypes[kind].kind != 0x12)
             return 3;
-        if (((AIBLD *)p[1])->owner != ai_PlayerId)
+        if (((AIBLD *)p->obj)->owner != ai_PlayerId)
             return 3;
         if (ai_Tutorial->goalDone)
             return 3;
-        if (p[3] != 0x79 && p[3] != 0x7a && p[3] != 0x78)
+        if (p->arg != 0x79 && p->arg != 0x7a && p->arg != 0x78)
             return 3;
         ai_Tutorial->goalDone = 1;
         ai_Tutorial->next = 0xa;
@@ -1236,16 +1217,16 @@ int ai_StepChapter4Step4(int *p)
         ai_Tutorial->stepAt = d3_Time;
         return 3;
     }
-    if (p[0] != 0x11 || !p[1])
+    if (p->event != 0x11 || !p->obj)
         return 3;
-    kind = ((AIBLD *)p[1])->type;
-    if (((AIBTYPE *)ai_BTypes)[kind].kind != 0x12)
+    kind = ((AIBLD *)p->obj)->type;
+    if (ai_BTypes[kind].kind != 0x12)
         return 3;
-    if (((AIBLD *)p[1])->owner != ai_PlayerId)
+    if (((AIBLD *)p->obj)->owner != ai_PlayerId)
         return 3;
-    if (p[2] == 0 && !ai_Tutorial->goalDone)
+    if (p->stage == 0 && !ai_Tutorial->goalDone)
         ai_Tutorial->next = 9;
-    if (p[2] == 1) {
+    if (p->stage == 1) {
         if (ai_Tutorial->goalDone == 1)
             ai_Tutorial->next = 0xb;
         else
@@ -1258,15 +1239,15 @@ int ai_StepChapter4Step4(int *p)
 /* 0x576e70, the predicate twin of 0x576cd0: 1 for the player's building (byte 0x12, word +0x27 = 0x6f25b8) with
    the step word 0x78 / 0x79 / 0x7a; else the answer of 0x5764b0 */
 
-int ai_QueryChapter4Step4(int *p)
+int ai_QueryChapter4Step4(TUTEVENT *p)
 {
     int kind;
 
-    if (p[0] == 0x2b && p[1]) {
-        kind = ((AIBLD *)p[1])->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind == 0x12
-                && ((AIBLD *)p[1])->owner == ai_PlayerId
-                && (p[3] == 0x79 || p[3] == 0x7a || p[3] == 0x78))
+    if (p->event == 0x2b && p->obj) {
+        kind = ((AIBLD *)p->obj)->type;
+        if (ai_BTypes[kind].kind == 0x12
+                && ((AIBLD *)p->obj)->owner == ai_PlayerId
+                && (p->arg == 0x79 || p->arg == 0x7a || p->arg == 0x78))
             return 1;
     }
     return ai_QueryDefault(p);
@@ -1275,19 +1256,19 @@ int ai_QueryChapter4Step4(int *p)
    0x5 / 0x2 / 0xd / 0x8 and the flag +0x38 clear sets the flag and the state 0xa (3); the kind 0x10 sets the
    pending state 9 / 0xb / 4, applies it and answers 1 */
 
-int ai_StepChapter4Step5(int *p)
+int ai_StepChapter4Step5(TUTEVENT *p)
 {
     int kind;
 
-    if (p[0] == 0x2b && p[1]) {
-        kind = ((AIBLD *)p[1])->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind != 2)
+    if (p->event == 0x2b && p->obj) {
+        kind = ((AIBLD *)p->obj)->type;
+        if (ai_BTypes[kind].kind != 2)
             return 3;
-        if (((AIBLD *)p[1])->owner != ai_PlayerId)
+        if (((AIBLD *)p->obj)->owner != ai_PlayerId)
             return 3;
         if (ai_Tutorial->goalDone)
             return 3;
-        if (p[3] != 5 && p[3] != 2 && p[3] != 0xd && p[3] != 8)
+        if (p->arg != 5 && p->arg != 2 && p->arg != 0xd && p->arg != 8)
             return 3;
         ai_Tutorial->goalDone = 1;
         ai_Tutorial->next = 0xa;
@@ -1295,16 +1276,16 @@ int ai_StepChapter4Step5(int *p)
         ai_Tutorial->stepAt = d3_Time;
         return 3;
     }
-    if (p[0] != 0x10 || !p[1])
+    if (p->event != 0x10 || !p->obj)
         return 3;
-    kind = ((AIBLD *)p[1])->type;
-    if (((AIBTYPE *)ai_BTypes)[kind].kind != 2)
+    kind = ((AIBLD *)p->obj)->type;
+    if (ai_BTypes[kind].kind != 2)
         return 3;
-    if (((AIBLD *)p[1])->owner != ai_PlayerId)
+    if (((AIBLD *)p->obj)->owner != ai_PlayerId)
         return 3;
-    if (p[2] == 0 && !ai_Tutorial->goalDone)
+    if (p->stage == 0 && !ai_Tutorial->goalDone)
         ai_Tutorial->next = 9;
-    if (p[2] == 1) {
+    if (p->stage == 1) {
         if (ai_Tutorial->goalDone == 1)
             ai_Tutorial->next = 0xb;
         else
@@ -1317,18 +1298,18 @@ int ai_StepChapter4Step5(int *p)
 /* 0x577020, the predicate twin of 0x576ee0: 1 for a building of the table byte 0x2 with the step word
    0x5 / 0x2 / 0xd / 0x8 and for the kinds 0x1a / 0x19 / 0x1c; else 0 */
 
-int ai_QueryChapter4Step5(int *p)
+int ai_QueryChapter4Step5(TUTEVENT *p)
 {
     int kind;
 
-    if (p[0] == 0x2b && p[1]) {
-        kind = ((AIBLD *)p[1])->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind == 2
-                && ((AIBLD *)p[1])->owner == ai_PlayerId
-                && (p[3] == 5 || p[3] == 2 || p[3] == 0xd || p[3] == 8))
+    if (p->event == 0x2b && p->obj) {
+        kind = ((AIBLD *)p->obj)->type;
+        if (ai_BTypes[kind].kind == 2
+                && ((AIBLD *)p->obj)->owner == ai_PlayerId
+                && (p->arg == 5 || p->arg == 2 || p->arg == 0xd || p->arg == 8))
             return 1;
     }
-    if (p[0] == 0x1a || p[0] == 0x19 || p[0] == 0x1c)
+    if (p->event == 0x1a || p->event == 0x19 || p->event == 0x1c)
         return 1;
     return 0;
 }
@@ -1344,13 +1325,13 @@ void ai_HookChapter4Step(int arg)
     cm_SendMoveGoodsUnchecked(id, -1, 0, 0x2bc0);
 }
 /* 0x5770e0, a transition callback (0x30 B; a start the ret+nop scan missed: it follows 0x5770a0's nop fill and
-   runs to 0x57710f): for the event kind 0x20 with the step p[3] 0x155 it answers 1 while the state record's +0x3c
+   runs to 0x57710f): for the event kind 0x20 with the step p->arg 0x155 it answers 1 while the state record's +0x3c
    is 3, else 0; every other event goes on to 0x5764b0 */
 
-int ai_QueryChapter3Step2(int *p)
+int ai_QueryChapter3Step2(TUTEVENT *p)
 {
-    if (p[0] == 0x20) {
-        if (p[3] == 0x155 && ai_Tutorial->phase == 3)
+    if (p->event == 0x20) {
+        if (p->arg == 0x155 && ai_Tutorial->phase == 3)
             return 1;
         return 0;
     }
@@ -1369,8 +1350,8 @@ void ai_HookChapter3Step2(int end)
     if (end)
         return;
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].bld && ai_CharsT[i].bld->owner == ai_PlayerId) {
-            chr = &ai_CharsT[i];
+        if (ai_Chars[i].bld && ai_Chars[i].bld->owner == ai_PlayerId) {
+            chr = &ai_Chars[i];
             if (!chr)
                 return;
             if (!he_FigureContact(chr, &x, &y))
@@ -1385,17 +1366,17 @@ void ai_HookChapter3Step2(int end)
    0x155, and to 2 by the kind 0x24 on a building with the table byte 0xa (1); else 0, and the answer of 0x5764b0
    when the flag is below the needed value or no record is given */
 
-int ai_QueryChapter3Step6(int *p)
+int ai_QueryChapter3Step6(TUTEVENT *p)
 {
     int kind;
 
-    if (ai_Tutorial->goalDone >= 0 && p[0] == 0x25 && p[3] == 0x155) {
+    if (ai_Tutorial->goalDone >= 0 && p->event == 0x25 && p->arg == 0x155) {
         ai_Tutorial->goalDone = 1;
         return 1;
     }
-    if (ai_Tutorial->goalDone >= 1 && p[1] && p[0] == 0x24) {
-        kind = ((AIBLD *)p[1])->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind == 0xa) {
+    if (ai_Tutorial->goalDone >= 1 && p->obj && p->event == 0x24) {
+        kind = ((AIBLD *)p->obj)->type;
+        if (ai_BTypes[kind].kind == 0xa) {
             ai_Tutorial->goalDone = 2;
             return 1;
         }
@@ -1408,12 +1389,12 @@ int ai_QueryChapter3Step6(int *p)
 
 void ai_HookChapter5Step2(int arg)
 {
-    ORDOBJ *r;
+    AIOBJ *r;
     int id;
 
     if (arg)
         return;
-    r = (ORDOBJ *)gm_FindMarketObject(0x155);
+    r = (AIOBJ *)gm_FindMarketObject(0x155);
     id = ai_CharInts[ai_PlayerId][0];
     cm_SendMoveGoodsUnchecked(id, -1, 0, 0x2bc0);
     cm_SendExSellObject(r->objId, -1, 0x155, 3, ai_OwnPlayer, 0);
@@ -1422,10 +1403,10 @@ void ai_HookChapter5Step2(int arg)
    allows only the event 0x29 on the market object 0x155 (and sets goalDone back to 1), refusing everything else;
    before that it allows everything */
 
-int ai_QueryChapter5Step2(int *args)
+int ai_QueryChapter5Step2(TUTEVENT *args)
 {
     if (ai_Tutorial->goalDone > 0) {
-        if (args[0] == 0x29 && args[3] == 0x155) {
+        if (args->event == 0x29 && args->arg == 0x155) {
             ai_Tutorial->goalDone = 1;
             return 1;
         }
@@ -1443,7 +1424,7 @@ int ai_MarkerChapter5Step2(int mode)
     int r;
 
     if (sv_PanelShown) {
-        room = *sv_PanelShown;
+        room = sv_PanelShown->type;
         r = room;
         if (r >= 0x92 && (r <= 0x97 || r == 0x2db) && !ai_Tutorial->goalDone)
             return room != 0x92;
@@ -1462,27 +1443,27 @@ int ai_MarkerChapter3Step6(int mode)
    ai_PlayerId), each when the flag already reaches the previous level (1) and the step fits; the kinds 0x1a /
    0x1c answer 1, everything else 0 */
 
-int ai_QueryChapter3Step8(int *p)
+int ai_QueryChapter3Step8(TUTEVENT *p)
 {
     int kind;
 
-    if (ai_Tutorial->goalDone >= 0 && p[0] == 0x28 && p[3] == 0x155) {
+    if (ai_Tutorial->goalDone >= 0 && p->event == 0x28 && p->arg == 0x155) {
         ai_Tutorial->goalDone = 1;
         return 1;
     }
-    if (ai_Tutorial->goalDone >= 1 && p[0] == 0x27 && p[3] == 0x1d0) {
+    if (ai_Tutorial->goalDone >= 1 && p->event == 0x27 && p->arg == 0x1d0) {
         ai_Tutorial->goalDone = 2;
         return 1;
     }
-    if (ai_Tutorial->goalDone >= 2 && p[1] && p[0] == 0x24) {
-        kind = ((AIBLD *)p[1])->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind == 0x12
-                && ((AIBLD *)p[1])->owner == ai_PlayerId) {
+    if (ai_Tutorial->goalDone >= 2 && p->obj && p->event == 0x24) {
+        kind = ((AIBLD *)p->obj)->type;
+        if (ai_BTypes[kind].kind == 0x12
+                && ((AIBLD *)p->obj)->owner == ai_PlayerId) {
             ai_Tutorial->goalDone = 3;
             return 1;
         }
     }
-    if (p[0] == 0x1a || p[0] == 0x1c)
+    if (p->event == 0x1a || p->event == 0x1c)
         return 1;
     return 0;
 }
@@ -1498,7 +1479,7 @@ int ai_MarkerChapter3Step8(int mode)
     int done;
 
     if (sv_PanelShown) {
-        room = *sv_PanelShown;
+        room = sv_PanelShown->type;
         r = room;
         if (r >= 0x92 && r <= 0x97) {
             done = ai_Tutorial->goalDone;
@@ -1515,13 +1496,13 @@ int ai_MarkerChapter3Step8(int mode)
 /* 0x577450, a step predicate: 1 for the kind 0x26 with the step word 0x1d0 while the goalDone flag is not negative
    (which sets the flag to 1), and for the kinds 0x1a / 0x1c; else 0 */
 
-int ai_QueryChapter3Step10(int *p)
+int ai_QueryChapter3Step10(TUTEVENT *p)
 {
-    if (ai_Tutorial->goalDone >= 0 && p[0] == 0x26 && p[3] == 0x1d0) {
+    if (ai_Tutorial->goalDone >= 0 && p->event == 0x26 && p->arg == 0x1d0) {
         ai_Tutorial->goalDone = 1;
         return 1;
     }
-    if (p[0] == 0x1a || p[0] == 0x1c)
+    if (p->event == 0x1a || p->event == 0x1c)
         return 1;
     return 0;
 }
@@ -1548,17 +1529,17 @@ void ai_HookChapter3Intro(int arg)
     if (arg)
         return;
     if (ai_PlayerBuilding) {
-        kind = ((AIBLD *)ai_PlayerBuilding)->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind == 0x12)
+        kind = ai_PlayerBuilding->type;
+        if (ai_BTypes[kind].kind == 0x12)
             return;
     }
-    r = (AIBLD *)gm_BuildQuery(1, 5, 0x12);
+    r = gm_BuildQuery(1, 5, 0x12);
     if (!r)
         return;
-    q = (AIOBJ *)gm_Query((void *)r->objList, 1, 0, 0x74);
+    q = gm_Query(r->objList, 1, 0, 0x74);
     if (!q)
         return;
-    sv_SelectPanelObject((unsigned char *)r, q->objId, ch_EmptyName);
+    sv_SelectPanelObject(r, q->objId, ch_EmptyName);
 }
 /* 0x577540, when `arg` is 0 and the building 0x6f2308 is not already of the table byte 0x2: finds a record
    (0x501190 (2, 5, 2, 4, player) with the player word 0x6f25b8), picks 0x4ffe90 (r+0x5d, 1, 0, 0x13) and passes
@@ -1573,17 +1554,17 @@ void ai_HookChapter5Intro(int arg)
     if (arg)
         return;
     if (ai_PlayerBuilding) {
-        kind = ((AIBLD *)ai_PlayerBuilding)->type;
-        if (((AIBTYPE *)ai_BTypes)[kind].kind == 2)
+        kind = ai_PlayerBuilding->type;
+        if (ai_BTypes[kind].kind == 2)
             return;
     }
-    r = (AIBLD *)gm_BuildQuery(2, 5, 2, 4, ai_PlayerId);
+    r = gm_BuildQuery(2, 5, 2, 4, ai_PlayerId);
     if (!r)
         return;
-    q = (AIOBJ *)gm_Query((void *)r->objList, 1, 0, 0x13);
+    q = gm_Query(r->objList, 1, 0, 0x13);
     if (!q)
         return;
-    sv_SelectPanelObject((unsigned char *)r, q->objId, ch_EmptyName);
+    sv_SelectPanelObject(r, q->objId, ch_EmptyName);
 }
 /* 0x5775c0, the run hook of the run record FTInitChapter5Step4: at the run's start (end 0) sends two messages for
    the player's character - cm_SendSetField (netId, 0x1c8, 4, 0x4000, 0) and cm_SendMoveGoodsUnchecked (netId, -1,
@@ -1593,7 +1574,7 @@ void ai_HookChapter5Step4(int end)
 {
     AICHAR *chr;
 
-    chr = &ai_CharsT[ai_PlayerId];
+    chr = &ai_Chars[ai_PlayerId];
     if (end)
         return;
     cm_SendSetField(chr->netId, 0x1c8, 4, 0x4000, 0);
@@ -1616,10 +1597,10 @@ void ai_HookChapter5Step5(int end)
     if (end != 1)
         return;
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].kind == 5) {
-            chr = &ai_CharsT[i];
+        if (ai_Chars[i].kind == 5) {
+            chr = &ai_Chars[i];
             if (amt_GetOfficeCandidates((char *)chr, 1, &cand) > 0)
-                amt_ApplyForOffice((char *)chr, cand.kind);
+                amt_ApplyForOffice(chr, cand.kind);
             return;
         }
     }
@@ -1640,11 +1621,11 @@ void ai_HookChapter5Step6(int end)
     memset(&party, 0, sizeof party);
     n = 0;
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].kind == 6) {
-            party.host = ai_CharsT[i].netId;
-            party.members[n++] = ai_CharsT[i].netId;
-        } else if (ai_CharsT[i].kind == 7)
-            party.members[n++] = ai_CharsT[i].netId;
+        if (ai_Chars[i].kind == 6) {
+            party.host = ai_Chars[i].netId;
+            party.members[n++] = ai_Chars[i].netId;
+        } else if (ai_Chars[i].kind == 7)
+            party.members[n++] = ai_Chars[i].netId;
     }
     party.used = n;
     party.kind = 1;
@@ -1668,7 +1649,7 @@ int ai_TutorialOpenIntro(void)
         return -4;
     if (host->slot)
         return -4;
-    he_OpenEventSlot((int)host, 0, 0, "tutorial\\main", 0x5ec);
+    he_OpenEventSlot((struct AIJOB *)host, 0, 0, "tutorial\\main", 0x5ec);
     if (!ai_Tutorial->host->slot)
         return -1;
     d2_PlaceMainWindow(ai_Tutorial->host->slot->win, 3);
@@ -1677,7 +1658,7 @@ int ai_TutorialOpenIntro(void)
     sv_FitForm(d2_LastWindow);
     d2_SetForm(ai_Tutorial->host->slot->win, 3);
     ai_Tutorial->continueObj = d2_GetWinObj(ai_Tutorial->host->slot->win, 3,
-            io_PrintText("$Z%s", 0x7d));
+            io_PrintText((intptr_t)"$Z%s", 0x7d));
     return 0;
 }
 /* 0x577820, closes the tutorial's main event: -4 without a host / with no open event slot, else releases the slot
@@ -1692,7 +1673,7 @@ int ai_TutorialCloseIntro(void)
         return -4;
     if (!host->slot)
         return -4;
-    he_ReleaseSlot((int)host);
+    he_ReleaseSlot((struct AIJOB *)host);
     return 0;
 }
 /* 0x577850, clears the run window's two text controls: -4 without a host / with no open event slot, else sets the
@@ -1708,9 +1689,9 @@ int ai_TutorialClearRunWindow(void)
     if (!host->slot)
         return -4;
     d2_SetForm(host->slot->win, 1);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_SetForm(ai_Tutorial->host->slot->win, 2);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     return 0;
 }
 /* 0x5778b0, shows the current run's texts in the run window (the tutorial host's event slot window): clears it
@@ -1758,25 +1739,7 @@ int ai_TutorialIntroAnswered(void)
         return -4;
     if (!ai_Tutorial->host->slot)
         return -4;
-    if (he_ActiveSlot->ev && he_ActiveSlot->ev->kind == (char)0x87) {
-#ifdef REA_START
-        /* REA_START=tutorial (`uv run play|dbg --start tutorial`): accept the tutorial's intro message (the 0x87
-           event, whose "Weiter" text object 0x577740 stores in S+0x20) without a mouse click, so a run without GUI
-           automation gets past it. Answer straight away like the keyboard arm does - forging a click in
-           d2_ClickedId / d2_PointerObj would leak the phantom click into the rest of the frame. Without the flag
-           the message waits for the real click / Return. */
-        {
-            char *rea = getenv("REA_START");
-            if (rea != 0 && strcmp(rea, "tutorial") == 0) {
-                if (ai_Tutorial->voice) {
-                    if (sb_IsPlaying(ai_Tutorial->voice))
-                        sb_Stop(ai_Tutorial->voice, 0);
-                    ai_Tutorial->voice = 0;
-                }
-                return 1;
-            }
-        }
-#endif
+    if (he_ActiveSlot->ev && he_ActiveSlot->ev->kind == 0x87) {
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == ai_Tutorial->continueObj) {
                 if (ai_Tutorial->voice) {
@@ -1809,8 +1772,8 @@ void ai_TutorialShowText(void)
         return;
     sv_SetStatusText(ch_EmptyName);
     d2_SetForm(ai_Tutorial->text1Win, 0);
-    io_PrintText("$C");
-    io_PrintText((char *)ai_Tutorial->run->text1);
+    io_PrintText((intptr_t)"$C");
+    io_PrintText(ai_Tutorial->run->text1);
     d2_SetViewEnabled(ai_Tutorial->text1Win, 1);
     if (!ai_Tutorial->run->text1Voice)
         return;
@@ -1827,7 +1790,7 @@ void ai_TutorialShowText(void)
 void ai_TutorialHideText(void)
 {
     d2_SetForm(ai_Tutorial->text1Win, 0);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_SetViewEnabled(ai_Tutorial->text1Win, 0);
 }
 /* 0x577b90, shows the run's second text window, the sibling of ai_TutorialShowText: nothing without a run record
@@ -1842,8 +1805,8 @@ void ai_TutorialShowText2(void)
         return;
     sv_SetStatusText(ch_EmptyName);
     d2_SetForm(ai_Tutorial->text2Win, 0);
-    io_PrintText("$C");
-    io_PrintText((char *)ai_Tutorial->run->text2);
+    io_PrintText((intptr_t)"$C");
+    io_PrintText(ai_Tutorial->run->text2);
     d2_SetViewEnabled(ai_Tutorial->text2Win, 1);
     if (!ai_Tutorial->run->text2Voice)
         return;
@@ -1861,7 +1824,7 @@ void ai_TutorialShowText2(void)
 void ai_TutorialHideText2(void)
 {
     d2_SetForm(ai_Tutorial->text2Win, 0);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_SetViewEnabled(ai_Tutorial->text2Win, 0);
     if (ai_Tutorial->voice) {
         if (sb_IsPlaying(ai_Tutorial->voice))
@@ -1945,9 +1908,9 @@ int ai_TutorialStepForm(void)
     }
     if (ai_Tutorial->stepKind == ai_Tutorial->run->steps[ai_Tutorial->step].kind) {
         d2_SetForm(ai_Tutorial->stepForm, 1);
-        io_PrintText("$C");
+        io_PrintText((intptr_t)"$C");
         d2_SetForm(ai_Tutorial->stepForm, 2);
-        io_PrintText("$C");
+        io_PrintText((intptr_t)"$C");
     } else {
         if (ai_Tutorial->stepForm != -1) {
             d2_CloseView(ai_Tutorial->stepForm);
@@ -1967,9 +1930,9 @@ int ai_TutorialStepForm(void)
         ai_Tutorial->stepKind = ai_Tutorial->run->steps[ai_Tutorial->step].kind;
     }
     d2_SetForm(ai_Tutorial->stepForm, 1);
-    io_PrintText((char *)ai_Tutorial->run->steps[ai_Tutorial->step].text);
+    io_PrintText(ai_Tutorial->run->steps[ai_Tutorial->step].text);
     d2_SetForm(ai_Tutorial->stepForm, 2);
-    ai_Tutorial->stepControl = d2_GetWinObj(ai_Tutorial->stepForm, 2, io_PrintText("$Z%s", 0x7d));
+    ai_Tutorial->stepControl = d2_GetWinObj(ai_Tutorial->stepForm, 2, io_PrintText((intptr_t)"$Z%s", 0x7d));
     if (ai_Tutorial->run->steps[ai_Tutorial->step].voice) {
         if (ai_Tutorial->voice) {
             if (sb_IsPlaying(ai_Tutorial->voice))
@@ -3911,7 +3874,7 @@ void ai_TutorialBezier(float *a, float *b, float *c, float *d, float t, float *o
     out[1] = u3 * a[1] + (u * b[1] + t * c[1]) * u * t * 3.0f + t3 * d[1];
 }
 
-struct G5CH; struct G9REC; struct VFSFILE;
+struct AICHAR; struct G9REC; struct VFSFILE;
 
 /* 0x57b8a0, moves the tutorial's position marker along the run's paths (TUTRUN.marks), once per frame: nothing
    while the tutorial is off or the run has no paths. `mode` is the caller's; the run's markPick (when set)
@@ -4019,7 +3982,7 @@ void ai_SetupTutorialPlayer(void)
     memcpy(init_PlayerProfile.talents, t.skills, 5);
 }
 
-int sv_RunFrame(int cb, unsigned mask);
+int sv_RunFrame(void (*cb)(), unsigned mask);
 
 /* 0x57bce0, the tutorial's chapter chooser: opens the form "tutorial\CHOOSE_tutorial" centred, writes its title
    (text 0x3f1a) into control 1 and into control 2 five checkboxes for the chapters (texts 0x3f1b ..), each
@@ -4043,31 +4006,18 @@ int ai_TutorialWindow(void)
     id = d2_OpenForm(0, 0, "tutorial\\CHOOSE_tutorial");
     d2_CentreViewWindows(id);
     d2_SetForm(id, 1);
-    io_PrintText("$Z%s", 0x3f1a);
+    io_PrintText((intptr_t)"$Z%s", 0x3f1a);
     d2_SetForm(id, 2);
     for (i = 0; i < 5; i++) {
-        ids[i] = d2_GetWinObj(id, 2, io_PrintText("%ia[%s]$N", 0x3f1b + i));
+        ids[i] = d2_GetWinObj(id, 2, io_PrintText((intptr_t)"%ia[%s]$N", 0x3f1b + i));
         d2_Objs[ids[i]].checkable = 1;
         d2_Objs[ids[i]].checked = ai_TutorialChapterOn[i];
         d2_Objs[ids[i]].style &= ~2;
     }
-    start = d2_GetWinObj(id, 2, io_PrintText("%ia[%s]$N", 0x3f20));
-    back = d2_GetWinObj(id, 2, io_PrintText("%ia[%s]$N", 0x3f21));
+    start = d2_GetWinObj(id, 2, io_PrintText((intptr_t)"%ia[%s]$N", 0x3f20));
+    back = d2_GetWinObj(id, 2, io_PrintText((intptr_t)"%ia[%s]$N", 0x3f21));
     d2_SetForm(id, 2);
-    while (sv_RunFrame((int)ai_TutorialWindow, 0x86) != 0) {
-#ifdef REA_START
-        /* REA_START=tutorial (`uv run play|dbg --start tutorial`): the chapter menu is the screen between the
-           main-menu entry and the loading screen. Accept its default selection (0x62918c starts all 1) the way
-           the "Tutorial starten" click does, so a run without GUI automation still reaches the tutorial;
-           without the flag the menu waits for a real click. The frame above has drawn and registered it. */
-        {
-            char *rea = getenv("REA_START");
-            if (rea != 0 && strcmp(rea, "tutorial") == 0) {
-                sv_PopRequest = 1;
-                result = 1;
-            }
-        }
-#endif
+    while (sv_RunFrame(ai_TutorialWindow, 0x86) != 0) {
         for (i = 0, n = 0; i < 5; i++) {
             if (d2_Objs[ids[i]].checked != 0) {
                 d2_SetObjEnabled(start, 1);
@@ -4102,7 +4052,7 @@ int ai_TutorialWindow(void)
     return result;
 }
 
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(); void sv_ValueBar();
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_ValueBar();
 
 /* 0x57bf00, the alchemist's candidates window of the alchemist object obj ("Locations\Domizil\Alchemistry1"):
    the walk steps in use (ahm_WalkStep 0 .. 2) are the candidates; none: the green message box (title text
@@ -4131,7 +4081,7 @@ void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen();
    [esp+ebp+0x50], add edx,4 at the end) and computes &d2_Wins[win2].w after the name text, ours keeps i in
    ebx (scaled [esp+ebx*4+..]) and hoists &d2_Wins[win2].w out of the loop; the original saves edi only
    after the no-candidate return (push edi at 0x57bfaf); frame 0x55c vs 0x548 */
-void ai_AlchemistCandidates(unsigned char *obj)
+void ai_AlchemistCandidates(AIBLD *obj)
 {
     int t;
     int i;
@@ -4165,8 +4115,8 @@ void ai_AlchemistCandidates(unsigned char *obj)
         }
     }
     if (n == 0) {
-        txt_Format(msg, 0x404a, ai_PlayerSlots[ai_OwnPlayer]);
-        sv_MessageBoxGreen((int)txt_Ptrs[0x4039], (int)msg, 0);
+        txt_Format(msg, 0x404a, ai_PlayerSlots[ai_OwnPlayer].name);
+        sv_MessageBoxGreen((intptr_t)txt_Ptrs[0x4039], (intptr_t)msg, 0);
         sv_CameraFollow();
         return;
     }
@@ -4191,27 +4141,27 @@ void ai_AlchemistCandidates(unsigned char *obj)
         d2_Objs[portraits[i]].interactive = 1;
         d2_RadioAdd(group, portraits[i]);
         step = steps[i];
-        txt_Format(line, (int)"%s %s", txt_Ptrs[0x417a + step->x], txt_Ptrs[0x4193 + step->y]);
+        txt_Format(line, (intptr_t)"%s %s", txt_Ptrs[0x417a + step->x], txt_Ptrs[0x4193 + step->y]);
         t = d2_CreateWinText(0, y - 0x30, line, win2);
         d2_Objs[t].w = d2_Wins[win2].w;
         d2_Objs[t].centred = 1;
         d2_SetObjFont(t, 0x54);
-        txt_Format(line, (int)"%s", txt_Ptrs[0x4172]);
+        txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4172]);
         t = d2_CreateWinText(0x50, y - 0x1a, line, win2);
         d2_Objs[t].w = d2_Wins[win2].w - 0x50;
         d2_SetObjFont(t, 0x54);
         sv_ValueBar(0x8c, y - 0x1a, step->grid.plr.attr[0], 0x4df);
-        txt_Format(line, (int)"%s", txt_Ptrs[0x4173]);
+        txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4173]);
         t = d2_CreateWinText(0x50, y - 0xd, line, win2);
         d2_Objs[t].w = d2_Wins[win2].w - 0x50;
         d2_SetObjFont(t, 0x54);
         sv_ValueBar(0x8c, y - 0xd, step->grid.plr.attr[1], 0x4df);
-        txt_Format(line, (int)"%s", txt_Ptrs[0x4174]);
+        txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4174]);
         t = d2_CreateWinText(0x50, y, line, win2);
         d2_Objs[t].w = d2_Wins[win2].w - 0x50;
         d2_SetObjFont(t, 0x54);
         sv_ValueBar(0x8c, y, step->grid.plr.attr[2], 0x4df);
-        txt_Format(line, (int)"%s", txt_Ptrs[0x4175]);
+        txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4175]);
         t = d2_CreateWinText(0x50, y + 0xd, line, win2);
         d2_Objs[t].w = d2_Wins[win2].w - 0x50;
         d2_SetObjFont(t, 0x54);
@@ -4242,16 +4192,16 @@ void ai_AlchemistCandidates(unsigned char *obj)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_AlchemistCandidates, 0x677c7));
+    } while (sv_RunFrame(ai_AlchemistCandidates, 0x677c7));
     d2_RadioClear(group);
     d2_CloseView(form);
     sv_CameraFollow();
 }
 
-char * ahm_OwnerChar();
-int sv_CheckGoodAmount(char *o, int n, unsigned char t);
-int sv_MessageBox();
-void txt_Format(char *out, int id0, ...);
+struct AICHAR *ahm_OwnerChar();
+int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
+int sv_MessageBox(intptr_t text, unsigned flags);
+void txt_Format(char *out, intptr_t id0, ...);
 int ahm_SendCreateAlchemist();
 
 /* 0x57c560, hires the alchemist candidate step for the alchemist object obj at the price value: 0 when the
@@ -4260,19 +4210,19 @@ int ahm_SendCreateAlchemist();
    creation is posted (ahm_SendCreateAlchemist) and its slot awaited (the frame pump while cm_GetSlotState
    is 0); a slot that did not end in state 1 answers 0. On success the step is cleared, the price moved from
    the player (cm_SendMoveGoods) and 1 answered */
-int ai_AlchemistHire(unsigned char *obj, AHMSTEP *step, int value)
+int ai_AlchemistHire(AIBLD *obj, AHMSTEP *step, int value)
 {
     char text[0x200];
-    char *owner;
+    AICHAR *owner;
     int slot;
 
     owner = ahm_OwnerChar(obj);
-    if (sv_CheckGoodAmount(ai_Chars[ai_PlayerId], value, ai_OwnPlayer)) {
+    if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], value, ai_OwnPlayer)) {
         if (owner) {
-            sv_MessageBox((int)txt_Ptrs[0x4048], 0x100);
+            sv_MessageBox((intptr_t)txt_Ptrs[0x4048], 0x100);
         } else {
             txt_Format(text, 0x4044, txt_Ptrs[0x417a + step->x], txt_Ptrs[0x4193 + step->y]);
-            if (sv_MessageBox((int)text, 1)) {
+            if (sv_MessageBox((intptr_t)text, 1)) {
                 slot = ahm_SendCreateAlchemist(obj, step);
                 while (slot != -1 && !cm_GetSlotState(slot))
                     sv_RunFrame(0, 0x20007);
@@ -4287,7 +4237,7 @@ int ai_AlchemistHire(unsigned char *obj, AHMSTEP *step, int value)
     return 0;
 }
 
-int ahm_ResearchState(); char * ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
+int ahm_ResearchState(); struct AICHAR *ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
 
 /* 0x57c690, the alchemist's research window of the alchemist object obj ("Locations\Domizil\Alchemistry2"):
    without an owning character only the text 0x4051 (0x182); else the places of the record at +0x65 as
@@ -4312,13 +4262,13 @@ int ahm_ResearchState(); char * ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
    SetForm(form, 2) and reloads it in the loops. Next: from the row-block form, make win2 / start / other
    lose priority (fewer references or a split) - c2trace.py with the arw2 variant sep_ptr_row1 in the
    session notes' generator. (tiebreak: insensitive under the four probes only, best draft) */
-void ai_AlchemistResearchWindow(unsigned char *obj)
+void ai_AlchemistResearchWindow(AIBLD *obj)
 {
     char msg[0x100];
     char line[0x100];
     int pics[6];
     AHMREC *rec;
-    char *owner;
+    AICHAR *owner;
     int *pic;
     AHMSLOT *slot;
     int n;
@@ -4344,7 +4294,7 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
     int j;
 
     owner = ahm_OwnerChar(obj);
-    rec = ((AHMOBJ *)obj)->rec;
+    rec = obj->ahm;
     lastState = ahm_ResearchState(obj, &a, &f, 0);
     lastClock = d3_Time;
     d2_ClickedId = -1;
@@ -4363,7 +4313,7 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
         do {
             if (dm_L.rup != 0)
                 sv_PopRequest = 1;
-        } while (sv_RunFrame((int)ai_AlchemistResearchWindow, 0x677c7));
+        } while (sv_RunFrame(ai_AlchemistResearchWindow, 0x677c7));
         d2_CloseView(form);
         return;
     }
@@ -4372,7 +4322,7 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
     start = row[0];
     other = row[1];
     d2_SetForm(form, 2);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     group = d2_CreateRadioGroup(0);
     n = 0;
     pic = pics;
@@ -4385,9 +4335,9 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
         pid = d2_WinOpenPic(x, y, slot->id + 0xdf, win2);
         *pic = pid;
         d2_Objs[pid].interactive = 1;
-        d2_Objs[pid].user = ai_Goods + slot->id * 0x41;
+        d2_Objs[pid].user = &ai_Goods[slot->id];
         d2_RadioAdd(group, pid);
-        txt_Format(line, (int)"%s", slot->id * 2 + 0x9a8);
+        txt_Format(line, (intptr_t)"%s", slot->id * 2 + 0x9a8);
         t = d2_CreateWinText(x + 0x3c, y + 5, line, win2);
         d2_Objs[t].w = d2_Wins[win2].w / 2 - 10;
         d2_SetObjFont(t, 0x54);
@@ -4398,7 +4348,7 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
     do {
         state = ahm_ResearchState(obj, &a, &f, 0);
         d2_SetForm(form, 4);
-        io_PrintText("$C");
+        io_PrintText((intptr_t)"$C");
         if (state != 0) {
             slider = d2_WinOpenSlider((d2_LastWindowPtr->w - 300) / 2, 0x12, 300, 0, 100, 0x75, 0x42, d2_LastWindow);
             if (state == 1)
@@ -4421,7 +4371,7 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
             sel = d2_Radios[group].sel;
             d2_RadioClear(group);
             d2_SetForm(form, 2);
-            io_PrintText("$C");
+            io_PrintText((intptr_t)"$C");
             group = d2_CreateRadioGroup(0);
         n = 0;
         pic = pics;
@@ -4434,9 +4384,9 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
             pid = d2_WinOpenPic(x, y, slot->id + 0xdf, win2);
             *pic = pid;
             d2_Objs[pid].interactive = 1;
-            d2_Objs[pid].user = ai_Goods + slot->id * 0x41;
+            d2_Objs[pid].user = &ai_Goods[slot->id];
             d2_RadioAdd(group, pid);
-            txt_Format(line, (int)"%s", slot->id * 2 + 0x9a8);
+            txt_Format(line, (intptr_t)"%s", slot->id * 2 + 0x9a8);
             t = d2_CreateWinText(x + 0x3c, y + 5, line, win2);
             d2_Objs[t].w = d2_Wins[win2].w / 2 - 10;
             d2_SetObjFont(t, 0x54);
@@ -4456,14 +4406,14 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
                         if (ahm_RandomRecipe(owner))
                             ai_AlchemistSendRecipeResearch(obj, rec, j);
                         else
-                            sv_MessageBox(txt_Ptrs[0x41b0], 0);
+                            sv_MessageBox((intptr_t)txt_Ptrs[0x41b0], 0);
                     }
                 }
             } else if (d2_PointerObj == other) {
                 ai_AlchemistSendResearchStart(obj, rec);
             }
         }
-    } while (sv_RunFrame((int)ai_AlchemistResearchWindow, 0x677c7));
+    } while (sv_RunFrame(ai_AlchemistResearchWindow, 0x677c7));
     d2_RadioClear(group);
     d2_CloseView(form);
     sv_CameraFollow();
@@ -4472,7 +4422,7 @@ void ai_AlchemistResearchWindow(unsigned char *obj)
    (cm_SendLongMessage; from the building, to the owner character's netId, the game clock, flags 1, arg[0] the
    record's id, arg[1] the place's id, arg[4] a random duration 1000 .. 66535); 0 when a research already runs
    (ahm_ResearchState), else 1 */
-int ai_AlchemistSendRecipeResearch(unsigned char *obj, AHMREC *rec, int slot)
+int ai_AlchemistSendRecipeResearch(AIBLD *obj, AHMREC *rec, int slot)
 {
     AIMSG msg;
     int a;
@@ -4483,8 +4433,8 @@ int ai_AlchemistSendRecipeResearch(unsigned char *obj, AHMREC *rec, int slot)
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x96;
     msg.flags = 1;
-    msg.to = ai_CharsT[((AIBLD *)obj)->owner].netId;
-    msg.fromId = ((AIBLD *)obj)->id;
+    msg.to = ai_Chars[obj->owner].netId;
+    msg.fromId = obj->id;
     msg.time = ai_Time;
     msg.arg[1] = rec->slots[slot].id;
     msg.arg[0] = rec->id;
@@ -4495,7 +4445,7 @@ int ai_AlchemistSendRecipeResearch(unsigned char *obj, AHMREC *rec, int slot)
 /* 0x57ced0, starts the alchemist object obj's own research (record rec) with the message 0x95 (cm_SendLongMessage;
    the 0x57cde0 shape without a place: arg[0] and arg[3] the record's id, no random duration); 0 when a research
    already runs (ahm_ResearchState), else 1 */
-int ai_AlchemistSendResearchStart(unsigned char *obj, AHMREC *rec)
+int ai_AlchemistSendResearchStart(AIBLD *obj, AHMREC *rec)
 {
     AIMSG msg;
     int a;
@@ -4506,8 +4456,8 @@ int ai_AlchemistSendResearchStart(unsigned char *obj, AHMREC *rec)
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x95;
     msg.flags = 1;
-    msg.to = ai_CharsT[((AIBLD *)obj)->owner].netId;
-    msg.fromId = ((AIBLD *)obj)->id;
+    msg.to = ai_Chars[obj->owner].netId;
+    msg.fromId = obj->id;
     msg.time = ai_Time;
     msg.arg[0] = rec->id;
     msg.arg[3] = rec->id;
@@ -4544,7 +4494,7 @@ int ai_AlchemistSendResearchStart(unsigned char *obj, AHMREC *rec)
    (= control), centred before w in the name block (200), index click loop (117), flip.py --want
    '[ecx+eax+92], 1' (one hit, 76 ins); headers sample insensitive. Open: M10 100.0f vs ai_FloatHundred
    (tiebreak: not measured (dcp headers sample ai_AlchemistWindow)) */
-void ai_AlchemistWindow(unsigned char *obj)
+void ai_AlchemistWindow(AIBLD *obj)
 {
     char msg[0x100];
     char line[0x100];
@@ -4568,8 +4518,8 @@ void ai_AlchemistWindow(unsigned char *obj)
 
     int *pb;
 
-    owner = (AICHAR *)ahm_OwnerChar(obj);
-    rec = ((AHMOBJ *)obj)->rec;
+    owner = ahm_OwnerChar(obj);
+    rec = obj->ahm;
     lastState = ahm_ResearchState(obj, &a, &f, 0);
     lastClock = d3_Time;
     d2_ClickedId = -1;
@@ -4589,7 +4539,7 @@ void ai_AlchemistWindow(unsigned char *obj)
         do {
             if (dm_L.rup != 0)
                 sv_PopRequest = 1;
-        } while (sv_RunFrame((int)ai_AlchemistResearchWindow, 0x677c7));
+        } while (sv_RunFrame(ai_AlchemistResearchWindow, 0x677c7));
         d2_CloseView(w.form);
         return;
     }
@@ -4598,12 +4548,12 @@ void ai_AlchemistWindow(unsigned char *obj)
     d2_WinOpenPic(d2_LastWindowPtr->w / 2 - 0x16, 0x20, owner->picture, w.win2);
     w.slider = d2_WinOpenSlider((d2_LastWindowPtr->w - 0x32) / 2, 0x55, 0x32, 0, 100, 0x75, 0x42, d2_LastWindow);
     d2_SetObjValue(w.slider, 0, 100, (int)(rec->value * 100.0f));
-    txt_Format(line, (int)"%s %s", owner->first, owner->family);
+    txt_Format(line, (intptr_t)"%s %s", owner->first, owner->family);
     t = d2_CreateWinText(0, 0, line, w.win2);
     d2_Objs[t].w = d2_Wins[w.win2].w;
     d2_Objs[t].centred = 1;
     d2_SetObjFont(t, 0x53);
-    txt_Format(line, 0x403f, owner->w00a);
+    txt_Format(line, 0x403f, owner->age);
     t = d2_CreateWinText(0x12c, 0x64, line, w.win2);
     d2_SetObjFont(t, 0x53);
     d2_Objs[t].centred = 1;
@@ -4613,26 +4563,26 @@ void ai_AlchemistWindow(unsigned char *obj)
     d2_SetObjFont(t, 0x53);
     d2_Objs[t].centred = 1;
     d2_Objs[t].w = 0xc8;
-    txt_Format(line, (int)"%s", txt_Ptrs[0x4172]);
+    txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4172]);
     w.extra = d2_WinCreateSlider(0x14a, 0xbe, 0xc5, txt_Ptrs[0x42f9], w.win2);
     d2_SetObjWidth(w.extra, d2_Wins[w.win2].w / 3 - 0x14);
     d2_SetObjFont(w.extra, 0x54);
-    txt_Format(line, (int)"%s", txt_Ptrs[0x4172]);
+    txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4172]);
     w.bars[0] = d2_WinCreateSlider(10, 0x64, 0xc5, line, w.win2);
     d2_SetObjWidth(w.bars[0], d2_Wins[w.win2].w / 3 - 0x14);
     d2_SetObjFont(w.bars[0], 0x54);
     sv_ValueBar(d2_Wins[w.win2].w / 3 + 10, 0x68, rec->share[0], 0x4df);
-    txt_Format(line, (int)"%s", txt_Ptrs[0x4173]);
+    txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4173]);
     w.bars[1] = d2_WinCreateSlider(10, 0x82, 0xc5, line, w.win2);
     d2_SetObjWidth(w.bars[1], d2_Wins[w.win2].w / 3 - 0x14);
     d2_SetObjFont(w.bars[1], 0x54);
     sv_ValueBar(d2_Wins[w.win2].w / 3 + 10, 0x86, rec->share[1], 0x4df);
-    txt_Format(line, (int)"%s", txt_Ptrs[0x4174]);
+    txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4174]);
     w.bars[2] = d2_WinCreateSlider(10, 0xa0, 0xc5, line, w.win2);
     d2_SetObjWidth(w.bars[2], d2_Wins[w.win2].w / 3 - 0x14);
     d2_SetObjFont(w.bars[2], 0x54);
     sv_ValueBar(d2_Wins[w.win2].w / 3 + 10, 0xa4, rec->share[2], 0x4df);
-    txt_Format(line, (int)"%s", txt_Ptrs[0x4175]);
+    txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4175]);
     w.bars[3] = d2_WinCreateSlider(10, 0xbe, 0xc5, line, w.win2);
     d2_SetObjWidth(w.bars[3], d2_Wins[w.win2].w / 3 - 0x14);
     d2_SetObjFont(w.bars[3], 0x54);
@@ -4642,7 +4592,7 @@ void ai_AlchemistWindow(unsigned char *obj)
     do {
         state = ahm_ResearchState(obj, &a, &f, 0);
         d2_SetForm(w.form, 4);
-        io_PrintText("$C");
+        io_PrintText((intptr_t)"$C");
         if (state != 0) {
             int prog;
 
@@ -4660,25 +4610,25 @@ void ai_AlchemistWindow(unsigned char *obj)
             d2_SetObjValue(prog, 0, 100, (int)(f * 100.0f));
         }
         if (state != lastState || d3_Time > lastClock + 0x32) {
-            owner = (AICHAR *)ahm_OwnerChar(obj);
+            owner = ahm_OwnerChar(obj);
             if (owner == 0) {
                 sv_PopRequest = 1;
-                sv_RunFrame((int)ai_AlchemistWindow, 0x20007);
+                sv_RunFrame(ai_AlchemistWindow, 0x20007);
                 d2_CloseView(w.form);
                 return;
             }
             d2_SetForm(w.form, 2);
-            io_PrintText("$C");
+            io_PrintText((intptr_t)"$C");
             d2_WinOpenPic(d2_LastWindowPtr->w / 2 - 0x18, 0x1e, 0x6c7, w.win2);
             d2_WinOpenPic(d2_LastWindowPtr->w / 2 - 0x16, 0x20, owner->picture, w.win2);
             w.slider = d2_WinOpenSlider((d2_LastWindowPtr->w - 0x32) / 2, 0x55, 0x32, 0, 100, 0x75, 0x42, d2_LastWindow);
             d2_SetObjValue(w.slider, 0, 100, (int)(rec->value * 100.0f));
-            txt_Format(line, (int)"%s %s", owner->first, owner->family);
+            txt_Format(line, (intptr_t)"%s %s", owner->first, owner->family);
             t = d2_CreateWinText(0, 0, line, w.win2);
             d2_Objs[t].w = d2_Wins[w.win2].w;
             d2_Objs[t].centred = 1;
             d2_SetObjFont(t, 0x53);
-            txt_Format(line, 0x403f, owner->w00a);
+            txt_Format(line, 0x403f, owner->age);
             t = d2_CreateWinText(0x12c, 0x64, line, w.win2);
             d2_SetObjFont(t, 0x53);
             d2_Objs[t].centred = 1;
@@ -4688,26 +4638,26 @@ void ai_AlchemistWindow(unsigned char *obj)
             d2_SetObjFont(t, 0x53);
             d2_Objs[t].centred = 1;
             d2_Objs[t].w = 0xc8;
-            txt_Format(line, (int)"%s", txt_Ptrs[0x4172]);
+            txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4172]);
             w.extra = d2_WinCreateSlider(0x14a, 0xbe, 0xc5, txt_Ptrs[0x42f9], w.win2);
             d2_SetObjWidth(w.extra, d2_Wins[w.win2].w / 3 - 0x14);
             d2_SetObjFont(w.extra, 0x54);
-            txt_Format(line, (int)"%s", txt_Ptrs[0x4172]);
+            txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4172]);
             w.bars[0] = d2_WinCreateSlider(10, 0x64, 0xc5, line, w.win2);
             d2_SetObjWidth(w.bars[0], d2_Wins[w.win2].w / 3 - 0x14);
             d2_SetObjFont(w.bars[0], 0x54);
             sv_ValueBar(d2_Wins[w.win2].w / 3 + 10, 0x68, rec->share[0], 0x4df);
-            txt_Format(line, (int)"%s", txt_Ptrs[0x4173]);
+            txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4173]);
             w.bars[1] = d2_WinCreateSlider(10, 0x82, 0xc5, line, w.win2);
             d2_SetObjWidth(w.bars[1], d2_Wins[w.win2].w / 3 - 0x14);
             d2_SetObjFont(w.bars[1], 0x54);
             sv_ValueBar(d2_Wins[w.win2].w / 3 + 10, 0x86, rec->share[1], 0x4df);
-            txt_Format(line, (int)"%s", txt_Ptrs[0x4174]);
+            txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4174]);
             w.bars[2] = d2_WinCreateSlider(10, 0xa0, 0xc5, line, w.win2);
             d2_SetObjWidth(w.bars[2], d2_Wins[w.win2].w / 3 - 0x14);
             d2_SetObjFont(w.bars[2], 0x54);
             sv_ValueBar(d2_Wins[w.win2].w / 3 + 10, 0xa4, rec->share[2], 0x4df);
-            txt_Format(line, (int)"%s", txt_Ptrs[0x4175]);
+            txt_Format(line, (intptr_t)"%s", txt_Ptrs[0x4175]);
             w.bars[3] = d2_WinCreateSlider(10, 0xbe, 0xc5, line, w.win2);
             d2_SetObjWidth(w.bars[3], d2_Wins[w.win2].w / 3 - 0x14);
             d2_SetObjFont(w.bars[3], 0x54);
@@ -4735,7 +4685,7 @@ void ai_AlchemistWindow(unsigned char *obj)
                 d2_SetViewEnabled(w.form, 1);
             }
         }
-    } while (sv_RunFrame((int)ai_AlchemistWindow, 0x677c7));
+    } while (sv_RunFrame(ai_AlchemistWindow, 0x677c7));
     d2_CloseView(w.form);
     sv_CameraFollow();
 }
@@ -4745,7 +4695,7 @@ void ai_AlchemistWindow(unsigned char *obj)
    from the building, to the owner character, the game clock, arg[0] the record's id, arg[1] the share, arg[4] a
    random duration 1000 .. 66535) and closes the window; the second answer and the right mouse button close it.
    Answers 1 */
-int ai_AlchemistTrainShareWindow(unsigned char *obj, AHMREC *rec, int idx)
+int ai_AlchemistTrainShareWindow(AIBLD *obj, AHMREC *rec, int idx)
 {
 
     int win;
@@ -4786,8 +4736,8 @@ int ai_AlchemistTrainShareWindow(unsigned char *obj, AHMREC *rec, int idx)
                 memset(&msg, 0, sizeof(msg));
                 msg.type = 0x97;
                 msg.flags = 1;
-                msg.to = ai_CharsT[((AIBLD *)obj)->owner].netId;
-                msg.fromId = ((AIBLD *)obj)->id;
+                msg.to = ai_Chars[obj->owner].netId;
+                msg.fromId = obj->id;
                 msg.time = ai_Time;
                 msg.arg[0] = rec->id;
                 msg.arg[4] = util_Random(0x5a0) + 1000;
@@ -4798,7 +4748,7 @@ int ai_AlchemistTrainShareWindow(unsigned char *obj, AHMREC *rec, int idx)
                 sv_PopRequest = 1;
             }
         }
-        if (sv_RunFrame((int)ai_AlchemistTrainShareWindow, 0x677c7) == 0) {
+        if (sv_RunFrame(ai_AlchemistTrainShareWindow, 0x677c7) == 0) {
             d2_CloseView(win);
             return 1;
         }
@@ -4812,9 +4762,9 @@ int ai_AlchemistTrainShareWindow(unsigned char *obj, AHMREC *rec, int idx)
    * 0.75 (ahm_SendAddValue, the float passed by value), the amount is moved from the player (cm_SendMoveGoods)
    and the window closes with the answer 1; the second answer and the right mouse button close it. The window
    closes with 0 when the owner is gone */
-int ai_AlchemistFundWindow(unsigned char *obj, AHMREC *rec)
+int ai_AlchemistFundWindow(AIBLD *obj, AHMREC *rec)
 {
-    char *owner;
+    AICHAR *owner;
     int win;
     int points;
     int tenth;
@@ -4851,7 +4801,7 @@ int ai_AlchemistFundWindow(unsigned char *obj, AHMREC *rec)
         owner = ahm_OwnerChar(obj);
         if (!owner) {
             sv_PopRequest = 1;
-            sv_RunFrame((int)ai_AlchemistFundWindow, 0x20007);
+            sv_RunFrame(ai_AlchemistFundWindow, 0x20007);
             d2_CloseView(win);
             return 0;
         }
@@ -4860,17 +4810,17 @@ int ai_AlchemistFundWindow(unsigned char *obj, AHMREC *rec)
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == ok) {
                 v = gm_PlayerFactor(d2_GetObjValue(field), ai_OwnPlayer);
-                if (sv_CheckGoodAmount(ai_Chars[ai_PlayerId], v, ai_OwnPlayer)) {
+                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], v, ai_OwnPlayer)) {
                     ahm_SendAddValue(owner, (float)v / (float)points * share * 0.75f);
                     done = 1;
                     sv_PopRequest = 1;
-                    cm_SendMoveGoods(((AICHAR *)owner)->netId, ai_CharInts[ai_PlayerId][0], ai_OwnPlayer, v);
+                    cm_SendMoveGoods(owner->netId, ai_CharInts[ai_PlayerId][0], ai_OwnPlayer, v);
                 }
             } else if (d2_PointerObj == cancel) {
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_AlchemistFundWindow, 0x677c7));
+    } while (sv_RunFrame(ai_AlchemistFundWindow, 0x677c7));
     d2_CloseView(win);
     return done;
 }
@@ -4879,9 +4829,9 @@ int ai_AlchemistFundWindow(unsigned char *obj, AHMREC *rec)
    the object's research (ahm_RescheduleResearch) and deletes the alchemist (ahm_SendDelete) and closes the window
    with the answer 1; the second answer and the right mouse button close it. The window closes with 0 when the
    owner is gone */
-int ai_AlchemistRescheduleWindow(unsigned char *obj, AHMREC *rec)
+int ai_AlchemistRescheduleWindow(AIBLD *obj, AHMREC *rec)
 {
-    char *owner;
+    AICHAR *owner;
     int win;
     int ok;
     int cancel;
@@ -4908,7 +4858,7 @@ int ai_AlchemistRescheduleWindow(unsigned char *obj, AHMREC *rec)
         owner = ahm_OwnerChar(obj);
         if (!owner) {
             sv_PopRequest = 1;
-            sv_RunFrame((int)ai_AlchemistRescheduleWindow, 0x20007);
+            sv_RunFrame(ai_AlchemistRescheduleWindow, 0x20007);
             d2_CloseView(win);
             return 0;
         }
@@ -4924,20 +4874,12 @@ int ai_AlchemistRescheduleWindow(unsigned char *obj, AHMREC *rec)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_AlchemistRescheduleWindow, 0x677c7));
+    } while (sv_RunFrame(ai_AlchemistRescheduleWindow, 0x677c7));
     d2_CloseView(win);
     return done;
 }
 
 /* dcp unit split: the declarations that moved to svcannon (copies: drop what sv_t does not use) */
-#pragma pack(push, 1)
-typedef struct CANNONREC {   /* the tutorial's cannon record (ai_CannonScene's argument), read at its byte offsets */
-    char pad0;
-    int id;                  /* +0x01, the effect id gv_FindEffect takes (GVCANNON.bld) */
-    char pad5[0x5c];
-    D3OBJECT *obj;           /* +0x61, the cannon object the scene is built around */
-} CANNONREC;
-#pragma pack(pop)
 typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of ai_CannonScene (the other cannon functions still address it by byte offset) */
     D3VECTOR pos;            /* +0x00, d3_PointToWorld of the cannon object; pos.y gets the height of its bounds * 0.8 */
     float pad0c;
@@ -5000,8 +4942,8 @@ void ai_CannonAxes(CANNONSCENE *sc);
 int ai_CannonFireCheck(CANNONSCENE *sc);
 void ai_CannonShotResults(CANNONSCENE *sc);
 float ai_CannonPitchRatio(CANNONSCENE *sc);
-void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask);
-void ai_CannonExplosion(CANNONSCENE *sc, char *rec);
+void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask);
+void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void ai_ShotTableReset(void);
 char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld); int cm_GetSlotState(); void gv_SetEffectCallback();
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
@@ -5012,7 +4954,7 @@ struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);                 /* 0x447190, d3_interface.h */
 char d3if_Show(struct D3OBJECT *obj, char show);        /* 0x4471b0, d3_interface.h */
 void he_ShowObjectInfos(); void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
-void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, char *rec);
+void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void sv_SetStatusText(char *s); void sv_RedrawScreen();
 void d3if_Prerender(char map); 
 double _CIfmod();
@@ -5024,26 +4966,26 @@ typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: thr
 } CANNONROT;
 void d3_DirToWorld();
 int gm_FindById();
-float gv_SalvoCharge(); void gv_BuildingCannon(char *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
+float gv_SalvoCharge(); void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
-void txt_Format(char *out, int id0, ...); int gm_CharCurrency(char *c, char p);
-void gv_CannonScatter(char *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
+void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
+void gv_CannonScatter(struct AIBLD *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
-int he_EventOnBuilding(); int sv_MessageBox();
-int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(char *o, int n, unsigned char t); short * gm_PlayerRecord(char *c);
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
-int ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
-void txt_Format(char *out, int id0, ...); int sv_MessageBox();
+int he_EventOnBuilding(); int sv_MessageBox(intptr_t text, unsigned flags);
+int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
+struct AICHAR *ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
+void txt_Format(char *out, intptr_t id0, ...); int sv_MessageBox(intptr_t text, unsigned flags);
 void sv_ReleaseNamePlates(void); int sv_RegisterNamePlate(); void ai_StorageWindow();
 void ai_AlchemistResearchWindow(); void ai_AlchemistWindow();
 void cm_BeginFieldBlock(char *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 char ai_ShotCallbackArg[0x40];  /* 0x6fa020, the argument gv_SetEffectCallback stores with the shot callback ai_ShotTableStore (ai_CannonScene); never read by the code, its type is unknown; it runs to the tutorial state record at 0x6fa060 */
-TUTSTATE ai_TutorialState;  /* 0x6fa060, the tutorial state record ai_Tutorial points to (the tutorial code reads it through S); its last read field is progressSlider at +0x6c, the 0x10 bytes to he_OptionsPath at 0x6fa0e0 stay unowned */
+TUTSTATE ai_TutorialState;  /* 0x6fa060, the tutorial state record ai_Tutorial points to (the tutorial code reads it through ai_Tutorial); its last read field is progressSlider at +0x6c, the 0x10 bytes to he_OptionsPath at 0x6fa0e0 stay unowned */
 
 /* dcp unit split: the functions of svgrave the rest of sv_t uses */
 void ai_GraveDeadName(GVGRAVE *e, char *out);
 /* dcp unit split: the declarations that moved to svgrave (copies: drop what sv_t does not use) */
-int sv_CreateScrollButtons(); unsigned gv_FindEntry(void *a, unsigned char *o, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
+int sv_CreateScrollButtons(); unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
 typedef struct GVROW {
     int btn;                    /* 0x00, its button object, -1: an unused row */
     GVENTRY *entry;             /* 0x04, the grave entry, 0: unused */
@@ -5084,10 +5026,10 @@ typedef struct GVPICK {
     int id;                     /* 0x10, that dead person's id, -1: none */
 } GVPICK;
 int gv_OrderSetGraveHolder(); int gv_SizeOpen();
-int sv_MessageBoxGreen(); void sv_OpenPlayerBar(int a, char k); void sv_ClosePlayerBar(void);
-int gv_RoomForRaised(unsigned char *o, int *n); int gv_OrderRaiseDead(); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
-int sv_CheckCharacterFlag(int id); char * he_FindEvent(int n, ...); char * he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
-void ai_InitProductionTables(void); int ai_UpdateProdGoodsList(); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, int param_4);
+int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_OpenPlayerBar(struct AIBLD *a, char k); void sv_ClosePlayerBar(void);
+int gv_RoomForRaised(struct AIBLD *o, int *n); int gv_OrderRaiseDead(); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
+int sv_CheckCharacterFlag(struct AIBLD *id); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
+void ai_InitProductionTables(void); int ai_UpdateProdGoodsList(); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4);
 int snd_QueueVoice(int id, int bank, char *text, int var, unsigned int delay); int ai_MapPick();
 typedef struct GVSEANCE {
     int kind;                   /* 0x00, the seance chosen: 1 .. 3, 0 none */
@@ -5099,23 +5041,23 @@ typedef struct GVSEANCE {
     GVGRAVE grave;              /* 0x14, a copy of the dead person */
 } GVSEANCE;
 int sb_IsInit(); void d2_PlaceViewWindows(int view, unsigned char flags);
-int snd_VoiceVariant(); char *gv_FindAccused(char *c, int max, int *ids, int *cnt); float gv_SeanceChance(); float util_RandomF();
+int snd_VoiceVariant(); struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt); float gv_SeanceChance(); float util_RandomF();
 void cm_SendProofExecuted(int a, int b); 
-void ai_FindWantedItems(struct G5CH *p, int n, struct G9REC *rec, int *st);
+void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);
 void gm_SendMoneyDelta(int a, int b);
-void ai_EndCharExtra(char *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(char *a, int b);
+void ai_EndCharExtra(struct AICHAR *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(struct AICHAR *a, int b);
 void sv_ReleaseNamePlates(void); void ai_TradeContactChecks(void);
-int ai_AmountMenu(); int sv_CheckMoney();
-float gm_GetSkill(char *c, int skill); int gm_ClockSeason(); char * he_FindEvent(int n, ...);
+struct AICHAR *ai_AmountMenu(); int sv_CheckMoney();
+float gm_GetSkill(struct AICHAR *c, int skill); int gm_ClockSeason(); struct AIJOB *he_FindEvent(int n, ...);
 int gm_BuildingJob(); 
-int gm_BuildingKindCost(int c, int kind); char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
+int gm_BuildingKindCost(struct AICHAR *c, int kind); char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
 float gm_GoodsPrice(unsigned id, unsigned char p);
-int ai_AmountRowStatus(); int ai_DrawAmountRow(); short * gm_FindChar(int id); int gm_TitlesLeft();
-char * gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, unsigned char *b, unsigned short *o, int c);
+int ai_AmountRowStatus(); int ai_DrawAmountRow(); struct AICHAR *gm_FindChar(int id); int gm_TitlesLeft();
+struct AIBLD *gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
 int sv_CreateScrollButtons(); void d2_RadioClear(int g);
 unsigned vfs_fwrite(void *buf, int size, int n, struct VFSFILE *f);
 int ls_Read();
 void * mem_Alloc(int size, char *tag); char dd_Lock(void); void dd_Unlock(); unsigned char bmp_Save24(char *path, int w, int h, unsigned char *data); void mem_Free(void *p);
 void ai_Quicksave(void); void ai_ApplyOptions(); void cm_RaiseSpeedLevel(void); void cm_LowerSpeedLevel(void);
-int gm_BuildingMainObject(unsigned char *b); void *gm_GetGebaeudeHauptraum(unsigned char *b);
-unsigned char * gm_BuildNext(void); unsigned char * gm_BuildQuery(int n, ...);
+struct AIOBJ *gm_BuildingMainObject(struct AIBLD *b); struct AIOBJ *gm_GetGebaeudeHauptraum(struct AIBLD *b);
+struct AIBLD *gm_BuildNext(void); struct AIBLD *gm_BuildQuery(int n, ...);

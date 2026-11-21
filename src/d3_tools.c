@@ -1093,29 +1093,6 @@ D3ANIM *d3t_MoveObjectPath(D3OBJECT *obj, int time, int n, D3OBJECT **path)
     return d3anim_CreatePath(obj, af, n + 1, keys);
 }
 
-typedef struct D3TRAINDROP {         /* 0x28 bytes */
-    D3VECTOR4 pos;                   /* w = tail length */
-    float windScale;                 /* 0x10, weight of the wind velocity */
-    float fallScale;                 /* 0x14, weight of the fall velocity */
-    float sx1, sy1;                  /* 0x18, projected head */
-    float sx2, sy2;                  /* 0x20, projected tail */
-} D3TRAINDROP;
-
-typedef struct D3TRAIN {             /* 0x60 bytes */
-    int count;
-    int capacity;                    /* allocated drops */
-    int oldcount;                    /* count fade: oldcount -> newcount over time30..time34 */
-    int newcount;
-    D3TRAINDROP *drops;              /* 0x10 */
-    float oldwindx, oldwindz;        /* wind fade: old -> new over time38..time3c */
-    float windx, windz;              /* 0x1c */
-    float newwindx, newwindz;
-    int time2c;                      /* last update */
-    int time30, time34, time38, time3c;
-    D3VECTOR4 campos;                /* 0x40 */
-    D3VECTOR4 cam04c;                /* 0x50 */
-} D3TRAIN;
-
 /* 0x413b00, inflates obj's geometry (d3_InflateObject) and then every object of its child chain
    (obj->child and the child's siblings), recursively; used after a model is loaded. */
 void d3t_InflateObjectTree(D3OBJECT *obj)
@@ -1437,34 +1414,6 @@ void d3t_DrawRain(D3TRAIN *rain)
     }
     d3_EndScene();
 }
-
-typedef struct D3TSNOWFLAKE {        /* 0x28 bytes */
-    D3VECTOR4 pos;                   /* w = size */
-    float windScale;                 /* 0x10, weight of the wind velocity */
-    float fallScale;                 /* 0x14, weight of the fall velocity */
-    float sx1, sy1;                  /* 0x18, projected top left */
-    float sx2, sy2;                  /* 0x20, projected bottom right */
-} D3TSNOWFLAKE;
-
-typedef struct D3TSNOW {             /* 0x94 bytes */
-    int count;
-    int capacity;
-    int oldcount;
-    int newcount;
-    int spare10;                     /* 0x10, 5 at creation; never read (no reader in the binary: DrawSnow / UpdateSnow / FreeSnow) */
-    int spare14[9];                  /* 0x14, 0 at creation; never read */
-    D3TSNOWFLAKE *flakes;            /* 0x38 */
-    float oldwindx, oldwindz;
-    float windx, windz;              /* 0x44 */
-    float newwindx, newwindz;
-    float peak;                      /* 0x54, the largest SetSnow command 3 value * 2500 seen; never read */
-    int spare58;                     /* 0x58, -1 at creation; never read */
-    int time5c;                      /* last update */
-    int time60, time64, time68, time6c;
-    D3VECTOR4 campos;                /* 0x70 */
-    D3VECTOR4 cam04c;                /* 0x80 */
-    D3TEXHANDLE *Texture;            /* 0x90 */
-} D3TSNOW;
 
 /* 0x4148f0, allocates and initialises the snow system for count flakes: the D3TSNOW and its flake
    list, counts, wind vectors and times from d3_Time, the saved camera pose, per flake a random

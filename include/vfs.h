@@ -120,8 +120,8 @@ VFSDIR *vfs_AddDir(char *path, VFSDIR *parent);                                 
 
 void vfs_AddZip(char *path, VFSDIR *d, int ext);                                       /* 0x430130 */
 void vfs_FreeDir(VFSDIR *d);                                                            /* 0x430260 */
-char vfs_MakeDirs(char *path, int unk);                                                 /* 0x4302e0 */
-VFSFILE *vfs_Tfopen(char *name, char *mode, int unk);                                   /* 0x430470 */
+char vfs_MakeDirs(char *path, VFSDIR *root);                                                 /* 0x4302e0 */
+VFSFILE *vfs_Tfopen(char *name, char *mode, VFSDIR *dir);                                   /* 0x430470 */
 int vfs_fclose(VFSFILE *f);                                                             /* 0x430aa0 */
 unsigned int vfs_fread(void *buf, int size, int n, VFSFILE *f);                                  /* 0x430bd0 */
 int vfs_fgetc(VFSFILE *f);                                                              /* 0x430d90 */

@@ -7,6 +7,7 @@
 #include "d3_types.h"                /* D3VECTOR, D3VECTOR4 */
 #include "amt_types.h"               /* AMTAPP, AMTMSG, for messages 0x44 / 0x45 */
 #include "gv_types.h"                /* GVDECMSG, for message 0x46 */
+#include "cm_bomb.h"                 /* CMBOMB, cm_Bombs */
 
 #pragma pack(push, 1)
 typedef struct G17B7 {                  /* blocks copied as one */
@@ -176,7 +177,7 @@ typedef struct G17NAMEDCHARMSG {        /* 0x39 bytes, the data of message 0xc (
             unsigned char job;          /* 0x0e */
             int ref54;                  /* 0x0f, the new character's AICHAR.ref54 */
             unsigned char a8;           /* 0x13, gm_CreateCharacter's last argument */
-            unsigned char b00c;         /* 0x14, the new character's AICHAR.b00c */
+            unsigned char b00c;         /* 0x14, the new character's AICHAR.faith */
             char first[0x10];           /* 0x15, its first name */
         };
         struct {
@@ -243,7 +244,7 @@ typedef struct G17CREATEOBJMSG {        /* 0x29 bytes, the data of message 0x15 
                                            object of the item in the holder and copies its 0x1f-byte kind data) */
     int holder;                         /* 0x00, the holder id (gm_FindById: a building, an object or a character) */
     unsigned short item;                /* 0x04, the object prototype (gm_CreateObject) */
-    unsigned char block[0x1f];          /* 0x06, the object's kind data (ORDOBJ +0x1c) */
+    unsigned char block[0x1f];          /* 0x06, the object's kind data (AIOBJ +0x1c) */
     int objectId;                       /* 0x25, the next object id (the server's, read when connected) */
 } G17CREATEOBJMSG;
 
@@ -553,7 +554,7 @@ typedef struct G17ROUTEMSG {            /* 8 bytes, the data of message 0x68 (cm
     int count;                          /* 0x04, the points */
 } G17ROUTEMSG;
 
-typedef struct CMLOBBYPLAYER {          /* 0x57 bytes, a player of the network lobby: the 8 records of cm_LobbyRecords,
+typedef struct CMLOBBYPLAYER {          /* 0x57 bytes, a player of the network lobby: the 8 records of cm_LobbyPlayers,
                                            sent whole by the lobby messages of type 0x5f (kinds 2 and 4) */
     int id;                             /* 0x00, the player's net id (cm_LobbyPlayerId for this player), 0: a free record */
     int ready;                          /* 0x04, 1: ready to start (kind 1; cm_LobbyAllReady counts them) */
@@ -819,8 +820,8 @@ typedef struct CMNETGAME {              /* 0x80 bytes at 0x936460: the network g
 } CMNETGAME;
 typedef char cm_AssertCMNETGAME[sizeof(CMNETGAME) == 0x80 ? 1 : -1];
 
-typedef struct CMJOIN {                 /* 0x30 bytes at 0x9367a0 (inside cm_LobbyRecords's extent, past its 8 records
-                                           of 0x57 bytes): the character of a joined saved game, from its LSHDR
+typedef struct CMJOIN {                 /* 0x30 bytes at 0x9367a0 (cm_JoinChar, after the 8 records of
+                                           cm_LobbyPlayers): the character of a joined saved game, from its LSHDR
                                            (main_JoinNetworkGame) */
     char text1[0x10];                   /* 0x00, LSHDR.charText1 */
     char text2[0x10];                   /* 0x10, LSHDR.charText2 */
@@ -908,5 +909,34 @@ typedef struct AIWEAPON {               /* 0x5c bytes, the 10 weapon records at 
     int kind;                           /* 0x58, 1 / 2: used up with the item (cm_CharWeapon refuses an item with nothing left) */
 } AIWEAPON;
 typedef char cm_AssertAIWEAPON[sizeof(AIWEAPON) == 0x5c ? 1 : -1];
+
+/* a fight record (cm_FightRecord, cm_RunFight's argument): the fields cm_SetupFightScene and its caller 0x4d63e0 read
+   (the rest of its layout is not known) */
+typedef struct CMFIGHTREC {
+    char pad000[0xc];
+    int owner;                      /* 0x00c, the player whose fight it is (cm_FightOwner) */
+    char pad010[4];
+    int placeId;                    /* 0x014, the defender's building: its type picks the scenario, its role the defender voices */
+    char pad018[0x18];
+    unsigned char nChars;           /* 0x030, the count of charIds */
+    char pad031[3];
+    union {
+        struct {
+            int attackerId;         /* 0x034, the attacking character (cm_FightAttacker) */
+            int defenderId;         /* 0x038, the defending character (cm_FightDefender) */
+        };
+        int charIds[16];            /* 0x034, the netIds of the fight's leading characters, -1 = none (cm_CutInfos[i]
+                                       is the cutscene record of charIds[i]) */
+    };
+    char pad074[8];
+    unsigned char flags;            /* 0x07c, 1 in the open (8: in the town, else the mountain pass), 4 the mountain pass */
+    char pad07d[3];
+    int defenders[16];              /* 0x080, the netIds of the defending fighters, -1 = none */
+    int attackers[16];              /* 0x0c0, the netIds of the attacking fighters, -1 = none */
+    int carts[3];                   /* 0x100, the object ids of the carts in the fight, -1 = none */
+    int attackerBldId;              /* 0x10c, the attacker's building: its role picks the attacker voices */
+    int escort;                     /* 0x110, the carts' escort: the arming kind ai_ArmGateGuards keeps (0 none, 1 .. 3);
+                                       the AI side of a won raid takes the loot when random 0 .. 4 is above it */
+} CMFIGHTREC;
 
 #endif

@@ -50,7 +50,6 @@ struct D2SURF *rt_MapSaved = 0;  /* 0x6f074c, rt_EditCartRoute's copy of rt_MapS
 int rt_MarkCount = 0;  /* 0x6f0750, the marks used */
 int rt_PickedBuilding = 0;  /* 0x6f0754, the building shown */
 RTPOINT * rt_EditRoute = 0;  /* 0x6f0758, the route being edited */
-/* ai_Unk7e422c: view of ai_PlayerSlots (tools/data_views.py) */
 RTMARK rt_Marks[8];  /* 0xf812a0 */
 
 /* 0x4bd950, appends a new point to list p (0 if it has 8 already) */
@@ -194,12 +193,12 @@ int rt_PutRouteMark(LCMAPWIN *win, int cart, RTPOINT *list, RTPOINT *p)
     int index;
 
     hmap = (D3SM *)d3_Scenes[0].hmap;
-    originX = ((GMPLAYERSLOT *)ai_PlayerSlots)[ai_OwnPlayer].townX;
-    originY = ((GMPLAYERSLOT *)ai_PlayerSlots)[ai_OwnPlayer].townY;
-    b = (AIBLD *)gm_FindBuildingById(p->buildingId);
+    originX = ai_PlayerSlots[ai_OwnPlayer].townX;
+    originY = ai_PlayerSlots[ai_OwnPlayer].townY;
+    b = gm_FindBuildingById(p->buildingId);
     if (b == 0)
         return -1;
-    d3_PointToWorld((D3OBJECT *)b->object, &((D3OBJECT *)b->object)->pos, (D3VECTOR *)pos);
+    d3_PointToWorld(b->object, &b->object->pos, (D3VECTOR *)pos);
     if (!d3_GetHeightAt(hmap, (D3VECTOR *)pos, &mark.cellX, &mark.cellZ, &y))
         return -1;
     ai_MapCellToScreen(&mark, originX, originY);
@@ -266,17 +265,17 @@ int rt_ChooseGoodsDialog(AIBLD *b, int x, int def)
     int o;
 
     ret = def;
-    t = &((AIBTYPE *)ai_BTypes)[b->type];
+    t = &ai_BTypes[b->type];
     w = d2_OpenForm(0, 0, "misc\\routing_choose_good_enhanced");
     d2_CentreViewWindows(w);
     d2_SetForm(w, 4);
     d2_GetWinObj(w, 4, io_PrintText(0x7d));
     d2_SetForm(w, 2);
     if (t->kind == 0x1c) {
-        store = (AIOBJ *)gm_Query((void *)b->objList, 2, 0, 0x1dc, 6);
+        store = gm_Query(b->objList, 2, 0, 0x1dc, 6);
         n = 0;
         if (store != 0) {
-            for (item = (AIOBJ *)gm_Query((void *)store->list, 1, 5); item != 0; item = (AIOBJ *)gm_QueryNext()) {
+            for (item = gm_Query(store->list, 1, 5); item != 0; item = gm_QueryNext()) {
                 if (item->count > 1) {
                     o = d2_WinOpenPic(n % 4 << 6, n / 4 << 6, item->id + 0xdf, d2_LastWindow);
                     objs[n] = o;
@@ -289,10 +288,10 @@ int rt_ChooseGoodsDialog(AIBLD *b, int x, int def)
             }
         }
     } else if (t->kind == 9) {
-        store = (AIOBJ *)gm_Query((void *)b->objList, 2, 0, 0x116, 6);
+        store = gm_Query(b->objList, 2, 0, 0x116, 6);
         n = 0;
         if (store != 0) {
-            for (item = (AIOBJ *)gm_Query((void *)store->list, 1, 5); item != 0; item = (AIOBJ *)gm_QueryNext()) {
+            for (item = gm_Query(store->list, 1, 5); item != 0; item = gm_QueryNext()) {
                 if (item->count >= 1) {
                     o = d2_WinOpenPic(n % 4 << 6, n / 4 << 6, item->id + 0xdf, d2_LastWindow);
                     objs[n] = o;
@@ -305,11 +304,11 @@ int rt_ChooseGoodsDialog(AIBLD *b, int x, int def)
             }
         }
     } else {
-        gm_BuildKindObjects((char *)b);
-        store = (AIOBJ *)gm_Query((void *)b->objList, 2, 0, 0xff, 6);
+        gm_BuildKindObjects(b);
+        store = gm_Query(b->objList, 2, 0, 0xff, 6);
         n = 0;
         for (i = 0; i < gm_KindObjCount; i++) {
-            item = (AIOBJ *)gm_Query((void *)store->list, 1, 0, gm_KindObjs[n]);
+            item = gm_Query(store->list, 1, 0, gm_KindObjs[n]);
             if (item != 0 && item->count > 1) {
                 o = d2_WinOpenPic(n % 4 << 6, n / 4 << 6, gm_KindObjs[n] + 0xdf, d2_LastWindow);
                 objs[n] = o;
@@ -444,7 +443,7 @@ unsigned int rt_ChooseTabGood(AIBLD *b, int x, unsigned int def)
     w = d2_OpenForm(0, 0, "misc\\routing_choose_good_enhanced");
     d2_CentreViewWindows(w);
     d2_SetForm(w, 1);
-    io_PrintText((int)"$Z%2N3$A%1G", b->owner, b);
+    io_PrintText((intptr_t)"$Z%2N3$A%1G", b->owner, b);
     d2_SetForm(w, 4);
     ok = d2_GetWinObj(w, 4, io_PrintText(0x7d));
     d2_SetForm(w, 3);
@@ -452,7 +451,7 @@ unsigned int rt_ChooseTabGood(AIBLD *b, int x, unsigned int def)
     for (i = 0, y = 4; y < 0xd6; i++, y += 0x1e) {
         o = sv_AddPanelButton(0, y, txt_InfoPanelButtons[i]);
         tabs[i] = o;
-        d2_Objs[o].user = gm_Query((void *)b->objList, 2, 6, 0, kinds[i]);
+        d2_Objs[o].user = gm_Query(b->objList, 2, 6, 0, kinds[i]);
         d2_RadioAdd(g, o);
     }
     d2_RadioSelect(g, 0);
@@ -466,13 +465,13 @@ unsigned int rt_ChooseTabGood(AIBLD *b, int x, unsigned int def)
             for (i = 0; i < 0x30; i++)
                 objs[i] = -1;
             n = 0;
-            s = (AIOBJ *)d2_Objs[tabs[d2_Radios[g].sel]].user;
+            s = d2_Objs[tabs[d2_Radios[g].sel]].user;
             if (s != 0)
-                s = (AIOBJ *)gm_Query((void *)s->list, 1, 0, 0xff);
+                s = gm_Query(s->list, 1, 0, 0xff);
             else
-                s = (AIOBJ *)gm_Query((void *)b->objList, 1, 0, 0xff);
+                s = gm_Query(b->objList, 1, 0, 0xff);
             if (s != 0) {
-                for (e = (unsigned short *)gm_Query((void *)s->list, 1, 5); e != 0; e = gm_QueryNext(), n++) {
+                for (e = (unsigned short *)gm_Query(s->list, 1, 5); e != 0; e = gm_QueryNext(), n++) {
                     o = d2_WinOpenPic(n % 4 << 6, n / 4 << 6, *e + 0xdf, d2_LastWindow);
                     objs[n] = o;
                     d2_Objs[o].interactive = 1;
@@ -599,24 +598,24 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
     cnt[2] = 3;
     sel = 0;
     selc = 0;
-    bld = (AIBLD *)gm_FindBuildingById(p->buildingId);
+    bld = gm_FindBuildingById(p->buildingId);
     cart = (AIOBJ *)gm_FindObjectInst(p->cartId);
     if (cart == 0 || bld == 0)
         return;
     d2_EnableViewObjects(*win, 0);
-    t = &((AIBTYPE *)ai_BTypes)[bld->type];
+    t = &ai_BTypes[bld->type];
     w = d2_OpenForm(0, 0, "misc/routing_edit_point");
     d2_CentreViewWindows(w);
     v2 = d2_GetViewWin(w, 2);
     d2_GetViewWin(w, 1);
     d2_SetForm(w, 1);
-    io_PrintText((int)"$Z%2N3$A%1G", bld->owner, bld);
+    io_PrintText((intptr_t)"$Z%2N3$A%1G", bld->owner, bld);
     d2_SetForm(w, 3);
     sv_ButtonRow(d2_LastWindow, 0, btns, 2, txt_RouteOk, txt_RouteDeletePoint);
     ok = btns[0];
     del = btns[1];
     n = cnt[cart->id - 0x134];
-    s = (AIOBJ *)gm_Query((void *)cart->list, 1, 0, 0x1dd);
+    s = gm_Query(cart->list, 1, 0, 0x1dd);
     a = gm_ListStock((int)s, 0);
     for (i = 0; i < 3; i++)
         objs1[i] = -1;
@@ -1035,7 +1034,7 @@ void rt_EditCartRoute(AIOBJ *c)
 void rt_UnloadAtPoint(char *c, char pl)
 {
     RTPOINT *q;
-    char *b;
+    AIBLD *b;
     char *t;
     short *o;
     char *st;
@@ -1053,7 +1052,7 @@ void rt_UnloadAtPoint(char *c, char pl)
     b = gm_FindBuildingById(q->buildingId);
     if (b == 0)
         return;
-    t = ai_BTypes + ((AIBLD *)b)->type * 0x24d;
+    t = (char *)ai_BTypes + b->type * 0x24d;
     if (*t != 10 && *t != 0x1c && !gm_BuildingGoodsList(b, (unsigned *)&bi, 0))
         return;
     o = gm_ObjectBuildingOwner(c);
@@ -1065,7 +1064,7 @@ void rt_UnloadAtPoint(char *c, char pl)
             if (*t == 10)
                 st = gm_FindMarketObject(s[0]);
             else if (*t == 0x1c)
-                st = gm_Query(((AIBLD *)b)->objList, 2, 0, 0x1db, 6);
+                st = gm_Query(b->objList, 2, 0, 0x1db, 6);
             else
                 st = (char *)bi.pada8[3];
             g = gm_Query(((AIOBJ *)ci.pada8[3])->list, 1, 0, s[0]);
@@ -1076,11 +1075,11 @@ void rt_UnloadAtPoint(char *c, char pl)
                 n = gm_FreeCapacity(st, s[0], n);
                 if (n > 0) {
                     price = 0;
-                    if ((short)((AIBLD *)b)->owner != *o) {
+                    if ((short)(b)->owner != *o) {
                         if (*t == 10)
                             price = (int)(gm_GoodsPrice(*g, ai_OwnPlayer) * 1.1f);
                         else
-                            price = (int)(gm_GoodsPrice(*g, ai_OwnPlayer) * ((AIBLD *)b)->priceFactor);
+                            price = (int)(gm_GoodsPrice(*g, ai_OwnPlayer) * b->priceFactor);
                     }
                     if (gm_CharCurrency(o, pl) >= price * n)
                         cm_SendExSellObject(((AIOBJ *)st)->objId, ((AIOBJ *)ci.pada8[3])->objId, s[0], n, pl, price);
@@ -1116,12 +1115,12 @@ void rt_LoadAtPoint(AIOBJ *c, char pl)
     if (c->route == 0)
         return;
     q = rt_PointAt(c->route, c->routeIdx);
-    o = (AICHAR *)gm_ObjectBuildingOwner((unsigned short *)c);
-    b = (AIBLD *)gm_FindBuildingById(q->buildingId);
+    o = gm_ObjectBuildingOwner(c);
+    b = gm_FindBuildingById(q->buildingId);
     if (b == 0)
         return;
-    t = &((AIBTYPE *)ai_BTypes)[b->type];
-    if (t->kind != 10 && t->kind != 0x1c && !gm_BuildingGoodsList((char *)b, (unsigned *)&bi, 0) || !gm_StallGoodsList((char *)c, (unsigned *)&ci))
+    t = &ai_BTypes[b->type];
+    if (t->kind != 10 && t->kind != 0x1c && !gm_BuildingGoodsList(b, (unsigned *)&bi, 0) || !gm_StallGoodsList((char *)c, (unsigned *)&ci))
         return;
     s = q->loadSlots;
     for (k = 3; k != 0; k--) {
@@ -1130,10 +1129,10 @@ void rt_LoadAtPoint(AIOBJ *c, char pl)
             if (t->kind == 10)
                 st = (AIOBJ *)gm_FindMarketObject(s[0]);
             else if (t->kind == 0x1c)
-                st = (AIOBJ *)gm_Query((void *)b->objList, 2, 0, 0x1dc, 6);
+                st = gm_Query(b->objList, 2, 0, 0x1dc, 6);
             else
                 st = (AIOBJ *)bi.pada8[3];
-            g = (unsigned short *)gm_Query((void *)st->list, 1, 0, s[0]);
+            g = (unsigned short *)gm_Query(st->list, 1, 0, s[0]);
             if (g != 0) {
                 n = s[1];
                 if (n >= gm_ListAmount((char *)st, g))
@@ -1148,8 +1147,8 @@ void rt_LoadAtPoint(AIOBJ *c, char pl)
                         price = (int)(gm_GoodsPrice(*g, ai_OwnPlayer) * b->priceFactor);
                 }
                 if (n > 0) {
-                    if (gm_CharCurrency((char *)o, pl) < n * price) {
-                        io_TownDisplayName(ai_PlayerSlots[pl], name);
+                    if (gm_CharCurrency(o, pl) < n * price) {
+                        io_TownDisplayName(ai_PlayerSlots[pl].name, name);
                         txt_Format(buf, 0x42f0, name, 0xc14, name, pl);
                         he_ShowNews(o->netId, -1, buf, 0, 0x5ef, ch_EmptyName);
                     }

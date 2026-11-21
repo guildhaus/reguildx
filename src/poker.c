@@ -11,10 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "poker.h"
-#define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
-#define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 
 #define PARTNER_FLAGS_SEX0 0xf00502  /* the partner-chain flags 0x4a8ad0 asks for a character with sex 0 (reasoned: the other sex; the low byte 2 against 1) */
 #define PARTNER_FLAGS_SEX1 0xf00501  /* ditto for sex != 0 */
@@ -39,7 +35,7 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
 
 /* 0x4a7140, starts a game of character p in g: the stake from p's money, the deck, two random opponents */
 
-int ai_PokerStart(AIPER *p, G10GAME *g)
+int ai_PokerStart(AICHAR *p, G10GAME *g)
 {
     double d;
     int i, j, k;
@@ -53,7 +49,7 @@ int ai_PokerStart(AIPER *p, G10GAME *g)
     ai_PokerTable = g;
     memset(g, 0, sizeof(G10GAME));
     ai_PokerTable->seat[0].who = p;
-    k = gm_ConvertMoney(gm_SumListAmounts((void *)p->inventory, ai_OwnPlayer), ai_OwnPlayer);
+    k = gm_ConvertMoney(gm_SumListAmounts(p->inventory, ai_OwnPlayer), ai_OwnPlayer);
     d = k;
     if (10000.0 > d)
         d = 10000.0;
@@ -396,7 +392,7 @@ void ai_PokerPayStakes(void)
             ai_PokerTable->pot += ai_PokerTable->stake2;
             if (i == 0) {
                 gm_PlayerFactor(ai_PokerTable->stake2, ai_OwnPlayer);
-                cm_SendMoveGoodsUnchecked(-1, ((AIPER *)ai_PokerTable->seat[0].who)->netId, ai_OwnPlayer,
+                cm_SendMoveGoodsUnchecked(-1, ((AICHAR *)ai_PokerTable->seat[0].who)->netId, ai_OwnPlayer,
                              ai_PokerTable->stake2);
             }
             ai_PokerTable->seat[i].bet += ai_PokerTable->stake2;
@@ -901,7 +897,7 @@ void ai_PokerExchange(int k)
 void ai_PokerAnte(void)
 {
     ai_PokerTable->pot = ai_PokerTable->stake2 * 3;
-    cm_SendMoveGoodsUnchecked(-1, ((AIPER *)ai_PokerTable->seat[0].who)->netId, ai_OwnPlayer, ai_PokerTable->stake2);
+    cm_SendMoveGoodsUnchecked(-1, ((AICHAR *)ai_PokerTable->seat[0].who)->netId, ai_OwnPlayer, ai_PokerTable->stake2);
 }
 /* 0x4a8690, ends the round: the winner into winner, the pot to the player if he won, all cards back */
 
@@ -911,7 +907,7 @@ void ai_PokerEndRound(void)
 
     ai_PokerTable->winner = (short)ai_PokerShowdown();
     if (ai_PokerTable->winner == 0)
-        cm_SendMoveGoodsUnchecked(((AIPER *)ai_PokerTable->seat[0].who)->netId, -1, ai_OwnPlayer,
+        cm_SendMoveGoodsUnchecked(((AICHAR *)ai_PokerTable->seat[0].who)->netId, -1, ai_OwnPlayer,
                      ai_PokerTable->pot);
     for (i = 0; i < 24; i++) {
         ai_PokerDeck[i].owner = 3;

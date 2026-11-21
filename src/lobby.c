@@ -58,7 +58,6 @@ extern int sv_PopRequest;
 extern INIT_PLAYER init_PlayerProfile;
 extern int main_ChoosePlayer(int mask, int flag);
 
-#define cm_JoinChar (*(CMJOIN *)((char *)&cm_LobbyRecords + 0x2c0))  /* 0x9367a0, the joined character (CMJOIN), as main.c reads it */
 
 
 void d2_FocusInput(); int sprintf(char *buf, const char *fmt, ...);
@@ -111,7 +110,7 @@ int lobby_Screen(void)
         io_PrintText(0x87);
         d2_ClickedId = -1;
         while (dm_L.rup == 0 && kb_Last != 1) {
-            if (sv_RunFrame((int)lobby_Screen, 0x24087) != 0)
+            if (sv_RunFrame(lobby_Screen, 0x24087) != 0)
                 continue;
             d2_CloseView(win);
             return 0;
@@ -151,7 +150,7 @@ int lobby_Screen(void)
         sv_PumpNet();
     if (cm_GetSlotState(slot) == 2) {
         txt_Format(buf, 0x88);
-        sv_MessageBox((int)buf, 0x100);
+        sv_MessageBox((intptr_t)buf, 0x100);
         return -1;
     }
     slot = cm_LobbyRequestList();
@@ -167,7 +166,7 @@ int lobby_Screen(void)
         io_PrintText(0x87);
         d2_ClickedId = -1;
         while (dm_L.rup == 0 && kb_Last != 1) {
-            if (sv_RunFrame((int)lobby_Screen, 0x24087) != 0)
+            if (sv_RunFrame(lobby_Screen, 0x24087) != 0)
                 continue;
             d2_CloseView(win);
             return 0;
@@ -291,7 +290,7 @@ int lobby_Screen(void)
                 lobby_State[1] = 0;
             }
         }
-    } while (sv_RunFrame((int)lobby_Screen, 0x24087) != 0);
+    } while (sv_RunFrame(lobby_Screen, 0x24087) != 0);
     d2_CloseView(lobby_Form);
     init_PlayerProfile.status = 0x12;
     init_PlayerProfile.job = lobby_Me->job;
@@ -359,7 +358,7 @@ void lobby_ShowCity(void)
     int players;
 
     d2_SetForm(lobby_Form, 2);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     /* @original: both arms are the same code (each with its own players read: the callee-saved pushes stay
        in the prologue) */
     if (cm_NetGame.mode == 0x3f) {
@@ -401,7 +400,7 @@ void lobby_ShowMyPlayer(void)
     if (p != 0)
         lobby_Player.coat = p->coat;
     d2_SetForm(lobby_Form, 3);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     id = d2_WinOpenPic(5, 10, lobby_Player.coat + 0x59a, d2_LastWindow);
     x = d2_Objs[id].w + 0xf;
     if (lobby_Player.sex == 0)
@@ -462,7 +461,7 @@ void lobby_ShowPlayers(void)
 
     y = 10;
     d2_SetForm(lobby_Form, 1);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     for (i = 0; i < 8; i++) {
         p = cm_LobbyFindPlayer(lobby_List[i + 1]);
         if (p == 0)
@@ -708,7 +707,7 @@ int lobby_ChoosePlayer(unsigned mask, int b)
                 ret = 1;
             sv_PopRequest = 1;
         }
-    } while (sv_RunFrame((int)main_ChoosePlayer, mask) != 0);
+    } while (sv_RunFrame(main_ChoosePlayer, mask) != 0);
     d2_RadioClear(sexGroup);
     d2_RadioClear(faithGroup);
     d2_RadioClear(coatGroup);
@@ -765,7 +764,7 @@ int lobby_ChooseProfession(int param)
         d2_RadioAdd(obj, id);
     }
     d2_ClickedId = -1;
-    if (sv_RunFrame((int)lobby_ChooseProfession, param)) {
+    if (sv_RunFrame(lobby_ChooseProfession, param)) {
         do {
             d2_MenuNavigate(obj);
             if (d2_ClickedId != -1) {
@@ -778,7 +777,7 @@ int lobby_ChooseProfession(int param)
                     }
                 }
             }
-        } while (sv_RunFrame((int)lobby_ChooseProfession, param));
+        } while (sv_RunFrame(lobby_ChooseProfession, param));
     }
     d2_RadioClear(obj);
     d2_CloseView(win);
@@ -802,7 +801,7 @@ void lobby_ShowChat(void)
     p = cm_LobbyChatFirst();
     d2_SetForm(lobby_Form, 5);
     height = d2_Wins[d2_LastWindow].contentHeight;
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     lobby_ChatNewest = 0;
     while (p != 0) {
         lobby_ChatNewest++;
@@ -817,7 +816,7 @@ void lobby_ShowChat(void)
         } else {
             sprintf(text, "$%dFF%s: %s$A", id, p->name, p->text);
         }
-        id = io_PrintText(text);
+        id = io_PrintText((intptr_t)text);
         p = cm_LobbyChatNextLine();
     }
     if (lobby_ChatNewest > lobby_ChatShown && id >= 0 && height > d2_Wins[d2_LastWindow].h) {

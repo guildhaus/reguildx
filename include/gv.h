@@ -18,8 +18,6 @@ struct G15PLANT;
 #include "cm_types.h"                /* CRIME */
 #include "gv_types.h"                /* GVENTRY, AIDEC, ORDSTATS, ORDSTATROUND, ORDMSGREC */
 
-extern char unk_Avatars[0x20][0xf4];    /* 0x60f310 */
-extern char gv_Effects[];             /* 0x6f1008, 8 slots of 0x170 bytes */
 extern AITIME gv_LastTime;              /* 0x6f0e38, ai_Time at the last effect step (struct copies of it) */
 typedef struct GVGRAVE {                /* 0x44 bytes, a dead person in a grave (GVYARD.graves; filled by gv_BuryNewDead) */
     int id;                             /* 0x00, the object id (ai_NextObjectId), -1 when free */
@@ -83,124 +81,24 @@ typedef struct GVCANNON {               /* 0x20 bytes, the state of the cannon s
 } GVCANNON;
 extern GVCANNON gv_Cannon;              /* 0x925100 */
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-extern char ai_Chars[][0x21c];      /* 0x770b80, the characters */
 
-/* the 0x21c-byte character records (ai_Chars) as the order handlers read them */
-typedef struct ORDCHAR {
-    unsigned short id;              /* 0x000 */
-    unsigned char kind;             /* 0x002, 6 = player */
-    char pad003;
-    unsigned int netId;             /* 0x004, the id the order events carry */
-    unsigned char health;           /* 0x008, > 0 = the record is in use */
-    unsigned char textVariant;      /* 0x009, the sex (ai.h AICHAR.sex: 0 male, 1 female); nonzero: the alternate text block (level texts +10, job texts +0x28) */
-    unsigned short w00a;            /* 0x00a, ai.h AICHAR.w00a; gm_ShiftLoyalty and gm_HandOutMoney skip the characters below 12 (reasoned guess: the age) */
-    unsigned char b00c;             /* 0x00c, a kind (ai.h AICHAR.b00c); gm_HandOutMoney compares it between two characters and with the decision 2's value (reasoned guess: the faith) */
-    unsigned char level;            /* 0x00d, the level the level orders test */
-    char pad00e[2];
-    float f010;                     /* 0x010, ai.h AICHAR.f010; the life value the daily step moves f01c toward while w00a is below f020 */
-    float f014;                     /* 0x014, ai.h AICHAR.f014; the base of the daily life loss beyond f020 */
-    float f018;                     /* 0x018, ai.h AICHAR.f018; gm_AgeCharacter ages the life from it */
-    float f01c;                     /* 0x01c, ai.h AICHAR.f01c, the life value: the character dies when f01c + v024 is used up (gm_DailyCharacterStep) */
-    float f020;                     /* 0x020, ai.h AICHAR.f020; a child (jobId 0) whose w00a is below it gets the child head (gm_CharNameRecord) */
-    int v024;                       /* 0x024, ai.h AICHAR.v024, added to f01c by the daily step's death test */
-    short w028;                     /* 0x028, ai.h AICHAR.w028 */
-    char pad02a[2];
-    unsigned int v02c;              /* 0x02c, ai.h AICHAR.v02c: nine counters of 2 .. 4 bits (bits 0, 4, 8, 12, 14, 17, 20, 23, 25) the daily step halves */
-    union {
-        char first[0x10];           /* 0x030, the first name (ai.h AICHAR.first) */
-        unsigned int nameKey;       /* 0x030, its first four bytes as one number: gm_BirthDate's seed for the birthday */
-    };
-    char family[0x10];              /* 0x040, the family name (ai.h AICHAR.family) */
-    unsigned short w050;            /* 0x050, ai.h AICHAR.w050; a player's character has the top bit set and its
-                                       gm_PlayerRecords slot in the low 4 bits (gm_PlayerRecord) */
-    char pad052[2];
-    int v054;                       /* 0x054, gm_CreateObject: nonzero for a character of the kinds 5 .. 7, its low byte + 0x67 is the texture set of the character's carts */
-    unsigned char generation;       /* 0x058, 1 for a character created without parents, else the parent's + 1
-                                       (gm_CreateCharacter; reasoned guess: the generation) */
-    char pad059[3];
-    union {
-        int partner;                /* 0x05c, the partner character id, -1 = none */
-        int relatives[8];           /* 0x05c, the netIds of the relatives (ai.h AICHAR.relatives), -1 = none: [0] the
-                                       partner, [1] / [2] the parents (gm_PopulationStep), [3..7] the children
-                                       (reasoned guess: gm_PartnerStep counts them for the chance of another birth) */
-    };
-    float pregnancy;                /* 0x07c, above 1.0 the mother gives birth (gm_PartnerStep), set from the birth
-                                       chance, reset below 0 after the birth (reasoned guess: the pregnancy) */
-    unsigned char skills[5];        /* 0x080, the five skill bytes (ai.h AICHAR.skills; gm_GetSkill reads them as the base value) */
-    char pad085[3];
-    float mood[14][3];              /* 0x088, the mood triples (a, b, value) (ai.h AICHAR.mood) */
-    char pad130[0x34];
-    unsigned char jobId;            /* 0x164, the title / job id gm_TitleGroup groups (ai.h AICHAR.jobId) */
-    char title;                     /* 0x165, the title rank (ai.h AICHAR.title) */
-    unsigned char job;              /* 0x166, the profession id the job orders test (text 0x253 + job) */
-    unsigned char prevOffice;       /* 0x167, ai.h AICHAR.prevOffice; gm_PopulationStep gives a newcomer 10 .. 21 */
-    unsigned char appliedOffice;    /* 0x168, ai.h AICHAR.appliedOffice, 0 = none */
-    unsigned char job2;             /* 0x169, the second profession field, tested by the same orders */
-    char pad16a[2];
-    struct ORDBLD *bld;             /* 0x16c, the character's building (ai.h AICHAR.bld) */
-    struct ORDBLD *bld2;            /* 0x170, the character's own building (its home), 0 when none */
-    int jobDays;                    /* 0x174, the days served in the current job: a job change clears it (gm_SetJob 0x504790), gm_TitlePeriodServed weighs it against the title period */
-    int inventory;                  /* 0x178, the character's goods inventory, an object list (ai.h AICHAR.inventory) */
-    char pad17c[8];
-    struct CHARACTER *model;        /* 0x184, the character's model (ai.h AICHAR.model, ch.h CHARACTER) */
-    char pad188[4];
-    int picture;                    /* 0x18c, the portrait picture (ai.h AICHAR.picture), -1 = none */
-    int v190;                       /* 0x190, 4 at creation, 10 with gm_AllowAll (ai.h AICHAR.v190) */
-    int v194;                       /* 0x194, gm_TakeOverCharacter sets it to 4 for the character that takes over */
-    int v198;                       /* 0x198, cleared with wage at the end of every day (f3gm.c gm_EndDayIncomes) */
-    int wage;                       /* 0x19c, the wage paid in the last round settlement (ai.h AICHAR.wage) */
-    int v1a0;                       /* 0x1a0, a trade sum cm.c's goods move adds to (price x amount) for an object of the type 0x1dc (seller) / 0x1db (buyer); the income kind 4 taxes v1a0 + v1a4 */
-    int v1a4;                       /* 0x1a4, the same for the types 0x1db (seller) / 0x1dc (buyer) */
-    int v1a8;                       /* 0x1a8, an amount the income kind 3 (f3gm.c gm_IncomeKind3) taxes at the decision 0xd's rate and clears once paid */
-    int donated;                    /* 0x1ac, the sum the character gave the church (ai_IndulgenceWindow shows it with its rank, gm_DonationRank) */
-    unsigned char b1b0;             /* 0x1b0, scales the chance that gm_HandOutMoney takes money from the character (x 0.25) */
-    unsigned char b1b1;             /* 0x1b1, gm_PartnerStep takes no step unless it is 0 */
-    char pad1b2[2];
-    unsigned int flags1b4;          /* 0x1b4, bit 0 is cleared when the character's master building changes hands (gm_AssignBuilding) */
-    char pad1b8[0x10];
-    int flags1c8;                   /* 0x1c8, order flags: 0x100 answer, 0x200 / 0x80000 / 0x100000 / 0x200000 / 0x400000 */
-    int flags1cc;                   /* 0x1cc, privilege flags: 0xe00 */
-    float loyalty;                  /* 0x1d0, 0 .. 1, starts at 0.25 .. 0.75; gm_ShiftLoyalty / gm_HandOutMoney move it (reasoned guess: the loyalty) */
-    int worth[4];                   /* 0x1d4, the character's worth (gm_GetWorth) of the last rounds, worth[3] the newest (gm_UpdateWorthMood shifts it) */
-    float mood3Rate;                /* 0x1e4, scales the base growth of mood need 3 (ai.h AICHAR.mood3Rate) */
-    int v1e8;                       /* 0x1e8, 1 at creation for the kinds 3 / 0x10 / 0x13 (gm_CreateCharacter) */
-    char pad1ec[4];
-    int v1f0;                       /* 0x1f0, gm_PopulationStep counts the working characters with it set; below 6, a
-                                       newcomer of kind 0x10 may arrive */
-    union {
-        char ownName[0x1c];         /* 0x1f4, the character's own head name (ai.h AICHAR.ownName), empty: the job's / title's head record */
-        struct {
-            char padOwnName[0x18];
-            int partyId;            /* 0x20c, the scene party (ai.h AICHAR.partyId), -1 at creation */
-        };
-    };
-    int v210;                       /* 0x210, ai.h AICHAR.partner, -1 at creation */
-    signed char relationBias;       /* 0x214, ai.h AICHAR.relationBias */
-    unsigned char b215;             /* 0x215, ai.h AICHAR.b215, the partner search's step counter */
-    unsigned char b216;             /* 0x216, ai.h AICHAR.b216, the steps the partner search needs */
-    unsigned char b217;             /* 0x217, ai.h AICHAR.b217: one of 0x3c .. 0x5c (or 0xc2) by the kind, the title group and chance (gm_CreateCharacter), a child takes a parent's */
-    unsigned char mask;             /* 0x218, ai.h AICHAR.mask, 1 at creation */
-    char pad219[3];
-} ORDCHAR;
-typedef char gv_AssertORDCHAR[sizeof(ORDCHAR) == 0x21c ? 1 : -1];
 
-typedef struct GVAVATAR {               /* 0xf4 bytes, a record of the avatar table unk_Avatars (32) */
+typedef struct GVAVATAR {               /* 0xf4 bytes, a record of the avatar table gv_Avatars (32) */
     unsigned id;                        /* 0x00, four characters ("neVm"), the key of the save game's (id, used) pairs */
     char name[0x10];                    /* 0x04, "Maven" (the read report prints it): the first name of the character made from it */
     char title[0x10];                   /* 0x14, "of Reading": its family name */
-    unsigned char skills[5];            /* 0x24, the five skill bytes (ORDCHAR.skills) */
+    unsigned char skills[5];            /* 0x24, the five skill bytes (AICHAR.skills) */
     char pad29[3];
-    float mood[14][3];                  /* 0x2c, the mood triples (ORDCHAR.mood; gv_AllocAvatar sets the second of each to the first * 0.001) */
-    unsigned char jobId;                /* 0xd4, ORDCHAR.jobId */
-    unsigned char sex;                  /* 0xd5, ORDCHAR.textVariant */
-    unsigned char b00c;                 /* 0xd6, ORDCHAR.b00c */
-    char ownName[0x1b];                 /* 0xd7, ORDCHAR.ownName, the head name */
+    float mood[14][3];                  /* 0x2c, the mood triples (AICHAR.mood; gv_AllocAvatar sets the second of each to the first * 0.001) */
+    unsigned char jobId;                /* 0xd4, AICHAR.jobId */
+    unsigned char sex;                  /* 0xd5, AICHAR.sex */
+    unsigned char b00c;                 /* 0xd6, AICHAR.faith */
+    char ownName[0x1b];                 /* 0xd7, AICHAR.ownName, the head name */
     unsigned char used;                 /* 0xf2, 1 while the record is in use (gv_AllocAvatar), 0 free */
     char padf3;
 } GVAVATAR;
 typedef char gv_AssertGVAVATAR[sizeof(GVAVATAR) == 0xf4 ? 1 : -1];
-#define ORD_CHARS ((ORDCHAR *)ai_Chars)
-#define ORD_CHAR(p) ((ORDCHAR *)(p))   /* a raw character record as the order handlers read it */
+extern GVAVATAR gv_Avatars[0x20];     /* 0x60f310, the avatars: the characters the graveyard raises (gv_AllocAvatar) */
 
 /* the message record of an order (c = the character, m = this record): the handlers write their text at +0x14 */
 typedef struct ORDMSG {
@@ -216,103 +114,12 @@ typedef struct ORDMSG {
                                        its netId */
     };
     char pad218[4];
-    ORDCHAR *partner;               /* 0x21c, the partner character of an answer */
+    struct AICHAR *partner;             /* 0x21c, the partner character of an answer */
 } ORDMSG;
 #define ORD_MSG(p) ((ORDMSG *)(p))
 
 #pragma pack(push, 1)
-/* the building record ai.h's AIBLD, as ord.c reads it (gv.h and ai.h cannot be in one TU: both declare
-   ai_Time / ai_Chars / ai_BTypes); the object list of gm_BuildQuery's records */
-typedef struct ORDBLD {
-    unsigned char type;             /* 0x00, index into ai_BTypes */
-    int id;                         /* 0x01, ai.h AIBLD.id */
-    char name[0x20];                /* 0x05, the building's name (ai.h AIBLD.name) */
-    unsigned short masterId;        /* 0x25, the character id of the building's master (ai.h AIBLD.masterId) */
-    unsigned short owner;           /* 0x27, index into ai_Chars, 0xffff = none */
-    unsigned short mainRoom;        /* 0x29, the room the building's panel opens with (ai.h AIBLD.mainRoom; gm_CreateBuilding) */
-    int v2b;                        /* 0x2b, cleared by gm_CreateBuilding */
-    unsigned char b2f;              /* 0x2f, cleared by gm_CreateBuilding */
-    int v30;                        /* 0x30, set by gm_CreateBuilding: 0x1388 for a home, 100 for the kinds 0x1e .. 0x20, 0x13880 for the office 0x47, else 0 */
-    char pad34[5];
-    int budget;                     /* 0x39, ai.h AIBLD.budget, 0x7d00 when created */
-    int wageRate;                   /* 0x3d, ai.h AIBLD.wageRate, 100 when created */
-    int workRate;                   /* 0x41, ai.h AIBLD.workRate, 2 when created */
-    int v45;                        /* 0x45, 100 when created */
-    float priceFactor;              /* 0x49, scales the goods price of the building's offers (f3gm.c gm_CollectOffers) */
-    int roundSum;                   /* 0x4d, ai.h AIBLD.roundSums[0], cleared at the end of every day (gm_EndDayIncomes) */
-    char pad51[4];
-    int v55;                        /* 0x55, of a kind 5 building an income per round (gm_BuildingBalance out[10]) */
-    char pad59;
-    union {
-        unsigned char flags5a;      /* 0x5a, bit 0: takes no new inhabitants (gm_FindHome) */
-        unsigned short flags5aw;    /* 0x5a, read as a word (ai.h AIBLD.flags5aw): 0x1000 adds 0.1 to the building's
-                                       staff factor (gm_StaffFactor) */
-    };
-    char level;                     /* 0x5c, the building's level 0 .. 100 */
-    int objList;                    /* 0x5d */
-    struct D3OBJECT *object;        /* 0x61, its object in the scene */
-    union {
-        unsigned char people;       /* 0x65, the number of its inhabitants, below the kind's capacity
-                                       (ord_GetKindRecord [0]) while it has room (gm_FindHome) */
-        int block65;                /* 0x65, of the kinds 0x48 .. 0x4a a graveyard record (gv_FreeGraveyard), of
-                                       0x4b .. 0x4d a heap block (gm_FreeBuilding frees both; ai.h AIBLD.yard) */
-        int v65;                    /* 0x65, set by gm_CreateBuilding per kind: 4 .. 7 the owner's netId (-1 without
-                                       one), 0xb .. 0xd -1, 0xe .. 0x10 10, 0x35 .. 0x37 0 */
-    };
-    union {
-        struct {
-            int daySum;             /* 0x69, ai.h AIBLD.daySum, cleared for the kinds 11 .. 13 at the end of every day (reasoned guess: a per-day sum, as roundSum) */
-            int v6d;                /* 0x6d, gm_CreateBuilding: 5 for the kinds 0xe .. 0x10, 0 for 0x35 .. 0x37 */
-            struct G15PLANT *plants; /* 0x71, of a kind 0x1e building its plant records (ai.h AIBLD.plants), freed by gm_FreeBuilding */
-        };
-        AITIME created;             /* 0x69, of the kinds 4 .. 7 the game time it was created (gm_CreateBuilding) */
-        unsigned short w69[2];      /* 0x69, the kinds 0x35 .. 0x37 clear it as two words */
-        struct {
-            char pad69[8];
-            ORDCREDIT credits[3];   /* 0x71, of a bank the credit offers kept for the player (gm_GetCreditOffers) */
-        };
-        char u69[0x2c];             /* 0x69 .. 0x95 */
-    };
-    int smokeEffect;                /* 0x95, ai.h AIBLD.smokeEffect, -1 none */
-    int flags99;                    /* 0x99, bit 0 set when created */
-    char pad9d[8];
-    int va5;                        /* 0xa5, -1 when created */
-} ORDBLD;
 
-/* the head of an object record ai.h's AIOBJ, as gm_Query returns it (gv.h and ai.h cannot be in one TU) */
-typedef struct ORDOBJ {
-    unsigned short type;            /* 0x00, the prototype id */
-    int objId;                      /* 0x02, the object's own id (messages name the object by it) */
-    int ownerId;                    /* 0x06, the id of the building / object / character holding it (gm_ClearObjects finds it by 0x4fea50) */
-    int holderId;                   /* 0x0a, gm_CreateObject: the holder's building id, the holding object's holderId or the holding character's netId (a cart: its owner character's netId) */
-    int count;                      /* 0x0e, the amount of goods it stands for (ai.h AIOBJ.count) */
-    unsigned char fill;             /* 0x12, how full a cart is in percent (ai.h AIOBJ.fill), 100 when created */
-    unsigned char b13;              /* 0x13 */
-    int list;                       /* 0x14, the object list it holds (ai.h AIOBJ.list) */
-    struct D3OBJECT *obj;           /* 0x18, the scene object that shows it (ai.h AIOBJ.obj) */
-    union {                         /* 0x1c, gm_CreateObject clears 0x1f bytes from here (to 0x3b) and sets them per prototype */
-        unsigned char lvl1c;        /* 0x1c, a workshop's level (ai.h AIOBJ.lvl1c); gm_SyncMarket raises it to the market's goods count */
-        int v1c[4];                 /* 0x1c */
-        unsigned char cap[2];       /* 0x1c, of the objects 0x2a / 0x116 two capacities from the building kind (gm_SetCapacities) */
-        struct {                    /* 0x1c, of the object 0x1b5 of the building kinds 0x14 .. 0x16: -1, -1, -1, 0 when created (gm_CreateBuilding) */
-            char v1b5a;             /* 0x1c */
-            char v1b5b;             /* 0x1d */
-            int v1b5c;              /* 0x1e */
-            unsigned char v1b5d;    /* 0x22 */
-        };
-        struct {
-            int cartBld;            /* 0x1c, of a cart: the id of its building, -1 = none */
-            int cart20;             /* 0x20 */
-            int cart24;             /* 0x24 */
-            unsigned char cart28;   /* 0x28 */
-        };
-    };
-    char pad2c[5];
-    unsigned char b31;              /* 0x31, a cart: 2 when created */
-    char pad32[9];
-    struct CHARACTER *model;        /* 0x3b, a cart's model (the cart or the horse, ch_Create) */
-    struct ORDOBJ *next;            /* 0x3f, the next object of its list (ai.h AIOBJ.next) */
-} ORDOBJ;                           /* 0x43 bytes, the records of the instance table ai_Objects */
 #pragma pack(pop)
 
 /* a record of the event list (he_FindEvent / he_NextEvent) as the order handlers read it */
@@ -324,7 +131,7 @@ typedef struct ORDEVENT {
 extern volatile unsigned long d3_Time;  /* 0x6333cc, milliseconds (tb.c) */
 extern int d3_CurrentScene;                /* 0x633444 */
 
-unsigned char * gm_BuildQuery(int n, ...);                     /* 0x501190 */
+struct AIBLD *gm_BuildQuery(int n, ...);                     /* 0x501190 */
 char d3if_Delete(struct D3OBJECT *obj);  /* 0x447190, d3_interface.h */
 int gm_MinutesBetween();                     /* 0x4fe280 */
 struct D3PARTSYS *d3t_CreateExplosion(void *parent, struct D3VECTOR *pos, int count, float radius, float height, float z, float size, unsigned int duration); /* 0x416040, d3_tools.c */
@@ -335,8 +142,8 @@ int cm_SendLongMessage(char *msg);                     /* 0x4c4b70 */
 void cm_BeginFieldBlock(char *o, int id);                     /* 0x4c3ba0 */
 int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3d00 */
 int cm_SendFieldDeltas(void);                     /* 0x4c49a0 */
-extern char *ai_Blds;                   /* 0x889f74, 256 records of 0xa9 bytes */
-extern unsigned short *ai_PlayerChar;    /* 0x6f1bf8, the player's character (ai.c; this header's units add byte offsets through ai_PlayerCharC) */
+extern struct AIBLD *ai_Blds;           /* 0x889f74, 256 records of 0xa9 bytes */
+extern struct AICHAR *ai_PlayerChar;    /* 0x6f1bf8, the player's character */
 extern const struct D3VECTOR4 d3_Origin;     /* 0x5ebba4, (0, 0, 0), d3_vec.c */
 extern const struct D3VECTOR d3_ZeroRot;      /* 0x5ebbb4, (0, 0, 0), d3_vec.c */
 
@@ -381,6 +188,7 @@ typedef struct GVEFFECT {               /* 0x170 bytes, an effect slot of gv_Eff
     int (*cb)(GVEFFARG *arg);           /* 0x168, the slot's callback (gv_EffectNotifyOwner by default), called when a part ends */
     GVEFFARG *arg;                      /* 0x16c, its argument: cur = the part that ended */
 } GVEFFECT;
+extern GVEFFECT gv_Effects[8];          /* 0x6f1008, the effect slots */
 typedef char gv_AssertGVEFFECT[sizeof(GVEFFECT) == 0x170 ? 1 : -1];
 extern GVEFFARG gv_EffectArgs[8];      /* 0x6f0e48, one per effect slot */
 int gv_EffectNotifyOwner(GVEFFARG *a);  /* 0x4ed3f0, the default effect slot callback: tells the owner of the current record's building */
@@ -403,31 +211,31 @@ float gv_SalvoCharge(int a, int b, int c);  /* 0x4eef50 */
 void gv_CannonKind(int n, int *out);    /* 0x4ef000 */
 void cm_SendMoneyDelta(int a, int b);                     /* 0x4c5f60 */
 extern unsigned char ai_OwnPlayer;      /* 0x6f1bc5 */
-void gv_BuildingCannon(char *o, unsigned *balls, unsigned *kind);  /* 0x4ef170 */
-void gv_CannonScatter(char *o, float *spread, float *speedSpread);  /* 0x4ef260 */
-float gv_CannonItemFactor(char *o);           /* 0x4ef330 */
-int gv_GraveCount(unsigned char *o);    /* 0x4ef3c0 */
-int gv_GravesInUse(unsigned char *o);    /* 0x4ef440 */
-int gv_EntryCount(unsigned char *o);    /* 0x4ef470 */
-int gv_SizeOpen(char *r, int i);      /* 0x4ef4f0 */
-extern char *ai_BTypes;              /* 0x7e3f30 */
-int gv_ListEntry(char *r, int i, unsigned char n);  /* 0x4ef570 */
+void gv_BuildingCannon(struct AIBLD *o, unsigned *balls, unsigned *kind);  /* 0x4ef170 */
+void gv_CannonScatter(struct AIBLD *o, float *spread, float *speedSpread);  /* 0x4ef260 */
+float gv_CannonItemFactor(struct AIBLD *o);           /* 0x4ef330 */
+int gv_GraveCount(struct AIBLD *o);    /* 0x4ef3c0 */
+int gv_GravesInUse(struct AIBLD *o);    /* 0x4ef440 */
+int gv_EntryCount(struct AIBLD *o);    /* 0x4ef470 */
+int gv_SizeOpen(struct GVYARD *r, int i);      /* 0x4ef4f0 */
+extern struct AIBTYPE *ai_BTypes;    /* 0x7e3f30, the building types */
+int gv_ListEntry(struct GVYARD *r, int i, unsigned char n);  /* 0x4ef570 */
 int gv_EntryIndex(char *r, int *e);     /* 0x4ef6b0 */
-int gv_EntryHeldBy(char *a, char *b);    /* 0x4ef710 */
+int gv_EntryHeldBy(struct AICHAR *a, char *b);    /* 0x4ef710 */
 int gv_EntrySameId(int *a, int *b);      /* 0x4ef740 */
 int gv_EntryIsFree(int *a, int *b);      /* 0x4ef760 */
 int gv_EntryIsUsed(int *a, int *b);      /* 0x4ef770 */
 int gv_EntryHasId(int *a, int *b);      /* 0x4ef780 */
-unsigned gv_FindEntry(void *a, unsigned char *o, unsigned after, int (*cb)(), int l);  /* 0x4ef7c0 */
-unsigned gv_LoadGraveyard(unsigned char *o, int *e);  /* 0x4ef900 */
-GVGRAVE *gv_RandomGrave(unsigned char *o);/* 0x4ef930 */
+unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l);  /* 0x4ef7c0 */
+unsigned gv_LoadGraveyard(struct AIBLD *o, int *e);  /* 0x4ef900 */
+GVGRAVE *gv_RandomGrave(struct AIBLD *o);/* 0x4ef930 */
 extern const int gv_EntryCounts[];             /* 0x5ee054, entries per kind */
 extern const int gv_ListEntries0[4];         /* 0x5ee084, the entries of list 0 by the building level */
 extern const int gv_ListEntries1[4];         /* 0x5ee094, of list 1 */
 extern const int gv_ListEntries2[4];         /* 0x5ee0a4, of list 2 */
 extern const int gv_ListEntries3[4];         /* 0x5ee0b4, of list 3 */
-int gv_BuryNewDead(unsigned char *o, int n);  /* 0x4ef9c0 */
-GVYARD *gv_AllocGraveyard(unsigned char *o);  /* 0x4efc10, allocates the graveyard record of the building o ("gv_AllocGraveyardField", at +0x65 of o) */
+int gv_BuryNewDead(struct AIBLD *o, int n);  /* 0x4ef9c0 */
+GVYARD *gv_AllocGraveyard(struct AIBLD *o);  /* 0x4efc10, allocates the graveyard record of the building o ("gv_AllocGraveyardField", at +0x65 of o) */
 extern const int gv_EntryTotals[];             /* 0x5ee064 */
 extern const int gv_GraveTotals[];             /* 0x5ee074 */
 extern int ai_NextObjectId;                /* 0x61a654 */
@@ -436,53 +244,53 @@ extern int ai_NextObjectId;                /* 0x61a654 */
 
 void * mem_Alloc(int size, char *tag);        /* 0x4223c0, allocates zeroed memory */
 void mem_Free(void *p);                 /* 0x422620 */
-GVYARD *gv_GrowGraveyard(unsigned char *o);  /* 0x4eff50 */
+GVYARD *gv_GrowGraveyard(struct AIBLD *o);  /* 0x4eff50 */
 void gv_FreeGraveyard(int *g);             /* 0x4f0180 */
-int gv_OrderBury(int *g, char *o, int v, int b);  /* 0x4f01d0 */
+int gv_OrderBury(int *g, struct AIBLD *o, int v, int b);  /* 0x4f01d0 */
 int gv_BuryCharacter(int *p);              /* 0x4f0240 */
-int gv_OrderReserveGrave(int *c, char *o, int size, short years, int price);  /* 0x4f0430 */
+int gv_OrderReserveGrave(int *c, struct AIBLD *o, int size, short years, int price);  /* 0x4f0430 */
 int gv_ReserveGrave(GVORDER *m);          /* 0x4f0490 */
-int gv_OrderExtendGrave(int *g, char *o, int v, int b, short s, int x);  /* 0x4f0700 */
+int gv_OrderExtendGrave(int *g, struct AIBLD *o, int v, int b, short s, int x);  /* 0x4f0700 */
 int gv_ExtendGrave(GVORDER *m);           /* 0x4f0770 */
-int gv_OrderSetGraveHolder(int *c, char *o, int size, int entry);  /* 0x4f0900 */
+int gv_OrderSetGraveHolder(int *c, struct AIBLD *o, int size, int entry);  /* 0x4f0900 */
 int gv_SetGraveHolder(GVORDER *m);         /* 0x4f0970 */
-int gv_OrderOpenSize(int *c, char *o, int size);  /* 0x4f0a90 */
+int gv_OrderOpenSize(int *c, struct AIBLD *o, int size);  /* 0x4f0a90 */
 int gm_AddNegative();                     /* 0x500ae0 */
 int gm_AddObjekt(int id, int proto, int n);                     /* 0x500970 */
 int gv_OpenSize(GVORDER *m);           /* 0x4f0af0 */
-int gv_OrderAdjustEntry(char *o, int v, int b, int x);  /* 0x4f0c20 */
+int gv_OrderAdjustEntry(struct AIBLD *o, int v, int b, int x);  /* 0x4f0c20 */
 int gv_AdjustEntry(GVORDER *m);          /* 0x4f0c80 */
-int gv_OrderNewDead(char *o, int x);      /* 0x4f0d70 */
+int gv_OrderNewDead(struct AIBLD *o, int x);      /* 0x4f0d70 */
 int gv_AddNewDead(unsigned char *p);    /* 0x4f0dd0 */
-int gv_OrderMoveGrave(int *c, int to, char *o, int from, int entry, int price);  /* 0x4f0e80 */
+int gv_OrderMoveGrave(int *c, int to, struct AIBLD *o, int from, int entry, int price);  /* 0x4f0e80 */
 int gv_MoveGrave(GVMOVE *m);           /* 0x4f0ed0 */
-int gv_OrderRaiseDead(char *o, int size, int entry, int grave, int kind);  /* 0x4f1170 */
-int gv_SendGrave(unsigned char *o);    /* 0x4f15e0 */
+int gv_OrderRaiseDead(struct AIBLD *o, int size, int entry, int grave, int kind);  /* 0x4f1170 */
+int gv_SendGrave(struct AIBLD *o);    /* 0x4f15e0 */
 int gv_DecayRaisedDead(struct AICHAR *c);  /* 0x4f1660 */
-int gv_RoomForRaised(unsigned char *o, int *n);  /* 0x4f1d50 */
-float gv_PreserveRate(char *o);           /* 0x4f16f0 */
+int gv_RoomForRaised(struct AIBLD *o, int *n);  /* 0x4f1d50 */
+float gv_PreserveRate(struct AIBLD *o);           /* 0x4f16f0 */
 int cm_SendFloatDelta(int id, int field, float delta);  /* 0x4c4ac0 */
-int gv_WriteGraveyard(void *f, unsigned char *o);  /* 0x4f17f0 */
-char * gm_Query(void *list, int n, ...);                   /* 0x4ffe90 */
+int gv_WriteGraveyard(void *f, struct AIBLD *o);  /* 0x4f17f0 */
+struct AIOBJ *gm_Query(void *list, int n, ...);                   /* 0x4ffe90 */
 unsigned gv_RaiseDead(GVRAISE *m);     /* 0x4f1200 */
-int gv_ReadGraveyard(void *f, unsigned char *o);  /* 0x4f1aa0, reads the graveyard record of o from the file f (allocated by 0x4efc10) */
+int gv_ReadGraveyard(void *f, struct AIBLD *o);  /* 0x4f1aa0, reads the graveyard record of o from the file f (allocated by 0x4efc10) */
 float util_RandomF(void);               /* 0x42ec20 */
 extern int ai_CharCount;                /* 0x6f1bc0, the number of characters in use (of ai_Chars[0x300]) */
 int gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);                     /* 0x4fbd10 */
-void gm_ChooseHeadIcon(unsigned short *c);                     /* 0x4fb890 */
+void gm_ChooseHeadIcon(struct AICHAR *c);                     /* 0x4fb890 */
 GVENTRY *gv_FindWornEntry(struct AIBLD *bld, unsigned char m);  /* 0x4f22a0 */
 
 int gv_FindHeldEntry(void *a, unsigned char **o, int *e);  /* 0x4f2540 */
 int gv_FindReservedEntry(void *a, unsigned char **o, int *e);  /* 0x4f25d0 */
-float gv_SeanceChance(char *o);           /* 0x4f2660 */
+float gv_SeanceChance(struct AIBLD *o);           /* 0x4f2660 */
 int gv_GetTableRecord(int i, int *out);     /* 0x4f2720 */
-int gv_FindTableRecord(char *c, unsigned b, int *out);  /* 0x4f2870 */
+int gv_FindTableRecord(struct AICHAR *c, unsigned b, int *out);  /* 0x4f2870 */
 extern AIDEC gv_Decisions[];           /* 0x611258, 0x1d AIDEC records of 0x24 bytes (the AI decision table) */
 
 int gv_WriteCrimes(void *f);             /* 0x4f28d0 */
 float gv_SchoolLevelFactor(unsigned short *c);          /* 0x4f2da0 */
 
-int gv_ReadCrimes(int f);             /* 0x4f2b30 */
+int gv_ReadCrimes(struct VFSFILE *f);             /* 0x4f2b30 */
 int gv_TableRecordText(char *out, int i);    /* 0x4f2fe0 */
 
 int gv_FindCrimesByState(int state, int *out);    /* 0x4f3610 */
@@ -500,7 +308,7 @@ int gv_HeldCrimeIdsOf(int culprit, int *out, unsigned short t);  /* 0x4f4080 */
 int gv_HeldCrimeCount(int culprit, unsigned short t);   /* 0x4f4130 */
 void gv_ClearCrimes(void);               /* 0x4f4350 */
 int gv_CheckSentence(struct AICHAR *c, unsigned k); /* 0x4f4420 */
-short * gm_FindChar(int id);                   /* 0x505df0 */
+struct AICHAR *gm_FindChar(int id);                   /* 0x505df0 */
 
 void gv_CheckRankUps(void);               /* 0x4f4d10 */
 int gv_EvidencePrice(int id, struct AICHAR *seller, int *price, short *culprit, unsigned *law);  /* 0x4f4d30 */
@@ -511,7 +319,7 @@ float gm_Liking();                   /* 0x50c550 */
 void gv_SendCrimes(void);               /* 0x4f3700 */
 int gv_RetireCrime(int id, int m);       /* 0x4f37e0 */
 void gv_SortCrimesByLaw(int n, CRIME *r);     /* 0x4f4390 */
-char * he_FindEvent(int n, ...);         /* 0x53e400, as he.h */
+struct AIJOB *he_FindEvent(int n, ...);         /* 0x53e400, as he.h */
 int cm_GetSlotState();                     /* 0x4c3ae0 */
 void sv_PumpNet();                    /* 0x52fe00 */
 extern unsigned short ai_PlayerId;     /* 0x6f25b8 */
@@ -534,22 +342,22 @@ int cm_SendFieldDeltas(void);                     /* 0x4c49a0 */
 struct AITIME;  /* f3gm.h typedef (gm_AddTime); file-scope so the gm_AddTime prototype below is stable */
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);                     /* 0x4fe140 */
 
-int gv_CannonCost(char *o, int a, int b, int d, int *n, int *price);  /* 0x4ef090 */
+int gv_CannonCost(struct AICHAR *o, int a, int b, int d, int *n, int *price);  /* 0x4ef090 */
 int gv_MovePrice(unsigned short *c, int k1, int k2, int *out);  /* 0x4f2440 */
 int gv_ProtectionPrice(unsigned short *c);  /* 0x4f24a0, returns gm_PlayerFactor's value (0x4f2532 ret after the 0x5085f0 call) */
 int gv_CrimeTextLaw2to8(char *out, CRIME r, int mode);  /* 0x4f30a0 */
 int gv_CrimeTextLaw9to16(char *out, CRIME r, int mode);  /* 0x4f31d0 */
 int gv_CrimeTextLaw17to28(char *out, CRIME r, int mode);  /* 0x4f3270 */
 int gv_CrimeText(char *out, CRIME r, int mode);  /* 0x4f3580 */
-char *gv_FindAccused(char *c, int max, int *ids, int *cnt);  /* 0x4f41b0 */
+struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt);  /* 0x4f41b0 */
 void gv_PassSentence(struct AICHAR *c, int a, struct AICHAR *judge, struct AICHAR *assessor1, struct AICHAR *assessor2);  /* 0x4f4460 */
 void gv_SentenceText(unsigned short *c, int a, char *out);  /* 0x4f48f0 */
 
-unsigned ord_ApplyForOffice(ORDCHAR *c, int *m);  /* 0x4f4e20 */
-char * he_NextEvent(void);                   /* 0x53e300 */
+unsigned ord_ApplyForOffice(struct AICHAR *c, int *m);  /* 0x4f4e20 */
+struct AIJOB *he_NextEvent(void);                   /* 0x53e300 */
 
-int ord_LevelOrder(char *c, int *m);     /* 0x4f4f20 */
-int ord_ChangeProfessionOrder(char *c, int *m);     /* 0x4f4ff0 */
+int ord_LevelOrder(struct AICHAR *c, int *m);     /* 0x4f4f20 */
+int ord_ChangeProfessionOrder(struct AICHAR *c, int *m);     /* 0x4f4ff0 */
 int ord_PrivilegeDialog(char *text, int mode, int arg);  /* 0x4f8200, the privilege dialog */
 
 int gv_SetTableRecord(struct AICHAR *c, int i, int v);  /* 0x4f2750 */
@@ -558,110 +366,106 @@ int gv_OnDecisionValue(GVDECMSG *p);              /* 0x4f27d0 */
 int gv_Accuse(int i, int v, int a, int b, int obj);  /* 0x4f2e30 */
 float util_RandomF(void);               /* 0x42ec20 */
 
-void gv_GraveyardTurn(char *o);            /* 0x4f1de0 */
+void gv_GraveyardTurn(struct AIBLD *o);            /* 0x4f1de0 */
 int gv_LeasePrice(unsigned short *c, unsigned char care, int kind, int flag, int *out);  /* 0x4f2330 */
 int cm_FlushSendQueue();                     /* 0x4c3680 */
 int cm_ReceiveMessages();                     /* 0x4c3fd0 */
 int cm_ExecCommands();                     /* 0x4c4190 */
 int cm_SendRelations(int a, int b, int c, int d);                     /* 0x4c4b00 */
-int gm_CharCurrency(char *c, char p);                   /* 0x509ee0 */
+int gm_CharCurrency(struct AICHAR *c, char p);                   /* 0x509ee0 */
 
-int ord_MedicusOrder(char *c, int *m);     /* 0x4f5070 */
+int ord_MedicusOrder(struct AICHAR *c, int *m);     /* 0x4f5070 */
 
-int ord_AccusationOrder(char *c, int *m);     /* 0x4f50f0 */
+int ord_AccusationOrder(struct AICHAR *c, int *m);     /* 0x4f50f0 */
 
-int ord_BlackmailBuildingOrder(char *c, int *m);     /* 0x4f5190 */
-int ord_IntimidateOrder(char *c, int *m);     /* 0x4f52e0 */
-int ord_BlackmailContactOrder(char *c, int *m);     /* 0x4f5350 */
-int ord_DismissOfficeOrder(char *c, int *m);     /* 0x4f5c30 */
-int ord_LawOrder(char *c, int *m);     /* 0x4f5d50 */
-int ord_LawOrder2(char *c, int *m);     /* 0x4f5f00 */
-int ord_Level3Order(char *c, int *m);     /* 0x4f5200 */
-int ord_Level4Order(char *c, int *m);     /* 0x4f53c0 */
-int ord_Level4Order2(char *c, int *m);     /* 0x4f54a0 */
-int ord_Level4To5Order(char *c, int *m);     /* 0x4f5580 */
-int ord_Level5UpOrder(char *c, int *m);     /* 0x4f5660 */
-int ord_Level5UpOrder2(char *c, int *m);     /* 0x4f5730 */
-int ord_Level6UpOrder(char *c, int *m);     /* 0x4f58e0 */
-int ord_Level6UpOrder2(char *c, int *m);     /* 0x4f59b0 */
+int ord_BlackmailBuildingOrder(struct AICHAR *c, int *m);     /* 0x4f5190 */
+int ord_IntimidateOrder(struct AICHAR *c, int *m);     /* 0x4f52e0 */
+int ord_BlackmailContactOrder(struct AICHAR *c, int *m);     /* 0x4f5350 */
+int ord_DismissOfficeOrder(struct AICHAR *c, int *m);     /* 0x4f5c30 */
+int ord_LawOrder(struct AICHAR *c, int *m);     /* 0x4f5d50 */
+int ord_LawOrder2(struct AICHAR *c, int *m);     /* 0x4f5f00 */
+int ord_Level3Order(struct AICHAR *c, int *m);     /* 0x4f5200 */
+int ord_Level4Order(struct AICHAR *c, int *m);     /* 0x4f53c0 */
+int ord_Level4Order2(struct AICHAR *c, int *m);     /* 0x4f54a0 */
+int ord_Level4To5Order(struct AICHAR *c, int *m);     /* 0x4f5580 */
+int ord_Level5UpOrder(struct AICHAR *c, int *m);     /* 0x4f5660 */
+int ord_Level5UpOrder2(struct AICHAR *c, int *m);     /* 0x4f5730 */
+int ord_Level6UpOrder(struct AICHAR *c, int *m);     /* 0x4f58e0 */
+int ord_Level6UpOrder2(struct AICHAR *c, int *m);     /* 0x4f59b0 */
 
-int ord_Job11Order(char *c, int *m);     /* 0x4f60b0 */
-int ord_JobMultiOrder(char *c, int *m);     /* 0x4f6180 */
-int ord_Job28Order(char *c, int *m);     /* 0x4f6270 */
-int ord_Job29Order(char *c, int *m);     /* 0x4f6340 */
-int ord_Job34Order(char *c, int *m);     /* 0x4f6410 */
-int ord_JobRangeOrder(char *c, int *m);     /* 0x4f64e0 */
-int ord_JobMultiOrder2(char *c, int *m);     /* 0x4f65c0 */
+int ord_Job11Order(struct AICHAR *c, int *m);     /* 0x4f60b0 */
+int ord_JobMultiOrder(struct AICHAR *c, int *m);     /* 0x4f6180 */
+int ord_Job28Order(struct AICHAR *c, int *m);     /* 0x4f6270 */
+int ord_Job29Order(struct AICHAR *c, int *m);     /* 0x4f6340 */
+int ord_Job34Order(struct AICHAR *c, int *m);     /* 0x4f6410 */
+int ord_JobRangeOrder(struct AICHAR *c, int *m);     /* 0x4f64e0 */
+int ord_JobMultiOrder2(struct AICHAR *c, int *m);     /* 0x4f65c0 */
 
-int ord_BewitchOrder(char *c, int *m);     /* 0x4f66b0 */
+int ord_BewitchOrder(struct AICHAR *c, int *m);     /* 0x4f66b0 */
 
-int ord_Job17Order(char *c, int *m);     /* 0x4f68d0 */
-int ord_Job17Order2(char *c, int *m);     /* 0x4f69a0 */
-int ord_JobMultiOrder4(char *c, int *m);     /* 0x4f6a70 */
-int ord_Job10Order(char *c, int *m);     /* 0x4f6c60 */
-int ord_Job15Order(char *c, int *m);     /* 0x4f6d30 */
-int ord_CounterEspionageOrder(char *c, int *m);     /* 0x4f67c0 */
-int ord_MisappropriationOrder(char *c, int *m);     /* 0x4f6b40 */
+int ord_Job17Order(struct AICHAR *c, int *m);     /* 0x4f68d0 */
+int ord_Job17Order2(struct AICHAR *c, int *m);     /* 0x4f69a0 */
+int ord_JobMultiOrder4(struct AICHAR *c, int *m);     /* 0x4f6a70 */
+int ord_Job10Order(struct AICHAR *c, int *m);     /* 0x4f6c60 */
+int ord_Job15Order(struct AICHAR *c, int *m);     /* 0x4f6d30 */
+int ord_CounterEspionageOrder(struct AICHAR *c, int *m);     /* 0x4f67c0 */
+int ord_MisappropriationOrder(struct AICHAR *c, int *m);     /* 0x4f6b40 */
 
-int ord_SeatSwapOrder(char *c, int *m);     /* 0x4f6e00 */
-int ord_HatredOrder(char *c, int *m);     /* 0x4f6f10 */
-int ord_HearingOrder(char *c, int *m);     /* 0x4f70f0 */
-int ord_ExpelWorkerOrder(char *c, int *m);     /* 0x4f7200 */
-int ord_ConvertOrder(char *c, int *m);     /* 0x4f7300 */
-int ord_PeaceOrder(char *c, int *m);     /* 0x4f7400 */
-int ord_PenanceOrder(char *c, int *m);     /* 0x4f74f0 */
-int ord_SpyTargetFlagOrder(char *c, int *m);     /* 0x4f75e0 */
-int ord_JobMultiOrder3(char *c, int *m);     /* 0x4f7000 */
+int ord_SeatSwapOrder(struct AICHAR *c, int *m);     /* 0x4f6e00 */
+int ord_HatredOrder(struct AICHAR *c, int *m);     /* 0x4f6f10 */
+int ord_HearingOrder(struct AICHAR *c, int *m);     /* 0x4f70f0 */
+int ord_ExpelWorkerOrder(struct AICHAR *c, int *m);     /* 0x4f7200 */
+int ord_ConvertOrder(struct AICHAR *c, int *m);     /* 0x4f7300 */
+int ord_PeaceOrder(struct AICHAR *c, int *m);     /* 0x4f7400 */
+int ord_PenanceOrder(struct AICHAR *c, int *m);     /* 0x4f74f0 */
+int ord_SpyTargetFlagOrder(struct AICHAR *c, int *m);     /* 0x4f75e0 */
+int ord_JobMultiOrder3(struct AICHAR *c, int *m);     /* 0x4f7000 */
 
-int ord_MiracleOrder(char *c, int *m);     /* 0x4f76e0 */
-int ord_Level7Order(char *c, int *m);     /* 0x4f77d0 */
-int ord_Level8Order(char *c, int *m);     /* 0x4f78b0 */
-int ord_Level9UpOrder(char *c, int *m);     /* 0x4f7990 */
-int ord_Flag800Order(char *c, int *m);     /* 0x4f7ca0 */
-int ord_Flag800Order2(char *c, int *m);     /* 0x4f7d70 */
-int ord_Flag200Order(char *c, int *m);     /* 0x4f7ef0 */
-int ord_Flag400Order(char *c, int *m);     /* 0x4f8070 */
-int ord_InterrogationOrder(char *c, int *m);     /* 0x4f7a60 */
-int ord_DismissalOrder(char *c, int *m);     /* 0x4f7b80 */
-int ord_InterrogationOrder2(char *c, int *m);     /* 0x4f7e40 */
-int ord_InterrogationOrder3(char *c, int *m);     /* 0x4f7fc0 */
-int ord_DismissWorkerOrder(char *c, int *m);     /* 0x4f8140 */
+int ord_MiracleOrder(struct AICHAR *c, int *m);     /* 0x4f76e0 */
+int ord_Level7Order(struct AICHAR *c, int *m);     /* 0x4f77d0 */
+int ord_Level8Order(struct AICHAR *c, int *m);     /* 0x4f78b0 */
+int ord_Level9UpOrder(struct AICHAR *c, int *m);     /* 0x4f7990 */
+int ord_Flag800Order(struct AICHAR *c, int *m);     /* 0x4f7ca0 */
+int ord_Flag800Order2(struct AICHAR *c, int *m);     /* 0x4f7d70 */
+int ord_Flag200Order(struct AICHAR *c, int *m);     /* 0x4f7ef0 */
+int ord_Flag400Order(struct AICHAR *c, int *m);     /* 0x4f8070 */
+int ord_InterrogationOrder(struct AICHAR *c, int *m);     /* 0x4f7a60 */
+int ord_DismissalOrder(struct AICHAR *c, int *m);     /* 0x4f7b80 */
+int ord_InterrogationOrder2(struct AICHAR *c, int *m);     /* 0x4f7e40 */
+int ord_InterrogationOrder3(struct AICHAR *c, int *m);     /* 0x4f7fc0 */
+int ord_DismissWorkerOrder(struct AICHAR *c, int *m);     /* 0x4f8140 */
 
-extern int (*ord_OrderHandlers[0x3a])(char *c, int *m);    /* 0x611768, the order handler of each order number */
+extern int (*ord_OrderHandlers[0x3a])(struct AICHAR *c, int *m);    /* 0x611768, the order handler of each order number */
 int d2_OpenForm(short x, short y, char *name);  /* 0x4741f0, d2.h: loads the view, returns its number */
 void d2_CentreViewWindows(int view);                     /* 0x475600 */
 int d2_SetForm(int view, int n);                       /* 0x475f70 */
 void d2_CloseView(int view);                     /* 0x4758f0 */
 void d2_SetPointerSprite(int a, int pic);            /* 0x476f80, d2.h / gfx.h */
-int sv_RunFrame(int cb, unsigned mask);                     /* 0x5309a0 */
+int sv_RunFrame(void (*cb)(), unsigned mask);                     /* 0x5309a0 */
 extern int sv_PopRequest;                /* 0x6f22a0 */
 extern int d2_ClickedId;                /* 0xf8a668 */
-int ord_DispatchOrder(int id, char *c, int *m);  /* 0x4f81c0 */
+int ord_DispatchOrder(int id, struct AICHAR *c, int *m);  /* 0x4f81c0 */
 
-int ord_DivorceOrder(char *c, int *m);     /* 0x4f5800 */
-int ord_WageReportOrder(char *c, int *m);     /* 0x4f5a80 */
+int ord_DivorceOrder(struct AICHAR *c, int *m);     /* 0x4f5800 */
+int ord_WageReportOrder(struct AICHAR *c, int *m);     /* 0x4f5a80 */
 int gm_CharacterWages(unsigned short id, int flag, unsigned char *out);  /* 0x4fa700, the wage record (ORDWAGES) of the character id for the report */
 
 
 /* the tables 0x4f82a0 clears */
 extern ORDMSGREC ord_MessageRecord;     /* 0x91b480, the record the messages carry */
-extern char gm_IncomeHistory[];         /* 0x91b580, the 17-round history of the five income sums (rows of
+extern int gm_IncomeHistory[5][17];       /* 0x91b580, the 17-round history of the five income sums (rows of
                                             0x44 bytes, the running sums behind them) */
-extern char gm_CharacterStatistics[];            /* 0x91b500 */
 extern ORDSTATROUND ord_StatisticsHistory[16]; /* 0x91ab00, the statistics of the last 16 rounds */
 extern ORDSTATS ord_Statistics;         /* 0x91b4c0, the last statistics (ord_UpdateStatistics) */
 extern float ai_RatingBase;              /* 0x6f1b9c, the running rating: it moves towards ai_Rating (ai.h, 0x6f1ba0) by ord_RatingRate */
 extern float ord_RatingRate;             /* 0x91aaf4, the change rate of the rating (ord.c 0x4f8ed0; ls.c saves it) */
-#ifndef DATA_VIEWS_H
-extern char *unk_Ptrfd7c50;             /* 0xfd7c50, the scene */
-#endif
 char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py);                    /* 0x45f170 */
 void ord_ResetStatistics(void);               /* 0x4f82a0 */
-int ord_GetGridCell(char *p, int *x, int *y);  /* 0x4f8300, the grid cell (x, y) of the position p */
+int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y);  /* 0x4f8300, the grid cell (x, y) of the position p */
 
-unsigned char * gm_BuildNext(void);                     /* 0x501030 */
-int gm_FindById(int *bld, int *obj, int *chr, int id);  /* 0x4fea50, fills *bld with the object of the id (ai.h's prototype) */
-int gm_EquipmentValue(unsigned char *b, int level);                     /* 0x509b10 */
+struct AIBLD *gm_BuildNext(void);                     /* 0x501030 */
+int gm_FindById(struct AIBLD **bld, struct AIOBJ **obj, struct AICHAR **chr, int id);  /* 0x4fea50, fills *bld with the object of the id (ai.h's prototype) */
+int gm_EquipmentValue(struct AIBLD *b, int level);                     /* 0x509b10 */
 void ord_CountGridObjects(void);               /* 0x4f8360 */
 
 char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100, d3_sm.c */
@@ -672,18 +476,18 @@ int ord_GetKindRecord(int i, int *out);     /* 0x4f8890 */
 void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py);  /* 0x4f8460, kind: a law record (CRIME.law; the caller cm_ExAddCrime pushes the byte unwidened) */
 void ord_SubGridAmount(int who, unsigned char kind);  /* 0x4f8590 */
 
-int ord_RandomObjectId(char *c);             /* 0x4f8700 */
+int ord_RandomObjectId(struct AICHAR *c);             /* 0x4f8700 */
 
 void ord_AppendStatisticsRound(void);               /* 0x4f88c0 */
 
-extern char ai_Crimes[];  /* 0x91f700, 0x200 records of 0x2d bytes (to 0x925100) */
+extern CRIME ai_Crimes[0x200];  /* 0x91f700, 0x200 records of 0x2d bytes (to 0x925100) */
 void ord_RebuildGridSums(void);               /* 0x4f8920 */
 
 void ord_GetMessageRecord(int *out);           /* 0x4f9170 */
 void ord_InitMessageRecord(int a, float b, float c, float d);  /* 0x4f9190 */
 
 extern char ord_RatingBytes[];            /* 0x91b460, 5 + 1 bytes */
-extern char *ai_Blds;             /* 0x889f74 */
+extern struct AIBLD *ai_Blds;     /* 0x889f74 */
 void ord_ComputeStatistics(float *out);         /* 0x4f8ae0 */
 void ord_UpdateStatistics(void);               /* 0x4f8ed0 */
 void ord_LoadStatistics(void *p);       /* 0x4f9020 */

@@ -6167,6 +6167,186 @@ the bytes no portable form gives.
   tests the char in al). Not counted: main.c's call of the GetProcAddress result (dynamic loading), function
   pointers passed with a cast as callbacks (d3_ForEachObject2, qsort, ai_GraveWindow, ai_VgFilter, sndc's
   evt_CurCall->fn test) and cmscene's call through cm_Kinds[].check.
+  Data (view macros kept as @original): ai_NumPlayersW in main.c (main_PlayerCountDialog stores the count as a
+  byte, `mov byte [g],2`, and reads it back as `mov eax,[g]; and eax,0xff` in the same function, main_ChooseCity
+  likewise: a char global gives `xor ecx,ecx; mov cl,[g]`, so the unit reads one object at two widths).
+  hst_ListModeSet / hst_ListModeUse in hst.c (a label's 4-byte tag compared with the first four characters of
+  the 5-byte strings of `char hst_ListModes[2][5]`, the second at an odd address: no C type puts an int at +5;
+  the inline `*(int *)hst_ListModes[k]` compiles the same but is dcp's Q4 raw access, which wants the view).
+  main_PlayerIdInt is resolved (header drift, see "a unit-local prototype" below), not (c). The fifth data pass
+  (handler and query types, he_Jobs) and the sixth (the record views ORDBLD / ORDOBJ / INIT_BLD / INIT_OBJ /
+  G8BLD / G8OBJ / AMTBLDVIEW / G15BLD, the building and object callees, sv_RunFrame's callback) added no (c) case,
+  nor did the seventh (the character views AICHARREC / ORDCHAR / AIPER / G5CH / AIPX / AIC4 / AGCH, the character
+  lookups and callees) or the eighth (f3init's SCENEOBJ / INIT_CHAR / INIT_PANELCHAR, sv's SVCHARREC / SVGROUP /
+  SVMODEL, the lc units' G8CHARREC, amt.h's AMTCHARVIEW with its four cast macros, the picked / selected character
+  globals) or the ninth (f3init's INIT_BTYPEREC / INIT_OFFICE / INIT_KIND / INIT_AIMSG / INIT_TERRAIN, AITASK,
+  ahm.h's AHMCHAR / AHMOBJ, the cannon windows' CANNONREC, the group helpers' `char *g`) or the tenth (the 252
+  event handlers' `int ev`, the HEHANDLER tables, he_FindEvent / he_NextEvent / he_CreateEvent, GMCARRYREC.ref, the
+  save game's `int f` file handles and vfs_Tfopen's `int unk` directory) or the eleventh (portability: TUTEVENT, the
+  intptr_t text-id-or-string parameters, the object list heads, gm_FindById's out pointers).
+- **A data view macro `#define NAME (*(T *)&datum)` is our type, not the original's** (the second cast-macro pass,
+  data): the object was declared with a placeholder type (`char *`, `char [n][size]`, `int [n]`, `unsigned short *`
+  for a record pointer) and the units that read records viewed it. Give the definition and every declaration the
+  record type and drop the view; the code does not change (ai_BTypes / ai_Goods / ai_Blds AIBTYPE / AIGOOD / AIBLD
+  *, ai_Chars AICHAR[768], cm_CutInfos CMCUTINFO[16], ai_Crimes CRIME[0x200], gv_Effects GVEFFECT[8],
+  ai_PlayerChar / cm_FightAttacker / cm_FightDefender AICHAR *, ai_SceneChars / ai_KindBChars AICHAR *[],
+  cm_FlagObjects D3OBJECT *[32], ai_TimeCopy AITIME: every function the same or a tie-break). The sites the
+  placeholder type shaped change with it, the same code each:
+  - a byte read at a record's offset `p[k * SIZE + off]` -> the field `p[k].field` (`.kind`, `.level`, `.cls`);
+    a char row passed as the record `f(ai_Chars[k])` -> `(char *)&ai_Chars[k]` (the callee's char * prototype is
+    the next type debt), `(T *)ai_Chars[k]` -> `(T *)&ai_Chars[k]`;
+  - byte pointers into the records keep their arithmetic on `(char *)p + k * SIZE + off` (grave.c / f3init.c's
+    `k + k * 0x24c` forms are load-bearing);
+  - range tests and index recovery: `(T *)user - table` and `(char *)&table[N]` as the end (svtip.c), not
+    `(char *)user - (char *)table) / SIZE` (dcp's Q4 offset-pointer rule grades that draft);
+  - a walk over a placeholder `int *` becomes a walk over the record type (`AICHAR **ch` over ai_SceneChars;
+    ord_BuildingCapacityRatio's `char *p += 0xa9` -> `AIBLD *p; p++` with `p->type`, byte).
+  The record type must be complete where an array of it is declared: `extern struct AICHAR ai_Chars[768]` is
+  accepted by VC6 but is an error for clang (dcp check M6: array of incomplete type); drop such copies from
+  headers that cannot see the typedef (ai.h declares ai_Chars, ahm.c / f3init.c declare it themselves) and use
+  `struct T *` for pointers in headers that do not include the typedef.
+- **Two views that tile one block exactly are two objects** (ai_Unk75f280 int[576] = sv_MemberRows
+  SVMEMBERROW[0x20] at +0 and sv_Frames SVFRAME[0x80] at +0x500): define both, in order, in the owner; dcp data map
+  shows each common at its address. Move the record typedef the units copied into the types header (SVFRAME into
+  sv_types.h, seven copies went). Likewise he_QuickList (he_QuickList[0x100], he_AllocHandlers[0xa8],
+  gm_CarryRecs, he_Cursor), he_RunHandlers (+ he_GfxInfos, he_ApEvents), cm_LobbyRecords (cm_LobbyPlayers[8],
+  cm_JoinChar), cm_RequestedSaveName (char[0x40], main_LastLoadProgress, main_BookObject), the sky tables (seven
+  arrays) and cm_Fighters (AICHAR[32] + the 0x1000-byte cm_FightScratch the fight setup clears on its own).
+  - **Gaps are alignment first**: commons of 32 bytes and more sit at 64-byte steps (rooms 36 -> 64, 40 -> 64), so
+    a record shorter than its room is the whole object (GMCHARSTATS 0x68 in room 0x80, CMLOBBYPLAYER[8] 0x2b8 in
+    0x2c0); check the data map's room before inventing a tail object.
+  - **Views that overlap by a pad**: read the record the other way round. SVDAYPHASE's four zero bytes lead the
+    record (hour at +4), the table starts at 0x623ba4 in the four bytes the map gave the previous object as room,
+    and six records end exactly at the sky keys; the trailing-pad reading made the sixth overlap them.
+  - **Views that overlap by one element are index bases**: a table read at `base - 4 + 4 * i` for i = 1 .. n is
+    `T tab[n]` read `tab[i - 1]` (VC6 folds the -1; d3_ScrollSpeed[15], d3_AnimDiv[11]); a double at the block's
+    start that one function compares with is VC6's pooled literal: write `0.0001f` (dcp matches pooled constants
+    by value; d3_SnapEpsilon went, d3sm_Pick byte).
+  - **An address one past a table is not a datum** (gm_PlayerRecordBytes = 0x7d5f82 = the kind byte one past
+    ai_Chars): the original walked the records and VC6 strength-reduced to the field, so the end test is
+    `(int)&p->kind < (int)&ai_Chars[0x300].kind` (byte); `p < &ai_Chars[0x300]` costs 5 ins. Keep the `(int)`
+    casts where the original compares signed (`jl`; gm_UpdatePlayers, init_InitTown).
+  - **A char walk at a field offset** (`p = &tab[0][0xf2]; .. p - 0xf2; p += 0xf4`) is usually an indexed `for`
+    over the records (`&tab[i].id`, `&tab[i].used`; gv_WriteAvatars byte, a `T *p; p++` walk is shape).
+- **Dozens of unit-local placeholder declarations of one global** (`extern int gm_PlayerRecords[688]` in 29 units,
+  left from the unit fold for data_views.h): one declaration with the record type in the owner header, the local
+  copies go. The declaration-set shifts this causes are accepted as they fall (`dcp debt add` when the gate holds
+  a promoted byte); never compensated.
+- **A byte-initialised char array of records** (`char unk_Avatars[0x20][0xf4] = { bytes }`): generate the field
+  initialiser from the bytes (dwords as numbers, strings as literals with octal escapes for non-ASCII bytes, floats
+  as the shortest decimal that round-trips in float, integer floats as `920.0f`); the data map reproduces it.
+- **A record typedef copied into several units, or a header a unit cannot include** (CMFIGHTREC x5, f3snd.h's
+  G16TRACKHANDLES that he.c read through `snd_CurrentTrack`): move the typedef into the types header (cm_types.h)
+  or a new one (f3snd_types.h, included by f3snd.h), and read the field.
+- **A struct field read at two widths by two units** (D3ACTIVE's packed `int notextures` at 0x63345d: ecmd.c
+  stores a dword, d3_engine.c tests the byte): the packed struct was ours; define the bytes as globals
+  (d3_D3DActive, d3_NoTextures) and let the dword writer declare `extern int` with `@original why` (as cm_Bombs).
+- **Third data-view pass (views of a record or block at an offset)**: each was a field of a record we had not
+  named, a split block or a placeholder local; every reader stayed the same code.
+  - *A data header drift*: the reading unit declares the datum with its type (`extern char dd_RBits, ..;`
+    `@original why` in d3_d3d.c, whose byte-matched callback sign-extends them) and must not see another
+    declaration: the owner header's copies went (dd_vesa.h, d3_d3d.h; only d3_engine.h's unsigned one stays, for
+    the unit that reads them unsigned). A conflicting `extern` in the same unit is C2371.
+  - *A byte buffer read as a record* (cm_LongMsg as CMCUTINFO): `memcpy(&rec, buf, sizeof(T))` is the same `rep
+    movsd` as the struct assignment through a view; the unit's other readers already memcpy.
+  - *An int-array clear of a byte table* (sv_SelectionFlags int[0xc0] read as bytes): the table is `unsigned
+    char[0x300]` (one byte per character) and the clearing loop `memset(t, 0, sizeof t)` (same `rep stosd`).
+  - *A view whose offset lands on a field of another stride* (d2_AnimView: D2SND[66] at d2_Anims + 8, its x at +5
+    = D2ANIM.x at +0xd): the field of the true record, `d2_Anims[i].x`; the invented record type goes.
+  - *Records straddling two of our blocks* (gm_QueryKind char[550] + ai_Unk61a8ac[0x140]: a 6-byte job record
+    crosses 0x61a8ac): retile the bytes as the records they are (gm_QueryKind, gm_JobTalents[0x60],
+    gm_TitleTalents[0x24], gm_CurrencyRates[16] read `[id - 0x3d]`); a 1-aligned struct array lands right after a
+    byte global's room, so the placement needs no ALIGN1. A byte global stored as an immediate 0xff next to an
+    `= -1` int store is `unsigned char = 0xff` (as its neighbours gm_BQType / gm_BQClass): a char -1 shares the
+    int's -1 register; the compare with a char field keeps `(char)g`.
+  - *A pointer walk over a field with a record stride* (`int *p = view; p += 0x43; while (p < view + N * 0x43)`):
+    `for (i = 0; i < N; i++) if (tab[i].field == x)` compiles to the same strength-reduced walk (sv_ReleaseBubble,
+    byte); the end address one past a table is `&tab[N].field` (ls_RefsToIds).
+  - *int locals that save float globals* (cm_ExecCutscene's `int pos[4]` read through sv_ViewPosX views): float
+    locals (VC6 copies floats with integer moves).
+  - *A bit field viewed one byte into a struct* (struct D3BITS3 at d3d_Config + 1): name the byte-0 filler bit and
+    the field in byte 1 (`unsigned char unk7 : 1; unsigned char shadows : 3;`); a padded struct's tail fields
+    another view already names (D3IFSCENE.sceneFlags at 0x3d8) go into the owner record (D3SCENE).
+  - *Unused views*: dcp's inventory counts uses in the macro's file only; check every unit. data_views.h's views
+    come with `#ifndef DATA_VIEWS_H extern T name; #endif` copies in the owner headers: declarations of objects
+    that do not exist, removed with the view (their removal moves tie-breaks in the units without data_views.h:
+    accepted).
+- **A unit-local prototype instead of a view of the argument** (main_PlayerIdInt: main_RoundReport pushes the
+  unsigned short ai_PlayerId as an unmasked dword, the code of a call through an `unsigned short` parameter):
+  main.c declares `int gm_CharacterIncomes(unsigned short id, ..)` with `@original why`; the owner header's
+  `unsigned id` prototype went because its only other caller is the defining unit (no unit sees two). The
+  definition keeps `unsigned id` (an unsigned short definition is draft: it masks the id itself).
+- **An int handle or `unsigned short *` global read once as a record**: cast the value at the read
+  (`((D3OBJECT *)ai_ClickedObject)->name`) as the other units do (an interim step: sv_PanelShown then got its type); a
+  view of the global (`*(T **)&g`) goes. dcp's Q4 counts `*(T *)datum` (a datum read as another type) as raw and
+  wants a view for it, but not a pointer value cast to a record.
+- **The high word of an unsigned global** (G28_HI): `(cut_RandState >> 16)` is the same `mov ax, word ptr [g+2]`.
+- **A record pointer global typed `char *` with casts at every reader** (ai_PlayerBuilding / ai_FallbackBuilding:
+  114 `(AIBLD *)` casts, 23 views): type it `AIBLD *`, retype the locals that only hold it, and cast where a
+  callee's prototype still takes `char *` / `unsigned char *` (the callee is the debt). Compare VC6's per-unit
+  warning counts before and after (`dcp build --units`): no implicit pointer conversion may be added.
+  The callees then follow (fourth data pass): ai_Graveyard*Contact, ai_Book / MercenaryBook / MiningContact,
+  gm_BuildingLevel / Rank / RankGate / Skill / StaffFactor, gm_PermissionBits, init_ShowBuildingScene /
+  FinishBuildingScene / BuildingSceneUniverse and sv_SelectPanelObject take `AIBLD *`; the unit's own view of
+  the record inside the body (ORDBLD / INIT_BLD / SVOBJREC aliases `bld = (T *)b`) goes for AIBLD's fields at the
+  same offsets (name a missing union member, as AIBLD.ownerNetId), `*b` is `b->type`, and every caller's
+  `(unsigned char *)` / `(char *)` cast of an AIBLD * goes (about 90 casts, every function the same code). A
+  caller whose building is still another type (an ORDBLD, a `char *` from gm_FindBuildingById, an int handle)
+  casts to AIBLD * or retypes its local (`AIBLD *b = (AIBLD *)gm_FindBuildingById(..)`); a callee the body
+  passes it on to that still takes `unsigned char *` (gm_IsHomeType, gm_ShowBuildingObjects) gets the cast.
+  `struct AIBLD *` in a header prototype needs a file-scope `struct AIBLD;` before it (f3gm.h, f3init.h), or the
+  struct has prototype scope and every call warns. Count the warnings per unit (VC6's `C4133 incompatible
+  types` lines: compile the unit with cl as the build does to see them) before and after each callee.
+- **A pointer global tested and cleared through an int view** (`d3t_CamMoveI`): the pointer compares and stores
+  the same; a chained `a = b = 0` over an int and a pointer is two statements in the store order (b first).
+- **A float global copied as its bits** (`o[6] = *(int *)&ai_RatingBase`): VC6 copies a float variable with integer
+  moves, `((ORDSTATS *)o)->base = ai_RatingBase;` is the same code (ord_GetStatistics byte).
+- **The low byte of an int flag word** (`ai_GameFlagsB & 0x80`, `unsigned char fl = ai_GameFlagsB`): VC6 narrows
+  `(ai_GameFlags & 0x80) == 0` to the byte test and `fl = ai_GameFlags` to the byte load (byte). An unsigned short
+  global read through an int view and masked (`main_PlayerIdInt & 0xffff`) is the plain global: VC6 loads an
+  unsigned short global as `mov eax,[g]; and eax,0xffff` itself. The high word of an __int64 is `(unsigned
+  int)(g >> 32)` (one dword load, ai_OpenRobberBribe byte).
+- **A datum two units read at two widths, one of them byte-matched** (d3_YAxis: a D3VECTOR4 that ecmd.c copies as
+  a D3VECTOR): header drift; the owner keeps the record type, the other unit declares its type itself with
+  `@original why` and does not see the owner's declaration (ecmd.c no longer includes d3_vec.h, it used nothing
+  else from it). Try the record type with a portable spelling first: cm_Bombs (sv.c's sv_InitTick cleared the
+  CMBOMB[32] records as 0x40 ints) was drift until `memset(cm_Bombs, 0, sizeof cm_Bombs)` over the true type
+  compiled the same; the record moved into cm_bomb.h (cm_types.h includes it) and the five unit copies went.
+- **A view of a record's first field** (sv_PanelFlag = `*(int *)&sv_QuickJump`, SVQUICKJUMP.panelFlag): read the
+  field; the units that saw only the record's tag include its body header (sv_quickjump.h).
+- **A pointer global whose readers take `*g`** (d3t_Rain `int *`, read as the rain level): it points to a record
+  whose first field that is; type the record pointer (`struct D3TRAIN *`, the typedef moved next to D3TSNOW in
+  d3_tools.h) and read `g->count`. Likewise `unsigned short *` room globals read `*g` for the room's type word
+  and cast to AIOBJ / a unit's AIROOM copy for its objId / list (sv_PanelShown, SVQUICKJUMP.record,
+  sv_PermsRoom, snd_TrackRoom): `struct AIOBJ *`, `g->type`; the locals and parameters that hold the same
+  pointer follow, the callees still taking `unsigned short *` get the cast.
+- **A handler family that takes `int building` / `int room` and casts it back at every use** (lc.c's contact
+  handlers, called with `(int)ai_PlayerBuilding, (int)room`; fifth data pass): give the whole family its record
+  parameter at once (`AIBLD *building`, `AIOBJ *room`; names kept), with the windows and map-pick starts it
+  passes the value on to and what they all call with it (sv_CheckCharacterFlag, sv_OpenPlayerBar,
+  gm_FindCharacterByMaster): typing only the top moves the casts one level down. A parameter the body never
+  reads is typed as its callers pass it. Function pointers of the handlers passed to `sv_RunFrame(int cb, ..)`
+  warn the same before and after (sv_RunFrame's int cb is its own debt). Arguments of the generic int hooks
+  (ai_CampaignStep, ai_ScriptQuery: a building, a room or an id by step) and of txt_Format keep `(int)bld`.
+  Every function stayed the same code (about 180 casts, lc 1106 -> 995 warnings over the pass).
+- **A query function returning `unsigned char *` / `char *` whose callers cast the result to the record**
+  (gm_BuildQuery / gm_BuildNext / gm_FindBuildingById: 429 `(AIBLD *)` casts; gm_Query / gm_QueryNext /
+  gm_PlayerSeat: 357 `(AIOBJ *)` casts): the return type is the record pointer. The callers that keep the result
+  in a local of another type (`char *it` read through a unit's view, `unsigned short *room`, `int o`) get the cast
+  at the assignment (the local's debt; 39 and 45). Find them by VC6's new `C4133 '=' / 'return'` and `C4047`
+  warnings per unit: with line-preserving edits a plain diff of the unit's warning lines before / after names
+  each site; wrap the call or the argument on that line.
+- **A unit's copy of a record the types header already defines** (AIROOM in lc / lcamt / lcdom / lcmap = AIOBJ's
+  type / objId / list): use the header's type; the copies go (four typedefs fewer: tie-breaks, accepted).
+- **A byte array viewed as its record array by a header that cannot see the record** (he_Events `unsigned
+  char[339968]`, ls.h's `he_Jobs` view as AIJOB[0x400]): the definition and the units that use it declare the
+  record array (`extern AIJOB he_Events[0x400];` in their head, after ai_types.h), the header's extern and view
+  go (an array of an incomplete type in a header is dcp M6), unused unit-local externs go.
+- **ints that hold the same pointer as a typed global** (sv_ShownObject / sv_ShownBuilding / sv_ShownFallback /
+  sv_GroundplanBuilding / sv_HoverBuilding / sv_ClickedBuilding, stored from and compared with
+  ai_PlayerBuilding / sv_SelectedObject): type them `struct AIBLD *` (data placement unchanged). An `extern`
+  line declaring several globals with one address comment must stay one type per line, each with its own
+  addresses: dcp maps the comment's addresses to the line's names in order (N2 / C.name.alias otherwise).
 - **A function that takes a text id or a string's address in one `int` (txt_Format, io_PrintText)**: callers
   of a literal pass `(int)"..."` to the one prototype (no cast macro with a `char *` parameter).
 - **The callers read a 16-bit result of an int function (util_Random; `mov si,ax`)**: the units saw another
@@ -6187,6 +6367,159 @@ the bytes no portable form gives.
   defines `ctl1` (0x04A0) and the `cmb*` / `lst*` / `stc*` / `scr*` .. control ids (VC98's DLGS.H has no ctl1).
   Do not name locals after them; lc.c / rt.c's ctl1 / ctl2 locals are exchangeCtl / feeCtl and loadCtls /
   unloadCtls (renaming locals left every grade unchanged).
+- **A unit's partial copy of a record the unit can see (sixth data pass: gv.h ORDBLD / ORDOBJ, f3init.c INIT_BLD /
+  INIT_OBJ, the lc units' G8BLD / G8OBJ, amt.h AMTBLDVIEW, rd.h G15BLD)**: rename the view to the record in its
+  users and drop the typedef; the compiler's "not a member" errors list the view-only field names. Map each
+  placeholder to the record's name by what the code does at that site (gm_CreateBuilding's class switch: v65 is
+  ownerNetId / playerSlot / hostage / interest by class, v1c[] is recs + cornerYear / seats / usesLeft / lab by
+  prototype); a field only the view named goes into the record as a union member at the level that keeps every
+  offset (AIBLD.created AITIME in the 0x30-byte kindData union, not in the 12-byte 0x65 union; AIOBJ.kindData as a
+  one-byte member for gm_CreateObject's 0x1f-byte clear: a 0x1f-byte array would grow the 0x15-byte union);
+  where the view had the truer type the record takes it (AIBLD.object `struct D3OBJECT *`, plants `struct G15PLANT
+  *`, credits ORDCREDIT[3], AIOBJ.sceneObj `struct CHARACTER *`). Never rename a field by a unit-wide pattern:
+  f3init.c's `->proto` was also its SCENEOBJ view's field (three functions changed code until only the AIOBJ
+  lines, the compiler's errors, were renamed). Before retyping a pointer field, find its byte-offset spellings
+  (`b->object + 0x4c` is `&b->object->pos` once the field is D3OBJECT *; the same expression silently scales).
+- **Removing casts of a value that now has the record type**: strip them mechanically (scratchpad p6/strip2.py:
+  only a plain operand, never before `+ - [`), compile the unit with cl as the build does and restore every line
+  that has a new warning or error (p6/revert.py; line-preserving edits, deletions as marker lines removed at
+  the end). The restored casts are on values still owed (a char * local, an int handle, another view).
+- **A callee's alias local of its parameter (`AIBLD *b = (AIBLD *)p;`)**: with the parameter typed, the alias
+  usually goes with the same code (about 30 functions), but not always: gv_ListEntry's `GVYARD *g = (GVYARD *)r`
+  copy is the original's (reading the parameter is 20 bytes shorter, byte -> draft), gm_UpdateTechTree keeps its
+  `bl = bld` / `ob = item` copies. Keep the copy as `T *g = r;` where the snapshot says so. Splitting a
+  multi-name declaration to retype one name keeps the names in their order (`AIBLD *b; int f;`).
+- **A frame callback that is only a key (sv_RunFrame / sv_PopTo, SVFRAME.cb: compared and stored, never called)**:
+  an old-style function pointer `void (*cb)()`; VC6 passes void- and int-returning functions of any parameter
+  list to it silently (it warns a void function against `int (*)()`), so the 213 call casts went and 462
+  warnings with them; a handler returning a pointer still warns.
+- **A unit's copy of the character record (seventh data pass: the lc units' AICHARREC, gv.h ORDCHAR with
+  ORD_CHARS / ORD_CHAR, am.h AIPER / G5CH / AIPX / AIC4 / AGCH, main.c MAINCHARWORK)**: as the building views,
+  rename the view to AICHAR in its users and drop it. Before the switch, rename every view field whose NAME
+  exists in AICHAR at another offset or with another type (ORDCHAR.partner 0x5c = relatives[0] against
+  AICHAR.partner 0x210, ORDCHAR.job 0x166 against AICHAR.job 0x17c, ORDCHAR.model a CHARACTER * against the AITASK
+  * model, AIC4.health 0x24 against health 0x08): the compiler only reports names AICHAR lacks, a clash compiles
+  silently at the wrong offset. Rename with the compiler's `C2039 'f' : is not a member of 'T'` lines only
+  (scratchpad p7/fixmem.py); a line with two accesses of the same name (`out->job = c->job`) needs a look.
+  Placeholder names in AICHAR take the views' names (b00c faith, b00d level, w00a age, v02c ailments, v174
+  jobDays, b058 generation, f07c pregnancy, v1d0 `float loyalty`, block1d4 `int worth[4]`, AIARG arg1 / arg2).
+- **Signedness of a merged field is read from the compares**: AICHAR.title is `unsigned char` (lc's `cmp cl,
+  byte [..]` against an unsigned type field), so GMBTYPE.title (f3gm_types.h's view of AIBTYPE.title) is unsigned
+  too (gm_StaffFactor fell to draft with the char view: `movsx`); `title == (char)bt->k230` and `jobKind !=
+  -0x78` were the signed models of the same byte compares: `title == bt->title2`, `jobKind != 0x88` (byte).
+- **Query functions and callees of a record follow the record** (the fifth / sixth pass rules applied to
+  characters): gm_FindChar, gm_FindCharacterByMaster, cm_FindFighter, the special-amount menus return `struct
+  AICHAR *`; a parameter the body casts to the record takes it (scratchpad p7/cands.py lists them, p7/rtc.py
+  retypes definition, prototypes and body casts; it refuses a body that uses the parameter raw, `c[2]`, `*c`,
+  `c + n`: read those as fields first, c[2] kind, c[9] sex, c[0xd] level, c[0x166] officeKind, *b a building's
+  type); give a dispatch table's whole family the record (ord_OrderHandlers). Then strip the callers' argument
+  casts (p7/argstrip.py) and restore the lines with a new warning; detect new warnings by LINE, not by the unit's
+  count (a removed warning masks an added one).
+- **A parameter reused as gm_FindById's out slot** (gm_ObjectOwnerChar / gm_ObjectBuildingOwner /
+  gm_ObjectOwnerNo, ai_ExecHandleGrave's AGARG *s1): type it as what the callers pass (`AIOBJ *o`) and read the
+  reused slot back with one cast (`return (AICHAR *)o`, `(AIBLD *)s1`); the same code.
+- **A record-returning function used as a frame key** (the amount windows: `AICHAR *` against sv_RunFrame's `void
+  (*cb)()`) draws C4047 + C4024 at every sv_RunFrame call; accepted (the return type is the truer type).
+- **One view describing two records** (f3init's SCENEOBJ: CHARACTER's script / group / scene / transport and
+  D3OBJECT's prototype word, info, material, parent, owner, sound, mask): split it by use, not by field. The
+  d3_ForEachObject2 callbacks and hooks that took the scene object as `char *o` / `int o` take `D3OBJECT *o`
+  (`strncmp(o, ..)` is o->name, `o[0x4b]` o->pickBytes[3], `o[0x212]` o->stateFlags; the fields the view alone
+  named go into D3OBJECT: the pickId byte union, soundRange), the ch_List walks and AICHAR.scene reads are
+  CHARACTER. Re-check a unit's stated reason for not including a header: f3init could include ch.h (gv.h's K&R
+  d3sm_GetVertex, the reason given, was long fixed). A view's "chain" at an odd offset (INIT_PANELCHAR.next at
+  +0x3b) was another record's field (AIOBJ.sceneObj): keep the query result in its own local (`cart =
+  gm_Query(..); t = cart->sceneObj`), the same code.
+- **Signedness from the compares, the other way round** (eighth pass): AIJOB.kind was `char` and sv.c's SVGROUP
+  view `unsigned char`; with the char field sv_MoveToGroup's switch and sv_CharStateIcons fell to draft, with the
+  unsigned field the other units' `kind == (char)0x8c` / `== -0x74` / `== -0x71` / `== (char)0x87` fell, and
+  written as 0x8c / 0x8f / 0x87 they are byte again: the negative and (char) constants were our signed models of
+  byte compares. When a merge drops functions of one unit, try the other signedness with the constants written
+  unsigned before keeping a cast.
+- **A merged unit-local record type hid declaration drift**: while lcmap's news callees took the unit's own
+  G8CHARREC, dcp check's M5 did not compare he.c / he_b.c's Ghidra-typed declarations of them (`int param_1`,
+  `unsigned short *param_2`); with AICHAR it does (gate FAIL): give those units the definition's prototype and drop
+  the call casts in the same commit.
+- **A view's cast macros and raw offset reads before a retype** (amt.h's AMT_STATUS / AMT_NETID / AMT_KIND /
+  AMT_POWER, amt.c's `c[0x166]`, `a[0x1b1]`, `a[2]`): write the macros out as `((AICHAR *)c)->field` and the raw
+  reads as fields while the variable is still `char *` (same code; `(unsigned char)c[0x166]` is the unsigned
+  field), then retype the variables and strip the casts. Never retype a `char *` that still has raw `c[k]` /
+  `*c` / `c + n` uses: on a record pointer they index records and compile silently (p7/rtc.py refuses such
+  bodies; its RAW test also fires on comment text, check by hand). A union member added for a view's field must
+  not reuse a name an anonymous member already has (AIJOB.groupMembers, not members: C2020).
+- **A byte-offset walk over a record table is an index loop, and the loop shape follows it** (ninth pass,
+  init_OpenTown): `b = (char *)ai_Blds + k; .. k += 0xa9; k < 0xa900` cast at every field read was ours; `b =
+  &ai_Blds[k]; .. k++; k < 0x100` gives VC6's same strength-reduced offset and here a better register / slot
+  assignment (63 -> 15 ins), and then the loop form the old note had ruled out compiled right: `k = 0; do { if
+  (ok) break; ..; k++; } while (k < 0x100)` (15 -> 8). Rewrite the walk with the record type before working the
+  loop's shape; a deep note's "all forms tried" was about the byte-offset text.
+- **A view whose int fields say "the original loads the whole dword" can be a misreading** (f3init's INIT_OFFICE /
+  INIT_KIND for AMTREC / AMTKIND): init_PlaceOffices' `u = rec.kindWord; amt_GetKindLevel(u & 0xff)` is
+  `amt_GetKindLevel(rec.kind)` with the unsigned char field (byte; the masking temp u was the model of the
+  load). Try the true record and the plain field read (dcp try) before keeping a dword view as drift.
+- **One pointer in two union members, one of them a partial view** (AICHAR.model `AITASK *` and AICHAR.scene
+  `struct CHARACTER *` at 0x184): drop the view member and its typedef, rename by the compiler's C2039 lines only
+  (`model->bldId` = scene->group, `model->body` = scene->obj), and the `(CHARACTER *)c->model` casts and their
+  wrapper macros (cm's CM_CHR) become `c->scene`. A regex for `((T *)x->f)` must not take a call's own
+  parenthesis (`f((T *)x->f)` became `fx->scene`): check the compiler's syntax errors after such a pass.
+- **A record field reused for another record in one phase** (AICHAR.bld of a cm_Fighters copy holds the side's
+  leader, cm_SetupFightScene stores `r->bld = (AIBLD *)cm_FightAttacker`): a union member of the other type
+  (`struct AICHAR *side`), read and stored without casts.
+- **Handlers that take `int ev` with an `AIJOB *e = (AIJOB *)ev` alias** (he.c / he_b.c, 360 of them, the handler
+  tables' int): pass the alias to typed callees (sv_MoveToGroup(.., e)), not `(char *)ev`; the same code. The
+  handlers' own `int ev` went in the tenth pass, below.
+- **A handler family held as `int` is retyped with its tables, its dispatch and its aliases** (tenth pass, he.c /
+  he_b.c's 252 event handlers): (1) the definitions and every copy of their prototypes take `AIJOB *` (p7/rtc.py
+  PT=AIJOB per unit, the body's `(AIJOB *)ev` casts go, an alias becomes `AIJOB *e = ev`); (2) the callees they hand
+  the event to follow in the same commit (he_ReleaseSlot, he_FreeEvent, cm_SendExSetHE ..), and the callers'
+  `(int)` / `(int *)` / `(char *)` argument casts strip by warning (p10/argstrip.py, restore by line); (3) the tables
+  get one typedef (`typedef void (*HEHANDLER)(struct AIJOB *ev)` in he.h; he_AllocHandlers / he_RunHandlers
+  HEHANDLER[0xa8]) and the registration takes it (he_SetEventHandlers(int, HEHANDLER, HEHANDLER): the `(void *)fn`
+  casts go); (4) the queries that return the record (he_FindEvent / he_NextEvent / he_CreateEvent) return it typed
+  and the int / char * result locals become AIJOB *; (5) the aliases go last, one commit: every one of 242 compiled
+  to the same code (only he_RunTribute's, reassigned, stays). Every step was the same code; the grade moves were
+  declaration-set tie-breaks of the new typedef / forward declarations.
+- **A K&R declaration of a registered handler in front of a typed registration draws C4113** (`void
+  he_FreeEventNow();` against HEHANDLER): give the forward declaration the prototype; a K&R duplicate after a
+  prototype goes.
+- **A foreign empty function registered through a `(void *)` cast** (d3io_NoopCallback(void *t) as an event handler,
+  `(void *)d3io_NoopCallback`): each registering unit gets its own unlinked empty handler of the table's type at the
+  end of the unit (he_NoHandler, he_NoHandlerB, `/* unlinked: .. LINK folds it (/OPT:ICF) into d3io_NoopCallback,
+  0x44ee40 */`); an address reference to the unlinked twin grades like a call (the registration functions stayed
+  byte).
+- **A pointer field that holds an id while saved** (GMCARRYREC.ref: the event pointer, its AIJOB.id between
+  ls_ReadEventTables and ls_FixupAfterLoad): an anonymous union of the pointer and the id (`struct AIJOB *ref; int
+  refId;`), each phase reads its member; the same code.
+- **A file handle or directory held as `int`** (ls.c's `int f` / `int h`, ls_Read's `(int)(p)` buffer, vfs_Tfopen's
+  `int unk` cast to VFSDIR * inside): `VFSFILE *` / `VFSDIR *` parameters and locals (p10/vf.py finds the int
+  parameters passed to vfs_fwrite / vfs_fread / ls_Read / vfs_fclose); every function the same code, ls.c's VC6
+  warnings 1272 -> 9. A header that names `struct VFSFILE *` in a prototype needs a file-scope `struct VFSFILE;`
+  first (else the prototype's struct is its own type: M6 "conflicting types" at the definition).
+- **Removing a partial view's typedef from a widely included header** (ai_char.h's AITASK, ahm.h's AHMCHAR /
+  AHMOBJ) shifts declaration-set tie-breaks in every unit that includes it, up and down (eighteen functions
+  across ai, cm, cmscene, f3gmt, ls, lc, main, he, rt, sv, sv_t); accepted as they fall, `dcp debt add` for the
+  byte functions the gate holds.
+- **p8/strip1.sh that does not converge in eight rounds** (d3_interface, sv: casts on int handles): revert that
+  unit's file and keep the other units' result.
+- **A value that is "a small id or a pointer" in one parameter is the original's API; its portable spelling is a
+  pointer-sized integer** (eleventh pass, portability): include/portable.h gives `intptr_t` / `uintptr_t` (VC6,
+  `_MSC_VER < 1600`: typedefs of int / unsigned int, byte-identical; any other compiler: <stdint.h>). io_PrintText(intptr_t
+  fmt, ...), txt_Format(char *, intptr_t id0, ...), sv_MessageBox / YesNo / Green and cm_MessageBox take it; ids are
+  passed plain, strings as `(intptr_t)"..."` / `(intptr_t)buf` (never `(char *)0x123` or `(int)buf`); the engine's own
+  test is `(uintptr_t)fmt < 0x4800`, its "%s" / "%t" vararg is read `va_arg(ap, intptr_t)` into an intptr_t (D2WIN.args
+  is `intptr_t[0x40]`). Use intptr_t / uintptr_t also for address arithmetic that must stay integral; everything else
+  gets the pointer type. Every function compiled the same; the new typedef in six headers moved tie-breaks only.
+- **Generic hooks that pack their arguments into `int p[4]`** (ai_CampaignStep / ai_ScriptQuery for the tutorial's
+  stepHook / query: a building / room / character / book in p[1]): a struct with the pointer slot typed `void *`
+  (`TUTEVENT { int event; void *obj; int stage; int arg; }`) filled field by field and passed by address is the same
+  code; the hooks read `((AIBLD *)p->obj)->type`, the callers pass the pointer uncast.
+- **A list head or handle field typed `int`** (AIBLD.objList, AIOBJ.list, AICHAR.inventory: the first AIOBJ of a
+  list): the field takes the pointer type in its own slot (same layout), the `int *list` cursors become `AIOBJ **`, the
+  `(void *)x->objList` casts at gm_Query strip by warning (541 sites, no new warning, every function the same).
+  Byte-offset arithmetic on ints (`list = b + 0x5d` with `int b` from gm_FindById) is `&b->objList` once b is typed.
+- **Out parameters typed `int *` that receive pointers** (gm_FindById's bld / obj / chr): `AIBLD **` .. and the callers'
+  typed locals (the `(int *)&x` casts strip by warning). An int parameter passed as such an out slot (cm_BeginFieldBlock's
+  `&id`) gets its own typed local: VC6 puts it into the dead parameter slot (dcp try: = control). The index of a record
+  pointer `(bld - (int)ai_Blds) / 0xa9` is `bld - ai_Blds` (same code).
 - **`__asm` reading the parameters (`mov eax,[ebp+8]`)**: name them (`mov eax,x`); VC6 assembles the name to
   the same frame operand (d2_ShpBlit8, d2_ShpBlit8To16, d2_ShpBlit16ClipY / ClipXY, d2_ShpDarken16 byte).
 

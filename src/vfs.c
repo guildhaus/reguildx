@@ -633,7 +633,7 @@ void vfs_FreeDir(VFSDIR *d)
 }
 /* 0x4302e0, creates the real directories of a path, one level at a time. */
 
-char vfs_MakeDirs(char *name, int unk)
+char vfs_MakeDirs(char *name, VFSDIR *root)
 {
     char path[0x100];
     char tmp[0x100];
@@ -648,7 +648,7 @@ char vfs_MakeDirs(char *name, int unk)
     strcpy(path, name);
     p = strrchr(path, '/');
     if (p) {
-        vfs_DirPath((VFSDIR *)unk, 0, base);
+        vfs_DirPath(root, 0, base);
         p[1] = 0;
         strcpy(tmp, path);
         p = strchr(tmp, '/');
@@ -681,7 +681,7 @@ char vfs_MakeDirs(char *name, int unk)
    @original the scan of a zip without a stored position joins the positioned arm's unzOpenCurrentFile by
    goto found: written out in the loop the call exists twice (the original has one) */
 
-VFSFILE *vfs_Tfopen(char *name, char *mode, int unk)
+VFSFILE *vfs_Tfopen(char *name, char *mode, VFSDIR *dir)
 {
     VFSDIR *r;
     char *modes[2];
@@ -697,7 +697,7 @@ VFSFILE *vfs_Tfopen(char *name, char *mode, int unk)
     char *p;
     int err;
 
-    if (name && *name && mode && unk) {
+    if (name && *name && mode && dir) {
         binary = 1;
         read = 1;
         z = 1;
@@ -724,7 +724,7 @@ VFSFILE *vfs_Tfopen(char *name, char *mode, int unk)
             }
         }
         if (read) {
-            e = vfs_FindFile(name, (VFSDIR *)unk, &r);
+            e = vfs_FindFile(name, dir, &r);
             if (e) {
                 if (e->zip) {
                     if (!binary) {
@@ -799,13 +799,13 @@ found:
             vfs_ToSlashes(tmp);
             strcpy(buf, tmp);
             vfs_UpperCase(tmp);
-            e = vfs_FindFile(tmp, (VFSDIR *)unk, &r);
+            e = vfs_FindFile(tmp, dir, &r);
             if (!e || e->zip) {
-                if (!vfs_MakeDirs(buf, unk))
+                if (!vfs_MakeDirs(buf, dir))
                     return 0;
                 if (!e) {
-                    vfs_AddFilePath(tmp, (VFSDIR *)unk, 0, 0, 0, 0, -1);
-                    e = vfs_FindFile(tmp, (VFSDIR *)unk, &r);
+                    vfs_AddFilePath(tmp, dir, 0, 0, 0, 0, -1);
+                    e = vfs_FindFile(tmp, dir, &r);
                 }
             }
             if (e) {

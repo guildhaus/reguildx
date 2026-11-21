@@ -6,7 +6,7 @@
    The first function is a guess within 0x4a7140 (poker's last string user) .. 0x4a9a00 (ai_LeisureActions' first
    user), at the change from the card game to the AI callbacks; the name is ours, after the original's "aip_" strings.
    Open: the first function (bprobe: no function changes at 0x4a86f0, 0x4a8760, 0x4a8a50, 0x4a9a00).
-   Open: the callbacks take the character as AIPER (am.h) or AICHAR (ai.h, preferred: it names the fields);
+   Open: the callbacks take the character as AICHAR (am.h) or AICHAR (ai.h, preferred: it names the fields);
    the two views wait for the am.h / ai.h unification (am.c's Open line).
    split from poker (rea 8cef7d5b, src/game/unk_4a7140.c); boundaries in decl/text.dcl */
 #include "txt_views.h"
@@ -16,10 +16,6 @@
 #include <string.h>
 #include "poker.h"
 #include "aip.h"
-#define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
-#define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 
 #define PARTNER_FLAGS_SEX0 0xf00502  /* the partner-chain flags 0x4a8ad0 asks for a character with sex 0 (reasoned: the other sex; the low byte 2 against 1) */
 #define PARTNER_FLAGS_SEX1 0xf00501  /* ditto for sex != 0 */
@@ -85,7 +81,7 @@ int ai_DecideOfficePartner(int a, AICHAR *p, int *ctx, int d, AIARG *m)
             return 0;
     }
     for (i = 0; i < n; i++)
-        who[i] = (AICHAR *)gm_FindChar(rec[i].id);
+        who[i] = gm_FindChar(rec[i].id);
     for (i = n; i < 6; i++)
         who[i] = 0;
     r = util_Random(6);
@@ -132,13 +128,13 @@ int ai_DecideOfficePartner(int a, AICHAR *p, int *ctx, int d, AIARG *m)
 /* 0x4a8a50, decide callback: the decision record ctx[1] proposes a value (its fn) within min..max, into m
    (kind 0x11) */
 
-int ai_DecideTableValue(int a, AIPER *p, int *ctx, int d, AIARG *m)
+int ai_DecideTableValue(int a, AICHAR *p, int *ctx, int d, AIARG *m)
 {
     AIDEC dec;
     int v;
 
     if (gv_GetTableRecord(ctx[1], &dec) != 0) {
-        if (((int (*)(AIPER *, int, int *))dec.fn)(p, (unsigned char)dec.id, &v) != 0 && v != dec.cur
+        if (((int (*)(AICHAR *, int, int *))dec.fn)(p, (unsigned char)dec.id, &v) != 0 && v != dec.cur
             && v >= dec.min && v <= dec.max) {
             m->kind = 0x11;
             m->ref = (unsigned char)dec.id;
@@ -159,10 +155,10 @@ int ai_DecidePartnerOtherSex(int a, AICHAR *p, int c, int d, AIARG *m)
     if (p->money < 3)
         return 0;
     flags = p->sex != 0 ? PARTNER_FLAGS_SEX1 : PARTNER_FLAGS_SEX0;
-    if (ai_PickPartnerChain((AIPER *)p, 1, &flags, 0, (float)util_Random(0x40), &id) == 0)
+    if (ai_PickPartnerChain(p, 1, &flags, 0, (float)util_Random(0x40), &id) == 0)
         return 0;
     m->kind = 7;
-    m->ref = ai_CharsT[id].netId;
+    m->ref = ai_Chars[id].netId;
     /* a count 1..5: a roll of 0..money/2 - 1 when it is above 1, else 1 (the macro rolls twice, as the original) */
     m->arg = min(util_Random(p->money / 2) > 1 ? util_Random(p->money / 2) : 1, 5);
     return 1;
@@ -182,7 +178,7 @@ int ai_AlwaysTrue(void)
 /* 0x4a8c20, eval callback: true one time in four when it is p's slot (netId & 3 = year % 4 and netId & 7 =
    hour % 8), so each character gets its turn spread over the years and hours */
 
-int ai_EvalOwnTimeSlot(int a, AIPER *p)
+int ai_EvalOwnTimeSlot(int a, AICHAR *p)
 {
     int id;
 
@@ -193,7 +189,7 @@ int ai_EvalOwnTimeSlot(int a, AIPER *p)
 }
 /* 0x4a8c80, decide callback: two characters near p (0x4a58d0), into m (kind 7) */
 
-int ai_DecideTwoNearChars(int a, AIPER *p, int c, int d, AIARG *m)
+int ai_DecideTwoNearChars(int a, AICHAR *p, int c, int d, AIARG *m)
 {
     int flags[2];
     unsigned short id[2];
@@ -203,13 +199,13 @@ int ai_DecideTwoNearChars(int a, AIPER *p, int c, int d, AIARG *m)
     if (ai_PickPartnerChain(p, 2, flags, 0, (float)util_Random(0x40), id) == 0)
         return 0;
     m->kind = 7;
-    m->ref = ((AIPER *)ai_CharsT)[id[0]].netId;
-    m->arg = ((AIPER *)ai_CharsT)[id[1]].netId;
+    m->ref = ai_Chars[id[0]].netId;
+    m->arg = ai_Chars[id[1]].netId;
     return 1;
 }
 /* 0x4a8d20, decide callback: p (money >= 3) picks a character within 32..49 units, into m (kind 7) */
 
-int ai_DecideNearChar(int a, AIPER *p, int c, int d, AIARG *m)
+int ai_DecideNearChar(int a, AICHAR *p, int c, int d, AIARG *m)
 {
     int flags;
     unsigned short id;
@@ -220,13 +216,13 @@ int ai_DecideNearChar(int a, AIPER *p, int c, int d, AIARG *m)
     if (ai_PickPartnerChain(p, 1, &flags, 0, (float)util_Random(0x12) + 32.0f, &id) == 0)
         return 0;
     m->kind = 7;
-    m->ref = ((AIPER *)ai_CharsT)[id].netId;
+    m->ref = ai_Chars[id].netId;
     return 1;
 }
 /* 0x4a8db0, decide callback: a building for action 4 of ai_Partner (or action 6 of p, rated 32..63), then from a
    random start the first living character of kind 0 whose building (bld) it is, into m (kind 7, netId, building) */
 
-int ai_DecideBuildingResident(int a, AIPER *p, int c, int d, AIARG *m)
+int ai_DecideBuildingResident(int a, AICHAR *p, int c, int d, AIARG *m)
 {
     int k, i, n;
     AIBLD *b;
@@ -237,7 +233,7 @@ int ai_DecideBuildingResident(int a, AIPER *p, int c, int d, AIARG *m)
     mask.h.lo = 0x807d4190;
     mask.h.hi = 1;
     if (ai_Partner != 0)
-        ai_PickActionBuilding((AIPER *)ai_Partner, 4, mask.all, 0, 100.0f, &k);
+        ai_PickActionBuilding(ai_Partner, 4, mask.all, 0, 100.0f, &k);
     if (k == -1) {
         if (ai_PickActionBuilding(p, 6, mask.all, 0, (float)util_Random(0x20) + 32.0f, &k) == 0)
             return 0;
@@ -249,8 +245,8 @@ int ai_DecideBuildingResident(int a, AIPER *p, int c, int d, AIARG *m)
     n = 0x300;
     o = 0;
     while (n != 0) {
-        if (ai_CharsT[i].id != 0xffff && ai_CharsT[i].bld == b && ai_CharsT[i].kind == 0) {
-            o = &ai_CharsT[i];
+        if (ai_Chars[i].id != 0xffff && ai_Chars[i].bld == b && ai_Chars[i].kind == 0) {
+            o = &ai_Chars[i];
             break;
         }
         n--;
@@ -265,7 +261,7 @@ int ai_DecideBuildingResident(int a, AIPER *p, int c, int d, AIARG *m)
 }
 /* 0x4a8ee0, eval callback: two in three if p's jobId is of kind 7, else one in four */
 
-int ai_EvalTitleGroup7(int a, AIPER *p)
+int ai_EvalTitleGroup7(int a, AICHAR *p)
 {
     if (gm_TitleGroup(p->jobId) == 7 && util_Random(3) != 0)
         return 1;
@@ -274,7 +270,7 @@ int ai_EvalTitleGroup7(int a, AIPER *p)
 /* 0x4a8f20, decide callback: a chain of two characters p rates in 33..77+roll (ai_PickPartnerChain, either sex)
    that do not both like each other above 60, into m (kind 7, both netIds) */
 
-int ai_DecideUnfriendlyPair(int a, AIPER *p, int c, int d, AIARG *m)
+int ai_DecideUnfriendlyPair(int a, AICHAR *p, int c, int d, AIARG *m)
 {
     int flags[2];
     unsigned short id[2];
@@ -289,14 +285,14 @@ int ai_DecideUnfriendlyPair(int a, AIPER *p, int c, int d, AIARG *m)
     if (l1 > 60.0f && l2 > 60.0f)
         return 0;
     m->kind = 7;
-    m->ref = ai_CharsT[id[0]].netId;
-    m->arg = ai_CharsT[id[1]].netId;
+    m->ref = ai_Chars[id[0]].netId;
+    m->arg = ai_Chars[id[1]].netId;
     return 1;
 }
 /* 0x4a9030, eval callback: a character p with money >= 2 that owns graves in use (gv_CountOwnedGraves):
    their count, at most money / 2, into m->unk10 */
 
-int ai_EvalGraveCount(int a, AIPER *p, int c, AIARG *m)
+int ai_EvalGraveCount(int a, AICHAR *p, int c, AIARG *m)
 {
     int n, k;
 
@@ -331,7 +327,7 @@ int ai_DecideAcquaintance(int a, AICHAR *p, int c, int d, AIARG *m)
             j = n;
             do {
                 if (cnt[i] >= lim) {
-                    o = (AICHAR *)gm_FindChar(ids[i]);
+                    o = gm_FindChar(ids[i]);
                     if (o != 0 && o->kind != 15 && o->health != 0) {
                         k = o->officeKind;
                         if (k != 13 && k != 27 && k != 15 && k != 21) {
@@ -368,17 +364,17 @@ int ai_DecideSuitor(int a, AICHAR *p, int c, int d, AIARG *m)
     unsigned int fl;
 
     if (ai_Time.year % 4 == p->netId % 4 && gm_FindChar(p->relatives[0]) == 0) {
-        for (r = (AIJOB *)he_FindEvent(1, 0, 0x41); r != 0; r = (AIJOB *)he_NextEvent()) {
+        for (r = he_FindEvent(1, 0, 0x41); r != 0; r = he_NextEvent()) {
             if (r->partner2 == p->netId)
                 return 0;
             if (r->partner1 == p->netId)
                 return 0;
         }
         fl = p->sex != 0 ? SUITOR_FLAGS_SEX1 : SUITOR_FLAGS_SEX0;
-        n = ai_FindCandidates((AIPER *)p, 12, fl, 30.0f, 100.0f, ids);
+        n = ai_FindCandidates(p, 12, fl, 30.0f, 100.0f, ids);
         if (n != 0) {
             m->kind = 7;
-            m->ref = ai_CharsT[ids[util_Random(n)]].netId;
+            m->ref = ai_Chars[ids[util_Random(n)]].netId;
             return 1;
         }
     }
@@ -402,7 +398,7 @@ int ai_DecideCloseAcquaintance(int a, AICHAR *p, int c, int d, AIARG *m)
             j = n;
             do {
                 if (cnt[i] >= lim) {
-                    o = (AICHAR *)gm_FindChar(ids[i]);
+                    o = gm_FindChar(ids[i]);
                     if (o != 0 && o->kind != 15 && o->health != 0) {
                         k = o->officeKind;
                         if (k != 13 && k != 27 && k != 15 && k != 21) {
@@ -437,7 +433,7 @@ int ai_DecideOfficeAcquaintance(int a, AICHAR *p, int c, int d, AIARG *m)
             j = n;
             do {
                 if (cnt[i] >= 4) {
-                    o = (AICHAR *)gm_FindChar(ids[i]);
+                    o = gm_FindChar(ids[i]);
                     if (o != 0 && (o->flags1c8 & 0x200) == 0) {
                         if (amt_GetKind(o->officeKind, &kind) != 0 && kind.level >= 4) {
                             m->kind = 7;
@@ -456,7 +452,7 @@ int ai_DecideOfficeAcquaintance(int a, AICHAR *p, int c, int d, AIARG *m)
 /* 0x4a9420, decide callback: p (money >= 2) picks a character within 40..71 units that 0x553d60 accepts, into
    m (kind 7) */
 
-int ai_DecideAcceptedChar(int a, AIPER *p, int c, int d, AIARG *m)
+int ai_DecideAcceptedChar(int a, AICHAR *p, int c, int d, AIARG *m)
 {
     int flags;
     unsigned short id;
@@ -466,16 +462,16 @@ int ai_DecideAcceptedChar(int a, AIPER *p, int c, int d, AIARG *m)
     flags = PARTNER_FLAGS_ANY;
     if (ai_PickPartnerChain(p, 1, &flags, 0, (float)util_Random(0x20) + 40.0f, &id) == 0)
         return 0;
-    if (he_NoEvent4bPair(p, &((AIPER *)ai_CharsT)[id]) == 0)
+    if (he_NoEvent4bPair(p, &ai_Chars[id]) == 0)
         return 0;
     m->kind = 7;
-    m->ref = ((AIPER *)ai_CharsT)[id].netId;
+    m->ref = ai_Chars[id].netId;
     return 1;
 }
 /* 0x4a94e0, decide callback: p (money > 2, not flagged 0x400) picks a character within 18..49 units, not flagged
    0x400, by chance after 0x504e20, into m (kind 7) */
 
-int ai_DecideUnflaggedChar(int a, AIPER *p, int c, int d, AIARG *m)
+int ai_DecideUnflaggedChar(int a, AICHAR *p, int c, int d, AIARG *m)
 {
     int flags;
     unsigned short id;
@@ -483,10 +479,10 @@ int ai_DecideUnflaggedChar(int a, AIPER *p, int c, int d, AIARG *m)
     if (p->money >= 3 && (p->flags1c8 & 0x400) == 0) {
         flags = PARTNER_FLAGS_ANY;
         if (ai_PickPartnerChain(p, 1, &flags, 0, (float)util_Random(0x20) + 18.0f, &id) != 0
-            && (((AIPER *)ai_CharsT)[id].flags1c8 & 0x400) == 0
-            && util_RandomF() + gm_Mix(p, &((AIPER *)ai_CharsT)[id], 3) >= 1.0f) {
+            && (ai_Chars[id].flags1c8 & 0x400) == 0
+            && util_RandomF() + gm_Mix(p, &ai_Chars[id], 3) >= 1.0f) {
             m->kind = 7;
-            m->ref = ((AIPER *)ai_CharsT)[id].netId;
+            m->ref = ai_Chars[id].netId;
             return 1;
         }
     }
@@ -495,7 +491,7 @@ int ai_DecideUnflaggedChar(int a, AIPER *p, int c, int d, AIARG *m)
 /* 0x4a95d0, decide callback: p (not flagged 0x80000) picks a character 20..63 units away who holds an office,
    into m (kind 7) */
 
-int ai_DecideFarChar(int a, AIPER *p, int c, int d, AIARG *m)
+int ai_DecideFarChar(int a, AICHAR *p, int c, int d, AIARG *m)
 {
     int flags;
     unsigned short id;
@@ -506,13 +502,13 @@ int ai_DecideFarChar(int a, AIPER *p, int c, int d, AIARG *m)
     if (ai_PickPartnerChain(p, 1, &flags, 20.0f, (float)util_Random(0x20) + 32.0f, &id) == 0)
         return 0;
     m->kind = 7;
-    m->ref = ((AIPER *)ai_CharsT)[id].netId;
+    m->ref = ai_Chars[id].netId;
     return 1;
 }
 /* 0x4a9660, decide callback: p (not flagged 0x40000, money >= 8) picks a character within 18..33 units who
    holds an office, into m (kind 7) */
 
-int ai_DecideCloseChar(int a, AIPER *p, int c, int d, AIARG *m)
+int ai_DecideCloseChar(int a, AICHAR *p, int c, int d, AIARG *m)
 {
     int flags;
     unsigned short id;
@@ -525,7 +521,7 @@ int ai_DecideCloseChar(int a, AIPER *p, int c, int d, AIARG *m)
     if (ai_PickPartnerChain(p, 1, &flags, 0, (float)util_Random(0x10) + 18.0f, &id) == 0)
         return 0;
     m->kind = 7;
-    m->ref = ((AIPER *)ai_CharsT)[id].netId;
+    m->ref = ai_Chars[id].netId;
     return 1;
 }
 /* 0x4a9700, decide callback: p (not flagged 0x100, money >= 4) picks one of the holders of the offices of
@@ -556,7 +552,7 @@ int ai_DecideColumn4Officer(int a, AICHAR *p, int *ctx, int d, AIARG *m)
     }
     n = amt_GetColumnOffices(4, 6, rec);
     for (i = 0; i < n; i++)
-        who[i] = (AICHAR *)gm_FindChar(rec[i].owner);
+        who[i] = gm_FindChar(rec[i].owner);
     for (i = n; i < 6; i++)
         who[i] = 0;
     r = util_Random(6);
@@ -603,7 +599,7 @@ int ai_DecideColumn5Officer(int a, AICHAR *p, int *ctx, int d, AIARG *m)
     }
     n = amt_GetColumnOffices(5, 6, rec);
     for (i = 0; i < n; i++)
-        who[i] = (AICHAR *)gm_FindChar(rec[i].owner);
+        who[i] = gm_FindChar(rec[i].owner);
     for (i = n; i < 6; i++)
         who[i] = 0;
     r = util_Random(6);
@@ -627,13 +623,13 @@ int ai_DecideColumn5Officer(int a, AICHAR *p, int *ctx, int d, AIARG *m)
 }
 
 /* the callbacks above as 0x4a9a00 calls them */
-#define G10_CB(fn) ((int (*)(int, AIPER *, int *, AIARG *, AIARG *))(fn))
+#define G10_CB(fn) ((int (*)(int, AICHAR *, int *, AIARG *, AIARG *))(fn))
 
 
 /* 0x4a9a00, decide callback of the leisure actions: picks one of the actions of the table 0x600e10 that p (ctx 1)
    or p with its partner (ctx 2, from the job list 0x45) may do, unless in already names one (kind 0x10), and asks
    that action's callback */
-int ai_DecideLeisureAction(int a, AIPER *p, int c, AIARG *in, AIARG *m)
+int ai_DecideLeisureAction(int a, AICHAR *p, int c, AIARG *in, AIARG *m)
 {
     int ctx[0x88];
     int l1[19], l2[19];
@@ -769,7 +765,7 @@ int ai_DecideLeisureAction(int a, AIPER *p, int c, AIARG *in, AIARG *m)
 /* 0x4a9fa0, check callback of the leisure actions: whether p may still do the action in (kind 0x10) with the
    targets of out (0x4f81c0 without flags 0x60) */
 
-int ai_CheckLeisureAction(AIPER *p, AIARG *in, AIARG *out)
+int ai_CheckLeisureAction(AICHAR *p, AIARG *in, AIARG *out)
 {
     int ctx[0x88];
     AIJOB *j;
@@ -855,7 +851,7 @@ found:
    before the switch jump (+ xor eax, eax / + mov eax, dword ptr [esp + 0x10]) where ours has a separate return 0
    (table entries +0x4/+0x8/+0x14). Tried: r variable over the switch (213 ins, worse) */
 
-int ai_DecideVisitAction(int a, AIPER *p, int c, AIARG *in, AIARG *m)
+int ai_DecideVisitAction(int a, AICHAR *p, int c, AIARG *in, AIARG *m)
 {
     int ctx[0x88];
     int l1[3], l2[3];
@@ -997,14 +993,14 @@ found:
             return 0;
         }
         sprintf(text, "NPC %s <%i> w\xe4hlt %s", p->name, p->id, name);
-        return (ord_DispatchOrder(in->ref, (char *)p, ctx) & 0x60) == 0;
+        return (ord_DispatchOrder(in->ref, p, ctx) & 0x60) == 0;
     }
     return 0;
 }
 /* 0x4aa580, decide callback: p (money >= 1) picks a character within 0..63 units that he_NoEvent35Pair /
    he_NoEvent88Pair accept, with fewer than 4 pamphlets spread (by chance), into m (kind 7) */
 
-int ai_PickPamphletTarget(AIPER *p, int c, AIARG *m)
+int ai_PickPamphletTarget(AICHAR *p, int c, AIARG *m)
 {
     int k;
     int flags;
@@ -1016,16 +1012,16 @@ int ai_PickPamphletTarget(AIPER *p, int c, AIARG *m)
     flags = PARTNER_FLAGS_ANY;
     if (ai_PickPartnerChain(p, 1, &flags, 0, (float)util_Random(0x40), &id) == 0)
         return 0;
-    if (he_NoEvent35Pair(p, &((AIPER *)ai_CharsT)[id], &k) == 0)
+    if (he_NoEvent35Pair(p, &ai_Chars[id], &k) == 0)
         return 0;
-    if (he_NoEvent88Pair(&ai_CharsT[id], (AICHAR *)p) == 0)
+    if (he_NoEvent88Pair(&ai_Chars[id], p) == 0)
         return 0;
     if (k > 3)
         return 0;
     if (util_RandomF() < k * 0.25f)
         return 0;
     m->kind = 7;
-    m->ref = ((AIPER *)ai_CharsT)[id].netId;
+    m->ref = ai_Chars[id].netId;
     return 1;
 }
 /* 0x4aa6a0, decide callback: p (money > 1) picks a random acquaintance within 20..80 units that 0x553d10
@@ -1043,10 +1039,10 @@ int ai_DecideLittleKnownChar(AICHAR *p, AIARG *in, AIARG *m)
         i = util_Random(n);
         j = n;
         do {
-            o = (AICHAR *)gm_FindChar(ids[i]);
+            o = gm_FindChar(ids[i]);
             if (o == 0)
                 return 0;
-            if (he_NoEvent2ePair((int)p, (int)o) == 0)
+            if (he_NoEvent2ePair(p, o) == 0)
                 return 0;
             if (gm_Liking(p->id, o->id, 1) < (double)util_Random(0x3d) + 20.0
                 && cnt[i] < util_Random(4) + 2) {
@@ -1066,7 +1062,7 @@ int ai_DecideLittleKnownChar(AICHAR *p, AIARG *in, AIARG *m)
 /* 0x4aa800, decide callback: p (money >= 3) picks a character within 33..48 units and a second one 50..100 units
    from both, by chance after 0x504e20, into m (kind 7) */
 
-int ai_DecideCharPair(AIPER *p, int c, AIARG *m)
+int ai_DecideCharPair(AICHAR *p, int c, AIARG *m)
 {
     unsigned short ids[4];
     unsigned short id, id2;
@@ -1085,23 +1081,23 @@ int ai_DecideCharPair(AIPER *p, int c, AIARG *m)
     if (ai_PickPartnerInRange(p, PARTNER_FLAGS_ANY, 4, ids, 50.0f, 100.0f, &id2) == 0)
         return 0;
     m->kind = 7;
-    m->ref = ai_CharsT[id].netId;
-    f = gm_Mix((int)p, (int)&ai_CharsT[id], 4);
+    m->ref = ai_Chars[id].netId;
+    f = gm_Mix((int)p, (int)&ai_Chars[id], 4);
     if (!(util_RandomF() + f >= 1.0f))
         return 0;
-    m->arg = ai_CharsT[id2].netId;
+    m->arg = ai_Chars[id2].netId;
     return 1;
 }
 /* 0x4aa940, execute callback "aip_ExecPamphlet": p spreads a pamphlet about the character of m (message 0x35) */
 
-int aip_ExecPamphlet(AIPER *p, int c, AIARG *m)
+int aip_ExecPamphlet(AICHAR *p, int c, AIARG *m)
 {
     AIMSG msg;
     AICHAR *o;
 
     if (m->kind != 7)
         return 0;
-    o = (AICHAR *)gm_FindChar(m->ref);
+    o = gm_FindChar(m->ref);
     if (o == 0)
         return 0;
     gm_BuildQuery(1, 5, 10);
@@ -1120,14 +1116,14 @@ int aip_ExecPamphlet(AIPER *p, int c, AIARG *m)
 /* 0x4aaa10, execute callback "aip_ExecDrohen": p threatens the character of m (message 0x2e, by chance after
    0x504e20) */
 
-int aip_ExecDrohen(AIPER *p, int c, AIARG *m)
+int aip_ExecDrohen(AICHAR *p, int c, AIARG *m)
 {
     AIMSG msg;
-    AIPER *o;
+    AICHAR *o;
 
     if (m->kind != 7)
         return 0;
-    o = gm_FindPer(m->ref);
+    o = gm_FindChar(m->ref);
     if (o == 0)
         return 0;
     cm_BeginGroup("aip_ExecDrohen");
@@ -1147,7 +1143,7 @@ int aip_ExecDrohen(AIPER *p, int c, AIARG *m)
 /* 0x4aaae0, execute callback "aip_ExecAnschwaerzen": p denounces the character of m to the one at m + 8
    (message 0x2f) */
 
-int aip_ExecAnschwaerzen(AIPER *p, int c, AIARG *m)
+int aip_ExecAnschwaerzen(AICHAR *p, int c, AIARG *m)
 {
     AIMSG msg;
 
@@ -1169,7 +1165,7 @@ int aip_ExecAnschwaerzen(AIPER *p, int c, AIARG *m)
    5); *k 1 when the likings of b and c (each +0.2 with item 0x2be, after the ratings) differ by more than half
    as much as their skills, else 2 */
 
-int ai_TrustedOfTwo(AIPER *p, AIPER *b, AIPER *c, int *k)
+int ai_TrustedOfTwo(AICHAR *p, AICHAR *b, AICHAR *c, int *k)
 {
     float db, wb, dc, wc, x1, x2;
 
@@ -1201,10 +1197,10 @@ int ai_TrustedOfTwo(AIPER *p, AIPER *b, AIPER *c, int *k)
 /* 0x4aad30, of the four candidates ids the one character p trusts most for district k (liking + the office rating,
    item 0x2be +0.2, flag AIPER_F1CC_DISTRUST -0.2); a tie is broken at random; -1 if none */
 
-int ai_TrustedOfFour(unsigned char k, AIPER *p, int *ids, int *out)
+int ai_TrustedOfFour(unsigned char k, AICHAR *p, int *ids, int *out)
 {
     float sc[4];
-    AIPER *c[4];
+    AICHAR *c[4];
     AMTREC info;
     float f, best;
     int tie, bi, i, r, found;
@@ -1213,7 +1209,7 @@ int ai_TrustedOfFour(unsigned char k, AIPER *p, int *ids, int *out)
     if (amt_GetOffice(k, &info) == 0)
         return -1;
     for (i = 0; i < 4; i++) {
-        c[i] = gm_FindPer(ids[i]);
+        c[i] = gm_FindChar(ids[i]);
         if (c[i] == 0 || amt_GetOfficeRate(c[i], info.kind, &f) == 0) {
             sc[i] = -1000.0f;
         } else {
@@ -1260,13 +1256,13 @@ int ai_TrustedOfFour(unsigned char k, AIPER *p, int *ids, int *out)
 /* 0x4aaef0, decide callback: a building of p (type with cap > 1) with a free workplace object (lists 0x120 / 300)
    and no job 0x74 yet, into a (kind 4) and b (kind 1) */
 
-int ai_FindDarkCornerTarget(AIPER *p, AIARG *a, AIARG *b)
+int ai_FindDarkCornerTarget(AICHAR *p, AIARG *a, AIARG *b)
 {
     AIBLD *bld;
     AIOBJ *o, *o2;
 
     for (bld = gm_BuildQuery(2, 4, p->id, 5, 0x16); bld != 0; bld = gm_BuildNext()) {
-        if (ai_BTypesT[bld->type].cap247 > 1 && (o = gm_Query(bld->objList, 1, 0, 0x120)) != 0
+        if (ai_BTypes[bld->type].cap247 > 1 && (o = gm_Query(bld->objList, 1, 0, 0x120)) != 0
             && (o2 = gm_Query(o->list, 1, 0, 300)) != 0 && he_FindEvent(2, 0, 0x74, 3, bld->id) == 0) {
             a->kind = 4;
             a->ref = bld->id;
@@ -1280,7 +1276,7 @@ int ai_FindDarkCornerTarget(AIPER *p, AIARG *a, AIARG *b)
 /* 0x4aafb0, execute callback of 0x49ee20 (a of kind 4, b of kind 1): message 0x74 to p from the character
    a->ref (arg[1]) about b->ref (arg[2]); p pays 1 (gm_SendMoneyDelta -1) */
 
-int ai_ExecMessage74(AIPER *p, AIARG *a, AIARG *b)
+int ai_ExecMessage74(AICHAR *p, AIARG *a, AIARG *b)
 {
     AIMSG msg;
 
@@ -1302,7 +1298,7 @@ int ai_ExecMessage74(AIPER *p, AIARG *a, AIARG *b)
    goes into a (kind 0x13: record, price) and b (kind 4: the building); none when random(12) exceeds the office
    level of the record's character; half of the time it only looks (a and b cleared, still 1) */
 
-int ai_DecideBuyDunkleEcke(AIPER *p, AIARG *a, AIARG *b)
+int ai_DecideBuyDunkleEcke(AICHAR *p, AIARG *a, AIARG *b)
 {
     struct {
         AIBLD *bld;
@@ -1319,13 +1315,13 @@ int ai_DecideBuyDunkleEcke(AIPER *p, AIARG *a, AIARG *b)
 
     if ((p->flags1cc & 0x2000000) == 0 && ai_Time.hour >= 21
         && ai_Time.hour % 3 == (unsigned int)p->netId % 3) {
-        money = gm_GetGoodsValue((AICHAR *)p);
+        money = gm_GetGoodsValue(p);
         memset(shops, 0, sizeof(shops));
         n = 0;
         bld = gm_BuildQuery(1, 5, 0x16);
         if (bld != 0) {
             do {
-                if (bld->owner != 0xffff && bld->owner != p->id && ai_BTypesT[bld->type].cap247 > 1
+                if (bld->owner != 0xffff && bld->owner != p->id && ai_BTypes[bld->type].cap247 > 1
                     && (o = gm_Query(bld->objList, 1, 0, 0x120)) != 0
                     && (o = gm_Query(o->list, 1, 0, 300)) != 0) {
                     shops[n].bld = bld;
@@ -1341,9 +1337,9 @@ int ai_DecideBuyDunkleEcke(AIPER *p, AIARG *a, AIARG *b)
                 o = s->obj;
                 tries = 3;
                 do {
-                    if (gv_EvidencePrice(o->recs[k], &ai_CharsT[bld->owner], &price, &who, &x) != 0
+                    if (gv_EvidencePrice(o->recs[k], &ai_Chars[bld->owner], &price, &who, &x) != 0
                         && !(money * 0.05f < price)) {
-                        amt_GetKind(ai_CharsT[(unsigned short)who].officeKind, &kind);
+                        amt_GetKind(ai_Chars[(unsigned short)who].officeKind, &kind);
                         if (util_Random(12) > kind.level)
                             return 0;
                         if (util_RandomF() < 0.5f) {
@@ -1370,7 +1366,7 @@ int ai_DecideBuyDunkleEcke(AIPER *p, AIARG *a, AIARG *b)
    kind 300 object still holds it: the script message 'buy ' (shop, p, record, price), the proof executed, the
    price to the shop's owner */
 
-int ai_ExecBuyDunkleEcke(AIPER *p, AIARG *a, AIARG *b)
+int ai_ExecBuyDunkleEcke(AICHAR *p, AIARG *a, AIARG *b)
 {
     int rec[5];
     AIBLD *bld;
@@ -1405,7 +1401,7 @@ int ai_ExecBuyDunkleEcke(AIPER *p, AIARG *a, AIARG *b)
     cm_BeginGroup("buy dunkle ecke");
     cm_SendScriptMessage(rec);
     cm_SendProofExecuted(a->ref, p->netId);
-    cm_SendMoveGoodsUnchecked(((AIPER *)ai_CharsT)[bld->owner].netId, p->netId, 0, a->arg2);
+    cm_SendMoveGoodsUnchecked(ai_Chars[bld->owner].netId, p->netId, 0, a->arg2);
     cm_EndGroup("buy dunkle ecke");
     return 1;
 }
@@ -1415,16 +1411,16 @@ int ai_ExecBuyDunkleEcke(AIPER *p, AIARG *a, AIARG *b)
    with its weight reaches p's money (s + w >= money, as the original compares); the sum into m->arg2, the
    victim and helpers into m / m2 (kind 7) */
 
-int ai_DecideBlutrache(int a, AIPER *p, int c, AIARG *m, AIARG *m2)
+int ai_DecideBlutrache(int a, AICHAR *p, int c, AIARG *m, AIARG *m2)
 {
     unsigned short ids[4];
-    AIPER *who[4];
+    AICHAR *who[4];
     int v, i, n, cnt, s, t;
     int bestv, k;
     unsigned int flags;
     unsigned short id;
     AIBLD *b, *best;
-    AIPER *o;
+    AICHAR *o;
 
     v = gm_TitleJob(p->id, 0xe);
     ids[0] = 0xffff;
@@ -1442,9 +1438,9 @@ int ai_DecideBlutrache(int a, AIPER *p, int c, AIARG *m, AIARG *m2)
         return 0;
     if ((a != 0x44 && a != 0) || c != 0 || v == 0 || p->kind == 3)
         return 0;
-    b = ai_BldsT;
+    b = ai_Blds;
     for (i = 0x100; i != 0; i--) {
-        if (b->type != 0 && b->owner == p->id && ai_BTypesT[b->type].kind == 0x1f
+        if (b->type != 0 && b->owner == p->id && ai_BTypes[b->type].kind == 0x1f
             && gm_Query(b->objList, 2, 6, 0, 0x27c) != 0) {
             if (best == 0) {
                 best = b;
@@ -1464,7 +1460,7 @@ int ai_DecideBlutrache(int a, AIPER *p, int c, AIARG *m, AIARG *m2)
     flags = PARTNER_FLAGS_ANY;
     if (ai_PickPartnerChain(p, 1, (int *)&flags, 0.0f, (float)util_Random(0x20) + 25.0f, &id) == 0)
         return 0;
-    o = &((AIPER *)ai_CharsT)[id];
+    o = &ai_Chars[id];
     s = amt_GetKindLevel(o->officeKind) / 3 + 2;
     if (s + 2 > p->money)
         return 0;
@@ -1472,9 +1468,9 @@ int ai_DecideBlutrache(int a, AIPER *p, int c, AIARG *m, AIARG *m2)
     if (n == 0)
         return 0;
     for (i = 0, cnt = 0; i < n; i++) {
-        t = amt_GetKindLevel(ai_CharsT[ids[i]].officeKind) / 3 + 2;
+        t = amt_GetKindLevel(ai_Chars[ids[i]].officeKind) / 3 + 2;
         if (s + t >= p->money) {
-            who[cnt++] = &((AIPER *)ai_CharsT)[ids[i]];
+            who[cnt++] = &ai_Chars[ids[i]];
             s += t;
         }
     }
@@ -1495,27 +1491,27 @@ int ai_DecideBlutrache(int a, AIPER *p, int c, AIARG *m, AIARG *m2)
 /* 0x4ab6b0, execute callback of action 0x44 "Blutrache": p pays the cost, is flagged (0x1cc bit 3), the victim
    loses standing with every helper by their relation (0x504e20), and 0x5a9470 starts the feud */
 
-int ai_ExecBlutrache(AIPER *p, AIARG *m, AIARG *m2)
+int ai_ExecBlutrache(AICHAR *p, AIARG *m, AIARG *m2)
 {
-    AIPER *who[4];
-    AIPER *o;
+    AICHAR *who[4];
+    AICHAR *o;
     int cost, n, i, d;
 
     cost = m->arg2;
     if (m2 == 0 || p == 0)
         return 0;
-    o = gm_FindPer(m->ref);
+    o = gm_FindChar(m->ref);
     if (o == 0)
         return 0;
-    who[0] = gm_FindPer(m->ref2);
+    who[0] = gm_FindChar(m->ref2);
     if (who[0] == 0)
         return 0;
     n = 1;
-    if ((who[n] = gm_FindPer(m->arg)) == 0)
+    if ((who[n] = gm_FindChar(m->arg)) == 0)
         n++;
-    if ((who[n] = gm_FindPer(m2->ref2)) == 0)
+    if ((who[n] = gm_FindChar(m2->ref2)) == 0)
         n++;
-    if ((who[n] = gm_FindPer(m2->arg)) == 0)
+    if ((who[n] = gm_FindChar(m2->arg)) == 0)
         n++;
     gm_SendMoneyDelta(p->netId, -cost);
     cm_SendSetField(p->netId, 0x1cc, 4, 8, 0);
@@ -1530,14 +1526,14 @@ int ai_ExecBlutrache(AIPER *p, AIARG *m, AIARG *m2)
    building of kind 0x1f holding object 0x28a curses a character within 25..57 units with a strength it can
    afford (32000 per level from a quarter of its money), into m (kind 7) */
 
-int ai_DecideVerfluchen(int a, AIPER *p, int c, AIARG *m)
+int ai_DecideVerfluchen(int a, AICHAR *p, int c, AIARG *m)
 {
     int v, i, k, r, money;
     int bestv, n;
     unsigned int flags;
     unsigned short id;
     AIBLD *b, *best;
-    AIPER *o;
+    AICHAR *o;
 
     v = gm_TitleJob(p->id, 0xe);
     bestv = 0;
@@ -1547,9 +1543,9 @@ int ai_DecideVerfluchen(int a, AIPER *p, int c, AIARG *m)
         return 0;
     if ((a != 0x45 && a != 0) || c != 0 || v == 0 || p->kind == 3)
         return 0;
-    b = ai_BldsT;
+    b = ai_Blds;
     for (i = 0x100; i != 0; i--) {
-        if (b->type != 0 && b->owner == p->id && ai_BTypesT[b->type].kind == 0x1f
+        if (b->type != 0 && b->owner == p->id && ai_BTypes[b->type].kind == 0x1f
             && gm_Query(b->objList, 2, 6, 0, 0x28a) != 0) {
             if (best == 0) {
                 best = b;
@@ -1569,7 +1565,7 @@ int ai_DecideVerfluchen(int a, AIPER *p, int c, AIARG *m)
     flags = PARTNER_FLAGS_ANY;
     if (ai_PickPartnerChain(p, 1, (int *)&flags, 0.0f, (float)util_Random(0x20) + 25.0f, &id) == 0)
         return 0;
-    o = &((AIPER *)ai_CharsT)[id];
+    o = &ai_Chars[id];
     money = (int)(gm_SumListAmounts(p->inventory, ai_OwnPlayer) * 0.25f);
     gm_GetWorth(p->id);
     for (k = bestv - 1; k > 0; k--) {
@@ -1589,7 +1585,7 @@ int ai_DecideVerfluchen(int a, AIPER *p, int c, AIARG *m)
 /* 0x4ab9f0, execute callback of action 0x45 "Verfluchen": p is flagged (0x1cc bit 4), pays, and the curse goes
    out (message 0x9d: strength, victim) */
 
-int ai_ExecVerfluchen(AIPER *p, AIARG *m)
+int ai_ExecVerfluchen(AICHAR *p, AIARG *m)
 {
     AIMSG msg;
 
@@ -1611,7 +1607,7 @@ int ai_ExecVerfluchen(AIPER *p, AIARG *m)
    size capped by its money (2: 4, 3: 7, 4 and more: 10) and from r a play length (below 4: 2, below 7: 3, else
    4), into m (kind 7: the building, r, the length) */
 
-int ai_DecideTheater(int a, AIPER *p, int c, AIARG *m)
+int ai_DecideTheater(int a, AICHAR *p, int c, AIARG *m)
 {
     int v, k, n, i;
     int r;
@@ -1622,10 +1618,10 @@ int ai_DecideTheater(int a, AIPER *p, int c, AIARG *m)
     k = 0;
     if ((a == 0x46 || a == 0) && c == 0 && v != 0 && p->kind != 3 && p->money >= 2) {
         best = 0;
-        b = ai_BldsT;
+        b = ai_Blds;
         for (i = 0x100; i != 0; i--) {
             if (b->type != 0 && b->owner == p->id) {
-                bt = &ai_BTypesT[b->type];
+                bt = &ai_BTypes[b->type];
                 if (bt->kind == 0x1f && gm_Query(b->objList, 2, 6, 0, 0x27f) != 0 && ai_FindCurseEvent(b) == 0) {
                     if (best == 0) {
                         k = bt->cap247 != 2 ? 4 : 7;
@@ -1668,7 +1664,7 @@ int ai_DecideTheater(int a, AIPER *p, int c, AIARG *m)
 /* 0x4abc60, execute callback of action 0x46 "Theater": p pays m->arg2 and puts on the play in building m->ref
    (message 0xa0, length m->ref2) */
 
-int ai_ExecTheater(AIPER *p, AIARG *m)
+int ai_ExecTheater(AICHAR *p, AIARG *m)
 {
     AIMSG msg;
 
@@ -1687,13 +1683,13 @@ int ai_ExecTheater(AIPER *p, AIARG *m)
    building of kind 0x1f holding object 0x276 picks a character within 25..57 units to honour, into m (kind 7, a
    cost 2..7); returns 0x45 (sic) */
 
-int ai_DecideEhrerbietung(int a, AIPER *p, int c, AIARG *m)
+int ai_DecideEhrerbietung(int a, AICHAR *p, int c, AIARG *m)
 {
     int v, i, n;
     unsigned int flags;
     unsigned short id;
     AIBLD *b;
-    AIPER *o;
+    AICHAR *o;
 
     v = gm_TitleJob(p->id, 0xe);
     flags = 0;
@@ -1701,14 +1697,14 @@ int ai_DecideEhrerbietung(int a, AIPER *p, int c, AIARG *m)
         return 0;
     if ((a != 0x47 && a != 0) || c != 0 || v == 0 || p->kind == 3)
         return 0;
-    b = ai_BldsT;
+    b = ai_Blds;
     for (i = 0; i < 0x100; i++, b++) {
-        if (b->type != 0 && b->owner == p->id && ai_BTypesT[b->type].kind == 0x1f
+        if (b->type != 0 && b->owner == p->id && ai_BTypes[b->type].kind == 0x1f
             && gm_Query(b->objList, 2, 6, 0, 0x276) != 0) {
             flags = PARTNER_FLAGS_ANY;
             if (ai_PickPartnerChain(p, 1, (int *)&flags, 0.0f, (float)util_Random(0x20) + 25.0f, &id) == 0)
                 return 0;
-            o = &((AIPER *)ai_CharsT)[id];
+            o = &ai_Chars[id];
             n = util_Random(p->money < 8 ? p->money : 8);
             if (n <= 2)
                 n = 2;
@@ -1724,11 +1720,11 @@ int ai_DecideEhrerbietung(int a, AIPER *p, int c, AIARG *m)
 /* 0x4abe60, execute callback of action 0x47 "Ehrerbietung": p is flagged (0x1cc bit 5), pays m->arg2 and wins
    five times that in standing with the character of m->ref */
 
-int ai_ExecEhrerbietung(AIPER *p, AIARG *m)
+int ai_ExecEhrerbietung(AICHAR *p, AIARG *m)
 {
-    AIPER *o;
+    AICHAR *o;
 
-    o = gm_FindPer(m->ref);
+    o = gm_FindChar(m->ref);
     if (o == 0)
         return 0;
     cm_SendSetField(p->netId, 0x1cc, 4, 0x20, 0);

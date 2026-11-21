@@ -6,7 +6,7 @@
    plain block veg_Types (0x602860), so its first user rd_DoorPos is here; the other three use no data, the bound
    is veg_FindType (0x4bc5a0, the first reader of rd.c's data). bprobe: no code evidence either way.
    An animal's obj is its CHARACTER (ch.h), reached as CHARACTER.obj / D3_MESH; the buildings it walks between
-   are G15BLD (rd.h). Names are ours.
+   are AIBLD (ai_bld.h). Names are ours.
    unit of rea 8cef7d5b (src/game/anm.c); boundaries in decl/text.dcl */
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +21,7 @@
 #include "d3_vec.h"
 #include "d3_pose.h"
 #include "menu.h"
+#include "ai_bld.h"                  /* AIBLD */
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 
 /* 0x4bb810, allocates the animal list ("anm:animals") and resets the animal count and the first record */
@@ -147,30 +148,30 @@ void anm_RemoveAnimal(ANMREC *a)
 
 void anm_UpdateBird(ANMREC *a)
 {
-    G15BLD *b, *f;
+    AIBLD *b, *f;
     unsigned short n, k;
     int i;
     float p[4];
-    char *e;
+    struct D3OBJECT *e;
     float q[4];
     float pts[16][4];
-    G15BLD *bs[256];
+    AIBLD *bs[256];
 
     if (a->nPoints != -1)
         return;
     n = 0;
-    for (b = (G15BLD *)gm_BuildQuery(1, 6); b != 0; b = (G15BLD *)gm_BuildNext()) {
-        if (!gm_IsHomeType((unsigned char *)b) && !gm_IsType10((unsigned char *)b) && b->object != 0)
+    for (b = gm_BuildQuery(1, 6); b != 0; b = gm_BuildNext()) {
+        if (!gm_IsHomeType(b) && !gm_IsType10(b) && b->object != 0)
             bs[n++] = b;
     }
     f = bs[util_Random(n)];
     e = f->object;
-    d3_PointToWorld(e, e + 0x4c, q);
+    d3_PointToWorld(e, &e->pos, q);
     k = 0;
     for (i = 0; i < n && k < 0x10; i++) {
         b = bs[i];
         e = b->object;
-        d3_PointToWorld(e, e + 0x4c, p);
+        d3_PointToWorld(e, &e->pos, p);
         if (b != f && d3_VecEqual(q, p, 6000.0f)) {
             pts[k++][0] = p[0];
             pts[k++][1] = p[1];
@@ -373,24 +374,24 @@ void anm_UpdateSheep(ANMREC *a)
 /* 0x4bc2e0, pos = the "dummy_TUER" (or the object) of a random building of the gm_BuildQuery(1, 6) list */
 int rd_DoorPos(float *pos)
 {
-    G15BLD *bs[0x100];
+    AIBLD *bs[0x100];
     int n;
-    G15BLD *b;
-    char *o;
+    AIBLD *b;
+    struct D3OBJECT *o;
 
     n = 0;
-    b = (G15BLD *)gm_BuildQuery(1, 6);
+    b = gm_BuildQuery(1, 6);
     while (b != 0) {
-        if (gm_IsHomeType((unsigned char *)b) == 0 && gm_IsType10((unsigned char *)b) == 0 && b->object != 0)
+        if (gm_IsHomeType(b) == 0 && gm_IsType10(b) == 0 && b->object != 0)
             bs[(unsigned short)n++] = b;
-        b = (G15BLD *)gm_BuildNext();
+        b = gm_BuildNext();
     }
     b = bs[util_Random(n)];
     o = d3_FindObject(b->object, 0x300, 0, "dummy_TUER");
     if (o != 0)
-        d3_PointToWorld(o, o + 0x4c, pos);
+        d3_PointToWorld(o, &o->pos, pos);
     else
-        d3_PointToWorld(b->object, b->object + 0x4c, pos);
+        d3_PointToWorld(b->object, &b->object->pos, pos);
     return 1;
 }
 /* 0x4bc390, n points pts near pos (a free cell within -4..5 cells, else pos's cell); returns n */

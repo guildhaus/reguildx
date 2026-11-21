@@ -53,10 +53,10 @@ extern unsigned char kb_Last;
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 extern unsigned char kb_Last;
-extern char * ai_BTypes;
+extern struct AIBTYPE *ai_BTypes;
 extern float gm_DayStartHours[];
 extern float gm_DayEndHours[];
-extern char * sv_SelectedObject;
+extern struct AIBLD *sv_SelectedObject;
 extern int di_Absolute;
 extern int di_MaxX;
 extern int di_MaxY;
@@ -107,7 +107,7 @@ extern int d2_ClickedId;
 
 
 
-extern char * ai_BTypes;
+extern struct AIBTYPE *ai_BTypes;
 
 extern int d2_ClickedId;
 extern int d2_LastWindow;
@@ -147,10 +147,9 @@ extern int ai_EspionageAmountCB();
 
 
 
-extern GAPDATA full_data_6f2450[];
+extern int ai_DebugHotkeys;
 extern unsigned char kb_Last;
 extern int d2_LastWindow;
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern GAPDATA full_data_602568[];
 extern struct D2WIN *d2_LastWindowPtr;
@@ -158,8 +157,7 @@ extern struct D2PIC *d2_Pics;
 
 
 
-extern GAPDATA full_data_6f2450[];
-#define ai_DebugHotkeys (*(int *)&full_data_6f2450)  /* 0x6f2450, a debug switch (no writer in the exe): set, the '-' key opens the mistress window in the study (ai_StudyContact) and the enter key posts the tavern message 0x74 (ai_TavernContact) */
+extern int ai_DebugHotkeys;  /* 0x6f2450, a debug switch (no writer in the exe): set, the '-' key opens the mistress window in the study (ai_StudyContact) and the enter key posts the tavern message 0x74 (ai_TavernContact) */
 extern unsigned char kb_Last;
 
 extern int d2_LastWindow;
@@ -170,9 +168,7 @@ extern char * ai_PickedObject;
 
 extern struct AIBLD *ai_MarketBuilding;
 extern int ai_PermsDirty;
-extern char * sv_SelectedObject;
-
-extern char ai_PlayerSlots[4][0x2f4];
+extern struct AIBLD *sv_SelectedObject;
 
 
 
@@ -182,11 +178,10 @@ extern char ai_PlayerSlots[4][0x2f4];
 
 
 
-extern char ai_Chars[768][0x21c];
+
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 
-extern char ai_Chars[768][0x21c];
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 extern int d2_LastWindow;
@@ -196,7 +191,6 @@ extern struct D2PIC *d2_Pics;
 
 extern int d2_LastWindow;
 extern struct D2PIC *d2_Pics;
-extern char ai_Chars[768][0x21c];
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 
@@ -208,7 +202,6 @@ extern struct D2OBJ *d2_Objs;
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2OBJ *d2_Objs;
-extern char ai_PlayerSlots[4][0x2f4];
 
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
@@ -220,7 +213,6 @@ extern int d2_ClickedId;
 
 extern int d2_ClickedId;
 extern unsigned char ai_OwnPlayer;
-extern char ai_PlayerSlots[4][0x2f4];
 extern char ch_EmptyName[1];
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
@@ -233,13 +225,12 @@ extern int d2_LastWindow;
 
 
 
-extern char * ai_BTypes;
+extern struct AIBTYPE *ai_BTypes;
 
 extern int d2_CutsceneActive;
 extern struct SBBANK *snd_RoomBank;
-extern char * ai_BTypes;
+extern struct AIBTYPE *ai_BTypes;
 #include "menu_types.h"
-extern char ai_Chars[768][0x21c];
 extern unsigned char ai_OwnPlayer;
 extern char ch_EmptyName[1];
 extern int d2_ClickedId;
@@ -249,9 +240,7 @@ extern int d2_LastWindow;
 
 
 extern unsigned char kb_Last;
-extern char ai_Chars[768][0x21c];
 extern unsigned char ai_OwnPlayer;
-extern char ai_PlayerSlots[4][0x2f4];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
@@ -259,8 +248,6 @@ extern struct D2PIC *d2_Pics;
 
 
 
-extern int gm_PlayerRecords[688];
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 
@@ -272,14 +259,12 @@ extern int d2_LastWindow;
 
 
 
-extern char * ai_BTypes;
-extern char ai_Chars[768][0x21c];
+extern struct AIBTYPE *ai_BTypes;
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 
 
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
@@ -287,21 +272,16 @@ extern struct D2OBJ *d2_Objs;
 
 
 
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 
 
 
 
-extern char ai_Chars[768][0x21c];
-
-extern char ai_Chars[768][0x21c];
 
 
-extern char ai_Chars[768][0x21c];
 
-extern char ai_Chars[768][0x21c];
+
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 extern int d2_LastWindow;
@@ -310,10 +290,8 @@ extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2PIC *d2_Pics;
-extern char ai_Chars[768][0x21c];
 
 
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
@@ -325,29 +303,25 @@ extern GAPDATA full_data_602568[];
 
 
 extern unsigned char kb_Last;
-extern char ai_Chars[768][0x21c];
-extern int gm_PlayerRecords[688];
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 
 
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 
 
-extern char * ai_BTypes;
-extern char ai_Chars[768][0x21c];
+extern struct AIBTYPE *ai_BTypes;
 extern int d2_ClickedId;
 
-extern char * ai_BTypes;
+extern struct AIBTYPE *ai_BTypes;
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 extern GAPDATA full_data_602568[];
-extern int ai_SceneChars[32];
+extern struct AICHAR *ai_SceneChars[32];
 
 
-extern int ai_SceneChars[32];
+extern struct AICHAR *ai_SceneChars[32];
 extern int d2_ClickedId;
 
 
@@ -359,7 +333,6 @@ extern int d2_ClickedId;
 
 
 
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 
 
@@ -367,7 +340,6 @@ extern char * cm_FieldObject;
 extern int d2_ClickedId;
 
 
-extern char ai_Chars[768][0x21c];
 extern char * cm_FieldObject;
 extern GAPDATA full_data_627978[];
 
@@ -388,11 +360,11 @@ extern int d2_ClickedId;
 
 extern int ai_CityWatchCrewWindow();
 extern int ai_WatchPlanWindow();
-extern int ai_SceneChars[32];
+extern struct AICHAR *ai_SceneChars[32];
 extern int d2_ClickedId;
 
 extern int ai_WatchPlanWindow();
-extern int ai_SceneChars[32];
+extern struct AICHAR *ai_SceneChars[32];
 extern int d2_ClickedId;
 
 
@@ -408,10 +380,8 @@ extern int d2_ClickedId;
 
 
 
-extern char ai_Chars[768][0x21c];
 extern int ai_MapSize;
 extern unsigned char ai_OwnPlayer;
-extern char ai_PlayerSlots[4][0x2f4];
 extern char cm_EventNames[115][0x20];
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
@@ -434,7 +404,6 @@ extern char ch_EmptyName[1];
 
 extern char ch_EmptyName[1];
 extern int ai_DomizilCount;
-extern char ai_Chars[768][0x21c];
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 
@@ -444,7 +413,7 @@ extern unsigned char kb_Last;
 extern char ch_EmptyName[1];
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
-extern char * ai_BTypes;
+extern struct AIBTYPE *ai_BTypes;
 extern GAPDATA full_data_60d568[];
 
 extern char ch_EmptyName[1];
@@ -461,14 +430,12 @@ extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 
-extern char ai_Chars[768][0x21c];
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 
 extern GAPDATA full_data_60ea68[];
 extern unsigned char kb_Last;
 extern int sv_FrameMask;
-extern char ai_Chars[768][0x21c];
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 extern int d2_LastWindow;
@@ -496,10 +463,9 @@ typedef struct G8INVOBJ {               /* an object of a character's inventory 
     AITIME since;                       /* +0x2d, of a Domizil good in use: when minutesLeft was last counted down */
 } G8INVOBJ;
 #pragma pack(pop)
-extern char * ai_BTypes;
+extern struct AIBTYPE *ai_BTypes;
 extern GAPDATA full_data_60c28c[];
 extern int ai_MapSize;
-extern char ai_PlayerSlots[4][0x2f4];
 extern struct D2SURF *rt_MapSurface;
 extern char ch_EmptyName[1];
 extern int ai_SabotageCallback();
@@ -513,11 +479,9 @@ extern struct D2OBJ *d2_Objs;
 
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
-extern char ai_Chars[768][0x21c];
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2PIC *d2_Pics;
 extern GAPDATA full_data_60d224[];
-extern int gm_PlayerRecords[688];
 extern GAPDATA full_data_602568[];
 extern int d2_ClickedId;
 
@@ -534,7 +498,7 @@ extern GAPDATA full_data_625380[];
 extern GAPDATA full_data_62bdc8[];
 extern GAPDATA full_data_62bde4[];
 extern GAPDATA full_data_62be00[];
-extern char * ai_BTypes;
+extern struct AIBTYPE *ai_BTypes;
 extern unsigned char ai_OwnPlayer;
 extern int d2_LastWindow;
 extern GAPDATA full_data_602568[];
@@ -542,8 +506,7 @@ extern struct D2OBJ *d2_Objs;
 extern char * cm_FieldObject;
 
 
-extern char * ai_BTypes;
-extern char ai_Chars[768][0x21c];
+extern struct AIBTYPE *ai_BTypes;
 extern signed char ai_Relations[768][768];
 #include "cm_types.h"
 extern G17MSG cm_SendRing[];
@@ -556,7 +519,6 @@ extern unsigned gm_OwnNameHeads[136];
 #include "gv_types.h"
 #include "ai_bld.h"                /* AIBLD, AIBTYPE */
 extern GAPDATA full_data_5fe7d0[];
-extern char ai_PlayerSlots[4][0x2f4];
 
 extern int d2_ClickedId;
 extern int d2_LastWindow;
@@ -566,13 +528,10 @@ extern unsigned char ai_OwnPlayer;
 
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-extern char ai_Chars[768][0x21c];
 extern GAPDATA full_data_624204[];
-extern int gm_PlayerRecords[688];
 extern char cm_EventNames[115][0x20];
 extern unsigned char ai_OwnPlayer;
-extern char * ai_BTypes;
-extern char ai_Crimes[];
+extern struct AIBTYPE *ai_BTypes;
 
 extern int d2_ClickedId;
 
@@ -589,7 +548,6 @@ extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 extern struct D2PIC *d2_Pics;
 extern int sv_FrameMask;
-extern char ai_Chars[768][0x21c];
 extern GAPDATA full_data_60d224[];
 extern unsigned char ai_OwnPlayer;
 extern char * cm_FieldObject;
@@ -606,114 +564,6 @@ struct AITIME;  /* f3gm.h typedef; file-scope tag for the gm_AddTime prototype *
 #define U_I(a) (*(int *)(a))
 #define U_W(a) (*(unsigned short *)(a))
 
-#pragma pack(push, 1)
-typedef struct AITASKVIEW {       /* the character's model record fields this unit reads (ai_char.h AITASK) */
-    char pad000[0x2c];
-    int bldId;                     /* 0x2c, the building the character was sent to (ai_char.h AITASK.bldId) */
-    int scriptGroup;               /* 0x30, the group of the script that created / moved it (the room object's id) */
-} AITASKVIEW;
-
-typedef struct LCWORKSET {       /* the work settings a building keeps at AIBLD +0x99 (ai_bld.h AIBLD.workSet) and a
-                                      hired worker takes over into AICHAR.flags1b4 .. target (ai_char.h; cm_ExHire
-                                      copies them as 16 bytes); the master letter window passes them by value */
-    unsigned int flags;            /* +0x0, the order flags (bit 0 .. 3: the page's four checkboxes) */
-    int budget;                    /* +0x4, AICHAR.budget */
-    int prod;                      /* +0x8, AICHAR.prod (the item the workshop makes) */
-    int target;                    /* +0xc, AICHAR.target (a building id or -1) */
-} LCWORKSET;
-typedef struct AICHARREC {         /* the character record fields this unit reads (ai_char.h AICHAR, same layout;
-                                      G8CHARREC below is the view of the news messages) */
-    unsigned short id;             /* 0x000, the character's id (AIBLD.owner refers to it) */
-    unsigned char kind;            /* 0x002, the character kind (ai_char.h AICHAR.kind; 6 / 7 need no cell model) */
-    char pad003;
-    unsigned int netId;            /* 0x004, the character's network id (ai_char.h AICHAR.netId) */
-    unsigned char health;          /* 0x008 */
-    unsigned char sex;             /* 0x009, 0 / non-0 (ai_char.h AICHAR.sex; it picks the male / female name table) */
-    unsigned short w00a;           /* 0x00a, the age in years (ai_char.h AICHAR.w00a, gm_CharAge; the family tree
-                                      window lets a child above 10 be picked) */
-    unsigned char faith;           /* 0x00c, the faith, 0 / 1 (ai_char.h AICHAR.b00c): the baptism window sets it to
-                                      1 - it (or to the church owner's) and names it by the text 0x197a + it; the
-                                      church donation reaches the characters of the owner's faith */
-    unsigned char b00d;            /* 0x00d, 1 .. 2 (ai_char.h AICHAR.b00d, gv.c copies it to the grave's v30) */
-    char pad00e[0xe];
-    float f01c;                    /* 0x01c, the life value (ai_char.h AICHAR.f01c: 1000.0 at creation, aged
-                                      by gm_AgeCharacter, the character dies when it is used up) */
-    float f020;                    /* 0x020, ai_char.h AICHAR.f020 (the character info panel offers a jobless child
-                                      the profession choice when it is at most the age + 4) */
-    int v024;                      /* 0x024, ai_char.h AICHAR.v024: below 0 the character is hurt (ord.c's medicus
-                                      order tests it below -20); the medicus heals half of it (gm_AddHealth) */
-    char pad028[4];
-    unsigned int ailments;         /* 0x02c, the ailment counters (am.h G5CH.ailments; ai_char.h AICHAR.v02c):
-                                      the fields at bits 0, 4, 8, 12, 14, 17, 20, 23, 25 (4, 4, 4, 2, 3, 3, 3, 2, 4
-                                      bits), the daily step 0x4fbe90 halves each, the diseases 2 .. 9 sit in the
-                                      field pairs of gm_CatchMinorDisease / gm_CatchUpperDisease */
-    char name[0x20];               /* 0x030, the character's name (ai_char.h AICHAR.name) */
-    unsigned short w050;           /* 0x050, the family's grave word (ai_char.h AICHAR.w050); the family tab takes the
-                                      characters with the same w050 and b058 */
-    char pad052[2];
-    int ref54;                     /* 0x054, a reference word the related characters share (ai_char.h AICHAR.ref54;
-                                      the game frame compares it with the player's); a picture id, 0x59a + the
-                                      dynasty's colour 0 .. 7 (ai_PlayerComparePanel shows it and colours the
-                                      slider by it) */
-    unsigned char b058;            /* 0x058, compared with w050 by the family tab (ai_FillFamilyTab) */
-    char pad059[3];
-    unsigned int relatives[8];     /* 0x05c, the netIds of the character's relatives (ai_char.h AICHAR.relatives;
-                                      the baptism window converts [3..7] with the player) */
-    char pad07c[4];
-    unsigned char skills[5];       /* 0x080, the five skill values (ai_char.h AICHAR.skills; the personnel book shows
-                                      [3] and [2] as bars) */
-    char pad085[0xdf];
-    unsigned char jobId;           /* 0x164, the character's job (ai_char.h AICHAR.jobId; the construction window's group 7
-                                      needs 0x34 .. 0x39) */
-    unsigned char title;           /* 0x165, the title rank (ai_char.h AICHAR.title; text 0x20d / 0x230 + it) */
-    unsigned char officeKind;      /* 0x166, the office the character holds, 0 = none (ai_char.h AICHAR.officeKind) */
-    char pad167;
-    unsigned char appliedOffice;   /* 0x168, the office kind applied for, 0 = none (ai_char.h AICHAR.appliedOffice) */
-    unsigned char secondOffice;    /* 0x169, the second office kind, the deputy one (ai_char.h AICHAR.secondOffice) */
-    char pad16a[2];
-    struct AIBLD *bld;             /* 0x16c, the building the character is in (ai_char.h AICHAR.bld) */
-    int bld2;                      /* 0x170, the character's own building, 0 when none (ai_char.h AICHAR.bld2) */
-    int v174;                      /* 0x174, 0 when hired (ai_char.h AICHAR.v174); the personnel book shows it with
-                                      the texts 0x1a39 / 0x1a3a */
-    int inventory;                 /* 0x178, the character's goods inventory, an object list (ai_char.h AICHAR.inventory) */
-    struct AIJOB *job;             /* 0x17c, the job the character works in, 0 = none (ai_char.h AICHAR.job) */
-    char pad180[4];
-    struct AITASKVIEW *model;      /* 0x184, the character's model record, 0 when none (ai_char.h AICHAR.model) */
-    unsigned char selected;        /* 0x188, nonzero: in the player's selection (ai_char.h AICHAR.selected) */
-    char pad189[3];
-    int picture;                   /* 0x18c, the portrait picture (ai_char.h AICHAR.picture) */
-    char pad190[4];
-    int money;                     /* 0x194, the character's money (ai_char.h AICHAR.money) */
-    char pad198[0x14];
-    int donated;                   /* 0x1ac, the money the character gave the church: ai_IndulgenceWindow adds the price
-                                      (cm_AddFieldValues 0x1ac) and shows it with the text 0x1964 */
-    char pad1b0;
-    unsigned char heldRounds;      /* 0x1b1, the rounds the character is held (ai_char.h AICHAR.heldRounds) */
-    char pad1b2[2];
-    union {
-        LCWORKSET workSet;         /* 0x1b4, the work settings the character took over from its building (ai_char.h
-                                      AICHAR.flags1b4 .. target; the master letter window edits them) */
-        struct {
-            unsigned int flags1b4; /* 0x1b4, the order flags (ai_char.h AICHAR.flags1b4) */
-            int budget;            /* 0x1b8, the money the character may spend (ai_char.h AICHAR.budget; main_EndRound
-                                      copies the building's budget to its jobs; the master list page shows it) */
-        };
-    };
-    char pad1c4;
-    unsigned char b1c5;            /* 0x1c5, ai_char.h AICHAR.b1c5 (a worker value am.c averages per building; the
-                                      Domizil good 0x161 halves it, rounded up, for everyone in the building) */
-    char pad1c6[2];
-    unsigned int powerFlags;       /* 0x1c8, the office-power bits already used (ai_char.h AICHAR.powerFlags) */
-    unsigned int flags1cc;         /* 0x1cc, ai_char.h AICHAR.flags1cc (0x800: a bribe raises the relation by 6 instead of 4) */
-    char pad1d0[0x1c];
-    unsigned int goodsMask;        /* 0x1ec, the classes of the Domizil goods in use (G9DOMIZIL.mask; ai_UseGood sets them) */
-    int w1f0;                      /* 0x1f0, ai_char.h AICHAR.v1f0 (0 at creation; the partner filter bit 0x80 wants it set) */
-    char pad1f4[0x1c];
-    int partner;                   /* 0x210, the netId of the partner (ai_char.h AICHAR.partner; the amount rows mark
-                                      a kind 6 viewer's partner) */
-    char pad214[8];
-} AICHARREC;                       /* 0x21c bytes, ai_Chars[768] */
-#pragma pack(pop)
 
 #pragma pack(push, 1)
 typedef struct LCFIREEVENT {       /* the fire event 0x3d's word over AIJOB's union (its alloc 0x564860; the jail check
@@ -738,15 +588,6 @@ typedef struct LCSEARCHWORDS {     /* the search message 0x14's words at AIMSG +
     unsigned short good;           /* 0x5a, the good searched for */
     int room;                      /* 0x5c, the objId of the room the search starts from */
 } LCSEARCHWORDS;
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-typedef struct AIROOM {            /* the room object sv_PanelShown / the driver's room parameter points to (ai_types.h AIOBJ) */
-    unsigned short id;             /* 0x00, the room (scene record) id */
-    int objId;                     /* 0x02, the object's own id (AIOBJ.objId) */
-    char pad006[0xe];
-    int list;                      /* 0x14, its object list (ai_types.h AIOBJ.list; ai_StorageWindow / gm_SumListAmounts) */
-} AIROOM;
 #pragma pack(pop)
 
 #pragma pack(push, 1)
@@ -814,16 +655,16 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
 struct D3VECTOR; int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps); void d2_CentreViewWindows(int view);
 float gm_GoodsPrice(unsigned id, unsigned char p);   /* 0x5089c0, the price (ai.h / cm.h / rt.h: float) */
 void gm_FormatAmount(int v, unsigned char k, char *out);  /* 0x508a80, above its first call (line 1119) */
-int d2_SetForm(int view, int n); int io_PrintText(char *fmt, ...);
-int d2_GetViewWin(); void d2_SetPointerSprite(int a, int pic); char * gm_Query(void *list, int n, ...);
-int gm_FreeCapacity(); char * he_FindEvent(int n, ...); char * he_NextEvent(void);
-int ai_ScriptQuery(); int cm_SendLongMessage(char *msg); int cm_GetSlotState(); int cm_GetSlotValue(int h);
+int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
+int d2_GetViewWin(); void d2_SetPointerSprite(int a, int pic); struct AIOBJ *gm_Query(void *list, int n, ...);
+int gm_FreeCapacity(); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void);
+int cm_SendLongMessage(char *msg); int cm_GetSlotState(); int cm_GetSlotValue(int h);
 void snd_PlayFavourComment(void); void d2_CloseView(int view);
-int gm_ListAmount(); char * gm_Query(void *list, int n, ...);
-void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, int param_4); char *itoa(int, char *, int); void d2_SetObjText();
-int gm_BuildingGoodsList(char *b, unsigned *out, int kind); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); struct AIPER; struct D3VECTOR; int d2_WinOpenPic(short x, short y, int pic, int win);
-void d2_RemoveObj(); int gm_MinutesBetween(); char * he_FindEvent(int n, ...); char * he_NextEvent(void);
-int d2_SetForm(int view, int n); int io_PrintText(char *fmt, ...);
+int gm_ListAmount(); struct AIOBJ *gm_Query(void *list, int n, ...);
+void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4); char *itoa(int, char *, int); void d2_SetObjText();
+int gm_BuildingGoodsList(struct AIBLD *b, unsigned *out, int kind); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); struct AICHAR; struct D3VECTOR; int d2_WinOpenPic(short x, short y, int pic, int win);
+void d2_RemoveObj(); int gm_MinutesBetween(); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void);
+int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
 int gm_BuildingClass(); void d2_SetObjFont(); void d2_SetCaption();
 int gm_ClockSeason(); int ls_GetLanguage(); int d2_CountPointerItems(); void cm_BeginFieldBlock(char *o, int id);
 int cm_AddFieldValue(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldValues(void); void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input, unsigned char side, AIBLD *bld); void d2_MoveObj(short x, short y, int obj);
@@ -834,13 +675,13 @@ char * gm_FindGoods(int p, unsigned id);
 struct D3OBJECT;
 struct D3OBJECT * d3_FindObject(int a, int flags, int c, char *name); /* 0x449690 (d3_interface.c, d3.h) */
 int sv_RegisterNamePlate(char *name, char *text, int b);         /* 0x52e1c0 (sv.c) */
-int ai_OpenTransport(int rec);                                   /* 0x5af1a0, below */
-char *strstr(); unsigned char * gm_BuildQuery(int n, ...); unsigned char * gm_BuildNext(void);
+int ai_OpenTransport(struct AIBLD *rec);                                   /* 0x5af1a0, below */
+char *strstr(); struct AIBLD *gm_BuildQuery(int n, ...); struct AIBLD *gm_BuildNext(void);
 struct D3OBJECT;
 struct D3VECTOR;
 void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out); /* 0x458a20 (d3_pose.c) */
-unsigned char *gm_BuildQuery(int n, ...);                  /* 0x501190 (f3gm.c) */
-unsigned char *gm_BuildNext(void);                         /* 0x501030 (f3gm.c) */
+struct AIBLD *gm_BuildQuery(int n, ...);                  /* 0x501190 (f3gm.c) */
+struct AIBLD *gm_BuildNext(void);                         /* 0x501030 (f3gm.c) */
 int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps); /* 0x453e80 (d3_vec.c) */
 int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);  /* 0x453e80 */
 #pragma pack(push, 1)
@@ -863,41 +704,37 @@ void d3_LocalToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR 
 void d3_DirToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);    /* 0x458810 (d3_pose.c) */
 float d3_VecAngle(struct D3VECTOR *a, struct D3VECTOR *b);      /* 0x4539f0 (d3_vec.c) */
 extern const struct D3VECTOR4 d3_ZAxis;                          /* 0x5ebb74, (0, 0, 1) */
-unsigned char * gm_BuildQuery(int n, ...); unsigned char * gm_BuildNext(void); int gm_MayTakeJob(int k, int c);
+struct AIBLD *gm_BuildQuery(int n, ...); struct AIBLD *gm_BuildNext(void); int gm_MayTakeJob(int k, int c);
 char *strupr(char *); int sprintf(char *buf, const char *fmt, ...); char * vfs_GetPath();
 struct D3OBJECT * d3_LoadGroup(); void d3t_InflateObjectTree(D3OBJECT *obj); int d3t_DropObject();
 struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);  /* 0x447190, d3_interface.h */
-int gm_BuildingKindCost(int c, int kind); void txt_Format(char *out, int id0, ...);
+int gm_BuildingKindCost(struct AICHAR *c, int kind); void txt_Format(char *out, intptr_t id0, ...);
 char d3sm_GetVertex();  /* 0x45f100: this caller tests the char result (al) */
 char d3sm_Pick();  /* 0x45f2b0, d3_sm.h: the cell under a screen point, 0 = none */
 void sv_SetStatusText(char *s);  /* 0x52e330, sv.h */
 extern char ai_DataPath[];  /* 0x75dca0, the data path (am.h) */
 int ai_RunAllows();
-int d2_SetForm(int view, int n); int d2_GetViewWin(); int io_PrintText(char *fmt, ...);
+int d2_SetForm(int view, int n); int d2_GetViewWin(); int io_PrintText(intptr_t fmt, ...);
 int d2_WinOpenPic(short x, short y, int pic, int win); void d2_SetObjFont(); void d2_SetObjText();  /* d2_CreateWinText: d2.h's prototype; ai_ShowProdSlot's 16-bit calls go through d2_CreateWinTextS */
 void d2_SetViewEnabled(); void d2_CloseView(int view); int cm_SendLongMessage(char *msg);
-void txt_Format(char *out, int id0, ...);
-int gm_CharCurrency(char *c, char p); int gm_BuildingClass(); int gm_MayTakeJob(int k, int c);
+void txt_Format(char *out, intptr_t id0, ...);
+int gm_CharCurrency(struct AICHAR *c, char p); int gm_BuildingClass(); int gm_MayTakeJob(int k, int c);
 int gm_IsHomeType();
-unsigned gm_PermissionBits(unsigned p1, unsigned char *b, unsigned short *o, int c); void init_ShowBuildingScene(unsigned char *b, int slot); void init_FinishBuildingScene(unsigned char *b, unsigned short *o);
+unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c); void init_ShowBuildingScene(struct AIBLD *b, int slot); void init_FinishBuildingScene(struct AIBLD *b, struct AIOBJ *o);
 int d3t_PlaceObjectV(struct D3OBJECT *camera, struct D3VECTOR *pos, struct D3VECTOR *dir, int unk, char flags); int gm_ClockSeason(); void init_AfterTownLoad(void); void d3fl_MakeDivide();
 void ai_ChooseCoatOfArms(void); void snd_StartMarketAmbience(void); int tb_SetFunctionOff(); void snd_StopMarketAmbience(void);
 void d2_CopyCaption(char *caption);
-struct AIBLD; int ai_ScriptQuery();
-int gm_IsType10(unsigned char *b);
+struct AIBLD;
+int gm_IsType10(struct AIBLD *b);
 int d2_GetWinObj(); void ai_TechEffectsWindow(AIBLD *bld);
 float gm_ItemPrice(int item, unsigned char n);
-void cm_BeginGroup(const char *s); int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_SendMoveGoods(int a, int b, unsigned char c, int d); short * gm_PlayerRecord(char *c);
+void cm_BeginGroup(const char *s); int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_SendMoveGoods(int a, int b, unsigned char c, int d); short * gm_PlayerRecord(struct AICHAR *c);
 int cm_SendLongMessage(char *msg); int cm_EndGroup(const char *s); int cm_GetSlotState(); void cm_SendMoneyDelta(int a, int b);
 char *strupr(char *); void gm_CloseTechTree(void);
 void ai_MasterLetterWindow();
 void ai_GameFrame(void);
 void lc_PlayerInJail(void);
-typedef struct SVFRAME {                /* 8 bytes, an entry of the frame stack 0x75f780 (sv.c sv_RunFrame: "MASTER()") */
-    int cb;                             /* 0x00, the frame callback registered at this depth */
-    char pad04[4];
-} SVFRAME;
 typedef struct LCTREENODE {        /* a node of f3gm's research tree layout gm_TreeNodes (f3gm.c RTNODE, 0x34 bytes) */
     char pad00[0x24];
     int obj;                       /* 0x24, the node's button object (RTNODE.l[2]), -1 = none */
@@ -905,30 +742,30 @@ typedef struct LCTREENODE {        /* a node of f3gm's research tree layout gm_T
 } LCTREENODE;
 extern char gm_TreeNodes[3328];    /* 0x76fde0, LCTREENODE[64] (f3gm.c) */
 extern int ai_Difficulty;          /* 0x6f23fc, the game difficulty 0 .. 4 (ai.h) */
-int gm_BuildKindObjects(char *b);
+int gm_BuildKindObjects(struct AIBLD *b);
 char *itoa(int, char *, int);
 int ai_SearchResourceWindow(AIBLD *bld);
 int ai_ExtractResourceWindow(AIBLD *bld);
 void ob_HandleBepflanzung(AIBLD *bld);
-void ai_HandlePickedPlant(AIBLD *bld, int plants);
+void ai_HandlePickedPlant(AIBLD *bld, struct G15PLANT *plants);
 int he_NoProtectionEvent();
-unsigned short * gm_QueryNext(void); void txt_Format(char *out, int id0, ...);
+struct AIOBJ *gm_QueryNext(void); void txt_Format(char *out, intptr_t id0, ...);
 void gm_SendMoneyDelta(int a, int b);
 int ai_RunAllowsContact();
 void d2_SetObjEnabled(); void d2_SetCaption(); int d2_WinOpenPic(short x, short y, int pic, int win);
-int ai_AmountMenu(); void ai_TalentWindow(struct AIBLD *bld, int room, int talent);
-void ai_PamphletWindow(int bld);
+struct AICHAR *ai_AmountMenu(); void ai_TalentWindow(struct AIBLD *bld, struct AIOBJ *room, int talent);
+void ai_PamphletWindow(struct AIBLD *bld);
 #define PF_KIND67   0x100000             /* the partner filter's one-of bits (AMOUNTCFG.mode, ai_PassesPartnerFilter): kind 6 / 7 */
 #define PF_KIND5    0x200000             /* kind 5 */
 #define PF_SERVANT  0x400000             /* not kind 5, working for a master (ai_WorksForMaster) */
 #define PF_KIND0    0x800000             /* kind 0 */
 #define PF_ONE_OF   0xf00000             /* one of these must hold */
 void ai_FeastWindow(AIBLD *bld, AIOBJ *table); void ai_DenounceWindow(AIBLD *bld);
-short * gm_FindChar(int id);
+struct AICHAR *gm_FindChar(int id);
 int cm_SendRelations(int a, int b, int c, int d); void cm_SendMoneyDelta(int a, int b); void d2_SetObjEnabled();
 typedef struct LCAMOUNTROW {            /* 0x38 bytes, one row of the special-amount list (ai_AmountRowStatus /
                                            ai_AmountRow; cm.c CMAMOUNTROW) */
-    AICHARREC *rec;                     /* 0x00, the character the row shows */
+    AICHAR *rec;                     /* 0x00, the character the row shows */
     int ctl[2];                         /* 0x04, the row's controls (ai_AmountRow): the frame picture, the liking slider */
     int office;                         /* 0x0c, of a vacant seat: its office, the text 0x253 + it (ai_ShowOfficeRows) */
     int x;                              /* 0x10 */
@@ -945,7 +782,7 @@ int gm_HasAdultRelative(); float gm_AddHealth(unsigned short id, int d); int ai_
 void d2_CreateScrollButtons(); int d2_RemoveWindowObjects();
 typedef struct LCDUELSIDE {             /* one side of a dice duel: am.h AGDUEL's side1 (+0x0c) or side2 (+0x30) block
                                            (am.h cannot be included here yet) */
-    AICHARREC *ch;                      /* 0x00, the character throwing (AGDUEL.side1) */
+    AICHAR *ch;                      /* 0x00, the character throwing (AGDUEL.side1) */
     unsigned char n;                    /* 0x04, the dice thrown (AGDUEL.n1) */
     char pad05[3];
     unsigned int stats;                 /* 0x08 (AGDUEL.stats1) */
@@ -963,7 +800,7 @@ typedef struct LCDUEL {                 /* a dice duel (am.h AGDUEL, same layout
     int reserved50;                     /* 0x50 */
     int total;                          /* 0x54, the stakes paid so far (AGDUEL.total) */
 } LCDUEL;
-int gm_GetWorth(unsigned short id); int gm_ConvertMoney(int a, unsigned char k); short * gm_PlayerRecord(char *c); int ai_DuelStart();
+int gm_GetWorth(unsigned short id); int gm_ConvertMoney(int a, unsigned char k); short * gm_PlayerRecord(struct AICHAR *c); int ai_DuelStart();
 int ai_DuelAct(); void ai_DuelNextPhase(); int ai_DuelOpponentAction(); int ai_DuelAcceptAction();
 typedef struct LCFIN {                  /* what gm_PlayerRecord finds for a character (ai.h AIFIN; ai.h cannot be included here yet) */
     char pad00[0x28];
@@ -984,8 +821,8 @@ typedef struct LCDUELBTN {              /* an action button of the dice game win
     int unused;                         /* 0x008, set to 0, never read */
     char text[0x100];                   /* 0x00c, its caption (0x1880 / 0x1881 with the raise amount, 0x1882) */
 } LCDUELBTN;
-int cm_SendTableRequest(G17TABLEMSG *p); void cm_BeginGroup(const char *s); int cm_EndGroup(const char *s); unsigned char * gm_BuildQuery(int n, ...);
-unsigned char * gm_BuildNext(void);
+int cm_SendTableRequest(G17TABLEMSG *p); void cm_BeginGroup(const char *s); int cm_EndGroup(const char *s); struct AIBLD *gm_BuildQuery(int n, ...);
+struct AIBLD *gm_BuildNext(void);
 int gv_EvidencePrice(); void cm_SendScriptMessage(void *p); void cm_SendProofExecuted(int a, int b);
 int d3t_PlaceAtObject(); void d2_SetBackgroundTexture(); 
 struct D3OBJECT * d3if_Pick(float x, float y, int flags, int mask); int gm_GetGoodsValue(); int gm_SumListAmounts(void *list, unsigned char p);
@@ -996,15 +833,15 @@ void ai_BardWindow(void); void ai_NoticeBoardWindow(void);
 void cm_BeginGroup(const char *s); void cm_SendScriptMessage(void *p); void cm_SendProofExecuted(int a, int b);
 int d3t_PlayAnim(); void d2_SetBackgroundTexture();
 char d3if_ShowTree(struct D3OBJECT *obj, char show); int ls_GetLanguage(); struct D3OBJECT * d3if_Pick(float x, float y, int flags, int mask);
-unsigned char * gm_BuildNext(void); void ai_StorageWindow(); void ai_MasterLetterWindow(); int ai_OpenTransport();
+struct AIBLD *gm_BuildNext(void); void ai_StorageWindow(); void ai_MasterLetterWindow(); int ai_OpenTransport();
 int ai_TransportWindow(); 
 typedef struct CREDITROW {          /* a row of the new credit window (ai_NewCreditWindow): an offer and its object */
     ORDCREDIT offer;                /* 0x00, the bank's offer (gm_GetCreditOffers) */
     int obj;                        /* 0x0c, the row's window object (d2_GetWinObj) */
     int index;                      /* 0x10, the offer's slot in the bank's credits[] */
 } CREDITROW;
-short * gm_FindChar(int id); void txt_Format(char *out, int id0, ...);
-short * gm_PlayerRecord(char *c); void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2); void he_FreeEvent();
+struct AICHAR *gm_FindChar(int id); void txt_Format(char *out, intptr_t id0, ...);
+short * gm_PlayerRecord(struct AICHAR *c); void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2); void he_FreeEvent();
 void d2_RadioClear(int g); int d2_CreateRadioGroup(int n, ...); void d2_SetObjText(); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);
 int d2_RemoveWindow(); void d2_RemoveObj(); int gm_SumSlotAmounts(void *list, unsigned char i);
 void gm_SortCharsByName(int n, int *ids, int flag); void d2_AddPointerItem(int id, int amount); void d2_ClearPointerItems(void); int d2_CountPointerItems();
@@ -1022,26 +859,26 @@ int gm_SumSlotAmounts(void *list, unsigned char i); int gm_GetGoodsValue(); int 
 void d2_SetObjEnabled(); void d2_EnableViewObjects(); void d2_EnableObject();
 void gm_SortCharsByName(int n, int *ids, int flag); int d2_RemoveWindow(); void d2_RemoveObj();
 void d2_SetObjText(); void d2_MoveObj(short x, short y, int obj); int d2_WinOpenInputIcon(int x, int y, int icon, unsigned char flags, int win); void d2_SetObjFont();
-int gm_SumListAmounts(void *list, unsigned char p); char * he_FindEvent(int n, ...); char * he_NextEvent(void); int ai_AmountMenu();
-int gm_BuildingClass(); unsigned gm_PermissionBits(unsigned p1, unsigned char *b, unsigned short *o, int c);
+int gm_SumListAmounts(void *list, unsigned char p); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void); struct AICHAR *ai_AmountMenu();
+int gm_BuildingClass(); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
 void init_LoadObjectScene();
-char d3_DeflateScene(unsigned int flags); char d3_InflateScene(unsigned int flags); void init_SetCharacterAnimations(unsigned char *b);
-void init_ShowBuildingScene(unsigned char *b, int slot); void init_FinishBuildingScene(unsigned char *b, unsigned short *o); 
+char d3_DeflateScene(unsigned int flags); char d3_InflateScene(unsigned int flags); void init_SetCharacterAnimations(struct AIBLD *b);
+void init_ShowBuildingScene(struct AIBLD *b, int slot); void init_FinishBuildingScene(struct AIBLD *b, struct AIOBJ *o); 
 int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);
 void snd_UnloadBuildingVoices(void); void init_AfterTownLoad(void); 
 struct SBSAMPLE * sb_PlaySample();
-void ai_AlchemistLabContact(struct AIBLD *rec, struct AIOBJ *room); void ai_CannonContact(struct AIBLD *rec, struct AIOBJ *room); void ai_CabinetContact(struct AIBLD *rec, struct AIOBJ *room); void ai_ProductionContact(int building, int arg);
+void ai_AlchemistLabContact(struct AIBLD *rec, struct AIOBJ *room); void ai_CannonContact(struct AIBLD *rec, struct AIOBJ *room); void ai_CabinetContact(struct AIBLD *rec, struct AIOBJ *room); void ai_ProductionContact(struct AIBLD *building, struct AIOBJ *arg);
 int gm_GetWorth(unsigned short id); void d2_ClearPaintbox(void);
-int ai_ShowBuildingRows(AICHARREC *ch, int max, int *ctrls);  /* 0x5bd470, defined below */
-int ai_ShowLoanRows(AICHARREC *ch, int max, CREDITLISTROW *rows, int win, int form);  /* 0x5bd330, defined below */
+int ai_ShowBuildingRows(AICHAR *ch, int max, int *ctrls);  /* 0x5bd470, defined below */
+int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win, int form);  /* 0x5bd330, defined below */
 typedef struct SVSAVEDVIEW {
     D3VECTOR4 pos;
     D3VECTOR rot;
 } SVSAVEDVIEW;
 int init_BuildingSceneUniverse(); void init_LoadBuildingScene(int k); void d3fl_SetDetail(unsigned int n); void veg_HidePlants();
-void ai_GraveyardContact(char *rec); void ai_GypsyProductionContact(int building); void ai_GraveyardFogContact(char *rec);
-void ai_GraveyardSeanceContact(char *rec); void ai_GypsyContact(int building); void ai_TheatreContact(int building); void ai_CurseContact(int buildingArg);
-void ai_GraveyardTradeContact(char *rec);
+void ai_GraveyardContact(struct AIBLD *rec); void ai_GypsyProductionContact(struct AIBLD *building); void ai_GraveyardFogContact(struct AIBLD *rec);
+void ai_GraveyardSeanceContact(struct AIBLD *rec); void ai_GypsyContact(struct AIBLD *building); void ai_TheatreContact(struct AIBLD *building); void ai_CurseContact(struct AIBLD *buildingArg);
+void ai_GraveyardTradeContact(struct AIBLD *rec);
 typedef struct LCSALEROW {          /* a row of ai_BuyBuildingWindow's list: a building offered for sale */
     int control;                    /* 0x0, the row's text control (d2_GetWinObj) */
     AIJOB *sale;                    /* 0x4, the building's sale event (kind 0x1b) */
@@ -1054,80 +891,47 @@ int amt_GetFirstOffice(unsigned int k, struct AMTREC *out); int amt_ApplyForOffi
 void ai_AmountInfoWindow(); int amt_GetOfficeCandidatesFull(); int amt_GetOfficeCandidates();
 int ai_AmountLimit();
 int amt_CanUseMayorPower2(); void d2_SetObjEnabled();
-int amt_ExecuteShareMessage(short *c, int *m);
-int amt_MayorBonusStep(); int amt_CanUseMayorPower3(); int amt_ExecutePriceMessage(char *c, int *m);
+int amt_ExecuteShareMessage(struct AICHAR *c, int *m);
+int amt_MayorBonusStep(); int amt_CanUseMayorPower3(); int amt_ExecutePriceMessage(struct AICHAR *c, int *m);
 int amt_GetOfficeCandidatesFull(); int amt_GetOfficeCandidates();
-int amt_ExecuteMayorPowerMessage(char *c, int *m);
+int amt_ExecuteMayorPowerMessage(struct AICHAR *c, int *m);
 typedef struct AMTPICK {           /* the row record the special-amount list hands its callback (8 bytes): the
                                       office index and the owner (0x5bea50 compares the word with 0xffff) */
     unsigned short office;         /* 0x00, the office index, 0xffff = an empty row */
     unsigned short pad02;
     int charId;                    /* 0x04, the office owner's character id (amt_ExecuteMayorPowerMessage's m[1]) */
 } AMTPICK;
-char * gm_Query(void *list, int n, ...); int gm_GetWorth(unsigned short id); int gm_GetGoodsValue(); int ai_AmountLimit();
+struct AIOBJ *gm_Query(void *list, int n, ...); int gm_GetWorth(unsigned short id); int gm_GetGoodsValue(); int ai_AmountLimit();
 void d2_SetPointerSprite(int a, int pic); int d2_SetForm(int view, int n);
-int io_PrintText(char *fmt, ...); int d2_GetWinObj(); int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
-int cm_SendMoveGoods(int a, int b, unsigned char c, int d); int cm_SendRelations(int a, int b, int c, int d); void txt_Format(char *out, int id0, ...);
+int io_PrintText(intptr_t fmt, ...); int d2_GetWinObj(); int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
+int cm_SendMoveGoods(int a, int b, unsigned char c, int d); int cm_SendRelations(int a, int b, int c, int d); void txt_Format(char *out, intptr_t id0, ...);
 void d2_CloseView(int view); int _ftol();
 int gv_CountOwnedGraves(); int gv_CulpritGuilt(int c); int gm_GetWorth(unsigned short id); float gm_Liking();
 int ai_InventoryHas(void *ch, int id); void d2_SetPointerSprite(int a, int pic); 
-int d2_SetForm(int view, int n); int io_PrintText(char *fmt, ...); int d2_GetWinObj();
+int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...); int d2_GetWinObj();
 void cm_BeginFieldBlock(char *o, int id); int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 int gv_RetireCrimesOf(int p, int n); int cm_SendMoveGoods(int a, int b, unsigned char c, int d); void ai_ShowIndulgenceNews(); int cm_GetSlotState();
-void txt_Format(char *out, int id0, ...);
+void txt_Format(char *out, intptr_t id0, ...);
 void d2_CloseView(int view); int _ftol();
 void ai_Top5Window();
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); short * gm_FindChar(int id); int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); struct AICHAR *gm_FindChar(int id); int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);
 void gm_DonationTop5(unsigned *ids, int *sc); int ai_DrawAmountRow();
 int d2_RemoveWindowObjects();
 void cm_SendMoneyDelta(int a, int b); void ai_ShowPaymentNews(); 
 int cm_SendObject1b5(int owner, G17B7 value); int cm_GetSlotValue(int h); int cm_SendGroupState(); int cm_FlushSendQueue();
 int cm_ReceiveMessages(); int cm_ExecCommands(); int cm_SendLongMessage(char *msg); int cm_GetSlotState();
-int ai_AmountMenu(); void d2_SetObjEnabled(); char *itoa(int, char *, int);
+struct AICHAR *ai_AmountMenu(); void d2_SetObjEnabled(); char *itoa(int, char *, int);
 void ai_StorageWindow(); int ai_ProductionWindow();
 int ai_OpenTransport(); void ai_MasterLetterWindow();
 #pragma pack(push, 1)
-typedef struct G8CHARREC {              /* a character record of ai_Chars (AICHAR, ai_char.h): the fields the
-                                           news messages of this unit read */
-    unsigned short id;                  /* +0x000, the character's id */
-    unsigned char kind;                 /* +0x002, the character kind */
-    char pad03;
-    int netId;                          /* +0x004, the id the news events carry */
-    unsigned char health;               /* +0x008, > 0 = alive */
-    unsigned char sex;                  /* +0x009, 0 / 1 (the text's feminine form) */
-    char pad0a[2];                      /* +0x00a .. 0x00b */
-    unsigned char b00c;                 /* +0x00c, a kind the person tooltip names (AICHAR.b00c); picks the news text */
-    char pad0d[0x23];                   /* +0x00d .. 0x02f */
-    union {
-        char name[0x58];                /* +0x030, the character's name (AICHAR.name) */
-        struct {
-            char first[0x10];           /* +0x030 */
-            char family[0x10];          /* +0x040 */
-        };
-        struct {
-            char padname5c[0x2c];       /* +0x030 .. 0x05b */
-            int partner;                /* +0x05c, the netId of the character's partner (AICHAR.relatives[0]) */
-            int relatives[7];           /* +0x060 .. 0x07b */
-        };
-    };
-    char pad88[0xdd];                   /* +0x088 .. 0x164 */
-    unsigned char title;                /* +0x165, the title rank */
-    char pad166[6];                     /* +0x166 .. 0x16b */
-    AIBLD *bld;                         /* +0x16c, the building the character is in */
-    char pad170[0x24];                  /* +0x170 .. 0x193 */
-    int money;                          /* +0x194, the character's money (AICHAR.money) */
-    char pad198[0x19];                  /* +0x198 .. 0x1b0 */
-    unsigned char heldRounds;           /* +0x1b1, the rounds the character is held */
-    char pad1b2[0x6a];                  /* +0x1b2 .. 0x21b */
-} G8CHARREC;
 #pragma pack(pop)
 int amt_GetFirstOffice(unsigned int k, struct AMTREC *out); void cm_BeginGroup(const char *s); int cm_EndGroup(const char *s);
 int he_NoProtectionEvent(); void snd_PlayFavourComment(void); 
-char * he_NextEvent(void);
-unsigned char * gm_BuildQuery(int n, ...); int gm_BuildingValues(); int d2_CreateRadioGroup(int n, ...); void d2_RadioAdd(int g, int obj);
+struct AIJOB *he_NextEvent(void);
+struct AIBLD *gm_BuildQuery(int n, ...); int gm_BuildingValues(); int d2_CreateRadioGroup(int n, ...); void d2_RadioAdd(int g, int obj);
 void d2_RadioClear(int g); int d2_RadioGetSel(); int cm_SendMoveObject(int a, int b, int c); void cm_SendDeleteObject(int id);
 int d2_GetViewWin(); void d2_CreateScrollButtons(); void d2_ClearInput(void);
-int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int gv_Accuse();
+int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); int gv_Accuse();
 void cm_SendMessage5b(int a, int b, int c);
 typedef struct LCKIDNAPEVENT {          /* the kidnap event 0x3c's words over AIJOB's union (he.c HEEV3C, same layout) */
     char pad00[0xac];
@@ -1141,35 +945,22 @@ typedef struct LCRANSOMEVENT {          /* the ransom event 0x3d's words over AI
     int guild;                          /* 0xb0, the id of the thieves' guild that holds it */
     AITIME since;                       /* 0xb4, the time of the kidnap */
 } LCRANSOMEVENT;
-float gm_GetSkill(char *c, int skill); int cm_SendChrGotoBuilding(); 
+float gm_GetSkill(struct AICHAR *c, int skill); int cm_SendChrGotoBuilding(); 
 int gm_CreateCharModel(); void cm_RequestChrMoveToUniverse(int a, int b, int c, const char *s); int ch_Delete();
 char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py); void d2_RaiseObject(); void d2_ScrollWindow();
-void d2_RaiseWindow(); int io_PrintText(char *fmt, ...);
+void d2_RaiseWindow(); int io_PrintText(intptr_t fmt, ...);
 int d2_SetForm(int view, int n); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);
 void d2_CloseView(int view); void d2_RemoveObj(); void d2_ScrollWindowBy();
-#pragma pack(push, 1)
-typedef struct G8BLD {                  /* a local view of gv.h's ORDBLD (gv.h cannot be included here yet): the
-                                           fields the production settings read */
-    unsigned char type;                 /* +0x00, the building kind */
-    int id;                             /* +0x01, the building's id (the production settings chain's key) */
-} G8BLD;
-#pragma pack(pop)
-int ls_Read(void *buf, int size, int count, int f); void * mem_Alloc(int size, char *tag);
+int ls_Read(void *buf, int size, int count, struct VFSFILE *f); void * mem_Alloc(int size, char *tag);
 unsigned vfs_fwrite();
 int d2_WinOpenPic(short x, short y, int pic, int win); int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out); 
 int gm_Opinion(int a, int b);
-#pragma pack(push, 1)
-typedef struct G8OBJ {                  /* an object record of the ai_ lists (AIOBJ, ai_types.h) */
-    unsigned short id;                  /* +0x00, the object's type id */
-    int objId;                          /* +0x02, the object's own id */
-} G8OBJ;
-#pragma pack(pop)
 #pragma pack(push, 1)
 typedef struct G9DOMIZILROW {           /* a row of the Domizil personnel book: 0x5aa0d0 creates its controls,
                                            0x5aa1f0 / 0x5aa520 fill them, ai_DomizilFreeRow frees them */
     int x;                              /* 0x00, the row's position (0x5aa0d0's arguments) */
     int y;                              /* 0x04 */
-    AICHARREC *ch;                      /* 0x08, the character record it shows */
+    AICHAR *ch;                      /* 0x08, the character record it shows */
     int pic;                            /* 0x0c, the picture control (d2_WinOpenPic, 0x5aa0d0) */
     int slider;                         /* 0x10, the value slider (d2_WinOpenSlider, 0x5aa1f0) */
     int text;                           /* 0x14, the text control (0x5aa1f0 / 0x5aa520) */
@@ -1185,10 +976,10 @@ typedef struct G9DOMIZILROW {           /* a row of the Domizil personnel book: 
     int view;                           /* 0x58, the view (d2_CurrentView, 0x5aa0d0) */
 } G9DOMIZILROW;
 #pragma pack(pop)
-void d2_RemoveObj(); int gm_HeadIconNumber(); int gm_ObjectBuilding(int y);
+void d2_RemoveObj(); int gm_HeadIconNumber(); struct AIBLD *gm_ObjectBuilding(struct AIOBJ *o);
 void d2_SetObjFont(); void d2_SetCaption();
 void d2_RadioSelect(int g, int sel);
-void d2_CenterObj(); void gm_FreeObject(int o); int gm_LevelPayout(int v, int kind);
+void d2_CenterObj(); void gm_FreeObject(struct AIOBJ *obj); int gm_LevelPayout(int v, int kind);
 #pragma pack(push, 1)
 typedef struct G8SCENECHAR {            /* the scene character fields this unit reads (ch.h CHARACTER) */
     char pad00[0x34];
@@ -1232,14 +1023,13 @@ int gv_HeldCrimesOf(int culprit, int *out, unsigned short t);  /* 0x4f3fe0, gv.h
 void gv_SortCrimesByLaw(int n, CRIME *r);  /* 0x4f4390, gv.h's prototype (gv.h is not included yet: Open: head) */
 int gv_RankCulpritsAll(int *ids, int *open, int *total, unsigned short t);  /* 0x4f3dd0, gv.h's prototype (gv.h is not included yet: Open: head) */
 void ai_RightAlignedText(char *text, int x, int y, int w, int font);
-int ai_BribeAmountCB(AICHARREC *ch);
+int ai_BribeAmountCB(AICHAR *ch);
 int gv_HeldCrimeCount(int culprit, unsigned short t);  /* 0x4f4130, gv.h's prototype (gv.h is not included yet: Open: head) */
 G11REC *hmt_GetRecord(unsigned short k);                    /* 0x4ac1e0, hmt.h's prototypes (hmt.h is not included yet: Open: head) */
 unsigned short hmt_RecordTextId(unsigned short k, unsigned short n); /* 0x4ac1a0 */
 int hmt_GetPrice(struct AICHAR *p);                         /* 0x4ac200 */
 void hmt_ApplyRecord(struct AICHAR *p, int d, unsigned short k); /* 0x4ac2f0 */
 int ai_EvalFest(AIGRP *g, int send);   /* 0x494ac0, am.h's prototype (am.h is not included yet: Open: head) */
-#define lc_CharRecs ((AICHARREC *)ai_Chars)  /* the character records as AICHARREC */
 typedef struct LCTRAINROW {             /* 0xc bytes, a row of the training window (ai_TrainingWindow keeps three) */
     int pic;                            /* 0x00, the training's picture (0x762 + the row), interactive */
     int frame;                          /* 0x04, the row's frame picture 0x74c */
@@ -1251,29 +1041,29 @@ int gm_EquipmentValue(); void d2_RadioSelect(int g, int sel);
 int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg, int unused);
 
 /* dcp unit split: the definitions of lc the functions of lcamt use */
-void ai_LayoutProdGoodsList(int view, int part, int pointer, int bld);
+void ai_LayoutProdGoodsList(int view, int part, int pointer, struct AIBLD *bld);
 void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input, unsigned char side, AIBLD *bld);
 void lc_PlayerInJail(void);
 int ai_SearchResourceWindow(AIBLD *bld);
 int ai_ExtractResourceWindow(AIBLD *bld);
 void ai_Top5Window(void);
 G8SLOT *ai_FindSettingSlots(int bldId);
-void *ai_ProdSetting(void *bld);
-void ai_SetSettingWeight(int bld, int good, unsigned char weight);
-void ai_RefreshProdSetting(G8BLD *b);
-void ai_SetSettingFactor(int bld, float factor);
-void ai_ShowTributeClaimNews(int collectorRec, int payerRec);
-void ai_TalentWindow(struct AIBLD *bld, int room, int talent);
+void *ai_ProdSetting(AIBLD *bld);
+void ai_SetSettingWeight(struct AIBLD *bld, int good, unsigned char weight);
+void ai_RefreshProdSetting(AIBLD *b);
+void ai_SetSettingFactor(struct AIBLD *bld, float factor);
+void ai_ShowTributeClaimNews(struct AICHAR *collectorRec, struct AICHAR *payerRec);
+void ai_TalentWindow(struct AIBLD *bld, struct AIOBJ *room, int talent);
 void ai_EvidenceBookWindow(AIBLD *bld);
-int ai_BribeAmountCB(AICHARREC *ch);
+int ai_BribeAmountCB(AICHAR *ch);
 void ai_DenounceWindow(AIBLD *bld);
-void ai_PamphletWindow(int bld);
+void ai_PamphletWindow(struct AIBLD *bld);
 void ai_NoticeBoardWindow(void);
 void ai_BardWindow(void);
 void ai_FeastWindow(AIBLD *bld, AIOBJ *table);
 void ai_TechEffectsWindow(AIBLD *bld);
 void ob_HandleBepflanzung(AIBLD *bld);
-void ai_HandlePickedPlant(AIBLD *bld, int plants);
+void ai_HandlePickedPlant(AIBLD *bld, struct G15PLANT *plants);
 int ai_FindUsableGoodIndex(int id, int *index);
 void ai_ChooseCoatOfArms(void);
 
@@ -1360,7 +1150,7 @@ void ai_ShowWindowRow(AIWINDOWROW *row)
         }
         if (row->entry <= 4) {
             d2_SetForm(row->win, row->pageB);
-            io_PrintText("$C$Z%s", row->entry + 0x16b7);
+            io_PrintText((intptr_t)"$C$Z%s", row->entry + 0x16b7);
             d2_SetForm(row->win, row->pageC);
             sv_DrawBalanceBar(0, 6, (char *)((unsigned)&ai_Chars + ai_PlayerId * 0x21c), row->entry, 0x4df);
         }
@@ -1371,7 +1161,7 @@ void ai_ShowWindowRow(AIWINDOWROW *row)
    window, a child window (font 0x56, left margin 0x10) over it with the text 0x1f41 (the loan's bank, amount,
    interest and due date) when the bank is found; returns the number of rows */
 
-int ai_ShowLoanRows(AICHARREC *ch, int max, CREDITLISTROW *rows, int win, int form)
+int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win, int form)
 {
     HELOAN *loans[9];
     int n;
@@ -1393,7 +1183,7 @@ int ai_ShowLoanRows(AICHARREC *ch, int max, CREDITLISTROW *rows, int win, int fo
         rows[i].loan = loans[i];
         d2_Wins[rows[i].child].font = 0x56;
         d2_Wins[rows[i].child].ml = 0x10;
-        bank = gm_FindBuildingById(((AIJOB *)rows[i].loan)->bldId);
+        bank = (int)gm_FindBuildingById(((AIJOB *)rows[i].loan)->bldId);
         if (bank != 0)
             io_PrintText(0x1f41, bank, rows[i].loan->amount, rows[i].loan->interest, &rows[i].loan->due);
     }
@@ -1406,7 +1196,7 @@ int ai_ShowLoanRows(AICHARREC *ch, int max, CREDITLISTROW *rows, int win, int fo
    room in ctrls the picture becomes clickable (style 3, the building as its user record) and is kept there;
    returns the number of buildings */
 
-int ai_ShowBuildingRows(AICHARREC *ch, int max, int *ctrls)
+int ai_ShowBuildingRows(AICHAR *ch, int max, int *ctrls)
 {
     char text[0x100];
     int filled;
@@ -1422,14 +1212,14 @@ int ai_ShowBuildingRows(AICHARREC *ch, int max, int *ctrls)
         memset(ctrls, -1, max * 4);
     }
     n = 0;
-    for (bld = (AIBLD *)gm_BuildQuery(1, 4, ch->id); bld != 0; bld = (AIBLD *)gm_BuildNext()) {
+    for (bld = gm_BuildQuery(1, 4, ch->id); bld != 0; bld = gm_BuildNext()) {
         if ((bld->flags5a & 1) == 0) {
             value = gm_EquipmentValue(bld, bld->level);
             y = n << 6;
             pic = d2_WinOpenPic(0x20, y, bld->type + 0x427, d2_LastWindow);
-            txt_Format(text, "%G", bld);
+            txt_Format(text, (intptr_t)"%G", bld);
             d2_CreateWinText(0x80, y, text, d2_LastWindow);
-            txt_Format(text, "%T", value);
+            txt_Format(text, (intptr_t)"%T", value);
             d2_CreateWinText(0x80, y + 0x1b, text, d2_LastWindow);
             if (filled == 1 && n < max) {
                 d2_Objs[pic].interactive = 1;
@@ -1446,12 +1236,12 @@ int ai_ShowBuildingRows(AICHARREC *ch, int max, int *ctrls)
    the n rows in columns by n (1 .. 3: one column of n, 4 .. 6: two, 7 / 8: three; a column of three spaced 0xca
    apart, of two centred in pairs, of one at 0xca; the columns 0x80 apart), then per row the frame picture 0x5da
    (clickable with the character as its user record when the filter passes it, ai_PassesPartnerFilter), and for a
-   character: the family picture (AICHARREC.ref54) of the kinds 5 .. 7, the portrait, the four icons in the
+   character: the family picture (AICHAR.ref54) of the kinds 5 .. 7, the portrait, the four icons in the
    corners, the title and name ("%s %1N7") and below it the office of kind 7 ("%s", the deputy office text) or the
    name ("%1N5"); a character other than viewer and not of kind 6 gets the liking slider (gm_Liking of the viewer,
    0 for kind 7); a viewer of kind 6 marks its partner with the picture 0x6d3; returns 0 */
 
-int ai_ShowAmountRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTROW *rows, AICHARREC *viewer)
+int ai_ShowAmountRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTROW *rows, AICHAR *viewer)
 {
     int cols[3];
     int col;
@@ -1550,14 +1340,14 @@ int ai_ShowAmountRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTRO
             d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, y + 3, row->icons[2], d2_LastWindow);
         d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, d2_Pics[0x5da].h + y - 0x13, row->icons[3], d2_LastWindow);
         if (kind == 7) {
-            txt_Format(text, "%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->b00d, row->rec->id);
+            txt_Format(text, (intptr_t)"%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->level, row->rec->id);
             ai_CentredText(text, x, row->y, 0xca, 0x56);
-            txt_Format(text, "%s", (row->rec->sex ? 0x27b : 0x253) + row->rec->secondOffice);
+            txt_Format(text, (intptr_t)"%s", (row->rec->sex ? 0x27b : 0x253) + row->rec->secondOffice);
             ai_CentredText(text, x, row->y + 0xf, 0xca, 0x56);
         } else {
-            txt_Format(text, "%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->b00d, row->rec->id);
+            txt_Format(text, (intptr_t)"%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->level, row->rec->id);
             ai_CentredText(text, x, row->y, 0xca, 0x56);
-            txt_Format(text, "%1N5", row->rec->id);
+            txt_Format(text, (intptr_t)"%1N5", row->rec->id);
             ai_CentredText(text, x, row->y + 0xf, 0xca, 0x56);
         }
         if (row->rec != viewer && row->rec->kind != 6) {
@@ -1584,11 +1374,11 @@ int ai_ShowAmountRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTRO
    the seats as offices is a reasoned guess): the kind places the rows on fixed seats (1 .. 3: four, 4 .. 6: six,
    8: five; another kind shows nothing), then per row the frame picture 0x5da and for a character the pictures and
    the liking slider as ai_ShowAmountRows, the texts the title and name ("%s %1N7") and the name ("%1N5"), or for
-   kind 8 the name ("%1N7") and the office of AICHARREC.flags1cc (0x1000: 0x26, 0x2000: 0x27, 0x800: 0x25,
+   kind 8 the name ("%1N7") and the office of AICHAR.flags1cc (0x1000: 0x26, 0x2000: 0x27, 0x800: 0x25,
    0x400: 0x24, 0x200: 0x23); a vacant row shows the picture 0x4fb and the text 0x253 + its office, its frame
    disabled; returns 0 */
 
-int ai_ShowOfficeRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTROW *rows, AICHARREC *viewer)
+int ai_ShowOfficeRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTROW *rows, AICHAR *viewer)
 {
     int valid;
     int left;
@@ -1656,9 +1446,9 @@ int ai_ShowOfficeRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTRO
                 d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, y + 3, rows[i].icons[2], d2_LastWindow);
             d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, d2_Pics[0x5da].h + y - 0x13, rows[i].icons[3], d2_LastWindow);
             if (kind != 8) {
-                txt_Format(text, "%s %1N7", (rows[i].rec->sex ? 0x11e : 0x114) + rows[i].rec->b00d, rows[i].rec->id);
+                txt_Format(text, (intptr_t)"%s %1N7", (rows[i].rec->sex ? 0x11e : 0x114) + rows[i].rec->level, rows[i].rec->id);
                 ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
-                txt_Format(text, "%1N5", rows[i].rec->id);
+                txt_Format(text, (intptr_t)"%1N5", rows[i].rec->id);
                 ai_CentredText(text, x, rows[i].y + 0xf, 0xca, 0x56);
             } else {
                 flags = rows[i].rec->flags1cc;
@@ -1672,9 +1462,9 @@ int ai_ShowOfficeRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTRO
                     office = 0x24;
                 else
                     office = (flags & 0x200) ? 0x23 : 0;
-                txt_Format(text, "%1N7", rows[i].rec->id);
+                txt_Format(text, (intptr_t)"%1N7", rows[i].rec->id);
                 ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
-                txt_Format(text, "%s", (rows[i].rec->sex ? 0x27b : 0x253) + office);
+                txt_Format(text, (intptr_t)"%s", (rows[i].rec->sex ? 0x27b : 0x253) + office);
                 ai_CentredText(text, x, rows[i].y + 0xf, 0xca, 0x56);
             }
             if (rows[i].rec != viewer && rows[i].rec->kind != 6) {
@@ -1696,7 +1486,7 @@ int ai_ShowOfficeRows(int win, int kind, unsigned int *filter, int n, LCAMOUNTRO
             }
         } else {
             d2_WinOpenPic(x - d2_Pics[0x4fb].w / 2 - 3, y + 1, 0x4fb, d2_LastWindow);
-            txt_Format(text, "%s", rows[i].office + 0x253);
+            txt_Format(text, (intptr_t)"%s", rows[i].office + 0x253);
             ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
             d2_Objs[rows[i].ctl[0]].interactive = 1;
             d2_Objs[rows[i].ctl[0]].user = 0;
@@ -1725,9 +1515,9 @@ int ai_AmountRowStatus(LCAMOUNTROW *row)
         return 0;
     row->icons[0] = row->rec->faith ? 0x6c9 : 0x6ca;
     row->icons[1] = 0;
-    if (lc_CharRecs[ai_PlayerId].sex != row->rec->sex && (row->rec->powerFlags & LC_LOVER_FLAG) != 0) {
-        for (ev = (AIJOB *)he_FindEvent(1, 0, 0x6f); ev != 0; ev = (AIJOB *)he_NextEvent()) {
-            if (ev->partner1 == lc_CharRecs[ai_PlayerId].netId && row->rec->netId == ev->partner2) {
+    if (ai_Chars[ai_PlayerId].sex != row->rec->sex && (row->rec->flags1c8 & LC_LOVER_FLAG) != 0) {
+        for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
+            if (ev->partner1 == ai_Chars[ai_PlayerId].netId && row->rec->netId == ev->partner2) {
                 row->icons[1] = 0x6cc;
                 break;
             }
@@ -1737,7 +1527,7 @@ int ai_AmountRowStatus(LCAMOUNTROW *row)
     if (gv_HeldCrimeCount(row->rec->netId, ai_PlayerId) > 0) {
         row->icons[2] = 0x6cd;
     } else {
-        for (ev = (AIJOB *)he_FindEvent(1, 0, 0x18); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+        for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
             if (ev->chr == ai_PlayerId && row->rec->netId == ev->id4) {
                 row->icons[2] = 0x6ce;
                 break;
@@ -1745,8 +1535,8 @@ int ai_AmountRowStatus(LCAMOUNTROW *row)
         }
     }
     row->icons[3] = 0;
-    for (ev = (AIJOB *)he_FindEvent(1, 0, 0x45); ev != 0; ev = (AIJOB *)he_NextEvent()) {
-        if (ev->partner1 == lc_CharRecs[ai_PlayerId].netId && row->rec->netId == ev->partner2) {
+    for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
+        if (ev->partner1 == ai_Chars[ai_PlayerId].netId && row->rec->netId == ev->partner2) {
             row->icons[3] = 0x6cb;
             break;
         }
@@ -1768,7 +1558,7 @@ int ai_AmountRowStatus(LCAMOUNTROW *row)
    a character the portrait, the corner icons of ai_AmountRowStatus, the title and name ("%s %1N7", only with titled
    and a title) or the name ("%1N7") and below it "%1N5" in the font font, the liking slider of the player
    (disabled; 0 for kind 7, none for kind 6), the frame clickable with the character as its user record when the
-   row is pickable, and the family picture (AICHARREC.ref54) of the kinds 5 .. 7; a vacant row shows the picture
+   row is pickable, and the family picture (AICHAR.ref54) of the kinds 5 .. 7; a vacant row shows the picture
    0x4fb; returns 0 */
 
 int ai_AmountRow(int x, int y, int win, int font, LCAMOUNTROW *row, int titled)
@@ -1790,12 +1580,12 @@ int ai_AmountRow(int x, int y, int win, int font, LCAMOUNTROW *row, int titled)
         if (row->icons[2] != 0)
             d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, y + 0x1f, row->icons[2], d2_LastWindow);
         d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, d2_Pics[0x5da].h + y + 9, row->icons[3], d2_LastWindow);
-        if (row->rec->b00d != 0 && titled != 0)
-            txt_Format(text, "%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->b00d, row->rec->id);
+        if (row->rec->level != 0 && titled != 0)
+            txt_Format(text, (intptr_t)"%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->level, row->rec->id);
         else
-            txt_Format(text, "%1N7", row->rec->id);
+            txt_Format(text, (intptr_t)"%1N7", row->rec->id);
         ai_CentredText(text, cx, row->y, 0xca, font);
-        txt_Format(text, "%1N5", row->rec->id);
+        txt_Format(text, (intptr_t)"%1N5", row->rec->id);
         ai_CentredText(text, cx, row->y + 0xe, 0xca, font);
         if (row->rec->kind != 6) {
             row->ctl[1] = d2_WinOpenSlider(cx - 0x23, d2_Pics[0x5da].h + y + 0x1e, 0x40, 0, 100, 0x75, 0x442,
@@ -1822,7 +1612,7 @@ int ai_AmountRow(int x, int y, int win, int font, LCAMOUNTROW *row, int titled)
    the frame picture 0x5da; for a character the portrait, the corner icons (ai_AmountRowStatus), the liking slider of
    the player (disabled; 0 for kind 7, none for kind 6), the mark 0x6d3 right of the frame when the character is the
    player's partner, the frame clickable with the character as its user record when the row is pickable, and the
-   family picture (AICHARREC.ref54) of the kinds 5 .. 7 left of it; a vacant row shows the picture 0x4fb; win is
+   family picture (AICHAR.ref54) of the kinds 5 .. 7 left of it; a vacant row shows the picture 0x4fb; win is
    not read (the pictures go to d2_LastWindow); returns 0 */
 
 int ai_DrawAmountRow(int x, int y, int win, LCAMOUNTROW *row)
@@ -1850,7 +1640,7 @@ int ai_DrawAmountRow(int x, int y, int win, LCAMOUNTROW *row)
                 d2_SetObjValue(row->ctl[1], 0, 100, (int)gm_Liking(ai_PlayerId, row->rec->id, 1));
             d2_SetObjEnabled(row->ctl[1], 0);
         }
-        if (row->rec->partner == lc_CharRecs[ai_PlayerId].netId)
+        if (row->rec->partner == ai_Chars[ai_PlayerId].netId)
             d2_WinOpenPic(d2_Pics[0x5da].w + x, y, 0x6d3, d2_LastWindow);
         if (row->pickable != 0) {
             d2_Objs[row->ctl[0]].interactive = 1;
@@ -1868,7 +1658,7 @@ int ai_DrawAmountRow(int x, int y, int win, LCAMOUNTROW *row)
    zeroed and gets +4 = 0x204, +8 = 0x5eed68, +0xc = 0x5eed6c and +0x10 = 6, then 0x5c0970 (the config, the
    second argument, 0, 0) runs the tabbed list; its result is returned */
 
-int ai_SpecialAmountList(G8CHARREC *ch, char *text)
+struct AICHAR *ai_SpecialAmountList(AICHAR *ch, char *text)
 {
     AMOUNTCFG cfg;
 
@@ -1889,17 +1679,17 @@ int ai_SpecialAmountList(G8CHARREC *ch, char *text)
    with it, else pick (character, 0) decides (the window disabled meanwhile); a vacant seat ends the viewing. Returns
    the chosen character record (0: none) */
 
-int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, char *caption2,
-                               int (*pick)(AICHARREC *, int))
+struct AICHAR *ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, char *caption2,
+                               int (*pick)(AICHAR *, int))
 {
     int viewing;
     LCAMOUNTROW rows[8];
     AMTREC seats8[5];
     AMTREC seats[6];
     AMTREC seats7[6];
-    AICHARREC *chosen;
-    AICHARREC *viewer;
-    AICHARREC *c;
+    AICHAR *chosen;
+    AICHAR *viewer;
+    AICHAR *c;
     AIJOB *ev;
     float health;
     int redraw;
@@ -1918,17 +1708,17 @@ int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, ch
     do {
         if (redraw) {
             d2_SetForm(win, 2);
-            io_PrintText("$C");
+            io_PrintText((intptr_t)"$C");
             if (viewing != 0)
                 io_PrintText(0xa0, viewer->id);
             else
-                io_PrintText("$Z$[%s$]", kind + 0x12b2);
+                io_PrintText((intptr_t)"$Z$[%s$]", kind + 0x12b2);
             d2_SetForm(win, 3);
-            io_PrintText("$C");
+            io_PrintText((intptr_t)"$C");
             if (caption != 0)
-                io_PrintText(caption);
+                io_PrintText((intptr_t)caption);
             else if (caption2 != 0)
-                io_PrintText(caption2);
+                io_PrintText((intptr_t)caption2);
             d2_SetForm(win, 1);
             d2_RemoveWindowObjects(d2_LastWindow, 1);
             for (i = 0; i < 8; i++) {
@@ -1939,26 +1729,26 @@ int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, ch
             if (kind == 0) {
                 n = 0;
                 for (i = 0; i < 0x300 && n < 8; i++) {
-                    c = &lc_CharRecs[i];
+                    c = &ai_Chars[i];
                     if (c->kind == 6 || c->kind == 7 || c->kind == 5)
                         rows[n++].rec = c;
                 }
             } else if (kind > 0 && kind < 7) {
                 n = amt_GetColumnOffices(kind, 6, seats);
                 for (i = 0; i < n; i++) {
-                    rows[i].rec = (AICHARREC *)gm_FindChar(seats[i].owner);
+                    rows[i].rec = gm_FindChar(seats[i].owner);
                     rows[i].office = seats[i].kind;
                 }
             } else if (kind == 7) {
                 n = amt_GetColumn7Offices(0, 6, seats7);
                 for (i = 0; i < n; i++) {
-                    rows[i].rec = (AICHARREC *)gm_FindChar(seats7[i].owner);
+                    rows[i].rec = gm_FindChar(seats7[i].owner);
                     rows[i].office = seats7[i].kind;
                 }
             } else if (kind == 8) {
                 n = amt_GetColumnOffices(kind, 5, seats8);
                 for (i = 0; i < n; i++) {
-                    rows[i].rec = (AICHARREC *)gm_FindChar(seats8[i].owner);
+                    rows[i].rec = gm_FindChar(seats8[i].owner);
                     rows[i].office = seats8[i].kind;
                 }
             } else {
@@ -1976,9 +1766,9 @@ int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, ch
                     continue;
                 rows[i].icons[0] = rows[i].rec->faith ? 0x6c9 : 0x6ca;
                 rows[i].icons[1] = 0;
-                if (lc_CharRecs[ai_PlayerId].sex != rows[i].rec->sex && (rows[i].rec->powerFlags & LC_LOVER_FLAG) != 0) {
-                    for (ev = (AIJOB *)he_FindEvent(1, 0, 0x6f); ev != 0; ev = (AIJOB *)he_NextEvent()) {
-                        if (ev->partner1 == lc_CharRecs[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
+                if (ai_Chars[ai_PlayerId].sex != rows[i].rec->sex && (rows[i].rec->flags1c8 & LC_LOVER_FLAG) != 0) {
+                    for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
+                        if (ev->partner1 == ai_Chars[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
                             rows[i].icons[1] = 0x6cc;
                             break;
                         }
@@ -1988,7 +1778,7 @@ int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, ch
                 if (gv_HeldCrimeCount(rows[i].rec->netId, ai_PlayerId) > 0) {
                     rows[i].icons[2] = 0x6cd;
                 } else {
-                    for (ev = (AIJOB *)he_FindEvent(1, 0, 0x18); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+                    for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
                         if (ev->chr == ai_PlayerId && rows[i].rec->netId == ev->id4) {
                             rows[i].icons[2] = 0x6ce;
                             break;
@@ -1996,8 +1786,8 @@ int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, ch
                     }
                 }
                 rows[i].icons[3] = 0;
-                for (ev = (AIJOB *)he_FindEvent(1, 0, 0x45); ev != 0; ev = (AIJOB *)he_NextEvent()) {
-                    if (ev->partner1 == lc_CharRecs[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
+                for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
+                    if (ev->partner1 == ai_Chars[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
                         rows[i].icons[3] = 0x6cb;
                         break;
                     }
@@ -2015,9 +1805,9 @@ int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, ch
                 }
             }
             if (kind == 0 || kind == 7)
-                ai_ShowAmountRows(d2_LastWindow, kind, filter, n, rows, viewer ? viewer : &lc_CharRecs[ai_PlayerId]);
+                ai_ShowAmountRows(d2_LastWindow, kind, filter, n, rows, viewer ? viewer : &ai_Chars[ai_PlayerId]);
             else
-                ai_ShowOfficeRows(d2_LastWindow, kind, filter, n, rows, viewer ? viewer : &lc_CharRecs[ai_PlayerId]);
+                ai_ShowOfficeRows(d2_LastWindow, kind, filter, n, rows, viewer ? viewer : &ai_Chars[ai_PlayerId]);
             redraw = 0;
         }
         if (dm_L.rup != 0) {
@@ -2075,7 +1865,7 @@ int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, ch
         }
     } while (sv_RunFrame(ai_SpecialAmountListWindow, 0x657c7) != 0);
     d2_CloseView(win);
-    return (int)chosen;
+    return chosen;
 }
 /* 0x5bf0d0, the fill of the special-amount window's family tab (tab 0, 551 B): the characters other than me, alive
    (id != 0xffff) and of a kind below 10 that are one of my relatives (the relation class 4 / 5 for relatives[0],
@@ -2085,9 +1875,9 @@ int ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *caption, ch
    its corner icons (ai_AmountRowStatus) and makes it pickable when it passes the partner filter filter
    (ai_PassesPartnerFilter); returns the count */
 
-unsigned int ai_FillFamilyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
+unsigned int ai_FillFamilyTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
 {
-    AICHARREC *c;
+    AICHAR *c;
     AIJOB *ev;
     int found;
     int j;
@@ -2098,7 +1888,7 @@ unsigned int ai_FillFamilyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows
     cnt = 0;
     if (max == 0) {
         for (i = 0; i < 0x300; i++) {
-            c = &lc_CharRecs[i];
+            c = &ai_Chars[i];
             if (c == me || c->id == 0xffff || c->kind >= 10)
                 continue;
             found = 0;
@@ -2108,10 +1898,10 @@ unsigned int ai_FillFamilyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows
                     break;
                 }
             }
-            if (found || (c->w050 == me->w050 && c->b058 == me->b058))
+            if (found || (c->w050 == me->w050 && c->generation == me->generation))
                 cnt++;
         }
-        for (ev = (AIJOB *)he_FindEvent(1, 0, 0x41); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+        for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
             if (ev->partner1 == me->netId) {
                 cnt++;
                 break;
@@ -2122,7 +1912,7 @@ unsigned int ai_FillFamilyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows
     memset(rows, 0, max * sizeof(LCAMOUNTROW));
     n = 0;
     for (i = 0; i < 0x300; i++) {
-        c = &lc_CharRecs[i];
+        c = &ai_Chars[i];
         if (n >= max)
             break;
         if (c == me || c->id == 0xffff || c->kind >= 10)
@@ -2151,16 +1941,16 @@ unsigned int ai_FillFamilyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows
                 break;
             }
             n++;
-        } else if (c->w050 == me->w050 && c->b058 == me->b058) {
+        } else if (c->w050 == me->w050 && c->generation == me->generation) {
             rows[n].rec = c;
             rows[n].x2c = (c->sex != 0) + 2;
             n++;
         }
     }
     if (n < max) {
-        for (ev = (AIJOB *)he_FindEvent(1, 0, 0x41); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+        for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
             if (ev->partner1 == me->netId) {
-                c = (AICHARREC *)gm_FindChar(ev->partner2);
+                c = gm_FindChar(ev->partner2);
                 if (c != 0 && c->netId != me->relatives[0]) {
                     rows[n].rec = c;
                     rows[n].x2c = (c->sex != 0) + 8;
@@ -2183,11 +1973,11 @@ unsigned int ai_FillFamilyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows
    corner icons (ai_AmountRowStatus) and the partner filter filter (ai_PassesPartnerFilter, pickable); returns the
    count */
 
-unsigned int ai_FillFriendsTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
+unsigned int ai_FillFriendsTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
 {
     unsigned int n;
-    AICHARREC *c;
-    AICHARREC *t;
+    AICHAR *c;
+    AICHAR *t;
     float like;
     unsigned int k;
     int i;
@@ -2195,7 +1985,7 @@ unsigned int ai_FillFriendsTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
     n = 0;
     if (max == 0) {
         for (i = 0; i < 0x300; i++) {
-            c = &lc_CharRecs[i];
+            c = &ai_Chars[i];
             if (c != me && c->id != 0xffff && c->kind >= 2 && c->kind <= 7 &&
                 gm_Liking(me->id, c->id, 1) >= 75.0f && c->partner != me->netId)
                 n++;
@@ -2204,7 +1994,7 @@ unsigned int ai_FillFriendsTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
     }
     memset(rows, 0, max * sizeof(LCAMOUNTROW));
     for (i = 0; i < 0x300; i++) {
-        c = &lc_CharRecs[i];
+        c = &ai_Chars[i];
         if (c == me || c->id == 0xffff || c->kind < 2 || c->kind > 7)
             continue;
         like = gm_Liking(me->id, c->id, 1);
@@ -2239,11 +2029,11 @@ unsigned int ai_FillFriendsTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
    count (at most max) gets the corner icons (ai_AmountRowStatus) and the partner filter filter
    (ai_PassesPartnerFilter, pickable); returns the count */
 
-unsigned int ai_FillEnemiesTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
+unsigned int ai_FillEnemiesTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
 {
     unsigned int n;
-    AICHARREC *c;
-    AICHARREC *t;
+    AICHAR *c;
+    AICHAR *t;
     float like;
     unsigned int k;
     int i;
@@ -2251,7 +2041,7 @@ unsigned int ai_FillEnemiesTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
     n = 0;
     if (max == 0) {
         for (i = 0; i < 0x300; i++) {
-            c = &lc_CharRecs[i];
+            c = &ai_Chars[i];
             if (c != me && c->id != 0xffff && c->kind >= 2 && c->kind <= 7 &&
                 (gm_Liking(me->id, c->id, 1) <= 33.0f || c->partner == me->netId))
                 n++;
@@ -2262,7 +2052,7 @@ unsigned int ai_FillEnemiesTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
     for (k = 0; k < max; k++)
         rows[k].x2c = 100;
     for (i = 0; i < 0x300; i++) {
-        c = &lc_CharRecs[i];
+        c = &ai_Chars[i];
         if (c == me || c->id == 0xffff || c->kind < 2 || c->kind > 7)
             continue;
         if (c->partner == me->netId)
@@ -2318,18 +2108,18 @@ unsigned int ai_FillEnemiesTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
    test (no c) 26 but the store order is wrong, split n++ / nested if = control; climb --base rowp 2
    rounds: nothing. Next: what raises n above max (an n reference the original has, or max's memset refs). */
 
-unsigned int ai_FillLoversTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
+unsigned int ai_FillLoversTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
 {
     int n;
     unsigned int i;
-    AICHARREC *lovers[4];
-    AICHARREC *c;
+    AICHAR *lovers[4];
+    AICHAR *c;
     AIJOB *ev;
 
     n = 0;
-    for (ev = (AIJOB *)he_FindEvent(1, 0, 0x6f); ev != 0 && n < 4; ev = (AIJOB *)he_NextEvent()) {
+    for (ev = he_FindEvent(1, 0, 0x6f); ev != 0 && n < 4; ev = he_NextEvent()) {
         if (ev->partner1 == me->netId) {
-            c = (AICHARREC *)gm_FindChar(ev->partner2);
+            c = gm_FindChar(ev->partner2);
             if (c != 0)
                 lovers[n++] = c;
         }
@@ -2361,12 +2151,12 @@ typedef struct LCOFFEREVENT {           /* the wedding offer event 0x2c's words 
    id), up to max of them, each with the corner icons (ai_AmountRowStatus) and the partner filter filter
    (ai_PassesPartnerFilter, pickable); returns the count */
 
-unsigned int ai_FillWeddingTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
+unsigned int ai_FillWeddingTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
 {
-    AICHARREC *guests[6];
+    AICHAR *guests[6];
     int roles[6];
     LCOFFEREVENT *ev;
-    AICHARREC *c;
+    AICHAR *c;
     unsigned int n;
     int j;
     int soonest;
@@ -2378,33 +2168,33 @@ unsigned int ai_FillWeddingTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
     if (max == 0) {
         for (ev = (LCOFFEREVENT *)he_FindEvent(1, 0, 0x2c); ev != 0; ev = (LCOFFEREVENT *)he_NextEvent()) {
             mine = 0;
-            c = (AICHARREC *)gm_FindChar(ev->who[0]);
+            c = gm_FindChar(ev->who[0]);
             if (c == 0)
                 continue;
             if (c == me)
                 mine = 1;
-            c = (AICHARREC *)gm_FindChar(ev->who[1]);
+            c = gm_FindChar(ev->who[1]);
             if (c == 0)
                 continue;
             if (c == me)
                 mine = 1;
-            c = (AICHARREC *)gm_FindChar(ev->who[2]);
+            c = gm_FindChar(ev->who[2]);
             if (c == 0)
                 continue;
             if (c == me)
                 mine = 1;
-            c = (AICHARREC *)gm_FindChar(ev->who[3]);
+            c = gm_FindChar(ev->who[3]);
             if (c == 0)
                 continue;
             if (c == me)
                 mine = 1;
-            c = (AICHARREC *)gm_FindChar(ev->who[4]);
+            c = gm_FindChar(ev->who[4]);
             if (c == 0)
                 continue;
             k = 5;
             if (c == me)
                 mine = 1;
-            c = (AICHARREC *)gm_FindChar(ev->who[5]);
+            c = gm_FindChar(ev->who[5]);
             if (c != 0) {
                 k = 6;
                 if (c == me)
@@ -2419,37 +2209,37 @@ unsigned int ai_FillWeddingTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
         mine = 0;
         if (ev->clock.year - ai_Time.year > soonest)
             continue;
-        guests[0] = (AICHARREC *)gm_FindChar(ev->who[0]);
+        guests[0] = gm_FindChar(ev->who[0]);
         if (guests[0] == 0)
             continue;
         roles[0] = 0;
         if (guests[0] == me)
             mine = 1;
-        guests[1] = (AICHARREC *)gm_FindChar(ev->who[1]);
+        guests[1] = gm_FindChar(ev->who[1]);
         if (guests[1] == 0)
             continue;
         roles[1] = 1;
         if (guests[1] == me)
             mine = 1;
-        guests[2] = (AICHARREC *)gm_FindChar(ev->who[2]);
+        guests[2] = gm_FindChar(ev->who[2]);
         if (guests[2] == 0)
             continue;
         roles[2] = 2;
         if (guests[2] == me)
             mine = 1;
-        guests[3] = (AICHARREC *)gm_FindChar(ev->who[3]);
+        guests[3] = gm_FindChar(ev->who[3]);
         if (guests[3] == 0)
             continue;
         roles[3] = 3;
         if (guests[3] == me)
             mine = 1;
-        guests[4] = (AICHARREC *)gm_FindChar(ev->who[4]);
+        guests[4] = gm_FindChar(ev->who[4]);
         if (guests[4] == 0)
             continue;
         roles[4] = 3;
         if (guests[4] == me)
             mine = 1;
-        guests[5] = (AICHARREC *)gm_FindChar(ev->who[5]);
+        guests[5] = gm_FindChar(ev->who[5]);
         if (guests[5] != 0) {
             roles[5] = 4;
             if (guests[5] == me)
@@ -2473,23 +2263,23 @@ unsigned int ai_FillWeddingTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
     return n;
 }
 /* 0x5bfa90, the fill of the special-amount window's quarrel tab (tab 5, 428 B): while me is in a quarrel
-   (AICHARREC.powerFlags 0x400) the other side of its insult event 0x47 (role 0), then the characters (id4) of the
+   (AICHAR.flags1c8 0x400) the other side of its insult event 0x47 (role 0), then the characters (id4) of the
    crime events 0x18 of me (role 1). With max 0 it only counts them; else it fills rows with them (LCAMOUNTROW.rec,
    x2c the role; the crimes up to max rows) and gives each the corner icons (ai_AmountRowStatus) and the partner
    filter filter (ai_PassesPartnerFilter, pickable); returns the count */
 
-unsigned int ai_FillQuarrelTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
+unsigned int ai_FillQuarrelTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
 {
     AIJOB *ev;
-    AICHARREC *c;
+    AICHAR *c;
     unsigned int count;
     unsigned int n;
     int i;
 
     count = 0;
     if (max == 0) {
-        if ((me->powerFlags & 0x400) != 0) {
-            for (ev = (AIJOB *)he_FindEvent(1, 0, 0x47); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+        if ((me->flags1c8 & 0x400) != 0) {
+            for (ev = he_FindEvent(1, 0, 0x47); ev != 0; ev = he_NextEvent()) {
                 if (ev->partner1 == me->netId) {
                     if (gm_FindChar(ev->partner2) != 0)
                         count = 1;
@@ -2502,7 +2292,7 @@ unsigned int ai_FillQuarrelTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
                 }
             }
         }
-        for (ev = (AIJOB *)he_FindEvent(2, 2, me->id, 0, 0x18); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+        for (ev = he_FindEvent(2, 2, me->id, 0, 0x18); ev != 0; ev = he_NextEvent()) {
             if (gm_FindChar(ev->id4) != 0)
                 count++;
         }
@@ -2510,14 +2300,14 @@ unsigned int ai_FillQuarrelTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
     }
     n = 0;
     c = 0;
-    if ((me->powerFlags & 0x400) != 0) {
-        for (ev = (AIJOB *)he_FindEvent(1, 0, 0x47); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+    if ((me->flags1c8 & 0x400) != 0) {
+        for (ev = he_FindEvent(1, 0, 0x47); ev != 0; ev = he_NextEvent()) {
             if (ev->partner1 == me->netId) {
-                c = (AICHARREC *)gm_FindChar(ev->partner2);
+                c = gm_FindChar(ev->partner2);
                 break;
             }
             if (ev->partner2 == me->netId) {
-                c = (AICHARREC *)gm_FindChar(ev->partner1);
+                c = gm_FindChar(ev->partner1);
                 break;
             }
         }
@@ -2527,8 +2317,8 @@ unsigned int ai_FillQuarrelTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
         rows[0].x2c = 0;
         n = 1;
     }
-    for (ev = (AIJOB *)he_FindEvent(2, 2, me->id, 0, 0x18); ev != 0 && n < max; ev = (AIJOB *)he_NextEvent()) {
-        c = (AICHARREC *)gm_FindChar(ev->id4);
+    for (ev = he_FindEvent(2, 2, me->id, 0, 0x18); ev != 0 && n < max; ev = he_NextEvent()) {
+        c = gm_FindChar(ev->id4);
         if (c != 0) {
             rows[n].rec = c;
             rows[n].x2c = 1;
@@ -2542,17 +2332,17 @@ unsigned int ai_FillQuarrelTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *row
     return n;
 }
 /* 0x5bfc40, the fill of the special-amount window's candidacy tab (tab 6, 335 B): while me applies for an office
-   (AICHARREC.appliedOffice), the office's applicants (amt_GetOfficeApplicants, up to 6) and up to three other
+   (AICHAR.appliedOffice), the office's applicants (amt_GetOfficeApplicants, up to 6) and up to three other
    characters applying for the same office. With max 0 it only counts them; else rows[0].x34 is the office and the
    rows take the applicants (x2c 0, up to min(max, count)) then the other characters (x2c 1, up to max rows in all),
    each with the corner icons (ai_AmountRowStatus) and the partner filter filter (ai_PassesPartnerFilter, pickable);
    returns the rows filled */
 
-unsigned int ai_FillCandidacyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
+unsigned int ai_FillCandidacyTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
 {
     char *applicants[6];
-    AICHARREC *rivals[3];
-    AICHARREC *c;
+    AICHAR *rivals[3];
+    AICHAR *c;
     int nApplicants;
     int nRivals;
     unsigned int i;
@@ -2562,7 +2352,7 @@ unsigned int ai_FillCandidacyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *r
         return 0;
     nApplicants = amt_GetOfficeApplicants(me->appliedOffice, 6, applicants);
     nRivals = 0;
-    for (c = (AICHARREC *)ai_Chars; (int)c < (int)ai_Chars[768]; c++) {  /* a signed compare (jl) in the original */
+    for (c = ai_Chars; (int)c < (int)&ai_Chars[768]; c++) {  /* a signed compare (jl) in the original */
         if (nRivals >= 3)
             break;
         if (c->id != 0xffff && c->id != me->id && c->appliedOffice == me->appliedOffice)
@@ -2572,7 +2362,7 @@ unsigned int ai_FillCandidacyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *r
         return nRivals + nApplicants;
     rows[0].x34 = me->appliedOffice;
     for (i = 0; i < (max < (unsigned int)nApplicants ? max : nApplicants); i++) {
-        rows[i].rec = (AICHARREC *)applicants[i];
+        rows[i].rec = (AICHAR *)applicants[i];
         rows[i].x2c = 0;
         ai_AmountRowStatus(&rows[i]);
         rows[i].pickable = ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
@@ -2589,15 +2379,15 @@ unsigned int ai_FillCandidacyTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *r
     return i;
 }
 /* 0x5bfd90, the fill of the special-amount window's office tab (tab 7, 314 B): while me holds an office
-   (AICHARREC.officeKind), the characters applying (AICHARREC.appliedOffice) for one of the open offices me is
+   (AICHAR.officeKind), the characters applying (AICHAR.appliedOffice) for one of the open offices me is
    eligible for (amt_GetEligibleOffices, up to 4). With max 0 it only counts them; else it fills up to max rows
    with them, office by office (LCAMOUNTROW.rec, x34 the office), each with the corner icons (ai_AmountRowStatus)
    and the partner filter filter (ai_PassesPartnerFilter, pickable); returns the count */
 
-unsigned int ai_FillOfficeTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
+unsigned int ai_FillOfficeTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter)
 {
     int offices[4];
-    AICHARREC *c;
+    AICHAR *c;
     unsigned int n;
     int nOffices;
     int k;
@@ -2606,14 +2396,14 @@ unsigned int ai_FillOfficeTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows
     n = 0;
     if (me->officeKind == 0)
         return 0;
-    nOffices = amt_GetEligibleOffices((char *)me, 4, offices);
+    nOffices = amt_GetEligibleOffices(me, 4, offices);
     if (nOffices == 0)
         return 0;
     if (max == 0) {
         for (i = 0; i < 768; i++) {
-            if (((AICHARREC *)ai_Chars)[i].appliedOffice != 0) {
+            if (ai_Chars[i].appliedOffice != 0) {
                 for (k = 0; k < nOffices; k++) {
-                    if (offices[k] == ((AICHARREC *)ai_Chars)[i].appliedOffice) {
+                    if (offices[k] == ai_Chars[i].appliedOffice) {
                         n++;
                         break;
                     }
@@ -2625,7 +2415,7 @@ unsigned int ai_FillOfficeTab(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows
     for (k = 0; k < nOffices; k++) {
         if (n >= max)
             break;
-        for (c = (AICHARREC *)ai_Chars; (int)c < (int)ai_Chars[768]; c++) {
+        for (c = ai_Chars; (int)c < (int)&ai_Chars[768]; c++) {
             if (offices[k] == c->appliedOffice) {
                 rows[n].rec = c;
                 rows[n].x34 = offices[k];
@@ -2652,13 +2442,13 @@ int ai_AmountPageSwitch(int view, int page, int scrollPage)
 
     d2_SetForm(view, page);
     saved = d2_Wins[d2_LastWindow].scrollY;
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     d2_RemoveWindowObjects(d2_LastWindow, 1);
     if (scrollPage != -1) {
         d2_Wins[d2_LastWindow].scrollY = 0;
         win = d2_LastWindow;
         d2_SetForm(view, scrollPage);
-        io_PrintText("$C");
+        io_PrintText((intptr_t)"$C");
         d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
         d2_SetForm(view, page);
         return 0;
@@ -2808,10 +2598,10 @@ int ai_ShowWeddingTab(int view, int page, int scrollPage, unsigned int n, LCAMOU
         return 0;
     saved = ai_AmountPageSwitch(view, page, scrollPage);
     half = d2_Wins[d2_LastWindow].w / 2;
-    txt_Format(name, (int)"%1N3", rows[0].rec->id);
+    txt_Format(name, (intptr_t)"%1N3", rows[0].rec->id);
     ai_CentredText(name, half, 8, half * 2, 0x55);
     ai_CentredText(txt_Ptrs[0x169e], half, 0x20, half * 2, 0x55);
-    txt_Format(name, (int)"%1N3", rows[1].rec->id);
+    txt_Format(name, (intptr_t)"%1N3", rows[1].rec->id);
     ai_CentredText(name, half, 0x38, half * 2, 0x55);
     for (i = 0; i < n; i++) {
         y = 0x52 + i * 0x70;
@@ -2930,7 +2720,7 @@ typedef struct AIAMOUNTTAB {            /* 0x14 bytes, one tab of the special-am
     int id;                             /* +0x00, 0 .. 7 */
     unsigned int count;                 /* +0x04, the rows of the page */
     int control;                        /* +0x08, the tab's button (ai_SpecialAmountWindow), -1: none yet */
-    unsigned int (*fill)(AICHARREC *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter);
+    unsigned int (*fill)(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, unsigned int *filter);
                                         /* +0x0c, the page fill (ai_FillFamilyTab .. ai_FillOfficeTab) */
     int (*show)(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows);
                                         /* +0x10, the page's rows (ai_ShowFamilyTab .. ai_ShowOfficeTab) */
@@ -2954,14 +2744,14 @@ void ai_ClearAmountTabs(void)
    character's id, 1), 0 when me and the row character are both of the kinds 6 / 7; me is the player's
    character, the rows of one tab */
 
-void ai_AmountLikingRows(AICHARREC *me, unsigned count, int *rows)
+void ai_AmountLikingRows(AICHAR *me, unsigned count, int *rows)
 {
-    AICHARREC *chr;
+    AICHAR *chr;
 
     if (me == 0 || me->id == 0xffff)
         return;
     for (; count > 0; count--) {
-        chr = (AICHARREC *)*rows;
+        chr = (AICHAR *)*rows;
         if (chr != 0 && chr->id != 0xffff && rows[2] != -1) {
             if ((me->kind == 6 || me->kind == 7) && (chr->kind == 6 || chr->kind == 7))
                 d2_SetObjValue(rows[2], 0, 100, 0);
@@ -2982,15 +2772,15 @@ void ai_AmountLikingRows(AICHARREC *me, unsigned count, int *rows)
    ticks while the page is not scrolled the tabs are counted and the open one refilled again (state 3). Returns
    the chosen character record (0: none) */
 
-int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*pick)(AICHARREC *, int))
+struct AICHAR *ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*pick)(AICHAR *, int))
 {
     LCAMOUNTROW rows[16];
     int page;
     int hit;
     unsigned long refresh;
-    AICHARREC *chosen;
+    AICHAR *chosen;
     int state;
-    AICHARREC *viewer;
+    AICHAR *viewer;
     int win;
     unsigned int prev;
     int i;
@@ -3007,7 +2797,7 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
     if (ai_AmountTab >= 8)
         ai_AmountTab = 0;
     for (i = 0; i < 8; i++)
-        ai_AmountTabs[i].count = ai_AmountTabs[i].fill(&lc_CharRecs[ai_PlayerId], 0, rows, filter);
+        ai_AmountTabs[i].count = ai_AmountTabs[i].fill(&ai_Chars[ai_PlayerId], 0, rows, filter);
     if (ai_AmountTabs[ai_AmountTab].count == 0) {
         ai_AmountTab = 8;
         for (i = 0; i < 8; i++) {
@@ -3022,7 +2812,7 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
     d2_SetForm(win, 2);
     page = d2_LastWindow;
     d2_SetForm(win, 1);
-    io_PrintText(caption);
+    io_PrintText((intptr_t)caption);
     d2_SetForm(win, 4);
     y = d2_Wins[d2_LastWindow].h - 0x107;
     step = y / 7;
@@ -3036,12 +2826,12 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
     if (ai_AmountTab < 8) {
         d2_SetForm(win, 2);
         ai_AmountTabs[ai_AmountTab].count =
-            ai_AmountTabs[ai_AmountTab].fill(&lc_CharRecs[ai_PlayerId], 16, rows, filter);
+            ai_AmountTabs[ai_AmountTab].fill(&ai_Chars[ai_PlayerId], 16, rows, filter);
         ai_AmountTabs[ai_AmountTab].show(win, 2, 3, ai_AmountTabs[ai_AmountTab].count, rows);
     }
     d2_ClickedId = -1;
     state = 3;
-    viewer = &lc_CharRecs[ai_PlayerId];
+    viewer = &ai_Chars[ai_PlayerId];
     do {
         if (state == 3) {
             prev = -1;
@@ -3050,7 +2840,7 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
             else
                 prev = ai_AmountTabs[ai_AmountTab].count;
             for (i = 0; i < 8; i++)
-                ai_AmountTabs[i].count = ai_AmountTabs[i].fill(&lc_CharRecs[ai_PlayerId], 0, rows, filter);
+                ai_AmountTabs[i].count = ai_AmountTabs[i].fill(&ai_Chars[ai_PlayerId], 0, rows, filter);
             if (ai_AmountTabs[ai_AmountTab].count == 0) {
                 ai_AmountTab = 8;
                 for (i = 0; i < 8; i++) {
@@ -3066,7 +2856,7 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
             }
             if (ai_AmountTab < 8) {
                 ai_AmountTabs[ai_AmountTab].count =
-                    ai_AmountTabs[ai_AmountTab].fill(&lc_CharRecs[ai_PlayerId], 16, rows, filter);
+                    ai_AmountTabs[ai_AmountTab].fill(&ai_Chars[ai_PlayerId], 16, rows, filter);
                 if (ai_AmountTabs[ai_AmountTab].count != prev)
                     ai_AmountTabs[ai_AmountTab].show(win, 2, 3, ai_AmountTabs[ai_AmountTab].count, rows);
                 else  /* the same number of rows: keep the page's scroll offset */
@@ -3074,16 +2864,16 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
                 ai_AmountLikingRows(viewer, ai_AmountTabs[ai_AmountTab].count, (int *)rows);
             } else {
                 ai_AmountPageSwitch(win, 2, 3);
-                viewer = &lc_CharRecs[ai_PlayerId];
+                viewer = &ai_Chars[ai_PlayerId];
             }
         } else if (state == 1) {
-            ai_AmountTabs[hit].count = ai_AmountTabs[hit].fill(&lc_CharRecs[ai_PlayerId], 0, 0, filter);
+            ai_AmountTabs[hit].count = ai_AmountTabs[hit].fill(&ai_Chars[ai_PlayerId], 0, 0, filter);
             if (ai_AmountTabs[hit].count != 0) {
                 d2_Objs[ai_AmountTabs[ai_AmountTab].control].checked = 0;
                 ai_AmountTab = hit;
                 d2_Objs[ai_AmountTabs[hit].control].checked = 1;
                 ai_AmountTabs[ai_AmountTab].count =
-                    ai_AmountTabs[ai_AmountTab].fill(&lc_CharRecs[ai_PlayerId], 16, rows, filter);
+                    ai_AmountTabs[ai_AmountTab].fill(&ai_Chars[ai_PlayerId], 16, rows, filter);
                 ai_AmountTabs[ai_AmountTab].show(win, 2, 3, ai_AmountTabs[ai_AmountTab].count, rows);
             } else {
                 d2_SetObjEnabled(ai_AmountTabs[hit].control, 0);
@@ -3097,7 +2887,7 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
         state = 0;
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
-        } else if (dm_L.rhold != 0 && viewer == &lc_CharRecs[ai_PlayerId]) {
+        } else if (dm_L.rhold != 0 && viewer == &ai_Chars[ai_PlayerId]) {
             chosen = 0;
             viewer = 0;
             k = -1;
@@ -3111,9 +2901,9 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
                 state = 4;
                 viewer = rows[k].rec;
             }
-        } else if (dm_L.rhold == 0 && viewer != &lc_CharRecs[ai_PlayerId]) {
+        } else if (dm_L.rhold == 0 && viewer != &ai_Chars[ai_PlayerId]) {
             state = 4;
-            viewer = &lc_CharRecs[ai_PlayerId];
+            viewer = &ai_Chars[ai_PlayerId];
         } else if (d2_ClickedId != -1) {
             for (i = 0; i < 8; i++) {
                 if (ai_AmountTabs[i].control == d2_PointerObj) {
@@ -3141,9 +2931,9 @@ int ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*p
             refresh = d3_Time + 0xd8;
         }
 next:;
-    } while (sv_RunFrame((int)ai_SpecialAmountWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_SpecialAmountWindow, 0x657c7) != 0);
     d2_CloseView(win);
-    return (int)chosen;
+    return chosen;
 }
 /* 0x5c1130, the special-amount menu "special\amt1" (975 B): the caption (caption, else the text 0xa1), the
    tabbed window's button (the text 0x1687, its object in form 3) and nine picture buttons, each named by its
@@ -3154,13 +2944,13 @@ next:;
    chosen there closes the menu too unless pick decides or cfg->option14 has bit 4; a right release closes it.
    Returns the chosen character record (0: none); prompt is not read */
 
-int ai_AmountMenu(AMOUNTCFG *cfg, char *caption, int prompt, int (*pick)(AICHARREC *, int))
+struct AICHAR *ai_AmountMenu(AMOUNTCFG *cfg, char *caption, int prompt, int (*pick)(AICHAR *, int))
 {
     int ctrl;
     int btn[9];
     int order[9];
     int win;
-    int r;
+    AICHAR *r;
     int i;
     int hit;
 
@@ -3178,11 +2968,11 @@ int ai_AmountMenu(AMOUNTCFG *cfg, char *caption, int prompt, int (*pick)(AICHARR
     d2_CentreViewWindows(win);
     d2_SetForm(win, 2);
     if (caption != 0)
-        io_PrintText(caption);
+        io_PrintText((intptr_t)caption);
     else
-        io_PrintText((char *)0xa1);
+        io_PrintText(0xa1);
     d2_SetForm(win, 3);
-    ctrl = d2_GetWinObj(win, 3, io_PrintText((char *)0x1687));
+    ctrl = d2_GetWinObj(win, 3, io_PrintText(0x1687));
     d2_SetForm(win, 1);
     btn[0] = d2_WinOpenPic(0x45, 0x3c, 0x589, d2_LastWindow);
     btn[1] = d2_WinOpenPic(0x10f, 0x25, 0x599, d2_LastWindow);
@@ -3235,7 +3025,7 @@ int ai_AmountMenu(AMOUNTCFG *cfg, char *caption, int prompt, int (*pick)(AICHARR
             if (r != 0 && pick == 0 && (cfg->option14 & 4) == 0)
                 sv_PopRequest = 1;
         }
-    } while (sv_RunFrame((int)ai_AmountMenu, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_AmountMenu, 0x657c7) != 0);
     d2_CloseView(win);
     return r;
 }
@@ -3250,13 +3040,13 @@ int ai_AmountMenu(AMOUNTCFG *cfg, char *caption, int prompt, int (*pick)(AICHARR
 
 void ai_AmountListWindow(int kind)
 {
-    AICHARREC *viewer;
+    AICHAR *viewer;
     int viewing;
     int win;
     LCAMOUNTROW rows[8];
     AMTREC seats7[6];
     AMTREC seats[6];
-    AICHARREC *c;
+    AICHAR *c;
     AIJOB *ev;
     float health;
     int redraw;
@@ -3273,13 +3063,13 @@ void ai_AmountListWindow(int kind)
     do {
         if (redraw) {
             d2_SetForm(win, 2);
-            io_PrintText("$C");
+            io_PrintText((intptr_t)"$C");
             if (viewing != 0)
                 io_PrintText(0xa0, viewer->id);
             else
-                io_PrintText("$Z$[%s$]", kind + 0x12b2);
+                io_PrintText((intptr_t)"$Z$[%s$]", kind + 0x12b2);
             d2_SetForm(win, 3);
-            io_PrintText("$C");
+            io_PrintText((intptr_t)"$C");
             d2_SetForm(win, 1);
             d2_RemoveWindowObjects(d2_LastWindow, 1);
             for (i = 0; i < 8; i++) {
@@ -3290,13 +3080,13 @@ void ai_AmountListWindow(int kind)
             if ((kind > 0 && kind < 7) || kind == 8) {
                 n = amt_GetColumnOffices(kind, 6, seats);
                 for (i = 0; i < n; i++) {
-                    rows[i].rec = (AICHARREC *)gm_FindChar(seats[i].owner);
+                    rows[i].rec = gm_FindChar(seats[i].owner);
                     rows[i].office = seats[i].kind;
                 }
             } else if (kind == 7) {
                 n = amt_GetColumn7Offices(0, 6, seats7);
                 for (i = 0; i < n; i++) {
-                    rows[i].rec = (AICHARREC *)gm_FindChar(seats7[i].owner);
+                    rows[i].rec = gm_FindChar(seats7[i].owner);
                     rows[i].office = seats7[i].kind;
                 }
             } else {
@@ -3310,9 +3100,9 @@ void ai_AmountListWindow(int kind)
                     continue;
                 rows[i].icons[0] = rows[i].rec->faith ? 0x6c9 : 0x6ca;
                 rows[i].icons[1] = 0;
-                if (lc_CharRecs[ai_PlayerId].sex != rows[i].rec->sex && (rows[i].rec->powerFlags & LC_LOVER_FLAG) != 0) {
-                    for (ev = (AIJOB *)he_FindEvent(1, 0, 0x6f); ev != 0; ev = (AIJOB *)he_NextEvent()) {
-                        if (ev->partner1 == lc_CharRecs[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
+                if (ai_Chars[ai_PlayerId].sex != rows[i].rec->sex && (rows[i].rec->flags1c8 & LC_LOVER_FLAG) != 0) {
+                    for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
+                        if (ev->partner1 == ai_Chars[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
                             rows[i].icons[1] = 0x6cc;
                             break;
                         }
@@ -3322,7 +3112,7 @@ void ai_AmountListWindow(int kind)
                 if (gv_HeldCrimeCount(rows[i].rec->netId, ai_PlayerId) > 0) {
                     rows[i].icons[2] = 0x6cd;
                 } else {
-                    for (ev = (AIJOB *)he_FindEvent(1, 0, 0x18); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+                    for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
                         if (ev->chr == ai_PlayerId && rows[i].rec->netId == ev->id4) {
                             rows[i].icons[2] = 0x6ce;
                             break;
@@ -3330,8 +3120,8 @@ void ai_AmountListWindow(int kind)
                     }
                 }
                 rows[i].icons[3] = 0;
-                for (ev = (AIJOB *)he_FindEvent(1, 0, 0x45); ev != 0; ev = (AIJOB *)he_NextEvent()) {
-                    if (ev->partner1 == lc_CharRecs[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
+                for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
+                    if (ev->partner1 == ai_Chars[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
                         rows[i].icons[3] = 0x6cb;
                         break;
                     }
@@ -3349,9 +3139,9 @@ void ai_AmountListWindow(int kind)
                 }
             }
             if (kind == 0 || kind == 7)
-                ai_ShowAmountRows(d2_LastWindow, kind, 0, n, rows, viewer ? viewer : &lc_CharRecs[ai_PlayerId]);
+                ai_ShowAmountRows(d2_LastWindow, kind, 0, n, rows, viewer ? viewer : &ai_Chars[ai_PlayerId]);
             else
-                ai_ShowOfficeRows(d2_LastWindow, kind, 0, n, rows, viewer ? viewer : &lc_CharRecs[ai_PlayerId]);
+                ai_ShowOfficeRows(d2_LastWindow, kind, 0, n, rows, viewer ? viewer : &ai_Chars[ai_PlayerId]);
             for (i = 0; i < n; i++) {
                 d2_SetObjEnabled(rows[i].ctl[0], 1);
                 if (rows[i].ctl[1] != -1)
@@ -3410,7 +3200,7 @@ void ai_AmountListWindow(int kind)
    (0x5309a0, this, 0x657c7) with dm_L.rup ending it; closes the view. Both callers also pass a character
    (the row's holder, or 0), which the box does not read */
 
-void ai_AmountInfoWindow(int kind, AICHARREC *ch)
+void ai_AmountInfoWindow(int kind, AICHAR *ch)
 {
     int win;
 
@@ -3418,7 +3208,7 @@ void ai_AmountInfoWindow(int kind, AICHARREC *ch)
     win = d2_OpenForm(0, 0, "special\\amtinfo");
     d2_CentreViewWindows(win);
     d2_SetForm(win, 2);
-    io_PrintText("$Z$[ %s $]$A$Z", kind + 0x253);
+    io_PrintText((intptr_t)"$Z$[ %s $]$A$Z", kind + 0x253);
     d2_SetForm(win, 1);
     io_PrintText(kind * 2 + 0x134b);
     io_PrintText(kind * 2 + 0x134c);
@@ -3466,9 +3256,9 @@ void ai_AmountKindMenu(void (*pick)(int kind), char *caption, int withKind8)
     d2_CentreViewWindows(win);
     d2_SetForm(win, 2);
     if (caption != 0)
-        io_PrintText(caption);
+        io_PrintText((intptr_t)caption);
     else
-        io_PrintText((char *)0xa2);
+        io_PrintText(0xa2);
     d2_SetForm(win, 1);
     btn[0] = d2_WinOpenPic(0x10f, 0x25, 0x599, d2_LastWindow);
     btn[1] = d2_WinOpenPic(0x10f, 0x93, 0x58d, d2_LastWindow);
@@ -3505,7 +3295,7 @@ void ai_AmountKindMenu(void (*pick)(int kind), char *caption, int withKind8)
                 d2_SetViewEnabled(win, 1);
             }
         }
-    } while (sv_RunFrame((int)ai_AmountKindMenu, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_AmountKindMenu, 0x657c7) != 0);
     d2_CloseView(win);
 }
 /* 0x5c1df0, the agenda entry of the Rathaus name plate: opens the seven-button amount kind menu
@@ -3523,8 +3313,8 @@ void ai_OpenAgendaMenu(void)
    of state 2 with their holder and the character in x14 (0x139f: x14's id, the holder's id, the office's name
    0x253 + kind, 0x27b + kind for a female holder); page 3 lists, for the columns below 8 (0x13a0), every office
    open for applications (state 3: 0x13a1 with its name) with up to four characters applying for it
-   (AICHARREC.appliedOffice); for the column 8 (0x13a2) the pending election's office (hmt_GetElectionObjType:
-   0x13a3 with its name) and up to four characters of its group (AICHARREC.flags1cc 0x8000 for 0x24, 0x10000
+   (AICHAR.appliedOffice); for the column 8 (0x13a2) the pending election's office (hmt_GetElectionObjType:
+   0x13a3 with its name) and up to four characters of its group (AICHAR.flags1cc 0x8000 for 0x24, 0x10000
    for 0x25, else 0x4000). An empty page says 0x139d. A right release closes it */
 
 void ai_AgendaOfficeList(int kind)
@@ -3532,11 +3322,11 @@ void ai_AgendaOfficeList(int kind)
     int shown;
     int n;
     int count;
-    AICHARREC *group[4];
+    AICHAR *group[4];
     AMTREC seats[6];
-    AICHARREC *holder;
-    AICHARREC *other;
-    AICHARREC *c;
+    AICHAR *holder;
+    AICHAR *other;
+    AICHAR *c;
     unsigned int mask;
     int listed;
     int found;
@@ -3567,8 +3357,8 @@ void ai_AgendaOfficeList(int kind)
     for (i = 0; i < n; i++) {
         if (seats[i].state != 2)
             continue;
-        holder = (AICHARREC *)gm_FindChar(seats[i].owner);
-        other = (AICHARREC *)gm_FindChar(seats[i].x14);
+        holder = gm_FindChar(seats[i].owner);
+        other = gm_FindChar(seats[i].x14);
         if (holder != 0 && other != 0) {
             listed |= 1;
             io_PrintText(0x139f, other->id, holder->id, holder->sex == 0 ? seats[i].kind + 0x253 : seats[i].kind + 0x27b);
@@ -3587,12 +3377,12 @@ void ai_AgendaOfficeList(int kind)
             shown |= 1;
             io_PrintText(0x13a1, seats[i].kind + 0x253);
             count = 0;
-            for (c = lc_CharRecs; (int)c < (int)&lc_CharRecs[0x300]; c++) {  /* a signed compare (jl) in the original */
+            for (c = ai_Chars; (int)c < (int)&ai_Chars[0x300]; c++) {  /* a signed compare (jl) in the original */
                 if (count >= 4)
                     break;
                 if (c->appliedOffice == seats[i].kind) {
                     found |= 1;
-                    io_PrintText("$A$Z%1N2", c->id);
+                    io_PrintText((intptr_t)"$A$Z%1N2", c->id);
                     count++;
                 }
             }
@@ -3613,8 +3403,8 @@ void ai_AgendaOfficeList(int kind)
                 mask = type == 0x25 ? 0x10000 : 0x4000;
         }
         m = 0;
-        for (c = lc_CharRecs; m < 4; c++) {
-            if ((int)c >= (int)&lc_CharRecs[0x300])
+        for (c = ai_Chars; m < 4; c++) {
+            if ((int)c >= (int)&ai_Chars[0x300])
                 break;
             if (c->flags1cc & mask)
                 group[m++] = c;
@@ -3625,9 +3415,9 @@ void ai_AgendaOfficeList(int kind)
             io_PrintText(0x13a3, type + 0x253);
             for (i = 0; i < m; i++) {
                 if (i == 0)
-                    io_PrintText("$2A$Z%1N2", group[0]->id);
+                    io_PrintText((intptr_t)"$2A$Z%1N2", group[0]->id);
                 else
-                    io_PrintText("$A$Z%1N2", group[i]->id);
+                    io_PrintText((intptr_t)"$A$Z%1N2", group[i]->id);
             }
         }
     }
@@ -3636,7 +3426,7 @@ void ai_AgendaOfficeList(int kind)
     do {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_OpenAgendaMenu, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_OpenAgendaMenu, 0x657c7) != 0);
     d2_CloseView(win);
 }
 
@@ -3706,7 +3496,7 @@ void ai_OpenLawBook(int book)
             page = bk->views[1];
         }
         gv_TableRecordText(text, n);
-        ctrl[i] = d2_GetWinObj(page, 2, io_PrintText("%it$1>%s$N$0>", text));
+        ctrl[i] = d2_GetWinObj(page, 2, io_PrintText((intptr_t)"%it$1>%s$N$0>", text));
     }
     d2_SetForm(bk->views[0], 3);
     io_PrintText(0x1a38, 1);
@@ -3743,7 +3533,7 @@ void ai_OpenLawBook(int book)
         sv_UpdateBook(bk);
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_OpenLawBook, 0x677c7) != 0);
+    } while (sv_RunFrame(ai_OpenLawBook, 0x677c7) != 0);
     sv_CloseBook(bk);
     sv_CameraFollow();
 }
@@ -3778,20 +3568,20 @@ void ai_LawBookInfoWindow(int textId, int lawText)
    4) != 0 spellings, every subset of the four on values inlined into their two uses (15 variants): =
    control or worse; climb round 1 (49 mutants): nothing. Open: a set.flags reference more in the first
    block (P 15, +30 each) or one checks reference fewer would flip them; the original's parameter may have
-   been the four words of LCWORKSET as scalars (flags a parameter candidate). */
+   been the four words of AIWORKSET as scalars (flags a parameter candidate). */
 
 void ai_ShowWorkSettingsPage(int win, int *budgetCtrl, int *budget, int *checks, AIBLD *bld, int charId,
-                             LCWORKSET set, int *factorCtrl, G8SETTAIL *setting)
+                             AIWORKSET set, int *factorCtrl, G8SETTAIL *setting)
 {
     int ctrl;
     unsigned int on;
     AIBTYPE *type;
 
     d2_SetForm(win, 1);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     io_PrintText(0x1949);
     d2_SetForm(win, 2);
-    io_PrintText("$C$A");
+    io_PrintText((intptr_t)"$C$A");
     on = set.flags & 1;
     ctrl = d2_GetWinObj(win, 2, io_PrintText(0x194f, 0, charId, on + 0x1951));
     checks[0] = ctrl;
@@ -3799,7 +3589,7 @@ void ai_ShowWorkSettingsPage(int win, int *budgetCtrl, int *budget, int *checks,
     checks[1] = -1;
     checks[2] = -1;
     checks[3] = -1;
-    type = &((AIBTYPE *)ai_BTypes)[bld->type];
+    type = &ai_BTypes[bld->type];
     if (type->kind != 5) {
         on = (set.flags >> 1) & 1;
         ctrl = d2_GetWinObj(win, 2, io_PrintText(0x1954, 0, charId, on + 0x1955));
@@ -3913,7 +3703,7 @@ void ai_MasterHireWindow(AIBLD *bld, int mode)
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == hireButton) {
-                for (job = (AIJOB *)he_FindEvent(2, 0, 7, 3, bld->id); job != 0; job = (AIJOB *)he_NextEvent())
+                for (job = he_FindEvent(2, 0, 7, 3, bld->id); job != 0; job = he_NextEvent())
                     if (job->hireTitle == 0)
                         break;
                 if (job == 0) {
@@ -3927,12 +3717,12 @@ void ai_MasterHireWindow(AIBLD *bld, int mode)
                     if (gm_IsHomeType(bld) != 0)
                         msg.hireMasterRoom = -1;
                     else
-                        msg.hireMasterRoom = ((AIROOM *)sv_PanelShown)->objId;
+                        msg.hireMasterRoom = sv_PanelShown->objId;
                     msg.hireTitle = 0;
                     cm_SendLongMessage((char *)&msg);
-                    txt_Format(text, 0x1939, ((AIBTYPE *)ai_BTypes)[bld->type].jobs[0] + 0x130);
+                    txt_Format(text, 0x1939, ai_BTypes[bld->type].jobs[0] + 0x130);
                     d2_ClearInput();
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                 }
                 sv_PopRequest = 1;
             } else if (d2_PointerObj == closeButton) {
@@ -3960,15 +3750,15 @@ void ai_ShowSettingGoods(int win, G8SLOT *slots, int *sliders, int *locks)
     int pic;
 
     d2_SetForm(win, 1);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     io_PrintText(0x1949);
     d2_SetForm(win, 2);
-    io_PrintText("$C");
+    io_PrintText((intptr_t)"$C");
     for (i = 0, y = 0xc; y < 0x15c; y += 0x30, i++) {
         if (slots[i].good != 0) {
             pic = d2_WinOpenPic(0xf, i * 0x30, slots[i].good + 0xdf, d2_LastWindow);
             d2_Objs[pic].style = 3;
-            d2_Objs[pic].user = &((AIGOOD *)ai_Goods)[slots[i].good];
+            d2_Objs[pic].user = &ai_Goods[slots[i].good];
             d2_SetObjEnabled(pic, 1);
             d2_Objs[pic].interactive = 1;
             d2_Objs[pic].checked = slots[i].lock == 0;
@@ -3992,7 +3782,7 @@ void ai_ShowSettingGoods(int win, G8SLOT *slots, int *sliders, int *locks)
    and the building's work settings (field deltas). The exit writes the chosen budget into the building and adds
    the difference to the master's budget */
 
-void ai_MasterLetterSettings(AIBLD *bld, AICHARREC *ch)
+void ai_MasterLetterSettings(AIBLD *bld, AICHAR *ch)
 {
     int hasSetting;
     G8SLOT *slots;
@@ -4002,7 +3792,7 @@ void ai_MasterLetterSettings(AIBLD *bld, AICHARREC *ch)
     int win;
     int workTab;
     int goodsTab;
-    LCWORKSET set;
+    AIWORKSET set;
     int checks[4];
     int sliders[7];
     int locks[7];
@@ -4018,7 +3808,7 @@ void ai_MasterLetterSettings(AIBLD *bld, AICHARREC *ch)
         ai_MasterLetterPage = 0;
         hasSetting = 0;
     } else {
-        ai_RefreshProdSetting((G8BLD *)bld);
+        ai_RefreshProdSetting(bld);
     }
     win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_2");
     d2_SetForm(win, 0);
@@ -4051,13 +3841,13 @@ void ai_MasterLetterSettings(AIBLD *bld, AICHARREC *ch)
                         break;
                 if (i < 7 && sliders[i] != -1) {
                     d2_ClickedId = -1;
-                    ai_SetSettingWeight((int)bld, slots[i].good, d2_GetObjValue(sliders[i]));
+                    ai_SetSettingWeight(bld, slots[i].good, d2_GetObjValue(sliders[i]));
                     for (i = 0; i < 7; i++)
                         if (sliders[i] != -1)
                             d2_SetObjValue(sliders[i], 0, 100, slots[i].weight);
                 }
             } else if (ai_MasterLetterPage == 0 && factorCtrl != -1 && d2_PointerObj == factorCtrl) {
-                ai_SetSettingFactor((int)bld, d2_GetObjValue(factorCtrl) * 0.01f);
+                ai_SetSettingFactor(bld, d2_GetObjValue(factorCtrl) * 0.01f);
             }
         }
         if (dm_L.lclick != 0 && d2_PointerObj != -1) {
@@ -4081,7 +3871,7 @@ void ai_MasterLetterSettings(AIBLD *bld, AICHARREC *ch)
                         if (d2_PointerObj == sliders[i])
                             break;
                     if (i < 7) {
-                        ai_SetSettingWeight((int)bld, slots[i].good, d2_GetObjValue(sliders[i]));
+                        ai_SetSettingWeight(bld, slots[i].good, d2_GetObjValue(sliders[i]));
                         for (i = 0; i < 7; i++)
                             if (sliders[i] != -1)
                                 d2_SetObjValue(sliders[i], 0, 100, slots[i].weight);
@@ -4154,8 +3944,8 @@ void ai_MasterLetterSettings(AIBLD *bld, AICHARREC *ch)
 void ai_MasterLetterWindow(AIBLD *bld)
 {
     AIBTYPE *type;
-    AICHARREC *me;
-    AICHARREC *master;
+    AICHAR *me;
+    AICHAR *master;
     AIJOB *job;
     int mode;
     int job2;
@@ -4163,9 +3953,9 @@ void ai_MasterLetterWindow(AIBLD *bld)
 
     if (bld == 0 || ai_PlayerId != bld->owner)
         return;
-    me = &((AICHARREC *)ai_Chars)[ai_PlayerId];
-    type = &((AIBTYPE *)ai_BTypes)[bld->type];
-    master = (AICHARREC *)gm_FindCharacterByMaster((int)bld);
+    me = &ai_Chars[ai_PlayerId];
+    type = &ai_BTypes[bld->type];
+    master = gm_FindCharacterByMaster(bld);
     if (type->kind == 5 || type->kind == 9) {
         mode = 0x40;
     } else if (master != 0) {
@@ -4183,7 +3973,7 @@ void ai_MasterLetterWindow(AIBLD *bld)
             }
         }
     }
-    for (job = (AIJOB *)he_FindEvent(2, 0, 7, 3, bld->id); job != 0; job = (AIJOB *)he_NextEvent()) {
+    for (job = he_FindEvent(2, 0, 7, 3, bld->id); job != 0; job = he_NextEvent()) {
         if (job->hireTitle == 0) {
             mode = 0x50;
             break;
@@ -4222,7 +4012,7 @@ int gm_IsUnderAge(unsigned short id); int ai_WorksForMaster();
 
 int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg, int unused)
 {
-    AICHARREC *rel;
+    AICHAR *rel;
     unsigned int mask;
     int i;
     int any;
@@ -4230,18 +4020,18 @@ int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg,
 
     if (me == id)
         goto reject;
-    if (lc_CharRecs[id].id == 0xffff)
+    if (ai_Chars[id].id == 0xffff)
         goto reject;
-    if (lc_CharRecs[id].heldRounds > 0)
+    if (ai_Chars[id].heldRounds > 0)
         goto reject;
-    if (&lc_CharRecs[id] == (AICHARREC *)ai_PlayerChar)
+    if (&ai_Chars[id] == ai_PlayerChar)
         goto reject;
     if (cfg == 0)
         goto accept;
     mask = cfg->mode;
     if (mask == 0)
         goto accept;
-    if (lc_CharRecs[id].kind >= 10)
+    if (ai_Chars[id].kind >= 10)
         goto reject;
     if (cfg->option14 & 2) {
         for (i = 0; i < 4; i++)
@@ -4249,65 +4039,65 @@ int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg,
                 goto reject;
     }
     if (mask & 0x3ffff) {
-        if ((mask & 1) && lc_CharRecs[id].sex == 1)
+        if ((mask & 1) && ai_Chars[id].sex == 1)
             goto reject;
-        if ((mask & 2) && lc_CharRecs[id].sex == 0)
+        if ((mask & 2) && ai_Chars[id].sex == 0)
             goto reject;
-        if ((mask & 0x1000) && lc_CharRecs[id].relatives[0] != -1) {
-            rel = (AICHARREC *)gm_FindChar(lc_CharRecs[id].relatives[0]);
+        if ((mask & 0x1000) && ai_Chars[id].relatives[0] != -1) {
+            rel = gm_FindChar(ai_Chars[id].relatives[0]);
             if (rel != 0 && rel->health > 0)
                 goto reject;
         }
-        if ((cfg->mode & 4) && lc_CharRecs[id].w050 != lc_CharRecs[me].w050 &&
-            lc_CharRecs[id].relatives[0] != lc_CharRecs[me].netId)
+        if ((cfg->mode & 4) && ai_Chars[id].w050 != ai_Chars[me].w050 &&
+            ai_Chars[id].relatives[0] != ai_Chars[me].netId)
             goto reject;
         if (cfg->mode & 8) {
-            if (lc_CharRecs[id].w050 == lc_CharRecs[me].w050)
+            if (ai_Chars[id].w050 == ai_Chars[me].w050)
                 goto reject;
-            if (lc_CharRecs[id].relatives[0] == lc_CharRecs[me].netId)
+            if (ai_Chars[id].relatives[0] == ai_Chars[me].netId)
                 goto reject;
         }
-        if ((cfg->mode & 0x40) && lc_CharRecs[id].kind != 1)
+        if ((cfg->mode & 0x40) && ai_Chars[id].kind != 1)
             goto reject;
         if (cfg->mode & 0x10) {
-            if (lc_CharRecs[id].title == 0)
+            if (ai_Chars[id].title == 0)
                 goto reject;
-            if (lc_CharRecs[id].kind != 0)
+            if (ai_Chars[id].kind != 0)
                 goto reject;
         }
-        if ((cfg->mode & 0x100) && lc_CharRecs[id].kind != 6 && lc_CharRecs[id].kind != 7 && lc_CharRecs[id].kind != 5 && lc_CharRecs[id].officeKind == 0 &&
-            lc_CharRecs[id].secondOffice == 0)
+        if ((cfg->mode & 0x100) && ai_Chars[id].kind != 6 && ai_Chars[id].kind != 7 && ai_Chars[id].kind != 5 && ai_Chars[id].officeKind == 0 &&
+            ai_Chars[id].secondOffice == 0)
             goto reject;
         if ((cfg->mode & 0x200) && gm_IsUnderAge(id) == 0)
             goto reject;
         if ((cfg->mode & 0x400) && gm_IsUnderAge(id) != 0)
             goto reject;
         mask = cfg->mode;
-        if ((mask & 0x2000) && lc_CharRecs[id].model != 0)
+        if ((mask & 0x2000) && ai_Chars[id].scene != 0)
             goto reject;
-        if ((mask & 0x4000) && (lc_CharRecs[id].kind == 6 || lc_CharRecs[id].kind == 7 || lc_CharRecs[id].kind == 5))
+        if ((mask & 0x4000) && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7 || ai_Chars[id].kind == 5))
             goto reject;
-        if ((mask & 0x8000) && lc_CharRecs[id].kind != 6 && lc_CharRecs[id].kind != 7 && lc_CharRecs[id].kind != 5)
+        if ((mask & 0x8000) && ai_Chars[id].kind != 6 && ai_Chars[id].kind != 7 && ai_Chars[id].kind != 5)
             goto reject;
-        if ((mask & 0x800) && lc_CharRecs[id].officeKind == 0 && lc_CharRecs[id].secondOffice == 0)
+        if ((mask & 0x800) && ai_Chars[id].officeKind == 0 && ai_Chars[id].secondOffice == 0)
             goto reject;
-        if ((mask & 0x10000) && lc_CharRecs[id].bld2 == 0)
+        if ((mask & 0x10000) && ai_Chars[id].bld2 == 0)
             goto reject;
-        if ((mask & 0x20000) && (lc_CharRecs[id].powerFlags & 1 << 23))
+        if ((mask & 0x20000) && (ai_Chars[id].flags1c8 & 1 << 23))
             goto reject;
-        if ((mask & 0x20) && (lc_CharRecs[id].powerFlags & 0x40000000))
+        if ((mask & 0x20) && (ai_Chars[id].flags1c8 & 0x40000000))
             goto reject;
-        if ((mask & 0x80) && lc_CharRecs[id].w1f0 == 0)
+        if ((mask & 0x80) && ai_Chars[id].v1f0 == 0)
             goto reject;
-        if (!(mask & 0x40000) && (lc_CharRecs[id].flags1cc & 0x3000))
+        if (!(mask & 0x40000) && (ai_Chars[id].flags1cc & 0x3000))
             goto reject;
     }
     if (mask & PF_ONE_OF) {
         any = 0;
-        any |= (mask & PF_KIND67) && (lc_CharRecs[id].kind == 6 || lc_CharRecs[id].kind == 7);
-        any |= (mask & PF_KIND5) && lc_CharRecs[id].kind == 5;
-        any |= (mask & PF_SERVANT) && lc_CharRecs[id].kind != 5 && ai_WorksForMaster(&lc_CharRecs[id]);
-        if (!(((cfg->mode & PF_KIND0) && lc_CharRecs[id].kind == 0) | any))
+        any |= (mask & PF_KIND67) && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7);
+        any |= (mask & PF_KIND5) && ai_Chars[id].kind == 5;
+        any |= (mask & PF_SERVANT) && ai_Chars[id].kind != 5 && ai_WorksForMaster(&ai_Chars[id]);
+        if (!(((cfg->mode & PF_KIND0) && ai_Chars[id].kind == 0) | any))
             goto reject;
     }
     if (cfg->liking != 0) {
@@ -4332,7 +4122,7 @@ reject:
    0 any, 1 no owner, 2 an owner, 3 me or none, 4 me, 5 not me, 6 another one, 7 another one not the player; with
    option14 bit 0 an owner listed in cfg->ids fails */
 
-int ai_PassesBuildingFilter(AICHARREC *me, AMOUNTCFG *cfg, AIBLD *bld)
+int ai_PassesBuildingFilter(AICHAR *me, AMOUNTCFG *cfg, AIBLD *bld)
 {
     AIBTYPE *type;
     unsigned int lo;
@@ -4354,7 +4144,7 @@ int ai_PassesBuildingFilter(AICHARREC *me, AMOUNTCFG *cfg, AIBLD *bld)
     match = 0;
     ownerOk = 0;
     listed = 1;
-    type = &((AIBTYPE *)ai_BTypes)[bld->type];
+    type = &ai_BTypes[bld->type];
     mask = cfg->classMask[1];
     lo = 0;
     hi = 0;
@@ -4395,7 +4185,7 @@ int ai_PassesBuildingFilter(AICHARREC *me, AMOUNTCFG *cfg, AIBLD *bld)
         ownerOk = bld->owner != me->id && bld->owner != 0xffff;
         break;
     case 7:
-        ownerOk = bld->owner != me->id && bld->owner != *ai_PlayerChar && bld->owner != 0xffff;
+        ownerOk = bld->owner != me->id && bld->owner != ai_PlayerChar->id && bld->owner != 0xffff;
         break;
     }
     if ((cfg->option14 & 1) && bld->owner != 0xffff) {
@@ -4415,7 +4205,7 @@ int ai_PassesBuildingFilter(AICHARREC *me, AMOUNTCFG *cfg, AIBLD *bld)
    bit 63. The class must be one of classMask's bits (or classMask empty); the owner test cfg->kind and the ids of
    option14 bit 0 as in ai_PassesBuildingFilter */
 
-int ai_PassesMapPickFilter(AICHARREC *me, AMOUNTCFG *cfg, AIBLD *bld)
+int ai_PassesMapPickFilter(AICHAR *me, AMOUNTCFG *cfg, AIBLD *bld)
 {
     AIBTYPE *type;
     unsigned int lo;
@@ -4431,7 +4221,7 @@ int ai_PassesMapPickFilter(AICHARREC *me, AMOUNTCFG *cfg, AIBLD *bld)
         return 0;
     if (cfg->classMask[0] == 0 && cfg->kind == 0)
         return 1;
-    type = &((AIBTYPE *)ai_BTypes)[bld->type];
+    type = &ai_BTypes[bld->type];
     lo = 0;
     hi = 0;
     if (type->kind > 0x1f)
@@ -4472,7 +4262,7 @@ int ai_PassesMapPickFilter(AICHARREC *me, AMOUNTCFG *cfg, AIBLD *bld)
         ownerOk = bld->owner != me->id && bld->owner != 0xffff;
         break;
     case 7:
-        ownerOk = bld->owner != me->id && bld->owner != *ai_PlayerChar && bld->owner != 0xffff;
+        ownerOk = bld->owner != me->id && bld->owner != ai_PlayerChar->id && bld->owner != 0xffff;
         break;
     }
     if ((cfg->option14 & 1) && bld->owner != 0xffff) {
@@ -4487,7 +4277,7 @@ int ai_PassesMapPickFilter(AICHARREC *me, AMOUNTCFG *cfg, AIBLD *bld)
 }
 typedef struct LCPICKROW {         /* 0x20 bytes, one character row of ai_PickBuildingChar */
     int icon;                      /* 0x00, the row's picture object 0x5db, the click target */
-    int portrait;                  /* 0x04, the character's portrait (AICHARREC.picture) */
+    int portrait;                  /* 0x04, the character's portrait (AICHAR.picture) */
     int name;                      /* 0x08, the name text */
     int bar;                       /* 0x0c, the liking slider (disabled: a bar) */
     int pad10;
@@ -4496,18 +4286,18 @@ typedef struct LCPICKROW {         /* 0x20 bytes, one character row of ai_PickBu
 } LCPICKROW;
 
 /* 0x5c3bb0, the character choice of a building, the window "Gesetze\Auswahl2" (1357 B): lists the building's master
-   and owner, then (building class 1 / 2, a home) the characters living in it (AICHARREC.bld2) or (the classes 4 .. 9,
-   0xb .. 0xe, 0x10, 0x12 .. 0x16) the ones working in it (AICHARREC.bld), up to 16 rows, the caption caption when
+   and owner, then (building class 1 / 2, a home) the characters living in it (AICHAR.bld2) or (the classes 4 .. 9,
+   0xb .. 0xe, 0x10, 0x12 .. 0x16) the ones working in it (AICHAR.bld), up to 16 rows, the caption caption when
    given and the scroll buttons past two rows. Each row is the picture 0x5db, the portrait, the name centred below it
    and the player's liking of the character as a disabled bar; a row cfg's partner filter refuses is greyed and not
    clickable (or left out when cfg->flags is 0). A click on a row returns its character record, or with a callback cb
    calls cb (the record, bld) and redraws the rows; a right click closes the window. Returns the picked record or 0 */
 
-AICHARREC *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (*cb)(AICHARREC *, AIBLD *))
+AICHAR *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (*cb)(AICHAR *, AIBLD *))
 {
     LCPICKROW rows[16];
     char text[32];
-    AICHARREC *result;
+    AICHAR *result;
     int win;
     int listWin;
     int radio;
@@ -4536,13 +4326,13 @@ AICHARREC *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (
         rows[n++].id = bld->masterId;
     if (bld->owner != 0xffff && bld->masterId != bld->owner)
         rows[n++].id = bld->owner;
-    bt = &((AIBTYPE *)ai_BTypes)[bld->type];
+    bt = &ai_BTypes[bld->type];
     if (bt->kind == 1 || bt->kind == 2) {
         for (i = 0; i < 768; i++) {
             if (n >= 16)
                 break;
-            if (lc_CharRecs[i].bld2 == (int)bld && lc_CharRecs[i].id != bld->masterId && lc_CharRecs[i].id != bld->owner)
-                rows[n++].id = lc_CharRecs[i].id;
+            if (ai_Chars[i].bld2 == bld && ai_Chars[i].id != bld->masterId && ai_Chars[i].id != bld->owner)
+                rows[n++].id = ai_Chars[i].id;
         }
     }
     if ((bt->kind > 3 && bt->kind < 10) || (bt->kind > 10 && bt->kind < 15) ||
@@ -4550,8 +4340,8 @@ AICHARREC *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (
         for (i = 0; i < 768; i++) {
             if (n >= 16)
                 break;
-            if (lc_CharRecs[i].bld == bld && lc_CharRecs[i].id != bld->masterId && lc_CharRecs[i].id != bld->owner)
-                rows[n++].id = lc_CharRecs[i].id;
+            if (ai_Chars[i].bld == bld && ai_Chars[i].id != bld->masterId && ai_Chars[i].id != bld->owner)
+                rows[n++].id = ai_Chars[i].id;
         }
     }
     win = d2_OpenForm(0, 0, "Gesetze\\Auswahl2");
@@ -4559,7 +4349,7 @@ AICHARREC *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (
     d2_CentreViewWindows(win);
     if (caption != 0) {
         d2_SetForm(win, 1);
-        io_PrintText(caption);
+        io_PrintText((intptr_t)caption);
     }
     if (n > 2) {               /* the list part (2) scrolls by the buttons on the frame part (0) */
         d2_SetForm(win, 2);
@@ -4592,8 +4382,8 @@ AICHARREC *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (
                             d2_RadioAdd(radio, rows[i].icon);
                     }
                     liking = (int)gm_Liking(ai_PlayerId, rows[i].id, 1);
-                    rows[i].portrait = d2_WinOpenPic(0x98, y + 1, lc_CharRecs[rows[i].id].picture, d2_LastWindow);
-                    txt_Format(text, (int)"%1N3", rows[i].id);
+                    rows[i].portrait = d2_WinOpenPic(0x98, y + 1, ai_Chars[rows[i].id].picture, d2_LastWindow);
+                    txt_Format(text, (intptr_t)"%1N3", rows[i].id);
                     label = d2_CreateWinText(0x96 - (0xa0 - w) / 2, h + y - 0x46, text, d2_LastWindow);
                     rows[i].name = label;
                     d2_Objs[label].centred = 1;
@@ -4626,7 +4416,7 @@ AICHARREC *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (
                 }
             }
             if (sel > -1) {
-                result = &lc_CharRecs[rows[sel].id];
+                result = &ai_Chars[rows[sel].id];
                 if (cb != 0) {
                     cb(result, bld);
                     draw = 1;
@@ -4638,7 +4428,7 @@ AICHARREC *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (
                 }
             }
         }
-    } while (sv_RunFrame((int)ai_PickBuildingChar, 0x677c7) != 0);
+    } while (sv_RunFrame(ai_PickBuildingChar, 0x677c7) != 0);
     if (radio != -1)
         d2_RadioClear(radio);
     d2_CloseView(win);
@@ -4649,7 +4439,7 @@ AICHARREC *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (
    LINK folds it (/OPT:ICF) into sv_ReturnZero, 0x52a040, where the original's tail jump in ai_LawSelectionEntry
    points. Defined above its caller as in the original: VC6 tail-calls it with the class stored over the first
    argument (mov [esp+4],edx; jmp), which it does only for a callee whose body it has seen */
-int ai_ResearchSelectionEntry(int cls, AMOUNTCFG *filter, char *text, void (*cb)(AICHARREC *, AIBLD *))
+int ai_ResearchSelectionEntry(int cls, AMOUNTCFG *filter, char *text, void (*cb)(AICHAR *, AIBLD *))
 {
     return 0;
 }
@@ -4658,7 +4448,7 @@ int ai_ResearchSelectionEntry(int cls, AMOUNTCFG *filter, char *text, void (*cb)
    research class (0x50b090) it returns the research selection entry of that class (ai_ResearchSelectionEntry, 0
    in this build), else it opens the law selection window 0x5c3bb0 (param_2 the filter, param_3 the caption
    text, param_4 the pick callback) */
-int ai_LawSelectionEntry(AIBLD *bld, AMOUNTCFG *filter, char *text, void (*cb)(AICHARREC *, AIBLD *))
+int ai_LawSelectionEntry(AIBLD *bld, AMOUNTCFG *filter, char *text, void (*cb)(AICHAR *, AIBLD *))
 {
     int cls;
 
@@ -4726,9 +4516,9 @@ typedef struct LCFAMILYBOX {        /* 0x10 bytes, one box of the family tree wi
    [esp+0x18]/[esp+0x10] swapped. proof stops at the sibling loop's store order (x before ctrl). */
 void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId)
 {
-    AICHARREC *ch;
-    AICHARREC *rel;
-    AICHARREC *pick;
+    AICHAR *ch;
+    AICHAR *rel;
+    AICHAR *pick;
     int win;
     int draw;
     int width;
@@ -4760,7 +4550,7 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
     if (ai_RunAllows(1) == 0)
         return;
     ai_CampaignStep(6, 0, 0, 0);
-    ch = (AICHARREC *)gm_FindChar(netId);
+    ch = gm_FindChar(netId);
     if (ch == 0)
         return;
     win = d2_OpenForm(0, 0, "Special\\Stammbaum");
@@ -4789,20 +4579,20 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
             memset(children, 0xff, sizeof children);
             draw = 0;
             row[2].id = ch->id;
-            rel = (AICHARREC *)gm_FindChar(ch->relatives[0]);
-            if (rel != 0 && (ch->powerFlags & 0x40000) == 0 && (rel->powerFlags & 0x40000) == 0) {
+            rel = gm_FindChar(ch->relatives[0]);
+            if (rel != 0 && (ch->flags1c8 & 0x40000) == 0 && (rel->flags1c8 & 0x40000) == 0) {
                 partner = 1;
                 row[3].id = rel->id;
             }
-            rel = (AICHARREC *)gm_FindChar(ch->relatives[2]);
+            rel = gm_FindChar(ch->relatives[2]);
             if (rel != 0)
                 parents[1].id = rel->id;
-            rel = (AICHARREC *)gm_FindChar(ch->relatives[1]);
+            rel = gm_FindChar(ch->relatives[1]);
             if (rel != 0) {
                 parents[0].id = rel->id;
                 for (j = 3; j < 8 && k < 6; j++) {
                     if (rel->relatives[j] != -1 && rel->relatives[j] != ch->netId) {
-                        pick = (AICHARREC *)gm_FindChar(rel->relatives[j]);
+                        pick = gm_FindChar(rel->relatives[j]);
                         if (pick != 0) {
                             row[k].id = pick->id;
                             k++;
@@ -4815,7 +4605,7 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
             }
             for (i = 3; i < 8 && nChildren < 5; i++) {
                 if (ch->relatives[i] != -1) {
-                    rel = (AICHARREC *)gm_FindChar(ch->relatives[i]);
+                    rel = gm_FindChar(ch->relatives[i]);
                     if (rel != 0 && rel->kind < 10) {
                         children[nChildren].id = rel->id;
                         nChildren++;
@@ -4831,9 +4621,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
             parents[0].x = half - w + w / 2 - 0x5a;
             parents[0].y = 10;
             if (parents[0].id != 0xffff) {
-                d2_WinOpenPic(half - w - 0x58, 12, ((AICHARREC *)ai_Chars)[parents[0].id].picture, d2_LastWindow);
+                d2_WinOpenPic(half - w - 0x58, 12, ai_Chars[parents[0].id].picture, d2_LastWindow);
                 d2_Objs[parents[0].ctrl].style = 3;
-                d2_Objs[parents[0].ctrl].user = ai_Chars[parents[0].id];
+                d2_Objs[parents[0].ctrl].user = &ai_Chars[parents[0].id];
             } else {
                 d2_WinOpenPic(half - w - 0x58, 12, 0x4fb, d2_LastWindow);
                 parents[0].ctrl = -1;
@@ -4842,9 +4632,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
             parents[1].x = half + w / 2 + 0x5a;
             parents[1].y = 10;
             if (parents[1].id != 0xffff) {
-                d2_WinOpenPic(half + 0x5c, 12, ((AICHARREC *)ai_Chars)[parents[1].id].picture, d2_LastWindow);
+                d2_WinOpenPic(half + 0x5c, 12, ai_Chars[parents[1].id].picture, d2_LastWindow);
                 d2_Objs[parents[1].ctrl].style = 3;
-                d2_Objs[parents[1].ctrl].user = ai_Chars[parents[1].id];
+                d2_Objs[parents[1].ctrl].user = &ai_Chars[parents[1].id];
             } else {
                 d2_WinOpenPic(half + 0x5c, 12, 0x4fb, d2_LastWindow);
                 parents[1].ctrl = -1;
@@ -4856,9 +4646,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
                 row[2].x = half - w + w / 2 - 0x10;
                 row[2].y = 0x96;
                 if (row[2].id != 0xffff) {
-                    d2_WinOpenPic(half - w - 0xe, 0x98, ((AICHARREC *)ai_Chars)[row[2].id].picture, d2_LastWindow);
+                    d2_WinOpenPic(half - w - 0xe, 0x98, ai_Chars[row[2].id].picture, d2_LastWindow);
                     d2_Objs[row[2].ctrl].style = 3;
-                    d2_Objs[row[2].ctrl].user = ai_Chars[row[2].id];
+                    d2_Objs[row[2].ctrl].user = &ai_Chars[row[2].id];
                 } else {
                     d2_WinOpenPic(half - w - 0xe, 0x98, 0x4fb, d2_LastWindow);
                     row[2].ctrl = -1;
@@ -4867,9 +4657,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
                 row[3].x = half + w / 2 + 0x10;
                 row[3].y = 0x96;
                 if (row[3].id != 0xffff) {
-                    d2_WinOpenPic(half + 0x12, 0x98, ((AICHARREC *)ai_Chars)[row[3].id].picture, d2_LastWindow);
+                    d2_WinOpenPic(half + 0x12, 0x98, ai_Chars[row[3].id].picture, d2_LastWindow);
                     d2_Objs[row[3].ctrl].style = 3;
-                    d2_Objs[row[3].ctrl].user = ai_Chars[row[3].id];
+                    d2_Objs[row[3].ctrl].user = &ai_Chars[row[3].id];
                 } else {
                     d2_WinOpenPic(half + 0x12, 0x98, 0x4fb, d2_LastWindow);
                     row[3].ctrl = -1;
@@ -4879,9 +4669,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
                 row[2].x = half;
                 row[2].y = 0x96;
                 if (row[2].id != 0xffff) {
-                    d2_WinOpenPic(half - w / 2 + 2, 0x98, ((AICHARREC *)ai_Chars)[row[2].id].picture, d2_LastWindow);
+                    d2_WinOpenPic(half - w / 2 + 2, 0x98, ai_Chars[row[2].id].picture, d2_LastWindow);
                     d2_Objs[row[2].ctrl].style = 3;
-                    d2_Objs[row[2].ctrl].user = ai_Chars[row[2].id];
+                    d2_Objs[row[2].ctrl].user = &ai_Chars[row[2].id];
                 } else {
                     d2_WinOpenPic(half - w / 2 + 2, 0x98, 0x4fb, d2_LastWindow);
                     row[2].ctrl = -1;
@@ -4899,9 +4689,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
                     row[i].ctrl = d2_WinOpenPic(t, 0x96, 0x5db, d2_LastWindow);
                     row[i].x = w / 2 + t;
                     row[i].y = 0x96;
-                    d2_WinOpenPic(t + 2, 0x98, ((AICHARREC *)ai_Chars)[row[i].id].picture, d2_LastWindow);
+                    d2_WinOpenPic(t + 2, 0x98, ai_Chars[row[i].id].picture, d2_LastWindow);
                     d2_Objs[row[i].ctrl].style = 3;
-                    d2_Objs[row[i].ctrl].user = ai_Chars[row[i].id];
+                    d2_Objs[row[i].ctrl].user = &ai_Chars[row[i].id];
                 }
                 siblingX[0] = width / 5 - w - 0x10;
                 siblingX[1] = width * 4 / 5 + 0x10;
@@ -4911,9 +4701,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
                     row[i].ctrl = d2_WinOpenPic(siblingX[i - 4], 0x96, 0x5db, d2_LastWindow);
                     row[i].x = siblingX[i - 4] + w / 2;
                     row[i].y = 0x96;
-                    d2_WinOpenPic(siblingX[i - 4] + 2, 0x98, ((AICHARREC *)ai_Chars)[row[i].id].picture, d2_LastWindow);
+                    d2_WinOpenPic(siblingX[i - 4] + 2, 0x98, ai_Chars[row[i].id].picture, d2_LastWindow);
                     d2_Objs[row[i].ctrl].style = 3;
-                    d2_Objs[row[i].ctrl].user = ai_Chars[row[i].id];
+                    d2_Objs[row[i].ctrl].user = &ai_Chars[row[i].id];
                 }
             }
 
@@ -4951,9 +4741,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
                         children[i].ctrl = d2_WinOpenPic(t, 0x122, 0x5db, d2_LastWindow);
                         children[i].x = w / 2 + t;
                         children[i].y = 0x122;
-                        d2_WinOpenPic(t + 2, 0x124, ((AICHARREC *)ai_Chars)[children[i].id].picture, d2_LastWindow);
+                        d2_WinOpenPic(t + 2, 0x124, ai_Chars[children[i].id].picture, d2_LastWindow);
                         d2_Objs[children[i].ctrl].style = 3;
-                        d2_Objs[children[i].ctrl].user = ai_Chars[children[i].id];
+                        d2_Objs[children[i].ctrl].user = &ai_Chars[children[i].id];
                     }
                 } else {
                     evenX[0] = half - w - 0x14;
@@ -4967,9 +4757,9 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
                         children[i].ctrl = d2_WinOpenPic(t, 0x122, 0x5db, d2_LastWindow);
                         children[i].x = w / 2 + t;
                         children[i].y = 0x122;
-                        d2_WinOpenPic(t + 2, 0x124, ((AICHARREC *)ai_Chars)[children[i].id].picture, d2_LastWindow);
+                        d2_WinOpenPic(t + 2, 0x124, ai_Chars[children[i].id].picture, d2_LastWindow);
                         d2_Objs[children[i].ctrl].style = 3;
-                        d2_Objs[children[i].ctrl].user = ai_Chars[children[i].id];
+                        d2_Objs[children[i].ctrl].user = &ai_Chars[children[i].id];
                     }
                 }
             }
@@ -5003,7 +4793,7 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
             for (i = 0; i < 6; i++) {
                 if (row[i].id != 0xffff) {
                     d2_Objs[row[i].ctrl].interactive = (flags & 1) && (flags & 0xc) == 0 || (flags & 0x10) ? 1 : 0;
-                    txt_Format(rowText, "%1N7", row[i].id);
+                    txt_Format(rowText, (intptr_t)"%1N7", row[i].id);
                     ai_CentredText(rowText, row[i].x, row[i].y + h + 3, 0x50, 0x56);
                     if (row[i].id == ch->id)
                         d2_WinOpenPic(row[i].x - w / 2 - 10, row[i].y - 10, ch->ref54, d2_LastWindow);
@@ -5012,7 +4802,7 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
             for (i = 0; i < 2; i++) {
                 if (parents[i].id != 0xffff) {
                     d2_Objs[parents[i].ctrl].interactive = (flags & 4) == 0 && (flags & 8) == 0 ? 1 : 0;
-                    txt_Format(parentText, "%1N7", parents[i].id);
+                    txt_Format(parentText, (intptr_t)"%1N7", parents[i].id);
                     ai_CentredText(parentText, parents[i].x, parents[i].y + h + 3, 0x50, 0x56);
                     if (parents[i].id == ch->id)
                         d2_WinOpenPic(parents[i].x - w / 2 - 10, parents[i].y - 10, ch->ref54, d2_LastWindow);
@@ -5021,8 +4811,8 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
             for (i = 0; i < 5; i++) {
                 if (children[i].id != 0xffff) {
                     d2_Objs[children[i].ctrl].interactive = (flags & 1) && (flags & 0xc) == 0
-                        || (flags & 2) && (flags & 8) && ((AICHARREC *)ai_Chars)[children[i].id].w00a > 10 ? 1 : 0;
-                    txt_Format(childText, "%1N7", children[i].id);
+                        || (flags & 2) && (flags & 8) && ai_Chars[children[i].id].age > 10 ? 1 : 0;
+                    txt_Format(childText, (intptr_t)"%1N7", children[i].id);
                     ai_CentredText(childText, children[i].x, children[i].y + h + 3, 0x50, 0x56);
                     if (children[i].id == ch->id)
                         d2_WinOpenPic(children[i].x - w / 2 - 10, children[i].y - 10, ch->ref54, d2_LastWindow);
@@ -5037,20 +4827,20 @@ void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId
             for (i = 0; i < 6; i++) {
                 if (d2_PointerObj == row[i].ctrl) {
                     found = i;
-                    pick = (AICHARREC *)gm_FindChar(((AICHARREC *)ai_Chars)[row[i].id].netId);
+                    pick = gm_FindChar(ai_Chars[row[i].id].netId);
                     break;
                 }
             }
             for (i = 0; i < 2 && found == -1; i++) {
                 if (d2_PointerObj == parents[i].ctrl) {
                     found = i;
-                    pick = (AICHARREC *)gm_FindChar(((AICHARREC *)ai_Chars)[parents[i].id].netId);
+                    pick = gm_FindChar(ai_Chars[parents[i].id].netId);
                     break;
                 }
             }
             for (i = 0; i < 5 && found == -1; i++) {
                 if (d2_PointerObj == children[i].ctrl) {
-                    pick = (AICHARREC *)gm_FindChar(((AICHARREC *)ai_Chars)[children[i].id].netId);
+                    pick = gm_FindChar(ai_Chars[children[i].id].netId);
                     break;
                 }
             }
@@ -5086,26 +4876,8 @@ void ai_ShowMissions(int owner);
    the character and the panel closes); else for the player's own child the gift button (unless the player's
    powerFlags has 0x20) and with it the profession choice for a jobless child (no event 0x5e and f020 at most the
    age + 4) or the university for one with a profession that has not studied (powerFlags 0x10000), and for the
-   player's own character the missions button when it has missions. The right button closes it.
-   @deep s48: proven byte under a declaration set (5 unused typedefs at the unit's start;
-   ledger/tiebreak.tsv): the text is done, the unit's declaration set is the open part. Levers:
-   professionBtn / universityBtn as scalars with a block-local int btns[2] per sv_ButtonRow arm; row = 0
-   before d2_SetForm(win, 3); the skill loop's row++; y += 0x18; before the txt_Format and each header /
-   ailment line's row++ after the .centred store; the job / title text base as a local set by if / else (if
-   (chr->sex) base = 0x18f; else base = 0x130;) - a variable with two definitions is no forward-substituted
-   ternary, so VC6 adds into the jobId register (add eax,ecx) as the original; ~70 ternary spellings never
-   did. prior: Reconstructed in full against the original (all 999 instructions read: the dates, profession
-   / title, offices, worth, partner / betrothal event 0x41 walk, faith, children, the skill bars and the
-   nine ailment rows, the button ladder of page 4 and the click dispatch); all calls, literals and
-   references agree, no M8/M9. Remaining: the original does not strength-reduce or constant-fold the row
-   counter of page 3 - in the skill loop it keeps row in esi (inc esi; lea eax,[esi+esi*2]; lea
-   ecx,[eax*8+1]) and computes the header / ailment rows at run time (lea ecx,[eax*8+0xa]; inc esi), where
-   ours carries row*0x18+1 as a stepped counter and folds the later rows to constants (mov esi,7 / push
-   0x9a / push 0xb2): tried ++row in the call, (row+1)*0x18+1 with a trailing row++, both keep the
-   reduction (8 instructions fewer: ours 991 vs 999); the original keeps universityBtn[0] in ebp (cmp
-   eax,ebp) where ours reloads [esp+0x24]; the rest is order / regs / slots; proof stops at the escaped
-   frame layout (gift / professionBtn / universityBtn slots). */
-void ai_CharInfoPanel(AICHARREC *chr, int other)
+   player's own character the missions button when it has missions. The right button closes it. */
+void ai_CharInfoPanel(AICHAR *chr, int other)
 {
     int win;
     int y;
@@ -5122,9 +4894,9 @@ void ai_CharInfoPanel(AICHARREC *chr, int other)
     int callId;
     char text1[512];
     char text2[512];
-    AICHARREC *rel;
-    AICHARREC *betrothed;
-    char *ev;
+    AICHAR *rel;
+    AICHAR *betrothed;
+    AIJOB *ev;
     int officeBase;
     int any;
     int row;
@@ -5147,78 +4919,78 @@ void ai_CharInfoPanel(AICHARREC *chr, int other)
     /* page 2: the dates, the profession, the offices, the worth, the partner, the faith and the children */
     d2_SetForm(win, 2);
     gm_BirthDate(chr, &date);
-    txt_Format(text, "*%i.%i.%i", date.day, date.month, date.year);
-    io_PrintText("$3>$L%s$A$0>", text);
+    txt_Format(text, (intptr_t)"*%i.%i.%i", date.day, date.month, date.year);
+    io_PrintText((intptr_t)"$3>$L%s$A$0>", text);
     if (gm_DeathDate(chr, &date) != 0) {
-        txt_Format(text, "+%i.%i.%i", date.day, date.month, date.year);
-        io_PrintText("$3>$L%s$A$0>", text);
+        txt_Format(text, (intptr_t)"+%i.%i.%i", date.day, date.month, date.year);
+        io_PrintText((intptr_t)"$3>$L%s$A$0>", text);
         dead = 1;
     } else {
-        io_PrintText("$5<$R%s$0<$3>$L%i$A$0>", 0x1f54, (int)gm_CharAge(chr->id));
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%i$A$0>", 0x1f54, (int)gm_CharAge(chr->id));
     }
     if (chr->jobId != 0) {
         if (chr->sex)
             base = 0x18f;
         else
             base = 0x130;
-        io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f55, chr->jobId + base);
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f55, chr->jobId + base);
     } else if (chr->title != 0) {
         if (chr->sex)
             base = 0x230;
         else
             base = 0x20d;
-        io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f56, chr->title + base);
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f56, chr->title + base);
     }
     officeBase = chr->sex ? 0x27b : 0x253;
     if (chr->officeKind == 0 && chr->secondOffice == 0) {
-        txt_Format(text, "%s", "-");
-        io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, text);
+        txt_Format(text, (intptr_t)"%s", "-");
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, text);
     }
     if (chr->officeKind != 0 && chr->secondOffice != 0)
-        io_PrintText("$5<$R%s$0<$3>$L%s$A%s$A$0>", 0x1f57, chr->officeKind + officeBase, chr->secondOffice + officeBase);
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A%s$A$0>", 0x1f57, chr->officeKind + officeBase, chr->secondOffice + officeBase);
     else if (chr->officeKind != 0)
-        io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, chr->officeKind + officeBase);
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, chr->officeKind + officeBase);
     else if (chr->secondOffice != 0)
-        io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, chr->secondOffice + officeBase);
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, chr->secondOffice + officeBase);
     if (!dead) {
-        io_PrintText("$5<$R%s$0<$3>$L%T$A$0>", 0x1f58, gm_GetWorth(chr->id));
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%T$A$0>", 0x1f58, gm_GetWorth(chr->id));
     } else {
         gm_GetWorth(chr->id);
-        io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f58, "-");
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f58, "-");
     }
-    rel = (AICHARREC *)gm_FindChar(chr->relatives[0]);
+    rel = gm_FindChar(chr->relatives[0]);
     if (dead) {
         strcpy(text, "-");
-        io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", txt_Ptrs[0x1f59], text);
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", txt_Ptrs[0x1f59], text);
     } else if (rel != 0 && rel->health > 0) {
         txt_Format(text, 0x1f5f, rel->id);
-        io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
+        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
     } else {
         ev = he_FindEvent(1, 0, 0x41);
-        while (ev != 0 && ((AIJOB *)ev)->partner1 != chr->netId)
+        while (ev != 0 && ev->partner1 != chr->netId)
             ev = he_NextEvent();
-        if (ev != 0 && (betrothed = (AICHARREC *)gm_FindChar(((AIJOB *)ev)->partner2)) != 0) {
+        if (ev != 0 && (betrothed = gm_FindChar(ev->partner2)) != 0) {
             txt_Format(text, 0x1f5e, betrothed->id);
-            io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
+            io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
         } else if (rel != 0) {
             txt_Format(text, 0x1f60, rel->id);
-            io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
+            io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
         } else {
-            io_PrintText("$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, 0x1f5d);
+            io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, 0x1f5d);
         }
     }
-    io_PrintText("$5<$R%s $0<$3>$L%s$A$0>", 0x488, (ai_Time.year < 0x75 ? 0x486 : 0x483) + chr->faith);
-    io_PrintText("$5<$R%s$0<", 0x1f5a);
+    io_PrintText((intptr_t)"$5<$R%s $0<$3>$L%s$A$0>", 0x488, (ai_Time.year < 0x75 ? 0x486 : 0x483) + chr->faith);
+    io_PrintText((intptr_t)"$5<$R%s$0<", 0x1f5a);
     any = 0;
     for (i = 3; i < 8; i++) {
-        rel = (AICHARREC *)gm_FindChar(chr->relatives[i]);
+        rel = gm_FindChar(chr->relatives[i]);
         if (rel != 0) {
             any = 1;
-            io_PrintText("$3>$L%1N1$A$0>", rel->id);
+            io_PrintText((intptr_t)"$3>$L%1N1$A$0>", rel->id);
         }
     }
     if (!any)
-        io_PrintText("$3>$L-$A$0>");
+        io_PrintText((intptr_t)"$3>$L-$A$0>");
 
     /* page 3: the skills and the ailments */
     row = 0;
@@ -5313,11 +5085,11 @@ void ai_CharInfoPanel(AICHARREC *chr, int other)
         d2_SetForm(win, 4);
         takeOverBtn = d2_GetWinObj(win, 4, io_PrintText(0x1f50, chr->id));
     } else {
-        if (((AICHARREC *)ai_Chars)[ai_PlayerId].sex == 0 && chr->relatives[1] == ((AICHARREC *)ai_Chars)[ai_PlayerId].netId
-            || ((AICHARREC *)ai_Chars)[ai_PlayerId].sex == 1 && chr->relatives[2] == ((AICHARREC *)ai_Chars)[ai_PlayerId].netId) {
+        if (ai_Chars[ai_PlayerId].sex == 0 && chr->relatives[1] == ai_Chars[ai_PlayerId].netId
+            || ai_Chars[ai_PlayerId].sex == 1 && chr->relatives[2] == ai_Chars[ai_PlayerId].netId) {
             if (chr->jobId == 0) {
-                if (he_FindEvent(2, 2, chr->id, 0, 0x5e) == 0 && chr->f020 <= chr->w00a + 4) {
-                    if ((((AICHARREC *)ai_Chars)[ai_PlayerId].powerFlags & 0x20) == 0) {
+                if (he_FindEvent(2, 2, chr->id, 0, 0x5e) == 0 && chr->f020 <= chr->age + 4) {
+                    if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
                         txt_Format(text1, 0x1f4b, chr->id);
                         txt_Format(text2, 0x1a96);
                         d2_SetForm(win, 4);
@@ -5328,13 +5100,13 @@ void ai_CharInfoPanel(AICHARREC *chr, int other)
                             professionBtn = btns[1];
                         }
                     }
-                } else if ((((AICHARREC *)ai_Chars)[ai_PlayerId].powerFlags & 0x20) == 0) {
+                } else if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
                     txt_Format(text1, 0x1f4b, chr->id);
                     d2_SetForm(win, 4);
-                    giftBtn = d2_GetWinObj(win, 4, io_PrintText("%ia[%s]", text1));
+                    giftBtn = d2_GetWinObj(win, 4, io_PrintText((intptr_t)"%ia[%s]", text1));
                 }
-            } else if ((chr->powerFlags & 0x10000) == 0) {
-                if ((((AICHARREC *)ai_Chars)[ai_PlayerId].powerFlags & 0x20) == 0) {
+            } else if ((chr->flags1c8 & 0x10000) == 0) {
+                if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
                     txt_Format(text2, 0x1f4b, chr->id);
                     txt_Format(text1, 0x1a97);
                     d2_SetForm(win, 4);
@@ -5345,12 +5117,12 @@ void ai_CharInfoPanel(AICHARREC *chr, int other)
                         universityBtn = btns[1];
                     }
                 }
-            } else if ((((AICHARREC *)ai_Chars)[ai_PlayerId].powerFlags & 0x20) == 0) {
+            } else if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
                 txt_Format(text1, 0x1f4b, chr->id);
                 d2_SetForm(win, 4);
-                giftBtn = d2_GetWinObj(win, 4, io_PrintText("%ia[%s]", text1));
+                giftBtn = d2_GetWinObj(win, 4, io_PrintText((intptr_t)"%ia[%s]", text1));
             }
-        } else if (((AICHARREC *)ai_Chars)[ai_PlayerId].netId == chr->netId && ai_HasMission(chr->netId)) {
+        } else if (ai_Chars[ai_PlayerId].netId == chr->netId && ai_HasMission(chr->netId)) {
             d2_SetForm(win, 4);
             missionBtn = d2_GetWinObj(win, 4, io_PrintText(0x1f49));
         }
@@ -5360,7 +5132,7 @@ void ai_CharInfoPanel(AICHARREC *chr, int other)
     d2_PointerObj = -1;
     do {
         if (giftBtn != -1) {
-            if (gm_GetGoodsValue(ai_Chars[ai_PlayerId]) <= 0)
+            if (gm_GetGoodsValue(&ai_Chars[ai_PlayerId]) <= 0)
                 d2_SetObjEnabled(giftBtn, 0);
             else
                 d2_SetObjEnabled(giftBtn, 1);
@@ -5371,18 +5143,18 @@ void ai_CharInfoPanel(AICHARREC *chr, int other)
             d2_SetViewEnabled(win, 0);
             if (d2_PointerObj == takeOverBtn) {
                 txt_Format(text2, 0x1f51, chr->id, chr->id);
-                if (sv_MessageBox(text2, 1) != 0) {
-                    cm_SendTakeOverCharacter(((AICHARREC *)ai_Chars)[ai_PlayerId].netId, chr->netId);
+                if (sv_MessageBox((intptr_t)text2, 1) != 0) {
+                    cm_SendTakeOverCharacter(ai_Chars[ai_PlayerId].netId, chr->netId);
                     sv_PopRequest = 2;
                 }
             } else if (d2_PointerObj == giftBtn) {
-                if (ai_GiftWindow(ai_Chars[ai_PlayerId], chr) != 0)
+                if (ai_GiftWindow((char *)&ai_Chars[ai_PlayerId], chr) != 0)
                     d2_SetObjEnabled(giftBtn, 0);
             } else if (d2_PointerObj == professionBtn) {
-                if (ai_ChooseProfessionWindow(ai_Chars[ai_PlayerId], chr) != 0)
+                if (ai_ChooseProfessionWindow((char *)&ai_Chars[ai_PlayerId], chr) != 0)
                     d2_SetObjEnabled(professionBtn, 0);
             } else if (d2_PointerObj == universityBtn) {
-                if (ai_UniversityWindow(ai_Chars[ai_PlayerId], chr) != 0)
+                if (ai_UniversityWindow((char *)&ai_Chars[ai_PlayerId], chr) != 0)
                     d2_SetObjEnabled(universityBtn, 0);
             } else if (d2_PointerObj == missionBtn) {
                 ai_ShowMissions(chr->netId);
@@ -5395,12 +5167,12 @@ void ai_CharInfoPanel(AICHARREC *chr, int other)
 /* 0x5c6050, the gift window "misc\geschenck" (1133 B): the player (giver, the player's character record) gives chr
    money. The least gift is 0.5 % of the player's worth (gm_GetWorth), at least 0x640, the most 5 % of the worth or
    the player's money (gm_GetGoodsValue), whichever is less, at least 0xc80 (none: returns 0). A giver whose power
-   bit 0x20 (AICHARREC.powerFlags, a gift given this round) is set sees the text 0x1f4f only; else the caption
+   bit 0x20 (AICHAR.flags1c8, a gift given this round) is set sees the text 0x1f4f only; else the caption
    0x1f4c, the amount slider (text 0x1f4d with chr's name, in the player's money) and the buttons of the text 0x1f4e
    (give, close). Give: when the player has the amount (sv_CheckGoodAmount) the group "gift" moves it from the giver
    to chr and sets the giver's bit 0x20; the window closes and it returns 1. A right click or close returns 0 */
 
-int ai_GiftWindow(AICHARREC *giver, AICHARREC *chr)
+int ai_GiftWindow(AICHAR *giver, AICHAR *chr)
 {
     int slider;
     int least;
@@ -5416,12 +5188,12 @@ int ai_GiftWindow(AICHARREC *giver, AICHARREC *chr)
     giveBtn = -1;
     closeBtn = -1;
     slider = -1;
-    least = max(0x640, (int)(gm_GetWorth(lc_CharRecs[ai_PlayerId].id) * 0.005f));
-    most = max(0xc80, (int)min((float)(gm_GetWorth(lc_CharRecs[ai_PlayerId].id) * 0.05f),
-                                (float)gm_GetGoodsValue((char *)&lc_CharRecs[ai_PlayerId])));
+    least = max(0x640, (int)(gm_GetWorth(ai_Chars[ai_PlayerId].id) * 0.005f));
+    most = max(0xc80, (int)min((float)(gm_GetWorth(ai_Chars[ai_PlayerId].id) * 0.05f),
+                                (float)gm_GetGoodsValue(&ai_Chars[ai_PlayerId])));
     if (most <= 0)
         return 0;
-    used = (giver->powerFlags >> 5) & 1;
+    used = (giver->flags1c8 >> 5) & 1;
     win = d2_OpenForm(0, 0, "misc\\geschenck");
     d2_SetPointerSprite(0, 0);
     d2_CentreViewWindows(win);
@@ -5445,8 +5217,8 @@ int ai_GiftWindow(AICHARREC *giver, AICHARREC *chr)
         if (d2_ClickedId != -1 && !used) {
             if (d2_PointerObj == giveBtn) {
                 amount = gm_PlayerFactor(d2_GetObjValue(slider), ai_OwnPlayer);
-                if (sv_CheckGoodAmount((char *)&lc_CharRecs[ai_PlayerId], amount, ai_OwnPlayer)) {
-                    unsigned int flags = giver->powerFlags | 0x20;
+                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], amount, ai_OwnPlayer)) {
+                    unsigned int flags = giver->flags1c8 | 0x20;
 
                     cm_BeginGroup("gift");
                     cm_SendMoveGoods(chr->netId, giver->netId, ai_OwnPlayer, amount);
@@ -5461,14 +5233,14 @@ int ai_GiftWindow(AICHARREC *giver, AICHARREC *chr)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_GiftWindow, 0x677c7) != 0);
+    } while (sv_RunFrame(ai_GiftWindow, 0x677c7) != 0);
     d2_CloseView(win);
     return given;
 }
 
-struct AIPER;
+struct AICHAR;
 int gm_CharLevel(unsigned short id, int again); int ord_DispatchOrder();
-unsigned int ai_FindCandidates(struct AIPER *p, unsigned int n, unsigned int fl, float lo, float hi, unsigned short *out);
+unsigned int ai_FindCandidates(struct AICHAR *p, unsigned int n, unsigned int fl, float lo, float hi, unsigned short *out);
 
 #define AI_CANDIDATE_FLAGS_SEX0 0xc0540a    /* the candidate flags of the kind 9 (advertising) search for a character with sex 0 (the mask bits of ai_PassesPartnerFilter) */
 #define AI_CANDIDATE_FLAGS_SEX1 0xc05409    /* ditto for sex != 0 */
@@ -5476,14 +5248,14 @@ unsigned int ai_FindCandidates(struct AIPER *p, unsigned int n, unsigned int fl,
    candidates of character p (ai_FindCandidates, the filter 0xc0540a, one less for a female character, sex +9);
    the ids are the characters' net ids, ai_CharInts[id][0] (the caller finds them again with gm_FindChar) */
 
-void ai_FindCandidateIds(G8CHARREC *p, int *n, int *out)
+void ai_FindCandidateIds(AICHAR *p, int *n, int *out)
 {
     unsigned short ids[10];
     int i;
 
     unsigned int fl = p->sex != 0 ? AI_CANDIDATE_FLAGS_SEX1 : AI_CANDIDATE_FLAGS_SEX0;
 
-    *n = ai_FindCandidates((struct AIPER *)p, 9, fl, 0.0f, 100.0f, ids);
+    *n = ai_FindCandidates(p, 9, fl, 0.0f, 100.0f, ids);
     for (i = 0; i < *n; i++)
         out[i] = ai_CharInts[ids[i]][0];
 }
@@ -5494,22 +5266,22 @@ void ai_FindCandidateIds(G8CHARREC *p, int *n, int *out)
 
 unsigned int ai_MarriageTest(int idA, int idB)
 {
-    G8CHARREC *a;
-    G8CHARREC *b;
+    AICHAR *a;
+    AICHAR *b;
     int i;
     int j;
 
-    a = (G8CHARREC *)gm_FindChar(idA);
-    b = (G8CHARREC *)gm_FindChar(idB);
+    a = gm_FindChar(idA);
+    b = gm_FindChar(idB);
     if (a == 0 || b == 0)
         return 0xfffffc00;
     if (a->health <= 0)
         return 0xfffffbff;
     if (b->health <= 0)
         return 0xfffffbfe;
-    if (b->partner != -1 && b->partner != idA)
+    if (b->relatives[0] != -1 && b->relatives[0] != idA)
         return 0xfffffbfd;
-    i = a->partner;
+    i = a->relatives[0];
     if (i != -1 && i != idB)
         return 0xfffffbfc;
     if (a->heldRounds > 0)
@@ -5522,7 +5294,7 @@ unsigned int ai_MarriageTest(int idA, int idB)
 }
 /* 0x5c6620, the courtship rounds the suitor idA needs for idB (742 B; the netIds, 0 when either is not found):
    idB's standing is the larger of idB's worth (gm_GetWorth, at least 0) and half the worth of either parent
-   (AICHARREC.relatives[1] / [2]); a suitor worth less than that pays (standing - worth) / standing * 5 + 1, else 1;
+   (AICHAR.relatives[1] / [2]); a suitor worth less than that pays (standing - worth) / standing * 5 + 1, else 1;
    to that come (100 - the liking of idA for idB) * 0.05 + 1, the age of idB clamped to 15 .. 30 as (1 - age / 15) * 4
    + 1, and idB's five skills / 252 each. An order handler 0x10 of the suitor (ord_DispatchOrder) with the bit 2 set
    halves it; the result is clamped to 2 .. 15 */
@@ -5533,9 +5305,9 @@ int ai_CourtshipRounds(int idA, int idB)
     float standing;
     float parentA;
     int req[0x88];
-    AICHARREC *a;
-    AICHARREC *b;
-    AICHARREC *p;
+    AICHAR *a;
+    AICHAR *b;
+    AICHAR *p;
     int worth;
     float rate;
     float liking;
@@ -5545,14 +5317,14 @@ int ai_CourtshipRounds(int idA, int idB)
     parentA = parentB = 0.0f;
     memset(req, 0, sizeof(req));
     req[0] = 1;
-    a = (AICHARREC *)gm_FindChar(idA);
-    b = (AICHARREC *)gm_FindChar(idB);
+    a = gm_FindChar(idA);
+    b = gm_FindChar(idB);
     if (a == 0 || b == 0)
         return 0;
-    p = (AICHARREC *)gm_FindChar(b->relatives[1]);
+    p = gm_FindChar(b->relatives[1]);
     if (p != 0)
         parentA = (float)(gm_GetWorth(p->id) / 2);
-    p = (AICHARREC *)gm_FindChar(b->relatives[2]);
+    p = gm_FindChar(b->relatives[2]);
     if (p != 0)
         parentB = (float)(gm_GetWorth(p->id) / 2);
     standing = max((float)gm_GetWorth(b->id), 0.0f);
@@ -5568,7 +5340,7 @@ int ai_CourtshipRounds(int idA, int idB)
     score += rate;
     for (i = 0; i < 5; i++)
         score += b->skills[i] * 0.003968254f;
-    if (ord_DispatchOrder(0x10, (char *)a, req) & 2)
+    if (ord_DispatchOrder(0x10, a, req) & 2)
         score *= 0.5f;
     score = min(max(score, 2.0f), 15.0f);
     return (int)score;
@@ -5584,7 +5356,7 @@ int cm_GetSlotState();
    clock, flags 2) through 0x4c4b70 and waits for its slot (0x4c3ae0 / 0x52fe00), the result 1; click 1 only
    pops; the exit 0x4758f0, d2_ClickedId = -1 and di_ClearEvents(0x11) */
 
-int ai_CourtshipConfirm(AICHARREC *ch)
+int ai_CourtshipConfirm(AICHAR *ch)
 {
     AIMSG msg;
     int win;
@@ -5648,7 +5420,7 @@ typedef struct LCORDMSG {          /* the message record of an order (gv.h ORDMS
     };
     int target2;                   /* 0x218, of the hatred order asked of the AI: the second character's netId
                                       (ai_HatredWindow; the first is target) */
-    struct AICHARREC *partner;     /* 0x21c, the partner character (gv.h ORDMSG.partner; the privileges panel sets it
+    struct AICHAR *partner;     /* 0x21c, the partner character (gv.h ORDMSG.partner; the privileges panel sets it
                                       to the player's partner of the pair event 0x45) */
 } LCORDMSG;
 /* 0x5c6aa0, the courtship list "privillegien\werbung1" (604 B): the caption 0x1ce3 and up to nine candidates of ch
@@ -5657,7 +5429,7 @@ typedef struct LCORDMSG {          /* the message record of an order (gv.h ORDMS
    below it. A click on a row opens the confirm ai_CourtshipConfirm (the list's objects disabled meanwhile); a
    confirmed courtship closes the list and returns 0x92, a right click returns 2 */
 
-int ai_CourtshipListWindow(G8CHARREC *ch, LCORDMSG *m)
+int ai_CourtshipListWindow(AICHAR *ch, LCORDMSG *m)
 {
     int n;
     int result;
@@ -5681,10 +5453,10 @@ int ai_CourtshipListWindow(G8CHARREC *ch, LCORDMSG *m)
     for (i = 0; i < n; i++) {
         rows[i].x = margin + (d2_Pics[0x5da].w + 10) * (i % 3) + (i % 3 + 1) * gap - 10;
         rows[i].y = i / 3 * 0x82 + 5;
-        rows[i].rec = (AICHARREC *)gm_FindChar(ids[i]);
+        rows[i].rec = gm_FindChar(ids[i]);
         rows[i].pickable = 1;
         ai_AmountRowStatus(&rows[i]);
-        rows[i].x2c = ai_CourtshipRounds(lc_CharRecs[ai_PlayerId].netId, rows[i].rec->netId);
+        rows[i].x2c = ai_CourtshipRounds(ai_Chars[ai_PlayerId].netId, rows[i].rec->netId);
         txt_Format(text, 0x1ce4, rows[i].x2c);
         ai_AmountRow(rows[i].x, rows[i].y, d2_LastWindow, 0x56, &rows[i], 1);
         ai_CentredText(text, rows[i].x + d2_Pics[0x5da].w / 2, rows[i].y + d2_Pics[0x5da].h + 0x2b, 0xca, 0x56);
@@ -5706,7 +5478,7 @@ int ai_CourtshipListWindow(G8CHARREC *ch, LCORDMSG *m)
                 }
             }
         }
-    } while (sv_RunFrame((int)ai_CourtshipListWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_CourtshipListWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return result;
 }
@@ -5722,7 +5494,7 @@ int ai_CourtshipListWindow(G8CHARREC *ch, LCORDMSG *m)
    posts the event again (cm_SendExSetHE), pays pairPrice (cm_SendMoveGoods) and tells the partner's answer 0x1cf9
    (text 0x1d02 + a random pick by the gain); the close button tells 0x1cfa and posts the event. Returns 2 */
 
-int ai_CourtshipWindow(AICHARREC *ch, LCORDMSG *m)
+int ai_CourtshipWindow(AICHAR *ch, LCORDMSG *m)
 {
     int state;
     int partner;
@@ -5734,7 +5506,7 @@ int ai_CourtshipWindow(AICHARREC *ch, LCORDMSG *m)
     int prices[3];
     int btns[9];               /* the gift buttons and the close button in [0 .. 3]; the original's frame holds nine */
     AIJOB *ev;
-    AICHARREC *p;
+    AICHAR *p;
     char answer[0x200];
     char closing[0x200];
     int i;
@@ -5745,7 +5517,7 @@ int ai_CourtshipWindow(AICHARREC *ch, LCORDMSG *m)
     state = 1;
     level = 0;
     partner = -1;
-    for (ev = (AIJOB *)he_FindEvent(1, 0, 0x41); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+    for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
         if (ev->partner1 == ch->netId) {
             state = 2;
             partner = ev->partner2;
@@ -5759,7 +5531,7 @@ int ai_CourtshipWindow(AICHARREC *ch, LCORDMSG *m)
     if (ch->kind != 6) {
         if (ev != 0)
             return 0x20;
-        p = (AICHARREC *)gm_FindChar(m->target);
+        p = gm_FindChar(m->target);
         if (p != 0 && p->health != 0) {
             AIMSG msg;
 
@@ -5777,22 +5549,22 @@ int ai_CourtshipWindow(AICHARREC *ch, LCORDMSG *m)
         return 0x20;
     }
     if (state == 1)
-        return ai_CourtshipListWindow((G8CHARREC *)ch, m);
+        return ai_CourtshipListWindow(ch, m);
     win = d2_OpenForm(0, 0, "privillegien\\werbung2");
     d2_CentreViewWindows(win);
     d2_SetPointerSprite(0, 0);
     d2_SetForm(win, 1);
     io_PrintText(0x1cf3);
     if (state == 2) {
-        p = (AICHARREC *)gm_FindChar(partner);
+        p = gm_FindChar(partner);
         io_PrintText(0x1ce7, ch->id, p->id, max(0, ev->pairRounds - ev->pairRound), 0x5d);
     } else if (state == 3) {
-        p = (AICHARREC *)gm_FindChar(partner);
+        p = gm_FindChar(partner);
         io_PrintText(0x1ce3);
         io_PrintText(0x1d31, p->id);
     } else if (state == 4) {
-        p = (AICHARREC *)gm_FindChar(partner);
-        level = p->b00d;
+        p = gm_FindChar(partner);
+        level = p->level;
         for (i = 0; i < 3; i++) {
             prices[i] = ev->pairPrice[i];
             picks[i] = ev->pairPick[i];
@@ -5814,9 +5586,9 @@ int ai_CourtshipWindow(AICHARREC *ch, LCORDMSG *m)
             }
             if (i < 3) {
                 price = prices[i];
-                if (sv_CheckGoodAmount((char *)&lc_CharRecs[ai_PlayerId], price, ai_OwnPlayer)) {
+                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], price, ai_OwnPlayer)) {
                     rounds = 0;
-                    p = (AICHARREC *)gm_FindChar(partner);
+                    p = gm_FindChar(partner);
                     left = picks[i] - level;
                     gain = (int)(max(left * 0.11111111f, 0.0f) * 3.0f + 0.5f);
                     if (gain > 0)
@@ -5838,18 +5610,18 @@ int ai_CourtshipWindow(AICHARREC *ch, LCORDMSG *m)
                     ev->pairDrawn = 0;
                     ev->exSlot = cm_SendExSetHE(0, ev);
                     cm_SendMoveGoods(-1, ch->netId, ai_OwnPlayer, price);
-                    sv_MessageBox(answer, 0);
+                    sv_MessageBox((intptr_t)answer, 0);
                     sv_PopRequest = 1;
                 }
             } else if (i == 3) {
-                txt_Format(closing, 0x1cfa, ((AICHARREC *)gm_FindChar(partner))->id);
+                txt_Format(closing, 0x1cfa, gm_FindChar(partner)->id);
                 ev->pairDrawn = 0;
                 ev->exSlot = cm_SendExSetHE(0, ev);
-                sv_MessageBox(closing, 0);
+                sv_MessageBox((intptr_t)closing, 0);
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_CourtshipWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_CourtshipWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return 2;
 }
@@ -6092,7 +5864,7 @@ void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
     }
     i = 0;
     for (pct = 100; pct > 0; pct -= 25) {
-        txt_Format(buf, "%i%", pct);
+        txt_Format(buf, (intptr_t)"%i%", pct);
         obj = d2_CreateWinText(3, (int)(range * (i * 0.25f) + 5.0f), buf, d2_LastWindow);
         d2_Objs[obj].w = 0x23;
         d2_Objs[obj].rightAligned = 1;
@@ -6103,12 +5875,12 @@ void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
         d2_PlotLine(width - 0x37, 8, width - 0x3c, 8, 0x10, 0x10, 0x10);
         mid = (height - 0x1e) / 2;
         d2_PlotLine(width - 0x37, mid + 8, width - 0x3c, mid + 8, 0x10, 0x10, 0x10);
-        txt_Format(buf, "%i", top);
+        txt_Format(buf, (intptr_t)"%i", top);
         textW = d2_TextWidth(buf, 0x55) + 2;
         obj = d2_CreateWinText(width - 0x3c, 5, buf, d2_LastWindow);
         d2_Objs[obj].w = textW;
         d2_Objs[obj].rightAligned = 1;
-        txt_Format(buf, "%i", top / 2);
+        txt_Format(buf, (intptr_t)"%i", top / 2);
         obj = d2_CreateWinText(width - 0x3c, mid + 5, buf, d2_LastWindow);
         d2_Objs[obj].w = textW;
         d2_Objs[obj].rightAligned = 1;
@@ -6116,7 +5888,7 @@ void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
     clock = ai_Time;
     gm_ClockToDate(&clock, (unsigned char *)&date);
     if (date.month == 1) {
-        txt_Format(buf, "%i", date.year);
+        txt_Format(buf, (intptr_t)"%i", date.year);
         textW = d2_TextWidth(buf, 0x55);
         obj = d2_CreateWinText(0x2d + scale * 16, height - 0xd, buf, d2_LastWindow);
         d2_Objs[obj].w = textW;
@@ -6127,7 +5899,7 @@ void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
         x = 0x2d + round * scale;
         d2_PlotLine(x, height - 0x13, x, height - 0x10, 0x10, 0x10, 0x10);
         if (date.month == 1) {
-            txt_Format(buf, "%i", date.year);
+            txt_Format(buf, (intptr_t)"%i", date.year);
             textW = d2_TextWidth(buf, 0x55);
             obj = d2_CreateWinText(0x2d + round * scale, height - 0xd, buf, d2_LastWindow);
             d2_Objs[obj].w = textW;
@@ -6137,7 +5909,7 @@ void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
         gm_ClockToDate(&clock, (unsigned char *)&date);
     }
     if (date.month == 1) {
-        txt_Format(buf, "%i", date.year);
+        txt_Format(buf, (intptr_t)"%i", date.year);
         textW = d2_TextWidth(buf, 0x55);
         obj = d2_CreateWinText(0x2d, height - 0xd, buf, d2_LastWindow);
         d2_Objs[obj].w = textW;
@@ -6190,7 +5962,7 @@ void ai_CityStatsPanel(void)
     d2_SetPointerSprite(0, 0);
     d2_CentreViewWindows(win);
     d2_SetForm(win, 1);
-    io_PrintText(0x1f0e, ((GMPLAYERSLOT *)ai_PlayerSlots)[ai_OwnPlayer].townName, &ai_Time);
+    io_PrintText(0x1f0e, ai_PlayerSlots[ai_OwnPlayer].townName, &ai_Time);
     ord_GetStatistics((int *)&stats);
     d2_SetForm(win, 2);
     io_PrintText(0x1f14, (int)ai_RatingBase);
@@ -6225,7 +5997,7 @@ void ai_CityStatsPanel(void)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_CityStatsPanel, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_CityStatsPanel, 0x657c7) != 0);
     d2_CloseView(win);
     ai_CampaignStep(0xc, 0, 1, 0);
 }
@@ -6237,7 +6009,7 @@ void ai_CityStatsPanel(void)
 /* 0x5c82f0, the player comparison panel (837 B): when there are ranked players (gm_RankPlayers, up to 8) and the run
    allows it (ai_RunAllows 4), between the campaign steps 10 it opens "panel\pcompare4plus6" (up to 6 players) or
    "panel\pcompare8" and prints the caption 0x1f35; per player a column: the dynasty picture of the character
-   (AICHARREC.ref54, its object linked to the character), the name, a slider of the weighted sum (GMRANK.sum * 100) in
+   (AICHAR.ref54, its object linked to the character), the name, a slider of the weighted sum (GMRANK.sum * 100) in
    the dynasty's colour and the points. The columns lie 0x50 apart from 0x14, or 0x3a apart from 2 for more than four
    players. The right button closes the panel */
 
@@ -6278,23 +6050,23 @@ void ai_PlayerComparePanel(void)
     for (i = 0; i < count; i++) {
         rank = &ranks[i];
         value = (int)(rank->sum * 100.0f);
-        obj = d2_WinOpenPic(0x28, LC_COMPARE_X(count, i), ((AICHARREC *)ai_Chars)[rank->id].ref54, d2_LastWindow);
+        obj = d2_WinOpenPic(0x28, LC_COMPARE_X(count, i), ai_Chars[rank->id].ref54, d2_LastWindow);
         d2_Objs[obj].interactive = 1;
         d2_Objs[obj].style = 3;
-        d2_Objs[obj].user = ai_Chars[rank->id];
-        txt_Format(buf, (int)"%1N3", rank->id);
+        d2_Objs[obj].user = &ai_Chars[rank->id];
+        txt_Format(buf, (intptr_t)"%1N3", rank->id);
         ai_CentredText(buf, 0x36, LC_COMPARE_X(count, i) + 0x22, 300, 0x56);
-        colour = min(max(((AICHARREC *)ai_Chars)[rank->id].ref54 - 0x59a, 0), 7);
+        colour = min(max(ai_Chars[rank->id].ref54 - 0x59a, 0), 7);
         obj = d2_WinOpenSlider(0x5a, LC_COMPARE_X(count, i) + 7, 300, 0, 100, sliderPics[colour], 0x42, d2_LastWindow);
         d2_SetObjValue(obj, 0, 100, value);
-        txt_Format(buf, "%i", rank->points);
+        txt_Format(buf, (intptr_t)"%i", rank->points);
         ai_CentredText(buf, 500, LC_COMPARE_X(count, i), 200, 0x55);
     }
     d2_ClickedId = -1;
     do {
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_PlayerComparePanel, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_PlayerComparePanel, 0x657c7) != 0);
     d2_CloseView(win);
     ai_CampaignStep(10, 0, 1, 0);
 }
@@ -6312,14 +6084,14 @@ void ai_PrivilegesPanel(void)
 {
     int changed;
     int rows;
-    AICHARREC *partner;
+    AICHAR *partner;
     int button;
     unsigned int next;
     char fmt[8] = "%ia[%s]";
     LCORDMSG msg;
     int answers[0x3a];
     int ids[0x3a];
-    AICHARREC *old;
+    AICHAR *old;
     AIJOB *job;
     int page;
     int win;
@@ -6330,7 +6102,7 @@ void ai_PrivilegesPanel(void)
     button = -1;
     page = 2;
     partner = 0;
-    if (((AICHARREC *)ai_Chars)[ai_PlayerId].heldRounds != 0) {
+    if (ai_Chars[ai_PlayerId].heldRounds != 0) {
         ord_PrivilegeDialog(txt_Ptrs[0x1cdf], 0, 0x657c7);
         return;
     }
@@ -6352,13 +6124,13 @@ void ai_PrivilegesPanel(void)
         if (next <= d3_Time || changed) {
             next = d3_Time + 500;
             old = partner;
-            if ((((AICHARREC *)ai_Chars)[ai_PlayerId].powerFlags & 0x100) != 0 || partner != 0) {
-                for (job = (AIJOB *)he_FindEvent(1, 0, 0x45); job != 0; job = (AIJOB *)he_NextEvent()) {
-                    if (job->partner1 == ((AICHARREC *)ai_Chars)[ai_PlayerId].netId)
+            if ((ai_Chars[ai_PlayerId].flags1c8 & 0x100) != 0 || partner != 0) {
+                for (job = he_FindEvent(1, 0, 0x45); job != 0; job = he_NextEvent()) {
+                    if (job->partner1 == ai_Chars[ai_PlayerId].netId)
                         break;
                 }
                 if (job != 0)
-                    partner = (AICHARREC *)gm_FindChar(job->partner2);
+                    partner = gm_FindChar(job->partner2);
                 else
                     partner = 0;
             }
@@ -6372,7 +6144,7 @@ void ai_PrivilegesPanel(void)
             else
                 msg.kind = 2;
             for (i = 0; i < 0x3a; i++) {
-                v = ord_DispatchOrder(i, ai_Chars[ai_PlayerId], (int *)&msg);
+                v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], (int *)&msg);
                 if (v != answers[i])
                     changed = 1;
                 answers[i] = v;
@@ -6380,7 +6152,7 @@ void ai_PrivilegesPanel(void)
             if (changed) {
                 changed = 0;
                 d2_SetForm(win, 2);
-                io_PrintText("$C");
+                io_PrintText((intptr_t)"$C");
                 button = -1;
                 d2_Wins[d2_LastWindow].contentHeight = 0;
                 d2_Wins[d2_LastWindow].scrollY = 0;
@@ -6407,17 +6179,17 @@ void ai_PrivilegesPanel(void)
                 msg.kind = (page != 2) + 1;
                 for (i = 0; i < 0x3a; i++) {
                     ids[i] = -1;
-                    v = ord_DispatchOrder(i, ai_Chars[ai_PlayerId], (int *)&msg);
+                    v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], (int *)&msg);
                     answers[i] = v;
                     if (v == page) {
                         if (rows != 0)
-                            io_PrintText("$A");
-                        ids[i] = d2_GetWinObj(win, 2, io_PrintText(fmt, msg.text));
+                            io_PrintText((intptr_t)"$A");
+                        ids[i] = d2_GetWinObj(win, 2, io_PrintText((intptr_t)fmt, msg.text));
                         rows++;
                     } else if (page == 2 && v == 9) {
                         if (rows != 0)
-                            io_PrintText("$A");
-                        k = d2_GetWinObj(win, 2, io_PrintText(fmt, msg.text));
+                            io_PrintText((intptr_t)"$A");
+                        k = d2_GetWinObj(win, 2, io_PrintText((intptr_t)fmt, msg.text));
                         ids[i] = -1;
                         d2_Objs[k].clickDisabled = 1;
                         d2_Objs[k].greyed = 1;
@@ -6428,11 +6200,11 @@ void ai_PrivilegesPanel(void)
                     d2_SetForm(win, 2);
                     k = d2_LastWindow;
                     d2_SetForm(win, 4);
-                    io_PrintText("$C");
+                    io_PrintText((intptr_t)"$C");
                     d2_CreateScrollButtons(-1, -1, d2_LastWindow, k, 0x767);
                 } else {
                     d2_SetForm(win, 4);
-                    io_PrintText("$C");
+                    io_PrintText((intptr_t)"$C");
                 }
             }
         }
@@ -6445,7 +6217,7 @@ void ai_PrivilegesPanel(void)
                     if (d2_PointerObj == ids[i]) {
                         d2_SetViewEnabled(win, 0);
                         msg.kind = (page != 2) + 3;
-                        v = ord_DispatchOrder(i, ai_Chars[ai_PlayerId], (int *)&msg);
+                        v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], (int *)&msg);
                         if (v & 0x80) {
                             changed = 1;
                             answers[i] = v & 10;
@@ -6462,7 +6234,7 @@ void ai_PrivilegesPanel(void)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_PrivilegesPanel, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_PrivilegesPanel, 0x657c7) != 0);
     d2_CloseView(win);
     ai_CampaignStep(8, 0, 1, 0);
 }
@@ -6474,7 +6246,7 @@ void ai_PrivilegesPanel(void)
    the price 2 % of the worth) and its two buttons: yes pays 2 (sv_CheckMoney / sv_CheckGoodAmount), and in one of
    two cases cures a disease and pays the price to the player (the texts 0x1d3c + 0x1d3d / 0x1d3e), waits for the
    flag 0x40 to be set and shows the text: 0x81; no or the right button closes the window: 2 */
-int ai_MedicusHandler(AICHARREC *ch, LCORDMSG *m)
+int ai_MedicusHandler(AICHAR *ch, LCORDMSG *m)
 {
     int price;
     int ret;
@@ -6513,16 +6285,16 @@ int ai_MedicusHandler(AICHARREC *ch, LCORDMSG *m)
     do {
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == yes) {
-                if (sv_CheckMoney(ch, 2) != 0 && sv_CheckGoodAmount((char *)ch, price, ai_OwnPlayer) != 0) {
+                if (sv_CheckMoney(ch, 2) != 0 && sv_CheckGoodAmount(ch, price, ai_OwnPlayer) != 0) {
                     cm_SendMoneyDelta(ch->netId, -2);
                     txt_Format(text, 0x1d3c);
                     if ((short)util_Random(2) != 0) {
-                        txt_Format(note, "%s", 0x1d3d);
+                        txt_Format(note, (intptr_t)"%s", 0x1d3d);
                         strcat(text, note);
                         cm_SendMoveGoods(-1, ch->netId, ai_OwnPlayer, price);
                         gm_CureDisease((char *)ch);
                     } else {
-                        txt_Format(note, "%s", 0x1d3e);
+                        txt_Format(note, (intptr_t)"%s", 0x1d3e);
                         strcat(text, note);
                     }
                     yes = -1;
@@ -6531,7 +6303,7 @@ int ai_MedicusHandler(AICHARREC *ch, LCORDMSG *m)
                     slot = cm_SendSetField(ch->netId, 0x1c8, 4, 0x40, 0);
                     while (cm_GetSlotState(slot) == 0)
                         sv_PumpNet();
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     sv_PopRequest = 1;
                 }
             } else if (d2_PointerObj == no) {
@@ -6540,7 +6312,7 @@ int ai_MedicusHandler(AICHARREC *ch, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_MedicusHandler, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_MedicusHandler, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -6551,11 +6323,11 @@ int ai_MedicusHandler(AICHARREC *ch, LCORDMSG *m)
    (0x1d8f: the text 0x114 + b00d (+ 10 for sex), 8, the price 8 % of the worth plus 4 %, the spouse's id); its
    first button pays 8 and the price (sv_CheckMoney / sv_CheckGoodAmount), sends the same fields and the money,
    each waited for, and prints 0x1d90: 0x81; the second button or the right button close it: 2, else 0 */
-int ai_DivorceDialog(AICHARREC *ch, LCORDMSG *m)
+int ai_DivorceDialog(AICHAR *ch, LCORDMSG *m)
 {
     int win;
     int text;
-    AICHARREC *spouse;
+    AICHAR *spouse;
     int slot;
     int none;
     int done;
@@ -6570,7 +6342,7 @@ int ai_DivorceDialog(AICHARREC *ch, LCORDMSG *m)
         worth = (float)gm_GetWorth(ch->id);
         if (gm_GetGoodsValue(ch) / worth < 0.12)
             return 0x22;
-        spouse = (AICHARREC *)gm_FindChar(ch->relatives[0]);
+        spouse = gm_FindChar(ch->relatives[0]);
         cm_SendMoneyDelta(ch->netId, -8);
         cm_BeginFieldBlock((char *)ch, ch->netId);
         cm_AddFieldValue(4, 1, 0x5c, &none);
@@ -6586,13 +6358,13 @@ int ai_DivorceDialog(AICHARREC *ch, LCORDMSG *m)
     }
     worth = (float)gm_GetWorth(ch->id);
     price = (int)(worth * 0.08);
-    spouse = (AICHARREC *)gm_FindChar(ch->relatives[0]);
+    spouse = gm_FindChar(ch->relatives[0]);
     win = d2_OpenForm(0, 0, "privillegien\\scheidung");
     d2_SetPointerSprite(0, 0);
     d2_CentreViewWindows(win);
     d2_SetForm(win, 1);
     text = (ch->sex != 0 ? 10 : 0) + 0x114;
-    slot = io_PrintText(0x1d8f, text + ch->b00d, 8, price - (int)(worth * -0.04), spouse->id,
+    slot = io_PrintText(0x1d8f, text + ch->level, 8, price - (int)(worth * -0.04), spouse->id,
                         spouse->id);
     d2_GetWinObj(win, 1, slot);
     d2_GetWinObj(win, 1, slot + 1);
@@ -6600,7 +6372,7 @@ int ai_DivorceDialog(AICHARREC *ch, LCORDMSG *m)
     do {
         if (d2_ClickedId != -1) {
             if (d2_ClickedId == 0) {
-                if (sv_CheckMoney(ch, 8) != 0 && sv_CheckGoodAmount((char *)ch, price, ai_OwnPlayer) != 0) {
+                if (sv_CheckMoney(ch, 8) != 0 && sv_CheckGoodAmount(ch, price, ai_OwnPlayer) != 0) {
                     cm_SendMoneyDelta(ch->netId, -8);
                     cm_BeginFieldBlock((char *)ch, ch->netId);
                     cm_AddFieldValue(4, 1, 0x5c, &none);
@@ -6616,7 +6388,7 @@ int ai_DivorceDialog(AICHARREC *ch, LCORDMSG *m)
                     slot = cm_SendMoveGoods(spouse->netId, ch->netId, ai_OwnPlayer, price);
                     while (cm_GetSlotState(slot) == 0)
                         sv_PumpNet();
-                    io_PrintText("$C");
+                    io_PrintText((intptr_t)"$C");
                     io_PrintText(0x1d90);
                     sv_PopRequest = 1;
                     done = 0x81;
@@ -6630,7 +6402,7 @@ int ai_DivorceDialog(AICHARREC *ch, LCORDMSG *m)
             sv_PopRequest = 1;
             done = 2;
         }
-    } while (sv_RunFrame((int)ai_DivorceDialog, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_DivorceDialog, 0x657c7) != 0);
     d2_CloseView(win);
     return done;
 }
@@ -6644,7 +6416,7 @@ int gv_HeldCrimeIdsOf(int culprit, int *out, unsigned short t);
    (me to me, arg[0] me, arg[1] the victim, flags 2, sent now) goes out and waits for its event to finish
    (AIJOB.stage -1) or me's powerFlags 0x100 (the victim gave in: the text 0x1d5a with the clock 0x60 hours ahead),
    returns 1; button 1 or the right button close it */
-int ai_BlackmailWindow(AICHARREC *me, AICHARREC *victim)
+int ai_BlackmailWindow(AICHAR *me, AICHAR *victim)
 {
     char text[256];
     int crimes[0x20];
@@ -6687,11 +6459,11 @@ int ai_BlackmailWindow(AICHARREC *me, AICHARREC *victim)
                     while (h != -1 && cm_GetSlotState(h) == 0)
                         sv_PumpNet();
                     job = (AIJOB *)cm_GetSlotValue(h);
-                    while ((me->powerFlags & 0x100) == 0 && job->stage != -1)
+                    while ((me->flags1c8 & 0x100) == 0 && job->stage != -1)
                         sv_PumpNet();
-                    if ((me->powerFlags & 0x100) != 0) {
+                    if ((me->flags1c8 & 0x100) != 0) {
                         txt_Format(text, 0x1d5a, victim->id, &due);
-                        sv_MessageBox(text, 0);
+                        sv_MessageBox((intptr_t)text, 0);
                     }
                     ret = 1;
                     sv_PopRequest = 1;
@@ -6699,7 +6471,7 @@ int ai_BlackmailWindow(AICHARREC *me, AICHARREC *victim)
                     cm_SendRelations(me->netId, victim->netId, -26, 1);
                     cm_SendMoneyDelta(me->netId, -2);
                     txt_Format(text, 0x1d59, victim->id);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     ret = 0;
                     sv_PopRequest = 1;
                 }
@@ -6710,7 +6482,7 @@ int ai_BlackmailWindow(AICHARREC *me, AICHARREC *victim)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_BlackmailWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_BlackmailWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -6725,7 +6497,7 @@ int ai_BlackmailWindow(AICHARREC *me, AICHARREC *victim)
    culprit with powerFlags 0x200 gives the text 0x1d52, fewer than 3 open evidences the text 0x1d51, else the
    blackmail window ai_BlackmailWindow (closing this one once it sent) and the result 0x92; else 0x20 */
 
-int ai_BlackmailBuildingListener(AICHARREC *me, LCORDMSG *m)
+int ai_BlackmailBuildingListener(AICHAR *me, LCORDMSG *m)
 {
     int win;
     int list;
@@ -6733,8 +6505,8 @@ int ai_BlackmailBuildingListener(AICHARREC *me, LCORDMSG *m)
     int n;
     int i;
     int ret;
-    AICHARREC *ch;
-    AICHARREC *victim;
+    AICHAR *ch;
+    AICHAR *victim;
     AITIME due;
     int total[0x20];
     char text[0x40];
@@ -6744,7 +6516,7 @@ int ai_BlackmailBuildingListener(AICHARREC *me, LCORDMSG *m)
     LCAMOUNTROW rows[0x20];
 
     if (me->kind != 6 && me->kind != 7) {
-        victim = (AICHARREC *)gm_FindChar(m->target);
+        victim = gm_FindChar(m->target);
         if (victim == 0)
             return 0x60;
         open[0] = gv_HeldCrimeIdsOf(victim->netId, ids, me->id);  /* the count in open[0]: the original's slot */
@@ -6777,7 +6549,7 @@ int ai_BlackmailBuildingListener(AICHARREC *me, LCORDMSG *m)
     d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
     count = gv_RankCulpritsAll(ids, open, total, me->id);
     for (i = 0, n = 0; i < count; i++) {
-        ch = (AICHARREC *)gm_FindChar(ids[i]);
+        ch = gm_FindChar(ids[i]);
         if (ch != 0) {
             rows[n].rec = ch;
             rows[n].x2c = total[i];
@@ -6790,7 +6562,7 @@ int ai_BlackmailBuildingListener(AICHARREC *me, LCORDMSG *m)
     d2_SetForm(win, 2);
     if (n != 0) {
         for (i = 0; i < n; i++) {
-            txt_Format(text, "%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
+            txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
             rows[i].x = 0x32;
             rows[i].y = i * 0x69 + 10;
             ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
@@ -6806,13 +6578,13 @@ int ai_BlackmailBuildingListener(AICHARREC *me, LCORDMSG *m)
             for (i = 0; i < n; i++) {
                 if (d2_PointerObj == rows[i].ctl[0]) {
                     if (sv_CheckMoney(me, 2) != 0) {
-                        if ((rows[i].rec->powerFlags & 0x200) != 0) {
+                        if ((rows[i].rec->flags1c8 & 0x200) != 0) {
                             txt_Format(warn, 0x1d52, rows[i].rec->id);
-                            sv_MessageBox(warn, 0);
+                            sv_MessageBox((intptr_t)warn, 0);
                         } else if ((unsigned int)rows[i].x34 < 3) {
-                            sv_MessageBox(txt_Ptrs[0x1d51], 0);
+                            sv_MessageBox((intptr_t)txt_Ptrs[0x1d51], 0);
                         } else {
-                            if (ai_BlackmailWindow(me, (AICHARREC *)gm_FindChar(ids[i])) != 0)
+                            if (ai_BlackmailWindow(me, gm_FindChar(ids[i])) != 0)
                                 sv_PopRequest = 1;
                             ret = 0x92;
                         }
@@ -6823,7 +6595,7 @@ int ai_BlackmailBuildingListener(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_BlackmailBuildingListener, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_BlackmailBuildingListener, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -6835,7 +6607,7 @@ int ai_BlackmailBuildingListener(AICHARREC *me, LCORDMSG *m)
    random texts 0x1d6d + 0..8 / 0x1d76 + 0..8, flags 2, sent now), waited for, the player pays 2 and gets the text
    0x1d6a; sv_PopRequest 3, returns 1. Button 1: sv_PopRequest 2; the right button 1 */
 
-int ai_BlackmailContactWindow(AICHARREC *ch)
+int ai_BlackmailContactWindow(AICHAR *ch)
 {
     char text[0x100];
     AIMSG msg;
@@ -6848,9 +6620,9 @@ int ai_BlackmailContactWindow(AICHARREC *ch)
     unsigned short text2;
 
     ret = 0;
-    if ((ch->powerFlags & 0x400) != 0) {
+    if ((ch->flags1c8 & 0x400) != 0) {
         txt_Format(text, 0x1d7f, ch->id);
-        sv_MessageBox(text, 0);
+        sv_MessageBox((intptr_t)text, 0);
         return 0;
     }
     word = (ch->sex != 0) + 0x1d68;
@@ -6871,25 +6643,25 @@ int ai_BlackmailContactWindow(AICHARREC *ch)
     do {
         if (d2_ClickedId != -1) {
             if (d2_ClickedId == 0) {
-                if (sv_CheckMoney(&((AICHARREC *)ai_Chars)[ai_PlayerId], 2) != 0) {
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 2) != 0) {
                     text2 = util_Random(9) + 0x1d76;
                     text1 = util_Random(9) + 0x1d6d;
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x47;
-                    msg.to = ((AICHARREC *)ai_Chars)[ai_PlayerId].netId;
-                    msg.fromId = ((AICHARREC *)ai_Chars)[ai_PlayerId].netId;
+                    msg.to = ai_Chars[ai_PlayerId].netId;
+                    msg.fromId = ai_Chars[ai_PlayerId].netId;
                     msg.flags = 2;
                     msg.time = ai_Time;
-                    msg.letter.from = ((AICHARREC *)ai_Chars)[ai_PlayerId].netId;
+                    msg.letter.from = ai_Chars[ai_PlayerId].netId;
                     msg.letter.text1 = text1;
                     msg.letter.text2 = text2;
                     msg.letter.victim = ch->netId;
                     h = cm_SendLongMessage((char *)&msg);
                     while (cm_GetSlotState(h) == 0)
                         sv_PumpNet();
-                    cm_SendMoneyDelta(((AICHARREC *)ai_Chars)[ai_PlayerId].netId, -2);
+                    cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -2);
                     txt_Format(text, 0x1d6a, text1, ch->id, text2);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     sv_PopRequest = 3;
                     ret = 1;
                 }
@@ -6899,7 +6671,7 @@ int ai_BlackmailContactWindow(AICHARREC *ch)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_BlackmailContactWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_BlackmailContactWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -6918,11 +6690,11 @@ int ai_BlackmailContactWindow(AICHARREC *ch)
    63 bytes); climb 2 rounds: 10 ins / 71 bytes (victim, flags, text2 last; the same order 30 hunks, bytes
    worse, not kept). */
 
-int ai_BlackmailContact(AICHARREC *me, LCORDMSG *m)
+int ai_BlackmailContact(AICHAR *me, LCORDMSG *m)
 {
     int ret;
-    AICHARREC *victim;
-    AICHARREC *pick;
+    AICHAR *victim;
+    AICHAR *pick;
     unsigned short text1;
     unsigned short text2;
     AMOUNTCFG cfg;
@@ -6931,7 +6703,7 @@ int ai_BlackmailContact(AICHARREC *me, LCORDMSG *m)
     if (me->kind != 6 && me->kind != 7) {
         AIMSG msg;
 
-        victim = (AICHARREC *)gm_FindChar(m->target);
+        victim = gm_FindChar(m->target);
         if (victim == 0)
             return 0x60;
         text2 = util_Random(9) + 0x1d76;
@@ -6957,8 +6729,8 @@ int ai_BlackmailContact(AICHARREC *me, LCORDMSG *m)
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
         txt_Format(text, 0x1d66);
-        pick = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, ai_BlackmailContactWindow);
-        if (pick != 0 && (pick->powerFlags & 0x400) != 0)
+        pick = ai_AmountMenu(&cfg, text, 0, ai_BlackmailContactWindow);
+        if (pick != 0 && (pick->flags1c8 & 0x400) != 0)
             ret = 0x81;
     }
     return ret;
@@ -6969,7 +6741,7 @@ int ai_BlackmailContact(AICHARREC *me, LCORDMSG *m)
    arg[1] ch, flags 2, sent now), then the text 0x1d63 with the clock 0x18 hours ahead and ch's id; sv_PopRequest 4,
    returns 1. Button 1: sv_PopRequest 2; the right button 1 */
 
-int ai_IntimidateWindow(AICHARREC *ch)
+int ai_IntimidateWindow(AICHAR *ch)
 {
     char text[0x100];
     AIMSG msg;
@@ -6987,21 +6759,21 @@ int ai_IntimidateWindow(AICHARREC *ch)
     do {
         if (d2_ClickedId != -1) {
             if (d2_ClickedId == 0) {
-                if (sv_CheckMoney(&((AICHARREC *)ai_Chars)[ai_PlayerId], 2) != 0) {
-                    cm_SendMoneyDelta(((AICHARREC *)ai_Chars)[ai_PlayerId].netId, -2);
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 2) != 0) {
+                    cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -2);
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x4b;
-                    msg.to = ((AICHARREC *)ai_Chars)[ai_PlayerId].netId;
-                    msg.fromId = ((AICHARREC *)ai_Chars)[ai_PlayerId].netId;
+                    msg.to = ai_Chars[ai_PlayerId].netId;
+                    msg.fromId = ai_Chars[ai_PlayerId].netId;
                     msg.flags = 2;
                     msg.time = ai_Time;
-                    msg.arg[0] = ((AICHARREC *)ai_Chars)[ai_PlayerId].netId;
+                    msg.arg[0] = ai_Chars[ai_PlayerId].netId;
                     msg.arg[1] = ch->netId;
                     cm_SendLongMessage((char *)&msg);
                     due = ai_Time;
                     gm_AddTime(&due, 0x18, 0, 0);
                     txt_Format(text, 0x1d63, &due, ch->id);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     sv_PopRequest = 4;
                     ret = 1;
                 }
@@ -7011,7 +6783,7 @@ int ai_IntimidateWindow(AICHARREC *ch)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_IntimidateWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_IntimidateWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -7030,16 +6802,16 @@ int ai_IntimidateWindow(AICHARREC *ch)
    bytes), msg at function scope (= control), the money call after the fill and arg[0] before arg[1] (far
    worse): no lever found. he_AllocMeeting's fill is scheduled the original's way with the same statements. */
 
-int ai_IntimidateContact(AICHARREC *me, LCORDMSG *m)
+int ai_IntimidateContact(AICHAR *me, LCORDMSG *m)
 {
     int ret;
-    AICHARREC *victim;
+    AICHAR *victim;
 
     ret = 0;
     if (me->kind != 6 && me->kind != 7) {
         AIMSG msg;
 
-        victim = (AICHARREC *)gm_FindChar(m->target);
+        victim = gm_FindChar(m->target);
         if (victim == 0)
             return 0x60;
         cm_SendMoneyDelta(me->netId, -2);
@@ -7080,10 +6852,10 @@ int gv_SetTableRecord(struct AICHAR *c, int i, int v);   /* 0x4f2750 */
    is enabled once the value differs. Button 0, me paying 2 (sv_CheckMoney): the new value (a switch: 1 - cur), the
    set waited for, me pays 2 and the flag is set: 0x80; button 1 or the right button close it */
 
-int ai_LawPrivilegeWindow(AICHARREC *me, LCORDMSG *m)
+int ai_LawPrivilegeWindow(AICHAR *me, LCORDMSG *m)
 {
     int flag;
-    AICHARREC *owner;
+    AICHAR *owner;
     int ret;
 
     ret = 0;
@@ -7109,7 +6881,7 @@ int ai_LawPrivilegeWindow(AICHARREC *me, LCORDMSG *m)
             return 0x60;
         if (m->value == rec.cur || m->value > rec.max || m->value < rec.min)
             return 0x60;
-        gv_SetTableRecord((struct AICHAR *)me, rec.id, m->value);
+        gv_SetTableRecord(me, rec.id, m->value);
         cm_SendMoneyDelta(me->netId, -2);
         cm_SendSetField(owner->netId, 0x1c8, 4, flag, 0);
     }
@@ -7182,7 +6954,7 @@ int ai_LawPrivilegeWindow(AICHARREC *me, LCORDMSG *m)
                             from = base;
                         }
                         ret = 0x80;
-                        h = gv_SetTableRecord((struct AICHAR *)me, rec.id, v - from);
+                        h = gv_SetTableRecord(me, rec.id, v - from);
                         if (h != -1) {
                             while (cm_GetSlotState(h) == 0)
                                 sv_PumpNet();
@@ -7195,7 +6967,7 @@ int ai_LawPrivilegeWindow(AICHARREC *me, LCORDMSG *m)
                     sv_PopRequest = 1;
                 }
             }
-        } while (sv_RunFrame((int)ai_LawPrivilegeWindow, 0x657c7) != 0);
+        } while (sv_RunFrame(ai_LawPrivilegeWindow, 0x657c7) != 0);
         d2_CloseView(win);
     }
     return ret;
@@ -7215,10 +6987,10 @@ int amt_GetKind(); int amt_FindOffice(); int amt_SendOfficeCandidates(); int ai_
    @original the refusal block is shared by the state test and the failed group (goto refused): written out at
    both or nested under if (office.state == 1) VC6 lays it out otherwise (42 / 40 instructions off) */
 
-int ai_DismissOfficeAsk(AICHARREC *me, LCORDMSG *m)
+int ai_DismissOfficeAsk(AICHAR *me, LCORDMSG *m)
 {
-    AICHARREC *owner;
-    AICHARREC *ch;
+    AICHAR *owner;
+    AICHAR *ch;
     AMTKIND ownerKind;
     int officeKind;
     int flagSlot;
@@ -7239,15 +7011,15 @@ int ai_DismissOfficeAsk(AICHARREC *me, LCORDMSG *m)
         AMTKIND kind;
         AMTREC office;
 
-        ch = (AICHARREC *)gm_FindChar(m->target);
+        ch = gm_FindChar(m->target);
         if (ch == 0)
             return 0x60;
-        if (amt_FindOffice((char *)ch, &kind, &office) == 0)
+        if (amt_FindOffice(ch, &kind, &office) == 0)
             return 0x60;
         if (ownerKind.col != kind.col)
             return 0x60;
         cm_BeginGroup("absetzen");
-        amt_SendOfficeCandidates((char *)ch, (char *)owner);
+        amt_SendOfficeCandidates(ch, owner);
         cm_SendSetField(owner->netId, 0x1c8, 4, 0x200000, 0);
         cm_SendRelations(me->netId, ch->netId, -40, 1);
         cm_EndGroup("absetzen");
@@ -7271,14 +7043,14 @@ int ai_DismissOfficeAsk(AICHARREC *me, LCORDMSG *m)
         cfg.filter = gypsyFilter;
         txt_Format(caption, 0x1d98);
         txt_Format(caption2, 0x1d99);
-        ch = (AICHARREC *)ai_SpecialAmountListWindow(ownerKind.col, (unsigned int *)&cfg, caption, caption2, 0);
+        ch = ai_SpecialAmountListWindow(ownerKind.col, (unsigned int *)&cfg, caption, caption2, 0);
         if (ch != 0) {
-            if (amt_FindOffice((char *)ch, &kind, &office) == 0)
+            if (amt_FindOffice(ch, &kind, &office) == 0)
                 return 0x60;
             if (office.state != 1)
                 goto refused;
             cm_BeginGroup("absetzen");
-            amt_SendOfficeCandidates((char *)ch, (char *)owner);
+            amt_SendOfficeCandidates(ch, owner);
             flagSlot = cm_SendSetField(owner->netId, 0x1c8, 4, 0x200000, 0);
             cm_SendRelations(me->netId, ch->netId, -20, 1);
             slot = cm_EndGroup("absetzen");
@@ -7287,19 +7059,19 @@ int ai_DismissOfficeAsk(AICHARREC *me, LCORDMSG *m)
             if (cm_GetSlotState(slot) == 2) {
 refused:
                 txt_Format(text, 0x1d9a, ch->id);
-                sv_MessageBox(text, 0);
+                sv_MessageBox((intptr_t)text, 0);
                 return 0x20;
             }
             while (cm_GetSlotState(flagSlot) == 0)
                 sv_PumpNet();
             txt_Format(text, 0x1d9b, ch->id, ch->id);
-            sv_MessageBox(text, 0);
+            sv_MessageBox((intptr_t)text, 0);
             return 0x90;
         }
         return 0x20;
     }
 }
-#define LC_POWER_EMBEZZLED 0x400000  /* AICHARREC.powerFlags: the office's embezzlement used (ai_MisappropriationWindow) */
+#define LC_POWER_EMBEZZLED 0x400000  /* AICHAR.flags1c8: the office's embezzlement used (ai_MisappropriationWindow) */
 
 /* 0x5ca860, the embezzlement order's ask "privillegien\unterschlagung" (kinds 3 / 4) for the character me: the office
    holder owner (me for kind 3, m->partner for kind 4; none or another kind: 0x60) embezzles (25 .. 200) * 0.005 of
@@ -7308,11 +7080,11 @@ refused:
    window with the offer 0x1dc2 (me's id); button 0, me paying 4 (sv_CheckMoney), does the same, waits for the flag's
    send and shows the text 0x1dc3 with the sum: 0x90; button 1 or the right button close it */
 
-int ai_MisappropriationWindow(AICHARREC *me, LCORDMSG *m)
+int ai_MisappropriationWindow(AICHAR *me, LCORDMSG *m)
 {
     ORDWAGES wages = {0};
     char text[0x100];
-    AICHARREC *owner;
+    AICHAR *owner;
     int ret = 0;
     int sum;
     int win;
@@ -7350,7 +7122,7 @@ int ai_MisappropriationWindow(AICHARREC *me, LCORDMSG *m)
                         while (cm_GetSlotState(h) == 0)
                             sv_PumpNet();
                         txt_Format(text, 0x1dc3, sum);
-                        sv_MessageBox(text, 0);
+                        sv_MessageBox((intptr_t)text, 0);
                         ret = 0x90;
                         sv_PopRequest = 1;
                     }
@@ -7360,7 +7132,7 @@ int ai_MisappropriationWindow(AICHARREC *me, LCORDMSG *m)
             }
             if (dm_L.rup)
                 sv_PopRequest = 1;
-        } while (sv_RunFrame((int)ai_MisappropriationWindow, 0x657c7) != 0);
+        } while (sv_RunFrame(ai_MisappropriationWindow, 0x657c7) != 0);
         d2_CloseView(win);
     }
     return ret;
@@ -7372,7 +7144,7 @@ int ai_MisappropriationWindow(AICHARREC *me, LCORDMSG *m)
    player (cm_SendMoneyDelta), sends the relation change to ch (cm_SendRelations), tells it (0x1db5, ch twice)
    and closes with 1; the second button or a right click close it. Returns 1 once ch was bewitched, else 0 */
 
-int ai_BewitchWindow(AICHARREC *ch)
+int ai_BewitchWindow(AICHAR *ch)
 {
     char text[0x100];
     int win;
@@ -7382,12 +7154,12 @@ int ai_BewitchWindow(AICHARREC *ch)
     int done;
 
     done = 0;
-    if (((AICHARREC *)ai_Chars)[ai_PlayerId].sex == ch->sex) {
-        if (((AICHARREC *)ai_Chars)[ai_PlayerId].sex == 0)
+    if (ai_Chars[ai_PlayerId].sex == ch->sex) {
+        if (ai_Chars[ai_PlayerId].sex == 0)
             txt_Format(text, 0x1db1, 0x1db2);
         else
             txt_Format(text, 0x1db1, 0x1db3);
-        sv_MessageBox(text, 0);
+        sv_MessageBox((intptr_t)text, 0);
         return 0;
     }
     win = d2_OpenForm(0, 0, "privillegien\\becircen");
@@ -7401,12 +7173,12 @@ int ai_BewitchWindow(AICHARREC *ch)
         if (d2_ClickedId != -1) {
             if (d2_ClickedId == 0) {
                 amount = d2_GetObjValue(slider);
-                if (sv_CheckMoney(ai_Chars[ai_PlayerId], amount) != 0) {
-                    gain = ai_RelationGain(ai_Chars[ai_PlayerId], ch, amount);
-                    cm_SendMoneyDelta(((AICHARREC *)ai_Chars)[ai_PlayerId].netId, -amount);
-                    cm_SendRelations(((AICHARREC *)ai_Chars)[ai_PlayerId].netId, ch->netId, gain, 1);
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], amount) != 0) {
+                    gain = ai_RelationGain((char *)&ai_Chars[ai_PlayerId], ch, amount);
+                    cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -amount);
+                    cm_SendRelations(ai_Chars[ai_PlayerId].netId, ch->netId, gain, 1);
                     txt_Format(text, 0x1db5, ch->id, ch->id);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     sv_PopRequest = 4;
                     done = 1;
                 }
@@ -7416,7 +7188,7 @@ int ai_BewitchWindow(AICHARREC *ch)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_BewitchWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_BewitchWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return done;
 }
@@ -7426,11 +7198,11 @@ int ai_BewitchWindow(AICHARREC *ch)
    above its money) for the relation with the character m->target (ai_RelationGain), sends the payment and the
    relation change: 0x10; a wrong amount or an unknown target: 0x60 */
 
-int ai_BewitchOrder(AICHARREC *me, LCORDMSG *m)
+int ai_BewitchOrder(AICHAR *me, LCORDMSG *m)
 {
     AMOUNTCFG cfg;
     char text[0x40];
-    AICHARREC *target;
+    AICHAR *target;
     int gain;
     int ret;
     int n;
@@ -7451,7 +7223,7 @@ int ai_BewitchOrder(AICHARREC *me, LCORDMSG *m)
     }
     if (me->money < m->amount || m->amount < 1 || m->amount > 5)
         return 0x60;
-    target = (AICHARREC *)gm_FindChar(m->target);
+    target = gm_FindChar(m->target);
     if (target == 0)
         return 0x60;
     n = m->amount;
@@ -7468,7 +7240,7 @@ int ai_BewitchOrder(AICHARREC *me, LCORDMSG *m)
    names (0x1db8, then 0x1db9 per spy, or 0x1dba when there were none); either button or a right click close it,
    then 2 */
 
-int ai_CounterEspionage(AICHARREC *me, LCORDMSG *m)
+int ai_CounterEspionage(AICHAR *me, LCORDMSG *m)
 {
     AIMSG msg;
     char text[0x200];
@@ -7492,13 +7264,13 @@ int ai_CounterEspionage(AICHARREC *me, LCORDMSG *m)
         msg.flags = 2;
         msg.time = ai_Time;
         cm_SendMoneyDelta(me->netId, -4);
-        for (ev = (AIJOB *)he_FindEvent(1, 0, 0x18); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+        for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
             if (ev->id4 == me->netId) {
                 ret |= 0x10;
                 ev->end = ai_Time;
                 ev->stopped18 = ai_Time;
                 cm_SendExSetHE(ev->stage, ev);
-                msg.espionage.target = ((AICHARREC *)ai_Chars)[ev->chr].netId;
+                msg.espionage.target = ai_Chars[ev->chr].netId;
                 cm_SendLongMessage((char *)&msg);
             }
         }
@@ -7526,12 +7298,12 @@ int ai_CounterEspionage(AICHARREC *me, LCORDMSG *m)
                     msg.flags = 2;
                     msg.time = ai_Time;
                     cm_SendMoneyDelta(me->netId, -4);
-                    for (ev = (AIJOB *)he_FindEvent(1, 0, 0x18); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+                    for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
                         if (ev->id4 == me->netId) {
                             caught |= 1;
                             ev->end = ai_Time;
                             cm_SendExSetHE(0, ev);
-                            msg.espionage.target = ((AICHARREC *)ai_Chars)[ev->chr].netId;
+                            msg.espionage.target = ai_Chars[ev->chr].netId;
                             cm_SendLongMessage((char *)&msg);
                             txt_Format(p, 0x1db9, ev->chr);
                             p = text + strlen(text);
@@ -7539,7 +7311,7 @@ int ai_CounterEspionage(AICHARREC *me, LCORDMSG *m)
                     }
                     if (!caught)
                         txt_Format(text, 0x1dba);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     sv_PopRequest = 1;
                 }
             } else if (d2_PointerObj == cancel) {
@@ -7548,7 +7320,7 @@ int ai_CounterEspionage(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_CounterEspionage, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_CounterEspionage, 0x657c7) != 0);
     d2_CloseView(win);
     return 2;
 }
@@ -7558,13 +7330,13 @@ int amt_SendOfficeSwap();
 /* 0x5cb1e0, the counter-espionage office swap (64 B): amt_SendOfficeSwap (0x4e6ba0) sends the requester's
    request for the two characters; -1 returns 0, another requester returns 1; a player (kind 6) waits on the
    message slot 0x4c3ae0 with the pump 0x52fe00 and returns whether the answer's status is not 2. */
-int ai_SwapSeats(char *requester, char *b, char *c)
+int ai_SwapSeats(AICHAR *requester, AICHAR *b, AICHAR *c)
 {
     int h;
 
     h = amt_SendOfficeSwap(requester, b, c);
     if (h != -1) {
-        if (((AICHARREC *)requester)->kind == 6) {
+        if (requester->kind == 6) {
             while (cm_GetSlotState(h) == 0)
                 sv_PumpNet();
             return cm_GetSlotState(h) != 2;
@@ -7581,12 +7353,12 @@ int ai_SwapSeats(char *requester, char *b, char *c)
    player has the 6 (sv_CheckMoney), swaps them and tells 0x1dca (or 0x1dcb when it failed); either button or a right
    click close it, then 1 */
 
-int ai_SeatSwapWindow(AICHARREC *me, LCORDMSG *m)
+int ai_SeatSwapWindow(AICHAR *me, LCORDMSG *m)
 {
     char text[0x200];
-    AICHARREC *first;
-    AICHARREC *second;
-    AICHARREC *c;
+    AICHAR *first;
+    AICHAR *second;
+    AICHAR *c;
     int office;
     int k1;
     int k2;
@@ -7618,7 +7390,7 @@ int ai_SeatSwapWindow(AICHARREC *me, LCORDMSG *m)
     } else {
         return 0x20;
     }
-    for (c = (AICHARREC *)ai_Chars; (int)c < (int)((AICHARREC *)ai_Chars + 0x300); c++) {
+    for (c = ai_Chars; (int)c < (int)(ai_Chars + 0x300); c++) {
         if (n == 0)
             break;
         if (c->officeKind == k1) {
@@ -7632,11 +7404,11 @@ int ai_SeatSwapWindow(AICHARREC *me, LCORDMSG *m)
     if (me->kind != 6 && me->kind != 7) {
         if (me->money < 6 || n > 0)
             return 0x20;
-        return ai_SwapSeats((char *)me, (char *)second, (char *)first) ? 0x10 : 0x20;
+        return ai_SwapSeats(me, second, first) ? 0x10 : 0x20;
     }
     if (n > 0) {
-        txt_Format(text, "$Z%s", 0x1dcb);
-        sv_MessageBox(text, 0);
+        txt_Format(text, (intptr_t)"$Z%s", 0x1dcb);
+        sv_MessageBox((intptr_t)text, 0);
         return 0;
     }
     win = d2_OpenForm(0, 0, "privillegien\\sessel_vertauschen");
@@ -7651,11 +7423,11 @@ int ai_SeatSwapWindow(AICHARREC *me, LCORDMSG *m)
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == ok) {
                 if (sv_CheckMoney(me, 6) != 0) {
-                    if (ai_SwapSeats((char *)me, (char *)second, (char *)first) != 0)
+                    if (ai_SwapSeats(me, second, first) != 0)
                         txt_Format(text, 0x1dca);
                     else
-                        txt_Format(text, "$Z%s", 0x1dcb);
-                    sv_MessageBox(text, 0);
+                        txt_Format(text, (intptr_t)"$Z%s", 0x1dcb);
+                    sv_MessageBox((intptr_t)text, 0);
                     sv_PopRequest = 1;
                 }
             } else if (d2_PointerObj == cancel) {
@@ -7664,7 +7436,7 @@ int ai_SeatSwapWindow(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_CounterEspionage, 0x657c7) != 0);   /* the original passes the counter-espionage window here */
+    } while (sv_RunFrame(ai_CounterEspionage, 0x657c7) != 0);   /* the original passes the counter-espionage window here */
     d2_CloseView(win);
     return 1;
 }
@@ -7678,7 +7450,7 @@ int ai_SeatSwapWindow(AICHARREC *me, LCORDMSG *m)
    button, when the player has the 4 (sv_CheckMoney) and the price (sv_CheckGoodAmount), does it and tells 0x1dd2;
    either button or a right click close it. Returns 1 once it was done, else 0 */
 
-int ai_HatredWindow(AICHARREC *me, LCORDMSG *m)
+int ai_HatredWindow(AICHAR *me, LCORDMSG *m)
 {
     int done;
     int ok;
@@ -7687,8 +7459,8 @@ int ai_HatredWindow(AICHARREC *me, LCORDMSG *m)
     int win;
     AMOUNTCFG cfg;
     char text[0x100];
-    AICHARREC *a;
-    AICHARREC *b;
+    AICHAR *a;
+    AICHAR *b;
     int t;
 
     if (me->kind != 6) {
@@ -7698,10 +7470,10 @@ int ai_HatredWindow(AICHARREC *me, LCORDMSG *m)
 
         if (me->money < 4)
             return 0x20;
-        a = (AICHARREC *)gm_FindChar(m->target);
+        a = gm_FindChar(m->target);
         if (a == 0)
             return 0x20;
-        b = (AICHARREC *)gm_FindChar(m->target2);
+        b = gm_FindChar(m->target2);
         if (b == 0)
             return 0x20;
         price = (int)((float)(gm_GetWorth(b->id) + gm_GetWorth(a->id)) * 0.02f);
@@ -7731,11 +7503,11 @@ int ai_HatredWindow(AICHARREC *me, LCORDMSG *m)
     cfg.kind = 6;
     cfg.filter = gypsyFilter;
     txt_Format(text, 0x1dcf);
-    a = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+    a = ai_AmountMenu(&cfg, text, 0, 0);
     if (a == 0)
         return 0;
     txt_Format(text, 0x1dd0, a->id);
-    b = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+    b = ai_AmountMenu(&cfg, text, 0, 0);
     if (b == 0)
         return 0;
     price = (int)((float)(gm_GetWorth(b->id) + gm_GetWorth(a->id)) * 0.02f);
@@ -7750,7 +7522,7 @@ int ai_HatredWindow(AICHARREC *me, LCORDMSG *m)
     do {
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == ok) {
-                if (sv_CheckMoney(me, 4) != 0 && sv_CheckGoodAmount((char *)me, price, ai_OwnPlayer) != 0) {
+                if (sv_CheckMoney(me, 4) != 0 && sv_CheckGoodAmount(me, price, ai_OwnPlayer) != 0) {
                     int r1, r2, o1, o2;
 
                     r1 = util_Random(0x1e) + 3;
@@ -7762,7 +7534,7 @@ int ai_HatredWindow(AICHARREC *me, LCORDMSG *m)
                     cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
                     cm_SendMoneyDelta(me->netId, -4);
                     txt_Format(text, 0x1dd2, a->id, b->id);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     if (a->kind == 6 || a->kind == 7) {
                         txt_Format(text, 0x1dd3, b->id, b->id);
                         he_ShowNews(a->netId, a->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
@@ -7780,11 +7552,11 @@ int ai_HatredWindow(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_HatredWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_HatredWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return done;
 }
-#define LC_POWER_HEARING 0x8000  /* AICHARREC.powerFlags: the office's hearing used (ai_HearingWindow) */
+#define LC_POWER_HEARING 0x8000  /* AICHAR.flags1c8: the office's hearing used (ai_HearingWindow) */
 /* 0x5cba90, the hearing order's ask (ord_HearingOrder, kinds 3 / 4) "privillegien\verhoer": me summons a character
    to a hearing, once per office (LC_POWER_HEARING not yet set): me pays 2 and the character 3 (cm_SendMoneyDelta),
    the power is marked used on me's powerFlags (cm_SendSetField), and a player character summoned gets the news 0x1dda (me, the 3;
@@ -7793,14 +7565,14 @@ int ai_HatredWindow(AICHARREC *me, LCORDMSG *m)
    2), then the window (0x1dd8) whose first button, when the player has the 2 (sv_CheckMoney), does it, waits for the
    field message, tells 0x1dd9 and returns 0x81; the second button or a right click close it with 2 */
 
-int ai_HearingWindow(AICHARREC *me, LCORDMSG *m)
+int ai_HearingWindow(AICHAR *me, LCORDMSG *m)
 {
     int ret;
     int cancel;
     int ok;
     AMOUNTCFG cfg;
     char text[0x200];
-    AICHARREC *target;
+    AICHAR *target;
     int win;
     int t;
     int h;
@@ -7808,9 +7580,9 @@ int ai_HearingWindow(AICHARREC *me, LCORDMSG *m)
     if (me->kind != 6) {
         if (me->money < 2)
             return 0x20;
-        if (me->powerFlags & LC_POWER_HEARING)
+        if (me->flags1c8 & LC_POWER_HEARING)
             return 0x20;
-        target = (AICHARREC *)gm_FindChar(m->target);
+        target = gm_FindChar(m->target);
         if (target == 0)
             return 0x60;
         cm_SendMoneyDelta(me->netId, -2);
@@ -7824,16 +7596,16 @@ int ai_HearingWindow(AICHARREC *me, LCORDMSG *m)
     }
     ret = 2;
     memset(&cfg, 0, sizeof(cfg));
-    if (me->powerFlags & LC_POWER_HEARING) {
+    if (me->flags1c8 & LC_POWER_HEARING) {
         txt_Format(text, 0x1ce0);
-        sv_MessageBox(text, 0);
+        sv_MessageBox((intptr_t)text, 0);
         return 0x81;
     }
     cfg.mode = 0x400;
     cfg.kind = 6;
     cfg.filter = gypsyFilter;
     txt_Format(text, 0x1dd7);
-    target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
     if (target == 0)
         return 2;
     win = d2_OpenForm(0, 0, "privillegien\\verhoer");
@@ -7854,7 +7626,7 @@ int ai_HearingWindow(AICHARREC *me, LCORDMSG *m)
                     while (cm_GetSlotState(h) == 0)
                         sv_PumpNet();
                     txt_Format(text, 0x1dd9, target->id, target->id, 3, target->id, 3);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     if (target->kind == 6 || target->kind == 7) {
                         txt_Format(text, 0x1dda, me->id, 3);
                         he_ShowNews(target->netId, target->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
@@ -7868,11 +7640,11 @@ int ai_HearingWindow(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_HearingWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_HearingWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
-#define LC_POWER_EXPEL 0x80  /* AICHARREC.powerFlags: the office's worker expulsion used (ai_ExpelWorkerWindow) */
+#define LC_POWER_EXPEL 0x80  /* AICHAR.flags1c8: the office's worker expulsion used (ai_ExpelWorkerWindow) */
 /* 0x5cbe00, the expel-worker order's ask (ord_ExpelWorkerOrder, kinds 3 / 4) "privillegien\arbeiter_ausweisen": the
    office holder (me for kind 3, m->partner for kind 4; none: 0x60), once per office (LC_POWER_EXPEL not yet set), has
    a worker of a building removed: me pays 5, the power is marked used, the building's owner, when a player, gets the
@@ -7885,18 +7657,18 @@ int ai_HearingWindow(AICHARREC *me, LCORDMSG *m)
    in that building from a random start (none: only the payment) and tells 0x1dde: 0x81; the second button or a
    right click close it with 0 */
 
-int ai_ExpelWorkerWindow(AICHARREC *me, LCORDMSG *m)
+int ai_ExpelWorkerWindow(AICHAR *me, LCORDMSG *m)
 {
-    AICHARREC *holder;
+    AICHAR *holder;
     int cancel;
     AIBLD *bld;
     int ok;
     AMOUNTCFG cfg;
     char text[0x100];
     char news[0x200];
-    AICHARREC *target;
-    AICHARREC *owner;
-    AICHARREC *worker;
+    AICHAR *target;
+    AICHAR *owner;
+    AICHAR *worker;
     int ret;
     int win;
     int t;
@@ -7909,28 +7681,28 @@ int ai_ExpelWorkerWindow(AICHARREC *me, LCORDMSG *m)
             return 0x20;
         /* @original the AI branch tests the bit as a signed int (0x80 in cl, test byte ptr [..],cl); the
            unsigned field gives the sign test the player branch has */
-        if (m->kind == 3 && !((int)me->powerFlags & LC_POWER_EXPEL)) {
+        if (m->kind == 3 && !((int)me->flags1c8 & LC_POWER_EXPEL)) {
             holder = me;
         } else {
             if (m->kind != 4)
                 return 0x60;
             holder = m->partner;
-            if (holder == 0 || ((int)holder->powerFlags & LC_POWER_EXPEL))
+            if (holder == 0 || ((int)holder->flags1c8 & LC_POWER_EXPEL))
                 return 0x60;
         }
-        target = (AICHARREC *)gm_FindChar(m->target);
+        target = gm_FindChar(m->target);
         if (target == 0)
             return 0x60;
-        bld = (AIBLD *)gm_BuildQuery(1, 1, m->target2);
+        bld = gm_BuildQuery(1, 1, m->target2);
         if (bld == 0)
             return 0x60;
         cm_SendMoneyDelta(me->netId, -5);
         cm_SendSetField(holder->netId, 0x1c8, 4, LC_POWER_EXPEL, 0);
-        if (((AICHARREC *)ai_Chars)[bld->owner].kind == 6 || ((AICHARREC *)ai_Chars)[bld->owner].kind == 7) {
+        if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
             txt_Format(news, 0x1ddf, me->id, bld, target->id);
             he_ShowNews(bld->owner, bld->owner, news, 0, 0x5fb, "_NACHRICHTEN_HS_20");
         }
-        gm_InheritEstate((struct ORDCHAR *)target, (struct ORDCHAR *)ai_PlayerChar);
+        gm_InheritEstate(target, ai_PlayerChar);
         cm_SendKillCharacter(target->netId, 1);
         return 0x10;
     }
@@ -7942,9 +7714,9 @@ int ai_ExpelWorkerWindow(AICHARREC *me, LCORDMSG *m)
     } else {
         return 0x60;
     }
-    if (holder->powerFlags & LC_POWER_EXPEL) {
+    if (holder->flags1c8 & LC_POWER_EXPEL) {
         txt_Format(text, 0x1ce0);
-        sv_MessageBox(text, 0);
+        sv_MessageBox((intptr_t)text, 0);
         return 0x81;
     }
     ret = 0;
@@ -7958,7 +7730,7 @@ int ai_ExpelWorkerWindow(AICHARREC *me, LCORDMSG *m)
         return 0;
     if (bld->owner == 0xffff)
         return 0;
-    owner = &((AICHARREC *)ai_Chars)[bld->owner];
+    owner = &ai_Chars[bld->owner];
     win = d2_OpenForm(0, 0, "privillegien\\arbeiter_ausweisen");
     d2_SetPointerSprite(0, 0);
     d2_CentreViewWindows(win);
@@ -7976,13 +7748,13 @@ int ai_ExpelWorkerWindow(AICHARREC *me, LCORDMSG *m)
                     while (cm_GetSlotState(h) == 0)
                         sv_PumpNet();
                     txt_Format(news, 0x1dde);
-                    sv_MessageBox(news, 0);
+                    sv_MessageBox((intptr_t)news, 0);
                     worker = 0;
                     i = util_Random(0x300);
                     for (n = 0x300; n != 0; n--, i = (i + 1) % 0x300) {
-                        if (((AICHARREC *)ai_Chars)[i].id != 0xffff && ((AICHARREC *)ai_Chars)[i].bld == bld &&
-                            ((AICHARREC *)ai_Chars)[i].kind == 0) {
-                            worker = &((AICHARREC *)ai_Chars)[i];
+                        if (ai_Chars[i].id != 0xffff && ai_Chars[i].bld == bld &&
+                            ai_Chars[i].kind == 0) {
+                            worker = &ai_Chars[i];
                             break;
                         }
                     }
@@ -7991,7 +7763,7 @@ int ai_ExpelWorkerWindow(AICHARREC *me, LCORDMSG *m)
                             txt_Format(news, 0x1ddf, me->id, bld, worker->id);
                             he_ShowNews(owner->netId, owner->netId, news, 0, 0x5fb, "_NACHRICHTEN_HS_20");
                         }
-                        gm_InheritEstate((struct ORDCHAR *)worker, (struct ORDCHAR *)ai_PlayerChar);
+                        gm_InheritEstate(worker, ai_PlayerChar);
                         cm_SendKillCharacter(worker->netId, 1);
                     }
                     ret = 0x81;
@@ -8003,7 +7775,7 @@ int ai_ExpelWorkerWindow(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_ExpelWorkerWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_ExpelWorkerWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -8015,7 +7787,7 @@ int ai_ExpelWorkerWindow(AICHARREC *me, LCORDMSG *m)
    whose first button, when the player has the 3 (sv_CheckMoney), does it and tells 0x1de7; either button or a right
    click close it. Returns 1 once it was done, else 0 */
 
-int ai_PeaceWindow(AICHARREC *me, LCORDMSG *m)
+int ai_PeaceWindow(AICHAR *me, LCORDMSG *m)
 {
     int done;
     int ok;
@@ -8023,8 +7795,8 @@ int ai_PeaceWindow(AICHARREC *me, LCORDMSG *m)
     int win;
     AMOUNTCFG cfg;
     char text[0x200];
-    AICHARREC *a;
-    AICHARREC *b;
+    AICHAR *a;
+    AICHAR *b;
     int r1;
     int r2;
     int t;
@@ -8034,10 +7806,10 @@ int ai_PeaceWindow(AICHARREC *me, LCORDMSG *m)
         r2 = util_Random(0x28) + 0xf;
         if (me->money < 3)
             return 0x20;
-        a = (AICHARREC *)gm_FindChar(m->target);
+        a = gm_FindChar(m->target);
         if (a == 0)
             return 0x60;
-        b = (AICHARREC *)gm_FindChar(m->target2);
+        b = gm_FindChar(m->target2);
         if (b == 0)
             return 0x60;
         cm_SendRelations(a->netId, b->netId, r1, 1);
@@ -8059,11 +7831,11 @@ int ai_PeaceWindow(AICHARREC *me, LCORDMSG *m)
     cfg.kind = 6;
     cfg.filter = gypsyFilter;
     txt_Format(text, 0x1de4);
-    a = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+    a = ai_AmountMenu(&cfg, text, 0, 0);
     if (a == 0)
         return 0;
     txt_Format(text, 0x1de5, a->id);
-    b = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+    b = ai_AmountMenu(&cfg, text, 0, 0);
     if (b == 0)
         return 0;
     win = d2_OpenForm(0, 0, "privillegien\\frieden_stiften");
@@ -8084,7 +7856,7 @@ int ai_PeaceWindow(AICHARREC *me, LCORDMSG *m)
                     cm_SendRelations(b->netId, a->netId, r2, 1);
                     cm_SendMoneyDelta(me->netId, -3);
                     txt_Format(text, 0x1de7, a->id, b->id);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     if (a->kind == 6 || a->kind == 7) {
                         txt_Format(text, 0x1de8, b->id, me->id);
                         he_ShowNews(a->netId, a->netId, text, 0, 0x5ec, 0);
@@ -8102,7 +7874,7 @@ int ai_PeaceWindow(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_PeaceWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_PeaceWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return done;
 }
@@ -8115,7 +7887,7 @@ int ai_PeaceWindow(AICHARREC *me, LCORDMSG *m)
    price (sv_CheckGoodAmount), does it and tells 0x1de2 (the number converted); either button or a right click
    close it. Returns 1 once it was done, else 0 */
 
-int ai_ConvertWindow(AICHARREC *me, LCORDMSG *m)
+int ai_ConvertWindow(AICHAR *me, LCORDMSG *m)
 {
     int price;
     int done;
@@ -8125,7 +7897,7 @@ int ai_ConvertWindow(AICHARREC *me, LCORDMSG *m)
     int n;
     int i;
     int t;
-    AICHARREC *c;
+    AICHAR *c;
     char text[0x100];
 
     if (me->kind != 6) {
@@ -8142,7 +7914,7 @@ int ai_ConvertWindow(AICHARREC *me, LCORDMSG *m)
         cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
         cm_SendMoneyDelta(me->netId, -6);
         for (i = 0; i < 768; i++) {
-            c = &((AICHARREC *)ai_Chars)[i];
+            c = &ai_Chars[i];
             if (c->id != 0xffff && c->kind < 0xa && c->kind != 6 && c->kind != 7 && c->faith != me->faith &&
                 skill > (int)(util_Random(0x7e) + c->skills[4])) {
                 cm_BeginFieldBlock((char *)c, c->netId);
@@ -8171,14 +7943,14 @@ int ai_ConvertWindow(AICHARREC *me, LCORDMSG *m)
                 n = 0;
                 skill = me->skills[4];
                 faith = me->faith;
-                if (sv_CheckMoney(me, 6) != 0 && sv_CheckGoodAmount((char *)me, price, ai_OwnPlayer) != 0) {
+                if (sv_CheckMoney(me, 6) != 0 && sv_CheckGoodAmount(me, price, ai_OwnPlayer) != 0) {
                     cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
                     cm_SendMoneyDelta(me->netId, -6);
                     /* @original: the loop's strength-reduced pointer is based on c->kind (ai_Chars+2: cmp byte
                        [esi],0xa, faith at [esi+0xa]), which VC6 picks only with a second kind reference, as in
                        the AI loop above; the original had a kind test VC6 folds away (written twice here) */
                     for (i = 0; i < 768; i++) {
-                        c = &((AICHARREC *)ai_Chars)[i];
+                        c = &ai_Chars[i];
                         if (c->id != 0xffff && c->kind < 0xa && c->kind < 0xa && c->faith != me->faith &&
                             skill > (int)(util_Random(0x7e) + c->skills[4])) {
                             n++;
@@ -8188,7 +7960,7 @@ int ai_ConvertWindow(AICHARREC *me, LCORDMSG *m)
                         }
                     }
                     txt_Format(text, 0x1de2, n);
-                    sv_MessageBox(text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     done = 1;
                     sv_PopRequest = 1;
                 }
@@ -8198,7 +7970,7 @@ int ai_ConvertWindow(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_ConvertWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_ConvertWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return done;
 }
@@ -8209,7 +7981,7 @@ int ai_ConvertWindow(AICHARREC *me, LCORDMSG *m)
    the money (sv_CheckMoney), does it and tells 0x1deb (the number retired); either button or a right click close
    it. Returns 1 once it was done, else 0 */
 
-int ai_PenanceWindow(AICHARREC *me, LCORDMSG *m)
+int ai_PenanceWindow(AICHAR *me, LCORDMSG *m)
 {
     char text[0x100];
     int win;
@@ -8245,7 +8017,7 @@ int ai_PenanceWindow(AICHARREC *me, LCORDMSG *m)
                     if (sv_CheckMoney(me, n) != 0) {
                         cm_SendMoneyDelta(me->netId, -n);
                         txt_Format(text, 0x1deb, gv_RetireCrimesOf(me->netId, n));
-                        sv_MessageBox(text, 0);
+                        sv_MessageBox((intptr_t)text, 0);
                         done = 1;
                         sv_PopRequest = 1;
                     }
@@ -8255,14 +8027,14 @@ int ai_PenanceWindow(AICHARREC *me, LCORDMSG *m)
             }
             if (dm_L.rup)
                 sv_PopRequest = 1;
-        } while (sv_RunFrame((int)ai_PenanceWindow, 0x657c7) != 0);
+        } while (sv_RunFrame(ai_PenanceWindow, 0x657c7) != 0);
         d2_CloseView(win);
         return done;
     }
     return 0;
 }
-int ai_FindPartnersRandomWalk(struct AIPER *p, unsigned int a, int *flags, float lo, float hi, unsigned short *id); /* 0x4a5b50 (am.h, not included) */
-int amt_SendOfficeMessage(unsigned char a, char *b, char *c, int d, unsigned char e);  /* 0x4e6680 (amt.h) */
+int ai_FindPartnersRandomWalk(struct AICHAR *p, unsigned int a, int *flags, float lo, float hi, unsigned short *id); /* 0x4a5b50 (am.h, not included) */
+int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e);  /* 0x4e6680 (amt.h) */
 #define LC_MIRACLE_PICK_FLAGS3 0x400800  /* ai_FindPartnersRandomWalk flags of the miracle that takes an office (bits not read) */
 #define LC_MIRACLE_PICK_FLAGS4 0x300000  /* ai_FindPartnersRandomWalk flags of the miracle that raises a skill (bits not read) */
 /* 0x5ccc10, a miracle (ai_MiracleWindow, the miracle order's ask, rolls which = 0 .. 5): it builds the news title 0x1df7
@@ -8301,14 +8073,14 @@ int amt_SendOfficeMessage(unsigned char a, char *b, char *c, int d, unsigned cha
    the original eax / ecx), so one temporary more is handed out in ours before case 1 (case 0's tail or the
    0x1df7 title). No variant round this session. */
 
-void ai_Miracle(AICHARREC *me, int which)
+void ai_Miracle(AICHAR *me, int which)
 {
     char text[0x400];
     char title[0x400];
     char line[0x400];
     char healed[0x400];
     char unhealed[0x400];
-    AICHARREC *c;
+    AICHAR *c;
     AIBLD *bld;
     int out;
     int price;
@@ -8323,14 +8095,14 @@ void ai_Miracle(AICHARREC *me, int which)
 
         kinds.LowPart = 0x80;
         kinds.HighPart = 0;
-        if (ai_PickActionBuilding((struct AIPER *)me, 2, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
+        if (ai_PickActionBuilding(me, 2, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
             return;
-        gm_FindById((int *)&bld, 0, 0, out);
-        c = &((AICHARREC *)ai_Chars)[bld->owner];
+        gm_FindById(&bld, 0, 0, out);
+        c = &ai_Chars[bld->owner];
         worth = gm_GetWorth(c->id);
         price = (int)((util_Random(3) + 2) * (worth * 0.01));
         cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, price);
-        txt_Format(text, 0x1df8, c->id, bld, c->id, price, &ai_PlayerSlots[ai_OwnPlayer][0x20]);
+        txt_Format(text, 0x1df8, c->id, bld, c->id, price, ai_PlayerSlots[ai_OwnPlayer].townName);
     } else if (which == 1) {
         int v;
 
@@ -8341,7 +8113,7 @@ void ai_Miracle(AICHARREC *me, int which)
         sprintf(unhealed, "%s%s", title, text, line);  /* sic: the original's format drops the line */
         strcat(title, text);
         for (i = 0; i < 768; i++) {
-            c = &((AICHARREC *)ai_Chars)[i];
+            c = &ai_Chars[i];
             if (c->id == 0xffff)
                 continue;
             if (c->v024 < -20) {
@@ -8366,10 +8138,10 @@ void ai_Miracle(AICHARREC *me, int which)
 
         kinds.LowPart = 0xa07c43b0;
         kinds.HighPart = 1;
-        if (ai_PickActionBuilding((struct AIPER *)me, 2, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
+        if (ai_PickActionBuilding(me, 2, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
             return;
-        gm_FindById((int *)&bld, 0, 0, out);
-        c = &((AICHARREC *)ai_Chars)[bld->owner];
+        gm_FindById(&bld, 0, 0, out);
+        c = &ai_Chars[bld->owner];
         level = bld->level - util_Random(0x10) - 10;
         if (level <= 0)
             return;
@@ -8384,10 +8156,10 @@ void ai_Miracle(AICHARREC *me, int which)
         AMTREC office;
 
         flags = LC_MIRACLE_PICK_FLAGS3;
-        if (ai_FindPartnersRandomWalk((struct AIPER *)me, 1, &flags, 0.0f, 100.0f, (unsigned short *)&id) == 0)
+        if (ai_FindPartnersRandomWalk(me, 1, &flags, 0.0f, 100.0f, (unsigned short *)&id) == 0)
             return;
-        c = &((AICHARREC *)ai_Chars)[(unsigned short)id];
-        if (amt_FindOffice((char *)c, &kind, &office) == 0)
+        c = &ai_Chars[(unsigned short)id];
+        if (amt_FindOffice(c, &kind, &office) == 0)
             return;
         amt_SendOfficeMessage(office.idx, 0, 0, 4, 0xff);
         txt_Format(text, 0x1dfd, c->id, c->id, c->id);
@@ -8400,9 +8172,9 @@ void ai_Miracle(AICHARREC *me, int which)
 
         flags = LC_MIRACLE_PICK_FLAGS4;
         gain = util_Random(0x15);
-        if (ai_FindPartnersRandomWalk((struct AIPER *)me, 1, &flags, 0.0f, 100.0f, (unsigned short *)&id) == 0)
+        if (ai_FindPartnersRandomWalk(me, 1, &flags, 0.0f, 100.0f, (unsigned short *)&id) == 0)
             return;
-        c = &((AICHARREC *)ai_Chars)[(unsigned short)id];
+        c = &ai_Chars[(unsigned short)id];
         skill = -1;
         i = util_Random(5);
         j = 5;
@@ -8421,7 +8193,7 @@ void ai_Miracle(AICHARREC *me, int which)
         cm_SendFieldDeltas();
         txt_Format(text, 0x1dfe, c->id, c->id, skill + 0x16b7);
     } else if (which == 5) {
-        AICHARREC *chars[8];
+        AICHAR *chars[8];
         int n;
         int worth;
         int v;
@@ -8433,7 +8205,7 @@ void ai_Miracle(AICHARREC *me, int which)
         for (i = 0; i < 768; i++) {
             if (n >= 8)
                 break;
-            c = &((AICHARREC *)ai_Chars)[i];
+            c = &ai_Chars[i];
             if (c->kind == 6 || c->kind == 7 || c->kind == 5)
                 chars[n++] = c;
         }
@@ -8448,10 +8220,10 @@ void ai_Miracle(AICHARREC *me, int which)
         }
         kinds.LowPart = 0xb07d43b4;
         kinds.HighPart = 1;
-        if (ai_PickActionBuilding((struct AIPER *)c, 4, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
+        if (ai_PickActionBuilding(c, 4, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
             return;
         price = (int)((float)(util_Random(5) + 3) * worth * 0.01f);
-        gm_FindById((int *)&bld, 0, 0, out);
+        gm_FindById(&bld, 0, 0, out);
         cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, price);
         txt_Format(text, 0x1dff, c->id, bld, c->id, price);
     } else {
@@ -8459,7 +8231,7 @@ void ai_Miracle(AICHARREC *me, int which)
     }
     strcat(title, text);
     for (i = 0; i < 768; i++) {
-        c = &((AICHARREC *)ai_Chars)[i];
+        c = &ai_Chars[i];
         if (c->kind == 6 || c->kind == 7)
             he_ShowNews(c->netId, -1, title, 1, 0x5fe, 0);
     }
@@ -8474,11 +8246,11 @@ void ai_Miracle(AICHARREC *me, int which)
 
 int ai_MiracleWindow(void *chp, int *m)
 {
-    AICHARREC *ch;
+    AICHAR *ch;
     int win;
     int ret;
 
-    ch = (AICHARREC *)chp;
+    ch = chp;
 
     if (ch->kind != 6 && ch->kind != 7) {
         if (ch->money < 4)
@@ -8498,7 +8270,7 @@ int ai_MiracleWindow(void *chp, int *m)
         do {
             if (d2_ClickedId != -1) {
                 if (d2_ClickedId == 0) {
-                    if (sv_CheckMoney((char *)ch, 4) != 0) {
+                    if (sv_CheckMoney(ch, 4) != 0) {
                         cm_SendMoneyDelta(ch->netId, 0xfffffffc);
                         ai_Miracle(ch, util_Random(6));
                         ret = 1;
@@ -8535,7 +8307,7 @@ void cm_SendSetJob(int id, int job);  /* 0x4c59b0 (cm.h, not included) */
    the original's registers but stores base and moves two slots (17 ins, draft); win for it: 1 ins (its
    store), but win is read after the loop. ai_MasterExamWindow (lc.c) has the same arm left with a note. */
 
-int ai_ChangeProfessionWindow(AICHARREC *me, LCORDMSG *m)
+int ai_ChangeProfessionWindow(AICHAR *me, LCORDMSG *m)
 {
     int win;
     char **name;
@@ -8590,14 +8362,14 @@ int ai_ChangeProfessionWindow(AICHARREC *me, LCORDMSG *m)
             name++;
         }
         d2_ClickedId = -1;
-        while (sv_RunFrame((int)ai_ChangeProfessionWindow, 0x657c7) != 0) {
+        while (sv_RunFrame(ai_ChangeProfessionWindow, 0x657c7) != 0) {
             if (dm_L.rup)
                 sv_PopRequest = 1;
             if (dm_L.lclick && d2_PointerObj != -1) {
                 if (he_FindEvent(2, 2, ai_PlayerId, 0, 0x26) != 0) {
                     txt_Format(caption, 0x15bd, ai_PlayerId,
-                               (lc_CharRecs[ai_PlayerId].sex ? 0x18f : 0x130) + lc_CharRecs[ai_PlayerId].jobId - 1);
-                    sv_MessageBox(caption, 4);
+                               (ai_Chars[ai_PlayerId].sex ? 0x18f : 0x130) + ai_Chars[ai_PlayerId].jobId - 1);
+                    sv_MessageBox((intptr_t)caption, 4);
                 } else {
                     d2_EnableViewObjects(win, 0);
                     for (i = 0; i <= 15; i++)
@@ -8614,7 +8386,7 @@ int ai_ChangeProfessionWindow(AICHARREC *me, LCORDMSG *m)
                                     if (job == 0)
                                         job = gm_TitleNumber(group, 1);
                                     txt_Format(text, 0x1d37, -cost, job + base);
-                                    if (sv_MessageBox(text, 1) != 0) {
+                                    if (sv_MessageBox((intptr_t)text, 1) != 0) {
                                         cm_SendSetJob(me->netId, job);
                                         cm_SendMoneyDelta(me->netId, cost);
                                         sv_PopRequest = 1;
@@ -8635,7 +8407,7 @@ int ai_ChangeProfessionWindow(AICHARREC *me, LCORDMSG *m)
     }
     return 0;
 }
-int ai_PickPartnerRandomWalk(struct AIPER *p, unsigned int fl, int n, unsigned short *ids, float lo, float hi, unsigned short *id); /* 0x4a5d30 (am.h, not included) */
+int ai_PickPartnerRandomWalk(struct AICHAR *p, unsigned int fl, int n, unsigned short *ids, float lo, float hi, unsigned short *id); /* 0x4a5d30 (am.h, not included) */
 extern struct AICHAR *ai_JudgeCatholic;    /* 0x6f1bfc (gv.h), the catholic judge */
 extern struct AICHAR *ai_JudgeProtestant;  /* 0x6f1c00 (gv.h), the protestant judge */
 #define LC_TRIAL_PICK_FLAGS 0xc00          /* the ai_PickPartnerRandomWalk flags of the trial's assessors (bits not read) */
@@ -8645,12 +8417,12 @@ extern struct AICHAR *ai_JudgeProtestant;  /* 0x6f1c00 (gv.h), the protestant ju
    in when neither side holds it (his seat only from three crimes on), and two assessors come from the random walk
    (ai_PickPartnerRandomWalk, the ids already seated left out): 0x40 when one is missing, else 0x10 */
 
-int ai_OpenTrial(AICHARREC *me, AICHARREC *target, int n, int byFaith)
+int ai_OpenTrial(AICHAR *me, AICHAR *target, int n, int byFaith)
 {
     unsigned short seated[4];
     int picked;
     AIMSG msg;
-    unsigned char *bld;
+    AIBLD *bld;
     unsigned int i;
 
     seated[0] = 0xffff;
@@ -8658,14 +8430,14 @@ int ai_OpenTrial(AICHARREC *me, AICHARREC *target, int n, int byFaith)
     seated[2] = 0xffff;
     seated[3] = 0xffff;
     for (bld = gm_BuildQuery(1, 6); bld != 0; bld = gm_BuildNext())
-        if (((AIBTYPE *)ai_BTypes)[((AIBLD *)bld)->type].kind == 0xf)
+        if (ai_BTypes[bld->type].kind == 0xf)
             break;
     if (bld == 0)
         return 0x10;
     msg.type = 0x2c;
     msg.flags = 2;
     msg.to = me->netId;
-    msg.fromId = lc_CharRecs[ai_PlayerId].netId;
+    msg.fromId = ai_Chars[ai_PlayerId].netId;
     msg.arg[0] = me->netId;
     msg.arg[1] = target->netId;
     seated[0] = target->id;
@@ -8675,47 +8447,47 @@ int ai_OpenTrial(AICHARREC *me, AICHARREC *target, int n, int byFaith)
     msg.arg[5] = -1;
     if (byFaith == 0) {
         for (i = 0; i < 768; i++) {
-            if (lc_CharRecs[i].officeKind == 0xd) {
-                msg.arg[2] = lc_CharRecs[i].netId;
-                seated[1] = lc_CharRecs[i].id;
+            if (ai_Chars[i].officeKind == 0xd) {
+                msg.arg[2] = ai_Chars[i].netId;
+                seated[1] = ai_Chars[i].id;
                 break;
             }
         }
         if (msg.arg[2] == -1) {
             if (util_Random(2) != 0) {
-                msg.arg[2] = ((AICHARREC *)ai_JudgeCatholic)->netId;
-                seated[1] = ((AICHARREC *)ai_JudgeCatholic)->id;
+                msg.arg[2] = ai_JudgeCatholic->netId;
+                seated[1] = ai_JudgeCatholic->id;
             } else {
-                msg.arg[2] = ((AICHARREC *)ai_JudgeProtestant)->netId;
-                seated[1] = ((AICHARREC *)ai_JudgeProtestant)->id;
+                msg.arg[2] = ai_JudgeProtestant->netId;
+                seated[1] = ai_JudgeProtestant->id;
             }
         }
     } else {
-        msg.arg[2] = me->faith == 0 ? ((AICHARREC *)ai_JudgeCatholic)->netId : ((AICHARREC *)ai_JudgeProtestant)->netId;
-        seated[1] = me->faith == 0 ? ((AICHARREC *)ai_JudgeCatholic)->id : ((AICHARREC *)ai_JudgeProtestant)->id;
+        msg.arg[2] = me->faith == 0 ? ai_JudgeCatholic->netId : ai_JudgeProtestant->netId;
+        seated[1] = me->faith == 0 ? ai_JudgeCatholic->id : ai_JudgeProtestant->id;
     }
     if (target->officeKind != 0x11 && me->officeKind != 0x11) {
         for (i = 0; i < 768; i++) {
-            if (lc_CharRecs[i].officeKind == 0x11) {
+            if (ai_Chars[i].officeKind == 0x11) {
                 if (n > 2)
-                    msg.arg[5] = lc_CharRecs[i].netId;
-                seated[2] = lc_CharRecs[i].id;
+                    msg.arg[5] = ai_Chars[i].netId;
+                seated[2] = ai_Chars[i].id;
                 break;
             }
         }
     }
-    if (ai_PickPartnerRandomWalk((struct AIPER *)me, LC_TRIAL_PICK_FLAGS, 4, seated, 0.0f, 100.0f,
+    if (ai_PickPartnerRandomWalk(me, LC_TRIAL_PICK_FLAGS, 4, seated, 0.0f, 100.0f,
                                  (unsigned short *)&picked) == 0)
         return 0x40;
     if (seated[2] == 0xffff)
         seated[2] = picked;
     else
         seated[3] = picked;
-    msg.arg[3] = lc_CharRecs[(unsigned short)picked].netId;
-    if (ai_PickPartnerRandomWalk((struct AIPER *)me, LC_TRIAL_PICK_FLAGS, 4, seated, 0.0f, 100.0f,
+    msg.arg[3] = ai_Chars[(unsigned short)picked].netId;
+    if (ai_PickPartnerRandomWalk(me, LC_TRIAL_PICK_FLAGS, 4, seated, 0.0f, 100.0f,
                                  (unsigned short *)&picked) == 0)
         return 0x40;
-    msg.arg[4] = lc_CharRecs[(unsigned short)picked].netId;
+    msg.arg[4] = ai_Chars[(unsigned short)picked].netId;
     cm_SendLongMessage((char *)&msg);
     return 0x10;
 }
@@ -8726,7 +8498,7 @@ int ai_OpenTrial(AICHARREC *me, AICHARREC *target, int n, int byFaith)
    only while one of the crimes is open (state 1) and culprit is not me. The button opens the trial (ai_OpenTrial)
    and closes the window; a right click closes it. Returns 0 */
 
-int ai_AccuseWindow(AICHARREC *me, AICHARREC *culprit)
+int ai_AccuseWindow(AICHAR *me, AICHAR *culprit)
 {
     int n;
     int i;
@@ -8748,7 +8520,7 @@ int ai_AccuseWindow(AICHARREC *me, AICHARREC *culprit)
     if (n < 1)
         return 0x60;
     for (i = 0; i < n; i++) {
-        crimes[i] = ((CRIME *)ai_Crimes)[ids[i]];
+        crimes[i] = ai_Crimes[ids[i]];
         open |= crimes[i].state == 1;
     }
     if (me == culprit)
@@ -8788,7 +8560,7 @@ int ai_AccuseWindow(AICHARREC *me, AICHARREC *culprit)
             ai_OpenTrial(me, culprit, n, 0);
             sv_PopRequest = 3;
         }
-    } while (sv_RunFrame((int)ai_AccuseWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_AccuseWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return 0;
 }
@@ -8799,7 +8571,7 @@ int ai_AccuseWindow(AICHARREC *me, AICHARREC *culprit)
    clicked row opens its accusation window (ai_AccuseWindow), whose result it returns (0x20 when none was opened);
    a right click closes it */
 
-int ai_AccusationWindow(AICHARREC *me, LCORDMSG *m)
+int ai_AccusationWindow(AICHAR *me, LCORDMSG *m)
 {
     int n;
     int count;
@@ -8808,7 +8580,7 @@ int ai_AccusationWindow(AICHARREC *me, LCORDMSG *m)
     int list;
     int sel;
     int ret;
-    AICHARREC *ch;
+    AICHAR *ch;
     char text[0x40];
     int open[0x20];
     int ids[0x20];
@@ -8819,7 +8591,7 @@ int ai_AccusationWindow(AICHARREC *me, LCORDMSG *m)
     if (me->kind != 6 && me->kind != 7) {
         if (me->officeKind == 0xd)
             return 0x60;
-        ch = (AICHARREC *)gm_FindChar(m->target);
+        ch = gm_FindChar(m->target);
         if (ch == 0 || ch->officeKind == 0xd)
             return 0x60;
         open[0] = gv_HeldCrimesOf(m->target, ids, me->id);    /* the original keeps the count in open[0] */
@@ -8837,7 +8609,7 @@ int ai_AccusationWindow(AICHARREC *me, LCORDMSG *m)
     d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
     count = gv_RankCulpritsAll(ids, open, total, me->id);
     for (i = 0, n = 0; i < count; i++) {
-        ch = (AICHARREC *)gm_FindChar(ids[i]);
+        ch = gm_FindChar(ids[i]);
         if (ch != 0) {
             rows[n].rec = ch;
             rows[n].x2c = total[i];
@@ -8850,7 +8622,7 @@ int ai_AccusationWindow(AICHARREC *me, LCORDMSG *m)
     d2_SetForm(win, 2);
     if (n != 0) {
         for (i = 0; i < n; i++) {
-            txt_Format(text, "%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
+            txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
             rows[i].x = 0x32;
             rows[i].y = i * 0x69 + 10;
             ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
@@ -8875,7 +8647,7 @@ int ai_AccusationWindow(AICHARREC *me, LCORDMSG *m)
             if (sel > -1)
                 ret = ai_AccuseWindow(me, rows[sel].rec);
         }
-    } while (sv_RunFrame((int)ai_AccusationWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_AccusationWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -8887,7 +8659,7 @@ int ai_AccusationWindow(AICHARREC *me, LCORDMSG *m)
    returns (0x20 when none was opened); a right click closes it. The frame pump names ai_AccusationWindow as its
    owner (the original's copy) */
 
-int ai_FaithAccusationWindow(AICHARREC *me, LCORDMSG *m)
+int ai_FaithAccusationWindow(AICHAR *me, LCORDMSG *m)
 {
     int n;
     int count;
@@ -8896,7 +8668,7 @@ int ai_FaithAccusationWindow(AICHARREC *me, LCORDMSG *m)
     int list;
     int sel;
     int ret;
-    AICHARREC *ch;
+    AICHAR *ch;
     char text[0x40];
     int open[0x20];
     int ids[0x20];
@@ -8907,7 +8679,7 @@ int ai_FaithAccusationWindow(AICHARREC *me, LCORDMSG *m)
     if (me->kind != 6 && me->kind != 7) {
         if (me->officeKind == 0xd)
             return 0x60;
-        ch = (AICHARREC *)gm_FindChar(m->target);
+        ch = gm_FindChar(m->target);
         if (ch == 0 || ch->officeKind == 0xd)
             return 0x60;
         open[0] = gv_HeldCrimesOf(m->target, ids, me->id);    /* the original keeps the count in open[0] */
@@ -8925,7 +8697,7 @@ int ai_FaithAccusationWindow(AICHARREC *me, LCORDMSG *m)
     d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
     count = gv_RankCulpritsAll(ids, open, total, me->id);
     for (i = 0, n = 0; i < count; i++) {
-        ch = (AICHARREC *)gm_FindChar(ids[i]);
+        ch = gm_FindChar(ids[i]);
         if (ch != 0) {
             rows[n].rec = ch;
             rows[n].x2c = total[i];
@@ -8938,7 +8710,7 @@ int ai_FaithAccusationWindow(AICHARREC *me, LCORDMSG *m)
     d2_SetForm(win, 2);
     if (n != 0) {
         for (i = 0; i < n; i++) {
-            txt_Format(text, "%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
+            txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
             rows[i].x = 0x32;
             rows[i].y = i * 0x69 + 10;
             ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
@@ -8963,22 +8735,22 @@ int ai_FaithAccusationWindow(AICHARREC *me, LCORDMSG *m)
             if (sel > -1)
                 ret = ai_AccuseWindow(me, rows[sel].rec);
         }
-    } while (sv_RunFrame((int)ai_AccusationWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_AccusationWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
 /* 0x5ce4b0, carries out the interrogation (ai_InterrogationWindow): me questions ch, whose office column holds up
    to 6 offices (amt_KindColumn, amt_GetColumnOffices). ch himself gains 100 relation to me and, a player, the news
    0x1e0a (me's id, "_NACHRICHTEN_NEU_05"); every other holder of the column loses 20 and, a player, gets the news
-   0x1e0b (me, ch, me; "_NACHRICHTEN_NEU_06"). Then me's flag 0x80000 (AICHARREC.flags1cc, interrogated: the window
+   0x1e0b (me, ch, me; "_NACHRICHTEN_NEU_06"). Then me's flag 0x80000 (AICHAR.flags1cc, interrogated: the window
    refuses a second one) is set */
 
-void ai_Interrogate(AICHARREC *me, AICHARREC *ch)
+void ai_Interrogate(AICHAR *me, AICHAR *ch)
 {
     AMTREC offices[6];
     char text[0x200];
     char news[0x200];
-    AICHARREC *holder;
+    AICHAR *holder;
     int col;
     int n;
     int i;
@@ -8995,7 +8767,7 @@ void ai_Interrogate(AICHARREC *me, AICHARREC *ch)
                 he_ShowNews(ch->netId, -1, text, 0, 0x5fb, "_NACHRICHTEN_NEU_05");
             }
         } else {
-            holder = (AICHARREC *)gm_FindChar(offices[i].owner);
+            holder = gm_FindChar(offices[i].owner);
             if (holder == 0)
                 continue;
             cm_SendRelations(me->netId, offices[i].owner, -20, 1);
@@ -9008,19 +8780,19 @@ void ai_Interrogate(AICHARREC *me, AICHARREC *ch)
     cm_SendSetField(me->netId, 0x1cc, 4, 0x80000, 0);
 }
 
-int amt_SendOfficeMessage(unsigned char a, char *b, char *c, int d, unsigned char e); int gm_TitleNumber();
+int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e); int gm_TitleNumber();
 
 /* 0x5ce610, the interrogation order's ask (ord.c, the callers push (c, m)): the AI (not kind 6) interrogates the
-   character m->target unless me already did (AICHARREC.flags1cc 0x80000: 0x20), he is unknown or holds no office
+   character m->target unless me already did (AICHAR.flags1cc 0x80000: 0x20), he is unknown or holds no office
    (0x60): ai_Interrogate, 0x10. A player who already did gets the message box txt_Ptrs[0x1ce0] (0x81); else he picks
    the character from the amount menu (mode 0xc00, the gypsyFilter classes, kind 6, the title txt_Ptrs[0x1e08]; none:
    2) and confirms in the window "privillegien\verhoer" (the text 0x1e09 with the character's id, its two buttons):
    the first runs ai_Interrogate (0x91), the second or a right click closes it (2) */
 
-int ai_InterrogationWindow(AICHARREC *me, LCORDMSG *m)
+int ai_InterrogationWindow(AICHAR *me, LCORDMSG *m)
 {
     AMOUNTCFG cfg;
-    AICHARREC *ch;
+    AICHAR *ch;
     int win;
     int text;
     int yes;
@@ -9030,7 +8802,7 @@ int ai_InterrogationWindow(AICHARREC *me, LCORDMSG *m)
     if (me->kind != 6) {
         if ((me->flags1cc & 0x80000) != 0)
             return 0x20;
-        ch = (AICHARREC *)gm_FindChar(m->target);
+        ch = gm_FindChar(m->target);
         if (ch == 0)
             return 0x60;
         if (ch->officeKind == 0)
@@ -9041,13 +8813,13 @@ int ai_InterrogationWindow(AICHARREC *me, LCORDMSG *m)
     ret = 2;
     memset(&cfg, 0, sizeof(cfg));
     if ((me->flags1cc & 0x80000) != 0) {
-        sv_MessageBox(txt_Ptrs[0x1ce0], 0);
+        sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
         return 0x81;
     }
     cfg.mode = 0xc00;
     cfg.filter = gypsyFilter;
     cfg.kind = 6;
-    ch = (AICHARREC *)ai_AmountMenu(&cfg, txt_Ptrs[0x1e08], 0, 0);
+    ch = ai_AmountMenu(&cfg, txt_Ptrs[0x1e08], 0, 0);
     if (ch == 0)
         return 2;
     win = d2_OpenForm(0, 0, "privillegien\\verhoer");
@@ -9070,7 +8842,7 @@ int ai_InterrogationWindow(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_InterrogationWindow, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_InterrogationWindow, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -9083,7 +8855,7 @@ int ai_InterrogationWindow(AICHARREC *me, LCORDMSG *m)
 
 int ai_WorkerDismissalWindow(void *chp, int *m)
 {
-    AICHARREC *ch;
+    AICHAR *ch;
     int out[6];
     int win;
     int text;
@@ -9092,7 +8864,7 @@ int ai_WorkerDismissalWindow(void *chp, int *m)
     int i;
     int ret;
 
-    ch = (AICHARREC *)chp;
+    ch = chp;
     ret = 0x22;
     if (ch->kind != 6 && ch->kind != 7)
         return 0x20;
@@ -9127,7 +8899,7 @@ int ai_WorkerDismissalWindow(void *chp, int *m)
     }
 }
 /* 0x5ce950, the dismissal order's ask (ord.c, the callers push (c, m)): me has an office holder dismissed for 8
-   (gm_SendMoneyDelta), once (AICHARREC.flags1cc 0x40000, set with cm_SendSetField). The dismissal is the office
+   (gm_SendMoneyDelta), once (AICHAR.flags1cc 0x40000, set with cm_SendSetField). The dismissal is the office
    message of the holder's first office (amt_GetFirstOffice, amt_SendOfficeMessage(office, 0, 0, after 13 o'clock
    0xff else 3, 0xff)); a player holder gets the news 0x1e10 (me's id, 0x253 for a man, else 0x27b + the office).
    The AI (not kind 6) dismisses m->target: 0x20 when already done or me has less than 8, 0x60 when he is unknown
@@ -9137,9 +8909,9 @@ int ai_WorkerDismissalWindow(void *chp, int *m)
    the window "privillegien\verhoer" (the text 0x1e0f with the holder's id): the first button, when me can pay 8
    (sv_CheckMoney), dismisses him and waits for the flag's slot (0x91); the second or a right click closes it (2) */
 
-int ai_DismissalHandler(AICHARREC *me, LCORDMSG *m)
+int ai_DismissalHandler(AICHAR *me, LCORDMSG *m)
 {
-    AICHARREC *ch;
+    AICHAR *ch;
     AMOUNTCFG cfg;
     int office[6];
     char text[0x200];
@@ -9155,7 +8927,7 @@ int ai_DismissalHandler(AICHARREC *me, LCORDMSG *m)
             return 0x20;
         if (me->money < 8)
             return 0x20;
-        ch = (AICHARREC *)gm_FindChar(m->target);
+        ch = gm_FindChar(m->target);
         if (ch == 0)
             return 0x60;
         if (ch->officeKind == 0)
@@ -9174,13 +8946,13 @@ int ai_DismissalHandler(AICHARREC *me, LCORDMSG *m)
     ret = 2;
     memset(&cfg, 0, sizeof(cfg));
     if ((me->flags1cc & 0x40000) != 0) {
-        sv_MessageBox(txt_Ptrs[0x1ce0], 0);
+        sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
         return 0x81;
     }
     cfg.mode = 0xc00;
     cfg.kind = 6;
     cfg.filter = gypsyFilter;
-    ch = (AICHARREC *)ai_AmountMenu(&cfg, txt_Ptrs[0x1e0e], 0, 0);
+    ch = ai_AmountMenu(&cfg, txt_Ptrs[0x1e0e], 0, 0);
     if (ch == 0)
         return 2;
     if (amt_GetFirstOffice(ch->officeKind, office) == 0)
@@ -9213,7 +8985,7 @@ int ai_DismissalHandler(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_DismissalHandler, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_DismissalHandler, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -9222,23 +8994,23 @@ int ai_DismissalHandler(AICHARREC *me, LCORDMSG *m)
    interrogation window variant 1 / 2 (arg[2]); the clock, flags 2; cm_SendLongMessage (0x4c4b70) returns
    its handle. */
 
-int ai_SendInterrogationRefusal(char *ch, char *target, int variant)
+int ai_SendInterrogationRefusal(AICHAR *ch, AICHAR *target, int variant)
 {
     AIMSG msg;
 
     memset(&msg, 0, sizeof msg);
     msg.type = 0x45;
-    msg.to = ((AICHARREC *)ch)->netId;
+    msg.to = ch->netId;
     msg.fromId = -1;
     msg.time = ai_Time;
     msg.flags = 2;
-    msg.arg[0] = ((AICHARREC *)ch)->netId;
-    msg.arg[1] = ((AICHARREC *)target)->netId;
+    msg.arg[0] = ch->netId;
+    msg.arg[1] = target->netId;
     msg.arg[2] = variant;
     return cm_SendLongMessage((char *)&msg);
 }
 /* 0x5cede0, the interrogation order's ask, variant 1 (ord_InterrogationOrder2, the callers push (c, m)): me has an
-   office holder questioned for 4, once (AICHARREC.powerFlags 0x100): the message 0x45 of variant 1
+   office holder questioned for 4, once (AICHAR.flags1c8 0x100): the message 0x45 of variant 1
    (ai_SendInterrogationRefusal). The AI (not kind 6) questions m->target: 0x20 when already done or me has less
    than 4, 0x60 when he is unknown or holds no office, else 0x10. A player who already did gets the message box
    txt_Ptrs[0x1ce0] (0x81); else he picks the holder from the office list ai_SpecialAmountListWindow (kind 4, mode
@@ -9247,9 +9019,9 @@ int ai_SendInterrogationRefusal(char *ch, char *target, int variant)
    pay 4 (sv_CheckMoney), sends the message and waits for its slot (0x91); the second or a right click closes it
    (2) */
 
-int ai_InterrogationWindow1(AICHARREC *me, LCORDMSG *m)
+int ai_InterrogationWindow1(AICHAR *me, LCORDMSG *m)
 {
-    AICHARREC *ch;
+    AICHAR *ch;
     AMOUNTCFG cfg;
     int win;
     int t;
@@ -9259,28 +9031,28 @@ int ai_InterrogationWindow1(AICHARREC *me, LCORDMSG *m)
     int ret;
 
     if (me->kind != 6) {
-        if ((me->powerFlags & 0x100) != 0)
+        if ((me->flags1c8 & 0x100) != 0)
             return 0x20;
         if (me->money < 4)
             return 0x20;
-        ch = (AICHARREC *)gm_FindChar(m->target);
+        ch = gm_FindChar(m->target);
         if (ch == 0)
             return 0x60;
         if (ch->officeKind == 0)
             return 0x60;
-        ai_SendInterrogationRefusal((char *)me, (char *)ch, 1);
+        ai_SendInterrogationRefusal(me, ch, 1);
         return 0x10;
     }
     ret = 2;
     memset(&cfg, 0, sizeof(cfg));
-    if ((me->powerFlags & 0x100) != 0) {
-        sv_MessageBox(txt_Ptrs[0x1ce0], 0);
+    if ((me->flags1c8 & 0x100) != 0) {
+        sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
         return 0x81;
     }
     cfg.mode = 0xc00;
     cfg.filter = gypsyFilter;
     cfg.kind = 6;
-    ch = (AICHARREC *)ai_SpecialAmountListWindow(4, (unsigned int *)&cfg, txt_Ptrs[0x1e16], ch_EmptyName, 0);
+    ch = ai_SpecialAmountListWindow(4, (unsigned int *)&cfg, txt_Ptrs[0x1e16], ch_EmptyName, 0);
     if (ch == 0)
         return 2;
     win = d2_OpenForm(0, 0, "privillegien\\verhoer");
@@ -9294,7 +9066,7 @@ int ai_InterrogationWindow1(AICHARREC *me, LCORDMSG *m)
     do {
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == yes && sv_CheckMoney(me, 4) != 0) {
-                slot = ai_SendInterrogationRefusal((char *)me, (char *)ch, 1);
+                slot = ai_SendInterrogationRefusal(me, ch, 1);
                 while (slot != -1 && cm_GetSlotState(slot) == 0)
                     sv_PumpNet();
                 sv_PopRequest = 1;
@@ -9305,7 +9077,7 @@ int ai_InterrogationWindow1(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_InterrogationWindow1, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_InterrogationWindow1, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -9313,9 +9085,9 @@ int ai_InterrogationWindow1(AICHARREC *me, LCORDMSG *m)
    of ai_InterrogationWindow1 with the message 0x45 of variant 2, the office list of kind 5, the caption
    txt_Ptrs[0x1e1d] and the text 0x1e1e (the holder's id, the price 4) */
 
-int ai_InterrogationWindow2(AICHARREC *me, LCORDMSG *m)
+int ai_InterrogationWindow2(AICHAR *me, LCORDMSG *m)
 {
-    AICHARREC *ch;
+    AICHAR *ch;
     AMOUNTCFG cfg;
     int win;
     int t;
@@ -9325,28 +9097,28 @@ int ai_InterrogationWindow2(AICHARREC *me, LCORDMSG *m)
     int ret;
 
     if (me->kind != 6) {
-        if ((me->powerFlags & 0x100) != 0)
+        if ((me->flags1c8 & 0x100) != 0)
             return 0x20;
         if (me->money < 4)
             return 0x20;
-        ch = (AICHARREC *)gm_FindChar(m->target);
+        ch = gm_FindChar(m->target);
         if (ch == 0)
             return 0x60;
         if (ch->officeKind == 0)
             return 0x60;
-        ai_SendInterrogationRefusal((char *)me, (char *)ch, 2);
+        ai_SendInterrogationRefusal(me, ch, 2);
         return 0x10;
     }
     ret = 2;
     memset(&cfg, 0, sizeof(cfg));
-    if ((me->powerFlags & 0x100) != 0) {
-        sv_MessageBox(txt_Ptrs[0x1ce0], 0);
+    if ((me->flags1c8 & 0x100) != 0) {
+        sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
         return 0x81;
     }
     cfg.mode = 0xc00;
     cfg.filter = gypsyFilter;
     cfg.kind = 6;
-    ch = (AICHARREC *)ai_SpecialAmountListWindow(5, (unsigned int *)&cfg, txt_Ptrs[0x1e1d], ch_EmptyName, 0);
+    ch = ai_SpecialAmountListWindow(5, (unsigned int *)&cfg, txt_Ptrs[0x1e1d], ch_EmptyName, 0);
     if (ch == 0)
         return 2;
     win = d2_OpenForm(0, 0, "privillegien\\verhoer");
@@ -9360,7 +9132,7 @@ int ai_InterrogationWindow2(AICHARREC *me, LCORDMSG *m)
     do {
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == yes && sv_CheckMoney(me, 4) != 0) {
-                slot = ai_SendInterrogationRefusal((char *)me, (char *)ch, 2);
+                slot = ai_SendInterrogationRefusal(me, ch, 2);
                 while (slot != -1 && cm_GetSlotState(slot) == 0)
                     sv_PumpNet();
                 sv_PopRequest = 1;
@@ -9371,7 +9143,7 @@ int ai_InterrogationWindow2(AICHARREC *me, LCORDMSG *m)
         }
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_InterrogationWindow2, 0x657c7) != 0);
+    } while (sv_RunFrame(ai_InterrogationWindow2, 0x657c7) != 0);
     d2_CloseView(win);
     return ret;
 }
@@ -9384,7 +9156,7 @@ int ai_InterrogationWindow2(AICHARREC *me, LCORDMSG *m)
    (profession, 1), the fee) and closes the window; a right click closes it. Returns 1 once the left button was
    clicked, else 0 */
 
-int ai_ChooseProfessionWindow(AICHARREC *parent, AICHARREC *child)
+int ai_ChooseProfessionWindow(AICHAR *parent, AICHAR *child)
 {
     AIMSG msg;
     int fee;
@@ -9412,7 +9184,7 @@ int ai_ChooseProfessionWindow(AICHARREC *parent, AICHARREC *child)
         d2_Objs[pic].capfont = 0x56;
     }
     ret = 0;
-    while (sv_RunFrame((int)ai_ChooseProfessionWindow, sv_FrameMask) != 0) {
+    while (sv_RunFrame(ai_ChooseProfessionWindow, sv_FrameMask) != 0) {
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
         } else if (dm_L.lclick != 0) {
@@ -9445,7 +9217,7 @@ int ai_ChooseProfessionWindow(AICHARREC *parent, AICHARREC *child)
    the child's powerFlags 0x10000 and closes the window (1); the close button or a right click closes it (0).
    parent (the caller passes the player's character) is not read */
 
-int ai_UniversityWindow(AICHARREC *parent, AICHARREC *child)
+int ai_UniversityWindow(AICHAR *parent, AICHAR *child)
 {
     int win;
     int ctrl[4];
@@ -9455,7 +9227,7 @@ int ai_UniversityWindow(AICHARREC *parent, AICHARREC *child)
     int i;
     int ret;
 
-    ai_RollStudyOffers(ai_Chars[ai_PlayerId], offers);
+    ai_RollStudyOffers(&ai_Chars[ai_PlayerId], offers);
     win = d2_OpenForm(0, 0, "special\\uni");
     d2_CentreViewWindows(win);
     d2_SetForm(win, 1);
@@ -9465,13 +9237,13 @@ int ai_UniversityWindow(AICHARREC *parent, AICHARREC *child)
         ctrl[i] = d2_WinOpenPic(0x14, i * 0x5a + 10, 0x4c6, d2_LastWindow);
         d2_Objs[ctrl[i]].interactive = 1;
         d2_Objs[ctrl[i]].style = 3;
-        txt_Format(text, "%s", ((GMPLAYERSLOT *)ai_PlayerSlots)[i + 1].name);
+        txt_Format(text, (intptr_t)"%s", ai_PlayerSlots[i + 1].name);
         d2_CreateWinText(0xbe, i * 0x5a + 10, text, d2_LastWindow);
-        txt_Format(text, "%s", offers[i][1] + 0x16b7);
+        txt_Format(text, (intptr_t)"%s", offers[i][1] + 0x16b7);
         d2_CreateWinText(0xbe, i * 0x5a + 0x1e, text, d2_LastWindow);
-        txt_Format(text, "%s", offers[i][2] + 0x16b7);
+        txt_Format(text, (intptr_t)"%s", offers[i][2] + 0x16b7);
         d2_CreateWinText(0xbe, i * 0x5a + 0x32, text, d2_LastWindow);
-        txt_Format(text, "%T", offers[i][0]);
+        txt_Format(text, (intptr_t)"%T", offers[i][0]);
         d2_CreateWinText(0xbe, i * 0x5a + 0x46, text, d2_LastWindow);
     }
     d2_SetForm(win, 3);
@@ -9479,7 +9251,7 @@ int ai_UniversityWindow(AICHARREC *parent, AICHARREC *child)
     d2_SetPointerSprite(0, 0);
     d2_ClickedId = -1;
     ret = 0;
-    while (sv_RunFrame((int)ai_UniversityWindow, sv_FrameMask) != 0) {
+    while (sv_RunFrame(ai_UniversityWindow, sv_FrameMask) != 0) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (d2_ClickedId != -1) {
@@ -9492,7 +9264,7 @@ int ai_UniversityWindow(AICHARREC *parent, AICHARREC *child)
                         msg.type = 0x5f;
                         msg.to = child->netId;
                         msg.fromId = -1;
-                        msg.study.ch = lc_CharRecs[ai_PlayerId].netId;
+                        msg.study.ch = ai_Chars[ai_PlayerId].netId;
                         msg.study.subject = offers[i][1];
                         msg.study.level = offers[i][2];
                         msg.study.child = offers[i][0];
@@ -9520,7 +9292,7 @@ void ai_UseObjPanel(char *text)
     win = d2_OpenForm(0, 0, "panel\\useobj");
     d2_CentreViewWindows(win);
     d2_SetForm(win, 1);
-    io_PrintText("%s", text);
+    io_PrintText((intptr_t)"%s", text);
     d2_SetPointerSprite(0, 0);
     d2_ClickedId = -1;
     do {
@@ -9539,7 +9311,7 @@ void ai_UseObjPanel(char *text)
    (kind 6) whose callback did not report the use sees the panel, with the text 0xfe8 (rank + 1) on effect.
    Returns the callback's result (1 without one). */
 
-int ai_UseGood(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGood(AICHAR *ch, G8USEVIEW *use)
 {
     char text[0x800];
     int minutes;
@@ -9562,7 +9334,7 @@ int ai_UseGood(AICHARREC *ch, G8USEVIEW *use)
         return -5;
     use->effect = (use->obj->id != 0x175 || util_RandomF() >= 0.66) ? 1 : 0;
     if (entry->use != 0)
-        ret = ((int (*)(AICHARREC *, G8USEVIEW *))entry->use)(ch, use);
+        ret = ((int (*)(AICHAR *, G8USEVIEW *))entry->use)(ch, use);
     else
         ret = 1;
     if (ret != 0) {
@@ -9589,7 +9361,7 @@ int ai_UseGood(AICHARREC *ch, G8USEVIEW *use)
             cm_SendExSellObject(-1, ch->netId, use->obj->id, 1, ai_OwnPlayer, 0);
         if (entry->law != -1) {
             if (ch->bld2 != 0)
-                gv_Accuse(entry->law, 1, ch->netId, -1, ((AIBLD *)ch->bld2)->id);
+                gv_Accuse(entry->law, 1, ch->netId, -1, ch->bld2->id);
             else
                 gv_Accuse(entry->law, 1, ch->netId, -1, -1);
         }
@@ -9607,7 +9379,7 @@ int ai_UseGood(AICHARREC *ch, G8USEVIEW *use)
 /* 0x5cfb60, the use callback of the Domizil good 0x173 (the +0x14 pointer of the table entry 0x62c6c0):
    pays the character ch 2 money with gm_SendMoneyDelta (message 0x5a, the netId at +4); returns 1. */
 
-int ai_UseGoodAddMoney(AICHARREC *ch)
+int ai_UseGoodAddMoney(AICHAR *ch)
 {
     gm_SendMoneyDelta(ch->netId, 2);
     return 1;
@@ -9617,7 +9389,7 @@ int ai_UseGoodAddMoney(AICHARREC *ch)
    (AICHAR.f01c) with cm_SendFloatDelta (0x4c4ac0); effect 0 for a player (kind 6) sets use->handled and
    shows the text 0xff0 (ai_UseObjPanel); returns 1. */
 
-int ai_UseGoodHeal(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodHeal(AICHAR *ch, G8USEVIEW *use)
 {
     char text[0x800];
 
@@ -9638,7 +9410,7 @@ int ai_UseGoodHeal(AICHARREC *ch, G8USEVIEW *use)
    0x2c4 and util_RandomF() <= 0.75. A player owner (kind 6 / 7) gets the news 0xff1 (key 0x5fb). Returns 1.
    Both paths are written out in full, as the original's code has them. */
 
-int ai_UseGoodInfectOwner(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodInfectOwner(AICHAR *ch, G8USEVIEW *use)
 {
     AIBLD *bld;
     int *id;
@@ -9670,17 +9442,17 @@ int ai_UseGoodInfectOwner(AICHARREC *ch, G8USEVIEW *use)
             cm_BeginFieldBlock((char *)use->obj, use->obj->objId);
             cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->bldId - cm_FieldObject), id);
             cm_SendFieldDeltas();
-            gm_CatchDisease((struct ORDCHAR *)&lc_CharRecs[bld->owner], 0, 0);
-            if (lc_CharRecs[bld->owner].kind == 6 || lc_CharRecs[bld->owner].kind == 7) {
+            gm_CatchDisease(&ai_Chars[bld->owner], 0, 0);
+            if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
                 char news[0x800];
 
                 txt_Format(news, 0xff1);
-                he_ShowNews(lc_CharRecs[bld->owner].netId, -1, news, 0, 0x5fb, 0);
+                he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
             }
             return 1;
         }
     } else {
-        bld = (AIBLD *)gm_BuildQuery(1, 1, use->target);
+        bld = gm_BuildQuery(1, 1, use->target);
         if (bld != 0 && bld->owner != 0) {
             AIMSG msg;
 
@@ -9696,13 +9468,13 @@ int ai_UseGoodInfectOwner(AICHARREC *ch, G8USEVIEW *use)
             cm_BeginFieldBlock((char *)use->obj, use->obj->objId);
             cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->bldId - cm_FieldObject), id);
             cm_SendFieldDeltas();
-            if (ai_InventoryHas(&lc_CharRecs[bld->owner], 0x2c4) == 0 || util_RandomF() > 0.75f)
-                gm_CatchDisease((struct ORDCHAR *)&lc_CharRecs[bld->owner], 0, 0);
-            if (lc_CharRecs[bld->owner].kind == 6 || lc_CharRecs[bld->owner].kind == 7) {
+            if (ai_InventoryHas(&ai_Chars[bld->owner], 0x2c4) == 0 || util_RandomF() > 0.75f)
+                gm_CatchDisease(&ai_Chars[bld->owner], 0, 0);
+            if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
                 char news[0x800];
 
                 txt_Format(news, 0xff1);
-                he_ShowNews(lc_CharRecs[bld->owner].netId, -1, news, 0, 0x5fb, 0);
+                he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
             }
             return 1;
         }
@@ -9720,7 +9492,7 @@ int ai_UseGoodInfectOwner(AICHARREC *ch, G8USEVIEW *use)
    out in full with the 0x77 message and the rest, as the original has them: VC6 cross-jumps the first copy
    into the second, and the first copy's temporaries set the second path's scratch registers. */
 
-int ai_UseGoodSendHome(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodSendHome(AICHAR *ch, G8USEVIEW *use)
 {
     AIBLD *bld;
     int *id;
@@ -9772,17 +9544,17 @@ int ai_UseGoodSendHome(AICHARREC *ch, G8USEVIEW *use)
             cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->bldId - cm_FieldObject), id);
             cm_SendFieldDeltas();
             cm_SendSetField(*id, 0x5a, 2, 0x20, 0);
-            if (bld->owner != 0xffff && (lc_CharRecs[bld->owner].kind == 6 || lc_CharRecs[bld->owner].kind == 7)) {
+            if (bld->owner != 0xffff && (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7)) {
                 char news[0x800];
 
                 txt_Format(news, 0xff2, bld);
-                he_ShowNews(lc_CharRecs[bld->owner].netId, -1, news, 0, 0x5fb, 0);
+                he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
             }
         } else {
             goto done;
         }
     } else {
-        bld = (AIBLD *)gm_BuildQuery(1, 1, use->target);
+        bld = gm_BuildQuery(1, 1, use->target);
         if (bld == 0)
             goto done;
         {
@@ -9817,11 +9589,11 @@ int ai_UseGoodSendHome(AICHARREC *ch, G8USEVIEW *use)
         cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->bldId - cm_FieldObject), id);
         cm_SendFieldDeltas();
         cm_SendSetField(*id, 0x5a, 2, 0x20, 0);
-        if (bld->owner != 0xffff && (lc_CharRecs[bld->owner].kind == 6 || lc_CharRecs[bld->owner].kind == 7)) {
+        if (bld->owner != 0xffff && (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7)) {
             char news[0x800];
 
             txt_Format(news, 0xff2, bld);
-            he_ShowNews(lc_CharRecs[bld->owner].netId, -1, news, 0, 0x5fb, 0);
+            he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
         }
     }
     ret = 1;
@@ -9834,12 +9606,12 @@ done:
    the skills 3 and 2 lose 1/6 each for 24 hours (flags 2). A player target (kind 6 / 7) gets the news 0xff8 (key
    0x5fb). Returns 1. Both paths are written out in full, as the original's code has them. */
 
-int ai_UseGoodWeakenSkills(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodWeakenSkills(AICHAR *ch, G8USEVIEW *use)
 {
     AMOUNTCFG cfg;
     char text[0x100];
     char news[0x800];
-    AICHARREC *target;
+    AICHAR *target;
 
     if (ch->kind == 6) {
         memset(&cfg, 0, sizeof(cfg));
@@ -9849,7 +9621,7 @@ int ai_UseGoodWeakenSkills(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
         if (target != 0) {
             AIMSG msg;
             msg.type = 0x82;
@@ -9869,7 +9641,7 @@ int ai_UseGoodWeakenSkills(AICHARREC *ch, G8USEVIEW *use)
             return 1;
         }
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target != 0) {
             AIMSG msg;
             msg.type = 0x82;
@@ -9897,12 +9669,12 @@ int ai_UseGoodWeakenSkills(AICHARREC *ch, G8USEVIEW *use)
    2); for any other user the target is use->target (gm_FindChar) and no message is sent. A player target (kind
    6 / 7) gets the news 0xff6 (key 0x5fb). Returns 1, 0 without a target. */
 
-int ai_UseGoodWeakenSkills2(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodWeakenSkills2(AICHAR *ch, G8USEVIEW *use)
 {
     AMOUNTCFG cfg;
     char text[0x100];
     char news[0x800];
-    AICHARREC *target;
+    AICHAR *target;
 
     if (ch->kind == 6) {
         memset(&cfg, 0, sizeof(cfg));
@@ -9912,7 +9684,7 @@ int ai_UseGoodWeakenSkills2(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
         if (target != 0) {
             AIMSG msg;
             msg.type = 0x82;
@@ -9932,7 +9704,7 @@ int ai_UseGoodWeakenSkills2(AICHARREC *ch, G8USEVIEW *use)
             return 1;
         }
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target != 0) {
             if (target->kind == 6 || target->kind == 7) {
                 txt_Format(news, 0xff6);
@@ -9948,7 +9720,7 @@ int ai_UseGoodWeakenSkills2(AICHARREC *ch, G8USEVIEW *use)
    low bits of the first set ailment field of ch->ailments (the mask of its field: 7, 0x30, 0x300, 0x1000,
    0xc000, 0x20000, 0x100000, 0x800000, 0x6000000) with cm_SendSetField; returns 1. */
 
-int ai_UseGoodCureAilment(AICHARREC *ch)
+int ai_UseGoodCureAilment(AICHAR *ch)
 {
     unsigned int f;
     int mask;
@@ -9980,11 +9752,11 @@ int ai_UseGoodCureAilment(AICHARREC *ch)
 }
 /* 0x5d0780, the use callback of the Domizil good 0x161 (reached through its table entry +0x14): picks the target
    building, for a player (kind 6) on the town map (ai_MapPick with the prompt 0x9b, the class filter 0x90010,
-   kind 4), else the building use->target; none -> 0. Every character in that building (AICHARREC.bld) has its
+   kind 4), else the building use->target; none -> 0. Every character in that building (AICHAR.bld) has its
    b1c5 halved, rounded up, sent as a field delta. Returns 1. (am.c's AI uses the good where the workers' b1c5
    averages at least 6; what b1c5 means is not known.) */
 
-int ai_UseGoodHalveWorkerValue(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodHalveWorkerValue(AICHAR *ch, G8USEVIEW *use)
 {
     AMOUNTCFG cfg;
     char text[0x100];
@@ -10007,16 +9779,16 @@ int ai_UseGoodHalveWorkerValue(AICHARREC *ch, G8USEVIEW *use)
             goto done;
         ret = 1;
     } else {
-        bld = (AIBLD *)gm_BuildQuery(1, 1, use->target);
+        bld = gm_BuildQuery(1, 1, use->target);
         if (bld == 0)
             goto done;
         ret = 1;
     }
     for (i = 0; i < 0x300; i++) {
-        if (lc_CharRecs[i].bld == bld) {
-            value = lc_CharRecs[i].b1c5 % 2 + lc_CharRecs[i].b1c5 / 2;
-            cm_BeginFieldBlock((char *)&lc_CharRecs[i], lc_CharRecs[i].netId);
-            cm_AddFieldDelta(1, 1, (unsigned short)((char *)&lc_CharRecs[i].b1c5 - cm_FieldObject), &value);
+        if (ai_Chars[i].bld == bld) {
+            value = ai_Chars[i].b1c5 % 2 + ai_Chars[i].b1c5 / 2;
+            cm_BeginFieldBlock((char *)&ai_Chars[i], ai_Chars[i].netId);
+            cm_AddFieldDelta(1, 1, (unsigned short)((char *)&ai_Chars[i].b1c5 - cm_FieldObject), &value);
             cm_SendFieldDeltas();
         }
     }
@@ -10028,7 +9800,7 @@ done:
    y = 0.6x + 0.2 the amount is (1 - y + util_RandomF() * y) * 42x + 1, cut so that n + amount stays at 252; a
    nonzero amount goes out with cm_SendAddSkill (the netId, the skill, the amount). Returns 1. */
 
-int ai_ApplyTrialStep(AICHARREC *ch, int skill)
+int ai_ApplyTrialStep(AICHAR *ch, int skill)
 {
     float x;
     float y;
@@ -10050,20 +9822,20 @@ int ai_ApplyTrialStep(AICHARREC *ch, int skill)
    the target in the special-amount list 0x5bea00 (the text 0x5176d0 0x9d), every other kind takes the use's
    target 0x505df0; the target's trial step 1 (0x5d08c0) runs and 1, 0 without a target. */
 
-int ai_TrialStep1(G8CHARREC *ch, G8USEVIEW *use)
+int ai_TrialStep1(AICHAR *ch, G8USEVIEW *use)
 {
     char text[0x100];
-    G8CHARREC *target;
+    AICHAR *target;
 
     if (ch->kind == 6) {
-        txt_Format(text, (char *)0x9d);
-        target = (G8CHARREC *)ai_SpecialAmountList((int)ch, text);
+        txt_Format(text, 0x9d);
+        target = ai_SpecialAmountList((int)ch, text);
         if (target != 0) {
             ai_ApplyTrialStep((int)target, 1);
             return 1;
         }
     } else {
-        target = (G8CHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target != 0) {
             ai_ApplyTrialStep((int)target, 1);
             return 1;
@@ -10075,20 +9847,20 @@ int ai_TrialStep1(G8CHARREC *ch, G8USEVIEW *use)
    the target in the special-amount list 0x5bea00 (the text 0x5176d0 0x9d), every other kind takes the use's
    target 0x505df0; the target's trial step 3 (0x5d08c0) runs and 1, 0 without a target. */
 
-int ai_TrialStep3(G8CHARREC *ch, G8USEVIEW *use)
+int ai_TrialStep3(AICHAR *ch, G8USEVIEW *use)
 {
     char text[0x100];
-    G8CHARREC *target;
+    AICHAR *target;
 
     if (ch->kind == 6) {
-        txt_Format(text, (char *)0x9d);
-        target = (G8CHARREC *)ai_SpecialAmountList((int)ch, text);
+        txt_Format(text, 0x9d);
+        target = ai_SpecialAmountList((int)ch, text);
         if (target != 0) {
             ai_ApplyTrialStep((int)target, 3);
             return 1;
         }
     } else {
-        target = (G8CHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target != 0) {
             ai_ApplyTrialStep((int)target, 3);
             return 1;
@@ -10100,20 +9872,20 @@ int ai_TrialStep3(G8CHARREC *ch, G8USEVIEW *use)
    the target in the special-amount list 0x5bea00 (the text 0x5176d0 0x9d), every other kind takes the use's
    target 0x505df0; the target's trial step 4 (0x5d08c0) runs and 1, 0 without a target. */
 
-int ai_TrialStep4(G8CHARREC *ch, G8USEVIEW *use)
+int ai_TrialStep4(AICHAR *ch, G8USEVIEW *use)
 {
     char text[0x100];
-    G8CHARREC *target;
+    AICHAR *target;
 
     if (ch->kind == 6) {
-        txt_Format(text, (char *)0x9d);
-        target = (G8CHARREC *)ai_SpecialAmountList((int)ch, text);
+        txt_Format(text, 0x9d);
+        target = ai_SpecialAmountList((int)ch, text);
         if (target != 0) {
             ai_ApplyTrialStep((int)target, 4);
             return 1;
         }
     } else {
-        target = (G8CHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target != 0) {
             ai_ApplyTrialStep((int)target, 4);
             return 1;
@@ -10135,7 +9907,7 @@ int ai_TrialStep4(G8CHARREC *ch, G8USEVIEW *use)
    news block's scratch registers rotate behind it. Tried: amount inline in the call (pushes the 1 before
    the inventory call, pops split; climb's best at 12 ins / 198 bytes), (has != 0) + 1, ? 50 : 25, ret =
    target != 0, ret types: no better. climb 2 rounds from this text: nothing else. prior: Read whole
-   against the original and rewritten typed (AMOUNTCFG, AICHARREC user / target); fixed two meaning errors
+   against the original and rewritten typed (AMOUNTCFG, AICHAR user / target); fixed two meaning errors
    of the draft: the partner bit is 1 for a set sex byte and 2 otherwise (neg / sbb / add 2 / or dh,4), and
    he_ShowNews gets (netId, -1, text, 0, 0x5ec, 0). The structure follows the original: ret 0 in edi, path
    2 joins at if (target != 0) { ret = 1; .. }, the amount in a local (the pops merge, add esp,0x18 as the
@@ -10146,12 +9918,12 @@ int ai_TrialStep4(G8CHARREC *ch, G8USEVIEW *use)
    load order (regs 32, order 6). Tried: the inventory call inside the argument list (12 ins but its pops
    split, the original's merge), ret = 1 after the send. */
 
-int ai_UseGoodRaiseRelation(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodRaiseRelation(AICHAR *ch, G8USEVIEW *use)
 {
     AMOUNTCFG cfg;
     char text[0x100];
     char news[0x400];
-    AICHARREC *target;
+    AICHAR *target;
     int amount;
     int ret;
 
@@ -10161,15 +9933,15 @@ int ai_UseGoodRaiseRelation(AICHARREC *ch, G8USEVIEW *use)
         memset(cfg.ids, 0xff, sizeof(cfg.ids));
         txt_Format(text, 0x9c);
         cfg.flags = 1;
-        cfg.mode = 0x400 | (lc_CharRecs[ai_PlayerId].sex != 0 ? 1 : 2);
+        cfg.mode = 0x400 | (ai_Chars[ai_PlayerId].sex != 0 ? 1 : 2);
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
         if (target == 0)
             return 0;
         ret = 1;
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target != 0)
             ret = 1;
     }
@@ -10194,13 +9966,13 @@ int ai_UseGoodRaiseRelation(AICHARREC *ch, G8USEVIEW *use)
    0x53dda0 (the first + 4, -1, 1, 0x5fb); when the second's is, the text 0x5176d0 (0xfeb, the first
    word twice) goes through 0x53dda0 (the second + 4, -1, 1, 0x5fb). Returns 1 (0 without records). */
 
-int ai_QuarrelCallback(AICHARREC *ch, int *req)
+int ai_QuarrelCallback(AICHAR *ch, int *req)
 {
     AMOUNTCFG cfg;
     char text[0x100];
     char text2[0x400];
-    AICHARREC *a;
-    AICHARREC *b;
+    AICHAR *a;
+    AICHAR *b;
     int amount;
     int ret;
 
@@ -10208,26 +9980,26 @@ int ai_QuarrelCallback(AICHARREC *ch, int *req)
     if (ch->kind == 6) {
         memset(&cfg, 0, sizeof(cfg));
         memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, (char *)0x9c);
+        txt_Format(text, 0x9c);
         cfg.flags = 0;
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        a = (AICHARREC *)ai_AmountMenu((int)&cfg, text, 0, 0);
+        a = ai_AmountMenu((int)&cfg, text, 0, 0);
         if (a == 0)
             goto done;
         cfg.option14 = 3;
         cfg.ids[0] = a->id;
-        txt_Format(text, (char *)0x9e);
-        b = (AICHARREC *)ai_AmountMenu((int)&cfg, text, 0, 0);
+        txt_Format(text, 0x9e);
+        b = ai_AmountMenu((int)&cfg, text, 0, 0);
         if (b == 0)
             goto done;
     } else {
         /* @original ret set to 0 again in this arm (already 0): its reference in the else block
            ranks req above ch, so ch takes ebx and ret's kind-6 piece esi */
         ret = 0;
-        a = (AICHARREC *)gm_FindChar(req[1]);
-        b = (AICHARREC *)gm_FindChar(req[2]);
+        a = gm_FindChar(req[1]);
+        b = gm_FindChar(req[2]);
         if (a == 0 || b == 0)
             goto done;
     }
@@ -10235,11 +10007,11 @@ int ai_QuarrelCallback(AICHARREC *ch, int *req)
     cm_SendRelations(a->netId, b->netId, amount, 1);
     cm_SendRelations(b->netId, a->netId, amount, 1);
     if (a->kind == 6 || a->kind == 7) {
-        txt_Format(text2, (char *)0xfea, b->id);
+        txt_Format(text2, 0xfea, b->id);
         he_ShowNews(a->netId, -1, text2, 1, 0x5fb, 0);
     }
     if (b->kind == 6 || b->kind == 7) {
-        txt_Format(text2, (char *)0xfeb, a->id, a->id);
+        txt_Format(text2, 0xfeb, a->id, a->id);
         he_ShowNews(b->netId, -1, text2, 1, 0x5fb, 0);
     }
     ret = 1;
@@ -10252,7 +10024,7 @@ done:
    remembered. A kind 6 character: 0x4c5870 (ch->netId) and the text 0x5176d0 (0xfe8, the used object's
    id * 2 + 0xd71, the pick + 0x16b7) through the use-object panel 0x5cf820. Returns 1. */
 
-int ai_UseGoodTrialStep(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodTrialStep(AICHAR *ch, G8USEVIEW *use)
 {
     int pick[5];
     char text[0x800];
@@ -10285,14 +10057,14 @@ int ai_UseGoodTrialStep(AICHARREC *ch, G8USEVIEW *use)
    each player pick the news 0xfed naming the target (key 0x5fb); a player user sees the text 0xfe8 (the good's
    rank + 1 and the three) in the use-object panel. Returns 1. */
 
-int ai_UseGoodLowerOfficialRelations(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodLowerOfficialRelations(AICHAR *ch, G8USEVIEW *use)
 {
-    AICHARREC *pick[3];
+    AICHAR *pick[3];
     int index;
     AMOUNTCFG cfg;
     char text[0x100];
     char news[0x800];
-    AICHARREC *target;
+    AICHAR *target;
     G9DOMIZIL *found;
     int level;
     int amount;
@@ -10311,33 +10083,33 @@ int ai_UseGoodLowerOfficialRelations(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
     }
     if (target != 0) {
         level = ai_InventoryHas(ch, 0x2c5) != 0 ? 2 : 1;
         id = util_Random(0x300);
         for (n = 0x300; n != 0; n--, id = (id + 1) % 0x300) {
-            if (id != target->id && id != ch->id && lc_CharRecs[id].id != 0xffff && lc_CharRecs[id].kind < 10 &&
-                lc_CharRecs[id].officeKind != 0) {
-                pick[0] = &lc_CharRecs[id];
+            if (id != target->id && id != ch->id && ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
+                ai_Chars[id].officeKind != 0) {
+                pick[0] = &ai_Chars[id];
                 break;
             }
         }
         id = util_Random(0x300);
         for (n = 0x300; n != 0; n--, id = (id + 7) % 0x300) {
-            if (id != target->id && id != ch->id && id != pick[0]->id && lc_CharRecs[id].id != 0xffff &&
-                lc_CharRecs[id].kind < 10 && lc_CharRecs[id].officeKind != 0) {
-                pick[1] = &lc_CharRecs[id];
+            if (id != target->id && id != ch->id && id != pick[0]->id && ai_Chars[id].id != 0xffff &&
+                ai_Chars[id].kind < 10 && ai_Chars[id].officeKind != 0) {
+                pick[1] = &ai_Chars[id];
                 break;
             }
         }
         id = util_Random(0x300);
         for (n = 0x300; n != 0; n--, id = (id + 13) % 0x300) {
             if (id != target->id && id != ch->id && id != pick[0]->id && id != pick[1]->id &&
-                lc_CharRecs[id].id != 0xffff && lc_CharRecs[id].kind < 10 && lc_CharRecs[id].officeKind != 0) {
-                pick[2] = &lc_CharRecs[id];
+                ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 && ai_Chars[id].officeKind != 0) {
+                pick[2] = &ai_Chars[id];
                 break;
             }
         }
@@ -10374,7 +10146,7 @@ int ai_UseGoodLowerOfficialRelations(AICHARREC *ch, G8USEVIEW *use)
    and the text 0xfe8 (the used object's id * 2 + 0xd71, the second and the first pick + 0x16b7) through the
    use-object panel. Returns 1. */
 
-int ai_UseGoodTwoTrialSteps(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodTwoTrialSteps(AICHAR *ch, G8USEVIEW *use)
 {
     int first;
     int pick[5];
@@ -10411,9 +10183,9 @@ int ai_UseGoodTwoTrialSteps(AICHARREC *ch, G8USEVIEW *use)
    0xfef naming the user (key 0x5ec); a player user sees the text 0xfe8 (the good's rank + 1 and the three) in
    the use-object panel. Returns 1. */
 
-int ai_UseGoodCharmOtherSex(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodCharmOtherSex(AICHAR *ch, G8USEVIEW *use)
 {
-    AICHARREC *pick[3];
+    AICHAR *pick[3];
     int index;
     char news[0x800];
     G9DOMIZIL *found;
@@ -10424,25 +10196,25 @@ int ai_UseGoodCharmOtherSex(AICHARREC *ch, G8USEVIEW *use)
     use->handled = 1;
     id = util_Random(0x300);
     for (n = 0x300; n != 0; n--, id = (id + 1) % 0x300) {
-        if (id != ch->id && lc_CharRecs[id].id != 0xffff && lc_CharRecs[id].kind < 10 &&
-            lc_CharRecs[id].sex != ch->sex && lc_CharRecs[id].officeKind != 0) {
-            pick[0] = &lc_CharRecs[id];
+        if (id != ch->id && ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
+            ai_Chars[id].sex != ch->sex && ai_Chars[id].officeKind != 0) {
+            pick[0] = &ai_Chars[id];
             break;
         }
     }
     id = util_Random(0x300);
     for (n = 0x300; n != 0; n--, id = (id + 7) % 0x300) {
-        if (id != ch->id && id != pick[0]->id && lc_CharRecs[id].id != 0xffff && lc_CharRecs[id].kind < 10 &&
-            lc_CharRecs[id].sex != ch->sex) {
-            pick[1] = &lc_CharRecs[id];
+        if (id != ch->id && id != pick[0]->id && ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
+            ai_Chars[id].sex != ch->sex) {
+            pick[1] = &ai_Chars[id];
             break;
         }
     }
     id = util_Random(0x300);
     for (n = 0x300; n != 0; n--, id = (id + 13) % 0x300) {
-        if (id != ch->id && id != pick[0]->id && id != pick[1]->id && lc_CharRecs[id].id != 0xffff &&
-            lc_CharRecs[id].kind < 10 && lc_CharRecs[id].sex != ch->sex) {
-            pick[2] = &lc_CharRecs[id];
+        if (id != ch->id && id != pick[0]->id && id != pick[1]->id && ai_Chars[id].id != 0xffff &&
+            ai_Chars[id].kind < 10 && ai_Chars[id].sex != ch->sex) {
+            pick[2] = &ai_Chars[id];
             break;
         }
     }
@@ -10468,13 +10240,13 @@ int ai_UseGoodCharmOtherSex(AICHARREC *ch, G8USEVIEW *use)
    ways (cm_SendRelations); each player of the two (kind 6 / 7) gets the news 0xfee naming the other (key
    0x5fb). Returns 1. */
 
-int ai_UseGoodSowDiscord(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodSowDiscord(AICHAR *ch, G8USEVIEW *use)
 {
     AMOUNTCFG cfg;
     char text[0x100];
     char news[0x400];
-    AICHARREC *a;
-    AICHARREC *b;
+    AICHAR *a;
+    AICHAR *b;
     int ret;
 
     ret = 0;
@@ -10486,16 +10258,16 @@ int ai_UseGoodSowDiscord(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        a = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        a = ai_AmountMenu(&cfg, text, 0, 0);
         if (a == 0)
             goto done;
         cfg.option14 = 3;
         cfg.ids[0] = a->id;
         txt_Format(text, 0x9e);
-        b = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        b = ai_AmountMenu(&cfg, text, 0, 0);
     } else {
-        a = (AICHARREC *)gm_FindChar(use->target);
-        b = (AICHARREC *)gm_FindChar(use->arg);
+        a = gm_FindChar(use->target);
+        b = gm_FindChar(use->arg);
         if (a == 0)
             goto done;
     }
@@ -10520,18 +10292,18 @@ done:
    ev->idbc is ch->netId, shows the tribute claim news 0x5a8d80 (ch, the payer record ai_Chars[ev->chr]),
    sets the event's end time to ai_Time and gives it its slot (0x4c4c60, -1). Returns 1. */
 
-int ai_UseGoodTributeClaim(AICHARREC *ch)
+int ai_UseGoodTributeClaim(AICHAR *ch)
 {
     AIJOB *ev;
 
-    ev = (AIJOB *)he_FindEvent(1, 0, 0x35);
+    ev = he_FindEvent(1, 0, 0x35);
     while (ev != 0) {
         if ((int)ch->netId == ev->idbc) {
-            ai_ShowTributeClaimNews((int)ch, (int)ai_Chars[ev->chr]);
+            ai_ShowTributeClaimNews(ch, &ai_Chars[ev->chr]);
             ev->end = ai_Time;
-            cm_SendExSetHE(-1, (char *)ev);
+            cm_SendExSetHE(-1, ev);
         }
-        ev = (AIJOB *)he_NextEvent();
+        ev = he_NextEvent();
     }
     return 1;
 }
@@ -10541,11 +10313,11 @@ int ai_UseGoodTributeClaim(AICHARREC *ch)
    target's flags1cc (cm_SendSetField): the next round start (main_RundenBeginn) charges it 3 action points
    (the AP event 0xf18) unless it holds the good 0x2c4, and clears the bit. Returns 1. */
 
-int ai_UseGoodDrainActionPoints(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodDrainActionPoints(AICHAR *ch, G8USEVIEW *use)
 {
     AMOUNTCFG cfg;
     char text[0x100];
-    AICHARREC *target;
+    AICHAR *target;
 
     if (ch->kind == 6) {
         memset(&cfg, 0, sizeof(cfg));
@@ -10555,9 +10327,9 @@ int ai_UseGoodDrainActionPoints(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
     }
     if (target == 0)
         return 0;
@@ -10572,13 +10344,13 @@ int ai_UseGoodDrainActionPoints(AICHARREC *ch, G8USEVIEW *use)
    0x5fb), and a player user sees the text 0x1099 (the target, the skill) inside 0xfe8 in the use-object
    panel. Marks the use handled and returns 1. */
 
-int ai_UseGoodDrainSkill(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodDrainSkill(AICHAR *ch, G8USEVIEW *use)
 {
     int pick[5];
     AMOUNTCFG cfg;
     char text[0x200];
     char news[0x800];
-    AICHARREC *target;
+    AICHAR *target;
     int i;
 
     if (ch->kind == 6) {
@@ -10589,9 +10361,9 @@ int ai_UseGoodDrainSkill(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
     }
     if (target == 0)
         return 0;
@@ -10625,13 +10397,13 @@ int ai_UseGoodDrainSkill(AICHARREC *ch, G8USEVIEW *use)
    text 0x109b (the character, the owner, the building) inside 0xfe8 in the use-object panel. Marks the use
    handled and returns 1. */
 
-int ai_UseGoodHarmBuilding(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodHarmBuilding(AICHAR *ch, G8USEVIEW *use)
 {
     AIBLD *bld;
     AMOUNTCFG cfg;
     char text[0x200];
     char news[0x800];
-    AICHARREC *target;
+    AICHAR *target;
     int i;
 
     if (ch->kind == 6) {
@@ -10649,21 +10421,21 @@ int ai_UseGoodHarmBuilding(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, txt_Ptrs[0x9c], 0, 0);
+        target = ai_AmountMenu(&cfg, txt_Ptrs[0x9c], 0, 0);
         if (target == 0)
             return 0;
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target == 0)
             return 0;
-        gm_FindById((int *)&bld, 0, 0, use->arg);
+        gm_FindById(&bld, 0, 0, use->arg);
         if (bld == 0)
             return 0;
     }
-    cm_SendRelations(target->id, lc_CharRecs[bld->owner].netId, -20 - util_Random(0x20), 1);
+    cm_SendRelations(target->id, ai_Chars[bld->owner].netId, -20 - util_Random(0x20), 1);
     for (i = 0; i < 0x300; i++) {
-        if (lc_CharRecs[i].kind == 0 && lc_CharRecs[i].bld == bld)
-            gm_AddHealth(i, -((util_RandomF() * 0.2f + 0.1f) * lc_CharRecs[i].f01c));
+        if (ai_Chars[i].kind == 0 && ai_Chars[i].bld == bld)
+            gm_AddHealth(i, -((util_RandomF() * 0.2f + 0.1f) * ai_Chars[i].f01c));
     }
     if (target->kind == 6 || target->kind == 7) {
         txt_Format(news, 0x100b, bld->owner, bld->owner, bld);
@@ -10685,13 +10457,13 @@ int ai_UseGoodHarmBuilding(AICHARREC *ch, G8USEVIEW *use)
    naming the building (key 0x5fb), a player user sees the text 0x109d (the owner, the building) inside 0xfe8
    in the use-object panel. Marks the use handled and returns 1. */
 
-int ai_UseGoodSpoilStock(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodSpoilStock(AICHAR *ch, G8USEVIEW *use)
 {
     AIBLD *bld;
     AMOUNTCFG cfg;
     char text[0x200];
     char news[0x800];
-    AICHARREC *owner;
+    AICHAR *owner;
     AIOBJ *store;
     AIOBJ *item;
     int n;
@@ -10707,15 +10479,15 @@ int ai_UseGoodSpoilStock(AICHARREC *ch, G8USEVIEW *use)
         if (bld == 0)
             return 0;
     } else {
-        gm_FindById((int *)&bld, 0, 0, use->target);
+        gm_FindById(&bld, 0, 0, use->target);
         if (bld == 0)
             return 0;
     }
-    owner = &lc_CharRecs[bld->owner];
-    store = (AIOBJ *)gm_Query((void *)bld->objList, 2, 6, 0, 0x2a);
+    owner = &ai_Chars[bld->owner];
+    store = gm_Query(bld->objList, 2, 6, 0, 0x2a);
     if (store != 0) {
-        gm_Query((void *)store->list, 1, 5);
-        for (item = (AIOBJ *)gm_Query((void *)store->list, 1, 5); item != 0; item = (AIOBJ *)gm_QueryNext()) {
+        gm_Query(store->list, 1, 5);
+        for (item = gm_Query(store->list, 1, 5); item != 0; item = gm_QueryNext()) {
             if (item->count > 1) {
                 n = (int)((util_RandomF() * 0.2f + 0.1f) * item->count) < 1
                         ? 1
@@ -10746,13 +10518,13 @@ extern const int ai_CharWalkSteps[16];  /* 0x5ed100, the random walk steps (am.h
    each player office holder 0x100e / 0x100f (key 0x5fb); marks the use handled, and a player user sees the
    text 0x10a1 (the target, the three) inside 0xfe8 in the use-object panel. Returns 1. */
 
-int ai_UseGoodCharmOfficials(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodCharmOfficials(AICHAR *ch, G8USEVIEW *use)
 {
-    AICHARREC *pick[3];
+    AICHAR *pick[3];
     AMOUNTCFG cfg;
     char news[0x800];
     char text[0x200];
-    AICHARREC *target;
+    AICHAR *target;
     int id;
     int step;
     int n;
@@ -10765,11 +10537,11 @@ int ai_UseGoodCharmOfficials(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, txt_Ptrs[0x9c], 0, 0);
+        target = ai_AmountMenu(&cfg, txt_Ptrs[0x9c], 0, 0);
         if (target == 0)
             return 0;
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target == 0)
             return 0;
     }
@@ -10777,9 +10549,9 @@ int ai_UseGoodCharmOfficials(AICHARREC *ch, G8USEVIEW *use)
     step = ai_CharWalkSteps[util_Random(0x10)];
     n = 3;
     do {
-        if (lc_CharRecs[id].id != 0xffff && lc_CharRecs[id].officeKind != 0 && &lc_CharRecs[id] != ch &&
-            &lc_CharRecs[id] != target)
-            pick[--n] = &lc_CharRecs[id];
+        if (ai_Chars[id].id != 0xffff && ai_Chars[id].officeKind != 0 && &ai_Chars[id] != ch &&
+            &ai_Chars[id] != target)
+            pick[--n] = &ai_Chars[id];
         id = (id + step) % 0x300;
     } while (n != 0);
     for (i = 0; i < 3; i++)
@@ -10813,10 +10585,10 @@ int ai_UseGoodCharmOfficials(AICHARREC *ch, G8USEVIEW *use)
    character of kind 6 needs sv_CheckMoney (ch, 3) to pass (it shows the text 0x74 "not enough money"), every
    other kind needs 3 money silently; then the money delta -3 (0x50cc50, ch->netId) and 1, 0 otherwise. */
 
-int ai_UsePayGood(G8CHARREC *ch)
+int ai_UsePayGood(AICHAR *ch)
 {
     if (ch->kind == 6) {
-        if (sv_CheckMoney((char *)ch, 3) == 0)
+        if (sv_CheckMoney(ch, 3) == 0)
             return 0;
     } else if (ch->money < 3) {
         return 0;
@@ -10831,12 +10603,12 @@ int ai_UsePayGood(G8CHARREC *ch)
    unless it holds the good 0x2c4, and clears the bit. Marks the use handled; a player user sees the text 0x10a7
    (the target) inside 0xfe8 in the use-object panel. Returns 1. */
 
-int ai_UseGoodDrainActionPoints8(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodDrainActionPoints8(AICHAR *ch, G8USEVIEW *use)
 {
     AMOUNTCFG cfg;
     char text[0x200];
     char news[0x400];
-    AICHARREC *target;
+    AICHAR *target;
 
     if (ch->kind == 6) {
         memset(&cfg, 0, sizeof(cfg));
@@ -10846,9 +10618,9 @@ int ai_UseGoodDrainActionPoints8(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
     }
     if (target == 0)
         return 0;
@@ -10867,12 +10639,12 @@ int ai_UseGoodDrainActionPoints8(AICHARREC *ch, G8USEVIEW *use)
    0.75, it is held one round more (cm_SendMessage5b, heldRounds + 1). Marks the use handled; a player user sees
    the text 0x10a9 (the target) inside 0xfe8 in the use-object panel. Returns 1. */
 
-int ai_UseGoodHoldRound(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodHoldRound(AICHAR *ch, G8USEVIEW *use)
 {
     AMOUNTCFG cfg;
     char text[0x200];
     char news[0x400];
-    AICHARREC *target;
+    AICHAR *target;
 
     if (ch->kind == 6) {
         memset(&cfg, 0, sizeof(cfg));
@@ -10882,9 +10654,9 @@ int ai_UseGoodHoldRound(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
     }
     if (target == 0)
         return 0;
@@ -10913,7 +10685,7 @@ int ai_UseGoodHoldRound(AICHARREC *ch, G8USEVIEW *use)
    else's ret = 1 dropped, with or without the first path's): 11 ins, push edi / handled edi right but the
    first path's mov edi,1 is then dead. Left: code 8 (the two immediates 6, push 1, handled = 1). prior:
    Read whole against the original and written typed (AMOUNTCFG with the sex-dependent partner bit,
-   AICHARREC target, G9DOMIZIL found); every call, argument, constant, store and branch matches in order.
+   AICHAR target, G9DOMIZIL found); every call, argument, constant, store and branch matches in order.
    Left is VC6's constant-in-register choice: the original holds ret (edi) = 1 and uses it for the 4th
    cm_SendRelations argument (push edi at +0xe3) and use->handled (mov [ebx+0x10], edi at +0x154), and
    compares kind with the immediate 6 (+0xf3, +0x133) where ours keeps 6 in ebx (cmp al, bl) and pushes 1;
@@ -10921,13 +10693,13 @@ int ai_UseGoodHoldRound(AICHARREC *ch, G8USEVIEW *use)
    relations(ret) (no change), ret = 1 placement in both paths and a goto done tail (worse, 15 / 36 ins),
    the mode / filter store order (fixed: 39 -> 12). */
 
-int ai_UseGoodCharmPartner(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodCharmPartner(AICHAR *ch, G8USEVIEW *use)
 {
     int index;
     AMOUNTCFG cfg;
     char text[0x100];
     char news[0x400];
-    AICHARREC *target;
+    AICHAR *target;
     G9DOMIZIL *found;
     int ret;
 
@@ -10939,13 +10711,13 @@ int ai_UseGoodCharmPartner(AICHARREC *ch, G8USEVIEW *use)
         ret = 1;
         cfg.flags = 1;
         cfg.kind = 6;
-        cfg.mode = ((lc_CharRecs[ai_PlayerId].sex != 0) + 1) | 0x400;
+        cfg.mode = ((ai_Chars[ai_PlayerId].sex != 0) + 1) | 0x400;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
         if (target == 0)
             return 0;
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target != 0)
             ret = 1;
     }
@@ -10972,13 +10744,13 @@ int ai_UseGoodCharmPartner(AICHARREC *ch, G8USEVIEW *use)
    text 0xfe8 (the good's rank + 1, the target) in the use-object panel and the use is marked handled. Returns 1.
    Both paths are written out in full, as the original's code has them. */
 
-int ai_UseGoodWeakenSkills3(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodWeakenSkills3(AICHAR *ch, G8USEVIEW *use)
 {
     int index;
     AMOUNTCFG cfg;
     char text[0x100];
     char news[0x800];
-    AICHARREC *target;
+    AICHAR *target;
     G9DOMIZIL *found;
 
     if (ch->kind == 6) {
@@ -10989,7 +10761,7 @@ int ai_UseGoodWeakenSkills3(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
         if (target != 0) {
             AIMSG msg;
             msg.type = 0x82;
@@ -11012,7 +10784,7 @@ int ai_UseGoodWeakenSkills3(AICHARREC *ch, G8USEVIEW *use)
             return 1;
         }
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target != 0) {
             AIMSG msg;
             msg.type = 0x82;
@@ -11043,7 +10815,7 @@ extern AIDEC gv_Decisions[];  /* 0x611258, the 0x1d AI decision (law) records (g
    0xffe (key 0x5fb); a player user sees the text 0xfe8 (the good's rank + 1, the target) in the use-object panel
    and the use is marked handled. Returns 1. */
 
-int ai_UseGoodFrameChar(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodFrameChar(AICHAR *ch, G8USEVIEW *use)
 {
     int ret;
     int index;
@@ -11051,7 +10823,7 @@ int ai_UseGoodFrameChar(AICHARREC *ch, G8USEVIEW *use)
     int laws[0x1d];
     char text[0x100];
     char news[0x400];
-    AICHARREC *target;
+    AICHAR *target;
     int i;
     G9DOMIZIL *found;
     int twice;
@@ -11066,12 +10838,12 @@ int ai_UseGoodFrameChar(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
         if (target == 0)
             goto done;
         ret = 1;
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target == 0)
             goto done;
         ret = 1;
@@ -11088,10 +10860,10 @@ int ai_UseGoodFrameChar(AICHARREC *ch, G8USEVIEW *use)
         return 0;
     }
     i = rand() % n;
-    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ((AIBLD *)ch->bld2)->id : -1);
+    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
     if (twice) {
         i = rand() % n;
-        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ((AIBLD *)ch->bld2)->id : -1);
+        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
     }
     if (target->kind == 6 || target->kind == 7) {
         txt_Format(news, 0xffe);
@@ -11113,7 +10885,7 @@ done:
    A player target (kind 6 / 7) gets the news 0xfff (key 0x5fb); a player user sees the text 0xfe8 (the good's
    rank + 1, the target) in the use-object panel and the use is marked handled. Returns 1. */
 
-int ai_UseGoodFrameChar2(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodFrameChar2(AICHAR *ch, G8USEVIEW *use)
 {
     int ret;
     int index;
@@ -11121,7 +10893,7 @@ int ai_UseGoodFrameChar2(AICHARREC *ch, G8USEVIEW *use)
     int laws[0x1d];
     char text[0x100];
     char news[0x400];
-    AICHARREC *target;
+    AICHAR *target;
     int i;
     G9DOMIZIL *found;
     int twice;
@@ -11137,12 +10909,12 @@ int ai_UseGoodFrameChar2(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
         if (target == 0)
             goto done;
         ret = 1;
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
         if (target == 0)
             goto done;
         ret = 1;
@@ -11158,14 +10930,14 @@ int ai_UseGoodFrameChar2(AICHARREC *ch, G8USEVIEW *use)
         return 0;
     }
     i = rand() % n;
-    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ((AIBLD *)ch->bld2)->id : -1);
+    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
     i = rand() % n;
-    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ((AIBLD *)ch->bld2)->id : -1);
+    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
     if (twice) {
         i = rand() % n;
-        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ((AIBLD *)ch->bld2)->id : -1);
+        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
         i = rand() % n;
-        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ((AIBLD *)ch->bld2)->id : -1);
+        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
     }
     if (target->kind == 6 || target->kind == 7) {
         txt_Format(news, 0xfff);
@@ -11186,7 +10958,7 @@ done:
    (0x502020). Then the building's flags5aw bit 0x2000 (the heating, cleared at the round settlement) is set
    with 0x4c4a60 (id, 0x5a, 2, 0x2000, 0). Returns 1 (0 without a building). */
 
-int ai_UseGoodHeatBuilding(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodHeatBuilding(AICHAR *ch, G8USEVIEW *use)
 {
     int cfg[20];
     int i;
@@ -11202,7 +10974,7 @@ int ai_UseGoodHeatBuilding(AICHARREC *ch, G8USEVIEW *use)
         cfg[0] = 0;
         bld = (AIBLD *)ai_MapPick(1, cfg, txt_Ptrs[0x9b], 0, 0);
     } else {
-        bld = (AIBLD *)gm_FindBuildingById(use->target);
+        bld = gm_FindBuildingById(use->target);
     }
     if (bld == 0)
         return 0;
@@ -11213,7 +10985,7 @@ int ai_UseGoodHeatBuilding(AICHARREC *ch, G8USEVIEW *use)
    sends the message type 0xa4 (the event 0xa4, he.c 0x5753a0) to the character's netId, fromId -1, the
    current clock ai_Time and the flag 1 (0x4c4b70); returns 1. */
 
-int ai_UseEventGood(G8CHARREC *ch)
+int ai_UseEventGood(AICHAR *ch)
 {
     AIMSG msg;
 
@@ -11232,7 +11004,7 @@ int ai_UseEventGood(G8CHARREC *ch)
    gm_StaffFactor, cleared at the round settlement) is set with 0x4c4a60 (id, 0x5a, 2, 0x1000, 0). Returns
    1 (0 without a building). */
 
-int ai_UseGoodStaffBonus(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodStaffBonus(AICHAR *ch, G8USEVIEW *use)
 {
     int cfg[20];
     int i;
@@ -11250,7 +11022,7 @@ int ai_UseGoodStaffBonus(AICHARREC *ch, G8USEVIEW *use)
         if (bld == 0)
             return 0;
     } else {
-        bld = (AIBLD *)gm_FindBuildingById(use->target);
+        bld = gm_FindBuildingById(use->target);
         if (bld == 0)
             return 0;
     }
@@ -11264,14 +11036,14 @@ int ai_UseGoodStaffBonus(AICHARREC *ch, G8USEVIEW *use)
    sees, inside 0xfe8, the text whose id is the good's rank + 1 (formatted with the target) in the use-object
    panel. Marks the use handled and returns 1. */
 
-int ai_UseGoodPettyLoss(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodPettyLoss(AICHAR *ch, G8USEVIEW *use)
 {
     int index;
     AMOUNTCFG cfg;
     char text[0x100];
     char line[0x200];
     char news[0x400];
-    AICHARREC *target;
+    AICHAR *target;
     G9DOMIZIL *found;
 
     if (ch->kind == 6) {
@@ -11282,9 +11054,9 @@ int ai_UseGoodPettyLoss(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
     }
     if (target == 0)
         return 0;
@@ -11312,7 +11084,7 @@ int ai_UseGoodPettyLoss(AICHARREC *ch, G8USEVIEW *use)
    (0x4c4b70, an AIMSG) to ch->netId, one raising skills 0 and 4 by 1/6, one lowering skills 3 and 2 by
    1/6, each lasting 24 hours. Returns 1. */
 
-int ai_UseGoodSkillBonus(AICHARREC *ch)
+int ai_UseGoodSkillBonus(AICHAR *ch)
 {
     union {
         AIMSG msg;
@@ -11349,7 +11121,7 @@ int ai_UseGoodSkillBonus(AICHARREC *ch)
     cm_SendLongMessage((char *)&m.msg);
     return 1;
 }
-#define LC_F1CC_DISTRUST 0x400000  /* AICHARREC flags1cc: the distrust bit (poker.c AIPER_F1CC_DISTRUST: -0.2 trust) */
+#define LC_F1CC_DISTRUST 0x400000  /* AICHAR flags1cc: the distrust bit (poker.c AIPER_F1CC_DISTRUST: -0.2 trust) */
 /* 0x5d3270, the use callback of the Domizil good 0x29a (record 41 at 0x62c89c of the table 0x62c420): picks the
    target character, for a player (kind 6) with the special-amount menu (flags 1, the gypsy filter, mode 0x400,
    the prompt 0x9c), else the character use->target (gm_FindChar); none -> 0. Sets the target's flags1cc bit
@@ -11357,14 +11129,14 @@ int ai_UseGoodSkillBonus(AICHARREC *ch)
    the text whose id is the good's rank + 1 (formatted with the target) in the use-object panel. Marks the use
    handled and returns 1. */
 
-int ai_UseGoodDistrust(AICHARREC *ch, G8USEVIEW *use)
+int ai_UseGoodDistrust(AICHAR *ch, G8USEVIEW *use)
 {
     int index;
     AMOUNTCFG cfg;
     char text[0x100];
     char line[0x200];
     char news[0x400];
-    AICHARREC *target;
+    AICHAR *target;
     G9DOMIZIL *found;
 
     if (ch->kind == 6) {
@@ -11375,9 +11147,9 @@ int ai_UseGoodDistrust(AICHARREC *ch, G8USEVIEW *use)
         cfg.mode = 0x400;
         cfg.kind = 6;
         cfg.filter = gypsyFilter;
-        target = (AICHARREC *)ai_AmountMenu(&cfg, text, 0, 0);
+        target = ai_AmountMenu(&cfg, text, 0, 0);
     } else {
-        target = (AICHARREC *)gm_FindChar(use->target);
+        target = gm_FindChar(use->target);
     }
     if (target == 0)
         return 0;

@@ -50,16 +50,13 @@ reason.include_dirs = "the game includes ddraw.h / dinput.h of the DirectX 6.1 S
 # Running a build (decompanion docs/run.md): `dcp run play`.
 [[variant]]
 name = "debug"
-reason = "manual testing (rea's play): 16-bit back buffer in a window, frame dumps, the start shortcut"
+reason = "manual testing (rea's play): 16-bit back buffer in a window and frame dumps"
   [[variant.unit]]
   glob = "dd_vesa"
   cflags = ["/DREA_FIX_16BPP", "/DREA_FRAME_DUMP"]
   [[variant.unit]]
   glob = ["d3_d3d", "shp", "gfx", "d2"]
   cflags = ["/DREA_FRAME_DUMP"]
-  [[variant.unit]]
-  glob = ["main", "sv_t"]
-  cflags = ["/DREA_START"]
 
 [[setup]]
 name = "game"

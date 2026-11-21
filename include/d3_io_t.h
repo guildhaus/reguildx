@@ -102,7 +102,8 @@ struct D3BGF {                      /* 0x20c bytes, a loaded mesh ("d3_io:LoadAG
 #define D3BGF_CORNER(m, k) (((D3BGFVERT *)((char *)(m)->verts + (m)->nverts * 0x18)) + (k))
 
 extern struct VFSDIR *vfs_Root;                                                                  /* 0x6333fc */
-struct VFSFILE * vfs_Tfopen(char *name, char *mode, int unk);                                    /* 0x430470 */
+struct VFSDIR;
+struct VFSFILE * vfs_Tfopen(char *name, char *mode, struct VFSDIR *dir);                                    /* 0x430470 */
 
 void d3iot_DeleteStockObject(D3BGF *m);                                                 /* 0x44cd40 */
 void d3iot_CalcBounds(D3BGF *m);                                                        /* 0x44ce40 */

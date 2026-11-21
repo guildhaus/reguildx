@@ -15,7 +15,6 @@
    Data: the four floor option bytes 0x6f35c8 .. 0x6f35cb are objects of their own (ai_GfxFloor, ai_GfxCameraLimits,
    ai_GfxFloorLod, ai_GfxCharDetail): ai_ApplyGfxOptions reads 0x6f35c9 as a byte (mov al, byte ptr) where a union gives a dword load.
    unit of rea 8cef7d5b (src/game/unk_5d33b0.c); boundaries in decl/text.dcl */
-extern int gm_PlayerRecords[688];
 #include "txt_views.h"
 #include <windows.h>
 #include <ddraw.h>
@@ -60,10 +59,6 @@ extern int gm_PlayerRecords[688];
 #include "dd_vesa.h"
 #include "ch.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-#define ai_MarketBuildingV (*(G16BLDVIEW **)&ai_MarketBuilding)  /* 0x6f1bc8, ai_MarketBuilding (ai.c: AIBLD *) as this unit's G16BLDVIEW (its +0x4c / object fields) */
-#define ai_FallbackBuildingB (*(unsigned char **)&ai_FallbackBuilding)  /* 0x6f230c, ai_FallbackBuilding (sv.c: char *) read bytewise, as this unit does */
-#define ai_PlayerBuildingB (*(unsigned char **)&ai_PlayerBuilding)  /* 0x6f2308, ai_PlayerBuilding (sv.c: char *) read bytewise, as this unit does */
-#define ai_CharsC (*(char (*)[768 * 0x21c])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) read flat, as this unit does */
 #define ai_CharsK ((AICHARKINDVIEW *)((char *)ai_Chars + 2))  /* 0x770b82, the records from their kind byte (ai_HasQuicksavePlayer walks them so) */
 
 extern OPTIONBYTES ai_GfxResolution;
@@ -151,15 +146,15 @@ int ai_ListFiles(char *dirPath, const char *ext, char *records)
 
 void d2_CentreViewWindows(int view); void d2_SetPointerSprite(int a, int pic); int d2_SetForm(int view, int n);
 void d2_CloseView(int view);
-int io_PrintText(char *fmt, ...); int d2_GetWinObj(int view, int idx, int k);
+int io_PrintText(intptr_t fmt, ...); int d2_GetWinObj(int view, int idx, int k);
 int sv_CreateScrollButtons(int x, int y, int f, int g, int p5, int *b, int *a, int *c); /* 0x52e860, sv.c:
                                            the slider of the form f at (x, y) */
 /* Callees whose units have no header here (type debt: the canonical prototypes live in d2.h, f3gm.c,
    gv.h, cm.h and he.h; the pointer views follow this TU's declarations). */
 int d2_GetViewWin(int view, int i);         /* 0x475ff0, d2.h: window i of a view, -1 if out of range */
-int gm_BuildingSkill(unsigned char *b, unsigned k, int flag); /* 0x5092e0, f3gm.c: the building skill (ai.h's
+int gm_BuildingSkill(struct AIBLD *b, unsigned k, int flag); /* 0x5092e0, f3gm.c: the building skill (ai.h's
                                                prototype; f3snd.h's building view is unsigned char *) */
-char *gv_FindAccused(char *c, int max, int *ids, int *cnt);  /* 0x4f41b0, gv.c: the character with the
+struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt);  /* 0x4f41b0, gv.c: the character with the
                                                most records of its table not yet paired with c */
 void cm_SendProofExecuted(int record, int character); /* 0x4c4ed0, cm.c: message 0x24, the pair (character,
                                                record) into the executed table 0x91b6e0 */
@@ -167,7 +162,7 @@ void cm_SendMoneyDelta(int character, int delta); /* 0x4c5f60, cm.c: message 0x5
                                                character's money (+0x194), clamped 0 .. 0x32 */
 int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2); /* 0x53dda0, he.c */
 void d2_SetObjValue(int obj, ...); int d2_GetObjValue(int obj); int d2_CreateWinText(short x, short y, char *text, int win); void d2_SetObjText(int obj, char *text);
-char *itoa(int, char *, int); void d2_SetObjFont(int obj, int font); int sv_RunFrame(int cb, unsigned mask);
+char *itoa(int, char *, int); void d2_SetObjFont(int obj, int font); int sv_RunFrame(void (*cb)(), unsigned mask);
 
 /* 0x5d34b0, the file selector window "menu\fileselector": lists the files of dir with the extension ext
    (ai_ListFiles, up to 32) under the caption, with their count. With bit 0 of flags a click on a file writes
@@ -198,7 +193,7 @@ int ai_FilePickWindow(unsigned mask, int flags, char *caption, char *dir, char *
     d2_CentreViewWindows(win);
     d2_SetPointerSprite(0, 0);
     d2_SetForm(win, 2);
-    io_PrintText(caption);
+    io_PrintText((intptr_t)caption);
     d2_SetForm(win, 0);
     sv_CreateScrollButtons(0x140, 0x100, d2_LastWindow, d2_GetViewWin(win, 1), 0x18, &slidA, &slidB, &count);
     memset(recs, 0, sizeof(recs));
@@ -223,7 +218,7 @@ int ai_FilePickWindow(unsigned mask, int flags, char *caption, char *dir, char *
     itoa(n, num, 10);
     d2_SetObjText(count, num);
     d2_SetObjFont(count, 0x54);
-    while (sv_RunFrame((int)ai_FilePickWindow, mask) != 0) {
+    while (sv_RunFrame(ai_FilePickWindow, mask) != 0) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (dm_L.lclick != 0) {
@@ -298,7 +293,7 @@ int ai_MessageBox(int text, int flags)
         if (d2_Objs[id].type != 0x40)
             d2_RadioAdd(list, id);
     }
-    while (sv_RunFrame((int)ai_MessageBox, mask) != 0) {
+    while (sv_RunFrame(ai_MessageBox, mask) != 0) {
         d2_MenuNavigate(list);
         if ((flags & 0x40) != 0)
             d2_RaiseViewWindows(win);
@@ -433,17 +428,14 @@ extern D2WIN d2_Wins[];             /* 0xf8f120, d2.h: D2WIN d2_Wins[0x61] */
 extern float sv_FramesPerTick;          /* 0x62378c, sv.c: the frames drawn since the last timer tick
                                            (the frame loop counts them in 0x623790, the tick callback
                                            0x520ec0 copies the count as a float and clears it) */
-int d2_CreateWindow(); /* 0x472390, d2.c */
+int d2_CreateWindow(); /* 0x472390, d2.c; @original why: d2_CreateWindow is a K&R definition, the original's calls push movsx-promoted ints (byte-matched d2_CreateChildWindow) */
 void d2_PlaceWindowScaled(int win, int flags); /* 0x475730, d2.c */
 int d2_RemoveWindow(int win);           /* 0x472ce0, d2.c */
-int io_PrintText(char *fmt, ...);          /* 0x515960, io_text.c: prints a text (id or literal) with its
+int io_PrintText(intptr_t fmt, ...);          /* 0x515960, io_text.c: prints a text (id or literal) with its
                                            tokens into the current window and redraws it */
 extern short d2_ScreenW;                /* 0xfb9072, d2.h */
 extern short d2_ScreenH;                /* 0xfb9070, d2.h */
-extern int d2_DirtyRectLeft[4];         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
-#define d2_DirtyRectTop (*(int *)((char *)&d2_DirtyRectLeft + 0x4))       /* 0xfb9064 */
-#define d2_DirtyRectRight (*(int *)((char *)&d2_DirtyRectLeft + 0x8))     /* 0xfb9068 */
-#define d2_DirtyRectBottom (*(int *)((char *)&d2_DirtyRectLeft + 0xc))    /* 0xfb906c */
+extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
 D2FADEVIEW *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
 void d2_ReleaseFade(D2FADEVIEW *f);        /* 0x476860, d2.h */
 void d2_ClearScreen(void);              /* 0x46e990, d2.h */
@@ -489,7 +481,7 @@ typedef struct SAVEHEADERVIEW {             /* 0xfc */
 #pragma pack(pop)
 
 extern int ls_Version;                      /* 0x623650, ls.c: the version of the save read last */
-int ls_ReadSaveHeader(int f, int *h);      /* 0x51cee0, ls.c: reads a save header into h (no header there) */
+int ls_ReadSaveHeader(struct VFSFILE *f, int *h);      /* 0x51cee0, ls.c: reads a save header into h (no header there) */
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); /* 0x472aa0, d2.h */
 int d2_WinOpenRaw(int x, int y, int w, int h, void *src, int win);  /* 0x46c390, d2.h */
 int d2_WinOpenPic(short x, short y, int pic, int win); /* 0x4731d0, d2.h: creates a picture object */
@@ -538,7 +530,7 @@ void ai_FillSaveSlots(int view, int form, SAVESLOTVIEW *slots, char *files, char
     int n;
     int i;
     int slot;
-    int file;
+    VFSFILE *file;
     int k;
 
     (void)reserved;
@@ -667,7 +659,7 @@ int ai_LoadGameWindow(void)
     sv_CreateScrollButtons(0x214, 0x168, d2_LastWindow, d2_GetViewWin(win, 1), 0x82, &down, &up, &bar);
     ai_FillSaveSlots(win, 1, slots, list, "gamedata/saves", 0); /* @original: the original call pushes
         a sixth argument 0 that 0x5d3ab0 never reads */
-    while (sv_RunFrame((int)ai_LoadGameWindow, mask) != 0) {
+    while (sv_RunFrame(ai_LoadGameWindow, mask) != 0) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (dm_L.lclick != 0) {
@@ -724,7 +716,7 @@ int ai_JoinGameWindow(void)
     d2_SetForm(0, 0);
     sv_CreateScrollButtons(0x214, 0x168, d2_LastWindow, d2_GetViewWin(win, 1), 0x82, &down, &up, &bar);
     ai_FillSaveSlots(win, 1, slots, list, "gamedata/network", 1);
-    while (sv_RunFrame((int)ai_JoinGameWindow, mask) != 0) {
+    while (sv_RunFrame(ai_JoinGameWindow, mask) != 0) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (dm_L.lclick != 0) {
@@ -769,7 +761,7 @@ int ai_EditText(int x, int y, char *text)
     d2_Inputs[*input].w = 0x80;
     d2_Inputs[*input].maxw = 0x110;
     d2_SetObjMax(id, 0x1f);
-    while (sv_RunFrame((int)ai_EditText, sv_FrameMask) != 0) {
+    while (sv_RunFrame(ai_EditText, sv_FrameMask) != 0) {
         if (kb_Last == 0x1c) {
             strcpy(text, (char *)d2_GetObjValue(id));
             sv_PopRequest = 1;
@@ -1112,7 +1104,7 @@ void ai_ApplyGfxOptions(void)
         d3if_SelectScene(scene, 0);
     }
     d3_ApplyGraphicsOptions(ai_GfxFloor, 0, 2 - ai_GfxTextureScale, changed, 0);
-    if (ai_PlayerBuildingB == 0 && ai_FallbackBuildingB == 0)
+    if (ai_PlayerBuilding == 0 && ai_FallbackBuilding == 0)
         d3o_FogScale = 1.0 - ai_GfxFog.byte[0] * 0.01;
     for (i = 0; i < 0x300; i++) {
         c = ch_List[i];
@@ -1194,7 +1186,7 @@ extern unsigned int dd_RMask;           /* 0x1464fa4, dd_vesa.h: the red channel
 extern unsigned int dd_GMask;           /* 0x1464fb0, dd_vesa.h */
 extern unsigned int dd_BMask;           /* 0x146359c, dd_vesa.h */
 
-int ls_Read(void *buf, int size, int count, int f);   /* 0x51c920, ls.c: vfs_fread items */
+int ls_Read(void *buf, int size, int count, struct VFSFILE *f);   /* 0x51c920, ls.c: vfs_fread items */
 void sv_SetStatusText(char *s);   /* 0x52e330, sv.c */
 int cm_SendExSysMessage(unsigned char id, void *msg);   /* 0x4c4db0, as in cm.h */
 DWORD dd_RGB(unsigned char r, unsigned char g, unsigned char b);   /* 0x41e670, as in dd_vesa.h */
@@ -1202,8 +1194,8 @@ unsigned int util_Hash(unsigned char *buf, unsigned int len);      /* 0x401000, 
 void sv_PumpNet(void);                                             /* 0x52fe00, sv.c */
 void sv_BroadcastText(unsigned fl, char *t);  /* 0x52fcf0, sv.c: sends t as the network message 0xe and
                                                  shows it until the answer, then clears the status line */
-int ls_WriteSaveHeader(int f, unsigned flags); /* 0x5194c0, ls.c: writes the save header (the flag word) */
-int ls_ReadSaveHeader(int f, int *h);         /* 0x51cee0, ls.c: reads the save header into h */
+int ls_WriteSaveHeader(struct VFSFILE *f, unsigned flags); /* 0x5194c0, ls.c: writes the save header (the flag word) */
+int ls_ReadSaveHeader(struct VFSFILE *f, int *h);         /* 0x51cee0, ls.c: reads the save header into h */
 
 /* cm.h's save-request state (the 0x0f the network message carries) and the acknowledgement slots. */
 extern int cm_RequestedSaveSlot;        /* 0x6f25c8, cm.h: the save slot the request asked for */
@@ -1214,8 +1206,7 @@ extern unsigned char ai_NumPlayers;     /* 0x62489c, the player count (ai.c / cm
 extern unsigned short ai_PlayerId;      /* 0x6f25b8, the local player (cm.h / am.h / gv.h) */
 /* ai_SaveWaitText: view of txt_Ptrs (build/mk_txt_views.py) */
 
-/* ai.h's AICHAR (0x21c bytes, ai_CharsC[0x300] at 0x770b80): the fields this unit reads. f3snd.h declares
-   ai_CharsC as char[], so ai.h cannot be included here; type debt. */
+/* ai.h's AICHAR (0x21c bytes, ai_Chars[0x300] at 0x770b80): the fields this unit reads. */
 typedef struct AICHARVIEW {
     unsigned short id;                  /* +0x000, 0xffff when free */
     unsigned char kind;                 /* +0x002, 6 / 7 = a player */
@@ -1234,7 +1225,7 @@ typedef struct AICHARVIEW {
     char pad210[0xc];
 } AICHARVIEW;
 
-/* the same records from their kind byte (ai_CharsC + 2), the base ai_HasQuicksavePlayer walks */
+/* the same records from their kind byte (ai_Chars + 2 bytes), the base ai_HasQuicksavePlayer walks */
 #pragma pack(push, 1)
 typedef struct AICHARKINDVIEW {
     unsigned char kind;                 /* +0x000 (record +2), 6 / 7 = a player */
@@ -1278,12 +1269,12 @@ void ai_LeaveGameScreen(void)
     while ((fade->flags & 4) == 0) {
         sv_RunFrame(0, flags);
     }
-    d2_DirtyRectRight = 0;
+    d2_DirtyRect.right = 0;
     w = d2_ScreenW;
-    d2_DirtyRectLeft[0] = w;
-    d2_DirtyRectTop = 0;
+    d2_DirtyRect.left = w;
+    d2_DirtyRect.top = 0;
     h = d2_ScreenH;
-    d2_DirtyRectBottom = h;
+    d2_DirtyRect.bottom = h;
     sv_FrameMask = 0x24087;
     sv_DisableVisibleWidgets(1);
     d2_ClearScreen();
@@ -1314,10 +1305,10 @@ void ai_ResumeGameScreen(void)
         ai_FrameWait = 3;
         return 0;
     }
-    d2_DirtyRectRight = sv_ViewRectRight;
-    d2_DirtyRectLeft[0] = sv_ViewRectLeft;
-    d2_DirtyRectTop = sv_ViewRectTop;
-    d2_DirtyRectBottom = sv_ViewRectBottom;
+    d2_DirtyRect.right = sv_ViewRectRight;
+    d2_DirtyRect.left = sv_ViewRectLeft;
+    d2_DirtyRect.top = sv_ViewRectTop;
+    d2_DirtyRect.bottom = sv_ViewRectBottom;
     d2_ClearScreen();
     sv_SetPanelEnabled(1);
     sv_RedrawScreen();
@@ -1395,7 +1386,7 @@ void ai_LoadScreenImage(char *path)
     if (h == 0)
         return;
     buf = (unsigned char *)mem_Alloc(0xe100, "ls:tmp");
-    ls_Read(buf, 0xe100, 1, (int)h);
+    ls_Read(buf, 0xe100, 1, h);
     for (y = 0; y < 0x78; y++) {
         for (x = 0; x < 0xa0; x++) {
             ai_ScreenImage[i] = dd_RGB(buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
@@ -1409,7 +1400,7 @@ void ai_LoadScreenImage(char *path)
 /* 0x5d73e0, is there a character that can be quicksaved (78 B): 0 -> no game (ai_GameState 0x6f25ac
    == 0); otherwise walks the character records (ai_Chars + 2, stride 0x21c) for a living player (kind
    6 / 7) that belongs to a scene party (partyId != -1); 0 if found, 1 when the walk passes
-   gm_PlayerRecordBytes 0x7d5f82 */
+   the last record (its kind byte at 0x7d5f82) */
 
 int ai_HasQuicksavePlayer(void)
 {
@@ -1425,7 +1416,7 @@ int ai_HasQuicksavePlayer(void)
             if (p->health > 0 && (p->kind == 6 || p->kind == 7) && p->partyId != -1)
                 return 0;
             p++;
-        } while ((int)p < (int)gm_PlayerRecordBytes);
+        } while ((int)p < (int)&ai_Chars[0x300].kind);
     }
     return r;
 }
@@ -1512,7 +1503,7 @@ void ai_SaveNetworkGame(char *saveName, char *name)
     sv_BroadcastText(sv_FrameMask, ai_SaveWaitText);
     ai_NumPlayers = 0;
     for (i = 0; i < 768; i++) {
-        c = &((AICHARVIEW *)ai_CharsC)[i];
+        c = &((AICHARVIEW *)ai_Chars)[i];
         if (c->id != 0xffff && (c->kind == 6 || c->kind == 7))
             ai_NumPlayers++;
     }
@@ -1532,7 +1523,7 @@ void ai_SaveNetworkGame(char *saveName, char *name)
         vfs_fclose(h);
     }
     memset(rec, 0, sizeof(rec));
-    rec[0] = ((AICHARVIEW *)ai_CharsC)[ai_PlayerId].netId;
+    rec[0] = ((AICHARVIEW *)ai_Chars)[ai_PlayerId].netId;
     rec[1] = hash;
     cm_SendExSysMessage(0x10, rec);
     if (ai_NumPlayers > 0) {
@@ -1556,15 +1547,15 @@ void ai_SaveNetworkGame(char *saveName, char *name)
 /* the callees of the front-end stretch (their units' headers are not included here, so their
    prototypes are repeated as the definitions spell them; the building pointers are this TU's ints) */
 struct AIBLD; int ai_ProductionWindow(struct AIBLD *bld); /* 0x58bd60, lc.c: "Handel\Handel_PRODUKTION" */
-int ai_OpenTransport(int rec);             /* 0x5af1a0, lc.c */
-void ai_TradeSearchWindow(unsigned char *cfg, int arg); /* 0x595480, lc.c: "HANDEL\HANDEL_SUCHEN" */
+int ai_OpenTransport(struct AIBLD *rec);             /* 0x5af1a0, lc.c */
+struct AIOBJ; void ai_TradeSearchWindow(struct AIBLD *bld, struct AIOBJ *room); /* 0x595480, lc.c: "HANDEL\HANDEL_SUCHEN" */
 void ai_MasterLetterWindow(struct AIBLD *bld); /* 0x5c3200, lc.c: "ob_MEISTERBRIEF" */
 void ai_MarketContact(struct AIBLD *rec);  /* 0x58f510, lc.c */
-int sv_CheckMoney(char *o, int n);         /* 0x520f90, sv.c: 1 when the object's money (+0x194)
+int sv_CheckMoney(struct AICHAR *o, int n);         /* 0x520f90, sv.c: 1 when the object's money (+0x194)
                                               covers n, else a message box with the text 0x74 */
-int sv_MessageBox(int text, unsigned flags); /* 0x521150, sv.c: the modal message box */
+int sv_MessageBox(intptr_t text, unsigned flags); /* 0x521150, sv.c: the modal message box */
 void sv_CameraFollow(void);                /* 0x52d7a0, sv.c: the per-frame camera follow */
-int d2_RemoveWindow(); int io_PrintText(char *fmt, ...);
+int d2_RemoveWindow(); int io_PrintText(intptr_t fmt, ...);
 int d2_GetObjValue();
 
 /* 0x5d7770, the options menu screen (1112 B): param none, void. The game screen 0x5d7160 is copied
@@ -1640,7 +1631,7 @@ void ai_OptionsMenu(void)
                 if (ai_LoadGameWindow() != 0) {
                     ai_LeaveGame = 1;
                     ai_GameOver = 1;
-                    sv_PopTo((int)main_GameLoop);
+                    sv_PopTo(main_GameLoop);
                 } else {
                     d2_SetViewEnabled(wnd, 1);
                 }
@@ -1664,7 +1655,7 @@ void ai_OptionsMenu(void)
                         } while (1);
                     }
                     ai_GameOver = 1;
-                    sv_PopTo((int)main_GameLoop);
+                    sv_PopTo(main_GameLoop);
                 } else {
                     d2_SetViewEnabled(wnd, 1);
                 }
@@ -1747,7 +1738,7 @@ int ai_SaveOptionWindow(int image)
     d2_SetObjEnabled(slots[0].obj, 0);
     d2_SetObjEnabled(slots[1].obj, 0);
     obj = d2_GetViewWin(win, 1);
-    while (sv_RunFrame((int)ai_SaveOptionWindow, mask) != 0) {
+    while (sv_RunFrame(ai_SaveOptionWindow, mask) != 0) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (dm_L.lclick != 0 && d2_Wins[obj].scrollRemY == 0) {
@@ -1821,7 +1812,7 @@ int ai_SaveNameWindow(int image)
     ai_FillSaveSlots(win, 1, slots, list, "gamedata/network", 1);
     d2_SetObjEnabled(slots[0].obj, 0);
     obj = d2_GetViewWin(win, 1);
-    while (sv_RunFrame((int)ai_SaveNameWindow, mask) != 0) {
+    while (sv_RunFrame(ai_SaveNameWindow, mask) != 0) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (dm_L.lclick != 0 && d2_Wins[obj].scrollRemY == 0) {
@@ -1949,7 +1940,7 @@ void ai_OptionsGfxScreen(void)
     sv_ButtonRow(d2_LastWindow, 0, ids, 2, txt_Ptrs[0x1ca2], txt_Ptrs[0x1ca3]);
     okId = ids[0];
     cancelId = ids[1];
-    while (sv_RunFrame((int)ai_OptionsGfxScreen, mask) != 0) {
+    while (sv_RunFrame(ai_OptionsGfxScreen, mask) != 0) {
         if (dm_L.rup != 0 || kb_Last == 1)
             sv_PopRequest = 1;
         if (d2_ClickedId != -1) {
@@ -2039,7 +2030,7 @@ void ai_OptionsSfxScreen(void)
     sv_ButtonRow(d2_LastWindow, 0, ids, 2, txt_Ptrs[0x1ca2], txt_Ptrs[0x1ca3]);
     okId = ids[0];
     cancelId = ids[1];
-    while (sv_RunFrame((int)ai_OptionsSfxScreen, mask) != 0) {
+    while (sv_RunFrame(ai_OptionsSfxScreen, mask) != 0) {
         if (dm_L.rup != 0 || kb_Last == 1)
             sv_PopRequest = 1;
         if (d2_ClickedId != -1) {
@@ -2160,7 +2151,7 @@ void ai_OptionsGameScreen(void)
     sv_ButtonRow(d2_LastWindow, 0, ids, 2, txt_Ptrs[0x1ca2], txt_Ptrs[0x1ca3]);
     okId = ids[0];
     cancelId = ids[1];
-    while (sv_RunFrame((int)ai_OptionsGameScreen, mask) != 0) {
+    while (sv_RunFrame(ai_OptionsGameScreen, mask) != 0) {
         if (dm_L.rup != 0 || kb_Last == 1)
             sv_PopRequest = 1;
         if (d2_ClickedId != -1) {
@@ -2374,7 +2365,7 @@ void ai_TailorChatWindow(int request)
     AICHARVIEW *rec;
     int count;
     int obj;
-    int found;
+    AICHAR *found;
     int ids[4];                         /* the record ids the query fills (its max is 4) */
     char buf[0x400];                    /* both event texts are built here, one after the other */
     int limit;
@@ -2383,11 +2374,11 @@ void ai_TailorChatWindow(int request)
     int i;
 
     req = (AIREQ *)request;
-    rec = (AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c);
+    rec = (AICHARVIEW *)&ai_Chars[ai_PlayerId];
     wnd = d2_OpenForm(0, 0, "locations\\schneider\\plausch");
-    found = gv_FindAccused((char *)(ai_CharsC + ai_PlayerId * 0x21c), 4, ids, &count);
-    if (ai_PlayerBuildingB != 0)
-        limit = gm_BuildingSkill((struct AIBLD *)ai_PlayerBuildingB, 0x24, 1);
+    found = gv_FindAccused(&ai_Chars[ai_PlayerId], 4, ids, &count);
+    if (ai_PlayerBuilding != 0)
+        limit = gm_BuildingSkill(ai_PlayerBuilding, 0x24, 1);
     else
         limit = 1;
     if (count >= limit + 1)
@@ -2399,8 +2390,8 @@ void ai_TailorChatWindow(int request)
     io_PrintText(0x4227);
     io_PrintText(0x422b, req->id, count, 0x422c, req->id, 1);
     d2_SetForm(wnd, 2);
-    obj = d2_GetWinObj(wnd, 2, io_PrintText("%ia[%s]$N", 0x422d));
-    io_PrintText("%in[%s]", 0x422e);
+    obj = d2_GetWinObj(wnd, 2, io_PrintText((intptr_t)"%ia[%s]$N", 0x422d));
+    io_PrintText((intptr_t)"%in[%s]", 0x422e);
     if (found == 0 || count == 0)
         d2_SetObjEnabled(obj, 0);
     pump = sv_RunFrame(ai_TailorChatWindow, 0x67fff);
@@ -2410,12 +2401,12 @@ void ai_TailorChatWindow(int request)
         if (d2_ClickedId != -1 && d2_PointerObj == obj) {
             if (found != 0) {
                 for (i = 0; i < count; i++)
-                    cm_SendProofExecuted(ids[i], ((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId);
-                cm_SendMoneyDelta(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, -1);
+                    cm_SendProofExecuted(ids[i], ((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId);
+                cm_SendMoneyDelta(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, -1);
                 cm_SendMoneyDelta(req->handle, -1);
                 cm_SendSetField(rec->netId, 0x1cc, 4, 0x20000, 0);
                 txt_Format(buf, 0x422f, req->id);
-                he_ShowNews(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, -1, buf, 0, 0x5ec,
+                he_ShowNews(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, -1, buf, 0, 0x5ec,
                             0);
                 if (req->kind == 6 || req->kind == 7) {
                     txt_Format(buf, 0x4230, ai_PlayerId, 1);
@@ -2450,15 +2441,15 @@ typedef struct CONTACTREQ {
    +0x10 = 6) goes through the amount menu ai_AmountMenu (the caption ai_TailorAmountText,
    ch_EmptyName as the second text, the callback ai_TailorChatWindow). Ends with the camera follow
    sv_CameraFollow. Void; the two arguments the contact dispatch passes are not read. */
-void ai_TailorContact(int building, int arg)
+void ai_TailorContact(AIBLD *building, AIOBJ *arg)
 {
     CONTACTREQ req;
 
-    if ((((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->flags1cc & 0x20000) != 0) {
-        sv_MessageBox((int)ai_TailorBlockedText, 4);
+    if ((((AICHARVIEW *)&ai_Chars[ai_PlayerId])->flags1cc & 0x20000) != 0) {
+        sv_MessageBox((intptr_t)ai_TailorBlockedText, 4);
         return;
     }
-    if (sv_CheckMoney((char *)(ai_CharsC + ai_PlayerId * 0x21c), 1) != 0) {
+    if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 1) != 0) {
         D3_ZERO(&req, sizeof(req));
         req.type = 1;
         req.a = 0x400;
@@ -2467,15 +2458,6 @@ void ai_TailorContact(int building, int arg)
     }
     sv_CameraFollow();
 }
-
-/* ai.h's AIBLD (0xa9 bytes, packed) as the contact listener reads it: the head of the building's object
-   list. */
-#pragma pack(push, 1)
-typedef struct AIBLDVIEW {
-    char pad0[0x5d];
-    int objList;                        /* +0x5d, AIBLD.objList: the objects of the building */
-} AIBLDVIEW;
-#pragma pack(pop)
 
 /* 0x5d8420, the contact listener of the production buildings (429 B): building the building record,
    arg the caller's argument. The contacts 0x52e1c0 are created on the flags 0x6f231c: bit 0x200
@@ -2486,7 +2468,7 @@ typedef struct AIBLDVIEW {
    0x5af1a0 (param_1), PERSONALBUCH -> 0x5aab80 (param_1, "ob_PERSONALBUCH"), MEISTERBRIEF ->
    0x5c3200 (param_1), ROHSTOFFE -> 0x595480 (param_1, param_2), PLAUSCH -> 0x5d8360. Then
    0x58f510 (param_1). The pump 0x5309a0 (0x5d8420, 0x67fff) runs between 0x52e190 calls. */
-void ai_ProductionContact(int building, int arg)
+void ai_ProductionContact(AIBLD *building, AIOBJ *arg)
 {
     int lager, schn, trans, personal, meister, roh, plausch;
     int pump;
@@ -2515,22 +2497,22 @@ void ai_ProductionContact(int building, int arg)
         }
         if ((click = ai_ClickedObject) != 0) {
             if (click == lager) {
-                ai_StorageWindow(building, ((AIBLDVIEW *)building)->objList);
+                ai_StorageWindow(building, building->objList);
             } else if (click == schn) {
-                ai_ProductionWindow((struct AIBLD *)building);
+                ai_ProductionWindow(building);
             } else if (click == trans) {
                 ai_OpenTransport(building);
             } else if (click == personal) {
-                ai_PersonnelBook((struct AIBLD *)building, "ob_PERSONALBUCH");
+                ai_PersonnelBook(building, "ob_PERSONALBUCH");
             } else if (click == meister) {
-                ai_MasterLetterWindow((struct AIBLD *)building);
+                ai_MasterLetterWindow(building);
             } else if (click == roh) {
-                ai_TradeSearchWindow((unsigned char *)building, arg);
+                ai_TradeSearchWindow(building, arg);
             } else if (click == plausch) {
                 ai_TailorContact(building, arg);
             }
         }
-        ai_MarketContact((struct AIBLD *)building);
+        ai_MarketContact(building);
         pump = sv_RunFrame(ai_ProductionContact, 0x67fff);
     }
     sv_ReleaseNamePlates();
@@ -2548,7 +2530,7 @@ void ai_ProductionContact(int building, int arg)
    (ai_BloodRevengeWindow), contact_EHRERBIETUNG 0x62dcc8 (ai_ContactTextHomage 0x144a9d8, 0x16) the
    homage window 0x5d95a0 (ai_HomageWindow), between sv_ReleaseNamePlates calls and the pump 0x5309a0
    (this function, 0x67fff). The clicked object (ai_ClickedObject) selects one of the plates. */
-void ai_GypsyContact(int building)
+void ai_GypsyContact(AIBLD *building)
 {
     int blutrache = 0;
     int ehrerbietung = 0;
@@ -2574,10 +2556,10 @@ void ai_GypsyContact(int building)
    (ai_CurseWindow) when its plate is the clicked object (ai_ClickedObject), between
    sv_ReleaseNamePlates calls and the pump 0x5309a0 (this function, 0x67fff). */
 
-void ai_CurseContact(int buildingArg)
+void ai_CurseContact(AIBLD *buildingArg)
 {
     int fluch;
-    int building;
+    AIBLD *building;
     int clicked;
 
     /* the original keeps the building in a callee-saved register across the plate call */
@@ -2597,7 +2579,7 @@ void ai_CurseContact(int buildingArg)
    0x16) the poker game 0x5da030 (ai_PokerGame), between sv_ReleaseNamePlates calls and the pump
    0x5309a0 (this function, 0x67fff). */
 
-void ai_TheatreContact(int building)
+void ai_TheatreContact(AIBLD *building)
 {
     int theater = 0;
     int karten;
@@ -2643,7 +2625,7 @@ extern struct D2PIC *d2_Pics;              /* 0x6ed918, d2.h: D2PIC * */
    delivery text for the chosen targets is made (ai_GypsyDeliveryText) and shown (0x41b9 with 0x41b2); the second button and
    the right mouse button leave. The pump ends with d2_CloseView and the camera follow; a refused window
    returns right after the green box. */
-void ai_BloodRevengeWindow(int building)
+void ai_BloodRevengeWindow(AIBLD *building)
 {
     char msg[0x800];
     GYPSYROW rows[5];
@@ -2660,8 +2642,8 @@ void ai_BloodRevengeWindow(int building)
     memset(sel, 0xff, 5 * sizeof(int));
     total = 0;
     tick = 0;
-    if (((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->flags1cc & 8) {
-        sv_MessageBoxGreen((int)txt_Ptrs[0x41b2], (int)txt_Ptrs[0x41b3], 0);
+    if (((AICHARVIEW *)&ai_Chars[ai_PlayerId])->flags1cc & 8) {
+        sv_MessageBoxGreen((intptr_t)txt_Ptrs[0x41b2], (intptr_t)txt_Ptrs[0x41b3], 0);
         return;
     }
     form = d2_OpenForm(0, 0, "Locations\\zigeuner\\blutrache");
@@ -2684,12 +2666,12 @@ void ai_BloodRevengeWindow(int building)
     sv_ButtonRow(d2_LastWindow, 0, ids, 2, txt_Ptrs[0x41b7], txt_Ptrs[0x41b8]);
     do {
         if (refresh != 0) {
-            n = gm_BathObjectCount((struct AIBLD *)building) + 1;
+            n = gm_BathObjectCount(building) + 1;
             tick = d3_Time;
             refresh = 0;
             d2_SetForm(form, 1);
-            io_PrintText("$C");
-            io_PrintText((char *)0x41b2);
+            io_PrintText((intptr_t)"$C");
+            io_PrintText(0x41b2);
             total = 0;
             for (i = 0; i < 5; i++) {
                 row = &rows[i];
@@ -2717,32 +2699,32 @@ void ai_BloodRevengeWindow(int building)
                 total += r;
             }
             d2_SetForm(form, 2);
-            io_PrintText("$C", total);
-            io_PrintText((char *)0x41b6, total);
+            io_PrintText((intptr_t)"$C", total);
+            io_PrintText(0x41b6, total);
             d2_SetObjEnabled(ids[0], rows[0].rec != 0 && total != 0);
         }
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == ids[0]) {
-                if (sv_CheckMoney(ai_CharsC + ai_PlayerId * 0x21c, total) == 1) {
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], total) == 1) {
                     AICHARVIEW *av = rows[0].rec;
 
                     txt_Format(msg, 0x41bf, av->id);
                     k = 0;
                     for (i = 1; i < 5; i++) {
                         if (rows[i].rec != 0) {
-                            r = 0x32 - (int)(gm_Mix((int)(ai_CharsC + ai_PlayerId * 0x21c), (int)rows[i].rec, 4) * -50.0f);
+                            r = 0x32 - (int)(gm_Mix((int)((char *)&ai_Chars[ai_PlayerId]), (int)rows[i].rec, 4) * -50.0f);
                             cm_SendRelations(rows[0].rec->id, rows[i].rec->id, -r, 1);
                             sel[5 + k] = (int)rows[i].rec;
                             k++;
                         }
                     }
-                    gm_SendMoneyDelta(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, -total);
-                    cm_SendSetField(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, 0x1cc, 4, 8, 0);
-                    ai_GypsyDeliveryText((struct AIPER *)av, k, (struct AIPER **)&sel[5]);
+                    gm_SendMoneyDelta(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, -total);
+                    cm_SendSetField(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, 0x1cc, 4, 8, 0);
+                    ai_GypsyDeliveryText((struct AICHAR *)av, k, (struct AICHAR **)&sel[5]);
                     txt_Format(msg, 0x41b9, 0x41b2);
-                    sv_MessageBox((int)msg, 0);
+                    sv_MessageBox((intptr_t)msg, 0);
                     sv_PopRequest = 1;
                 }
             } else if (d2_PointerObj == ids[1]) {
@@ -2778,12 +2760,12 @@ void ai_BloodRevengeWindow(int building)
             }
             refresh = 1;
         }
-    } while (sv_RunFrame((int)ai_BloodRevengeWindow, 0x677c7) != 0);
+    } while (sv_RunFrame(ai_BloodRevengeWindow, 0x677c7) != 0);
     d2_CloseView(form);
     sv_CameraFollow();
 }
 /* batch 3: the gypsy / poker / particle stretch 0x5d8c90 .. 0x5dd3e0 */
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(char *o, int n, unsigned char t);
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 struct AITIME;
 int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
 int ai_PokerStart();
@@ -2801,7 +2783,7 @@ unsigned short ai_PokerStep(); int gm_BuildingSkill(); float ai_NormalizeEffectS
    (cm_SendMoveGoodsUnchecked), the message 0x9d (arg 0 = the strength, arg 2 = the target's net id, the game time, flags 2) is sent
    (cm_SendLongMessage), the voice "_WAHRSAGERIN_FLUCH_0<v>" is played and the text 0x41da is shown. The pump ends with
    d2_CloseView and the camera follow. */
-void ai_CurseWindow(int building)
+void ai_CurseWindow(AIBLD *building)
 {
     AMOUNTCFG cfg;                      /* the config of the amount menu */
     int ids[2];                         /* the two buttons */
@@ -2809,9 +2791,9 @@ void ai_CurseWindow(int building)
     AICHARVIEW *target;
     int limit, v;
 
-    if (((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->flags1cc & 0x10) {
+    if (((AICHARVIEW *)&ai_Chars[ai_PlayerId])->flags1cc & 0x10) {
         snd_PlayVoice(-7, 0, "RAUSWURF", -1);
-        sv_MessageBoxGreen((int)txt_Ptrs[0x41c1], (int)txt_Ptrs[0x41c2], 0);
+        sv_MessageBoxGreen((intptr_t)txt_Ptrs[0x41c1], (intptr_t)txt_Ptrs[0x41c2], 0);
         return;
     }
     memset(&cfg, 0, sizeof(cfg));
@@ -2840,49 +2822,49 @@ void ai_CurseWindow(int building)
     do {
         char text[0x200];
 
-        limit = gm_CurseObjectCount((struct AIBLD *)building) - 1;
+        limit = gm_CurseObjectCount(building) - 1;
         v = d2_GetObjValue(slider);
         if (v >= limit)
             v = limit;
         d2_SetObjValue(slider, 0, limit, v, 1);
         txt_Format(text, v + 0x41d0, target->id);
         d2_SetForm(form, 1);
-        io_PrintText("$C");
-        io_PrintText((char *)0x41d6, 0x41c1, v + 0x41c4, text);
-        if (ai_PlayerId != ((CURSEBLD *)building)->owner)
-            io_PrintText((char *)0x41d7, (v > 1 ? v : 1) * 32000);
+        io_PrintText((intptr_t)"$C");
+        io_PrintText(0x41d6, 0x41c1, v + 0x41c4, text);
+        if (ai_PlayerId != building->owner)
+            io_PrintText(0x41d7, (v > 1 ? v : 1) * 32000);
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == ids[0]) {
-                if (sv_CheckGoodAmount(ai_CharsC + ai_PlayerId * 0x21c, v, ai_OwnPlayer) != 0) {
+                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], v, ai_OwnPlayer) != 0) {
                     char name[100];
                     CURSEMSG msg;
 
-                    cm_SendSetField(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, 0x1cc, 4, 0x10, 0);
-                    if (ai_PlayerId != ((CURSEBLD *)building)->owner)
-                        cm_SendMoveGoodsUnchecked(-1, ((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, ai_OwnPlayer,
+                    cm_SendSetField(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, 0x1cc, 4, 0x10, 0);
+                    if (ai_PlayerId != building->owner)
+                        cm_SendMoveGoodsUnchecked(-1, ((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, ai_OwnPlayer,
                                                   (v > 1 ? v : 1) * 32000);
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0x9d;
                     msg.fromId = -1;
                     msg.flags = 2;
                     msg.arg[0] = v;
-                    msg.to = ((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId;
+                    msg.to = ((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId;
                     memcpy(&msg.time, &ai_Time, sizeof(AITIME));
                     msg.arg[1] = target->netId;
                     cm_SendLongMessage((char *)&msg);
                     txt_Format(text, 0x41da, 0x41c1);
                     sprintf(name, "_WAHRSAGERIN_FLUCH_0%d", v);
                     snd_PlayVoice(-7, 0, name, -1);
-                    sv_MessageBox((int)text, 0);
+                    sv_MessageBox((intptr_t)text, 0);
                     sv_PopRequest = 1;
                 }
             } else if (d2_PointerObj == ids[1]) {
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_CurseWindow, 0x677c7) != 0);
+    } while (sv_RunFrame(ai_CurseWindow, 0x677c7) != 0);
     d2_CloseView(form);
     sv_CameraFollow();
 }
@@ -2899,7 +2881,7 @@ void ai_CurseWindow(int building)
    (sv_CheckMoney, gm_SendMoneyDelta) and sends the message 0xa0 (the building id, the game time, arg 0 = the strength,
    flags 2) with cm_SendLongMessage. The pump ends with d2_CloseView and the camera follow. */
 
-void ai_CurseTargetWindow(int building)
+void ai_CurseTargetWindow(AIBLD *building)
 {
     CURSEMSG msg;
     AITIME when;
@@ -2927,14 +2909,14 @@ void ai_CurseTargetWindow(int building)
     d2_SetObjValue(share, 0, 100, 0);
     d2_SetForm(form, 2);
     victim = d2_WinOpenSlider(0x57, 7, 200, 0, 100, 0x7b, 2, d2_LastWindow);
-    gm_CurseTargetCount((char *)building);
-    d2_SetObjValue(victim, 0, gm_CurseTargetCount((char *)building) - 1, 0, 1);
+    gm_CurseTargetCount(building);
+    d2_SetObjValue(victim, 0, gm_CurseTargetCount(building) - 1, 0, 1);
     d2_SetForm(form, 3);
     sv_ButtonRow(d2_LastWindow, 0, ids, 2, txt_Ptrs[0x41f6], txt_Ptrs[0x41f7]);
     do {
         if (d3_Time > tick + 0x8c || d2_GetObjValue(victim) != value) {
             tick = d3_Time;
-            ev = (CURSEEVENT *)ai_FindCurseEvent((struct AIBLD *)building);
+            ev = (CURSEEVENT *)ai_FindCurseEvent(building);
             if (ev != 0) {
                 when = ev->due;
                 when.hour += ev->done ? 0 : 2;
@@ -2949,19 +2931,19 @@ void ai_CurseTargetWindow(int building)
                 d2_SetObjValue(share, 0, 100, 0);
             }
             d2_SetForm(form, 1);
-            io_PrintText("$C");
+            io_PrintText((intptr_t)"$C");
             if (ev != 0) {
                 if (ev->done == 0)
-                    io_PrintText((char *)0x41f8, 0x41f4, ev->victim + 0x41fb, &when);
+                    io_PrintText(0x41f8, 0x41f4, ev->victim + 0x41fb, &when);
                 else
-                    io_PrintText((char *)0x41f9, 0x41f4);
+                    io_PrintText(0x41f9, 0x41f4);
             } else {
                 value = d2_GetObjValue(victim);
                 if (value < 4)
                     cls = 2;
                 else
                     cls = (value >= 7) + 3;
-                io_PrintText((char *)0x41f5, 0x41f4, cls, value + 0x41fb, &when);
+                io_PrintText(0x41f5, 0x41f4, cls, value + 0x41fb, &when);
             }
             d2_SetObjEnabled(ids[0], ev == 0);
             d2_SetObjEnabled(ids[1], ev == 0);
@@ -2973,13 +2955,13 @@ void ai_CurseTargetWindow(int building)
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == ids[0]) {
-                if (sv_CheckMoney(ai_CharsC + ai_PlayerId * 0x21c, cls) == 1) {
-                    gm_SendMoneyDelta(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, -cls);
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], cls) == 1) {
+                    gm_SendMoneyDelta(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, -cls);
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0xa0;
                     msg.flags = 2;
-                    msg.to = ((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId;
-                    msg.fromId = ((CURSEBLD *)building)->id;
+                    msg.to = ((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId;
+                    msg.fromId = building->id;
                     memcpy(&msg.time, &ai_Time, sizeof(AITIME));
                     msg.arg[0] = value;
                     cm_SendLongMessage((char *)&msg);
@@ -2989,7 +2971,7 @@ void ai_CurseTargetWindow(int building)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_CurseTargetWindow, 0x677c7) != 0);
+    } while (sv_RunFrame(ai_CurseTargetWindow, 0x677c7) != 0);
     d2_CloseView(form);
     sv_CameraFollow();
 }
@@ -3004,7 +2986,7 @@ void ai_CurseTargetWindow(int building)
    gets the news 0x420e ("_NACHRICHTEN_ZIGEUNER_04", channel 0x5f0) with the id of the player (he_ShowNews). The pump ends
    with d2_CloseView and the camera follow. */
 
-void ai_HomageWindow(int building)
+void ai_HomageWindow(AIBLD *building)
 {
     char text[0x400];
     AMOUNTCFG cfg;                      /* the config of the amount menu */
@@ -3013,12 +2995,12 @@ void ai_HomageWindow(int building)
     AICHARVIEW *target;
     int value;
 
-    if (((CURSEBLD *)building)->owner == 0xffff) {
+    if (building->owner == 0xffff) {
         sv_CameraFollow();
         return;
     }
-    if (((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->flags1cc & 0x20) {
-        sv_MessageBoxGreen((int)txt_Ptrs[0x4207], (int)txt_Ptrs[0x4208], 0);
+    if (((AICHARVIEW *)&ai_Chars[ai_PlayerId])->flags1cc & 0x20) {
+        sv_MessageBoxGreen((intptr_t)txt_Ptrs[0x4207], (intptr_t)txt_Ptrs[0x4208], 0);
         return;
     }
     memset(&cfg, 0, sizeof(cfg));
@@ -3045,16 +3027,16 @@ void ai_HomageWindow(int building)
     do {
         value = d2_GetObjValue(slider);
         d2_SetForm(form, 1);
-        io_PrintText("$C");
-        io_PrintText((char *)0x420a, 0x4207, target->id, value);
+        io_PrintText((intptr_t)"$C");
+        io_PrintText(0x420a, 0x4207, target->id, value);
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == ids[0]) {
-                if (sv_CheckMoney(ai_CharsC + ai_PlayerId * 0x21c, value) == 1) {
-                    cm_SendSetField(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, 0x1cc, 4, 0x20, 0);
-                    gm_SendMoneyDelta(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, -value);
-                    cm_SendRelations(((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId, target->netId, value * 5, 1);
+                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], value) == 1) {
+                    cm_SendSetField(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, 0x1cc, 4, 0x20, 0);
+                    gm_SendMoneyDelta(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, -value);
+                    cm_SendRelations(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, target->netId, value * 5, 1);
                     if (target->kind == 6 || target->kind == 7) {
                         txt_Format(text, 0x420e, ai_PlayerId);
                         he_ShowNews(target->netId, -1, text, 0, 0x5f0, "_NACHRICHTEN_ZIGEUNER_04");
@@ -3065,7 +3047,7 @@ void ai_HomageWindow(int building)
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_HomageWindow, 0x677c7) != 0);
+    } while (sv_RunFrame(ai_HomageWindow, 0x677c7) != 0);
     d2_CloseView(form);
     sv_CameraFollow();
 }
@@ -3079,7 +3061,7 @@ void ai_HomageWindow(int building)
    the form is the one the other gypsy windows use; message 0xa1 is not read at its receiver. Body read whole
    against the disassembly. */
 
-void ai_GypsyBeggingWindow(int building)
+void ai_GypsyBeggingWindow(AIBLD *building)
 {
     CURSEMSG msg;
     int chosen[4];                      /* the indices of the collected characters */
@@ -3093,8 +3075,8 @@ void ai_GypsyBeggingWindow(int building)
     d2_SetForm(form, 0);
     sv_FitForm(d2_LastWindow);
     d2_SetForm(form, 1);
-    io_PrintText("$C");
-    io_PrintText((char *)0x41e7, 0x41e6, 0xed6);
+    io_PrintText((intptr_t)"$C");
+    io_PrintText(0x41e7, 0x41e6, 0xed6);
     d2_SetForm(form, 3);
     sv_ButtonRow(d2_LastWindow, 0, ids, 2, txt_Ptrs[0x41e8], txt_Ptrs[0x41e9]);
     do {
@@ -3104,7 +3086,7 @@ void ai_GypsyBeggingWindow(int building)
             if (d2_PointerObj == ids[0]) {
                 count = 0;
                 for (i = 0; i < 768 && count < 4; i++) {
-                    if (((AICHARVIEW *)(ai_CharsC + i * 0x21c))->selected != 0) {
+                    if (((AICHARVIEW *)&ai_Chars[i])->selected != 0) {
                         chosen[count] = i;
                         count++;
                     }
@@ -3113,21 +3095,21 @@ void ai_GypsyBeggingWindow(int building)
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 0xa1;
                     msg.flags = 1;
-                    msg.to = ((AICHARVIEW *)(ai_CharsC + ai_PlayerId * 0x21c))->netId;
-                    msg.fromId = ((CURSEBLD *)building)->id;
+                    msg.to = ((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId;
+                    msg.fromId = building->id;
                     memcpy(&msg.time, &ai_Time, sizeof(AITIME));
                     for (i = 0; i < count; i++)
-                        msg.ids[i] = ((AICHARVIEW *)(ai_CharsC + chosen[i] * 0x21c))->netId;
+                        msg.ids[i] = ((AICHARVIEW *)&ai_Chars[chosen[i]])->netId;
                     cm_SendLongMessage((char *)&msg);
                     sv_PopRequest = 1;
                 } else {
-                    sv_MessageBox((int)txt_Ptrs[0x41ea], 0);
+                    sv_MessageBox((intptr_t)txt_Ptrs[0x41ea], 0);
                 }
             } else if (d2_PointerObj == ids[1]) {
                 sv_PopRequest = 1;
             }
         }
-    } while (sv_RunFrame((int)ai_GypsyBeggingWindow, 0x677c7) != 0);
+    } while (sv_RunFrame(ai_GypsyBeggingWindow, 0x677c7) != 0);
     d2_CloseView(form);
     sv_ClosePlayerBar();
     sv_ClearSelection();
@@ -3144,7 +3126,7 @@ void ai_GypsyBeggingWindow(int building)
    sv_ReleaseNamePlates call and the loop; the loop is entered by the pump result. Void. Reasoned: the plate names are
    the literal strings, the callees are read off the calls (the ingredient search window is the "HANDEL_SUCHEN" helper). */
 
-void ai_GypsyProductionContact(int building)
+void ai_GypsyProductionContact(AIBLD *building)
 {
     int zutaten = 0;
     int transport = 0;
@@ -3175,20 +3157,20 @@ void ai_GypsyProductionContact(int building)
         if (ai_ClickedObject != 0) {
             if ((ai_BuildingPerms & 0x200) != 0) {
                 if (ai_ClickedObject == zutaten)
-                    ai_GypsyHelperWindow((struct AIBLD *)building);
+                    ai_GypsyHelperWindow(building);
                 else if (ai_ClickedObject == transport)
                     ai_OpenTransport(building);
                 else if (ai_ClickedObject == produktion)
-                    ai_ProductionWindow((struct AIBLD *)building);
+                    ai_ProductionWindow(building);
                 else if (ai_ClickedObject == lager)
                     ai_StorageWindow(building, 0);
                 else if (ai_ClickedObject == meister)
-                    ai_MasterLetterWindow((struct AIBLD *)building);
+                    ai_MasterLetterWindow(building);
                 else if (ai_ClickedObject == betteln)
                     ai_GypsyBeggingWindow(building);
             }
             if (ai_ClickedObject == personal)
-                ai_PersonnelBook((struct AIBLD *)building, "ob_PERSONALBUCH");
+                ai_PersonnelBook(building, "ob_PERSONALBUCH");
         }
         ai_TradeContactChecks();
         pump = sv_RunFrame(ai_GypsyProductionContact, 0x67fff);

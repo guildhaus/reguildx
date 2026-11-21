@@ -36,9 +36,6 @@ extern GAPDATA full_data_624204[];
 
 
 extern const int sv_PhaseMinutes[24];
-#define d2_DirtyRectTop (*(int *)((char *)&d2_DirtyRectLeft + 0x4))       /* 0xfb9064 */
-#define d2_DirtyRectRight (*(int *)((char *)&d2_DirtyRectLeft + 0x8))     /* 0xfb9068 */
-#define d2_DirtyRectBottom (*(int *)((char *)&d2_DirtyRectLeft + 0xc))    /* 0xfb906c */
 extern float d3s_QuadUV[6];
 extern GAPDATA full_data_5fea38[];
 
@@ -120,13 +117,11 @@ extern GAPDATA full_data_60c7b8[];
 extern GAPDATA full_data_623594[];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 
 
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern const int sv_PhaseMinutes[24];
 extern int d2_PointerObj;
@@ -149,7 +144,6 @@ extern struct D2OBJ *d2_Objs;
 extern GAPDATA full_data_62a634[];
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -165,7 +159,6 @@ extern int d2_LastWindow;
 
 extern GAPDATA full_data_602568[];
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -176,7 +169,6 @@ extern int sv_PopRequest;
 extern unsigned short ai_PlayerId;
 extern volatile unsigned long d3_Time;
 extern GAPDATA full_data_60c7b8[];
-extern char ai_Chars[768][0x21c];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern int d2_PointerObj;
@@ -197,7 +189,6 @@ extern int ai_ClickedObject;
 
 extern GAPDATA full_data_62a450[];
 extern unsigned char kb_Last;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
@@ -208,7 +199,6 @@ extern int d2_LastWindow;
 
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
@@ -219,13 +209,11 @@ extern int d2_LastWindow;
 extern int sv_FrameMask;
 extern int sv_PopRequest;
 
-extern char ai_Chars[768][0x21c];
 extern unsigned short ai_PlayerId;
 
 extern const int sv_PhaseMinutes[24];
 
 
-extern char ai_Chars[768][0x21c];
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 extern int d2_PointerObj;
 extern int d2_ClickedId;
@@ -245,7 +233,6 @@ extern int ai_ClickedObject;
 
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-extern char ai_Chars[768][0x21c];
 extern int d2_PointerObj;
 extern int gm_AllowAll;
 extern int d2_ClickedId;
@@ -258,11 +245,9 @@ extern int ai_ClickedObject;
 
 extern int gm_AllowAll;
 extern volatile unsigned long d3_Time;
-extern char ai_Chars[768][0x21c];
 extern int d2_PointerObj;
 extern struct D2OBJ *d2_Objs;
 extern int di_Absolute;
-extern int gm_PlayerRecords[688];
 extern unsigned short ai_PlayerId;
 extern int d2_LastWindow;
 extern unsigned char ai_OwnPlayer;
@@ -280,7 +265,6 @@ extern unsigned char kb_Last;
 
 extern unsigned char kb_Last;
 extern int sv_FrameMask;
-extern char ai_Chars[768][0x21c];
 
 
 #define U_I(a) (*(int *)(a))
@@ -302,8 +286,6 @@ struct SBSAMPLE;
    in the original. A load through that pointer (not the fixed address) is what the unit's functions compile to,
    and the full link relocates the initializer, so the record is ours and no neighbour is touched. */
 extern TUTSTATE *const ai_Tutorial;
-#define S (*(char **)(unsigned)&ai_Tutorial)  /* the tutorial state record (at 0x6fa060): the pointer ai_Tutorial holds */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
 typedef struct SHOTENTRY {   /* 0x10 bytes */
     int obj;                 /* +0x0, -1 when empty */
     float dist;              /* +0x4 */
@@ -380,6 +362,7 @@ extern const float ai_CannonSwitchDist;
 #include "menu.h"
 #include "d2.h"
 #include "sv.h"
+#include "sv_quickjump.h"             /* SVQUICKJUMP: sv_QuickJump.panelFlag */
 #include "gfx.h"
 
 /* dcp unit split: the declarations of sv_t before the moved functions */
@@ -390,23 +373,15 @@ int sb_UnloadSampleBank();
 int snd_LoadVoiceBank();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
-struct G5CH; struct G9REC; struct VFSFILE;
-int sv_RunFrame(int cb, unsigned mask);
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(); void sv_ValueBar();
-char * ahm_OwnerChar();
-int sv_CheckGoodAmount(char *o, int n, unsigned char t);
-int sv_MessageBox();
-void txt_Format(char *out, int id0, ...);
+struct AICHAR; struct G9REC; struct VFSFILE;
+int sv_RunFrame(void (*cb)(), unsigned mask);
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_ValueBar();
+struct AICHAR *ahm_OwnerChar();
+int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
+int sv_MessageBox(intptr_t text, unsigned flags);
+void txt_Format(char *out, intptr_t id0, ...);
 int ahm_SendCreateAlchemist();
-int ahm_ResearchState(); char * ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
-#pragma pack(push, 1)
-typedef struct CANNONREC {   /* the tutorial's cannon record (ai_CannonScene's argument), read at its byte offsets */
-    char pad0;
-    int id;                  /* +0x01, the effect id gv_FindEffect takes (GVCANNON.bld) */
-    char pad5[0x5c];
-    D3OBJECT *obj;           /* +0x61, the cannon object the scene is built around */
-} CANNONREC;
-#pragma pack(pop)
+int ahm_ResearchState(); struct AICHAR *ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
 typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of ai_CannonScene (the other cannon functions still address it by byte offset) */
     D3VECTOR pos;            /* +0x00, d3_PointToWorld of the cannon object; pos.y gets the height of its bounds * 0.8 */
     float pad0c;
@@ -472,7 +447,7 @@ struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);                 /* 0x447190, d3_interface.h */
 char d3if_Show(struct D3OBJECT *obj, char show);        /* 0x4471b0, d3_interface.h */
 void he_ShowObjectInfos(); void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
-void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, char *rec);
+void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void sv_SetStatusText(char *s); void sv_RedrawScreen();
 void d3if_Prerender(char map); 
 double _CIfmod();
@@ -484,37 +459,37 @@ typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: thr
 } CANNONROT;
 void d3_DirToWorld();
 int gm_FindById();
-float gv_SalvoCharge(); void gv_BuildingCannon(char *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
+float gv_SalvoCharge(); void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
-void txt_Format(char *out, int id0, ...); int gm_CharCurrency(char *c, char p);
-void gv_CannonScatter(char *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
+void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
+void gv_CannonScatter(struct AIBLD *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
-int he_EventOnBuilding(); int sv_MessageBox();
-int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(char *o, int n, unsigned char t); short * gm_PlayerRecord(char *c);
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AIPER *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
-int ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
-void txt_Format(char *out, int id0, ...); int sv_MessageBox();
+int he_EventOnBuilding(); int sv_MessageBox(intptr_t text, unsigned flags);
+int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
+struct AICHAR *ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
+void txt_Format(char *out, intptr_t id0, ...); int sv_MessageBox(intptr_t text, unsigned flags);
 void sv_ReleaseNamePlates(void); int sv_RegisterNamePlate(); void ai_StorageWindow();
 void ai_AlchemistResearchWindow(); void ai_AlchemistWindow();
 void cm_BeginFieldBlock(char *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 
 /* dcp unit split: the definitions of sv_t the functions of svgrave use */
-void ai_AlchemistResearchWindow(unsigned char *obj);
-void ai_AlchemistWindow(unsigned char *obj);
+void ai_AlchemistResearchWindow(struct AIBLD *obj);
+void ai_AlchemistWindow(struct AIBLD *obj);
 void ai_CannonAim(CANNONSCENE *sc, float dt);
 void ai_CannonAxes(CANNONSCENE *sc);
 int ai_CannonFireCheck(CANNONSCENE *sc);
 void ai_CannonShotResults(CANNONSCENE *sc);
 float ai_CannonPitchRatio(CANNONSCENE *sc);
-void ai_CannonSwitchAnim(char *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask);
-void ai_CannonExplosion(CANNONSCENE *sc, char *rec);
+void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask);
+void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void ai_ShotTableReset(void);
 extern const int ai_GravePics[4];
 extern const int ai_GravePicsAlt[4];
 extern const int ai_GraveGoods[4];
 
 /* dcp unit split: the declarations of svgrave before the moved functions */
-int sv_CreateScrollButtons(); unsigned gv_FindEntry(void *a, unsigned char *o, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
+int sv_CreateScrollButtons(); unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
 typedef struct GVROW {
     int btn;                    /* 0x00, its button object, -1: an unused row */
     GVENTRY *entry;             /* 0x04, the grave entry, 0: unused */
@@ -555,10 +530,10 @@ typedef struct GVPICK {
     int id;                     /* 0x10, that dead person's id, -1: none */
 } GVPICK;
 int gv_OrderSetGraveHolder(); int gv_SizeOpen();
-int sv_MessageBoxGreen(); void sv_OpenPlayerBar(int a, char k); void sv_ClosePlayerBar(void);
-int gv_RoomForRaised(unsigned char *o, int *n); int gv_OrderRaiseDead(); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
-int sv_CheckCharacterFlag(int id); char * he_FindEvent(int n, ...); char * he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
-void ai_InitProductionTables(void); int ai_UpdateProdGoodsList(); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, int param_4);
+int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_OpenPlayerBar(struct AIBLD *a, char k); void sv_ClosePlayerBar(void);
+int gv_RoomForRaised(struct AIBLD *o, int *n); int gv_OrderRaiseDead(); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
+int sv_CheckCharacterFlag(struct AIBLD *id); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
+void ai_InitProductionTables(void); int ai_UpdateProdGoodsList(); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4);
 int snd_QueueVoice(int id, int bank, char *text, int var, unsigned int delay); int ai_MapPick();
 typedef struct GVSEANCE {
     int kind;                   /* 0x00, the seance chosen: 1 .. 3, 0 none */
@@ -570,19 +545,19 @@ typedef struct GVSEANCE {
     GVGRAVE grave;              /* 0x14, a copy of the dead person */
 } GVSEANCE;
 int sb_IsInit(); void d2_PlaceViewWindows(int view, unsigned char flags);
-int snd_VoiceVariant(); char *gv_FindAccused(char *c, int max, int *ids, int *cnt); float gv_SeanceChance(); float util_RandomF();
+int snd_VoiceVariant(); struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt); float gv_SeanceChance(); float util_RandomF();
 void cm_SendProofExecuted(int a, int b); 
-void ai_FindWantedItems(struct G5CH *p, int n, struct G9REC *rec, int *st);
+void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);
 void gm_SendMoneyDelta(int a, int b);
-void ai_EndCharExtra(char *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(char *a, int b);
+void ai_EndCharExtra(struct AICHAR *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(struct AICHAR *a, int b);
 void sv_ReleaseNamePlates(void); void ai_TradeContactChecks(void);
-int ai_AmountMenu(); int sv_CheckMoney();
-float gm_GetSkill(char *c, int skill); int gm_ClockSeason(); char * he_FindEvent(int n, ...);
+struct AICHAR *ai_AmountMenu(); int sv_CheckMoney();
+float gm_GetSkill(struct AICHAR *c, int skill); int gm_ClockSeason(); struct AIJOB *he_FindEvent(int n, ...);
 int gm_BuildingJob(); 
 
 /* dcp unit split: the definitions of svgrave the functions of svtip use */
 void ai_GraveDeadName(GVGRAVE *e, char *out);
-void ai_EndCharExtra(char *ch, int f);
+void ai_EndCharExtra(struct AICHAR *ch, int f);
 
 int ai_DragWindow = -1;  /* 0x62a8cc, the tooltip view the right-button tooltip handler 0x587e00 opens (-1 = none; sv.c reads it): the first of the .data block before ai_DragObj */
 int ai_DragObj = -1;  /* 0x62a8d0, the right-held d2 object (d2_RightHeldObj) whose tooltip ai_DragWindow shows, -1 = none */
@@ -636,22 +611,22 @@ void ai_HandleItemDrag(void)
     if (d2_RightHeldObj != -1 && d2_RightHeldObj != ai_DragObj) {
         user = d2_Objs[d2_PointerObj].user;
         if (user != 0) {
-            if ((char *)user >= ai_Chars[0] && (char *)user < ai_Chars[768]) {  /* ai_Chars[768]: one past the table */
-                ch = (AICHAR *)user;
+            if ((char *)user >= (char *)&ai_Chars[0] && (char *)user < (char *)&ai_Chars[768]) {  /* ai_Chars[768]: one past the table */
+                ch = user;
                 if (ch->id == 0xffff)
                     ch = 0;
-            } else if ((char *)user >= ai_Blds && (char *)user < ai_Blds + 0xa900) {
+            } else if ((char *)user >= (char *)ai_Blds && (char *)user < (char *)&ai_Blds[0x100]) {  /* ai_Blds[0x100]: one past the table */
                 bkind = ((AIBLD *)user)->type;
                 if (bkind >= 0x58)
                     bkind = 0;
-            } else if ((char *)user >= ai_BTypes && (char *)user < ai_BTypes + 0x58 * 0x24d) {
-                bkind = ((char *)user - ai_BTypes) / 0x24d;
+            } else if ((char *)user >= (char *)ai_BTypes && (char *)user < (char *)&ai_BTypes[0x58]) {  /* ai_BTypes[0x58]: one past the table */
+                bkind = (AIBTYPE *)user - ai_BTypes;
             } else if ((char *)user >= (char *)ai_Objects && (char *)user < (char *)&ai_Objects[0x5008]) {  /* ai_Objects[0x5008]: one past the table */
                 item = ((AIOBJ *)user)->id;
                 if (item >= 0x2dc)
                     item = 0;
-            } else if ((char *)user >= ai_Goods && (char *)user < ai_Goods + 0x2dc * 0x41) {
-                item = ((char *)user - ai_Goods) / 0x41;
+            } else if ((char *)user >= (char *)ai_Goods && (char *)user < (char *)&ai_Goods[0x2dc]) {  /* ai_Goods[0x2dc]: one past the table */
+                item = (AIGOOD *)user - ai_Goods;
             }
         } else {
             if (d2_RightHeldObj >= 0xdf && d2_RightHeldObj < 0x427)
@@ -668,7 +643,7 @@ void ai_HandleItemDrag(void)
             ai_DragViewWin = -1;
         }
         if (item != 0) {
-            g = &((AIGOOD *)ai_Goods)[item];
+            g = &ai_Goods[item];
             if (g->type == 0x20 || g->type == 0x17 || g->type == 0x25 || g->type == 0x27)
                 ai_DragWindow = ai_OpenItemTooltip(item);
             else
@@ -678,7 +653,7 @@ void ai_HandleItemDrag(void)
         } else if (sel != 0) {
             ai_DragWindow = ai_OpenHelpTooltip(sel);
         } else if (ch != 0) {
-            ai_DragWindow = ai_OpenCharTooltip((char *)ch);
+            ai_DragWindow = ai_OpenCharTooltip(ch);
         }
         if (ai_DragWindow != -1) {
             ai_DragObj = d2_RightHeldObj;
@@ -705,7 +680,7 @@ tail:
     }
 }
 
-int gm_BuildingKindCost(int c, int kind); char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
+int gm_BuildingKindCost(struct AICHAR *c, int kind); char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
 
 /* 0x588160, opens the tooltip view of the building type idx (ai_BTypes): the form "ToolTip\ToolTip_Gebaeude",
    centred; section 1 the type's name (text idx * 0xe + 0x48e), for a kind other than 0xa through the text 0x27
@@ -718,7 +693,7 @@ int ai_OpenBuildingTooltip(int idx)
     AIBTYPE *bt;
     int view;
 
-    bt = (AIBTYPE *)ai_BTypes + idx;
+    bt = ai_BTypes + idx;
     view = d2_OpenForm(0, 0, "ToolTip\\ToolTip_Gebaeude");
     d2_CentreViewWindows(view);
     d2_SetForm(0, 1);
@@ -732,7 +707,7 @@ int ai_OpenBuildingTooltip(int idx)
     if (bt->kind != 0xa) {
         d2_SetForm(0, 3);
         io_PrintText(0x2a, roman[bt->cap247]);
-        io_PrintText(0x28, gm_BuildingKindCost((int)ai_Chars[ai_PlayerId], idx));
+        io_PrintText(0x28, gm_BuildingKindCost(&ai_Chars[ai_PlayerId], idx));
         io_PrintText(0x29, bt->v243);
     }
     return view;
@@ -764,7 +739,7 @@ float gm_GoodsPrice(unsigned id, unsigned char p);
    before cross-jumping (a value per arm through a local, the list written by a helper), or the 0x225 chain
    as a macro shared with the 0x1c1 test at the end. prior: 273 -> 53 ins: d2_WinOpenPicStyled called with
    a short y (its true short x, short y prototype; the row y is recomputed per call, loop counters in
-   memory: -101), the staff loop as an index loop over ai_CharsT (countdown edx 0x300: -117),
+   memory: -101), the staff loop as an index loop over ai_Chars (countdown edx 0x300: -117),
    (float)(c->sk81 * (1.0 / 1008)) + factor (the fxch pair). Left: only the type 0x17/0x25 chain layout
    (all 49 code ins, 0x58869f..0x588843): the original puts each arm inline after an inverted last compare,
    A/B/1c1 with their own n store and the n = 1 arms cross-jumped into one tail; ours places A, B, 1c1
@@ -780,7 +755,7 @@ int ai_OpenItemTooltip(int idx)
     AIGOOD *item;
     float factor;
     char *w;
-    char *bld;
+    AIBLD *bld;
     AICHAR *c;
     AICHAR *master;
     D2WIN *win;
@@ -791,7 +766,7 @@ int ai_OpenItemTooltip(int idx)
     int list[32];
 
     w = ai_FindWeaponRecord(idx);
-    item = (AIGOOD *)ai_Goods + idx;
+    item = ai_Goods + idx;
     if (w != 0 && ((AIWEAPON *)w)->id != 0)
         view = d2_OpenForm(0, 0, "ToolTip\\ToolTip_Objekte_Waffen");
     else
@@ -821,16 +796,16 @@ int ai_OpenItemTooltip(int idx)
         io_PrintText(0x20, item->workTime);
     } else {
         n = 0;
-        gm_BuildingSkill((unsigned char *)bld, 1, 1);
-        master = (AICHAR *)gm_FindCharacterByMaster((int)bld);
+        gm_BuildingSkill(bld, 1, 1);
+        master = gm_FindCharacterByMaster(bld);
         for (i = 0; i < 0x300; i++) {
-            if ((char *)ai_CharsT[i].bld == bld && &ai_CharsT[i] != master)
-                list[n++] = ai_CharsT[i].netId;
+            if (ai_Chars[i].bld == bld && &ai_Chars[i] != master)
+                list[n++] = ai_Chars[i].netId;
         }
-        factor = gm_StaffFactor((unsigned char *)bld, n, list);
-        c = (AICHAR *)gm_FindCharacterByMaster((int)bld);
+        factor = gm_StaffFactor(bld, n, list);
+        c = gm_FindCharacterByMaster(bld);
         if (c == 0)
-            c = (AICHAR *)ai_Chars[((AIBLD *)bld)->owner];
+            c = &ai_Chars[bld->owner];
         io_PrintText(0x22, (int)(item->workTime / ((float)(c->sk81 * (1.0 / 1008)) + factor)), item->workTime);
     }
     d2_SetForm(0, 4);
@@ -841,7 +816,7 @@ int ai_OpenItemTooltip(int idx)
         amount = item->need[k];
         if (id != 0) {
             d2_WinOpenPicStyled(0, slot * 0x16 + 0x28, id + 0xdf, d2_LastWindow, -2);
-            io_PrintText("%i %s$N", amount, id * 2 + 0x9a8);
+            io_PrintText((intptr_t)"%i %s$N", amount, id * 2 + 0x9a8);
             slot++;
         }
     }
@@ -852,7 +827,7 @@ int ai_OpenItemTooltip(int idx)
         for (k = 0; k < 10; k++) {
             if (gm_BuildingItemGroups[i].items[k] == idx && idx != 0x1cd) {
                 d2_WinOpenPicStyled(6, slot * 0x16 + 0x28, gm_BuildingItemGroups[i].key + 0x427, d2_LastWindow, -2);
-                io_PrintText("%s$N", gm_BuildingItemGroups[i].key * 0xe + 0x48e);
+                io_PrintText((intptr_t)"%s$N", gm_BuildingItemGroups[i].key * 0xe + 0x48e);
                 slot++;
             }
         }
@@ -892,7 +867,7 @@ int ai_OpenItemTooltip(int idx)
     for (k = 0; k < n; k++) {
         id = list[k];
         d2_WinOpenPicStyled(6, slot * 0x16 + 0x28, id + 0x427, d2_LastWindow, -2);
-        io_PrintText("%s$N", id * 0xe + 0x48e);
+        io_PrintText((intptr_t)"%s$N", id * 0xe + 0x48e);
         slot++;
     }
     if (!(idx == 0x1c1 || idx == 0x1c2 || idx == 0x1c3 ||
@@ -900,12 +875,12 @@ int ai_OpenItemTooltip(int idx)
         idx == 0x1c7) {
         if (item->type == 0x17 || item->type == 0x25) {
             d2_WinOpenPicStyled(6, slot * 0x16 + 0x28, 0x444, d2_LastWindow, -2);
-            io_PrintText("%s$N", 0x624);
+            io_PrintText((intptr_t)"%s$N", 0x624);
             slot++;
         }
     }
     if (slot == 0)
-        io_PrintText("$C");
+        io_PrintText((intptr_t)"$C");
     return view;
 }
 /* 0x588950, opens the upgrade tooltip view of the goods item idx (-1 for an item of the type 0x1d): the form
@@ -930,14 +905,14 @@ int ai_OpenUpgradeTooltip(int idx)
     int view;
     AIGOOD *item;
     D2WIN *win;
-    char *bld;
+    AIBLD *bld;
     AIBTYPE *bt;
     int i;
     int cls;
     int value;
     float f;
 
-    if (((AIGOOD *)ai_Goods)[idx].type == 0x1d)
+    if (ai_Goods[idx].type == 0x1d)
         return -1;
     view = d2_OpenForm(0, 0, "ToolTip\\ToolTip_Objekte_Upgrades");
     d2_CentreViewWindows(view);
@@ -949,7 +924,7 @@ int ai_OpenUpgradeTooltip(int idx)
     io_PrintText(idx * 2 + 0x9a9);
     d2_SetForm(0, 1);
     io_PrintText(idx * 2 + 0x9a8);
-    item = (AIGOOD *)ai_Goods + idx;
+    item = ai_Goods + idx;
     d2_SetForm(0, 3);
     if (item->b40 != 0)
         io_PrintText(0x21, item->b40);
@@ -969,7 +944,7 @@ int ai_OpenUpgradeTooltip(int idx)
     }
     if (item->type == 2 || item->type == 6)
         return view;
-    bt = (AIBTYPE *)ai_BTypes + ((AIBLD *)bld)->type;
+    bt = ai_BTypes + bld->type;
     for (i = 0; i < 0x40; i++) {
         if ((bt->objs[i] & 0x7fff) == idx) {
             cls = bt->objClass[i];
@@ -978,18 +953,18 @@ int ai_OpenUpgradeTooltip(int idx)
                 return view;
             io_PrintText(0x24);
             if (cls == 3)
-                io_PrintText("+%a %s$N", value, 0xf9e);
+                io_PrintText((intptr_t)"+%a %s$N", value, 0xf9e);
             else if (cls == 0x24)
-                io_PrintText("+%i %s$N", value, 0xfe0);
+                io_PrintText((intptr_t)"+%i %s$N", value, 0xfe0);
             else
-                io_PrintText("%i%% %s$N", value, cls * 2 + 0xf98);
+                io_PrintText((intptr_t)"%i%% %s$N", value, cls * 2 + 0xf98);
             return view;
         }
     }
     return view;
 }
 
-int ai_AmountRowStatus(); int ai_DrawAmountRow(); short * gm_FindChar(int id); int gm_TitlesLeft();
+int ai_AmountRowStatus(); int ai_DrawAmountRow(); struct AICHAR *gm_FindChar(int id); int gm_TitlesLeft();
 
 /* 0x588bb0, opens the help tooltip of the record named s: the key "_HILFE_<S>+0" (the name upper-cased) is
    looked up in the texts; without it -1 (no window). Else the form "ToolTip\ToolTip_Contact", centred, its
@@ -1010,7 +985,7 @@ int ai_OpenHelpTooltip(char *s)
     win = d2_OpenForm(0, 0, "ToolTip\\ToolTip_Contact");
     d2_CentreViewWindows(win);
     d2_SetForm(0, 1);
-    io_PrintText("$Z$[%s$]", v);
+    io_PrintText((intptr_t)"$Z$[%s$]", v);
     d2_SetForm(0, 2);
     io_PrintText(v + 1);
     return win;
@@ -1023,7 +998,7 @@ int ai_OpenHelpTooltip(char *s)
    relatives[0] alive 0x30, a pair event 0x41 for it 0x31, else 0x32); the worth (0x2e), the byte +0x00c
    (text 0x33), the bits 0x3000 clear: the children relatives[3 .. 7] (text 0x34, none 0x35); section 3 the
    five skill bars (sv_DrawBalanceBar, texts 0x16b7 ..); then ai_CampaignStep (7, ch); returns the view */
-int ai_OpenCharTooltip(char *ch)
+int ai_OpenCharTooltip(AICHAR *ch)
 {
     int view;
     int row[14];                        /* an amount row (menu.c GYPSYROW): row[0] the character */
@@ -1035,11 +1010,11 @@ int ai_OpenCharTooltip(char *ch)
     int any;
     int i;
 
-    c = (AICHAR *)ch;
+    c = ch;
     view = d2_OpenForm(0, 0, "ToolTip\\ToolTip_Personen");
     d2_CentreViewWindows(view);
     d2_SetForm(0, 1);
-    io_PrintText("$Z$[%1N3$]", c->id);
+    io_PrintText((intptr_t)"$Z$[%1N3$]", c->id);
     d2_SetForm(0, 4);
     row[0] = (int)c;
     if (ai_AmountRowStatus(row) != 0)
@@ -1060,8 +1035,8 @@ int ai_OpenCharTooltip(char *ch)
             else
                 rank = (c->flags1cc & 0x200) ? 0x23 : 0;
             io_PrintText(0x2d);
-            io_PrintText("$3>%s$A", (c->sex ? 0x27b : 0x253) + rank);
-            io_PrintText("$A");
+            io_PrintText((intptr_t)"$3>%s$A", (c->sex ? 0x27b : 0x253) + rank);
+            io_PrintText((intptr_t)"$A");
         } else {
             io_PrintText(0x2c, (c->sex ? 0x18f : 0x130) + c->jobId, gm_TitlesLeft(c->jobId));
         }
@@ -1079,52 +1054,52 @@ int ai_OpenCharTooltip(char *ch)
         io_PrintText(0x2c, (c->sex ? 0x18f : 0x130) + c->jobId, gm_TitlesLeft(c->jobId));
         io_PrintText(0x2d);
         if (c->flags1cc & 0xe00)
-            io_PrintText("$3>%s$A", (c->sex ? 0x27b : 0x253) + rank);
+            io_PrintText((intptr_t)"$3>%s$A", (c->sex ? 0x27b : 0x253) + rank);
         if (c->officeKind != 0)
-            io_PrintText("$3>%s$A", (c->sex ? 0x27b : 0x253) + c->officeKind);
+            io_PrintText((intptr_t)"$3>%s$A", (c->sex ? 0x27b : 0x253) + c->officeKind);
         if (c->secondOffice != 0)
-            io_PrintText("$3>%s$A", (c->sex ? 0x27b : 0x253) + c->secondOffice);
+            io_PrintText((intptr_t)"$3>%s$A", (c->sex ? 0x27b : 0x253) + c->secondOffice);
     }
     if ((c->flags1cc & 0x3000) == 0)
-        io_PrintText(0x37, (c->sex ? 0x11e : 0x114) + c->b00d);
+        io_PrintText(0x37, (c->sex ? 0x11e : 0x114) + c->level);
     io_PrintText(0x2e, gm_GetWorth(c->id));
     if ((c->flags1cc & 0x3000) == 0) {
         io_PrintText(0x2f);
-        p = (AICHAR *)gm_FindChar(c->relatives[0]);
+        p = gm_FindChar(c->relatives[0]);
         if (p != 0 && p->health > 0) {
             io_PrintText(0x30, p->id);
         } else {
-            for (ev = (AIJOB *)he_FindEvent(1, 0, 0x41); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+            for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
                 if (ev->partner1 == c->netId)
                     break;
             }
-            if (ev != 0 && (p = (AICHAR *)gm_FindChar(ev->partner2)) != 0)
+            if (ev != 0 && (p = gm_FindChar(ev->partner2)) != 0)
                 io_PrintText(0x31, p->id);
             else
                 io_PrintText(0x32);
         }
     }
-    io_PrintText(0x33, c->b00c + 0x486);
+    io_PrintText(0x33, c->faith + 0x486);
     if ((c->flags1cc & 0x3000) == 0) {
         any = 0;
         io_PrintText(0x34);
         for (i = 0; i < 5; i++) {
-            p = (AICHAR *)gm_FindChar(c->relatives[3 + i]);
+            p = gm_FindChar(c->relatives[3 + i]);
             if (p != 0) {
-                io_PrintText("$3>%1N1$A", p->id);
+                io_PrintText((intptr_t)"$3>%1N1$A", p->id);
                 any = 1;
             }
         }
         if (any == 0)
-            io_PrintText("$3>%s$A", 0x35);
+            io_PrintText((intptr_t)"$3>%s$A", 0x35);
     }
     d2_SetForm(0, 3);
     for (i = 0; i < 5; i++) {
-        txt_Format(line, (int)"%s:", i + 0x16b7);
+        txt_Format(line, (intptr_t)"%s:", i + 0x16b7);
         d2_CreateWinText(0, i * 15, line, d2_LastWindow);
         sv_DrawBalanceBar(0x64, i * 15 + 2, ch, i, 0x4df);
     }
-    ai_CampaignStep(7, (int)ch, 0, 0);
+    ai_CampaignStep(7, ch, 0, 0);
     return view;
 }
 /* 0x5890c0, the modal info window of the character ch (kinds below 0xa only): the form
@@ -1133,7 +1108,7 @@ int ai_OpenCharTooltip(char *ch)
    0x253, else officeKind / secondOffice), the line 0x37, the worth, the partner (0x2f .. 0x32), the byte +0x00c
    (0x33) and the children (0x34, none 0x35); section 3 the five skill bars; then the frame pump (the right
    button closes it) and the view closed */
-void ai_CharInfoWindow(char *ch)
+void ai_CharInfoWindow(AICHAR *ch)
 {
     int view;
     int row[14];                        /* an amount row (menu.c GYPSYROW): row[0] the character */
@@ -1144,13 +1119,13 @@ void ai_CharInfoWindow(char *ch)
     int any;
     int i;
 
-    c = (AICHAR *)ch;
+    c = ch;
     if (c->kind >= 0xa)
         return;
     view = d2_OpenForm(0, 0, "ToolTip\\ToolTip_Personen");
     d2_CentreViewWindows(view);
     d2_SetForm(0, 1);
-    io_PrintText("$Z$[%1N3$]", c->id);
+    io_PrintText((intptr_t)"$Z$[%1N3$]", c->id);
     d2_SetForm(0, 4);
     memset(row, 0, sizeof(row));
     row[0] = (int)c;
@@ -1162,51 +1137,51 @@ void ai_CharInfoWindow(char *ch)
     io_PrintText(0x2c, (c->sex ? 0x18f : 0x130) + c->jobId, gm_TitlesLeft(c->jobId));
     io_PrintText(0x2d);
     if (c->officeKind == 0 && c->secondOffice == 0) {
-        io_PrintText("$3>%s$A", 0x253);
+        io_PrintText((intptr_t)"$3>%s$A", 0x253);
     } else {
         if (c->officeKind != 0)
-            io_PrintText("$3>%s$A", (c->sex ? 0x27b : 0x253) + c->officeKind);
+            io_PrintText((intptr_t)"$3>%s$A", (c->sex ? 0x27b : 0x253) + c->officeKind);
         if (c->secondOffice != 0)
-            io_PrintText("$3>%s$A", (c->sex ? 0x27b : 0x253) + c->secondOffice);
+            io_PrintText((intptr_t)"$3>%s$A", (c->sex ? 0x27b : 0x253) + c->secondOffice);
     }
-    io_PrintText(0x37, (c->sex ? 0x11e : 0x114) + c->b00d);
+    io_PrintText(0x37, (c->sex ? 0x11e : 0x114) + c->level);
     io_PrintText(0x2e, gm_GetWorth(c->id));
     io_PrintText(0x2f);
-    p = (AICHAR *)gm_FindChar(c->relatives[0]);
+    p = gm_FindChar(c->relatives[0]);
     if (p != 0 && p->health > 0) {
         io_PrintText(0x30, p->id);
     } else {
-        for (ev = (AIJOB *)he_FindEvent(1, 0, 0x41); ev != 0; ev = (AIJOB *)he_NextEvent()) {
+        for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
             if (ev->partner1 == c->netId)
                 break;
         }
-        if (ev != 0 && (p = (AICHAR *)gm_FindChar(ev->partner2)) != 0)
+        if (ev != 0 && (p = gm_FindChar(ev->partner2)) != 0)
             io_PrintText(0x31, p->id);
         else
             io_PrintText(0x32);
     }
-    io_PrintText(0x33, c->b00c + 0x486);
+    io_PrintText(0x33, c->faith + 0x486);
     any = 0;
     io_PrintText(0x34);
     for (i = 0; i < 5; i++) {
-        p = (AICHAR *)gm_FindChar(c->relatives[3 + i]);
+        p = gm_FindChar(c->relatives[3 + i]);
         if (p != 0) {
-            io_PrintText("$3>%1N1$A", p->id);
+            io_PrintText((intptr_t)"$3>%1N1$A", p->id);
             any = 1;
         }
     }
     if (any == 0)
-        io_PrintText("$3>%s$A", 0x35);
+        io_PrintText((intptr_t)"$3>%s$A", 0x35);
     d2_SetForm(0, 3);
     for (i = 0; i < 5; i++) {
-        txt_Format(line, (int)"%s:", i + 0x16b7);
+        txt_Format(line, (intptr_t)"%s:", i + 0x16b7);
         d2_CreateWinText(0, i * 15, line, d2_LastWindow);
         sv_DrawBalanceBar(0x64, i * 15 + 2, ch, i, 0x4df);
     }
     do {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
-    } while (sv_RunFrame((int)ai_CharInfoWindow, 0x677c7));
+    } while (sv_RunFrame(ai_CharInfoWindow, 0x677c7));
     sv_ResetScreenClip();
     d2_CloseView(view);
 }
@@ -1233,14 +1208,14 @@ void ai_InitBookmarks(void)
     }
 }
 
-char * gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, unsigned char *b, unsigned short *o, int c);
+struct AIBLD *gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
 
 /* 0x589450, drops the stale bookmarks (113 B): every set one (building not -1) whose building is gone
    (gm_FindBuildingById), whose object is set but gone (gm_FindObjectInst) or whose permission for the own player
    lacks bit 1 (gm_PermissionBits) is cleared (ai_ClearBookmark) */
 void ai_ValidateBookmarks(void)
 {
-    char *b;
+    AIBLD *b;
     int e;
     int i;
 
@@ -1254,7 +1229,7 @@ void ai_ValidateBookmarks(void)
             e = gm_FindObjectInst(ai_Bookmarks[i].object);
             if (e == 0 && ai_Bookmarks[i].object != -1)
                 ai_ClearBookmark(&ai_Bookmarks[i]);
-            else if ((gm_PermissionBits(ai_PlayerId, (unsigned char *)b, (unsigned short *)e, 0) & 1) == 0)
+            else if ((gm_PermissionBits(ai_PlayerId, b, (struct AIOBJ *)e, 0) & 1) == 0)
                 ai_ClearBookmark(&ai_Bookmarks[i]);
         }
     }
@@ -1265,7 +1240,7 @@ void ai_ValidateBookmarks(void)
    the panel (sv_SelectPanelObject) */
 void ai_SelectBookmark(void)
 {
-    char *b;
+    AIBLD *b;
     AIOBJ *o;
     int i;
 
@@ -1278,9 +1253,9 @@ void ai_SelectBookmark(void)
                 b = gm_FindBuildingById(ai_Bookmarks[i].building);
                 o = (AIOBJ *)gm_FindObjectInst(ai_Bookmarks[i].object);
                 if (o != 0)
-                    sv_SelectPanelObject((unsigned char *)b, o->objId, ch_EmptyName);
+                    sv_SelectPanelObject(b, o->objId, ch_EmptyName);
                 else
-                    sv_SelectPanelObject((unsigned char *)b, -1, ch_EmptyName);
+                    sv_SelectPanelObject(b, -1, ch_EmptyName);
                 return;
             }
         }
@@ -1296,21 +1271,21 @@ void ai_SetBookmark(int idx)
     AIBLD *a;
     AIOBJ *o;
 
-    a = (AIBLD *)ai_PlayerBuilding;
+    a = ai_PlayerBuilding;
     if (a != 0) {
         if (sv_PanelShown != 0)
-            o = (AIOBJ *)sv_PanelShown;
+            o = sv_PanelShown;
         else
             o = 0;
     } else {
-        a = (AIBLD *)ai_FallbackBuilding;
+        a = ai_FallbackBuilding;
         if (a != 0) {
             if (sv_PanelShown != 0)
-                o = (AIOBJ *)sv_PanelShown;
+                o = sv_PanelShown;
             else
-                o = (AIOBJ *)gm_Query((void *)a->objList, 2, 6, 0, 0xfd);
+                o = gm_Query(a->objList, 2, 6, 0, 0xfd);
         } else {
-            a = (AIBLD *)sv_SelectedObject;
+            a = sv_SelectedObject;
             if (a == 0)
                 a = ai_MarketBuilding;
             o = 0;
@@ -1324,9 +1299,9 @@ void ai_SetBookmark(int idx)
         ai_Bookmarks[idx].object = -1;
     }
     if (o != 0 && o->id != 0xfd)
-        txt_Format(buf, (int)"%s = %G, %s", idx + 0x205e, a, o->id * 2 + 0x9a8);
+        txt_Format(buf, (intptr_t)"%s = %G, %s", idx + 0x205e, a, o->id * 2 + 0x9a8);
     else
-        txt_Format(buf, (int)"%s = %G", idx + 0x205e, a);
+        txt_Format(buf, (intptr_t)"%s = %G", idx + 0x205e, a);
     sv_SetStatusText(buf);
 }
 
@@ -1392,12 +1367,12 @@ void ai_BookmarkWindow(void)
                 o = 0;
                 d2_RadioAdd(group, d2_WinOpenPic(0x10, i * 0x38 + 4, i + 0x769, d2_LastWindow));
                 if (ai_Bookmarks[i].building != -1)
-                    b = (AIBLD *)gm_FindBuildingById(ai_Bookmarks[i].building);
+                    b = gm_FindBuildingById(ai_Bookmarks[i].building);
                 if (ai_Bookmarks[i].object != -1)
                     o = (AIOBJ *)gm_FindObjectInst(ai_Bookmarks[i].object);
                 if (b != 0) {
                     d2_WinOpenPic(0x60, i * 0x38, b->type + 0x427, d2_LastWindow);
-                    txt_Format(line, (int)"%2N8~ %1G", b->owner, b);
+                    txt_Format(line, (intptr_t)"%2N8~ %1G", b->owner, b);
                     t = d2_CreateWinText(0x9c, i * 0x38 + 9, line, d2_LastWindow);
                     d2_Objs[t].w = 0x80;
                     d2_Objs[t].font = 0x54;
@@ -1407,7 +1382,7 @@ void ai_BookmarkWindow(void)
                 }
                 if (o != 0 && o->id != 0xfd) {
                     d2_WinOpenPic(0x128, i * 0x38, o->id + 0xdf, d2_LastWindow);
-                    txt_Format(line, (int)"%1s", o->id * 2 + 0x9a8);
+                    txt_Format(line, (intptr_t)"%1s", o->id * 2 + 0x9a8);
                     t = d2_CreateWinText(0x164, i * 0x38 + 0x12, line, d2_LastWindow);
                     d2_Objs[t].w = 0x80;
                     d2_Objs[t].font = 0x54;
@@ -1438,7 +1413,7 @@ void ai_BookmarkWindow(void)
         else
             d2_SetObjEnabled(buttons[0], 1);
         ai_SelectBookmark();
-    } while (sv_RunFrame((int)ai_BookmarkWindow, 0x657c7));
+    } while (sv_RunFrame(ai_BookmarkWindow, 0x657c7));
     d2_RadioClear(group);
     d2_CloseView(view);
 }
@@ -1447,7 +1422,7 @@ unsigned vfs_fwrite(void *buf, int size, int n, struct VFSFILE *f);
 
 /* 0x589aa0, the save game's bookmarks step (142 B): writes the count 0xb, then each bookmark's key (1 byte),
    building and object (4 bytes each); 0 on a failed write, 1 */
-int ai_SaveBookmarks(int fh)
+int ai_SaveBookmarks(VFSFILE *fh)
 {
     int n;
     int i;
@@ -1470,7 +1445,7 @@ int ls_Read();
 
 /* 0x589b30, the save game's bookmarks reader, ai_SaveBookmarks's counterpart (136 B): reads the count, then
    that many bookmarks' key (1 byte), building and object (4 bytes each) through ls_Read; 0 on a failed read, 1 */
-int ai_LoadBookmarks(int fh)
+int ai_LoadBookmarks(VFSFILE *fh)
 {
     int n;
     int i;
@@ -1522,7 +1497,7 @@ void ai_SlotKeys(void)
 
     if (kb_Last == 0)
         return;
-    if (sv_PanelFlag == 1)
+    if (sv_QuickJump.panelFlag == 1)
         return;
     if (kb_Last == 0x58)
         ai_BookmarkWindow();
@@ -1536,7 +1511,7 @@ void ai_SlotKeys(void)
 void ai_Quicksave(void); void ai_ApplyOptions(); void cm_RaiseSpeedLevel(void); void cm_LowerSpeedLevel(void);
 
 /* 0x589cf0, the speed keys each frame (264 B): the game speed ai_OptionSpeed in steps of 40, v = (int)(speed / 40 +
-   0.5f); kb_Last 0 = none and the panel flag sv_PanelFlag == 1 return at once; the key 0x1f takes a screenshot
+   0.5f); kb_Last 0 = none and the panel flag sv_QuickJump.panelFlag == 1 return at once; the key 0x1f takes a screenshot
    (0x589bc0), the key 0x10 runs ai_Quicksave while d2_FocusedInput is 0 and sv_FrameMask has no 0x10000; then the
    ai_GameFlags byte: bit 2 (the network game) - with bit 0x10 (the host) the keys 0x4e / 0x4a only raise / lower
    cm_SpeedLevel (cm_RaiseSpeedLevel / cm_LowerSpeedLevel), without it they show the status text txt_SpeedHostOnly;
@@ -1552,7 +1527,7 @@ void ai_SpeedKeys(void)
     key = kb_Last;
     if (key == 0)
         return;
-    if (sv_PanelFlag == 1)
+    if (sv_QuickJump.panelFlag == 1)
         return;
     if (key == 0x1f) {
         ai_SaveScreenshot();
@@ -1562,7 +1537,7 @@ void ai_SpeedKeys(void)
         ai_Quicksave();
         key = kb_Last;
     }
-    fl = ai_GameFlagsB;
+    fl = ai_GameFlags;
     if ((fl & 4) == 0) {
         if (key == 0x4e) {
             cm_RaiseSpeedLevel();
@@ -1596,7 +1571,7 @@ void ai_SpeedKeys(void)
     }
 }
 
-int gm_BuildingMainObject(unsigned char *b); void *gm_GetGebaeudeHauptraum(unsigned char *b);
+struct AIOBJ *gm_BuildingMainObject(struct AIBLD *b); struct AIOBJ *gm_GetGebaeudeHauptraum(struct AIBLD *b);
 
 /* 0x589e00, fills bookmark slot i from the building b (79 B): the slot's building = b->id, and its object = the id
    (AIOBJ.objId) of the building's main object (gm_BuildingMainObject, else gm_GetGebaeudeHauptraum; none for the
@@ -1607,9 +1582,9 @@ void ai_BookmarkSetBuilding(int i, AIBLD *b)
 
     o = 0;
     if (b->type != 0x1d) {
-        o = (AIOBJ *)gm_BuildingMainObject((unsigned char *)b);
+        o = gm_BuildingMainObject(b);
         if (o == 0)
-            o = (AIOBJ *)gm_GetGebaeudeHauptraum((unsigned char *)b);
+            o = gm_GetGebaeudeHauptraum(b);
     }
     ai_Bookmarks[i].building = b->id;
     if (o != 0)
@@ -1618,7 +1593,7 @@ void ai_BookmarkSetBuilding(int i, AIBLD *b)
         ai_Bookmarks[i].object = -1;
 }
 
-unsigned char * gm_BuildNext(void); unsigned char * gm_BuildQuery(int n, ...);
+struct AIBLD *gm_BuildNext(void); struct AIBLD *gm_BuildQuery(int n, ...);
 
 /* 0x589e50, presets the function-key bookmarks: F1 the market, F2 the town hall (gm_BuildQuery (1, 5, 0xf), the
    building type 0xf) when there is one, the next key the home (AICHAR.bld2) of the first character of the kind 6,
@@ -1630,22 +1605,22 @@ void ai_BookmarksPreset(void)
     int n;
 
     for (i = 0; i < 768; i++) {
-        if (ai_CharsT[i].kind == 6)
+        if (ai_Chars[i].kind == 6)
             break;
     }
     n = 1;
     ai_BookmarkSetBuilding(0, ai_MarketBuilding);
-    b = (AIBLD *)gm_BuildQuery(1, 5, 0xf);
+    b = gm_BuildQuery(1, 5, 0xf);
     if (b != 0)
         ai_BookmarkSetBuilding(n++, b);
-    b = ai_CharsT[i].bld2;
+    b = ai_Chars[i].bld2;
     if (b != 0)
         ai_BookmarkSetBuilding(n, b);
     n = 3;
-    b = (AIBLD *)gm_BuildQuery(1, 4, i);
+    b = gm_BuildQuery(1, 4, i);
     while (b != 0) {
-        if (((AIBTYPE *)ai_BTypes)[b->type].kind != 2)
+        if (ai_BTypes[b->type].kind != 2)
             ai_BookmarkSetBuilding(n++, b);
-        b = (AIBLD *)gm_BuildNext();
+        b = gm_BuildNext();
     }
 }

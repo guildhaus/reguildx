@@ -70,13 +70,6 @@ typedef struct G15GRID {                /* d3sm_Create's grid (D3HMAP, d3_sm.c) 
     int *cells;                         /* 0x24, 0x1c bytes per cell, the first int its type (6 / 0xb: road) */
 } G15GRID;
 
-#pragma pack(push, 1)                   /* the fields sit at unaligned offsets (ai.h packs AIBLD too) */
-typedef struct G15BLD {                 /* 0xa9 bytes, a building of ai_Blds[] (ai.h: AIBLD) */
-    char pad00[0x61];
-    char *object;                       /* 0x61, its 3D object in the scene */
-    char pad65[0x44];
-} G15BLD;
-#pragma pack(pop)
 
 typedef struct G15ROAD {                /* 0x1020 bytes, rd_Road */
     G15MAP *map;                        /* 0x00 */
@@ -102,9 +95,6 @@ typedef struct G15BKFIND {              /* context of rd_FindSiteCB */
 #ifndef DATA_VIEWS_H
 #endif
 extern G15ROAD rd_Road;            /* 0xf81300 */
-#ifndef DATA_VIEWS_H
-extern unsigned char d3_Scene0Flags;      /* 0xfd7f78 */
-#endif
 
 extern G15TREE veg_Types[];          /* 0x602860 */
 extern int veg_NextId;                /* 0x6f0748, the next plant id */
@@ -140,7 +130,7 @@ void veg_GrowPlants(G15PLANT *p);
 void veg_LoadModel(G15PLANT *q, int fall);
 void veg_ShowPlants(G15PLANT *p);
 void veg_HidePlants(G15PLANT *p);
-int rd_BuildRoad(char *obj, int name);
+int rd_BuildRoad(struct D3OBJECT *obj, int name);
 int rd_PathToRoad(G15ROAD *r, int x, int z, int tx, int tz);
 void rd_AddBauplaetze(G15ROAD *r);
 void rd_AllBauplatzToSupermap(G15ROAD *r, char *name);

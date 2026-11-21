@@ -13,11 +13,6 @@
 #include <string.h>
 #include "hmt.h"
 #include "data_views.h"
-#define ai_GoodsT (*(AIGOOD **)&ai_Goods)  /* 0x91aaf0, ai_Goods (f3gm.c: char *) as the AIGOOD records it points to */
-#define ai_BldsT (*(AIBLD **)&ai_Blds)  /* 0x889f74, ai_Blds (f3gm.c: char *) as the AIBLD records it points to */
-#define ai_BTypesT (*(AIBTYPE **)&ai_BTypes)  /* 0x7e3f30, ai_BTypes (ahm.c: char *) as the AIBTYPE records it points to */
-#define ai_CharsT (*(AICHAR (*)[768])&ai_Chars)  /* 0x770b80, ai_Chars (ahm.c: char[768][0x21c]) as the AICHAR records they are */
-#define ai_PlayerSlotsT (*(GMPLAYERSLOT (*)[4])&ai_PlayerSlots)  /* 0x7e3f40, ai_PlayerSlots (cm.h: char[][0x2f4]) as the four player slots */
 #include "cm_types.h"
 #include "ahm.h"
 #include "amt.h"
@@ -144,13 +139,13 @@ void hmt_ApplyRecord(AICHAR *p, int d, unsigned short k)
         if (e->kind == 0 && e->id <= 4) {
             v = util_Random(8) + 8;
             v = (unsigned char)min((float)(char)v, 252.0f - ((unsigned char *)p)[e->id + 0x80]);
-            cm_BeginFieldBlock((AIPER *)p, p->netId);
+            cm_BeginFieldBlock(p, p->netId);
             cm_AddFieldValues(1, 1, e->id + 0x80, &v);
             cm_SendFieldDeltas();
         } else if (e->kind == 1) {
             for (i = 0; i < 768; i++) {
-                if (ai_CharsT[i].netId != p->netId && gm_TitleGroup(ai_CharsT[i].jobId) == e->id)
-                    cm_SendRelations(p->netId, ai_CharsT[i].netId, util_Random(4) + 3, 0);
+                if (ai_Chars[i].netId != p->netId && gm_TitleGroup(ai_Chars[i].jobId) == e->id)
+                    cm_SendRelations(p->netId, ai_Chars[i].netId, util_Random(4) + 3, 0);
             }
         }
     }
@@ -240,7 +235,7 @@ int hmt_WriteBinaryFile(HMTFILE *h)
     int i;
 
     magic = 0x68466153;
-    f = vfs_Tfopen("/gamedata/ai/historical.dfn", "wb", (int)vfs_Root);
+    f = vfs_Tfopen("/gamedata/ai/historical.dfn", "wb", vfs_Root);
     if (f != 0) {
         if (HMT_FW(&magic, 4, 1, f) && HMT_FW(&h->np, 4, 1, f) && HMT_FW(&h->nk, 4, 1, f)) {
             for (i = 0; i < h->np; i++) {
@@ -292,7 +287,7 @@ int hmt_ReadBinaryFile(HMTFILE *h)
     int i;
 
     magic = 0x68466153;
-    f = vfs_Tfopen("/gamedata/ai/historical.dfn", "rb", (int)vfs_Root);
+    f = vfs_Tfopen("/gamedata/ai/historical.dfn", "rb", vfs_Root);
     i = 0;
     if (f != 0) {
         if (HMT_FR(&magic, 4, 1, f) && magic == 0x68466153 && HMT_FR(&h->np, 4, 1, f)
@@ -396,8 +391,8 @@ void hmt_Update(void)
                 if (ce != 0) {
                     txt_Format(text, 0x42b2, ce->id);
                     for (i = 0; i < 768; i++) {
-                        if (ai_CharsT[i].kind == 6 || ai_CharsT[i].kind == 7)
-                            he_ShowNews(ai_CharsT[i].netId, -1, text, 0, 0x602, "_NACHRICHTEN_NEU_00");
+                        if (ai_Chars[i].kind == 6 || ai_Chars[i].kind == 7)
+                            he_ShowNews(ai_Chars[i].netId, -1, text, 0, 0x602, "_NACHRICHTEN_NEU_00");
                     }
                 }
             }
@@ -410,8 +405,8 @@ void hmt_Update(void)
                 if (cp != 0) {
                     txt_Format(text, 0x42b4, cp->id);
                     for (i = 0; i < 768; i++) {
-                        if (ai_CharsT[i].kind == 6 || ai_CharsT[i].kind == 7)
-                            he_ShowNews(ai_CharsT[i].netId, -1, text, 0, 0x602, "_NACHRICHTEN_NEU_02");
+                        if (ai_Chars[i].kind == 6 || ai_Chars[i].kind == 7)
+                            he_ShowNews(ai_Chars[i].netId, -1, text, 0, 0x602, "_NACHRICHTEN_NEU_02");
                     }
                 }
             }
@@ -511,7 +506,7 @@ void hmt_Election(void)
                 memset(best, 0, sizeof(best));
                 n = 0;
                 for (i = 0; i < 768; i++) {
-                    c = &ai_CharsT[i];
+                    c = &ai_Chars[i];
                     if ((excl & c->flags1cc) == 0 && (mask & c->flags1cc) != 0 && HMT_B(c, 0x0d) >= 7
                         && (c->kind == 6 || c->kind == 7 || c->kind == 5 || c->kind == 4 || c->kind == 3
                             || c->kind == 2)) {
@@ -618,8 +613,8 @@ void hmt_DecideElection(void)
             for (i = 0; i < 768; i++) {
                 if (n >= 4)
                     break;
-                if (ai_CharsT[i].flags1cc & bit) {
-                    cand[n].c = &ai_CharsT[i];
+                if (ai_Chars[i].flags1cc & bit) {
+                    cand[n].c = &ai_Chars[i];
                     n++;
                 }
             }
@@ -643,7 +638,7 @@ void hmt_DecideElection(void)
                     }
                 }
                 if (win != 0) {
-                    amt_SendOfficeMessage(o.obj, (int)win, 0, 1, 0xff);
+                    amt_SendOfficeMessage(o.obj, win, 0, 1, 0xff);
                     if (win->kind == 6 || win->kind == 7 || win->kind == 5) {
                         AIMSG msg;
 
@@ -656,9 +651,9 @@ void hmt_DecideElection(void)
                         msg.arg[4] = msg.to;
                         cm_SendLongMessage(&msg);
                         for (i = 0; i < 768; i++) {
-                            if (ai_CharsT[i].id != 0xffff && &ai_CharsT[i] != win
-                                && (ai_CharsT[i].kind == 6 || ai_CharsT[i].kind == 7)) {
-                                msg.to = ai_CharsT[i].netId;
+                            if (ai_Chars[i].id != 0xffff && &ai_Chars[i] != win
+                                && (ai_Chars[i].kind == 6 || ai_Chars[i].kind == 7)) {
+                                msg.to = ai_Chars[i].netId;
                                 cm_SendLongMessage(&msg);
                             }
                         }
@@ -712,8 +707,8 @@ void hmt_FillCouncils(void)
     titles[1] = 0x15;
     titles[2] = 0x1b;
     for (j = 0; j < 768; j++) {
-        p = &ai_CharsT[j];
-        if (p->b00d >= 7
+        p = &ai_Chars[j];
+        if (p->level >= 7
             && (p->kind == 6 || p->kind == 7 || p->kind == 5 || p->kind == 4 || p->kind == 3 || p->kind == 2)) {
             for (n = 3; n != 0; n--) {
                 i = n - 1;
@@ -741,7 +736,7 @@ void hmt_FillCouncils(void)
             title = titles[i];
             p = cm_GetSlotValue(h);
             cm_SendMoveGoods(p->netId, -1, ai_OwnPlayer, money);
-            cm_BeginFieldBlock((AIPER *)p, p->netId);
+            cm_BeginFieldBlock(p, p->netId);
             cm_AddFieldDelta(1, 1, 0xd, &rank);
             cm_AddFieldDelta(1, 1, 0x167, &title);
             cm_SendFieldDeltas();
@@ -813,8 +808,8 @@ void hmt_Create(int type, int unk, unsigned short v, AICHAR *c)
         c->flags1cc |= 0x2000;
         amt_SetPersonOwner(c->netId);
     }
-    c->w00a = v;
-    c->b00c = 0;
+    c->age = v;
+    c->faith = 0;
     for (j = 0; j < 768; j++) {
         for (k = 0; k < 768; k++) {
             ai_Relations[j][k] = (char)util_Random(0x40) - 0x20;
@@ -822,8 +817,8 @@ void hmt_Create(int type, int unk, unsigned short v, AICHAR *c)
         }
     }
     c->w050 = 0x7fff;
-    c->f07c = 0.0f;
-    c->b058 = 0;
+    c->pregnancy = 0.0f;
+    c->generation = 0;
     for (i = 0; i < 8; i++)
         c->relatives[i] = -1;
     c->bld2 = 0;
@@ -835,13 +830,13 @@ void hmt_Create(int type, int unk, unsigned short v, AICHAR *c)
     c->f018 = 1000.0f;
     for (j = 0; j < 5; j++)
         c->skills[j] = (unsigned char)(util_Random(0x2a) + 210.0f);
-    c->b00d = 9;
-    gm_AddObjekt(c->netId, ai_PlayerSlotsT[ai_OwnPlayer].moneyGood, HMT_START_MONEY);
+    c->level = 9;
+    gm_AddObjekt(c->netId, ai_PlayerSlots[ai_OwnPlayer].moneyGood, HMT_START_MONEY);
     pl = 0xffff;
     for (i = 0; i < 768; i++) {
         if (pl != 0xffff)
             break;
-        if (ai_CharsT[i].kind == 6)
+        if (ai_Chars[i].kind == 6)
             pl = i;
     }
     if (type == 0x15)
@@ -853,14 +848,14 @@ void hmt_Create(int type, int unk, unsigned short v, AICHAR *c)
     if (type == 0x15) {
         if (ai_Time.year > 0 && pl != 0xffff) {
             txt_Format(text, 0x42b3, c->id);
-            he_ShowNews(ai_CharsT[pl].netId, -1, text, 0, 0x602, "_NACHRICHTEN_NEU_01");
+            he_ShowNews(ai_Chars[pl].netId, -1, text, 0, 0x602, "_NACHRICHTEN_NEU_01");
         }
         c->picture = hmt_RandomHeadIcon();
         hmt_NextEvent();
     } else {
         if (ai_Time.year > 0 && pl != 0xffff) {
             txt_Format(text, 0x42b5, c->id);
-            he_ShowNews(ai_CharsT[pl].netId, -1, text, 0, 0x602, "_NACHRICHTEN_NEU_03");
+            he_ShowNews(ai_Chars[pl].netId, -1, text, 0, 0x602, "_NACHRICHTEN_NEU_03");
         }
         c->picture = hmt_RandomHeadIcon();
         hmt_NextPerson();

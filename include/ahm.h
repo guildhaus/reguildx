@@ -1,4 +1,6 @@
 struct VFSFILE;
+struct AIBLD;
+struct AICHAR;
 /* Declarations of ahm.c (0x4eaa50.., the alchemist's building / recipes; tag "ahm_AllocRecipePrototypes" 0x60f1c8..). Names are ours. */
 #ifndef AHM_H
 #define AHM_H
@@ -7,14 +9,6 @@ struct VFSFILE;
 
 #include "ahm_types.h"               /* AHMSLOT */
 #pragma pack(push, 1)
-typedef struct AHMOBJ {                 /* the building object as ahm.c reads it (AIBLD, ai.h): the kind, the records and the object list */
-    unsigned char kind;                 /* +0x0, index into ai_BTypes */
-    int id;                             /* +0x1, the building id (AIBLD.id) */
-    char pad05[0x58];
-    void *objs;                         /* +0x5d, the head of the object instance list (gm_Query's list) */
-    char pad61[4];
-    AHMREC *rec;                        /* +0x65, its record */
-} AHMOBJ;
 typedef struct AHMGOOD {                /* an object of a building's object list as ahm.c reads it (AIOBJ, ai.h; what gm_Query finds) */
     unsigned short type;                /* +0x0 */
     int objId;                          /* +0x2, the object's own id (AIOBJ.objId) */
@@ -30,12 +24,6 @@ typedef struct AHMRESEARCH {            /* the fields ahm.c reads of a research 
     int total;                          /* +0xb8, the amount it started with */
     int start;                          /* +0xbc, the amount the event 0x96 / 0x97 was planned with */
 } AHMRESEARCH;
-typedef struct AHMCHAR {                /* the character fields ahm.c reads (AICHAR, ai.h) */
-    char pad00[4];
-    int id;                             /* +0x4, the character id (the 0x505df0 key) */
-    char pad08[0x164];
-    AHMOBJ *obj;                        /* +0x16c, the character's object */
-} AHMCHAR;
 typedef struct AHMORDER {               /* 0x18 bytes, the data of a type 100 message (cm.c's 0x4cd010): one of the commands below */
     int tag;                            /* +0x0, the four-letter command */
     int charId;                         /* +0x4, the id of the character it is for */
@@ -75,13 +63,13 @@ typedef struct AHMSTEP {                /* 0x18 bytes, 0x6f0de0 (3 of them): a s
 typedef struct AHMCREATEMSG {           /* 0x24 bytes, the data of the type 99 message (0x4c6170; the handler 0x4ccf90 calls ahm_CreateAlchemist) */
     int seed;                           /* +0x0, the generator seed; the handler 0x4ccf90 writes its own rand() when 0x1460ae0 is -1, unwritten here */
     int charId;                         /* +0x4, the character id the handler 0x4ccf90 syncs ai_NextObjectId from, unwritten here */
-    int building;                       /* +0x8, the id of the alchemist building (AHMOBJ.id) */
+    int building;                       /* +0x8, the id of the alchemist building (AIBLD.id) */
     AHMGRID proto;                      /* +0xc, the step's prototype entry (the player view: its attributes and its place id) */
     int x, y;                           /* +0x18 / +0x1c, the name indexes of the creation (0x144a7a8 / 0x144a80c) */
     float value;                        /* +0x20, the +8 of the recipe entry of the prototype's id (AHMGRID.rcp.b), the value of the first place */
 } AHMCREATEMSG;
 
-extern char *ai_BTypes;              /* 0x7e3f30 */
+extern struct AIBTYPE *ai_BTypes;    /* 0x7e3f30, the building types */
 extern int ai_PlayerPrototypeCount;                /* 0x6f0e28 */
 extern AHMGRID *ai_PlayerPrototypes;           /* 0x6f0e2c */
 extern int ai_RecipePrototypeCount;                /* 0x6f0e30 */
@@ -92,30 +80,30 @@ extern AHMSTEP ai_WalkSteps[3];         /* 0x6f0de0 */
 extern int ahm_Tab[8];                  /* 0x60f1b0 */
 #include "ai_types.h"                /* AITIME */
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-char * he_FindEvent(int n, ...);                   /* 0x53e400 */
-char * he_NextEvent(void);                   /* 0x53e300 */
-int cm_SendExSetHE(int k, char *p);                                     /* 0x4c4c60, cm.c */
+struct AIJOB *he_FindEvent(int n, ...);                   /* 0x53e400 */
+struct AIJOB *he_NextEvent(void);                   /* 0x53e300 */
+int cm_SendExSetHE(int k, struct AIJOB *p);                                     /* 0x4c4c60, cm.c */
 
-char *ahm_OwnerChar(unsigned char *p);  /* 0x4eaa50, the character the alchemist object p belongs to */
-int ahm_UsedSlots(char *c);             /* 0x4eaa90, the number of the places in use in the record of c's object */
-int ahm_HasRecord(char *c);             /* 0x4eaad0, 1 when the character c has an alchemist object with a record */
-float ahm_Share(char *c, int i);        /* 0x4eab20, the share i (0 .. 3) of the record of c's object, -1 when none */
-AHMSLOT *ahm_SlotOf(char *c, int id);   /* 0x4eabd0, the place of c's record with the id (forwards to ahm_FindSlot) */
-AHMSLOT *ahm_FindSlot(char *c, int id); /* 0x4eabe0, the place of c's record with the id, 0 when there is none */
-int ahm_HasFreeSlot(char *c);           /* 0x4eac20, 1 when a place of c's record is still free (the share 2 sets the limit of six) */
+struct AICHAR *ahm_OwnerChar(struct AIBLD *p);  /* 0x4eaa50, the character the alchemist object p belongs to */
+int ahm_UsedSlots(struct AICHAR *c);             /* 0x4eaa90, the number of the places in use in the record of c's object */
+int ahm_HasRecord(struct AICHAR *c);             /* 0x4eaad0, 1 when the character c has an alchemist object with a record */
+float ahm_Share(struct AICHAR *c, int i);        /* 0x4eab20, the share i (0 .. 3) of the record of c's object, -1 when none */
+AHMSLOT *ahm_SlotOf(struct AICHAR *c, int id);   /* 0x4eabd0, the place of c's record with the id (forwards to ahm_FindSlot) */
+AHMSLOT *ahm_FindSlot(struct AICHAR *c, int id); /* 0x4eabe0, the place of c's record with the id, 0 when there is none */
+int ahm_HasFreeSlot(struct AICHAR *c);           /* 0x4eac20, 1 when a place of c's record is still free (the share 2 sets the limit of six) */
 void ahm_FillSteps(void);               /* 0x4eac60, fills the three walk steps from the shuffled table */
 void ahm_ShufflePlayers(int init);      /* 0x4ead20, shuffles the player prototype table (init: reseed and restart the walk at random grid positions) */
 void ahm_ShuffleTable(void);            /* 0x4eadc0, shuffles the player prototype table with random swaps */
 AHMGRID *ahm_FindRecipe(int id);        /* 0x4eae60, the entry of the recipe prototype table with the id, 0 when there is none */
-AHMGRID *ahm_RandomRecipe(char *c);     /* 0x4eaea0, a random recipe the character c has no place for yet, 0 when it may not take more */
-int ahm_ResearchTime(char *c, AHMGRID *g); /* 0x4eaf50, the research time of a recipe in tenths of minutes */
-int ahm_ResearchMinutes(char *c, AHMGRID *g); /* 0x4eafa0, the same in minutes */
-float ahm_ResearchProgress(char *c, AHMGRID *g, int *cap);  /* 0x4eafd0, the progress made in *cap minutes (which get the minutes used) */
-float ahm_ShareProgress(char *c, int i, int *cap);  /* 0x4eb0b0, the same for the share i */
+AHMGRID *ahm_RandomRecipe(struct AICHAR *c);     /* 0x4eaea0, a random recipe the character c has no place for yet, 0 when it may not take more */
+int ahm_ResearchTime(struct AICHAR *c, AHMGRID *g); /* 0x4eaf50, the research time of a recipe in tenths of minutes */
+int ahm_ResearchMinutes(struct AICHAR *c, AHMGRID *g); /* 0x4eafa0, the same in minutes */
+float ahm_ResearchProgress(struct AICHAR *c, AHMGRID *g, int *cap);  /* 0x4eafd0, the progress made in *cap minutes (which get the minutes used) */
+float ahm_ShareProgress(struct AICHAR *c, int i, int *cap);  /* 0x4eb0b0, the same for the share i */
 
-float ahm_PlaceFactor(char *c, int id);   /* 0x4eb130 */
-int ahm_ResearchState(char *o, int *a, float *f, int flag);  /* 0x4eb180 */
-void ahm_RescheduleResearch(char *o);            /* 0x4eb410 */
+float ahm_PlaceFactor(struct AICHAR *c, int id);   /* 0x4eb130 */
+int ahm_ResearchState(struct AIBLD *o, int *a, float *f, int flag);  /* 0x4eb180 */
+void ahm_RescheduleResearch(struct AIBLD *o);            /* 0x4eb410 */
 int ahm_LoadPrototypes(int mode);            /* 0x4eb480 */
 
 int ahm_LoadIni(void);                /* 0x4eb4c0 */
@@ -127,15 +115,15 @@ AHMSTEP *ahm_WalkStep(int i);          /* 0x4ec2d0 */
 void ahm_ClearStep(AHMSTEP *p);         /* 0x4ec2f0 */
 extern void *main_Instance;              /* 0x75e140, the module handle */
 extern struct VFSDIR *vfs_Root;         /* 0x6333fc, the VFS directory tree (vfs.h) */
-char * gm_Query(void *list, int n, ...);                   /* 0x4ffe90 */
-int gm_RemoveObject(int *list, unsigned item);                     /* 0x4ffff0 */
+struct AIOBJ *gm_Query(void *list, int n, ...);                   /* 0x4ffe90 */
+int gm_RemoveObject(struct AIOBJ **list, unsigned item);                     /* 0x4ffff0 */
 int gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);                     /* 0x4fbd10 */
-void gm_ChooseHeadIcon(unsigned short *c);                     /* 0x4fb890 */
+struct AICHAR;
+void gm_ChooseHeadIcon(struct AICHAR *c);                     /* 0x4fb890 */
 void gm_RefreshGoodsLists(unsigned p);                     /* 0x4ff190 */
 int gm_AddObjekt(int id, int proto, int n);                     /* 0x500970 */
 void gm_KillSpieler(int c, int mode);                     /* 0x503c60 */
 int cm_SendCommand(void *p);                     /* 0x4c61b0 */
-extern char ai_Chars[][0x21c];      /* 0x770b80, the characters */
 extern signed char ai_Relations[768][768];  /* 0x7e5360 */
 extern signed char ai_RelationMemory[768][768];  /* 0x889f80 */
 extern int ai_CharCount;                /* 0x6f1bc0, the number of characters */
@@ -146,25 +134,25 @@ extern int ai_NextObjectId;                /* 0x61a654 */
 
 int ahm_SaveWalk(void *f);             /* 0x4ebfb0 */
 int ahm_LoadWalk(void *f);             /* 0x4ec140 */
-int ahm_SendCreateAlchemist(unsigned char *o, AHMSTEP *s);  /* 0x4ec490, posts the type 99 message that creates the alchemist's owner character from the step */
+int ahm_SendCreateAlchemist(struct AIBLD *o, AHMSTEP *s);  /* 0x4ec490, posts the type 99 message that creates the alchemist's owner character from the step */
 int cm_SendCreateAlchemist(void *p);                     /* 0x4c6170 */
 
 int ahm_StepValue(char *p);             /* 0x4ec320 */
-int ahm_ObjectValue(unsigned char *p);    /* 0x4ec3d0 */
+int ahm_ObjectValue(struct AIBLD *p);    /* 0x4ec3d0 */
 int ahm_CreateAlchemist(AHMCREATEMSG *m);   /* 0x4ec500, the alchemist character of the creation message m; its id or 0xffff */
-int ahm_SendSetShare(char *c, int id, float v);  /* 0x4ec940 */
-int ahm_SetShare(int *p, char *rec);   /* 0x4eca00 */
-int ahm_SendAddPlace(char *c, int id);     /* 0x4ecaa0 */
-int ahm_AddPlace(int *p, char *rec, unsigned char *o);  /* 0x4ecb30 */
-int ahm_RemovePlace(int *p, char *rec, unsigned char *o);  /* 0x4ecbc0 */
-int ahm_SendSetPlaceValue(char *c, int id, float v);  /* 0x4ecc30 */
-int ahm_SetPlaceValue(int *p, char *rec);   /* 0x4ecd10 */
-int ahm_SendAddValue(char *c, float v);      /* 0x4ecd50 */
-int ahm_AddValue(int *p, char *rec);   /* 0x4ecdb0 */
-int ahm_SendDelete(char *c);             /* 0x4ece10 */
-int ahm_WriteRecord(void *f, unsigned char *o);  /* 0x4ecf10 */
-int ahm_ReadRecord(void *f, unsigned char *o);  /* 0x4ed040, reads the alchemist record of o (+0x65) from the file f */
-int ahm_DeleteAlchemist(int unused, int *rec, unsigned char *o);  /* 0x4ece60 */
+int ahm_SendSetShare(struct AICHAR *c, int id, float v);  /* 0x4ec940 */
+int ahm_SetShare(int *p, struct AHMREC *rec);   /* 0x4eca00 */
+int ahm_SendAddPlace(struct AICHAR *c, int id);     /* 0x4ecaa0 */
+int ahm_AddPlace(int *p, struct AHMREC *rec, struct AIBLD *o);  /* 0x4ecb30 */
+int ahm_RemovePlace(int *p, struct AHMREC *rec, struct AIBLD *o);  /* 0x4ecbc0 */
+int ahm_SendSetPlaceValue(struct AICHAR *c, int id, float v);  /* 0x4ecc30 */
+int ahm_SetPlaceValue(int *p, struct AHMREC *rec);   /* 0x4ecd10 */
+int ahm_SendAddValue(struct AICHAR *c, float v);      /* 0x4ecd50 */
+int ahm_AddValue(int *p, struct AHMREC *rec);   /* 0x4ecdb0 */
+int ahm_SendDelete(struct AICHAR *c);             /* 0x4ece10 */
+int ahm_WriteRecord(void *f, struct AIBLD *o);  /* 0x4ecf10 */
+int ahm_ReadRecord(void *f, struct AIBLD *o);  /* 0x4ed040, reads the alchemist record of o (+0x65) from the file f */
+int ahm_DeleteAlchemist(int unused, int *rec, struct AIBLD *o);  /* 0x4ece60 */
 
 /* declared in other units' headers before (moved to the owner) */
 extern unsigned short ai_PlayerId;  /* 0x6f25b8 */

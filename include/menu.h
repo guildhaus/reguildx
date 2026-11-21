@@ -1,6 +1,7 @@
 /* menu.h -- the screen / front-end module (unnamed), see src/game/unk_5d33b0.c */
 #ifndef MENU_H
 #define MENU_H
+#include "portable.h"                /* intptr_t: a text id or a string in one parameter */
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 struct D3SM;
 
@@ -130,14 +131,15 @@ int gm_ConvertMoney(int a, unsigned char k);   /* 0x5085b0, f3gm.c: a / the divi
 extern POKERGAME ai_PokerState;     /* 0x6f3500 */
 void ai_PokerSeatPanel(int seat, int mode, int *cards);  /* 0x5dadf0, builds the seat panel (the three-string message) */
 void ai_PokerWindow2(void);            /* 0x5db110, the second poker window "Locations\zigeuner\poker2" */
-struct AIPER;
+struct AICHAR;
 struct G10GAME;
-int ai_PokerStart(struct AIPER *p, struct G10GAME *g);  /* 0x4a7140, poker.c: starts a poker game of the player's character into g (ai_PokerState), 0 when it cannot */
+int ai_PokerStart(struct AICHAR *p, struct G10GAME *g);  /* 0x4a7140, poker.c: starts a poker game of the player's character into g (ai_PokerState), 0 when it cannot */
 unsigned short ai_PokerStep(void);          /* 0x4a74e0, poker.c: one step of the game, returns the button mask to show (0x10 / 0x21 / 9 / 0x29 / 0x1c) or 0 */
 void ai_PokerExchange(int k);           /* 0x4a8630, poker.c: the player exchanges card k */
 int gm_PlayerFactor(int a, unsigned char k);   /* 0x5085f0, f3gm.c: a * the factor of the player slot k */
 int gm_GetWorth(unsigned short id);            /* 0x50a640, f3gm.c: the worth of the character id */
-short *gm_PlayerRecord(char *c);               /* 0x506430, f3gm.c: the player record of a character (kinds 5 / 6 / 7), 0 else */
+struct AICHAR;
+short *gm_PlayerRecord(struct AICHAR *c);               /* 0x506430, f3gm.c: the player record of a character (kinds 5 / 6 / 7), 0 else */
 extern POKERUI ai_PokerUi;          /* 0x62dda0 */
 int ai_OpenPokerWindow(void);       /* 0x5d9de0, opens the poker window (1 = opened, 0 = already open / refused) */
 /* Two entries of the run-time text table (the .data slots hold char * into the loaded text file; the
@@ -163,10 +165,10 @@ void sv_BuildScreenLayout(int s);   /* 0x521e70, sv.c: builds the main screen la
 /* The gypsy windows' callees (the special-amount list of lc.c, the money / relation messages). */
 int cm_SendRelations(int a, int b, int c, int d);   /* 0x4c4b00, cm.c: message 0x1b, the relation of a to b changes by c */
 float gm_Mix(int a, int b, int c);                   /* 0x504e20, f3gm.c: the mix of two relation values */
-int sv_MessageBoxGreen(int a, int b, unsigned flags); /* 0x521410, sv.c: the green message box with the title text a and the text b */
+int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); /* 0x521410, sv.c: the green message box with the title text a and the text b */
 struct AIBLD;
-struct AIPER;
-int gm_BathObjectCount(char *b);             /* 0x50cf60, f3gm.c: 1 + the kitchen / bath objects of the building (as poker.h) */
+struct AICHAR;
+int gm_BathObjectCount(struct AIBLD *b);             /* 0x50cf60, f3gm.c: 1 + the kitchen / bath objects of the building (as poker.h) */
 void gm_SendMoneyDelta(int a, int b);                /* 0x50cc50, f3gm.c: forwards to cm_SendMoneyDelta */
 int amt_GetKindLevel(int k);                         /* 0x4e7c40, amt.c: the level of the office kind k */
 extern struct SBBANK *snd_SystemBank;        /* 0x6f2400, main.c: the handle of the system sample bank (system.sbf) */
@@ -213,15 +215,6 @@ typedef struct CURSEMSG {               /* 0xf8 bytes, ai.h's AIMSG (the long me
     char pad84[0x74];
 } CURSEMSG;
 
-#pragma pack(push, 1)
-typedef struct CURSEBLD {               /* the building record: the id and the owner */
-    unsigned char type;                 /* +0x00 */
-    int id;                             /* +0x01 */
-    char pad05[0x22];
-    unsigned short owner;               /* +0x27 */
-} CURSEBLD;
-#pragma pack(pop)
-
 #pragma pack(push, 2)
 typedef struct CURSEEVENT {             /* the event 0xa0 ai_FindCurseEvent finds: only the fields the curse target window reads */
     char pad00[0x44];
@@ -237,15 +230,15 @@ struct AITIME;
 struct AITIME;
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);   /* 0x4fe140, f3gm.c: adds hours / minutes / seconds to the clock */
 int gm_MinutesBetween(struct AITIME *a, struct AITIME *b);          /* 0x4fe280, f3gm.c: the minutes from clock a to clock b */
-char *ai_FindCurseEvent(char *a);                              /* 0x5741d0, he.c: the pending curse event of the building (as poker.h) */
-int gm_CurseObjectCount(char *b);                            /* 0x50cfd0, f3gm.c: 2 + the objects 0x274 / 0x27e / 0x28e / 0x291 of the building (as poker.h) */
-int gm_CurseTargetCount(char *b);                                   /* 0x50d0b0, f3gm.c: counts from the objects 0x284 / 0x289 of the building */
+struct AIJOB *ai_FindCurseEvent(struct AIBLD *a);                              /* 0x5741d0, he.c: the pending curse event of the building (as poker.h) */
+int gm_CurseObjectCount(struct AIBLD *b);                            /* 0x50cfd0, f3gm.c: 2 + the objects 0x274 / 0x27e / 0x28e / 0x291 of the building (as poker.h) */
+int gm_CurseTargetCount(struct AIBLD *b);                                   /* 0x50d0b0, f3gm.c: counts from the objects 0x284 / 0x289 of the building */
 extern const int ai_CardBack;  /* 0x5ed1bc, poker.c: the picture offset of the card back (another unit's constant: the original loads it from memory) */
 extern const unsigned __int64 gypsyFilter;  /* 0x5eed68, lcmap.c: the filter of the gypsy windows (flags, kind of ai_PickActionBuilding), read from memory as two dwords */
 extern const struct D3VECTOR4 d3_ZAxis;  /* 0x5ebb74, (0, 0, 1), d3_vec.c */
 int ai_ShotHitsGround(struct D3SM *map, D3VECTOR *from, D3VECTOR *to, int px, int pz, int *npx, int *npz);  /* 0x5dcf00, 1 when the move from -> to of a flight step hits the ground (to is moved to the hit) */
 int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int flags, int win); /* 0x46a960, d2.c: a slider in a window */
-int sv_CheckGoodAmount(char *o, int n, unsigned char t);   /* 0x521040, sv.c: 1 when the character's stock covers n of the good t (an unsigned char: the callers push the byte unextended) */
+int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);   /* 0x521040, sv.c: 1 when the character's stock covers n of the good t (an unsigned char: the callers push the byte unextended) */
 int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); /* 0x4c4830, cm.c */
 int cm_SendLongMessage(char *msg);                         /* 0x4c4b70, cm.c: sends a long (0xf8 bytes) message */
 extern unsigned char ai_OwnPlayer;                         /* 0x6f1bc5, the player's own goods slot */
@@ -261,7 +254,7 @@ int sv_RegisterNamePlate(char *name, char *text, int b); /* 0x52e1c0, sv.c: find
                                        plate of the object called name (text shown, b the icon), returns
                                        the object or 0 */
 
-void sv_OpenPlayerBar(int building, char k);  /* 0x525220, sv.c: opens the player bar form (Misc\PlayerBar) for the building */
+void sv_OpenPlayerBar(struct AIBLD *building, char k);  /* 0x525220, sv.c: opens the player bar form (Misc\PlayerBar) for the building */
 void sv_ClosePlayerBar(void);       /* 0x525440, sv.c: closes the player bar again */
 void sv_ClearSelection(void);       /* 0x52ae40, sv.c: clears the group selection (the focus and the selected flag of every character) */
 
@@ -282,10 +275,10 @@ void sv_ClearSelection(void);       /* 0x52ae40, sv.c: clears the group selectio
 
 /* The windows and game screens the contact listeners open. They are defined below the listeners (see
    the order note in the .c): their bodies must not be visible to the callers, or VC6 drops the calls. */
-void ai_BloodRevengeWindow(int building); /* 0x5d85e0, the gypsy blood revenge window (no result: every exit ends in a call) */
-void ai_HomageWindow(int building);      /* 0x5d95a0, the "Ehrerbietung" homage window (no result: every exit ends in a call) */
-void ai_CurseWindow(int building);       /* 0x5d8c90, the curse window ("_WAHRSAGERIN_FLUCH_0%d"; no result: every exit ends in a call) */
-void ai_CurseTargetWindow(int building); /* 0x5d90e0, the curse victim / share picker (no result: every exit ends in a call) */
+void ai_BloodRevengeWindow(struct AIBLD *building); /* 0x5d85e0, the gypsy blood revenge window (no result: every exit ends in a call) */
+void ai_HomageWindow(struct AIBLD *building);      /* 0x5d95a0, the "Ehrerbietung" homage window (no result: every exit ends in a call) */
+void ai_CurseWindow(struct AIBLD *building);       /* 0x5d8c90, the curse window ("_WAHRSAGERIN_FLUCH_0%d"; no result: every exit ends in a call) */
+void ai_CurseTargetWindow(struct AIBLD *building); /* 0x5d90e0, the curse victim / share picker (no result: every exit ends in a call) */
 int ai_PokerGame(void);                  /* 0x5da030, the poker game window */
 
 /* The save / load windows and the three option screens of the options menu 0x5d7770. Their bodies are
@@ -345,12 +338,12 @@ void d2_MenuNavigate(int g);                /* 0x46c6c0, d2.h: keyboard / pointe
 void sv_SetScreenCenter(unsigned fl);       /* 0x530900, sv.c: sets the screen centre from the pump flags */
 void sv_FitForm(int f);                     /* 0x52ea30, sv.c: fits the form to its background picture */
 void sv_ResetScreenClip(void);              /* 0x520f20, sv.c: resets the screen clip and the scene state */
-void sv_PopTo(int v);                       /* 0x52fb50, sv.c: pops the screen stack to the record whose
+void sv_PopTo(void (*v)());                       /* 0x52fb50, sv.c: pops the screen stack to the record whose
                                        first word is v (sets sv_PopRequest to its distance) */
 int cm_SendPlayerId(void);                  /* 0x4c3f90, cm.c: sends message 0x13 with the local player's
                                        id, returns the message slot handle (-1: none) */
 void main_GameLoop(int ctl);                /* 0x53bb20, main.c: the main game loop / dialog callback */
-void txt_Format(char *out, int id0, ...);   /* 0x5176d0, io_text.c: formats a text id into out */
+void txt_Format(char *out, intptr_t id0, ...);   /* 0x5176d0, io_text.c: formats a text id into out */
 
 /* declared in other units' headers before (moved to the owner) */
 int ai_InitShot(SHOTREC *shot, D3VECTOR *pos, D3VECTOR *dir, float charge, float size, float density);  /* 0x5dc240 */
@@ -364,7 +357,7 @@ void ai_PauseGame(void);  /* 0x5d7e90, the pause game menu */
 void ai_MessageFilterScreen(void);  /* 0x5d7f10, the message filter screen */
 void ai_UpdateWind(void);  /* 0x5dbed0, the wind option's update */
 struct VFSFILE; int ai_SaveWind(struct VFSFILE *f);  /* 0x5dbfc0, writes the wind option */
-int ai_LoadWind(int f);  /* 0x5dc0c0, reads the wind option from a save game */
+int ai_LoadWind(struct VFSFILE *f);  /* 0x5dc0c0, reads the wind option from a save game */
 void ai_SaveNetworkGame(char *saveName, char *name);  /* 0x5d7530, the network game's save screen */
 int ai_ListFiles(char *dirPath, const char *ext, char *records);  /* 0x5d33b0, the file selector's list */
 
