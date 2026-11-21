@@ -1393,7 +1393,7 @@ void d2_DrawButton(int id, D2SURF *surf)
 
 void d2_CenterObj(int obj)
 {
-    void d2_MoveObj();  /* @original: no prototype here: d2_MoveObj (short x, y) is defined below; the call pushes promoted ints (movsx) */
+    void d2_MoveObj(short x, short y, int obj);  /* reguildx: prototyped (the original calls it unprototyped, pushing promoted ints; standard C rejects that next to the short definition) */
     D2OBJ *o = &d2_Objs[obj];
     int x;
 

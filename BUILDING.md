@@ -27,10 +27,7 @@ cmake --build --preset play       # build only -> build-cmake/play/GildeGold.exe
 | preset  | options                                                                   |
 |---------|---------------------------------------------------------------------------|
 | `plain` | none: the game as the original builds it (garbled in a window on a 32-bit desktop) |
-| `play`  | `GILDEGOLD_FIX_16BPP` (16-bit back buffer in a window), `GILDEGOLD_FRAME_DUMP`, `GILDEGOLD_START` |
-
-`REA_START=<entry>` in the environment takes a main-menu entry at start with the play preset (`new`,
-`load`, `tutorial`, `network`, `quit`, ...).
+| `play`  | `GILDEGOLD_FIX_16BPP` (16-bit back buffer in a window), `GILDEGOLD_FRAME_DUMP` |
 
 Cache variables, all with defaults:
 

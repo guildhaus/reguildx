@@ -19,12 +19,11 @@
     {
       "name": "play",
       "inherits": "base",
-      "displayName": "manual testing: 16-bit back buffer in a window, frame dumps, the start shortcut",
+      "displayName": "manual testing: 16-bit back buffer in a window, frame dumps",
       "binaryDir": "${sourceDir}/build-cmake/play",
       "cacheVariables": {
         "GILDEGOLD_FIX_16BPP": "ON",
-        "GILDEGOLD_FRAME_DUMP": "ON",
-        "GILDEGOLD_START": "ON"
+        "GILDEGOLD_FRAME_DUMP": "ON"
       }
     }
   ],

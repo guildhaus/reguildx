@@ -803,7 +803,7 @@ typedef struct TSTEXSIZE {          /* the parts of a texture slot (ts_texture.h
     unsigned char bpp;              /* 0x7c */
 } TSTEXSIZE;
 
-void d3s_ShadowPoly(D3SPOLY *poly, unsigned char bpp, int size);  /* 0x45a880, @original: defined above old style with int bpp (it reads the whole slot as its first top index, the low byte for d3s_Byte); d3s_Project calls it through this prototype, pushing the byte unwidened (mov al,[tex+0x7c]; push eax). VC6 takes both without a warning */
+void d3s_ShadowPoly(D3SPOLY *poly, int bpp, int size);  /* 0x45a880, reguildx: int bpp as defined (the original: defined above old style with int bpp (it reads the whole slot as its first top index, the low byte for d3s_Byte); d3s_Project calls it through this prototype, pushing the byte unwidened (mov al,[tex+0x7c]; push eax). VC6 takes both without a warning) */
 
 void d3_DirToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                          /* 0x458810 */
 unsigned char d3_ClipBox(void *box, float *zmin, float *zmax);                                           /* 0x439650 */

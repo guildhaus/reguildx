@@ -2,8 +2,6 @@
 #
 #   cmake --build --preset run        (= the play preset's build, target run)
 #   cmake --build --preset debug      under the 32-bit lldb
-#
-# REA_START=<entry> in the environment takes a main-menu entry at start (play preset: GILDEGOLD_START).
 
 set(GILDEGOLD_GAME_DIR "C:/Program Files/GOG Galaxy/Games/The Guild Gold" CACHE PATH
     "the game install (GildeGold.exe, Data, gfx, ...); never written")
