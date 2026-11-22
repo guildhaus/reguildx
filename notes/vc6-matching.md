@@ -851,7 +851,7 @@ Where the pushes and pops sit, how many epilogue copies there are, shared agains
     by fiadd; every double spelling (casts, operand order, a named sum, / 2.0) loads it by fild first
     (he_RunMasterExamPassed byte; toy compiles settled it in two runs). he_PostEvent67 has the same expression.
   - **A table indexed through a named k where the original's index is a temporary**: `t =
-    txt_MaleFirstNames[(unsigned short)util_Random(0xbf)];` (main_CreateStartCouple: the second name copy's ecx /
+    txt_Ptrs[TXT_MALE_FIRST_NAMES + (unsigned short)util_Random(0xbf)];` (main_CreateStartCouple: the second name copy's ecx /
     al instead of eax / cl, byte).
   - **It was a meaning bug, hidden by the x87 stack**: he_SetLifeByAge's original loads `c->f018` before the
     `fnum <= f020` branch and keeps it on the FPU stack on both paths; `_ftol` pops only the step count
@@ -6183,7 +6183,16 @@ the bytes no portable form gives.
   ahm.h's AHMCHAR / AHMOBJ, the cannon windows' CANNONREC, the group helpers' `char *g`) or the tenth (the 252
   event handlers' `int ev`, the HEHANDLER tables, he_FindEvent / he_NextEvent / he_CreateEvent, GMCARRYREC.ref, the
   save game's `int f` file handles and vfs_Tfopen's `int unk` directory) or the eleventh (portability: TUTEVENT, the
-  intptr_t text-id-or-string parameters, the object list heads, gm_FindById's out pointers).
+  intptr_t text-id-or-string parameters, the object list heads, gm_FindById's out pointers) or the twelfth (the text table's index constants, the
+  caption / text parameters, ai_MapPick's callbacks passed uncast to its `void (*cb)()`) or the thirteenth (the voice banks
+  and samples, the building sites as D3OBJECT *, ai_MapPick's void * pick, CMKIND's function pointers, err_Init /
+  tb_SetFunctionOff, the callbacks' unread parameters, cm_SendLongMessage's AIMSG, the stock callees' AIOBJ *,
+  AIRECIPE.stall, cm_BeginFieldBlock's void *) or the fourteenth (gm_FindPlayerBuilding's AIBLD *, the AIMSG copies
+  and kind views, CMFIGHTREC / CMGUARDREC as G28REC, the party functions' G28REC *, AIOBJVIEW as D3OBJECT, D3IFSCENE /
+  D3SCENELISTS / D3SCENEPAR as D3SCENE, AMOUNTCFG's two-word class mask and the map pick's request, ai_AmountMenu's
+  callers, AIDEC.fn / G9DOMIZIL.use) or the fifteenth (hst's G12ARG as G12ROW, the folded stubs' unit twins, AIACT's
+  typed callbacks with G5ACT / AGARG, the leisure callbacks, AMTPICK as AICHAR, evt's resolver, the d3_ForEachObject2
+  casts, the transporter list, the K&R sweep).
 - **A data view macro `#define NAME (*(T *)&datum)` is our type, not the original's** (the second cast-macro pass,
   data): the object was declared with a placeholder type (`char *`, `char [n][size]`, `int [n]`, `unsigned short *`
   for a record pointer) and the units that read records viewed it. Give the definition and every declaration the
@@ -6281,6 +6290,18 @@ the bytes no portable form gives.
   view of the global (`*(T **)&g`) goes. dcp's Q4 counts `*(T *)datum` (a datum read as another type) as raw and
   wants a view for it, but not a pointer value cast to a record.
 - **The high word of an unsigned global** (G28_HI): `(cut_RandState >> 16)` is the same `mov ax, word ptr [g+2]`.
+- **Named slots of a pointer table are indices, not views** (txt_views.h, twelfth pass): the original reads a text
+  as `txt_Ptrs[i]`; a byte-offset view `*(char **)((char *)txt_Ptrs + 0x22c)` is our spelling and reads another
+  slot wherever pointers are not 4 bytes. Name the slot by an index constant (`#define TXT_TRIBUNE 0x8b`, a range
+  as its first index plus `_N`, a derived range `(TXT_JOB_NAMES + 0x5f)`) and index the table
+  (`txt_Ptrs[TXT_JOB_NAMES + i]`, a two-slot stride `txt_Ptrs[TXT_OBJECT_NAMES + 2 * k]`, an expression index in
+  parentheses `txt_Ptrs[TXT_BUILDING_NAMES + (k * 0xe - 2)]`). #defines, not an enum: enumerators are
+  declarations and move VC6's declaration-set tie-breaks in every unit that includes the header. A view typed
+  `int` / `int[]` over such a slot was a pointer passed to an int parameter: read the char * and cast
+  `(intptr_t)` at the int parameter until it is typed (sv_AddPanelButton, init_ShowStatus, sv_OpenMessageBox,
+  d2_WinCreateSlider, ai_FamilyTreeWindow), drop the `(char *)` casts the int views needed. Every function the
+  same code (one tie-break: he_RunBurglary). With no views left dcp's L15 has nothing to check; `dcp why` names
+  txt_Ptrs as the owner of every slot address.
 - **A record pointer global typed `char *` with casts at every reader** (ai_PlayerBuilding / ai_FallbackBuilding:
   114 `(AIBLD *)` casts, 23 views): type it `AIBLD *`, retype the locals that only hold it, and cast where a
   callee's prototype still takes `char *` / `unsigned char *` (the callee is the debt). Compare VC6's per-unit
@@ -6363,6 +6384,8 @@ the bytes no portable form gives.
   undefined behaviour in principle, fine in each unit, as in the original. he_LabIncident's `he_SetLifeByAge(c,
   util_Random(3) + 1)` pushed without mask: he_SetLifeByAge takes `unsigned short num` (its body read
   `(unsigned short)num`).
+- **Non-ASCII bytes in string literals** (the sources are UTF-8): write them as `\x` escapes, the literal split
+  before a following hex digit (`"MeisterPr\xfc" "fung .."`, main_UpdateFigure); a raw cp1252 byte is invalid UTF-8.
 - **Identifiers that a Windows SDK header defines as macros**: mingw's windows.h includes dlgs.h, which
   defines `ctl1` (0x04A0) and the `cmb*` / `lst*` / `stc*` / `scr*` .. control ids (VC98's DLGS.H has no ctl1).
   Do not name locals after them; lc.c / rt.c's ctl1 / ctl2 locals are exchangeCtl / feeCtl and loadCtls /
@@ -6520,6 +6543,98 @@ the bytes no portable form gives.
   typed locals (the `(int *)&x` casts strip by warning). An int parameter passed as such an out slot (cm_BeginFieldBlock's
   `&id`) gets its own typed local: VC6 puts it into the dead parameter slot (dcp try: = control). The index of a record
   pointer `(bld - (int)ai_Blds) / 0xa9` is `bld - ai_Blds` (same code).
+- **An owner API's handles held as `int` in many units (the voice banks / samples of snd_PlayVoice / snd_QueueVoice /
+  snd_LoadVoiceBank and the cm_* wrappers; thirteenth pass)**: type the API and every holder in one commit (globals,
+  fields, the callers' locals); the earlier note's "a data cast at the hand-over" was not needed. Multi-name
+  declarations are split by hand in name order (`struct SBBANK *bankDepose, *bankElect; int loaded, ..;`), never by a
+  regex retype over declarations. A local that holds both kinds of handle gets a second local for one of them (the
+  trial's plea bank went into its declared, unused bankPlea; the duel's voice into a block-local), an `int` array
+  used for the samples in one path and the delays in the other becomes one block-local array per path (`struct
+  SBSAMPLE *voice[8]` / `int wait[9]`): = control each time.
+- **A state array passed as a callback's `int` context** (the wedding's `int st[4]`: scene, view, bank, voice, given
+  to cm_RunSceneTicksOrClick / cm_WaitEventOrClick for cm_EndWedding): a struct of the true field types (CMWEDDING), the
+  API's context is `void *arg` with `int (*cb)(void *)`, and the callback reads `CMWEDDING *s = arg`. The same code;
+  the new typedef moved a tie-break (cm_RunCouncilSession, back in a later commit).
+- **A table of functions held as `int` whose functions take differing record types** (CMKIND's run / askPlayer /
+  askOther / check: G28REC * or CMFIGHTREC *, ask contexts CMSESSIONREQ * / AIPLAN * / CMAUCTION *): old-style
+  function pointer fields (`void (*run)()`, `int (*check)()`), registered without casts and called directly
+  (`cm_Kinds[k].run(m)`); as sv_RunFrame's cb, VC6 accepts void- and int-returning functions of any parameter list.
+  The context parameter that carries the ask callbacks' records is `void *` (cm_RunSceneParty).
+- **A function's address passed as an int flag** (err_Init's first parameter: main passed `(int)main_Exit`, err.c only
+  tests it for nonzero): the parameter and the global take the function pointer type (`void (*err_Started)(void)`).
+- **A callback registered with fewer parameters than its caller passes** (the amount menu calls pick(c, 0); D3OBJECTCB
+  is (D3OBJECT *, void *ctx)): add the unread parameter (`int n`, `void *ctx`; a body that used the context as its
+  own type reads `AICHAR *c = ctx`): = control. A foreign zero function passed as such a callback (`(int)sv_ReturnZero`
+  for (AICHAR *, int)) is the unit's own unlinked twin at the end of the unit (ai_PickNothing).
+- **A byte offset written on an int that holds a pointer** (`(D3VECTOR *)(list[i] + 0x4c)`, `list200[m] + 0x4c`):
+  rewrite it as the field (`&list[i]->pos`) in the same edit that types the list: on a `D3OBJECT **` list the old
+  text scales by the record size and compiles silently.
+- **A callee typed `char *` / `short *` for a record its callers pass** (cm_SendLongMessage's AIMSG, gm_ListStock /
+  gm_ListAmount / gm_FreeCapacity's AIOBJ, cm_BeginFieldBlock's any-record `void *`): type the callee and strip the
+  `(char *)` casts at the calls; a caller that sent through its own view of the record (GMMSG, HEEXAMMSG, CURSEMSG,
+  ORDLONGMSG for AIMSG) fills the record itself (one record described twice, see "One record described in several
+  units' views"; CMNOTE, an AIMSG head with its texts, passes `&note.head`).
+- **A record's int slot that holds a pointer** (AIRECIPE.pada8[3]: the stall object; AIARG.ref of kind 0xc: the site
+  object): the pointer field in its slot (`struct AIOBJ *stall`, an anonymous `union { int ref; struct D3OBJECT *plot;
+  }`); the same layout under VC6, the record is a port-side note when it is saved or sent.
+- **A record with an `__int64` member that another record embeds at a 4-aligned offset** (AMOUNTCFG at LCMAPWIN.req
+  +0xc): the original's type had no 8-byte member. Check how the writers store the word pair: the map pick's callers
+  wrote the class mask's halves as two statements in either order (ai_OpenPickpocket: +0xc before +8), lcmap's
+  ai_BuildingTypeMasks keeps such masks as `unsigned int` pairs, so the field is `unsigned int classMask[2]`. An
+  `x.filter = g;` copy of an `__int64` global becomes `x.classMask[0] = (unsigned int)g; x.classMask[1] =
+  (unsigned int)(g >> 32);` (= control; the reversed order is draft), a 64-bit constant store its two halves. A half
+  whose value lies in the image's address range (0x7d4190) is dcp's Q3 (readable -> draft), also in decimal: write it
+  `(unsigned int)0x1007d4190`. Then the embedding record takes the type (`AMOUNTCFG req;`) and the callers' `int
+  cfg[0x14]` arrays become the record: a `for (i = 0; i < 20; i++) req[i] = 0;` clear is `memset(&req, 0,
+  sizeof(req))` (VC6 had made the loop the same rep stosd).
+- **One record described in several units' views** (the long message AIMSG as GMMSG / CURSEMSG / AIXMSG / G8MSG /
+  ORDLONGMSG / LCSEARCHWORDS / HETRADEMSG / HEEXAMMSG / HEFEEMSG / HESKILLMSG / HEPLAGUEMSG; the party G28REC as
+  CMFIGHTREC / CMGUARDREC; D3OBJECT as AIOBJVIEW; D3SCENE as D3IFSCENE / D3SCENELISTS / D3SCENEPAR): compare the
+  offsets field by field; a view that only names offsets the record names goes for the record's fields; a view of a
+  message kind's own words becomes a named member of the record's kind union (AIMSG.exam / fee / skillLevel / plague
+  / credit) or an anonymous union over the bytes it reuses (AIMSG.word9c over textFlags .. pad9f); a copy of a record
+  that is a better-documented layout gives the record its fields and names (D3SCENE took D3IFSCENE's list, G28REC.raid
+  became G28REC.fight with the fight code's names). When one view's field shares a name with another field of the
+  record at another offset (CMFIGHTREC.flags 0x7c against G28REC.flags 0x26), rename the view's field first and let
+  VC6's C2039 lines name its users, then retype: a silent rebinding to the wrong field compiles. Unused copies of a
+  typedef in units (CMNOTE x4, CMGUARDREC x3, AIOBJVIEW x3) go; each removal moves declaration-set tie-breaks
+  (accepted). Files with `#line` directives report C2039 under the original's file name (d3_interface.c).
+- **A record passed as `char *m` with a `T *p = (T *)m;` alias** (the scene party functions): the parameter takes the
+  type; where the alias was load-bearing for the allocator, keep a plain copy `G28REC *party = m;` (cm_ExecCutscene:
+  the parameter used directly swapped two address registers, 6 ins, under every declaration set; the copy is byte).
+- **A table of callbacks held as `void *`** (gv_Decisions' AIDEC.fn, the Domizil table's G9DOMIZIL.use): a function
+  pointer field; the prototype one when every entry has the same parameter list (AIDEC: `int (*fn)(struct AICHAR *,
+  int, int *)`), old-style (`int (*use)()`) when they differ; the entries' `(void *)` casts and the callers' casts back
+  go (the same code).
+- **A dispatch table's entries read through a view shifted into the record** (hst's G12ARG {token, id} over G12ROW
+  {inUse, e[8] {id, token}} four bytes in: args[k].id = row->e[k].id, args[k + 1].token = row->e[k].token,
+  args[0].token = row->inUse): the callbacks take the record the table hands them and index its slots; give every
+  entry of the table the table's parameter list (unread parameters for the void / short ones). The same code.
+- **A foreign stub (ai_AlwaysTrue, sv_ReturnZero) in a table or callback slot of another type** (cm_Handlers /
+  cm_Checks, AIACT.exec, the Domizil table, rmsg's callbacks, d3e's default handler, evt script commands): each unit gets
+  its own unlinked stub of the slot's type at its end (`/* unlinked: .. LINK folds it (/OPT:ICF) into NAME, 0xADDR */`;
+  a data table that names it is still reproduced: dcp data map). Script commands take their arguments' pointers
+  (`char **s`, `int *n`, `float *f`, `CHARACTER **ch`). VC6 warns C4550 on `return f;` of a function designator; write
+  `return &f;`.
+- **A record whose function pointer fields are `void *` while one unit reads it through a typed copy** (AIACT / G5ACT):
+  the record takes the copy's field types (forward `struct T;` at file scope in the types header) and the copy goes;
+  the registrations that then warn C4113 name the callbacks to give their unread parameters.
+- **Callbacks called through a cast macro at a switch** (aip's G10_CB): one prototype for all of them, the dispatch's;
+  a parameter that the old prototype named by another position (ai_EvalGraveCount's 4th `m`) takes the caller's name
+  (`in`). The function at the stub's address may itself be one of them (ai_AlwaysTrue is the leisure callback 0x21).
+- **A callback's record view whose offsets are another record's** (AMTPICK {office word, charId} over the amount
+  menu's AICHAR rows: id at 0, netId at 4): read the rows' type to learn what the callback gets.
+- **Callbacks of one walker that differ only in their return type** (d3_ForEachObject2: void ones and char / int ones
+  returning 1 for other callers): VC6 accepts both silently, clang 16 / gcc 14 reject the implicit conversion; pass the
+  odd ones as an explicit function pointer cast (`(void (*)(D3OBJECT *))fn`), never through an integer
+  (`(void *)(unsigned)&fn` truncates on 64-bit). Likewise a void window the amount menu calls as its int pick:
+  `(int (*)(AICHAR *, int))fn` with `@original` (the original's menu tests whatever eax holds).
+- **A callback context that stores pointers in an int array** (he_CollectTransporter's `int list[0x21]`): a struct of
+  the pointer array and its count, the same 0x84 bytes; the walker that returns one of them returns the pointer type.
+- **Redundant K&R copies in units** (`T f();` with a prototype already in scope; 995 after the unit split): drop them
+  per unit with p15/kr.py (drop, compile, restore every name a new diagnostic names, drop the removed declarations'
+  address comments with them: dcp binds a left-over `/* 0xADDR */` to the next line, L13 / C.name.alias). Two
+  declaration-set tie-breaks moved for 995 declarations.
 - **`__asm` reading the parameters (`mov eax,[ebp+8]`)**: name them (`mov eax,x`); VC6 assembles the name to
   the same frame operand (d2_ShpBlit8, d2_ShpBlit8To16, d2_ShpBlit16ClipY / ClipXY, d2_ShpDarken16 byte).
 

@@ -179,41 +179,8 @@ void d2_SetLabel(int id, char *s);                         /* 0x46bc70, d2.h: se
 void d2_SetList(int id, int n, ...);                       /* 0x46bca0, d2.h: sets the widget's "a|b|c|" item list */
 void d2_SetSliderFlags(int id, int flags);                 /* 0x46bdd0, d2.h: sets the slider's flags */
 void d2_SetObjValue(int obj, ...);                                     /* 0x475cb0, d2.h */
-typedef struct AMOUNTCFG {              /* 0x50 bytes, the config of the special-amount menu ai_AmountMenu (lc.c) */
-    int flags;                          /* +0x00, 1 / 0x20400 / 0x2040a .. (the gypsy windows: 1) */
-    int mode;                           /* +0x04, 0x400: the partner filter bits (lc.c ai_PassesPartnerFilter) */
-    union {
-        unsigned __int64 filter;        /* +0x08, 0x1a7fdfbb6 (the gypsy windows), 0x1a07c43a0 (the sabotage) */
-        unsigned int classMask[2];      /* +0x08, the building classes 0 .. 63 (lc.c ai_PassesBuildingFilter) */
-    };
-    int kind;                           /* +0x10, 6 */
-    int option14;                       /* +0x14, 2 in the blood revenge window (meaning not derived) */
-    int lockSecond;                     /* +0x18, nonzero: ai_AmountMenu leaves its second button (picture 0x599)
-                                           without input (ai_GuildLevel3Entry sets it) */
-    unsigned short ids[16];             /* +0x1c, the character ids the menu leaves out / lists, 0xffff = none */
-    char pad3c[4];
-    int liking;                         /* +0x40, nonzero: ai_PassesPartnerFilter wants the liking in [likingMin, likingMax] */
-    float likingMin;                    /* +0x44 */
-    float likingMax;                    /* +0x48 */
-    int option4c;                       /* +0x4c, 0x727 (the sabotage menu, the graveyard's fog target pick), 0x71f
-                                           (ai_HandleMapKey's pick; meaning not derived) */
-} AMOUNTCFG;
 #include "ai_types.h"                /* AITIME */
 
-typedef struct CURSEMSG {               /* 0xf8 bytes, ai.h's AIMSG (the long message cm_SendLongMessage sends) */
-    int unk00;
-    unsigned char type;                 /* +0x04 */
-    char pad05[3];
-    int to;                             /* +0x08, the net id of the sender (the message goes to the player's group) */
-    int fromId;                         /* +0x0c */
-    char pad10[0x18];
-    AITIME time;                     /* +0x28 */
-    unsigned char flags;                /* +0x36 */
-    char pad37;
-    int ids[8];                         /* +0x38 */
-    int arg[11];                        /* +0x58 */
-    char pad84[0x74];
-} CURSEMSG;
 
 #pragma pack(push, 2)
 typedef struct CURSEEVENT {             /* the event 0xa0 ai_FindCurseEvent finds: only the fields the curse target window reads */
@@ -240,7 +207,7 @@ int ai_ShotHitsGround(struct D3SM *map, D3VECTOR *from, D3VECTOR *to, int px, in
 int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int flags, int win); /* 0x46a960, d2.c: a slider in a window */
 int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);   /* 0x521040, sv.c: 1 when the character's stock covers n of the good t (an unsigned char: the callers push the byte unextended) */
 int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); /* 0x4c4830, cm.c */
-int cm_SendLongMessage(char *msg);                         /* 0x4c4b70, cm.c: sends a long (0xf8 bytes) message */
+struct AIMSG; int cm_SendLongMessage(struct AIMSG *msg);                         /* 0x4c4b70, cm.c: sends a long (0xf8 bytes) message */
 extern unsigned char ai_OwnPlayer;                         /* 0x6f1bc5, the player's own goods slot */
 void sv_ButtonRow(int f, int y, int *out, int n, ...); /* 0x52e350, rt.h: a row of n buttons, ids in out[] */
 void ai_ApplyVolumes(void);         /* 0x5d5f10, applies the sound option volumes to the mixer */

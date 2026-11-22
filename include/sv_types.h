@@ -48,10 +48,10 @@ typedef struct SVBOOK {                 /* 0x274 bytes, an open book ("f3_sv:Ope
 } SVBOOK;
 
 typedef struct SVBUBBLE {               /* 0x10c bytes, a speech bubble over a character (sv_Bubbles) */
-    int text;                           /* +0x000, the d2_Strings id shown when name is empty */
+    int text;                           /* +0x000, the txt_Ptrs id shown when name is empty */
     int time;                           /* +0x004, d3_Time when it was shown (freed 300 ms later) */
     struct CHARACTER *ch;               /* +0x008, the character it belongs to, 0 = free */
-    char name[0x100];                   /* +0x00c, its own text, "" = the d2_Strings line */
+    char name[0x100];                   /* +0x00c, its own text, "" = the txt_Ptrs line */
 } SVBUBBLE;
 
 typedef struct SVMEMBERROW {            /* 0x28 bytes, a row of the member list (32 rows at 0x75f280) */

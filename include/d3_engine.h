@@ -9,15 +9,6 @@ struct D3FLMAP;                     /* the tag (d3_fl.h spells it out; MS compat
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 struct D3SOUND;
 
-typedef struct D3SCENELISTS {       /* view of the D3SCENE fields used by the object walks */
-    char pad000[0x80];
-    D3OBJECT *first;                /* 0x80, first top-level object (d3_TopFirst) */
-    D3OBJECT *last;                 /* 0x84, last top-level object (d3_TopLast) */
-    char pad088[0x1c];
-    void *parHead;                  /* 0xa4, first of the particle list (d3_ParHead, D3PARTSYS * in d3_par.h) */
-    void *parTail;                  /* 0xa8, last of the particle list (d3_ParTail, D3PARTSYS * in d3_par.h) */
-} D3SCENELISTS;
-
 typedef union D3CLIP {              /* clip code of a point or a box */
     unsigned char raw;              /* the code as a whole: cleared, and | / & of two codes */
     struct {
@@ -687,7 +678,6 @@ void par_Draw(D3PARTSYS *ps);                                                   
 struct D3SKY; char d3sky_Draw(struct D3SKY *s);                                                             /* 0x45d500 */
 void d3_DrawSorted(void);                                                                /* 0x43b600 */
 void ts_UpdateScroll(unsigned long now);                                                   /* 0x460cb0 */
-int ai_AlwaysTrue(void);                                                                /* 0x4a8c10 */
 
 #include "d3_event.h"                       /* the event tables ("d3e:"), d3_event.c */
 void bio_rd_s(struct VFSFILE *f, char *s);      /* 0x4011a0 */
@@ -700,7 +690,8 @@ void d3_Unlink(D3OBJECT *obj);  /* 0x43d0e0 */
 extern int d3if_SceneState1;  /* 0x5fb5c4 */
 char d3_GetBounds(D3OBJECT *obj, D3OBJECT *camera, D3VECTOR *center, float *radius);  /* 0x43d860 */
 D3OBJECT *d3_NextGroup(D3OBJECT *obj);  /* 0x438c30 */
-char d3_ForEachObject2(D3SCENE *scene, D3OBJECT *obj, unsigned int mask, void (*cb)(D3OBJECT *obj));  /* 0x438e60 */
+char d3_ForEachObject2(D3SCENE *scene, D3OBJECT *obj, unsigned int mask, void (*cb)(D3OBJECT *obj));  /* 0x438e60; cb's result is not read: the callers pass
+   their char / int returning callbacks (ls_HookBuildingCB, init_TextureSetHook ..) cast to void (*)(D3OBJECT *) */
 void d3_ClipMesh(D3CLIP mask, D3PVERT *v, int nverts, D3PTRI *t, int ntris);  /* 0x439a60 */
 void d3_AppendSibling(D3OBJECT *first, D3OBJECT *obj);  /* 0x43cb20 */
 void d3_SetAlpha(D3OBJECT *obj, D3TEXFLAGS *f);  /* 0x43d690, the alpha flags f on obj and its group */

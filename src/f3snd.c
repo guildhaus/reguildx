@@ -825,12 +825,12 @@ int snd_VoiceVariant(unsigned int voice, int woman)
 /* 0x4c2510, the voice sample text of speaker id (a character: "_M%i" / "_W%i" by sex, -1.. -6: "_W2", "_W1", "_M1",
    "_M2", "_M3", "_HS"; -7: text itself, -8: none) in bank, variation var if >= 0 ("%02i" appended) */
 
-int snd_FindVoiceSample(int id, int bank, char *text, int var)
+struct SBSAMPLE *snd_FindVoiceSample(int id, struct SBBANK *bank, char *text, int var)
 {
     char sfx[0x10];
     char num[0x10];
     char buf[0x104];
-    int s;
+    struct SBSAMPLE *s;
     int isvar;
     AICHAR *c;
 
@@ -859,7 +859,7 @@ int snd_FindVoiceSample(int id, int bank, char *text, int var)
         else if (id == -8)
             sfx[0] = ch_EmptyName[0];
         sprintf(buf, "%s%s", text, sfx);
-        isvar = sb_IsVariation((struct SBBANK *)bank, buf);
+        isvar = sb_IsVariation(bank, buf);
         if (var >= 0 && isvar == 0) {
             sprintf(num, "%02i", var);
             strcat(sfx, num);
@@ -869,11 +869,11 @@ int snd_FindVoiceSample(int id, int bank, char *text, int var)
         sprintf(buf, text);
     }
     if (isvar != 0 && var >= 0) {
-        s = (int)sb_GetVariation((struct SBBANK *)bank, buf, var);
+        s = sb_GetVariation(bank, buf, var);
         if (s == 0)
             sprintf(buf, "Voicesample not found in variation:\n%s %i", text, var);
     } else {
-        s = (int)sb_GetSample((struct SBBANK *)bank, buf);
+        s = sb_GetSample(bank, buf);
         if (s == 0)
             sprintf(buf, "Voicesample not found:\n%s", text);
     }
@@ -882,9 +882,9 @@ int snd_FindVoiceSample(int id, int bank, char *text, int var)
 /* 0x4c2760, plays the voice sample of speaker id in bank now (snd_FindVoiceSample) at the voice volume,
    unless a queued sound is playing; returns the sample handle or 0 */
 
-int snd_PlayVoice(int id, int bank, char *text, int var)
+struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var)
 {
-    int s;
+    struct SBSAMPLE *s;
 
     if (snd_SfxEnabled == 0)
         return 0;
@@ -892,33 +892,33 @@ int snd_PlayVoice(int id, int bank, char *text, int var)
         return 0;
     s = snd_FindVoiceSample(id, bank, text, var);
     if (s != 0) {
-        sb_Play((struct SBSAMPLE *)s, 0, 0);
-        sb_SetVolume((struct SBSAMPLE *)s, (int)(snd_VoiceVolume * 127.0f));
+        sb_Play(s, 0, 0);
+        sb_SetVolume(s, (int)(snd_VoiceVolume * 127.0f));
     }
     return s;
 }
 /* 0x4c27d0, queues a voice sample (snd_FindVoiceSample) with delay */
 
-int snd_QueueVoice(int id, int bank, char *text, int var, unsigned int delay)
+struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay)
 {
-    int s;
+    struct SBSAMPLE *s;
 
     if (snd_SfxEnabled == 0)
         return 0;
     s = snd_FindVoiceSample(id, bank, text, var);
     if (s != 0) {
-        sb_SetVolume((struct SBSAMPLE *)s, (int)(snd_VoiceVolume * 127.0f));
-        snd_AddToQueue((struct SBSAMPLE *)s, delay);
+        sb_SetVolume(s, (int)(snd_VoiceVolume * 127.0f));
+        snd_AddToQueue(s, delay);
     }
     return s;
 }
 /* 0x4c2830, loads the voice sample bank name: "sprache_<language>\<name>" ("german"), or the plain
    "sprache\<name>" when that fails; returns the bank handle or 0 */
 
-int snd_LoadVoiceBank(char *name, int a)
+struct SBBANK *snd_LoadVoiceBank(char *name, int a)
 {
     char buf[0x104];
-    int b;
+    struct SBBANK *b;
 
     sprintf(buf, "sprache_%s\\%s", txt_Language, name);
     b = sb_LoadSampleBank(buf, a);
@@ -1232,11 +1232,11 @@ struct AIOBJ *snd_TrackRoom = 0;  /* 0x6f0cac, the room of the track */
 unsigned int snd_PauseLength = 0;  /* 0x6f0cb0, the pause length */
 int snd_MusicSeason = 0;  /* 0x6f0cb4, the season of the music */
 unsigned int snd_LastDecision = 0;  /* 0x6f0cb8, time of the last track decision */
-int snd_VoiceBankOrders = 0;  /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
-int snd_VoiceBankClick = 0;  /* 0x6f0cc0, voice bank: click comments */
-int snd_VoiceBankNoise = 0;  /* 0x6f0cc4, voice bank: click noises */
+struct SBBANK *snd_VoiceBankOrders = 0;  /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
+struct SBBANK *snd_VoiceBankClick = 0;  /* 0x6f0cc0, voice bank: click comments */
+struct SBBANK *snd_VoiceBankNoise = 0;  /* 0x6f0cc4, voice bank: click noises */
 int snd_UnreadBss = 0;  /* 0x6f0cc8, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
-int snd_VoiceBankGreeting = 0;  /* 0x6f0ccc, voice bank: greeting */
+struct SBBANK *snd_VoiceBankGreeting = 0;  /* 0x6f0ccc, voice bank: greeting */
 extern struct D3TRAIN *d3t_Rain;
 /* ai_Selected: view of ai_Chars (tools/data_views.py) */
 SNDRAIN snd_Rain;  /* 0xf81240, the rain sounds' state: one common of 72 bytes (tools/exe/commongaps.py: the copy of

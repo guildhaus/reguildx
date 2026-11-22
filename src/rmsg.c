@@ -918,7 +918,7 @@ int ai_MsgCartFillDropType22(G14MSG *m)
     gm_FindById(&w, 0, 0, j->id2);
     gm_FindById(&u, 0, 0, j->id3);
     v = (unsigned char)(o->fill * ((util_Random(0x23) + 0x3c) * 0.01f));
-    cm_BeginFieldBlock((char *)o, o->objId);
+    cm_BeginFieldBlock(o, o->objId);
     cm_AddFieldDelta(1, 1, 0x12, &v);
     cm_SendFieldDeltas();
     if (w->type == 0x47)
@@ -1929,7 +1929,7 @@ int ai_RunMessage(G14MSG *m)
     return -2;
 }
 
-int sv_ReturnZero(void);                                                          /* 0x52a040, defined elsewhere */
+int ai_MsgNothingType2d(G14MSG *m);  /* the unlinked callback of message 0x2d at the end (sv_ReturnZero in the exe) */
 
 G14CB ai_MsgCallbacks[0x45] = {                                                     /* 0x602570 */
     ai_MsgRewardPct1to3, ai_MsgRewardPct2to4, ai_MsgOfficeApplicantPayment, ai_MsgPayPct1to3,
@@ -1943,7 +1943,7 @@ G14CB ai_MsgCallbacks[0x45] = {                                                 
     ai_MsgLoseMoney2to4Type20, ai_MsgGainMoney3to5Type21, ai_MsgCartFillDropType22, ai_MsgJobTime,
     ai_MsgJobEndPlayerType24, ai_MsgJobEndPayType25, ai_MsgJobBothEndsType26, ai_MsgJobBothEndsType27,
     ai_MsgUnusedSlot, ai_MsgJobEndDateType29, ai_MsgJobEndValueType2a, ai_MsgWorkerStop,
-    ai_MsgWorkerTitleType2c, sv_ReturnZero, ai_MsgFreeBuildingObjectType2e, ai_MsgWorkerAddSkillType2f,
+    ai_MsgWorkerTitleType2c, ai_MsgNothingType2d, ai_MsgFreeBuildingObjectType2e, ai_MsgWorkerAddSkillType2f,
     ai_MsgWorkerLoseSkillType30, ai_MsgBuildingGetsItemType31, ai_MsgTakeBuildingGoodsPct13to25Type32, ai_MsgTakeBuildingGoodsPct5to19Type33,
     ai_MsgTakeBuildingGoodsPct5to24Type34, ai_MsgUnusedSlot, ai_MsgUnusedSlot, ai_MsgUnusedSlot,
     ai_MsgLoseGood, ai_MsgRewardPct1to3Skill82Type39, ai_MsgAddSkill8to24Type3a, ai_MsgLoseSkill6to17Type3b,
@@ -1986,4 +1986,11 @@ unsigned int ai_NextRandom(unsigned int n)
         return 0;
     ai_RandomSeed = ai_RandomSeed * 0x41c64e6d + 0x3039;
     return (*((unsigned short *)&ai_RandomSeed + 1) % 0x7fffu) % n;
+}
+
+/* unlinked: the callback of message 0x2d, which does nothing and returns 0; LINK folds it (/OPT:ICF) into sv_ReturnZero,
+   0x52a040, where the original's ai_MsgCallbacks[0x2d] points */
+int ai_MsgNothingType2d(G14MSG *m)
+{
+    return 0;
 }

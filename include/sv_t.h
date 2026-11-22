@@ -48,7 +48,7 @@ typedef struct TUTRUN {                 /* 0x74 bytes, a run (chapter) record of
     char *text1Voice;                   /* 0x18, the voice played with the first text window (ai_TutorialShowText) */
     int text2;                          /* 0x1c, the second text window's text (ai_TutorialShowText2) */
     char *text2Voice;                   /* 0x20, the voice played with the second text window (ai_TutorialShowText2) */
-    int statusText;                     /* 0x24, the d2_Strings line shown in the status bar by the states 0xa / 0xb */
+    int statusText;                     /* 0x24, the txt_Ptrs line shown in the status bar by the states 0xa / 0xb */
     char *voice;                        /* 0x28, the voice played with it (snd_PlayVoice) */
     unsigned int text1Time;             /* 0x2c, ms the first text window waits before it shows */
     unsigned int tail2Time;             /* 0x30, the length of the state 0xb */
@@ -123,7 +123,7 @@ extern int ai_DragCutscene;  /* 0x6f2670, 1 while the tooltip view holds d2_Cuts
 extern int ai_ScreenshotCount;  /* 0x6f2674, the number of the next screenshot */
 extern AIBOOKMARK ai_Bookmarks[11];  /* 0x6f5ec0, the function-key building bookmarks */
 extern unsigned int ai_GraveChatterAt;  /* 0x62a538, d3_Time at the last graveyard chatter tick */
-extern int ai_TutorialBanks[6];         /* 0x6f2640, the tutorial's voice banks */
+extern struct SBBANK *ai_TutorialBanks[6];      /* 0x6f2640, the tutorial's voice banks */
 extern TUTRUN *ai_TutorialRuns;         /* 0x6f2658, the chain of the tutorial's run records */
 extern int ai_TutorialOn;               /* 0x6f265c, the tutorial runs */
 extern int ai_TutorialRunning;          /* 0x6f2660, its state machine advances */

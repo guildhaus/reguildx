@@ -281,9 +281,9 @@ void d3if_Reset(void)
         d3sky_Destroy(d3_Sky);
         d3_Sky = 0;
     }
-    if (((D3IFSCENE *)d3_DefaultScene)->events) {
-        mem_Free(((D3IFSCENE *)d3_DefaultScene)->events);
-        ((D3IFSCENE *)d3_DefaultScene)->events = 0;
+    if (d3_DefaultScene->events) {
+        mem_Free(d3_DefaultScene->events);
+        d3_DefaultScene->events = 0;
     }
     d3_TopFirst = &d3_ObjEnd;
     d3_TopLast = &d3_TopHead;
@@ -316,20 +316,20 @@ void d3if_Reset(void)
     d3_SceneFlags = 0;
     d3if_SceneState0 = 4;
     d3if_SceneState1 = 0xf;
-    D3IF_SCENE(d3_CurrentScene).last = 0;
-    D3IF_SCENE(d3_CurrentScene).first = 0;
-    D3IF_SCENE(d3_CurrentScene).dirty = 0;
-    D3IF_SCENE(d3_CurrentScene).loaded = 0;
+    d3_Scenes[d3_CurrentScene].last = 0;
+    d3_Scenes[d3_CurrentScene].first = 0;
+    d3_Scenes[d3_CurrentScene].dirty = 0;
+    d3_Scenes[d3_CurrentScene].loaded = 0;
     d3_Scenes[d3_CurrentScene].name[0] = 0;
 }
 /* 0x4475f0, initializes an empty scene: its first object is a camera ("MegaCam") */
 
-char d3if_InitScene(D3IFSCENE *s)
+char d3if_InitScene(D3SCENE *s)
 {
     D3OBJECT *cam;
     int i;
 
-    if (s && !s->first && !s->par1) {
+    if (s && !s->first && !s->parHead) {
         cam = d3_SpawnObject(3, "MegaCam");
         s->campos.x = 0;
         s->campos.y = 0;
@@ -344,8 +344,8 @@ char d3if_InitScene(D3IFSCENE *s)
         cam->prev = &d3_TopHead;
         cam->state |= 3;
         s->first = s->last = s->cam = cam;
-        s->par1 = &d3_ParEnd;
-        s->par2 = d3if_ParList;
+        s->parHead = &d3_ParEnd;
+        s->parTail = d3if_ParList;
         s->hardware = d3_Hardware;
         s->sceneFlags = 0;
         s->amb.x = 200.0f;
@@ -436,74 +436,74 @@ char d3if_SelectScene(int index, char keep)  /* @original: the definition return
             d3_Mirror.obj = 0;
             d3_Mirror.info = 0;
         }
-        D3IF_SCENE(d3_CurrentScene).first = d3_TopFirst;
-        D3IF_SCENE(d3_CurrentScene).last = d3_TopLast;
-        if (D3IF_SCENE(d3_CurrentScene).first == &d3_ObjEnd && D3IF_SCENE(d3_CurrentScene).last == &d3_ObjEnd) {
-            D3IF_SCENE(d3_CurrentScene).last = 0;
-            D3IF_SCENE(d3_CurrentScene).first = 0;
+        d3_Scenes[d3_CurrentScene].first = d3_TopFirst;
+        d3_Scenes[d3_CurrentScene].last = d3_TopLast;
+        if (d3_Scenes[d3_CurrentScene].first == &d3_ObjEnd && d3_Scenes[d3_CurrentScene].last == &d3_ObjEnd) {
+            d3_Scenes[d3_CurrentScene].last = 0;
+            d3_Scenes[d3_CurrentScene].first = 0;
         }
-        D3IF_SCENE(d3_CurrentScene).par1 = d3_ParHead;
-        D3IF_SCENE(d3_CurrentScene).par2 = d3_ParTail;
-        if (D3IF_SCENE(d3_CurrentScene).par1 == &d3_ParEnd && D3IF_SCENE(d3_CurrentScene).par2 == &d3_ParEnd) {
-            D3IF_SCENE(d3_CurrentScene).par2 = 0;
-            D3IF_SCENE(d3_CurrentScene).par1 = 0;
+        d3_Scenes[d3_CurrentScene].parHead = d3_ParHead;
+        d3_Scenes[d3_CurrentScene].parTail = d3_ParTail;
+        if (d3_Scenes[d3_CurrentScene].parHead == &d3_ParEnd && d3_Scenes[d3_CurrentScene].parTail == &d3_ParEnd) {
+            d3_Scenes[d3_CurrentScene].parTail = 0;
+            d3_Scenes[d3_CurrentScene].parHead = 0;
         }
-        D3IF_SCENE(d3_CurrentScene).map = d3_Terrain;
-        D3IF_SCENE(d3_CurrentScene).sky = d3_Sky;
-        D3IF_SCENE(d3_CurrentScene).sceneFlags = d3_SceneFlags;
-        D3IF_SCENE(d3_CurrentScene).amb.x = d3_AmbientColor.x;
-        D3IF_SCENE(d3_CurrentScene).amb.y = d3_AmbientColor.y;
-        D3IF_SCENE(d3_CurrentScene).amb.z = d3_AmbientColor.z;
-        D3IF_SCENE(d3_CurrentScene).sun.x = d3_SunColor.x;
-        D3IF_SCENE(d3_CurrentScene).sun.y = d3_SunColor.y;
-        D3IF_SCENE(d3_CurrentScene).sun.z = d3_SunColor.z;
-        D3_COPY(D3IF_SCENE(d3_CurrentScene).levels, offset d3if_Levels, sizeof(D3IF_SCENE(d3_CurrentScene).levels));
-        D3IF_SCENE(d3_CurrentScene).fog.col.col = d3_fog_color.col;
-        D3IF_SCENE(d3_CurrentScene).fog.start = d3_FogStart1;
-        D3IF_SCENE(d3_CurrentScene).fog.end = d3_FogEnd2;
-        D3_COPY(D3IF_SCENE(d3_CurrentScene).fogs, offset d3if_Fog, sizeof(D3IF_SCENE(d3_CurrentScene).fogs));
-        D3IF_SCENE(d3_CurrentScene).state0 = d3if_SceneState0;
-        D3IF_SCENE(d3_CurrentScene).state1 = d3if_SceneState1;
-        D3IF_SCENE(d3_CurrentScene).hardware = d3_Hardware;
+        d3_Scenes[d3_CurrentScene].map = d3_Terrain;
+        d3_Scenes[d3_CurrentScene].sky = d3_Sky;
+        d3_Scenes[d3_CurrentScene].sceneFlags = d3_SceneFlags;
+        d3_Scenes[d3_CurrentScene].amb.x = d3_AmbientColor.x;
+        d3_Scenes[d3_CurrentScene].amb.y = d3_AmbientColor.y;
+        d3_Scenes[d3_CurrentScene].amb.z = d3_AmbientColor.z;
+        d3_Scenes[d3_CurrentScene].sun.x = d3_SunColor.x;
+        d3_Scenes[d3_CurrentScene].sun.y = d3_SunColor.y;
+        d3_Scenes[d3_CurrentScene].sun.z = d3_SunColor.z;
+        D3_COPY(d3_Scenes[d3_CurrentScene].levels, offset d3if_Levels, sizeof(d3_Scenes[d3_CurrentScene].levels));
+        d3_Scenes[d3_CurrentScene].fog.col.col = d3_fog_color.col;
+        d3_Scenes[d3_CurrentScene].fog.start = d3_FogStart1;
+        d3_Scenes[d3_CurrentScene].fog.end = d3_FogEnd2;
+        D3_COPY(d3_Scenes[d3_CurrentScene].fogs, offset d3if_Fog, sizeof(d3_Scenes[d3_CurrentScene].fogs));
+        d3_Scenes[d3_CurrentScene].state0 = d3if_SceneState0;
+        d3_Scenes[d3_CurrentScene].state1 = d3if_SceneState1;
+        d3_Scenes[d3_CurrentScene].hardware = d3_Hardware;
         cam = (D3OBJECT *)d3if_MegaCam;
-        D3IF_SCENE(d3_CurrentScene).cam = cam;
+        d3_Scenes[d3_CurrentScene].cam = cam;
         if (cam) {
-            D3IF_SCENE(d3_CurrentScene).campos.x = cam->pos.x;
-            D3IF_SCENE(d3_CurrentScene).campos.y = cam->pos.y;
-            D3IF_SCENE(d3_CurrentScene).campos.z = cam->pos.z;
-            D3IF_SCENE(d3_CurrentScene).camrot.x = cam->rotation.x;
-            D3IF_SCENE(d3_CurrentScene).camrot.y = cam->rotation.y;
-            D3IF_SCENE(d3_CurrentScene).camrot.z = cam->rotation.z;
+            d3_Scenes[d3_CurrentScene].campos.x = cam->pos.x;
+            d3_Scenes[d3_CurrentScene].campos.y = cam->pos.y;
+            d3_Scenes[d3_CurrentScene].campos.z = cam->pos.z;
+            d3_Scenes[d3_CurrentScene].camrot.x = cam->rotation.x;
+            d3_Scenes[d3_CurrentScene].camrot.y = cam->rotation.y;
+            d3_Scenes[d3_CurrentScene].camrot.z = cam->rotation.z;
         }
-        if (!D3IF_SCENE(index).first)
-            d3if_InitScene(&D3IF_SCENE(index));
-        d3_TopFirst = D3IF_SCENE(index).first;
+        if (!d3_Scenes[index].first)
+            d3if_InitScene(&d3_Scenes[index]);
+        d3_TopFirst = d3_Scenes[index].first;
         d3_Camera = 0;
-        d3_TopLast = D3IF_SCENE(index).last;
-        d3_ParHead = D3IF_SCENE(index).par1;
-        d3_ParTail = D3IF_SCENE(index).par2;
-        d3_Terrain = D3IF_SCENE(index).map;
-        d3_Sky = D3IF_SCENE(index).sky;
-        d3if_SceneState0 = D3IF_SCENE(index).state0;
-        d3if_SceneState1 = D3IF_SCENE(index).state1;
-        d3_SceneFlags = D3IF_SCENE(index).sceneFlags;
-        d3_AmbientColor.x = D3IF_SCENE(index).amb.x;
-        d3_AmbientColor.y = D3IF_SCENE(index).amb.y;
-        d3_AmbientColor.z = D3IF_SCENE(index).amb.z;
-        d3_SunColor.x = D3IF_SCENE(index).sun.x;
-        d3_SunColor.y = D3IF_SCENE(index).sun.y;
-        d3_SunColor.z = D3IF_SCENE(index).sun.z;
+        d3_TopLast = d3_Scenes[index].last;
+        d3_ParHead = d3_Scenes[index].parHead;
+        d3_ParTail = d3_Scenes[index].parTail;
+        d3_Terrain = d3_Scenes[index].map;
+        d3_Sky = d3_Scenes[index].sky;
+        d3if_SceneState0 = d3_Scenes[index].state0;
+        d3if_SceneState1 = d3_Scenes[index].state1;
+        d3_SceneFlags = d3_Scenes[index].sceneFlags;
+        d3_AmbientColor.x = d3_Scenes[index].amb.x;
+        d3_AmbientColor.y = d3_Scenes[index].amb.y;
+        d3_AmbientColor.z = d3_Scenes[index].amb.z;
+        d3_SunColor.x = d3_Scenes[index].sun.x;
+        d3_SunColor.y = d3_Scenes[index].sun.y;
+        d3_SunColor.z = d3_Scenes[index].sun.z;
         d3if_Gray = d3_AmbientColor.x * 0.3f + d3_AmbientColor.y * 0.59f + d3_AmbientColor.z * 0.11f;
-        D3_COPY_TO(offset d3if_Fog, D3IF_SCENE(index).fogs, sizeof(D3IF_SCENE(index).fogs));
-        D3_COPY_TO(offset d3if_Levels, D3IF_SCENE(index).levels, sizeof(D3IF_SCENE(index).levels));
+        D3_COPY_TO(offset d3if_Fog, d3_Scenes[index].fogs, sizeof(d3_Scenes[index].fogs));
+        D3_COPY_TO(offset d3if_Levels, d3_Scenes[index].levels, sizeof(d3_Scenes[index].levels));
         d3_CurrentScene = index;
-        d3_DefaultScene = (D3SCENE *)&D3IF_SCENE(index);
+        d3_DefaultScene = &d3_Scenes[index];
         if (d3if_LastMegaCam == d3if_MegaCam)
-            d3if_LastMegaCam = (int)D3IF_SCENE(index).cam;
-        d3if_MegaCam = (int)D3IF_SCENE(index).cam;
+            d3if_LastMegaCam = (int)d3_Scenes[index].cam;
+        d3if_MegaCam = (int)d3_Scenes[index].cam;
         if (d3if_MegaCam) {
-            d3_SetObjectPos((D3OBJECT *)d3if_MegaCam, &D3IF_SCENE(index).campos);
-            d3_SetObjectRot((D3OBJECT *)d3if_MegaCam, &D3IF_SCENE(index).camrot);
+            d3_SetObjectPos((D3OBJECT *)d3if_MegaCam, &d3_Scenes[index].campos);
+            d3_SetObjectRot((D3OBJECT *)d3if_MegaCam, &d3_Scenes[index].camrot);
             d3_SetCamera((D3OBJECT *)d3if_MegaCam);
         }
         if (!keep) {
@@ -520,7 +520,7 @@ char d3if_SelectScene(int index, char keep)  /* @original: the definition return
             }
             d3_SortPtr = d3_SortBuf;
             d3_SortCount = 0;
-            d3_SetFog(D3IF_SCENE(index).fog.start, D3IF_SCENE(index).fog.end, D3IF_SCENE(index).fog.col.c);
+            d3_SetFog(d3_Scenes[index].fog.start, d3_Scenes[index].fog.end, d3_Scenes[index].fog.col.c);
         }
     }
     if (!keep) {
@@ -542,7 +542,7 @@ char d3if_ClearScene(int index)
     char ret = 0;
     if (index >= 0 && index < 0x40) {
     if (index != d3_CurrentScene) {
-    if (D3IF_SCENE(index).first) {
+    if (d3_Scenes[index].first) {
         cur = d3_CurrentScene;
         d3if_SelectScene(index, 1);
         while (d3_TopFirst != &d3_ObjEnd)
@@ -557,9 +557,9 @@ char d3if_ClearScene(int index)
             d3sky_Destroy(d3_Sky);
             d3_Sky = 0;
         }
-        if (D3IF_SCENE(index).events) {
-            mem_Free(D3IF_SCENE(index).events);
-            D3IF_SCENE(index).events = 0;
+        if (d3_Scenes[index].events) {
+            mem_Free(d3_Scenes[index].events);
+            d3_Scenes[index].events = 0;
         }
         d3_SceneFlags = 0;
         d3if_MegaCam = 0;
@@ -581,7 +581,7 @@ char d3if_MoveCB(D3OBJECT *obj, D3IFMOVE *m)
 
     d3_ForEachObject((D3SCENE *)m->from, 0, 7, (D3OBJECTCB)d3_LightRemoveRecords, obj);
     obj->scene = (D3SCENE *)m->to;
-    for (p = m->from->par1; p != &d3_ParEnd; p = next) {
+    for (p = m->from->parHead; p != &d3_ParEnd; p = next) {
         next = p->next;
         if (p->parent == obj)
             par_Delete(p);
@@ -590,7 +590,7 @@ char d3if_MoveCB(D3OBJECT *obj, D3IFMOVE *m)
 }
 /* 0x447fd0, moves the top-level object `obj` (with its children) from scene `from` to the end of scene `to` */
 
-char d3if_MoveObject(D3OBJECT *obj, D3IFSCENE *from, D3IFSCENE *to)
+char d3if_MoveObject(D3OBJECT *obj, D3SCENE *from, D3SCENE *to)
 {
     D3IFMOVE m;
     D3OBJECT *o;
@@ -599,11 +599,11 @@ char d3if_MoveObject(D3OBJECT *obj, D3IFSCENE *from, D3IFSCENE *to)
         return 0;
     if (from == to)
         return 1;
-    if (from == (D3IFSCENE *)d3_DefaultScene) {
+    if (from == d3_DefaultScene) {
         from->first = d3_TopFirst;
         from->last = d3_TopLast;
-        from->par1 = d3_ParHead;
-        from->par2 = d3_ParTail;
+        from->parHead = d3_ParHead;
+        from->parTail = d3_ParTail;
     }
     for (o = from->first; o != &d3_ObjEnd; o = o->next)
         if (o == obj)
@@ -618,20 +618,20 @@ char d3if_MoveObject(D3OBJECT *obj, D3IFSCENE *from, D3IFSCENE *to)
         from->last = obj->prev;
     else
         obj->next->prev = obj->prev;
-    if (from == (D3IFSCENE *)d3_DefaultScene) {
+    if (from == d3_DefaultScene) {
         d3_TopFirst = from->first;
         d3_TopLast = from->last;
-        d3_ParHead = from->par1;
-        d3_ParTail = from->par2;
+        d3_ParHead = from->parHead;
+        d3_ParTail = from->parTail;
     }
     m.from = from;
     m.to = to;
     d3_ForEachObject((D3SCENE *)from, obj, 0x3ff, (D3OBJECTCB)d3if_MoveCB, &m);
-    if (to == (D3IFSCENE *)d3_DefaultScene) {
+    if (to == d3_DefaultScene) {
         to->first = d3_TopFirst;
         to->last = d3_TopLast;
-        to->par1 = d3_ParHead;
-        to->par2 = d3_ParTail;
+        to->parHead = d3_ParHead;
+        to->parTail = d3_ParTail;
     } else if (!to->first)
         d3if_InitScene(to);
     obj->next = &d3_ObjEnd;
@@ -640,11 +640,11 @@ char d3if_MoveObject(D3OBJECT *obj, D3IFSCENE *from, D3IFSCENE *to)
     obj->prev = o;
     to->last = obj;
     d3_InflateObject(obj);
-    if (to == (D3IFSCENE *)d3_DefaultScene) {
+    if (to == d3_DefaultScene) {
         d3_TopFirst = to->first;
         d3_TopLast = to->last;
-        d3_ParHead = to->par1;
-        d3_ParTail = to->par2;
+        d3_ParHead = to->parHead;
+        d3_ParTail = to->parTail;
     }
     return 1;
 }
@@ -1635,7 +1635,7 @@ void d3_SaveScene(char *name, VFSFILE *f)
         bio_wr_i(out, ((D3IFBITS *)&d3if_Gray)->bits);
         bio_wr_v3(out, (int *)&d3_AmbientColor);
         bio_wr_v3(out, (int *)&d3_SunColor);
-        bio_wr_i(out, ((D3IFSCENE *)d3_DefaultScene)->mapSize);
+        bio_wr_i(out, d3_DefaultScene->mapSize);
         bio_wr_i(out, d3_fog_color.col);
         bio_wr_i(out, ((D3IFBITS *)&d3_FogStart1)->bits);
         bio_wr_i(out, ((D3IFBITS *)&d3_FogEnd2)->bits);
@@ -1657,7 +1657,7 @@ void d3_SaveScene(char *name, VFSFILE *f)
         bio_wr_c(out, d3_Terrain != 0);
         if (d3_Terrain)
             d3_WriteMap(out, d3_Terrain);
-        d3e_SaveEvents(out, ((D3IFSCENE *)d3_DefaultScene)->events);
+        d3e_SaveEvents(out, d3_DefaultScene->events);
         if (!f)
             vfs_fclose(out);
     }

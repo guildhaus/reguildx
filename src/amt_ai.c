@@ -345,13 +345,13 @@ int ai_GetDesireByName(char *s)
 
 int ai_EvalMoodWeights(float *a, float *b, int i, AICHAR *p, int f, void *x, void *y)
 {
-    G5ACT *act;
+    AIACT *act;
     float d1, d2;
     int k, found;
 
     *a = 0.0f;
     *b = 0.0f;
-    act = &G5_ACTS[i];
+    act = &ai_Actions[i];
     if (act->flags & G7_MASK(p)) {
         d1 = 40.0f;
         d2 = 50.0f;
@@ -383,13 +383,13 @@ int ai_EvalMoodWeights(float *a, float *b, int i, AICHAR *p, int f, void *x, voi
 
 int ai_EvalCurrentNeed(float *a, float *b, int i, AICHAR *p, int f, void *x, void *y)
 {
-    G5ACT *act;
+    AIACT *act;
     float d1;
     int k, found;
 
     *a = 0.0f;
     *b = 0.0f;
-    act = &G5_ACTS[i];
+    act = &ai_Actions[i];
     if (act->flags & G7_MASK(p)) {
         d1 = 40.0f;
         found = 1;
@@ -419,7 +419,7 @@ int ai_EvalCurrentNeed(float *a, float *b, int i, AICHAR *p, int f, void *x, voi
 
 int ai_EvalGuiltWeights(float *a, float *b, int i, AICHAR *p, AIDEC *dec)
 {
-    G5ACT *act;
+    AIACT *act;
     float v, rank, d1, d2;
     int n, k, found;
 
@@ -431,7 +431,7 @@ int ai_EvalGuiltWeights(float *a, float *b, int i, AICHAR *p, AIDEC *dec)
     rank = ((float)n + v) * (p->mood[11][0] - 2.0f);
     *a = 0.0f;
     *b = 0.0f;
-    act = &G5_ACTS[i];
+    act = &ai_Actions[i];
     if (act->flags & G7_MASK(p)) {
         d1 = 40.0f;
         d2 = 50.0f;
@@ -497,16 +497,17 @@ int ai_RepairCost(AIBLD *b, int k)
    vs ours +0x80); the fallback counter is ebx in the original, ecx in ours (0x4a50e0: + mov ebx,edi before
    the call / - mov ecx,edi after it) */
 
-int ai_PickBuildSite(AICHAR *p, int name)
+D3OBJECT *ai_PickBuildSite(AICHAR *p, int name)
 {
     int scene = d3_CurrentScene;
     char buf[64];
-    int list[256];
+    D3OBJECT *list[256];
     float o[4];                         /* the positions d3_PointToWorld writes: 16-byte slots in the original's frame */
     float q[4];
     float dx, dy, dz, d, best;
     struct D3OBJECT *obj;
-    int n, i, r;
+    int n, i;
+    D3OBJECT *r;
     unsigned int k;
 
     d3if_SelectScene(0, 1);
@@ -521,7 +522,7 @@ int ai_PickBuildSite(AICHAR *p, int name)
                 best = 1e21f;
                 for (i = 0; i < n; i++) {
                     if (list[i] != 0) {
-                        d3_PointToWorld((D3OBJECT *)list[i], &((D3OBJECT *)list[i])->pos, (D3VECTOR *)q);
+                        d3_PointToWorld(list[i], &list[i]->pos, (D3VECTOR *)q);
                         dx = q[0] - o[0];
                         dy = q[1] - o[1];
                         dz = q[2] - o[2];
@@ -541,7 +542,7 @@ int ai_PickBuildSite(AICHAR *p, int name)
                 best = 1e21f;
                 for (i = 0; i < n; i++) {
                     if (list[i] != 0) {
-                        d3_PointToWorld((D3OBJECT *)list[i], &((D3OBJECT *)list[i])->pos, (D3VECTOR *)q);
+                        d3_PointToWorld(list[i], &list[i]->pos, (D3VECTOR *)q);
                         dx = q[0] - o[0];
                         dy = q[1] - o[1];
                         dz = q[2] - o[2];
@@ -577,6 +578,7 @@ int ai_CanBuildType(int a, AICHAR *p, int b, AIARG *s1, AIARG *s2, int f)
     int q[0x88];
     AIBLD *h;
     int k, r;
+    D3OBJECT *site;
 
     memset(q, 0, sizeof(q));
     q[0] = 1;
@@ -609,10 +611,10 @@ int ai_CanBuildType(int a, AICHAR *p, int b, AIARG *s1, AIARG *s2, int f)
     }
     if (f == 0)
         return 1;
-    r = ai_PickBuildSite(p, s1->ref);
-    if (r == 0)
+    site = ai_PickBuildSite(p, s1->ref);
+    if (site == 0)
         return 0;
-    s2->ref = r;
+    s2->plot = site;
     s2->kind = 0xc;
     s2->arg = 1;
     return 1;
@@ -626,13 +628,14 @@ int ai_ExecBuildBuilding(AICHAR *p, AIARG *s1, AIARG *s2)
     char name[0x104];
     char path[0x104];
     char found[0x100];
-    int plot, alt, ok;
+    D3OBJECT *plot;
+    int alt, ok;
 
     if (s1->kind != 5)
         return 0;
     if (s2->kind != 0xc)
         return 0;
-    plot = s2->ref;
+    plot = s2->plot;
     strcpy(name, "gb_");
     strcat(name, ai_BTypes[s1->ref].name);
     strupr(name + 2);

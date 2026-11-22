@@ -30,22 +30,6 @@
 
 int rt_MarkGroup = -1;                  /* 0x602a90 */
 extern RTMARK rt_Marks[8];
-/* txt_InfoPanelButtons: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PanelBtnCart: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_RouteLoadHead: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_RouteUnloadHead: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_RouteEditPoint: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_RouteAddPoint: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_RouteSettings: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_RouteOk: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_RouteDeletePoint: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_RouteNew: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PatrolLevel0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PatrolLevel1: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PatrolLevel2: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PatrolLevel3: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PatrolLevel4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PatrolToggle: view of txt_Ptrs (build/mk_txt_views.py) */
 struct D2SURF *rt_MapSaved = 0;  /* 0x6f074c, rt_EditCartRoute's copy of rt_MapSurface, blitted back at its end */
 int rt_MarkCount = 0;  /* 0x6f0750, the marks used */
 int rt_PickedBuilding = 0;  /* 0x6f0754, the building shown */
@@ -317,7 +301,7 @@ int rt_ChooseGoodsDialog(AIBLD *b, int x, int def)
                 d2_Objs[o].icon = 0x525;
                 d2_Objs[o].captionX = 4;
                 d2_Objs[o].captionY = 0xf;
-                sprintf(d2_Objs[o].caption, "%s", (char *)txt_ObjectNames[gm_KindObjs[n]][0]);
+                sprintf(d2_Objs[o].caption, "%s", txt_Ptrs[TXT_OBJECT_NAMES + 2 * gm_KindObjs[n]]);
                 n++;
             }
         }
@@ -405,7 +389,7 @@ int rt_ChooseRouteGood(int x, RTPOINT *p)
     di_ClearButtons();
     return ret;
 }
-/* 0x4be3b0, the dialog "misc\routing_choose_good_enhanced" for building b with seven tabs (txt_InfoPanelButtons;
+/* 0x4be3b0, the dialog "misc\routing_choose_good_enhanced" for building b with seven tabs (TXT_INFO_PANEL_BUTTONS;
    each keeps the building's store of stock kind 0x95, 0x92, 0x93, 0x94, 0x97, 0x96, 0x2db in its object's user
    field; title "$Z%2N3$A%1G" with the owner): the goods the store of the tab picked holds (the building's own
    object 0xff when it has none), four to a row, then "none" (picture 0x527). Runs until a pick, a right click or
@@ -449,7 +433,7 @@ unsigned int rt_ChooseTabGood(AIBLD *b, int x, unsigned int def)
     d2_SetForm(w, 3);
     g = d2_CreateRadioGroup(0);
     for (i = 0, y = 4; y < 0xd6; i++, y += 0x1e) {
-        o = sv_AddPanelButton(0, y, txt_InfoPanelButtons[i]);
+        o = sv_AddPanelButton(0, y, txt_Ptrs[TXT_INFO_PANEL_BUTTONS + i]);
         tabs[i] = o;
         d2_Objs[o].user = gm_Query(b->objList, 2, 6, 0, kinds[i]);
         d2_RadioAdd(g, o);
@@ -507,7 +491,7 @@ unsigned int rt_ChooseTabGood(AIBLD *b, int x, unsigned int def)
 /* 0x4be790, the controls of one good slot (k 0..2) of a route point: a slider (gm_ListStock(a, good) steps) and the
    good's picture with its name; out = {-1, picture, slider}; returns the picture */
 
-int rt_OpenSlotControls(AIOBJ *cart, int a, int good, int k, int x, int y, int win, int *out)
+int rt_OpenSlotControls(AIOBJ *cart, AIOBJ *a, int good, int k, int x, int y, int win, int *out)
 {
     int offs[9];
     int s;
@@ -536,7 +520,7 @@ int rt_OpenSlotControls(AIOBJ *cart, int a, int good, int k, int x, int y, int w
     d2_Objs[o].style = 0x22;
     d2_Objs[o].captionX = 4;
     d2_Objs[o].captionY = 0xf;
-    sprintf(d2_Objs[o].caption, "%s", (char *)txt_ObjectNames[good][0]);
+    sprintf(d2_Objs[o].caption, "%s", txt_Ptrs[TXT_OBJECT_NAMES + 2 * good]);
     return o;
 }
 /* 0x4be8e0, removes the three controls of out (0x4be790) */
@@ -611,12 +595,12 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
     d2_SetForm(w, 1);
     io_PrintText((intptr_t)"$Z%2N3$A%1G", bld->owner, bld);
     d2_SetForm(w, 3);
-    sv_ButtonRow(d2_LastWindow, 0, btns, 2, txt_RouteOk, txt_RouteDeletePoint);
+    sv_ButtonRow(d2_LastWindow, 0, btns, 2, txt_Ptrs[TXT_ROUTE_OK], txt_Ptrs[TXT_ROUTE_DELETE_POINT]);
     ok = btns[0];
     del = btns[1];
     n = cnt[cart->id - 0x134];
     s = gm_Query(cart->list, 1, 0, 0x1dd);
-    a = gm_ListStock((int)s, 0);
+    a = gm_ListStock(s, 0);
     for (i = 0; i < 3; i++)
         objs1[i] = -1;
     for (i = 0; i < 3; i++)
@@ -626,11 +610,11 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
         rt_InitControls(unloadCtls[i]);
     }
     d2_WinOpenPic(0x6e, 0x1a, cart->id + 0x4ae, v2);
-    o = d2_CreateWinText(0x6e, 2, txt_RouteLoadHead, v2);
+    o = d2_CreateWinText(0x6e, 2, txt_Ptrs[TXT_ROUTE_LOAD_HEAD], v2);
     d2_Objs[o].centred = 1;
     d2_Objs[o].w = 0xcd;
     d2_WinOpenPic(0x6e, 0x88, cart->id + 0x4ae, v2);
-    o = d2_CreateWinText(0x6e, 0x70, txt_RouteUnloadHead, v2);
+    o = d2_CreateWinText(0x6e, 0x70, txt_Ptrs[TXT_ROUTE_UNLOAD_HEAD], v2);
     d2_Objs[o].centred = 1;
     d2_Objs[o].w = 0xcd;
     if (n > 0) {
@@ -664,7 +648,7 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
             d2_SetObjEnabled(del, 0);
         for (i = 0; i < 3; i++) {
             if (loadCtls[i][1] == -1 && p->loadSlots[i * 2] != 0) {
-                rt_OpenSlotControls(cart, (int)s, p->loadSlots[i * 2], i, 0, 0, v2, loadCtls[i]);
+                rt_OpenSlotControls(cart, s, p->loadSlots[i * 2], i, 0, 0, v2, loadCtls[i]);
                 d2_SetObjValue(loadCtls[i][1], 1, a, p->loadSlots[i * 2 + 1] < 1 ? 1 : p->loadSlots[i * 2 + 1]);
             }
             if (loadCtls[i][2] != -1)
@@ -672,7 +656,7 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
         }
         for (i = 0; i < 3; i++) {
             if (unloadCtls[i][1] == -1 && p->unloadSlots[i * 2] != 0) {
-                rt_OpenSlotControls(cart, (int)s, p->unloadSlots[i * 2], i, 0, 0x6e, v2, unloadCtls[i]);
+                rt_OpenSlotControls(cart, s, p->unloadSlots[i * 2], i, 0, 0x6e, v2, unloadCtls[i]);
                 d2_SetObjValue(unloadCtls[i][1], 1, a, p->unloadSlots[i * 2 + 1] < 1 ? 1 : p->unloadSlots[i * 2 + 1]);
             }
             if (unloadCtls[i][2] != -1)
@@ -746,8 +730,8 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
     d2_EnableViewObjects(*win, 1);
 }
 /* 0x4bf080, the dialog "misc\routing_settings" for cart c (title text 0x42e2): a 5-step slider for c->patrolLevel
-   (txt_PatrolLevel0..4), the button txt_RouteNew that starts a new route at c's building (its mark on the town map
-   window win), the button txt_PatrolToggle[c->patrolOn] that toggles c->patrolOn (text 0x42ec + patrolOn shows the
+   (TXT_PATROL_LEVEL_0..4), the button TXT_ROUTE_NEW that starts a new route at c's building (its mark on the town map
+   window win), the button TXT_PATROL_TOGGLE + c->patrolOn that toggles c->patrolOn (text 0x42ec + patrolOn shows the
    state); changes go out as field updates */
 
 void rt_CartSettingsDialog(AIOBJ *c, char *win)
@@ -767,20 +751,20 @@ void rt_CartSettingsDialog(AIOBJ *c, char *win)
     d2_SetForm(w, 4);
     io_PrintText(c->patrolOn + 0x42ec);
     d2_SetForm(w, 3);
-    sv_ButtonRow(d2_LastWindow, 0, btns, 3, txt_RouteOk, txt_RouteNew, txt_PatrolToggle[c->patrolOn]);
+    sv_ButtonRow(d2_LastWindow, 0, btns, 3, txt_Ptrs[TXT_ROUTE_OK], txt_Ptrs[TXT_ROUTE_NEW], txt_Ptrs[TXT_PATROL_TOGGLE + c->patrolOn]);
     ok = btns[0];
     renew = btns[1];
     toggle = btns[2];
-    d2_SetCaption(toggle, txt_PatrolToggle[c->patrolOn]);
+    d2_SetCaption(toggle, txt_Ptrs[TXT_PATROL_TOGGLE + c->patrolOn]);
     d2_SetObjValue(sl, 0, 4, c->patrolLevel);
     d2_SetSliderFlags(sl, 0x82);
-    d2_SetList(sl, 5, txt_PatrolLevel0, txt_PatrolLevel1, txt_PatrolLevel2, txt_PatrolLevel3, txt_PatrolLevel4);
+    d2_SetList(sl, 5, txt_Ptrs[TXT_PATROL_LEVEL_0], txt_Ptrs[TXT_PATROL_LEVEL_1], txt_Ptrs[TXT_PATROL_LEVEL_2], txt_Ptrs[TXT_PATROL_LEVEL_3], txt_Ptrs[TXT_PATROL_LEVEL_4]);
     while (sv_RunFrame(rt_CartSettingsDialog, 0x657c7)) {
         if (dm_L.rup != 0 || d2_ClickedId != -1 && d2_PointerObj == ok)
             sv_PopRequest = 1;
         d2_SetForm(w, 4);
         io_PrintText(c->patrolOn + 0x42ec);
-        d2_SetCaption(toggle, txt_PatrolToggle[c->patrolOn]);
+        d2_SetCaption(toggle, txt_Ptrs[TXT_PATROL_TOGGLE + c->patrolOn]);
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == renew) {
                 int i;
@@ -804,7 +788,7 @@ void rt_CartSettingsDialog(AIOBJ *c, char *win)
                 unsigned char v;
 
                 v = c->patrolOn == 0;
-                cm_BeginFieldBlock((char *)c, c->objId);
+                cm_BeginFieldBlock(c, c->objId);
                 cm_AddFieldValue(1, 1, (char *)c - cm_FieldObject + 0x33, &v);
                 cm_SendFieldValues();
             }
@@ -814,7 +798,7 @@ void rt_CartSettingsDialog(AIOBJ *c, char *win)
         unsigned char v;
 
         v = (unsigned char)d2_GetObjValue(sl);
-        cm_BeginFieldBlock((char *)c, c->objId);
+        cm_BeginFieldBlock(c, c->objId);
         cm_AddFieldValue(1, 1, (char *)c - cm_FieldObject + 0x31, &v);
         cm_SendFieldValues();
     }
@@ -902,9 +886,9 @@ void rt_HighlightRoute(RTPOINT *p, LCMAPWIN *m)
     }
 }
 /* 0x4bf5b0, the route editor for cart c on the town map window (ai_OpenTownMap / ai_UpdateTownMap /
-   ai_CloseMapWindow; title txt_PanelBtnCart): a copy of c's route (one point at c's building if it has none, and
-   c->patrolOn set), a mark per point, the tab buttons txt_RouteEditPoint (rt_EditPointDialog on the selected
-   point), txt_RouteAddPoint (adds the building picked on the map) and txt_RouteSettings (rt_CartSettingsDialog); at
+   ai_CloseMapWindow; title TXT_PANEL_BTN_CART): a copy of c's route (one point at c's building if it has none, and
+   c->patrolOn set), a mark per point, the tab buttons TXT_ROUTE_EDIT_POINT (rt_EditPointDialog on the selected
+   point), TXT_ROUTE_ADD_POINT (adds the building picked on the map) and TXT_ROUTE_SETTINGS (rt_CartSettingsDialog); at
    the end the route goes to c (cm_SendSetRoute), or with fewer than two points c's route is cleared and
    c->patrolOn reset. rt_MapSurface is saved before and restored after */
 
@@ -924,14 +908,14 @@ void rt_EditCartRoute(AIOBJ *c)
     if (c == 0)
         return;
     rt_EditRoute = rt_CopyPoints(c->route);
-    memset(m.req, 0, sizeof(m.req));
-    m.req[1] = 0x400;
-    m.req[4] = 0;
-    m.req[3] = 0x40000001;
-    m.req[2] = 0xb07d7fb0;
+    memset(&m.req, 0, sizeof(m.req));
+    m.req.mode = 0x400;
+    m.req.kind = 0;
+    m.req.classMask[1] = 0x40000001;
+    m.req.classMask[0] = 0xb07d7fb0;
     m.flags = 0x10;
-    m.req[0x13] = 0x723;
-    strcpy(m.name, txt_PanelBtnCart);
+    m.req.option4c = 0x723;
+    strcpy(m.name, txt_Ptrs[TXT_PANEL_BTN_CART]);
     ai_OpenTownMap(&m);
     ai_BuildTownMap(&m);
     rt_MapSaved = d2_CopySurface(rt_MapSurface);
@@ -942,7 +926,7 @@ void rt_EditCartRoute(AIOBJ *c)
     }
     if (rt_EditRoute == 0) {
         v = 1;
-        cm_BeginFieldBlock((char *)c, c->objId);
+        cm_BeginFieldBlock(c, c->objId);
         cm_AddFieldValue(1, 1, (char *)c - cm_FieldObject + 0x33, &v);
         cm_SendFieldValues();
         rt_EditRoute = rt_AddPoint(0);
@@ -956,7 +940,7 @@ void rt_EditCartRoute(AIOBJ *c)
             rt_PutRouteMark(&m, (int)c, rt_EditRoute, q);
     }
     d2_SetForm(m.view, 2);
-    sv_TabButtonRow(d2_LastWindow, 5, btns, 3, txt_RouteEditPoint, txt_RouteAddPoint, txt_RouteSettings);
+    sv_TabButtonRow(d2_LastWindow, 5, btns, 3, txt_Ptrs[TXT_ROUTE_EDIT_POINT], txt_Ptrs[TXT_ROUTE_ADD_POINT], txt_Ptrs[TXT_ROUTE_SETTINGS]);
     edit = btns[0];
     add = btns[1];
     settings = btns[2];
@@ -1011,7 +995,7 @@ void rt_EditCartRoute(AIOBJ *c)
     else {
         v = 0;
         cm_SendClearRoute(c);
-        cm_BeginFieldBlock((char *)c, c->objId);
+        cm_BeginFieldBlock(c, c->objId);
         cm_AddFieldValue(1, 1, (char *)c - cm_FieldObject + 0x33, &v);
         cm_SendFieldValues();
     }
@@ -1037,8 +1021,8 @@ void rt_UnloadAtPoint(char *c, char pl)
     AIBLD *b;
     char *t;
     short *o;
-    char *st;
-    unsigned short *g;
+    AIOBJ *st;
+    AIOBJ *g;
     int *s;
     int k;
     int n;
@@ -1066,23 +1050,23 @@ void rt_UnloadAtPoint(char *c, char pl)
             else if (*t == 0x1c)
                 st = gm_Query(b->objList, 2, 0, 0x1db, 6);
             else
-                st = (char *)bi.pada8[3];
-            g = gm_Query(((AIOBJ *)ci.pada8[3])->list, 1, 0, s[0]);
+                st = bi.stall;
+            g = gm_Query(ci.stall->list, 1, 0, s[0]);
             if (g != 0) {
                 n = s[1];
-                if (n >= gm_ListAmount((char *)ci.pada8[3], g))
-                    n = gm_ListAmount((char *)ci.pada8[3], g);
+                if (n >= gm_ListAmount(ci.stall, g))
+                    n = gm_ListAmount(ci.stall, g);
                 n = gm_FreeCapacity(st, s[0], n);
                 if (n > 0) {
                     price = 0;
                     if ((short)(b)->owner != *o) {
                         if (*t == 10)
-                            price = (int)(gm_GoodsPrice(*g, ai_OwnPlayer) * 1.1f);
+                            price = (int)(gm_GoodsPrice(g->id, ai_OwnPlayer) * 1.1f);
                         else
-                            price = (int)(gm_GoodsPrice(*g, ai_OwnPlayer) * b->priceFactor);
+                            price = (int)(gm_GoodsPrice(g->id, ai_OwnPlayer) * b->priceFactor);
                     }
                     if (gm_CharCurrency(o, pl) >= price * n)
-                        cm_SendExSellObject(((AIOBJ *)st)->objId, ((AIOBJ *)ci.pada8[3])->objId, s[0], n, pl, price);
+                        cm_SendExSellObject(st->objId, ci.stall->objId, s[0], n, pl, price);
                 }
             }
         }
@@ -1102,7 +1086,7 @@ void rt_LoadAtPoint(AIOBJ *c, char pl)
     AIBLD *b;
     AIBTYPE *t;
     AIOBJ *st;
-    unsigned short *g;
+    AIOBJ *g;
     int *s;
     int k;
     int n;
@@ -1127,24 +1111,24 @@ void rt_LoadAtPoint(AIOBJ *c, char pl)
         if (s[0] != 0) {
             price = 0;
             if (t->kind == 10)
-                st = (AIOBJ *)gm_FindMarketObject(s[0]);
+                st = gm_FindMarketObject(s[0]);
             else if (t->kind == 0x1c)
                 st = gm_Query(b->objList, 2, 0, 0x1dc, 6);
             else
-                st = (AIOBJ *)bi.pada8[3];
-            g = (unsigned short *)gm_Query(st->list, 1, 0, s[0]);
+                st = bi.stall;
+            g = gm_Query(st->list, 1, 0, s[0]);
             if (g != 0) {
                 n = s[1];
-                if (n >= gm_ListAmount((char *)st, g))
-                    n = gm_ListAmount((char *)st, g);
-                n = gm_FreeCapacity((char *)ci.pada8[3], s[0], n);
+                if (n >= gm_ListAmount(st, g))
+                    n = gm_ListAmount(st, g);
+                n = gm_FreeCapacity(ci.stall, s[0], n);
                 if (b->owner != o->id) {
                     if (t->kind == 10)
-                        price = (int)(gm_GoodsPrice(*g, ai_OwnPlayer) * 1.1f);
+                        price = (int)(gm_GoodsPrice(g->id, ai_OwnPlayer) * 1.1f);
                     else if (t->kind == 0x1c)
-                        price = (int)(gm_GoodsPrice(*g, b->playerSlot) * 1.1f);
+                        price = (int)(gm_GoodsPrice(g->id, b->playerSlot) * 1.1f);
                     else
-                        price = (int)(gm_GoodsPrice(*g, ai_OwnPlayer) * b->priceFactor);
+                        price = (int)(gm_GoodsPrice(g->id, ai_OwnPlayer) * b->priceFactor);
                 }
                 if (n > 0) {
                     if (gm_CharCurrency(o, pl) < n * price) {
@@ -1152,7 +1136,7 @@ void rt_LoadAtPoint(AIOBJ *c, char pl)
                         txt_Format(buf, 0x42f0, name, 0xc14, name, pl);
                         he_ShowNews(o->netId, -1, buf, 0, 0x5ef, ch_EmptyName);
                     }
-                    cm_SendExSellObject(((AIOBJ *)ci.pada8[3])->objId, st->objId, s[0], n, pl, price);
+                    cm_SendExSellObject(ci.stall->objId, st->objId, s[0], n, pl, price);
                 }
             }
         }

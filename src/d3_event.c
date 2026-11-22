@@ -69,11 +69,13 @@ extern D3INITCFG d3_Cfg;
 extern D3PARTSYS d3_ParEnd;
 void d3fl_FreeMap(struct D3FLMAP *map);     /* 0x43ff90, d3_fl.c (d3.h types d3_Terrain as void *) */
 
+int d3e_NoHandler(void *obj, int id, char *name, int arg);  /* the unlinked handler at the end (ai_AlwaysTrue in the exe) */
+
 /* 0x43e6b0, default for d3e_Resolve: the handler of an event, by name */
 
 D3EVHANDLER d3e_DefaultResolve(void *obj, int id, char *name)
 {
-    return (D3EVHANDLER)ai_AlwaysTrue;
+    return &d3e_NoHandler;
 }
 
 /* 0x5fb800 */
@@ -224,4 +226,11 @@ void d3e_LoadSceneEvents(void *f)
         bio_rd_s(f, hname);
         d3e_RegisterSceneEvent(d3_DefaultScene, id, d3e_Resolve(d3_DefaultScene, id, hname), hname);
     }
+}
+
+/* unlinked: the handler d3e_DefaultResolve gives every event (returns 1); LINK folds it (/OPT:ICF) into ai_AlwaysTrue,
+   0x4a8c10, where the original's reference in d3e_DefaultResolve points */
+int d3e_NoHandler(void *obj, int id, char *name, int arg)
+{
+    return 1;
 }

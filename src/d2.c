@@ -790,7 +790,7 @@ int d2_WinOpenInputIcon(int x, int y, int icon, unsigned char flags, int win)
         w->contentHeight = y + 4;
     return obj;
 }
-/* 0x469fe0, puts string number str (d2_Strings) into the input's text buffer, in front of the window text */
+/* 0x469fe0, puts string number str (txt_Ptrs) into the input's text buffer, in front of the window text */
 
 void d2_InputSetString(int in, int str)
 {
@@ -1298,7 +1298,7 @@ void d2_SetSliderFlags(int id, int flags)
 }
 /* 0x46be00, creates a slider widget */
 
-int d2_CreateSlider(int x, int y, int kind, int unk)
+int d2_CreateSlider(int x, int y, int kind, char *caption)
 {
     int id;
 
@@ -1316,17 +1316,17 @@ int d2_CreateSlider(int x, int y, int kind, int unk)
     d2_Objs[id].clipx1 = d2_ScreenW;
     d2_Objs[id].font = d2_DefaultFont;
     d2_Objs[id].data = d2_GetPic(kind);
-    d2_SetCaption(id, (char *)unk);
+    d2_SetCaption(id, caption);
     d2_AddRefcount(kind);
     return id;
 }
 /* 0x46bf10, creates a slider in a dialog (position relative to the dialog) */
 
-int d2_WinCreateSlider(int x, int y, int kind, int unk, int dlg)
+int d2_WinCreateSlider(int x, int y, int kind, char *caption, int dlg)
 {
     int id;
 
-    id = d2_CreateSlider(d2_Wins[dlg].x + x, d2_Wins[dlg].y + y, kind, unk);
+    id = d2_CreateSlider(d2_Wins[dlg].x + x, d2_Wins[dlg].y + y, kind, caption);
     d2_AddToWin(id, dlg);
     return id;
 }
@@ -3156,7 +3156,7 @@ void d2_DrawWindowText(void *surf, int win)
                             hasinputs = 1;
                             if (w->args[argi] == -1) {
                                 k = d2_FindPic("_BUTTON_RED");
-                                id = d2_WinCreateSlider(cm_PickCellX - w->x, cm_PickCellZ - w->y, k, (int)ch_EmptyName, win);
+                                id = d2_WinCreateSlider(cm_PickCellX - w->x, cm_PickCellZ - w->y, k, ch_EmptyName, win);
                                 if (w->text[pos + 2] == '[') {
                                     char buf512[512];
                                     D3_ZERO(buf512, 0x200);
@@ -4784,7 +4784,7 @@ int d2_OpenForm(short x, short y, char *name)
                 if (strcmp(r->name[k], "") != 0) {
                     idx = txt_FindKey(r->name[k]);
                     if (idx != -1) {
-                        o = d2_CreateWinText(r->ix[k], r->iy[k], d2_Strings[idx], win);
+                        o = d2_CreateWinText(r->ix[k], r->iy[k], txt_Ptrs[idx], win);
                         d2_Objs[o].pic = txt_FindKey(r->name[k]);
                         d2_Objs[o].buf = (D2CTRL *)&d2_Views[view];
                     }
@@ -4807,7 +4807,7 @@ int d2_OpenForm(short x, short y, char *name)
         else {
             idx = txt_FindKey(r->key);
             if (idx != -1)
-                strcpy(ww->text, d2_Strings[idx]);
+                strcpy(ww->text, txt_Ptrs[idx]);
             ((int *)ww)[0x90] = idx;
         }
         if (ver == 0) {

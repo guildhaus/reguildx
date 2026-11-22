@@ -840,8 +840,8 @@ int ahm_CreateAlchemist(AHMCREATEMSG *m)
     for (i = 0; i < 5; i++)
         c->skills[i] = (unsigned char)(util_Random(0x40) + 0x54);
     c->sex = 0;
-    strcpy(c->first, ai_AlchemistFirstNames[m->x]);
-    strcpy(c->family, ai_AlchemistFamilyNames[m->y]);
+    strcpy(c->first, txt_Ptrs[TXT_ALCHEMIST_FIRST_NAMES + m->x]);
+    strcpy(c->family, txt_Ptrs[TXT_ALCHEMIST_FAMILY_NAMES + m->y]);
     c->f01c = 1000.0f;
     v = util_RandomSq();
     c->f020 = 12.0f;
@@ -1171,8 +1171,6 @@ extern struct AIBTYPE *ai_BTypes;
 extern signed char ai_Relations[768][768];
 extern signed char ai_RelationMemory[768][768];
 int ahm_Tab[8] = { 1, 3, 7, 11, 13, 17, 19, 21 };  /* 0x60f1b0 */
-/* ai_AlchemistFirstNames: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_AlchemistFamilyNames: view of txt_Ptrs (build/mk_txt_views.py) */
 int ai_WalkX = 0;  /* 0x6f0dc8 */
 int ai_WalkDX = 0;  /* 0x6f0dcc */
 int ai_WalkY = 0;  /* 0x6f0dd0 */

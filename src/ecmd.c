@@ -1171,68 +1171,7 @@ int ocmd_SetParticlePos(D3PARTSYS **ps, int *x, int *y, int *z)
 /* ---- 0x40f960.. (worker sndreg) ---- */
 /* handlers registered by ocmd_Register; defined above by workers ocmd / ocmd2 (prototypes here are
    address placeholders, the orchestrator reconciles them with the real definitions) */
-int ocmd_CreateObject();  /* 0x40d8d0 */
-int ocmd_CreateObjectAtDummy();  /* 0x40d940 */
-int ocmd_CreateObjectGroupAtDummy();  /* 0x40d9a0 */
-int ocmd_KillObject();  /* 0x40da10 */
-int ocmd_SetPos();  /* 0x40da50 */
-int ocmd_SetAngle();  /* 0x40dab0 */
-int ocmd_MoveObject();  /* 0x40db30 */
-int ocmd_RotateObject();  /* 0x40dbb0 */
-int ocmd_MoveObjectRelative();  /* 0x40dc30 */
-int ocmd_RotateObjectRelative();  /* 0x40dcb0 */
-int ocmd_SetAmbiente();  /* 0x40dd50 */
-int ocmd_LightCalc();  /* 0x40dd90 */
-int ocmd_ReplaceObject();  /* 0x40ddb0 */
-int ocmd_LoadScene();  /* 0x40ddf0 */
-int ocmd_AttachAnim();  /* 0x40de30 */
-int ocmd_PreloadAnim();  /* 0x40dfc0 */
-int ocmd_AttachAnimLooped();  /* 0x40e0e0 */
-int ocmd_AttachAnimLoopedToAll();  /* 0x40e430 */
-int ocmd_DetachAnimFromAll();  /* 0x40e4f0 */
-int ocmd_GetObjectHandle();  /* 0x40d680 */
-int ocmd_GetRndObjectHandle();  /* 0x40d730 */
-int ocmd_GetRndSubObjectHandle();  /* 0x40d7b0 */
-int ocmd_GetSubObjectHandle();  /* 0x40d860 */
-int ocmd_SetNoTextures();  /* 0x40e620 */
-int ocmd_SetLightSet();  /* 0x40e640 */
-int ocmd_SetFogSet();  /* 0x40e670 */
-int ocmd_CameraFlight();  /* 0x40e6f0 */
-int ocmd_ZoomOnObject();  /* 0x40ea00 */
-int ocmd_CameraFlightEnhanced();  /* 0x40e750 */
-int ocmd_NewCameraFlight();  /* 0x40e810 */
-int ocmd_ObjectFlight();  /* 0x40e8b0 */
-int ocmd_CreateRain();  /* 0x40ea90 */
-int ocmd_DeleteRain();  /* 0x40eaa0 */
-int ocmd_CreateParticle();  /* 0x40ec70 */
-int ocmd_KillParticle();  /* 0x40edc0 */
-int ocmd_SetCameraToDummy();  /* 0x40ee10 */
 int ocmd_StopCameraFlight();  /* 0x40eea0 */
-int ocmd_RenameObject();  /* 0x40eec0 */
-int ocmd_SetBlocked();  /* 0x40eef0 */
-int ocmd_SetTransient();  /* 0x40ef40 */
-int ocmd_CreateEmitter();  /* 0x40ef90 */
-int ocmd_KillEmitter();  /* 0x40f0c0 */
-int ocmd_SetEmitterAmplitude();  /* 0x40f110 */
-int ocmd_SetEmitterPhasespeed();  /* 0x40f1b0 */
-int ocmd_SetEmitterDirection();  /* 0x40f250 */
-int ocmd_SetEmitterSize();  /* 0x40f2c0 */
-int ocmd_SetEmitterVelocity();  /* 0x40f320 */
-int ocmd_SetEmitterAcceleration();  /* 0x40f390 */
-int ocmd_SetEmitterRndVelocity();  /* 0x40f400 */
-int ocmd_SetEmitterPlane();  /* 0x40f470 */
-int ocmd_SetEmitterTimeAndAlpha();  /* 0x40f4f0 */
-int ocmd_SetEmitterColor();  /* 0x40f560 */
-int ocmd_SetEmitterFlags();  /* 0x40f5d0 */
-int ocmd_SetEmitterInitFill();  /* 0x40f690 */
-int ocmd_SetEmitterRebirthFill();  /* 0x40f6f0 */
-int ocmd_SetEmitterTextureMode();  /* 0x40f750 */
-int ocmd_SetEmitterIsTrigger();  /* 0x40f7a0 */
-int ocmd_SetEmitterTriggerOnce();  /* 0x40f800 */
-int ocmd_SetEmitterMaxTrigger();  /* 0x40f850 */
-int ocmd_TriggerEmitter();  /* 0x40f8a0 */
-int ocmd_SetParticlePos();  /* 0x40f8f0 */
-int ocmd_SelectAllTextureSets();  /* 0x40e5a0 */
 
 /* 0x40f960, registers the object script commands of the engine: every ocmd_ handler with its script name,
    its return type and its argument types through evt_ImportCommand (0x42b5b0) */

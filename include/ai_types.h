@@ -337,10 +337,9 @@ typedef struct AIRECIPE {               /* 0xb8 bytes, a goods list: filled by g
     int max[16];                        /* 0x08, per entry its stock (gm_ListStock): ai.c takes max - amount as the room left */
     unsigned short item[16];            /* 0x48, per entry the goods id */
     int amount[16];                     /* 0x68, per entry its amount (gm_ListAmount; the object's count of a stall) */
-    int pada8[4];                       /* 0xa8, gm_StallGoodsList: the sum of the stocks, the sum of the amounts, the goods'
-                                           value (gm_ItemPrice at 100 times the count); all three fillers: [3] the stall
-                                           object (an AIOBJ *). One array: split into four fields, the declaration set
-                                           flips VC6 tie-breaks in d3_engine.c / sv_t.c */
+    int pada8[3];                       /* 0xa8, gm_StallGoodsList: the sum of the stocks, the sum of the amounts, the goods'
+                                           value (gm_ItemPrice at 100 times the count) */
+    struct AIOBJ *stall;                /* 0xb4, all three fillers: the stall object */
 } AIRECIPE;
 
 #pragma pack(push, 1)
@@ -471,7 +470,7 @@ typedef struct AIMSG {                  /* 0xf8 bytes, given to cm_SendLongMessa
     int unk00;
     unsigned char type;                 /* 0x04 */
     char pad05[3];
-    int to;                             /* 0x08, the receiving player's netId (G8MSG's 'to'; every sender
+    int to;                             /* 0x08, the receiving player's netId (every sender
                                            writes the building owner's netId) */
     int fromId;                         /* 0x0c, the sending building's id */
     int nIds;                           /* 0x10, how many of ids[] are set (msg.ids[msg.nIds]++) */
@@ -575,7 +574,7 @@ typedef struct AIMSG {                  /* 0xf8 bytes, given to cm_SendLongMessa
                     int amount;                 /* 0x60, the amount paid out, the messenger's fee taken */
                 } payment;
                 struct {                        /* the apprenticeship message 0x5e (lc.c ai_ChooseProfessionWindow; am.c's
-                                                   ai_ExecuteApprenticeship fills it as G8MSG) */
+                                                   ai_ExecuteApprenticeship) */
                     int parent;                 /* 0x58, the netId of the parent who pays */
                     unsigned char bldClass;     /* 0x5c, the building class the child learns in (gm_TitleNumber) */
                     char pad5d[3];
@@ -589,7 +588,7 @@ typedef struct AIMSG {                  /* 0xf8 bytes, given to cm_SendLongMessa
                     unsigned char level;        /* 0x65, the offer's second value (s2->arg2) */
                 } study;
                 struct {                        /* the talent training message 0x60 (lc.c ai_TalentWindow, am.c
-                                                   ai_ExecuteTrainSkill / ai_ExecuteTrainJobSkill as am.h's AIXMSG.skill) */
+                                                   ai_ExecuteTrainSkill / ai_ExecuteTrainJobSkill) */
                     char pad58[2];
                     unsigned char talent;       /* 0x5a, the talent (AICHAR.skills index) the training raises */
                 } training;
@@ -611,6 +610,39 @@ typedef struct AIMSG {                  /* 0xf8 bytes, given to cm_SendLongMessa
                     unsigned short text1;       /* 0x60, its first text, 0x1d6d + a roll 0 .. 8 */
                     unsigned short text2;       /* 0x62, its second text, 0x1d76 + a roll 0 .. 8 */
                 } letter;
+                struct {                        /* the master exam question 0x7e (he_RunExamOffer); the question event keeps
+                                                   the words 0x54 further on (he.c HEEXAMBOX) */
+                    int chr;                    /* 0x58, the netId of the character asked */
+                    int examId;                 /* 0x5c, the id of the exam offer event 0x7f that asks (he.c HEEXAMOFFER) */
+                    AITIME due;                 /* 0x60, the answer is due: now + 2 hours */
+                } exam;
+                struct {                        /* the AI message 0x56 of the master exam fee (he_RunMasterExamPay) */
+                    unsigned char what;         /* 0x58, 4 (reasoned: the kind of payment, its reader is not read yet) */
+                    char pad59[3];
+                    int amount;                 /* 0x5c, the amount paid */
+                } fee;
+                struct {                        /* the AI message 0x6a he_RunTraining posts when a player's skill reaches a
+                                                   new level; the event 0x6a takes the words over at +0xac (he.c HESKILLUP) */
+                    unsigned char skill;        /* 0x58, the skill (AICHAR.skills index) */
+                    char pad59[3];
+                    int level;                  /* 0x5c, its new level: the value / 42 */
+                } skillLevel;
+                struct {                        /* the AI message 0x78 he_BeginPlague posts to every player character */
+                    int bld;                    /* 0x58, the start building's id */
+                    int target;                 /* 0x5c, the target building's id: the start building */
+                    int next;                   /* 0x60, -1 */
+                    int walk;                   /* 0x64, the event's walk index */
+                    int step;                   /* 0x68, the event's walk step */
+                    int left;                   /* 0x6c, the event's countdown */
+                } plague;
+                struct {                        /* the AI credit message 0x23 (a bank's offer, ai_ExecuteTakeCredit) */
+                    int bld;                    /* 0x58, the bank building's id */
+                    int from;                   /* 0x5c, the netId of the character who takes the credit */
+                    int amount;                 /* 0x60, the sum lent (ORDCREDIT.amount) */
+                    int term;                   /* 0x64, the term in rounds, 2 .. 7 (ORDCREDIT.term) */
+                    int pad68;
+                    int interest;               /* 0x6c, the rate (ORDCREDIT.interest) */
+                } credit;
             };
             union {
                 int amount[3];                  /* 0x88, of the bought goods */
@@ -621,14 +653,24 @@ typedef struct AIMSG {                  /* 0xf8 bytes, given to cm_SendLongMessa
                 };
             };
             char pad94[8];
-            unsigned char textFlags;            /* 0x9c, of a note with a text (cm_SendPartyNote): 0xc, 0xe with the party's building,
-                                                   | 0x10 when a second text follows the first */
-            unsigned char deferTrade;           /* 0x9d, 1 in the trade message 11 when the AI is over its work limit
-                                                   (ai_WorkLoad > ai_WorkLimit); the event keeps it at +0xf1 (AIJOB.flags, nonzero defers the posting) */
-            unsigned char flag9e;               /* 0x9e, 1 in the guard cart's message 0xf (he_PatrolStep); the meaning is not known */
-            char pad9f;
-            int moveArgA0;                      /* 0xa0, -1 in the lost-cart move message 0xf (ai_MeisterCollectTrans), 0 in the
-                                                   patrol's (he_PatrolStep); no reader known */
+            union {
+                struct {
+                    unsigned char textFlags;    /* 0x9c, of a note with a text (cm_SendPartyNote): 0xc, 0xe with the party's
+                                                   building, | 0x10 when a second text follows the first */
+                    unsigned char deferTrade;   /* 0x9d, 1 in the trade message 11 when the AI is over its work limit
+                                                   (ai_WorkLoad > ai_WorkLimit); the event keeps it at +0xf1 (AIJOB.flags,
+                                                   nonzero defers the posting) */
+                    unsigned char flag9e;       /* 0x9e, 1 in the guard cart's message 0xf (he_PatrolStep); the meaning is
+                                                   not known */
+                    char pad9f;
+                };
+                int word9c;                     /* 0x9c, 1000 in the timed messages 0x4e / 0x50 (ord_UpdateMessageEvent, a
+                                                   dword store); the event keeps it at +0xf0 (AIJOB.modes / flags); no
+                                                   reader known */
+            };
+            int jobId;                          /* 0xa0, of the move message 0xf the id of the event that posted it (the trade
+                                                   event's, he_AllocTrade); -1 from the lost cart (ai_MeisterCollectTrans), 0 from
+                                                   the patrol (he_PatrolStep) */
             int srcEvent;                       /* 0xa4, of the explosion message 0x4f from a fire (he_RunFire): the fire
                                                    event's id (the burning event 0x4f keeps it at +0xf8) */
             char pada8[8];

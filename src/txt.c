@@ -914,7 +914,7 @@ char txt_Keys[0x4800][0x50];  /* 0xfe7e40 */
 char txt_GroupIds[0x4800][0x50];  /* 0x1161e80, the "_..." identifier of each group */
 char txt_HeaderName[0x120];  /* 0x12c9e80, "#headerfile" */
 /* 0x143a1c0, the text pointer table: 0x4800 slots, the one block the text loader fills;
-   d2_Strings (the first 122) and every named text pointer are views of it (txt_views.h) */
+   txt_Ptrs (the first 122) and every named text pointer are views of it (txt_views.h) */
 char *txt_Ptrs[0x4800];
 char txt_Names[0x4800][0x50];  /* 0x12c9fa0, indexed by group - 1 */
 TXTFILE txt_Files[0x80];  /* 0x1431fc0 */

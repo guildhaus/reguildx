@@ -2237,26 +2237,6 @@ void ord_InitMessageRecord(int a, float b, float c, float d)
 
 int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);                     /* 0x53dda0 */
 
-/* the record 0x91b480 as its ORDMSGREC */
-
-#pragma pack(push, 1)
-typedef struct ORDLONGMSG {             /* 0xf8 bytes, the long message of cm_SendLongMessage as 0x4f9220 fills it */
-    char pad00[4];
-    unsigned char kind;                 /* 0x04, the event: 0x59 / 0x4e / 0x50 */
-    char pad05[3];
-    int netId;                          /* 0x08, the character's net id */
-    int target;                         /* 0x0c, -1 = none */
-    char pad10[0x18];
-    AITIME time;                        /* 0x28, when: the game clock, moved on by gm_AddTime */
-    unsigned char mode;                 /* 0x36 */
-    char pad37[0x21];
-    int value;                          /* 0x58, -1 or a random amount */
-    char pad5c[0x40];
-    int limit;                          /* 0x9c, 1000 */
-    char padA0[0x58];
-} ORDLONGMSG;
-#pragma pack(pop)
-
 /* 0x4f9220, advances the message event record 0x91b480 (ORDMSGREC): disabled it does nothing; idle (phase 0) it
    adds random * scale + base to the accumulator and, above the limit, counts the message, timestamps the record,
    picks the next phase from a 16-entry table chosen by the stage (stage 0 goes straight to phase 3, stage 4 resets
@@ -2267,7 +2247,7 @@ void ord_UpdateMessageEvent(void)
 {
     ORDMSGREC r;
     ORDINITMSG out;
-    ORDLONGMSG msg;
+    AIMSG msg;
 
     if (ord_MessageRecord.enabled != 1)
         return;
@@ -2308,46 +2288,46 @@ void ord_UpdateMessageEvent(void)
             r.phase = t[util_Random(0x10)] + 1;
         }
         if (r.phase == 1) {
-            msg.kind = 0x59;
-            msg.netId = ai_PlayerChar->netId;
-            msg.target = -1;
+            msg.type = 0x59;
+            msg.to = ai_PlayerChar->netId;
+            msg.fromId = -1;
             msg.time = ai_Time;
-            msg.mode = 2;
-            msg.value = util_Random(3) * 3;
+            msg.flags = 2;
+            msg.arg[0] = util_Random(3) * 3;
             msg.time = ai_Time;
             msg.time.min = 0;
             if (ai_Time.hour < 0x17 && ai_Time.hour >= 7)
-                gm_AddTime((struct AITIME *)&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
+                gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
             else
-                gm_AddTime((struct AITIME *)&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
-            cm_SendLongMessage((char *)&msg);
+                gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
+            cm_SendLongMessage(&msg);
         } else if (r.phase == 2) {
-            msg.kind = 0x4e;
-            msg.netId = ai_PlayerChar->netId;
-            msg.target = -1;
-            msg.value = -1;
-            msg.mode = 1;
-            msg.limit = 1000;
+            msg.type = 0x4e;
+            msg.to = ai_PlayerChar->netId;
+            msg.fromId = -1;
+            msg.arg[0] = -1;
+            msg.flags = 1;
+            msg.word9c = 1000;
             msg.time = ai_Time;
             msg.time.min = 0;
             if (ai_Time.hour >= 0x17)
-                gm_AddTime((struct AITIME *)&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
+                gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
             else
-                gm_AddTime((struct AITIME *)&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
-            cm_SendLongMessage((char *)&msg);
+                gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
+            cm_SendLongMessage(&msg);
         } else if (r.phase == 3) {
-            msg.kind = 0x50;
-            msg.netId = ai_PlayerChar->netId;
-            msg.target = -1;
+            msg.type = 0x50;
+            msg.to = ai_PlayerChar->netId;
+            msg.fromId = -1;
             msg.time = ai_Time;
-            msg.mode = 2;
-            msg.value = -1;
-            msg.limit = 1000;
+            msg.flags = 2;
+            msg.arg[0] = -1;
+            msg.word9c = 1000;
             if (ai_Time.hour >= 0x17)
-                gm_AddTime((struct AITIME *)&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
+                gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
             else
-                gm_AddTime((struct AITIME *)&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
-            cm_SendLongMessage((char *)&msg);
+                gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
+            cm_SendLongMessage(&msg);
         }
         r.stage = r.phase;
     }

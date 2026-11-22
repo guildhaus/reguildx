@@ -6,6 +6,7 @@ struct VFSFILE;
 
 #include "am_types.h"                 /* G9DOMIZIL, the Domizil table's entry (ai_DomizilTable) */
 #include "ai_types.h"                 /* AITIME, the goods-reserve clock (LCSETTINGS.reserveTime) */
+#include "portable.h"                /* intptr_t: a text id or a string in one parameter */
 
 struct AIBLD;
 struct G8INVOBJ;
@@ -39,7 +40,7 @@ int ai_BuildingName(int id, char *out); /* 0x58f640, the building name of a kind
 
 /* the "vg_" object list ai_VgFilter collects (ai_ShowVgObjects, cm's building creation) */
 typedef struct AIVGLIST {
-    int objs[0x20];                /* 0x00 */
+    struct D3OBJECT *objs[0x20];   /* 0x00 */
     int count;                     /* 0x80 */
 } AIVGLIST;
 /* the construction-site record lc_GetGebaeudeBauplatz fills (0x54 bytes: cm's building creation clears 0x15 dwords) */
@@ -49,9 +50,9 @@ typedef struct AIBUILDSITE {
         int nameHead;              /* 0x00, cleared before the name is written */
     };
     float pos[4];                  /* 0x40, the owner's world position (d3_PointToWorld) */
-    int object;                    /* 0x50, the "bk_" site object ai_FindBauplatz found */
+    struct D3OBJECT *object;       /* 0x50, the "bk_" site object ai_FindBauplatz found */
 } AIBUILDSITE;
-char ai_VgFilter(int obj, AIVGLIST *ctx);                       /* 0x58f920, d3_ForEachObject callback: collects "vg_" objects */
+char ai_VgFilter(struct D3OBJECT *obj, void *ctx);                       /* 0x58f920, d3_ForEachObject callback: collects "vg_" objects */
 int lc_GetGebaeudeBauplatz(AIBUILDSITE *out, struct AIBLD *b);  /* 0x58fc40, the construction site of a building */
 void ai_CheckBuildSites(void);          /* 0x58fb60 */
 /* 0x61168c: the "%1G" format of the map's city names (ai_FormatCityName). */
@@ -65,6 +66,7 @@ void ai_GelageWindow(struct AIBLD *bld);                 /* 0x5b9f30, the "speci
 void ai_TrainingWindow(struct AIBLD *bld);              /* 0x5bba00, the "special\training" window (regeneration / target / straw-dummy plates) */
 void ai_EquipWindow(struct AIBLD *bld);                 /* 0x5bb350, the equip window of the AUSRUESTEN / weapon-stand plates */
 void ai_BuildingWindow(struct AIBLD *bld);              /* 0x5b84f0, the options window of a building (sell, renovate, upgrade, ...) */
+int ai_BeatingCallback(struct AICHAR *ch, int n);       /* 0x5b3f30, the beating window (lcdom.c), the amount menu's pick callback */
 void ai_ManagedBuildingWindow(struct AIBLD *bld);       /* 0x5b8fc0, its variant for the classes 3 / 5 with the permission 0x10 */
 struct AMOUNTCFG; struct AICHAR;
 void ai_AmountInfoWindow(int kind, struct AICHAR *ch);  /* 0x5c1a80, the info box of an amount kind (ch is not read) */
@@ -72,7 +74,7 @@ void ai_AmountKindMenu(void (*pick)(int kind), char *caption, int withKind8);  /
 void ai_AgendaOfficeList(int kind);  /* 0x5c1e10, the agenda of one office column (ai_AmountKindMenu's callback) */
 void ai_OpenLawBook(int book);  /* 0x5c2160, the law book 0x111 / 0x112 / 0x113 */
 void ai_LawBookInfoWindow(int textId, int lawText);  /* 0x5c2410, the info box of one law */
-struct AICHAR *ai_AmountMenu(struct AMOUNTCFG *cfg, char *caption, int prompt, int (*pick)(struct AICHAR *, int));  /* 0x5c1130, the special-amount menu: returns the chosen character record (0: none) */
+struct AICHAR *ai_AmountMenu(struct AMOUNTCFG *cfg, char *caption, char *prompt, int (*pick)(struct AICHAR *, int));  /* 0x5c1130, the special-amount menu: returns the chosen character record (0: none) */
 void ai_PersonnelBook(struct AIBLD *bld, char *model);  /* 0x5aab80, the personnel book of a building (ob_PERSONALBUCH) */
 void ai_MercenaryBook(struct AIBLD *bld, char *model);  /* 0x5ac110, the mercenary book of a building (ob_SOELDNERBUCH) */
 void ai_HelperBook(struct AIBLD *bld, char *model);     /* 0x5ad150, the helpers' book of a building (ob_GEHILFENBUCH) */
@@ -80,7 +82,7 @@ void ai_MasterLetterWindow(struct AIBLD *bld);         /* 0x5c3200, opens the ma
 int ai_FreeProdSetting(int id);                     /* 0x5a86c0, unlinks and frees the production setting of the building id (ai_ProdSetting), -1 when it has none */
 
 /* the placement-candidate list of the build screen (ai_BauplatzFilter / ai_FindBauplaetze) */
-extern int *ai_BauplatzList;            /* 0x6f5308 */
+extern struct D3OBJECT **ai_BauplatzList; /* 0x6f5308 */
 
 /* the goods grids of the production window (ai_InitProductionTables sets them up, ai_UpdateProdGoodsList fills
    them from the store, ai_LayoutProdGoodsList lays them out): a row of four slots, and a slot */
@@ -149,7 +151,7 @@ extern int ai_DragScrollY;              /* 0x6f26a8 */
 extern int ai_DragStartX;               /* 0x6f26b4, the mouse position the drag began at */
 extern int ai_DragStartY;               /* 0x6f26b8 */
 extern int ai_Dragging;                 /* 0x6f26bc, 1 while the town map is dragged */
-extern int *ai_PlacementSites;          /* 0x6f26b0, the candidate site list of the running building placement (the map window marks each entry) */
+extern struct D3OBJECT **ai_PlacementSites; /* 0x6f26b0, the candidate site list of the running building placement (the map window marks each entry) */
 /* The production settings chain (0x6f26c0, the head ai_Settings): one 0x4c-byte record per building, the seed at +4,
    the rotation byte at +8, seven {good, weight, lock} slots at +0xc (stride 8) and the factor at +0x44 */
 typedef struct G8SLOT {                 /* one slot of a setting (stride 8) */
@@ -197,7 +199,7 @@ typedef struct LCEXCHROW {              /* 0x1c bytes, a row of the money lender
     int text;                           /* 0x04, its text object (d2_CreateWinText) */
     int name;                           /* 0x08, the text with the player slot's name (ai_ShowExchangeRows) */
     int good;                           /* 0x0c, the currency good of the row (an object of the class 9 in the list,
-                                           gm_Query(list, 1, 4, 9); its name txt_ObjectNames, its icon good + 0xdf), 0: free */
+                                           gm_Query(list, 1, 4, 9); its name TXT_OBJECT_NAMES, its icon good + 0xdf), 0: free */
     unsigned char player;               /* 0x10, the player slot the row names (ai_ShowExchangeRows) */
     char pad11[3];
     int value;                          /* 0x14, the icon's value, the amount picked (d2_GetObjValue) */
@@ -332,6 +334,25 @@ void ai_DomizilMessage12(struct AICHAR *ch, struct AIBLD *b, int n);  /* 0x5a9e4
 struct AICHAR; struct LCORDMSG; int ai_MedicusHandler(struct AICHAR *ch, struct LCORDMSG *m);  /* 0x5c8bc0, the medicus order's ask (ord_MedicusOrder); m is not read */
 int ai_DivorceDialog(struct AICHAR *ch, struct LCORDMSG *m);  /* 0x5c8ef0, the divorce order's ask (ord.c 0x4f5800); m is not read */
 int ai_WorkerDismissalWindow(void *ch, int *m);  /* 0x5ce7f0 */
+typedef struct AMOUNTCFG {              /* 0x50 bytes, the config of the special-amount menu ai_AmountMenu (lc.c) */
+    int flags;                          /* +0x00, 1 / 0x20400 / 0x2040a .. (the gypsy windows: 1) */
+    int mode;                           /* +0x04, 0x400: the partner filter bits (lc.c ai_PassesPartnerFilter) */
+    unsigned int classMask[2];          /* +0x08, the building classes 0 .. 63 (lc.c ai_PassesBuildingFilter) as two
+                                           words: 0x1a7fdfbb6 (the gypsy windows, gypsyFilter's halves), 0x1a07c43a0 (the
+                                           sabotage); the map pick's callers write the halves in any order, so the
+                                           record has no __int64 (it sits at +0xc in LCMAPWIN) */
+    int kind;                           /* +0x10, 6 */
+    int option14;                       /* +0x14, 2 in the blood revenge window (meaning not derived) */
+    int lockSecond;                     /* +0x18, nonzero: ai_AmountMenu leaves its second button (picture 0x599)
+                                           without input (ai_GuildLevel3Entry sets it) */
+    unsigned short ids[16];             /* +0x1c, the character ids the menu leaves out / lists, 0xffff = none */
+    char pad3c[4];
+    int liking;                         /* +0x40, nonzero: ai_PassesPartnerFilter wants the liking in [likingMin, likingMax] */
+    float likingMin;                    /* +0x44 */
+    float likingMax;                    /* +0x48 */
+    int option4c;                       /* +0x4c, 0x727 (the sabotage menu, the graveyard's fog target pick), 0x71f
+                                           (ai_HandleMapKey's pick; meaning not derived) */
+} AMOUNTCFG;
 typedef struct LCMAPMARK {         /* 0x18 bytes, a mark of the town map (LCMAPWIN.marks, rt's building marks) */
     int ctrl;                      /* 0x00, its picture control, -1: not placed yet */
     struct AIBLD *bld;             /* 0x04, the building it marks */
@@ -344,8 +365,8 @@ typedef struct LCMAPWIN {          /* 0x27ac bytes, the town map window's record
     int view;                      /* 0x000 */
     unsigned int flags;            /* 0x004, 4: show the ambush spots, 8: the building placement sites */
     int screen;                    /* 0x008, the map window */
-    int req[0x14];                 /* 0x00c, the request record: its filter greys the buildings out
-                                      (ai_PassesMapPickFilter) */
+    AMOUNTCFG req;                 /* 0x00c, the request record (ai_MapPick's req): its filter greys the buildings
+                                      out (ai_PassesMapPickFilter) */
     char name[0x68];               /* 0x05c, the title */
     char pad0c4[0x18];
     LCMAPMARK marks[0x100];        /* 0x0dc, the buildings, sorted by their scene row */
@@ -372,7 +393,7 @@ struct AICHAR; struct LCORDMSG; int ai_IntimidateContact(struct AICHAR *me, stru
 int ai_CounterEspionage(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cae00, the counter-espionage order's ask */
 int ai_SeatSwapWindow(struct AICHAR *me, struct LCORDMSG *m);  /* 0x5cb250, the seat swap order's ask */
 int ai_AmountLimit(int param_1, int param_2, int param_3, int *param_4);  /* 0x5bd060 */
-void ai_FamilyTreeWindow(int netId, unsigned char flags, int caption, int callId);  /* 0x5c4150, the family tree window */
+void ai_FamilyTreeWindow(int netId, unsigned char flags, intptr_t caption, int callId);  /* 0x5c4150, the family tree window */
 struct AICHAR;
 void ai_CharInfoPanel(struct AICHAR *chr, int other);  /* 0x5c5310, the character info panel */
 void ai_ShowOfficeNews(unsigned short *param_1, struct AICHAR *param_2);  /* 0x5a8cb0 */
@@ -391,10 +412,10 @@ void ai_ShowPartingNews(struct AICHAR *param_1, struct AICHAR *param_2);  /* 0x5
 void ai_ShowFeudNews(struct AICHAR *param_1, struct AICHAR *param_2);  /* 0x5a8f90 */
 void ai_ShowPartnerNews(struct AICHAR *param_1, struct AICHAR *param_2);  /* 0x5a9050 */
 int ai_GoodFitsBuilding(void *ch, int good);  /* 0x5bb2d0 */
-int ai_FindBauplaetze(char *prefix, int *list);  /* 0x58f7a0 */
+int ai_FindBauplaetze(char *prefix, struct D3OBJECT **list);  /* 0x58f7a0 */
 int ai_InventoryHas(void *ch, int id);  /* 0x5ba6b0 */
-void ai_ObjectAngle(void *out_, int plot);  /* 0x58fd90 */
-void ai_ObjectPosition(void *out, int plot);  /* 0x58fd40 */
+void ai_ObjectAngle(void *out_, struct D3OBJECT *plot);  /* 0x58fd90 */
+void ai_ObjectPosition(void *out, struct D3OBJECT *plot);  /* 0x58fd40 */
 void ai_ShowIndulgenceNews(unsigned short *param_1, struct AICHAR *param_2, int param_3, int param_4, int param_5);  /* 0x5a8b80 */
 void ai_ShowPaymentNews(unsigned short *param_1, struct AICHAR *param_2, int param_3);  /* 0x5a8c00 */
 int ai_FindUsableGood(int param_1);  /* 0x5ba620 */
@@ -445,7 +466,7 @@ int ai_OpenTransport(struct AIBLD *building);  /* 0x5af1a0, the transport list o
 struct D3OBJECT *ai_CreateCityPoint(char *city);  /* 0x59a2c0, creates the city point object of a town, 0 when its dummy is missing */
 void ai_LoadTownMap(void);  /* 0x5b2090, loads the town map picture of the own player */
 int ai_OpenTransportBuy(struct AIBLD *building);  /* 0x5af1c0 */
-int ai_MapPick(unsigned int flags, int *req, char *name, void (*cb)(), int unused);  /* 0x5b2180 */
+void *ai_MapPick(unsigned int flags, AMOUNTCFG *req, char *name, void (*cb)(), int unused);  /* 0x5b2180 */
 void ai_OpenRobberBribe(struct AIBLD *bld);  /* 0x5b4bf0 */
 int ai_DrohbriefWindow(struct AIBLD *bld);  /* 0x5b4fb0 */
 void ai_LeftAlignedText(char *text, int x, int y, int w, int font);  /* 0x5bd1f0 */
@@ -453,7 +474,7 @@ struct AICHAR *ai_SpecialAmountListWindow(int kind, unsigned int *filter, char *
                                int (*pick)(struct AICHAR *, int));  /* 0x5bea50 */
 struct AICHAR *ai_SpecialAmountWindow(unsigned int *filter, char *caption, int tab, int (*pick)(struct AICHAR *, int));  /* 0x5c0970 */
 int ai_PassesMapPickFilter(struct AICHAR *me, struct AMOUNTCFG *cfg, struct AIBLD *bld);  /* 0x5c39a0 */
-int ai_LawSelectionEntry(struct AIBLD *bld, struct AMOUNTCFG *filter, char *text, void (*cb)(struct AICHAR *, struct AIBLD *));  /* 0x5c4100 */
+struct AICHAR *ai_LawSelectionEntry(struct AIBLD *bld, struct AMOUNTCFG *filter, char *text, void (*cb)(struct AICHAR *, struct AIBLD *));  /* 0x5c4100 */
 int ai_GiftWindow(struct AICHAR *giver, struct AICHAR *chr);  /* 0x5c6050 */
 void ai_HandleMapKey(void);  /* 0x591170, a key of the map window */
 void ai_InventoryPanel(void);  /* 0x5bac10, the inventory panel */

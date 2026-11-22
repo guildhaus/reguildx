@@ -5,6 +5,9 @@
 #ifndef AM_TYPES_H
 #define AM_TYPES_H
 
+struct AICHAR;
+struct AIARG;
+
 typedef struct G9DOMIZIL {              /* 0x1c bytes, an entry of the Domizil table 0x62c420 (ai_FindUsableGood returns it) */
     int id;                             /* 0x00, the good, 0 ends the table */
     int minutes;                        /* 0x04, the duration of its effect in minutes (he.c 0x54fb50 adds it to the clock
@@ -13,7 +16,9 @@ typedef struct G9DOMIZIL {              /* 0x1c bytes, an entry of the Domizil t
                                            -1: none */
     float weight;                       /* 0x0c, 1.0 .. 6.0: am.c's AI scales the use action's weight by it */
     unsigned int mask;                 /* 0x10, tested against the character's goodsMask (0x1ec) */
-    void *use;                          /* 0x14, the use callback ai_UseGood calls (the character, the G8USE request), 0: none */
+    int (*use)();                       /* 0x14, the use callback ai_UseGood calls (the character, the G8USE request), 0: none;
+                                           old-style: the callbacks take (AICHAR *, G8USE *), (AICHAR *), (void) or the
+                                           quarrel's (AICHAR *, int *) */
     unsigned short rank;                /* 0x18, the rank the good asks for (the use window prints it with text 0xfe3;
                                            lc's range lookup tests it; the name is a reasoned guess) */
     char pad1a[2];
@@ -34,9 +39,9 @@ typedef struct AIACTW {                 /* 8 bytes */
 typedef struct AIACT {                  /* 0x94 bytes, an AI action (table at 0xf83ec0) */
     unsigned char id;                   /* 0x00 */
     char name[0x23];                    /* 0x01 */
-    void *eval;                         /* 0x24 */
-    void *decide;                       /* 0x28 */
-    void *exec;                         /* 0x2c */
+    int (*eval)(float *a, float *b, int i, struct AICHAR *p, int f, struct AIARG *o1, struct AIARG *o2);  /* 0x24 */
+    int (*decide)(int a, struct AICHAR *p, int f, struct AIARG *o1, struct AIARG *o2);                    /* 0x28 */
+    int (*exec)(struct AICHAR *p, struct AIARG *s1, struct AIARG *s2);                                    /* 0x2c */
     AIACTW w1[4];                       /* 0x30 */
     AIACTW w3[4];                       /* 0x50, a copy of w1 (the short-term needs; ai_Actions[0x48] uses w3[0]) */
     AIACTW w2[4];                       /* 0x70 */

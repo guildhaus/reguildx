@@ -528,7 +528,7 @@ int rd_PathToRoad(G15ROAD *r, int x, int z, int tx, int tz)
 
 void rd_AddBauplaetze(G15ROAD *r)
 {
-    int list[0x100];
+    D3OBJECT *list[0x100];
     int n, i;
 
     memset(list, 0, sizeof(list));
@@ -536,7 +536,7 @@ void rd_AddBauplaetze(G15ROAD *r)
     if (n != 0) {
         for (i = 0; i < n; i++) {
             if (list[i] != 0)
-                rd_AllBauplatzToSupermap(r, (char *)list[i]);
+                rd_AllBauplatzToSupermap(r, list[i]->name);
         }
     }
 }

@@ -176,7 +176,7 @@ typedef struct MAINCHARNEW {        /* the AICHAR fields the character replaceme
     char pad190[0x64];
     char ownName[0x1c];             /* 0x1f4, the model name (AICHAR.ownName; from INIT_PLAYER.model) */
 } MAINCHARNEW;
-extern int main_SoundBanks[0x80];   /* 0x75df20 */
+extern struct SBBANK *main_SoundBanks[0x80]; /* 0x75df20 */
 extern char cm_RequestedSaveName[0x40];
 extern int main_LastLoadProgress;  /* 0x6f2610 */
 extern int main_BookObject;  /* 0x6f2614 */
@@ -487,7 +487,7 @@ int main_Init(void)
 {
     char dir[260];
 
-    err_Init((int)main_Exit, d3io_NoopCallback, main_Window, 0x10);
+    err_Init(main_Exit, d3io_NoopCallback, main_Window, 0x10);
     mem_Init(48000);
     tr_startup(0x80);
     sprintf(dir, "%sgamedata\\Screenshots", (char *)(unsigned)&main_GfxPath);
@@ -1010,9 +1010,7 @@ void sv_ButtonRow(int f, int y, int *out, int n, ...);
 int d2_RemoveWindowObjects();
 void d2_RadioAdd(int g, int obj);
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);
-void d2_SetObjFont();
-int d2_FindPic();
-int sv_OpenMessageBox(int text, unsigned char flags);
+int sv_OpenMessageBox(intptr_t text, unsigned char flags);
 int ls_ReadSaveHeader(struct VFSFILE *f, int *h);
 
 /* 0x532da0, the network game search window "Menu\SEARCH_NETWORK": every 1.5 s (the clock d3_Time) or on the
@@ -1058,7 +1056,7 @@ int main_SearchNetworkGame(int saved)
             if ((unsigned)d3_Time > ts + 0x5dc || redraw) {
                 ok = 1;
                 d2_CutsceneActive = 1;
-                h = sv_OpenMessageBox((int)txt_Ptrs[0x1cb1], 0);
+                h = sv_OpenMessageBox((intptr_t)txt_Ptrs[0x1cb1], 0);
                 n = udp_FindServers(0x3039, 0xbb8, recs, 8);
                 d2_CloseView(h);
                 d2_CutsceneActive = 0;
@@ -1301,7 +1299,7 @@ void main_MoneyDialog(void)
 }
 /* 0x5337f0, creates a menu button (0x46bf10 (0x20, n * 0x2b + 10, 0xbf, text, form), text centred, width 300) for the row n of a dialog */
 
-int main_MenuButton(int n, int text, int form)
+int main_MenuButton(int n, char *text, int form)
 {
     int b;
 
@@ -1311,7 +1309,6 @@ int main_MenuButton(int n, int text, int form)
     return b;
 }
 
-float d3_VecAngle();
 int sv_RegisterNamePlate(char *name, char *text, int look);
 
 /* 0x533850, "main_Menue": the main menu ("MENU\MAIN_MENU"): fades to black, loads the city scene
@@ -1370,21 +1367,21 @@ void main_Menue(void)
     d2_PlaceMainWindow(f, 3);
     d2_SetForm(f, 0);
     win = d2_LastWindow;
-    bnew = main_MenuButton(0, (int)txt_Ptrs[0x1c63], win);
-    bload = main_MenuButton(1, (int)ai_TextLoadGame, win);
-    btut = main_MenuButton(2, (int)txt_Ptrs[0x3f19], win);
-    bnet = main_MenuButton(3, (int)txt_Ptrs[0x1c64], win);
-    bopt3 = main_MenuButton(4, (int)ai_TextGameOptions, win);
-    bcred = main_MenuButton(7, (int)txt_Ptrs[0x1c65], win);
-    bquit = main_MenuButton(8, (int)txt_Ptrs[0x1c66], win);
+    bnew = main_MenuButton(0, txt_Ptrs[0x1c63], win);
+    bload = main_MenuButton(1, txt_Ptrs[TXT_LOAD_GAME], win);
+    btut = main_MenuButton(2, txt_Ptrs[0x3f19], win);
+    bnet = main_MenuButton(3, txt_Ptrs[0x1c64], win);
+    bopt3 = main_MenuButton(4, txt_Ptrs[TXT_GAME_OPTIONS], win);
+    bcred = main_MenuButton(7, txt_Ptrs[0x1c65], win);
+    bquit = main_MenuButton(8, txt_Ptrs[0x1c66], win);
     if (main_DevMenu == 0) {
-        bopt1 = main_MenuButton(5, (int)ai_TextGfxOptions, win);
-        bopt2 = main_MenuButton(6, (int)ai_TextSfxOptions, win);
+        bopt1 = main_MenuButton(5, txt_Ptrs[TXT_GFX_OPTIONS], win);
+        bopt2 = main_MenuButton(6, txt_Ptrs[TXT_SFX_OPTIONS], win);
         grp = d2_CreateRadioGroup(9, bnew, bload, btut, bnet, bopt3, bopt1, bopt2, bcred, bquit);
     } else {
-        bini = main_MenuButton(4, (int)"Create Save with INI", win);
-        bnetsave = main_MenuButton(5, (int)"Create Save for Network", win);
-        bcheck = main_MenuButton(6, (int)"Check Textfile", win);
+        bini = main_MenuButton(4, "Create Save with INI", win);
+        bnetsave = main_MenuButton(5, "Create Save for Network", win);
+        bcheck = main_MenuButton(6, "Check Textfile", win);
         grp = d2_CreateRadioGroup(9, bnew, bload, btut, bnet, bopt3, bini, bnetsave, bcred, bquit);
     }
     if (snd_MusicEnabled != 0) {
@@ -1637,7 +1634,7 @@ void main_GiveStartBuildings(int p)
 
 #define SV_WI2(i, o) (*(int *)(U_I((unsigned)&d2_Objs) + (i) * 0x2ec + (o)))
 
-/* 0x5344f0, puts a person (the template model name n of the list main_FamilyModelNames, index k) at the dummy "a" of the scene: the dummy position (0x458a20), a character object (0x403390 (b, pos)) that
+/* 0x5344f0, puts a person (the template model name n of the list TXT_FAMILY_MODEL_NAMES, index k) at the dummy "a" of the scene: the dummy position (0x458a20), a character object (0x403390 (b, pos)) that
    looks along the dummy's heading (0x458810 / 0x4539f0, 0x43b860), walks ("bewegung/gehen", walkSpeed 0.7), is registered as a status text plate (0x52e1c0); returns the new object or 0 */
 
 CHARACTER *main_PlaceFamilyModel(char *dummy, char *model, int k)
@@ -1668,7 +1665,7 @@ CHARACTER *main_PlaceFamilyModel(char *dummy, char *model, int k)
         ch->familySlot = -1;
         ch->group = 1;
         ch->pathType = 4;
-        sv_RegisterNamePlate((char *)ch->obj, main_FamilyModelNames[k], 0);
+        sv_RegisterNamePlate((char *)ch->obj, txt_Ptrs[TXT_FAMILY_MODEL_NAMES + k], 0);
     }
     return ch;
 }
@@ -2362,7 +2359,7 @@ int main_ChooseHistory(void)
                     r = main_CharacterIntro(0);
                     if (r == 1) {
                         d2_CutsceneActive = 1;
-                        main_MessageBox = sv_OpenMessageBox((int)txt_Ptrs[0x1af9], 0);
+                        main_MessageBox = sv_OpenMessageBox((intptr_t)txt_Ptrs[0x1af9], 0);
                         if (main_ChooseFamily(0) == 0) {
                             d3if_SelectScene(0, 0);
                             goto lback2;
@@ -2571,7 +2568,7 @@ int main_ChooseCity(int unused, int host)
             strupr(key);
             k = txt_FindKey(key);
             if (k != -1)
-                strcpy(name, d2_Strings[k]);
+                strcpy(name, txt_Ptrs[k]);
             else
                 strcpy(name, hdr.name);
             sprintf(objName, "stadt_%s", hdr.name);
@@ -2811,7 +2808,7 @@ void sv_UpdateClock(void);
    "sprache\") into the table 0x75df20 (0x80 slots); returns 1 when done, 0 on errors (a message box "main_PreloadSound(): Could not open sound-definition!") */
 int main_PreloadSound(char *f)
 {
-    int *slot;
+    struct SBBANK **slot;
     int *line;
     FILE *fp;
     char *q, *inc;
@@ -2843,7 +2840,7 @@ int main_PreloadSound(char *f)
             } else
                 *slot = sb_LoadSampleBank(q, 0);
             slot++;
-            if ((int)slot > (int)&main_SoundBanks[0x80])
+            if ((intptr_t)slot > (intptr_t)&main_SoundBanks[0x80])
                 return 0;
         }
         if (feof(fp)) {
@@ -2856,14 +2853,14 @@ int main_PreloadSound(char *f)
 
 void main_FreeSoundBanks(void)
 {
-    int *p;
+    struct SBBANK **p;
 
     p = main_SoundBanks;
     do {
         if (*p != 0)
             sb_UnloadSampleBank(*p);
         p++;
-    } while ((int)p < (int)&main_SoundBanks[0x80]);
+    } while ((intptr_t)p < (intptr_t)&main_SoundBanks[0x80]);
 }
 /* 0x537de0, "start of a game": resets the global state (0x6f2358 = 1, 0x6f2598 = 1 the round number, the day 0x770ae0 = 2, the quit flags 0x6f259c / 0x6f25a0 / 0x6f25ad), registers the tick callback 0x5315c0
    (0x42e970 (cb, 0x47) / 0x42ea10), starts the sound banks (natur\regen, wind, blitzunddonner, objekte\buecher, TuerenUndRaeume, Transporter, Lebewesen\schritte) when the sound is on, and
@@ -3158,50 +3155,50 @@ void main_EndRound(void)
     q = cm_SendExSysMessage(0, &sysmsg);
     while (cm_GetSlotState(q) == 0)
         sv_PumpNet();
-    tb_SetFunctionOff((int)sv_UpdateClock, 1);
+    tb_SetFunctionOff(sv_UpdateClock, 1);
     if ((ai_GameFlags & 0x80) == 0) {
         if (he_FindEvent(1, 0, 0x66) == 0) {
             AIMSG msg;
 
             MAIN_NOTE(msg, 0x66);
-            cm_SendLongMessage((char *)&msg);
+            cm_SendLongMessage(&msg);
         }
         if (he_FindEvent(1, 0, 0x70) == 0) {
             AIMSG msg;
 
             MAIN_NOTE(msg, 0x70);
-            cm_SendLongMessage((char *)&msg);
+            cm_SendLongMessage(&msg);
         }
         if (he_FindEvent(1, 0, 0x68) == 0) {
             AIMSG msg;
 
             MAIN_NOTE(msg, 0x68);
-            cm_SendLongMessage((char *)&msg);
+            cm_SendLongMessage(&msg);
         }
     }
     if (cm_TutorialActive != 0 && he_FindEvent(1, 0, 0x85) == 0) {
         AIMSG msg;
 
         MAIN_NOTE(msg, 0x85);
-        cm_SendLongMessage((char *)&msg);
+        cm_SendLongMessage(&msg);
     }
     if (he_FindEvent(1, 0, 0x7c) == 0) {
         AIMSG msg;
 
         MAIN_NOTE(msg, 0x7c);
-        cm_SendLongMessage((char *)&msg);
+        cm_SendLongMessage(&msg);
     }
     if (he_FindEvent(1, 0, 0x93) == 0) {
         AIMSG msg;
 
         MAIN_NOTE(msg, 0x93);
-        cm_SendLongMessage((char *)&msg);
+        cm_SendLongMessage(&msg);
     }
     if (he_FindEvent(1, 0, 0x84) == 0 && ai_GamePanel.byte[3] != 0) {
         AIMSG msg;
 
         MAIN_NOTE(msg, 0x84);
-        cm_SendLongMessage((char *)&msg);
+        cm_SendLongMessage(&msg);
     }
     if (sv_PanelForm != -1)
         d2_SetViewEnabled(sv_PanelForm, 0);
@@ -3281,7 +3278,7 @@ void main_EndRound(void)
         msg.reserved14 = 0;
         msg.time = ai_Time;
         msg.flags = 1;
-        cm_SendLongMessage((char *)&msg);
+        cm_SendLongMessage(&msg);
     }
     if ((ai_GameFlags & 8) != 0) {
         b = gm_BuildQuery(1, 0, 0x44);
@@ -3332,7 +3329,7 @@ void main_EndRound(void)
                             msg.arg[0] = b->id;
                             cm_BeginGroup("renovieren");
                             cm_SendMoveGoods(-1, ai_Chars[k].netId, ai_OwnPlayer, (int)cost);
-                            cm_SendLongMessage((char *)&msg);
+                            cm_SendLongMessage(&msg);
                             cm_EndGroup("renovieren");
                             fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[k]);
                             if (fin != 0)
@@ -3406,8 +3403,8 @@ void main_EndRound(void)
 /* 0x539620, replaces a dead / imprisoned player (character slot p, kind 6 and health 0) by a new figure: with no
    slot of kind 6 and health left it sets ai_GameOver; the character's events (he_Events as AIJOB records) whose
    kind is in la are closed (he_FreeEvent), and a second walk (terminated by lb, comparing la) sets their stage
-   to -1; the kind becomes 5, the name is taken from txt_MaleFirstNames (flag9 clear, random 0xbf) or
-   txt_FemaleFirstNames (random 0x70), seq takes the old ai_NextCharNumber (then raised) and the eight ids are
+   to -1; the kind becomes 5, the name is taken from TXT_MALE_FIRST_NAMES (flag9 clear, random 0xbf) or
+   TXT_FEMALE_FIRST_NAMES (random 0x70), seq takes the old ai_NextCharNumber (then raised) and the eight ids are
    reset; finally every party record (cm_Parties, G28REC) the character is a member of, with a kind 3 .. 9, is
    cleared (cm_ClearParty). */
 
@@ -3453,9 +3450,9 @@ void main_ReplaceFigure(unsigned p)
         } while ((int)e < (int)(he_Events + 0x400));
         ch->kind = 5;
         if (ch->flag9 == 0) {
-            strcpy(ch->name, txt_MaleFirstNames[util_Random(0xbf)]);
+            strcpy(ch->name, txt_Ptrs[TXT_MALE_FIRST_NAMES + util_Random(0xbf)]);
         } else {
-            strcpy(ch->name, txt_FemaleFirstNames[util_Random(0x70)]);
+            strcpy(ch->name, txt_Ptrs[TXT_FEMALE_FIRST_NAMES + util_Random(0x70)]);
         }
         ch->seq = (short)ai_NextCharNumber;
         memset(ch->clear, 0xff, sizeof(ch->clear));
@@ -3463,7 +3460,7 @@ void main_ReplaceFigure(unsigned p)
         /* the original walks the records by their kind byte, 8 bytes into each */
         for (pt = cm_Parties; (int)&pt->kind < (int)((unsigned)cm_Parties + 0x6788); pt++) {
             if (pt->used != 0) {
-                if (cm_IsPartyMember(ch->netId, (char *)pt) != 0 && (pt->kind == 3 || pt->kind == 5 || pt->kind == 4 || pt->kind == 6 || pt->kind == 9 || pt->kind == 7))
+                if (cm_IsPartyMember(ch->netId, pt) != 0 && (pt->kind == 3 || pt->kind == 5 || pt->kind == 4 || pt->kind == 6 || pt->kind == 9 || pt->kind == 7))
                     cm_ClearParty(pt->id);
             }
         }
@@ -3733,7 +3730,7 @@ void main_RoundReport(void)
         msg.members[0] = msg.host;
         if (fade != 0)
             d2_ReleaseFade(fade);
-        cm_ExecCutscene((char *)&msg);
+        cm_ExecCutscene(&msg);
         if (main_ReplaceFigureOn != 0)
             main_ReplaceFigure(ai_PlayerId);
         main_ReplaceFigureOn = 0;
@@ -3765,7 +3762,7 @@ void main_UpdateFigure(int i)
         c = &ai_Chars[i];
         one = 1;
         if (ai_Chars[i].bld != 0 || ai_Chars[i].kind == 5 || ai_Chars[i].kind == 1 || ai_Chars[i].kind == 2 || ai_Chars[i].kind == 4) {
-            cm_BeginFieldBlock((char *)c, c->netId);
+            cm_BeginFieldBlock(c, c->netId);
             cm_AddFieldValues(4, 1, 0x174, &one);
             cm_SendFieldDeltas();
         }
@@ -3786,8 +3783,8 @@ void main_UpdateFigure(int i)
                 msg.flags = 0x11;
                 msg.arg[2] = 1;
                 msg.arg[0] = msg.to;
-                cm_SendLongMessage((char *)&msg);
-                sprintf(txt, "MeisterPrü" "fung started: player_id:%i beruf:%i grad:%i", c->netId, c->jobId, left + 1);
+                cm_SendLongMessage(&msg);
+                sprintf(txt, "MeisterPr\xfc" "fung started: player_id:%i beruf:%i grad:%i", c->netId, c->jobId, left + 1);
                 gm_SendMoneyDelta(c->netId, -4);
             }
         }
@@ -3795,7 +3792,7 @@ void main_UpdateFigure(int i)
         int one = 1;
 
         c = &ai_Chars[i];
-        cm_BeginFieldBlock((char *)c, c->netId);
+        cm_BeginFieldBlock(c, c->netId);
         cm_AddFieldValues(4, 1, 0x174, &one);
         cm_SendFieldDeltas();
     }
@@ -3821,7 +3818,7 @@ void main_UpdateFigures(void)
             }
             if (ch->heldRounds > 0) {
                 on = 0xff;
-                cm_BeginFieldBlock((char *)ch, ch->netId);
+                cm_BeginFieldBlock(ch, ch->netId);
                 cm_AddFieldValues(1, 1, (int)((char *)&ch->heldRounds - cm_FieldObject), &on);
                 cm_SendFieldDeltas();
             }
@@ -3879,7 +3876,7 @@ void main_SettleRound(unsigned short pl)
                                 char age = o->reportKnow - (char)gm_BuildingRank(t) * 2;
 
                                 age = age < 0 ? 0 : age;
-                                cm_BeginFieldBlock((char *)o, o->objId);
+                                cm_BeginFieldBlock(o, o->objId);
                                 cm_AddFieldDelta(1, 1, (char *)&o->reportKnow - cm_FieldObject, &age);
                                 cm_SendFieldDeltas();
                             } else
@@ -3891,7 +3888,7 @@ void main_SettleRound(unsigned short pl)
                     int zero = 0;
                     int i;
 
-                    cm_BeginFieldBlock((char *)c, c->id);
+                    cm_BeginFieldBlock(c, c->id);
                     for (i = 0; i < 3; i++)
                         cm_AddFieldValue(4, 1, (char *)&c->plants + i * 12 - cm_FieldObject, &zero);
                     cm_SendFieldValues();
@@ -3912,7 +3909,7 @@ void main_SettleRound(unsigned short pl)
 
                             ws = m->workSet;
                             ws.flags |= 1;
-                            cm_BeginFieldBlock((char *)m, m->netId);
+                            cm_BeginFieldBlock(m, m->netId);
                             cm_AddFieldDelta(4, 1, (char *)&m->flags1b4 - cm_FieldObject, &ws);
                             cm_SendFieldDeltas();
                         }
@@ -3931,7 +3928,7 @@ void main_SettleRound(unsigned short pl)
                     msg1.flags = 2;
                     msg1.arg[0] = c->id;
                     msg1.arg[1] = gm_EquipmentValue(c, c->level);
-                    cm_SendLongMessage((char *)&msg1);
+                    cm_SendLongMessage(&msg1);
                     }
                 }
                 if (ai_Chars[pl].kind == 0xd || ai_Chars[pl].kind == 0 || ai_Chars[pl].netId == -1) {
@@ -3948,7 +3945,7 @@ void main_SettleRound(unsigned short pl)
                         msg2.flags = 2;
                         msg2.arg[0] = c->id;
                         msg2.arg[1] = gm_EquipmentValue(c, c->level);
-                        cm_SendLongMessage((char *)&msg2);
+                        cm_SendLongMessage(&msg2);
                         cnt++;
                         for (i = 0; i < 0x300; i++) {
                             if (ai_Chars[i].bld == c) {
@@ -3959,7 +3956,7 @@ void main_SettleRound(unsigned short pl)
                                 msg2.flags = 1;
                                 msg2.time = ai_Time;
                                 msg2.arg[0] = ai_Chars[i].netId;
-                                cm_SendLongMessage((char *)&msg2);
+                                cm_SendLongMessage(&msg2);
                                 cnt++;
                             }
                         }
@@ -4056,7 +4053,7 @@ void main_SettleRound(unsigned short pl)
                                 cnt++;
                                 cm_SendRelations(ai_Chars[pl].netId, q->netId, rel, 0);
                             }
-                            cm_BeginFieldBlock((char *)q, q->netId);
+                            cm_BeginFieldBlock(q, q->netId);
                             cm_AddFieldDelta(4, 1, 0x19c, &wage);
                             cm_SendFieldDeltas();
                             cnt++;
@@ -4074,7 +4071,7 @@ void main_SettleRound(unsigned short pl)
                                         msg4.flags = 1;
                                         msg4.arg[0] = q->netId;
                                         gm_AddTime((struct AITIME *)&msg4.time, util_Random(6) + 4, 0, 0);
-                                        cm_SendLongMessage((char *)&msg4);
+                                        cm_SendLongMessage(&msg4);
                                     } else {
                                         AIMSG msg1;     /* 0x1b to the master; 0x34 */
 
@@ -4086,14 +4083,14 @@ void main_SettleRound(unsigned short pl)
                                         msg1.flags = 1;
                                         msg1.arg[0] = q->netId;
                                         gm_AddTime((struct AITIME *)&msg1.time, util_Random(6) + 4, 0, 0);
-                                        cm_SendLongMessage((char *)&msg1);
+                                        cm_SendLongMessage(&msg1);
                                     }
                                     cnt++;
                                 }
                                 if (q->title == 2 || q->title == 1 || q->title == 0x13 || q->title == 0x14 || q->title == 0x10 || q->title == 0xf) {
                                     char lower;
 
-                                    cm_BeginFieldBlock((char *)q, q->netId);
+                                    cm_BeginFieldBlock(q, q->netId);
                                     lower = (char)(q->sk82 * 0.9 + 0.5);
                                     if (q->sk82 > 42.0f)
                                         cm_AddFieldDelta(1, 1, (char *)&q->sk82 - cm_FieldObject, &lower);
@@ -4116,7 +4113,7 @@ void main_SettleRound(unsigned short pl)
                         AICHAR *q = &ai_Chars[w];
 
                         cm_SendMoveGoodsUnchecked(ai_Chars[w].netId, ai_Chars[pl].netId, ai_OwnPlayer, wage2);
-                        cm_BeginFieldBlock((char *)q, q->netId);
+                        cm_BeginFieldBlock(q, q->netId);
                         cm_AddFieldDelta(4, 1, 0x19c, &wage2);
                         cm_SendFieldDeltas();
                         cnt += 2;
@@ -4324,7 +4321,7 @@ int main_CheckCD(void)
 {
     return 1;
 }
-/* 0x53b840, creates the player character from the profile (cm_SendMessage0c) and its parents, the start couple (cm_SendCreateCharacter, mother with the female flag): random first names (txt_FemaleFirstNames / txt_MaleFirstNames), the father the profile's family name, the player's number and coat, the family links (spouse, parents, child), the model, love 0x7f between all three, 16000 .. 32352 money for each parent, the profile's mission and talents */
+/* 0x53b840, creates the player character from the profile (cm_SendMessage0c) and its parents, the start couple (cm_SendCreateCharacter, mother with the female flag): random first names (TXT_FEMALE_FIRST_NAMES / TXT_MALE_FIRST_NAMES), the father the profile's family name, the player's number and coat, the family links (spouse, parents, child), the model, love 0x7f between all three, 16000 .. 32352 money for each parent, the profile's mission and talents */
 
 void main_CreateStartCouple(void)
 {
@@ -4354,7 +4351,7 @@ void main_CreateStartCouple(void)
         mother->seq = a->seq;
         mother->coat = a->coat;
         mother->rel.child = a->netId;
-        t = txt_FemaleFirstNames[util_Random(0x70)];
+        t = txt_Ptrs[TXT_FEMALE_FIRST_NAMES + util_Random(0x70)];
         d = mother->firstName;
         do {
             c = *t++;
@@ -4364,7 +4361,7 @@ void main_CreateStartCouple(void)
         father->seq = a->seq;
         father->coat = a->coat;
         father->rel.child = a->netId;
-        t = txt_MaleFirstNames[util_Random(0xbf)];
+        t = txt_Ptrs[TXT_MALE_FIRST_NAMES + util_Random(0xbf)];
         d = father->firstName;
         do {
             c = *t++;
@@ -4528,9 +4525,9 @@ void main_GameLoop(int ctl)
     if ((ai_GameFlags & 4) != 0)
         main_SetLoadProgress((int)txt_Ptrs[0x1cad], 5);
     else
-        main_SetLoadProgress((int)d2_Strings[0x6d], 5);
+        main_SetLoadProgress((int)txt_Ptrs[0x6d], 5);
     sv_PumpMessages();
-    main_SetLoadProgress((int)d2_Strings[0x6c], 5);
+    main_SetLoadProgress((int)txt_Ptrs[0x6c], 5);
     main_StartGame();
     if ((ai_GameFlags & 1) != 0 && main_StartCoupleOn != 0)
         main_CreateStartCouple();
@@ -4649,7 +4646,7 @@ void main_GameLoop(int ctl)
         m.msg.fromId = -1;
         m.msg.flags = 9;
         m.msg.to = ai_Chars[ai_PlayerId].netId;
-        cm_SendLongMessage((char *)&m.msg);
+        cm_SendLongMessage(&m.msg);
     }
     /* the rounds */
     while (ai_GameOver == 0 && (iv = sv_RunFrame(main_GameLoop, 0x20007)) != 0 && main_Round < 800) {
@@ -4747,7 +4744,7 @@ void main_GameLoop(int ctl)
             ai_GameFrame();
             if (ai_GameOver == 0) {
                 /* the rest of the day in half hours to 23:00, then the report */
-                tb_SetFunctionOff((unsigned)&sv_UpdateClock, 1);
+                tb_SetFunctionOff(sv_UpdateClock, 1);
                 if ((ai_GameFlags & 8) == 0) {
                     ck = ai_Time;
                     while (ck.hour < 0x17) {
@@ -4766,7 +4763,7 @@ void main_GameLoop(int ctl)
         if (ai_GameOver == 0) {
             if (net_Conn.s == -1) {
                 /* alone: the night to 23:00, then the next day 6:00 */
-                tb_SetFunctionOff((unsigned)&sv_UpdateClock, 1);
+                tb_SetFunctionOff(sv_UpdateClock, 1);
                 night = ai_Time;
                 while (night.hour < 0x17) {
                     gm_AddTime(&night, 0, 0x1e, 0);
@@ -4777,7 +4774,7 @@ void main_GameLoop(int ctl)
                 gm_AddTime(&night, 0x18, 0, 0);
                 gm_SetTime(&night, 6, 0, 0);
                 cm_SendTime(&night);
-                tb_SetFunctionOff((unsigned)&sv_UpdateClock, 0);
+                tb_SetFunctionOff(sv_UpdateClock, 0);
             }
             if ((cm_NetFlags & 8) != 0 || net_Conn.s == -1) {
                 /* the office elections: a party (kind 1) of every player (the host the kind 6 one) */
@@ -5053,7 +5050,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE prev, char *cmd, int show)
             k = 0x38;
             if (main_JobName[0] != 0) {
                 for (i = 0; i < 0x5f; i++) {
-                    if (strcmpi(main_JobName, txt_JobNames[i]) == 0) {
+                    if (strcmpi(main_JobName, txt_Ptrs[TXT_JOB_NAMES + i]) == 0) {
                         k = i;
                         break;
                     }
@@ -5147,7 +5144,7 @@ int main_TextReopen = 0;  /* 0x6f2460 */
 int ai_WriteActionTable = 0;  /* 0x6f2464, set: write the action table */
 int main_HmtMode = 0;  /* 0x6f2468 */
 int main_HmtBuild = 0;  /* 0x6f246c */
-char main_JobName[0x104] = { 0 };  /* 0x6f2470, the job name of the BERUF=" command line option (WinMain: the starting job, matched against txt_JobNames, else 0x38) */
+char main_JobName[0x104] = { 0 };  /* 0x6f2470, the job name of the BERUF=" command line option (WinMain: the starting job, matched against TXT_JOB_NAMES, else 0x38) */
 int main_MoviesOpen = 0;  /* 0x6f2574, nonzero while the movie player is set up (mov_Init); the outro opens and closes it itself otherwise */
 int snd_MusicEnabled = 0;  /* 0x6f2578, the "msx" setting of game.INI [Sound]: music enabled */
 int snd_SfxEnabled = 0;  /* 0x6f257c, the "sfx" setting of game.INI [Sound]: effects and voices on */
@@ -5206,7 +5203,7 @@ int he_EventCount;  /* 0x7585e4 */
 HEHANDLER he_RunHandlers[0xa8];  /* 0x758600, the event run handlers by type (he_SetEventHandlers) */
 HEGFXINFO he_GfxInfos[0x40];  /* 0x7588a0, he.h: the gfx infos (he_CreateGfxInfo) */
 HEAPEVENT he_ApEvents[0x100];  /* 0x758ca0, he.h: the AP events (he_AddApEvent) */
-int main_SoundBanks[0x80];  /* 0x75df20, the loaded sample-bank handles (main_PreloadSound fills, main_FreeSoundBanks frees; the next object is ai_MissionSeed 0x75e120) */
+struct SBBANK *main_SoundBanks[0x80];  /* 0x75df20, the loaded sample-bank handles (main_PreloadSound fills, main_FreeSoundBanks frees; the next object is ai_MissionSeed 0x75e120) */
 void * main_Instance;  /* 0x75e140, its instance handle (HINSTANCE) */
 MAINFAMILY main_Family;  /* 0x75e180, the character creation's family and talents */
 char main_NetHost[0x80];  /* 0x75e1c0, the network host address ([Network] Host of game.INI, read with size 0x80 at 0x53ccf0; up to main_AppDir 0x75e240) */
@@ -5222,270 +5219,6 @@ int init_StatusForm;  /* 0x75df00, the panel form the load status is printed in 
 INIT_PLAYER init_PlayerProfile;  /* 0x75e5a0 */
 char ai_DataPath[608];  /* 0x75dca0, the data path */
 LSSAVE ls_SavePath;  /* 0x75e640 */
-/* full_data_143a3c4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_GateItemSuffix: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_GatePlaceSuffix: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_SpeedHostOnly: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143a3e4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextMercenaryBook: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_Tribune: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143a3f0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextParchment: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_FemaleHonourTitle: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143b3f8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextInformation: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143ccf0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143ccf8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143cd00: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143cd08: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143cd10: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143cd18: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143cd20: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143df38: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143df40: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143ec88: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143f030: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143f18c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143f190: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143f194: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143fac4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextGuildPriceRaise: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextGuildPriceLower: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextGuildPriceClose: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143fb34: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextGuildPowerPick: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextGuildLevel2Pick: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextGuildLevel3PowerPick: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextGuildLevel3Pick: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextGuildPowerUsed: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143fc78: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143fda0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143fdb8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143fdd8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143feb8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143feec: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143ff1c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143ff38: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_143ff58: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14401c4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextDiceGame: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextStammtisch: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextDarkCorner: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14404e0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14404f8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14404fc: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440510: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440534: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440590: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144059c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14405b0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14405b8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14405d8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14405f0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440794: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14407b8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14407d0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14407d4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14407f4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextBribe: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440894: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextKidnap: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextKidnapMessage: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextRansom: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14408e0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14408e8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextBurglary: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144094c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440954: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_MapPickPrompt: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextSpyBuilding: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextOfficeNoneOpen: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextOfficeNoRank: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextOfficeAllFull: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextOfficeApply: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextOfficeColumn: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextOfficeInfo: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14409ec: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextOfficeApplied: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14409f8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextMapTable: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440a24: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440a50: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440a94: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440ab4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextTarget: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextTraining: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440ae4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440b30: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440b34: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440b38: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextPatrol: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_PatrolPickPrompt: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_RaidPickPrompt: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextWatchPlan: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_WatchPlanPickPrompt: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextCustomsBox: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ArrestPickPrompt: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440b90: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440ba4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextRaid: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_BribePickText: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_BreakInPickText: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_Male: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_Female: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_Faith0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_Faith1: view of txt_Ptrs (build/mk_txt_views.py) */
-/* main_FamilyModelNames: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1440da4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144134c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1441350: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1441354: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1441358: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14414b4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14414b8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14414bc: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_ChatConsoleSlider: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14414d0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_DefaultFileName: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextGelage: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextProduction: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextAttack: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextAmbush: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextEquip: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextSpy: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextRazzia: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextRegeneration: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextExtort: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextPickpocket: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextFarBuy: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextSell: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442050: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442078: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextProductionMixing: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextExtract: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextSearchOre: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextSearchStone: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14420e0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14420e8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14420f0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442100: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextProductionSmithy: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextProductionStonecutter: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextProductionCarpenter: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextProductionWood: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextProductionBrewing: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442160: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442180: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442190: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_14421b8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_TextBuildingClosed: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442318: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442334: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442430: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1442500: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1449e24: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1449e48: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_1449e4c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a118: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a130: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a134: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a138: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a13c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_ContactTextBreakOut: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a19c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1a4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1a8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1b0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1bc: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1c0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1c4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1c8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1ec: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a1f4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a200: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a204: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a208: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a20c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a22c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a240: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a244: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a248: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a24c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a268: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a270: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a29c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a2a0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a2e0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a2f8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a334: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a338: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a33c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a340: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a344: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a348: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a34c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a350: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a354: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a358: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a35c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a360: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a364: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a40c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a410: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a414: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a428: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a440: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a444: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a490: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a498: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4bc: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4c0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4c4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4c8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4cc: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4d0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4d4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4d8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4f0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a4f4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a514: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a590: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a5d0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a5d4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a620: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a624: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a634: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a638: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a63c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a65c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a680: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a684: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a69c: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a6c8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a714: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a764: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a8a8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a8b4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144a8b8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_NetPlayers: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_JobLabel: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_FaithLabel: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_LobbyReady: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_LobbyCharacter: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_LobbyLeave: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_ReadyMark: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_ChatPrivate: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144abfc: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144acd8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144acdc: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144ace0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144ace4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144ace8: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144acec: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144acf0: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144acf4: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144ad10: view of txt_Ptrs (build/mk_txt_views.py) */
-/* full_data_144adb4: view of txt_Ptrs (build/mk_txt_views.py) */
 
 /* unlinked: an empty function; LINK folds it (/OPT:ICF) into d3io_NoopCallback, 0x44ee40, where the original's
    calls of it in main_RunTitle .. main_GameLoop (no push) point */

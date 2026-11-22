@@ -70,9 +70,9 @@ int ai_PokerStart(AICHAR *p, G10GAME *g)
         else
             n->female = (unsigned char)util_Random(2);
         n->variant = (unsigned char)util_Random(4) + 1;
-        strncpy(n->nname, txt_FamilyNames[util_Random(0x95)], 15);
+        strncpy(n->nname, txt_Ptrs[TXT_FAMILY_NAMES + util_Random(0x95)], 15);
         if (n->female == 0) {
-            strncpy(n->vname, txt_MaleFirstNames[util_Random(0xbf)], 15);
+            strncpy(n->vname, txt_Ptrs[TXT_MALE_FIRST_NAMES + util_Random(0xbf)], 15);
             switch (util_Random(4)) {
             case 0:
                 ai_PokerTable->seat[i + 1].model = gm_HeadIconNumber("buerger_MANN") + 0x639;
@@ -88,7 +88,7 @@ int ai_PokerStart(AICHAR *p, G10GAME *g)
                 break;
             }
         } else {
-            strncpy(n->vname, txt_FemaleFirstNames[util_Random(0x70)], 15);
+            strncpy(n->vname, txt_Ptrs[TXT_FEMALE_FIRST_NAMES + util_Random(0x70)], 15);
             switch (util_Random(4)) {
             case 0:
                 ai_PokerTable->seat[i + 1].model = gm_HeadIconNumber("buergerin_frau") + 0x639;

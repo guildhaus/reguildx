@@ -68,18 +68,16 @@ int io_TrailingDigits(char *s, int n, char *out)
 
 
 
-/* txt_PseudoCharName: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_NoCharacter: view of txt_Ptrs (build/mk_txt_views.py) */
 #define G30_ENDS_S(p) ((p)[strlen(p) - 1] == 's' || (p)[strlen(p) - 1] == 'z' || (p)[strlen(p) - 1] == '\xdf' || (p)[strlen(p) - 1] == 'x')  /* the sharp s: on an unsigned char record name the original compares the zero-extended byte with -0x21, never equal */
 #define CH_NAME(r) ((r) + 0x30)         /* the first name */
 #define CH_FAMILY(r) ((r) + 0x40)       /* the family name */
 /* 0x5143d0, writes the name of the character id (0xfffe: the empty record with the default first name
-   txt_PseudoCharName) into out in the form kind: 1 the first name, 2 the level title + first + family name,
+   TXT_PSEUDO_CHAR_NAME) into out in the form kind: 1 the first name, 2 the level title + first + family name,
    3 the profession title + names, 4 the job / rank title + first name, 5 the profession title, 6 the family
    (else the first) name, 7 first + family name, 8 / 9 the profession (9: the privilege's office from flags1cc)
    or level title + first name; c 2 makes it a genitive ("'" after s / z / ss / x, else "s"), c is also the
    case txt_Field picks for 8 / 9. The player's own character is the player slot's name. Returns 0 for no
-   character (the text txt_NoCharacter)
+   character (the text TXT_NO_CHARACTER)
    @deep deep s23: left case 4's first txt_Ptrs index sum (original add eax,ecx: rec[0x164] + sel; its
    second arm and every other case have add ecx,eax as ours) and case 6's two inline strcpy stores
    [edx+eax] (ours [eax+edx], as lines 213/245 have). Index operand swap, (char *) casts, &rec[0x40], the
@@ -100,7 +98,7 @@ int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out)
     B[0] = ch_EmptyName[0];
     memset(B + 1, 0, 0xff);
     if (id < 0 || id == 0xffff) {
-        strcpy(out, txt_NoCharacter);
+        strcpy(out, txt_Ptrs[TXT_NO_CHARACTER]);
         return 0;
     }
     if (id != 0xfffe) {
@@ -108,7 +106,7 @@ int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out)
     } else {
         memset(tmp, 0, 0x21c);
         rec = (unsigned char *)tmp;
-        strcpy(CH_NAME(rec), txt_PseudoCharName);
+        strcpy(CH_NAME(rec), txt_Ptrs[TXT_PSEUDO_CHAR_NAME]);
     }
     if ((char *)rec == (char *)ai_PlayerChar) {
         strcpy(out, ai_PlayerSlots[ai_OwnPlayer].name);
@@ -258,7 +256,7 @@ int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out)
 
 
 /* 0x514e90, io_CharacterName with the text markup "$A" between the title and the name ("%s$A%s", "%s$A%ss",
-   "%s$A%s'") in the kinds 2, 4, 7 and 8, for the ids 0 .. 0x2ff (anything else: the text txt_NoRelative,
+   "%s$A%s'") in the kinds 2, 4, 7 and 8, for the ids 0 .. 0x2ff (anything else: the text TXT_NO_RELATIVE,
    returns 0); kind 8 always takes the titles in case 1 and has the name only in the genitive (else the
    empty text), kinds 3 and 9 keep the plain space; the player's own
    name gets a plain "s" genitive. A kind 4 name without a title gets its genitive twice (as the original
@@ -277,7 +275,7 @@ int io_CharacterNameMarkup(int id, unsigned char c, unsigned char kind, char *ou
     B[0] = ch_EmptyName[0];
     memset(B + 1, 0, 0xff);
     if (id < 0 || id >= 0x300) {
-        strcpy(out, txt_NoRelative);
+        strcpy(out, txt_Ptrs[TXT_NO_RELATIVE]);
         return 0;
     }
     if (id != 0xfffe) {
@@ -285,7 +283,7 @@ int io_CharacterNameMarkup(int id, unsigned char c, unsigned char kind, char *ou
     } else {
         memset(tmp, 0, 0x21c);
         rec = (unsigned char *)tmp;
-        strcpy(CH_NAME(rec), txt_PseudoCharName);
+        strcpy(CH_NAME(rec), txt_Ptrs[TXT_PSEUDO_CHAR_NAME]);
     }
     if ((char *)rec == (char *)ai_PlayerChar) {
         strcpy(out, ai_PlayerSlots[ai_OwnPlayer].name);
@@ -447,7 +445,6 @@ void d2_RedrawView(int view);                    /* 0x474e80 */
 extern void *d2_ScreenSurf;              /* 0x6ed924, the screen surface (d2.c) */
 void err_Message(char *text);                    /* 0x4222b0 */
 void gm_FormatAmount(int v, unsigned char k, char *out);                   /* 0x508a80 */
-int io_TrailingDigits();                /* 0x514360 */
 int ls_GetLanguage();                     /* 0x5190a0, the language number */
 
 /* 0x515960, the text engine: prints the text fmt (a literal or an id of txt_Ptrs below 0x4800) with the arguments of its tokens ("%" "$" "{" + an optional digit + a letter) appended to the text of the current window d2_LastWindow and redraws the window (or its view; "%X" redraws all). Returns the window's object count (nobjs: the index the object of this text's "%ia" gets, the redraw has created it before the caller's d2_GetWinObj), -1 when the texts are not loaded, the window is not active, or the text is missing / too long.

@@ -85,10 +85,6 @@ typedef struct CMCUTTYPEMSG {      /* 0x7c bytes, the data of the system message
     int party;                      /* 0x00, the party's id (G28REC.id) */
     char text[0x78];                /* 0x04, "cut_type:%i" with the scene kind */
 } CMCUTTYPEMSG;
-typedef struct CMNOTE {             /* 0x8f8 bytes, a long message (AIMSG) with its texts right after it, as cm_SendPartyNote builds it */
-    AIMSG head;                     /* 0x00 */
-    char text[0x800];               /* 0xf8, the text, then the second one (textFlags 0x10) */
-} CMNOTE;
 typedef struct CMFIELD {            /* the head of one field of a field block (G17FIELDS.buf); its values follow at 0x04 */
     signed char size;               /* 0x00, a value's size: 1, 2 or 4 bytes */
     signed char n;                  /* 0x01, the values */
@@ -148,7 +144,7 @@ extern int cm_FightOwner;
 extern int cm_FightView;
 extern int cm_FightTimeBar;
 extern int cm_FightButton;
-extern char * cm_PointList[32];
+extern struct D3OBJECT *cm_PointList[32];
 extern CMPORTRAIT cm_Portraits[6];
 extern G18POP cm_DamagePops[16];
 extern AICHAR cm_Fighters[32];
@@ -164,7 +160,7 @@ extern int cm_FightWinner;
 extern int cm_FightSettled;
 extern int cm_FightLootValue;
 extern int cm_UnreadBss;
-extern CMFIGHTREC *cm_FightRecord;
+extern G28REC *cm_FightRecord;
 extern int cm_SelectedCount;
 extern struct SBBANK *cm_FightSounds;
 extern struct SBBANK *cm_CrossbowSounds;
@@ -172,16 +168,6 @@ extern struct SBBANK *cm_BombSounds;
 extern struct SBBANK *cm_DaggerSounds;
 extern struct SBBANK *cm_PistolSounds;
 extern struct SBBANK *cm_SwordSounds;
-extern int cm_AttackerClickVoices;
-extern int cm_DefenderClickVoices;
-extern int cm_AttackerAttackVoices;
-extern int cm_DefenderAttackVoices;
-extern int cm_AttackerOrderVoices;
-extern int cm_DefenderOrderVoices;
-extern int cm_AttackerTauntVoices;
-extern int cm_DefenderTauntVoices;
-extern int cm_AttackerPainVoices;
-extern int cm_DefenderPainVoices;
 extern int cm_FightAmbient;
 extern int cm_AttackerRole;
 extern int cm_DefenderRole;
@@ -375,9 +361,9 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                         p->damage = (int)(p->damage * 1.25f);
                     if (cm_CutChar->netId == cm_FightOwner && k->kind == 0 && x != 0) {
                         other = 0;
-                        n = cm_FightRecord->nChars;
+                        n = cm_FightRecord->used;
                         for (i = 0; i < n; i++) {
-                            if (cm_FightRecord->charIds[i] != -1 && rec != &cm_CutInfos[i]) {
+                            if (cm_FightRecord->members[i] != -1 && rec != &cm_CutInfos[i]) {
                                 other = &cm_CutInfos[i];
                                 break;
                             }
@@ -639,14 +625,14 @@ void cm_FightLoop(char *a, int ctx)
             sv_SetStatusText(&ch_EmptyName);
         }
         if (cm_FightPaused != 0)
-            sv_SetStatusText(txt_FightPaused);
+            sv_SetStatusText(txt_Ptrs[TXT_FIGHT_PAUSED]);
         else
             cm_FightFrame(a);
         if (cm_FightWinner == 0 && cm_FightSettled == 0 && cm_FightPaused == 0) {
             if (tb_Calls > t + 0x1a4) {
-                for (i = 0; i < cm_FightRecord->nChars; i++) {
-                    if (cm_FightRecord->charIds[i] != -1) {
-                        o = gm_FindChar(cm_FightRecord->charIds[i]);
+                for (i = 0; i < cm_FightRecord->used; i++) {
+                    if (cm_FightRecord->members[i] != -1) {
+                        o = gm_FindChar(cm_FightRecord->members[i]);
                         if (o != 0 && o->kind != 6 && o->kind != 7)
                             cm_GiveFightOrders(o);
                     }
@@ -655,8 +641,8 @@ void cm_FightLoop(char *a, int ctx)
             }
             if (cm_CutChar->netId == cm_FightOwner) {
                 cm_CheckFightWinner(cm_FightRecord);
-                for (i = 0; i < cm_FightRecord->nChars; i++) {
-                    if (cm_FightRecord->charIds[i] != -1)
+                for (i = 0; i < cm_FightRecord->used; i++) {
+                    if (cm_FightRecord->members[i] != -1)
                         cm_RunCutOrders(&cm_CutInfos[i]);
                 }
             }

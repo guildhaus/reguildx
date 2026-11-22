@@ -136,7 +136,8 @@ typedef struct EVTSCRIPT {          /* 0xc98 bytes, 128 at evt_Scripts */
     char *sp;                       /* 0xc38 */
     struct EVTSCRIPT *includes[8];  /* 0xc3c */
     EVTBUILTIN *call;               /* 0xc5c */
-    void *waitfn;                   /* 0xc60, the wait command the script is suspended in (0 = running) */
+    int (*waitfn)();                /* 0xc60, the wait command the script is suspended in (0 = running); old-style as
+                                       EVTBUILTIN.fn (the commands take their argument pointers) */
     int args[8];                    /* 0xc64 */
     int mode;                       /* 0xc84 */
     int waitStart;                  /* 0xc88, d3_Time tick at which the current wait started */
@@ -244,8 +245,8 @@ int evt_Init(void);                                                             
 int evt_Unload(EVTSCRIPT *sc);                                                          /* 0x42b410, frees sc's variable data, includes, variable and function tables, source, lines and stack, zeroes the slot and sets id -1; returns 0 for a null script, else 1 */
 EVTBUILTIN *evt_FindBuiltin(char *name);                                                /* 0x42b540, the engine function with this name among the 256 builtins; 0 if none */
 int evt_ImportCommand(char *name, int (*fn)(), int rettype, int nargs, ...);            /* 0x42b5b0, registers the engine function fn under name (at most 0x1f chars) with its return type and argument types from the varargs; reports a too long or duplicate name and a full table; returns 1 when registered, 0 on error */
-int evt_StartScript(int unused1, int unused2, char *name);                              /* 0x42b6c0, loads and runs the script name and stores its id (or -1) in evt_LastId, which it returns; the two ints are unused */
-void *evt_GetStartScript(void);                                                         /* 0x42b700, the start-script function (evt_StartScript), for the engine to run scripts */
+int evt_StartScript(void *obj, int id, char *name, int arg);                              /* 0x42b6c0, loads and runs the script name and stores its id (or -1) in evt_LastId, which it returns; obj, id and arg are unused */
+int (*evt_GetStartScript(void *obj, int id, char *name))(void *obj, int id, char *name, int arg);                                                         /* 0x42b700, the event resolver (d3e_Resolve): evt_StartScript for every event, for the engine to run scripts */
 void evt_ResetNoGroup(void);                                                            /* 0x42b710, resets evt_NoGroup to -1 */
 
 #endif

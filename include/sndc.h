@@ -35,7 +35,7 @@ struct SBSAMPLE *sndc_PlaySample3D(struct D3OBJECT **obj, int *range, char **nam
 int sndc_StopSample(struct SBSAMPLE **s);                                               /* 0x410130 */
 struct SBBANK *sndc_GetSampleBankHandle(char **name);                                   /* 0x410150 */
 struct SBSAMPLE *sndc_GetSampleHandle(struct SBBANK **bank, char **name);               /* 0x410160 */
-int sndc_SpeechQueued(int *id, int *bank, char **name, int *var, int *delay);           /* 0x410180 */
+struct SBSAMPLE *sndc_SpeechQueued(int *id, struct SBBANK **bank, char **name, int *var, int *delay);           /* 0x410180 */
 void sndc_WaitForSample(struct SBSAMPLE **s);                                           /* 0x4101d0 */
 void sndc_Register(void);                                                               /* 0x410220 */
 

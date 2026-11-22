@@ -12,7 +12,7 @@
 #define ERR_TIME     0x20           /* prefix log lines with timeGetTime() */
 
 void err_Write(char *text, unsigned int flags, int channel);                            /* 0x4214a0 */
-void err_Init(int started, void (*crashCB)(HANDLE), HWND hwnd, unsigned int flags);     /* 0x4220b0 */
+void err_Init(void (*started)(void), void (*crashCB)(HANDLE), HWND hwnd, unsigned int flags);     /* 0x4220b0 */
 void err_Exit(void);                                                                    /* 0x422250 */
 void err_Message(char *text);                                                           /* 0x4222b0 */
 void err_Log(char *file, int line, char *text, int channel);                            /* 0x422330 */

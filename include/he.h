@@ -50,14 +50,14 @@ typedef struct HEHINT {                 /* 16 bytes, an entry of the tutorial hi
         int hourW;                      /* 0x04, the same as he_OpenHelpEvents stores it (a dword) */
     };
     int min;                            /* 0x08, the due minute */
-    int text;                           /* 0x0c, the hint's text id (txt_FindKey, d2_Strings) */
+    int text;                           /* 0x0c, the hint's text id (txt_FindKey, txt_Ptrs) */
 } HEHINT;
 extern HEHINT he_Hints[128];            /* 0x6fa260, the tutorial hints he_OpenHelpEvents fills and he_RunHint walks */
 extern HEHANDLER he_AllocHandlers[0xa8];  /* 0x74df40, the event alloc handlers by type (he_SetEventHandlers; 0xa7 types) */
 extern HEHANDLER he_RunHandlers[0xa8];    /* 0x758600, the event run handlers by type (he_SetEventHandlers) */
 extern struct AIJOB *he_QuickList[0x100]; /* 0x74db40, the event records shown in the event bar (he_QuickTop the last used) */
 extern struct AIJOB *he_Cursor;         /* 0x7585e0, the record he_NextEvent stands on, 0: the search ended */
-extern int he_TipOrder[0x20];           /* 0x6fa1e0, the tip order: 27 indices into txt_TipTexts (gm_Shuffled fills it) */
+extern int he_TipOrder[0x20];           /* 0x6fa1e0, the tip order: 27 indices into TXT_TIP_TEXTS (gm_Shuffled fills it) */
 extern HEEVSLOT *he_ActiveSlot;         /* 0x6f262c, the slot of the active event window (0x53dcb0, 0x53daf0), 0 = none */
 extern unsigned char he_SlotConfirmed;  /* 0x6f2630, set by a right click / Enter on the active window of the
                                            ceremony kinds 0x11 / 0x26 / 0x69 (0x52d940); their run handlers
@@ -193,7 +193,7 @@ int he_NoEvent4bPair(struct AICHAR *a, struct AICHAR *b);  /* 0x553d60 */
 int he_EventOnBuilding(int owner);  /* 0x56f170 */
 int he_NoEvent88Pair(struct AICHAR *a, struct AICHAR *b);  /* 0x570ea0, 1 when no running haunting event 0x88 has b's netId as its character and a's netId as its victim */
 int he_IsMessageKindFiltered(int id);  /* 0x575640 */
-int he_RandomTransporter(struct D3OBJECT *obj);  /* 0x555210 */
+struct D3OBJECT *he_RandomTransporter(struct D3OBJECT *obj);  /* 0x555210 */
 struct AIJOB *ai_FindCurseEvent(struct AIBLD *a);  /* 0x5741d0 */
 int he_HasGraveWork(struct AIBLD *bld, int size, int index);  /* 0x573200, 1 when a work event 0x8d of bld is pending on the grave (size, index) */
 int he_NoEvent35Pair(unsigned short *a, struct AICHAR *b, int *count);  /* 0x553db0 */

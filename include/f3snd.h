@@ -71,10 +71,10 @@ extern int snd_AmbientSaved;            /* 0x6f0b78, 1 while the ambient flag is
 extern unsigned int snd_AmbientOnSaved; /* 0x6f0b64, the saved snd_AmbientOn */
 extern char snd_MusicLog[];             /* 0x6f0860, a debug text */
 extern char ch_EmptyName[];             /* 0x631090, "" */
-extern int snd_VoiceBankOrders;         /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
-extern int snd_VoiceBankClick;          /* 0x6f0cc0, voice bank: click comments */
-extern int snd_VoiceBankNoise;          /* 0x6f0cc4, voice bank: click noises */
-extern int snd_VoiceBankGreeting;       /* 0x6f0ccc, voice bank: greeting */
+extern struct SBBANK *snd_VoiceBankOrders;        /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
+extern struct SBBANK *snd_VoiceBankClick;         /* 0x6f0cc0, voice bank: click comments */
+extern struct SBBANK *snd_VoiceBankNoise;         /* 0x6f0cc4, voice bank: click noises */
+extern struct SBBANK *snd_VoiceBankGreeting;      /* 0x6f0ccc, voice bank: greeting */
 extern G16LOC snd_LocationTracks[];           /* 0x6094d0 */
 extern G16TRACKS snd_BuildingTracks[];        /* 0x602d70 */
 extern struct AIBLD *ai_FallbackBuilding;        /* 0x6f230c, the second current building, used when 0x6f2308 is 0 */
@@ -152,10 +152,10 @@ void snd_UpdateMusic(void);
 void snd_PlaySpecialTrack(char *name);
 void snd_EndSpecialTrack(void);
 int snd_VoiceVariant(unsigned int voice, int woman);
-int snd_FindVoiceSample(int id, int bank, char *text, int var);
-int snd_PlayVoice(int id, int bank, char *text, int var);
-int snd_QueueVoice(int id, int bank, char *text, int var, unsigned int delay);
-int snd_LoadVoiceBank(char *name, int a);
+struct SBSAMPLE *snd_FindVoiceSample(int id, struct SBBANK *bank, char *text, int var);
+struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var);
+struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay);
+struct SBBANK *snd_LoadVoiceBank(char *name, int a);
 void snd_LoadBuildingVoices(struct AIBLD *b);
 void snd_UnloadBuildingVoices(void);
 void snd_PlayWorkerClick(G16CHARCLICK *c);

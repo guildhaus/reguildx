@@ -4,8 +4,7 @@
    (-1 at 0x5ffd1c) right after the AI unit's strings; its strings end at 0x5ffdb4 and its literals (0x5ecec0..0x5ecf18)
    precede amr.c's named constants ag_Pairs.. (the AI actions with the am_RegisterMethod tag are amr.c; the name am
    stays here with am.h). Names are ours.
-   Open: am.h keeps the joined parts' character views (AICHAR / AICHAR / AICHAR / AICHAR / AICHAR), message views of ai.h's
-   AIMSG (AIXMSG / G8MSG) and duplicate callee prototypes / cast macros; they need unifying with ai.h's types.
+   Open: am.h keeps the joined parts' character views (AICHAR / AICHAR / AICHAR / AICHAR / AICHAR), and duplicate callee prototypes / cast macros; they need unifying with ai.h's types.
    Open: AIJOBX (am.h) duplicates ai.h's AIJOB (its id / bldId / price fields are named from it); the AIJOB
    union member for the building offer's price flips ai_Unk483a60's byte match by the declaration set.
    Open: the use callers read am_types.h's G9DOMIZIL weight (+0xc) as g[3] through a float view; naming that
@@ -977,7 +976,7 @@ int ai_DecideGraveyardOwner0(AICHAR *p, AIBLD *b, AIARG *o1, AIARG *o2)
 }
 /* 0x4900c0, way 0 of the "Graveyard Owner" execute: sends message 0x88 (flags 2) from the building to the character with the way's AIARG (ref2, ref, arg2, arg) */
 
-int ai_ExecGraveyardOwner0(AICHAR *p, AIBLD *b, AGARG *unused, AIARG *o)
+int ai_ExecGraveyardOwner0(AICHAR *p, AIBLD *b, AIARG *unused, AIARG *o)
 {
     AIMSG msg;
 
@@ -1033,7 +1032,7 @@ done:
 }
 /* 0x4902b0, way 1 of the "Graveyard Owner" execute: sends message 0x90 (flags 2) from the building to the character with the way's AIARG (ref2, ref, arg) */
 
-int ai_ExecGraveyardOwner1(AICHAR *p, AIBLD *b, AGARG *unused, AIARG *o)
+int ai_ExecGraveyardOwner1(AICHAR *p, AIBLD *b, AIARG *unused, AIARG *o)
 {
     AIMSG msg;
 
@@ -1094,7 +1093,7 @@ int ai_DecideGraveyardOwner2(AICHAR *p, AIBLD *b, AIARG *o1, AIARG *o2)
 }
 /* 0x4904c0, way 2 of the "Graveyard Owner" execute: sends message 0x89 (flags 1) from the building to the character with the way's AIARG (ref2, ref, arg2, arg) */
 
-int ai_ExecGraveyardOwner2(AICHAR *p, AIBLD *b, AGARG *unused, AIARG *o)
+int ai_ExecGraveyardOwner2(AICHAR *p, AIBLD *b, AIARG *unused, AIARG *o)
 {
     AIMSG msg;
 
@@ -1132,7 +1131,7 @@ int ai_DecideGraveyardOwner3(AICHAR *p, AIBLD *b, AIARG *o1, AIARG *o2)
 }
 /* 0x490600, way 3 of the "Graveyard Owner" execute: sends message 0x8a (flag 1) from the building to the character with the way's AIARG (ref) */
 
-int ai_ExecGraveyardOwner3(AICHAR *p, AIBLD *b, AGARG *unused, AIARG *o)
+int ai_ExecGraveyardOwner3(AICHAR *p, AIBLD *b, AIARG *unused, AIARG *o)
 {
     AIMSG msg;
 
@@ -1191,13 +1190,13 @@ int ai_DecideGraveyardOwner(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 }
 /* 0x490830, the execute callback of "Graveyard Owner" */
 
-int ai_ExecGraveyardOwner(AICHAR *p, AGARG *s1, AGARG *s2)
+int ai_ExecGraveyardOwner(AICHAR *p, AIARG *s1, AIARG *s2)
 {
-    AGARG *a = s1;
+    AIARG *a = s1;
 
-    gm_FindById((AIBLD **)&s1, 0, 0, a->bldId);
+    gm_FindById((AIBLD **)&s1, 0, 0, a->ref2);
     if (s1 != 0) {
-        switch (a->kind) {
+        switch (a->arg2) {
         case 0:
             return ai_ExecGraveyardOwner0(p, (AIBLD *)s1, a, s2);
         case 1:
@@ -1212,7 +1211,7 @@ int ai_ExecGraveyardOwner(AICHAR *p, AGARG *s1, AGARG *s2)
 }
 /* 0x4908d0, the decide callback of "Handle Grave" */
 
-int ai_DecideHandleGrave(int a, AICHAR *p, int b, AGARG *o1, AGARG *o2)
+int ai_DecideHandleGrave(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 {
     AIBLD *bld;
     AICHAR *q;
@@ -1258,12 +1257,12 @@ int ai_DecideHandleGrave(int a, AICHAR *p, int b, AGARG *o1, AGARG *o2)
                 m = gm_CharCurrency(p, ai_OwnPlayer);
                 if ((int)(m * 0.22f) <= v)
                     return 0;
-                o1->kind = 5;
-                o1->bldId = bld->id;
-                o1->entry = *r2;
-                o1->price = v;
-                o2->entry = *r;
-                o2->kind = gv_EntryIndex((char *)bld->yard, r);
+                o1->arg2 = 5;
+                o1->ref2 = bld->id;
+                o1->ref = *r2;
+                o1->arg = v;
+                o2->ref = *r;
+                o2->arg2 = gv_EntryIndex((char *)bld->yard, r);
                 return 0x3e;
             }
         }
@@ -1285,26 +1284,26 @@ int ai_DecideHandleGrave(int a, AICHAR *p, int b, AGARG *o1, AGARG *o2)
     }
     if ((int)(m * 0.22f) < v)
         return 0;
-    o1->kind = 4;
-    o1->bldId = bld->id;
-    o1->entry = *r2;
-    o1->price = v;
+    o1->arg2 = 4;
+    o1->ref2 = bld->id;
+    o1->ref = *r2;
+    o1->arg = v;
     return 0x3e;
 }
 /* 0x490b90, the execute callback of "Handle Grave": reserves the grave ai_DecideHandleGrave picked (kind 4), or moves the grave with its second entry (kind 5) */
 
-int ai_ExecHandleGrave(AICHAR *p, AGARG *s1, AGARG *s2)
+int ai_ExecHandleGrave(AICHAR *p, AIARG *s1, AIARG *s2)
 {
-    AGARG *a = s1;
+    AIARG *a = s1;
 
-    gm_FindById((AIBLD **)&s1, 0, 0, a->bldId);
+    gm_FindById((AIBLD **)&s1, 0, 0, a->ref2);
     if (s1 != 0) {
-        if (a->kind == 4) {
-            gv_OrderReserveGrave(p, (AIBLD *)s1, a->entry, 10, a->price);
+        if (a->arg2 == 4) {
+            gv_OrderReserveGrave(p, (AIBLD *)s1, a->ref, 10, a->arg);
             return 0x3e;
         }
-        if (a->kind == 5) {
-            gv_OrderMoveGrave((int *)p, a->entry, (AIBLD *)s1, s2->entry, s2->kind, a->price);
+        if (a->arg2 == 5) {
+            gv_OrderMoveGrave((int *)p, a->ref, (AIBLD *)s1, s2->ref, s2->arg2, a->arg);
             return 0x3e;
         }
     }

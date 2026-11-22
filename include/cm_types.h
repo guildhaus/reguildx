@@ -832,15 +832,18 @@ typedef struct CMJOIN {                 /* 0x30 bytes at 0x9367a0 (cm_JoinChar, 
 } CMJOIN;
 
 
-/* the scene party records (0x925520, 96 of 0x114 bytes: +0 id (-1 free), +8 kind, +0x14 the thing, +0x26 flags, +0x30 used) */
+/* the scene party records (0x925520, 96 of 0x114 bytes: +0 id (-1 free), +8 kind, +0x14 the thing, +0x26 flags, +0x30 used);
+   a fight is one too (cm_RunFight's record, cm_FightRecord) */
 typedef struct G28REC {
     int id;
     int done;                           /* 0x04, 1: the party runs once its hour has come (cm_UpdateParties) */
     unsigned char kind;                 /* 0x08 */
     char pad09[3];
-    int host;                           /* 0x0c, the netId of the player's character who holds it (gv_PassSentence, he.c) */
+    int host;                           /* 0x0c, the netId of the player's character who holds it (gv_PassSentence, he.c);
+                                           of a fight the player whose fight it is (cm_FightOwner) */
     char pad10[4];
-    int thing;                          /* 0x14 */
+    int thing;                          /* 0x14; of a fight the defender's building: its type picks the scenario, its role
+                                           the defender voices */
     AITIME time;                        /* 0x18, when it takes place (ai_Time plus some hours) */
     unsigned char flags;                /* 0x26 */
     char pad27;
@@ -849,7 +852,9 @@ typedef struct G28REC {
     int window;                         /* 0x2c, the form the local run prints the members' texts in (d2_SetForm) */
     unsigned char used;                 /* 0x30, the number of members[] (cm_AddPartyMember: at most 16) */
     char pad31[3];
-    int members[16];                    /* 0x34, the members' netIds (-1 for one removed, cm_RemovePartyMember) */
+    int members[16];                    /* 0x34, the members' netIds (-1 for one removed, cm_RemovePartyMember); of a fight
+                                           the leading characters, [0] the attacker (cm_FightAttacker), [1] the defender
+                                           (cm_FightDefender); cm_CutInfos[i] is the cutscene record of members[i] */
     unsigned char offerKind;            /* 0x74, of a wedding party (he.c's offer event): the offer's kind (HEOFFER.kind) */
     char pad75[3];
     unsigned int seed;                  /* 0x78, the random seed the scene runs with (cut_RandSeed) */
@@ -867,28 +872,34 @@ typedef struct G28REC {
             int price;                  /* 0x80, the start price */
             int zero84;                 /* 0x84, only seen written 0 by he.c's auction event (he_RunAuctionEvent), no reader known */
         } auction;
-        struct {                        /* 0x7c, of a raid fight (kind 3, posted by he.c's raid event, 0x5461c0) */
-            char padraid[4];
-            int defenders[16];          /* 0x80, the netIds of up to six living characters whose building
-                                           (AICHAR.bld) is the one raided, -1: none */
-            int raiders[16];            /* 0xc0, the netIds of up to six raiders, -1: none */
-            int raid100[3];             /* 0x100, the objIds of the carts an ambush raids (he_RunAmbush), -1: none */
-            int raidHome;               /* 0x10c, the id of the raiders' start building */
-        } raid;
+        struct {                        /* 0x7c, of a fight (kind 3, posted by he.c's raid / ambush events; cm_RunFight,
+                                           cm_SetupFightScene, cm_FightRecord) */
+            unsigned char flags;        /* 0x7c, 1 in the open (8: in the town, else the mountain pass), 4 the mountain pass */
+            char pad7d[3];
+            int defenders[16];          /* 0x80, the netIds of the defending fighters (up to six living characters whose
+                                           building, AICHAR.bld, is the one raided), -1: none */
+            int attackers[16];          /* 0xc0, the netIds of the attacking fighters (up to six raiders), -1: none */
+            int carts[3];               /* 0x100, the objIds of the carts in the fight (an ambush raids them, he_RunAmbush),
+                                           -1: none */
+            int attackerBld;            /* 0x10c, the id of the attackers' start building: its role picks the attacker
+                                           voices */
+            int escort;                 /* 0x110, the carts' escort: the arming kind ai_ArmGateGuards keeps (0 none,
+                                           1 .. 3); the AI side of a won raid takes the loot when random 0 .. 4 is above it */
+        } fight;
     };
-    char pad110[0x114 - 0x110];
 } G28REC;
 typedef char cm_AssertG28REC[sizeof(G28REC) == 0x114 ? 1 : -1];
 
-/* a scene kind (cm_Kinds, 0x92c500, 12 of 0x14 bytes, filled by cm_RegisterSceneKind); the functions are kept as ints and
-   cast at their calls */
+/* a scene kind (cm_Kinds, 0x92c500, 12 of 0x14 bytes, filled by cm_RegisterSceneKind); the functions are old-style
+   function pointers: the kinds' functions take their own record types (G28REC * or the fight's view, the ask callbacks'
+   context CMSESSIONREQ *, AIPLAN *, CMAUCTION * ..), the dispatch passes the party and the context through */
 typedef struct CMKIND {
-    int run;                            /* 0x00, void (*)(char *m): the scene (cm_ExecCutscene) */
-    int askPlayer;                      /* 0x04, int (*)(CMCUTINFO *, int): asks a player's character (kind 6), cm_RunSceneParty */
-    int askOther;                       /* 0x08, int (*)(CMCUTINFO *, int): asks the other members */
+    void (*run)();                      /* 0x00, the scene, called with the party (cm_ExecCutscene) */
+    void (*askPlayer)();                /* 0x04, (CMCUTINFO *, the context): asks a player's character (kind 6), cm_RunSceneParty */
+    void (*askOther)();                 /* 0x08, (CMCUTINFO *, the context): asks the other members */
     char allAtOnce;                     /* 0x0c, 1: cm_RunSceneParty asks the members all at once, 0: one after the other */
     char pad0d[3];
-    int check;                          /* 0x10, int (*)(char *m): 0 cancels the party (cm_UpdateParties), 0: none */
+    int (*check)();                     /* 0x10, called with the party: 0 cancels it (cm_UpdateParties), 0: none */
 } CMKIND;
 typedef char cm_AssertCMKIND[sizeof(CMKIND) == 0x14 ? 1 : -1];
 
@@ -909,34 +920,5 @@ typedef struct AIWEAPON {               /* 0x5c bytes, the 10 weapon records at 
     int kind;                           /* 0x58, 1 / 2: used up with the item (cm_CharWeapon refuses an item with nothing left) */
 } AIWEAPON;
 typedef char cm_AssertAIWEAPON[sizeof(AIWEAPON) == 0x5c ? 1 : -1];
-
-/* a fight record (cm_FightRecord, cm_RunFight's argument): the fields cm_SetupFightScene and its caller 0x4d63e0 read
-   (the rest of its layout is not known) */
-typedef struct CMFIGHTREC {
-    char pad000[0xc];
-    int owner;                      /* 0x00c, the player whose fight it is (cm_FightOwner) */
-    char pad010[4];
-    int placeId;                    /* 0x014, the defender's building: its type picks the scenario, its role the defender voices */
-    char pad018[0x18];
-    unsigned char nChars;           /* 0x030, the count of charIds */
-    char pad031[3];
-    union {
-        struct {
-            int attackerId;         /* 0x034, the attacking character (cm_FightAttacker) */
-            int defenderId;         /* 0x038, the defending character (cm_FightDefender) */
-        };
-        int charIds[16];            /* 0x034, the netIds of the fight's leading characters, -1 = none (cm_CutInfos[i]
-                                       is the cutscene record of charIds[i]) */
-    };
-    char pad074[8];
-    unsigned char flags;            /* 0x07c, 1 in the open (8: in the town, else the mountain pass), 4 the mountain pass */
-    char pad07d[3];
-    int defenders[16];              /* 0x080, the netIds of the defending fighters, -1 = none */
-    int attackers[16];              /* 0x0c0, the netIds of the attacking fighters, -1 = none */
-    int carts[3];                   /* 0x100, the object ids of the carts in the fight, -1 = none */
-    int attackerBldId;              /* 0x10c, the attacker's building: its role picks the attacker voices */
-    int escort;                     /* 0x110, the carts' escort: the arming kind ai_ArmGateGuards keeps (0 none, 1 .. 3);
-                                       the AI side of a won raid takes the loot when random 0 .. 4 is above it */
-} CMFIGHTREC;
 
 #endif

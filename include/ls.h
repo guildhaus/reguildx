@@ -65,7 +65,7 @@ int ls_ReadSaveHeader(struct VFSFILE *f, int *h);                               
 int ls_LoadScene(struct VFSFILE *f);                                               /* 0x51d2d0 */
 int ls_ReadObjects(struct VFSFILE *f);                                              /* 0x51d3d0 */
 char ls_HookBuildingCB(struct D3OBJECT *o);                                  /* 0x51d4f0 */
-char ls_ClearObjectFlag(char *o);                                       /* 0x51d530 */
+char ls_ClearObjectFlag(struct D3OBJECT *o);                                       /* 0x51d530 */
 int ls_ReadBuildings(struct VFSFILE *f);                                            /* 0x51d550 */
 int ls_ReadPlayerRecords(struct VFSFILE *f);                                        /* 0x51db00 */
 int ls_ReadCharacters(struct VFSFILE *f);                                           /* 0x51de70 */

@@ -159,17 +159,17 @@ int ai_IsLivingInhabitant(unsigned short id)
 
 
 /* 0x4ae160, the BUERGERMEISTER token of a history text (callback 0x601b10[0], name 0x601730[0]): the mayor
-   (officeKind 0x0f); mode 1 checks args[k].id, otherwise the first living one is taken (mode 0 stores it in
-   args[k]); out = fmt (0x4adf40) with its id; 0 if there is none
+   (officeKind 0x0f); mode 1 checks row->e[k].id, otherwise the first living one is taken (mode 0 stores it in
+   row->e[k]); out = fmt (0x4adf40) with its id; 0 if there is none
    */
-int ai_TokenMayor(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenMayor(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     AICHAR *c;
     int i, n1, n2;
 
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health == 0 || c->officeKind != 0x0f)
             return 0;
     } else {
@@ -181,7 +181,7 @@ int ai_TokenMayor(int mode, G12ARG *args, int k, char *fmt, char *out)
         }
         c = &ai_Chars[i];
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
         if (c == 0)
             return 0;
     }
@@ -194,14 +194,14 @@ int ai_TokenMayor(int mode, G12ARG *args, int k, char *fmt, char *out)
 /* 0x4ae280, the BISCHOF token of a history text (callback 0x601b10[1], name 0x601730[1]): a bishop (officeKind
    0x15 or 0x1a); otherwise as ai_TokenMayor */
 
-int ai_TokenBishop(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenBishop(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     AICHAR *c;
     int i, n1, n2;
 
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health == 0 || c->officeKind != 0x15)
             return 0;
     } else {
@@ -213,7 +213,7 @@ int ai_TokenBishop(int mode, G12ARG *args, int k, char *fmt, char *out)
         }
         c = &ai_Chars[i];
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
         if (c == 0)
             return 0;
     }
@@ -225,10 +225,10 @@ int ai_TokenBishop(int mode, G12ARG *args, int k, char *fmt, char *out)
 }
 /* 0x4ae3a0, the RND_GILDENMEISTER token of a history text (callback 0x601b10[2], name 0x601730[2]): a random
    character holding a guild master office (secondOffice 0x1e..0x21); fmt "...-n" selects 0 = anybody living,
-   1 = no human player (default), 2 = a computer one, else a human one; mode 1 checks args[k].id, mode 0 stores
+   1 = no human player (default), 2 = a computer one, else a human one; mode 1 checks row->e[k].id, mode 0 stores
    the pick */
 
-int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRandomGuildMaster(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -241,7 +241,7 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
     if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
         sel = 1;
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0 || c->secondOffice == 0)
             return 0;
     } else {
@@ -292,7 +292,7 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
         if (c == 0)
             return 0;
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
     }
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
@@ -305,7 +305,7 @@ int ai_TokenRandomGuildMaster(int mode, G12ARG *args, int k, char *fmt, char *ou
 /* 0x4ae600, the RND_AMTSTRAEGERIN token of a history text (callback 0x601b10[3], name 0x601730[3]): a character
    with byte 9 == 1, an ordinary title (G12_TITLED) and in none of the lists of 0x4adfb0; the selection as in
    ai_TokenRandomGuildMaster */
-int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRandomOfficeHolderFemale(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -318,7 +318,7 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
     if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
         sel = 1;
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0 || c->officeKind == 0)
             return 0;
     } else {
@@ -371,7 +371,7 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
         if (c == 0)
             return 0;
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
     }
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
@@ -379,7 +379,7 @@ int ai_TokenRandomOfficeHolderFemale(int mode, G12ARG *args, int k, char *fmt, c
 /* 0x4ae900, the same as 0x4ae600 for a man (byte 9 == 0; 0x4ae600, RND_AMTSTRAEGERIN, takes byte 9 == 1)
    name: callback 0x601b10[4] = 0x4ae900, token name 0x601730[4] RND_AMTSTRAEGER */
 
-int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRandomOfficeHolder(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -392,7 +392,7 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
     if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
         sel = 1;
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0 || c->officeKind == 0)
             return 0;
     } else {
@@ -445,7 +445,7 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
         if (c == 0)
             return 0;
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
     }
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
@@ -453,7 +453,7 @@ int ai_TokenRandomOfficeHolder(int mode, G12ARG *args, int k, char *fmt, char *o
 /* 0x4aec00, the same as 0x4ae600 for anybody (no sex test); mode 2 gives no token
    name: callback 0x601b10[5] = 0x4aec00, token name 0x601730[5] RND_AMTSPERSON */
 
-int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRandomOfficePerson(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -468,7 +468,7 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
     if (mode == 2)
         return 0;
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0 || c->officeKind == 0)
             return 0;
     } else {
@@ -517,7 +517,7 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
         if (c == 0)
             return 0;
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
     }
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
@@ -540,7 +540,7 @@ int ai_TokenRandomOfficePerson(int mode, G12ARG *args, int k, char *fmt, char *o
 
 
    */
-int ai_TokenRichestInhabitant(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRichestInhabitant(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -566,7 +566,7 @@ int ai_TokenRichestInhabitant(int mode, G12ARG *args, int k, char *fmt, char *ou
         return 0;
     c = 0;
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0)
             return 0;
     } else {
@@ -581,13 +581,13 @@ int ai_TokenRichestInhabitant(int mode, G12ARG *args, int k, char *fmt, char *ou
             return 0;
     }
     if (mode == 0)
-        args[k].id = c->netId;
+        row->e[k].id = c->netId;
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
 }
 /* 0x4af090, text token for the building of type 0x16 with the highest 0x509b10 rating */
 
-int ai_TokenBestInn(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenBestInn(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -597,7 +597,7 @@ int ai_TokenBestInn(int mode, G12ARG *args, int k, char *fmt, char *out)
     if (mode == 2)
         return 0;
     if (mode == 1) {
-        gm_FindById(&pick, 0, 0, args[k].id);
+        gm_FindById(&pick, 0, 0, row->e[k].id);
         if (pick == 0)
             return 0;
     } else {
@@ -611,7 +611,7 @@ int ai_TokenBestInn(int mode, G12ARG *args, int k, char *fmt, char *out)
         if (pick == 0)
             return 0;
         if (mode == 0)
-            args[k].id = pick->id;
+            row->e[k].id = pick->id;
     }
     n1 = (int)buf;
     AI_ZERO((char *)n1, 0x200);
@@ -620,17 +620,17 @@ int ai_TokenBestInn(int mode, G12ARG *args, int k, char *fmt, char *out)
     return 1;
 }
 /* 0x4af1b0, text token (mode 2 only): fmt "...-n" gives n percent of the wealth (0x50a640) of the character
-   args[k], as a money text (0x5085b0)
+   row->e[k], as a money text (0x5085b0)
    name: callback 0x601b10[8] = 0x4af1b0, token name 0x601730[8] GELD */
 
-int ai_TokenMoney(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenMoney(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
     int v;
     AICHAR *c;
 
-    if (mode == 2 && args != 0 && k != 8 && (c = gm_FindChar(args[k].id)) != 0
+    if (mode == 2 && row != 0 && k != 8 && (c = gm_FindChar(row->e[k].id)) != 0
         && ai_IsLivingCharacter(c->id)) {
         v = gm_GetWorth(c->id);
         n1 = 0x200;
@@ -665,7 +665,7 @@ int ai_TokenMoney(int mode, G12ARG *args, int k, char *fmt, char *out)
    building 0x50b010(1), as a money text: txt_Format (out, the split format, gm_ConvertMoney (amount,
    ai_OwnPlayer), ai_OwnPlayer) */
 
-int ai_TokenCityTreasury(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenCityTreasury(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2, cnt;
@@ -700,8 +700,8 @@ int ai_TokenCityTreasury(int mode, G12ARG *args, int k, char *fmt, char *out)
 
 /* 0x4af3f0, text token for a living character holding a church office (job 13 .. 18) and in none of the lists of
    0x4adfb0: fmt "...-n", n 0 any character, 1 (the default) a non-player, 2 a non-player first, else a human taking
-   precedence; mode 1 formats args[k]'s character, mode 0 also stores the pick's net id there */
-int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, char *out)
+   precedence; mode 1 formats row->e[k]'s character, mode 0 also stores the pick's net id there */
+int ai_TokenRandomChurchProfession(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -714,7 +714,7 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
     if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
         sel = 1;
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0)
             return 0;
     } else {
@@ -763,7 +763,7 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
         if (c == 0)
             return 0;
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
     }
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
@@ -786,7 +786,7 @@ int ai_TokenRandomChurchProfession(int mode, G12ARG *args, int k, char *fmt, cha
 
    */
 
-int ai_TokenRandomRich(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRandomRich(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -822,7 +822,7 @@ int ai_TokenRandomRich(int mode, G12ARG *args, int k, char *fmt, char *out)
     else
         pred = ai_IsLivingHuman;
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0)
             return 0;
     } else {
@@ -849,7 +849,7 @@ int ai_TokenRandomRich(int mode, G12ARG *args, int k, char *fmt, char *out)
             return 0;
         c = &ai_Chars[ids[util_Random(5)]];
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
     }
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
@@ -857,7 +857,7 @@ int ai_TokenRandomRich(int mode, G12ARG *args, int k, char *fmt, char *out)
 /* 0x4af8d0, text token for the first character in the lists of 0x4adfb0 who passes 0x4ae120; fmt "...-n" as in
    0x4aef10 (sex filter) */
 
-int ai_TokenRandomNpcInhabitant(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRandomNpcInhabitant(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -878,7 +878,7 @@ int ai_TokenRandomNpcInhabitant(int mode, G12ARG *args, int k, char *fmt, char *
             else
                 sex = sel != 1;
             if (mode == 1) {
-                c = gm_FindChar(args[k].id);
+                c = gm_FindChar(row->e[k].id);
                 if (c == 0)
                     return 0;
                 if (c->health <= 0)
@@ -899,7 +899,7 @@ int ai_TokenRandomNpcInhabitant(int mode, G12ARG *args, int k, char *fmt, char *
                 if (c == 0)
                     return 0;
                 if (mode == 0)
-                    args[k].id = c->netId;
+                    row->e[k].id = c->netId;
             }
             txt_Format(out, (intptr_t)buf, c->id);
             return 1;
@@ -918,7 +918,7 @@ int ai_TokenRandomNpcInhabitant(int mode, G12ARG *args, int k, char *fmt, char *
    (G12_MERCHANTJOB)
    name: callback 0x601b10[13] = 0x4afa20, token name 0x601730[13] RND_HANDELSHERR */
 
-int ai_TokenRandomMerchant(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRandomMerchant(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -945,7 +945,7 @@ int ai_TokenRandomMerchant(int mode, G12ARG *args, int k, char *fmt, char *out)
     AI_ZERO_BUF(n1, buf, 0x200);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0)
             return 0;
     } else {
@@ -973,7 +973,7 @@ int ai_TokenRandomMerchant(int mode, G12ARG *args, int k, char *fmt, char *out)
             return 0;
         c = &ai_Chars[ids[util_Random(5)]];
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
     }
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
@@ -981,7 +981,7 @@ int ai_TokenRandomMerchant(int mode, G12ARG *args, int k, char *fmt, char *out)
 /* 0x4afc30, text token for a random character passing 0x4ae0d0 / 0x4adfb0, searched with a random step
    (3, 5, 7 or 11); the RND_SPIELER token (callback 0x601b10[14] = 0x4afc30, name 0x601730[14]) */
 
-int ai_TokenRandomPlayer(int mode, G12ARG *args, int k, char *fmt, char *out)
+int ai_TokenRandomPlayer(int mode, G12ROW *row, int k, char *fmt, char *out)
 {
     char buf[512];
     int n1, n2;
@@ -995,7 +995,7 @@ int ai_TokenRandomPlayer(int mode, G12ARG *args, int k, char *fmt, char *out)
     AI_ZERO_AT(n1, 0x200);
     ai_SplitTokenFormat(fmt, buf, &n1, &n2);
     if (mode == 1) {
-        c = gm_FindChar(args[k].id);
+        c = gm_FindChar(row->e[k].id);
         if (c == 0 || c->health <= 0)
             return 0;
     } else {
@@ -1021,7 +1021,7 @@ int ai_TokenRandomPlayer(int mode, G12ARG *args, int k, char *fmt, char *out)
         if (c == 0)
             return 0;
         if (mode == 0)
-            args[k].id = c->netId;
+            row->e[k].id = c->netId;
     }
     txt_Format(out, (intptr_t)buf, c->id);
     return 1;
@@ -1029,7 +1029,7 @@ int ai_TokenRandomPlayer(int mode, G12ARG *args, int k, char *fmt, char *out)
 /* 0x4afdd0, the FEST text command (callback 0x601b50[0], name 0x601070[0]) "-n" (n > 0): sends message 0x53
    for the character ai_PlayerChar, today 12:00 */
 
-int ai_CommandFest(int a, int b, char *fmt)
+int ai_CommandFest(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
 
@@ -1052,7 +1052,7 @@ int ai_CommandFest(int a, int b, char *fmt)
 /* 0x4afe80, the BELAGERUNG_START text command (callback 0x601b50[1]): sends message 0x7f to every councillor
    (kind 6 / 7), today 8:00 */
 
-int ai_CommandSiegeStart(void)
+int ai_CommandSiegeStart(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
     int i;
@@ -1076,7 +1076,7 @@ int ai_CommandSiegeStart(void)
 /* 0x4aff30, the AUFSTAND text command (callback 0x601b50[2]): sends message 0x7d (arg 1) for the character
    ai_PlayerChar, today 8:00 */
 
-int ai_CommandUprising(void)
+int ai_CommandUprising(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
 
@@ -1103,7 +1103,7 @@ typedef struct G12EVENTMSG {
 
 /* 0x4affc0, the BRAND text command (callback 0x601b50[3], name 0x601070[3]): sends message 0x4e (value 1000) for
    the character ai_PlayerChar, today 7:00 */
-int ai_CommandFire(void)
+int ai_CommandFire(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
 
@@ -1122,7 +1122,7 @@ int ai_CommandFire(void)
 /* 0x4b0050, the WIRBELSTURM text command (callback 0x601b50[4], name 0x601070[4]), the same as ai_CommandFire:
    message 0x50 (value 1000, flags 2), today 16:00 */
 
-int ai_CommandTornado(void)
+int ai_CommandTornado(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
 
@@ -1142,7 +1142,7 @@ int ai_CommandTornado(void)
    moves n percent of the count of the first goods of type 9 in the stock (object 0x115) of building 0x50b010(1)
    to or from that stock (0x4c4830) */
 
-int ai_CommandCityTreasury(int a, int b, char *fmt)
+int ai_CommandCityTreasury(G12ROW *row, int slot, char *fmt)
 {
     if (*fmt != '-')
         return 0;
@@ -1194,7 +1194,7 @@ int ai_CommandCityTreasury(int a, int b, char *fmt)
    0x50b010(1)
    */
 
-int ai_CommandWealthTax(int a, int b, char *fmt)
+int ai_CommandWealthTax(G12ROW *row, int slot, char *fmt)
 {
     AIBLD *bld;
     AIOBJ *o;
@@ -1220,9 +1220,9 @@ int ai_CommandWealthTax(int a, int b, char *fmt)
     return 1;
 }
 /* 0x4b0360, the VERMOEGEN text command (callback 0x601b50[7], name 0x601070[7]) "-PLUS_n" / "-MINUS_n" for the
-   character args[k]: gives or takes n percent of 0x509e60 (0x4c4830) */
+   character row->e[k]: gives or takes n percent of 0x509e60 (0x4c4830) */
 
-int ai_CommandWealth(G12ARG *args, int k, char *fmt)
+int ai_CommandWealth(G12ROW *row, int k, char *fmt)
 {
     int sign[2] = { -1, 1 };
     char name[2][6] = { "MINUS", "PLUS" };
@@ -1230,7 +1230,7 @@ int ai_CommandWealth(G12ARG *args, int k, char *fmt)
     float f;
     AICHAR *c;
 
-    if (args != 0 && k < 8 && (c = gm_FindChar(args[k].id)) != 0 && *fmt == '-') {
+    if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0 && *fmt == '-') {
         fmt++;
         for (i = 0; i < 2; i++) {
             if (memcmp(fmt, name[i], strlen(name[i])) == 0)
@@ -1254,13 +1254,13 @@ int ai_CommandWealth(G12ARG *args, int k, char *fmt)
 }
 /* 0x4b04a0, the ANSEHEN_BEI_AMTSTRAEGERN text command (callback 0x601b50[8], name 0x601070[8])
    "-PLUS_n" / "-MINUS_n": changes the relation (0x4c4b00) of every character with a title (byte 0x166 or 0x169)
-   to the character args[k] by 2n */
+   to the character row->e[k] by 2n */
 
-int ai_CommandOfficeStanding(G12ARG *args, int k, char *fmt)
+int ai_CommandOfficeStanding(G12ROW *row, int k, char *fmt)
 {
     AICHAR *c;
 
-    if (args != 0 && k < 8 && (c = gm_FindChar(args[k].id)) != 0 && *fmt == '-') {
+    if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0 && *fmt == '-') {
         int sign[2] = { -1, 1 };
         char name[2][6] = { "MINUS", "PLUS" };
         int i, n;
@@ -1285,13 +1285,13 @@ int ai_CommandOfficeStanding(G12ARG *args, int k, char *fmt)
     return 0;
 }
 /* 0x4b05e0, the KILL_PLAYER text command (callback 0x601b50[9], name 0x601070[9]): lowers the health
-   (0x4fc820) of the character args[k] below zero (gm_AddHealth with -(x + 1)) */
+   (0x4fc820) of the character row->e[k] below zero (gm_AddHealth with -(x + 1)) */
 
-int ai_CommandKillPlayer(G12ARG *args, int k)
+int ai_CommandKillPlayer(G12ROW *row, int k, char *fmt)
 {
     AICHAR *c;
 
-    if (args != 0 && k < 8 && (c = gm_FindChar(args[k].id)) != 0) {
+    if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0) {
         gm_AddHealth(c->id, (int)-(gm_CharacterHealth(c) + 1.0f));
         return 1;
     }
@@ -1300,7 +1300,7 @@ int ai_CommandKillPlayer(G12ARG *args, int k)
 
 /* 0x4b0640, the STRAFE_HINRICHTUNG text command (callback 0x601b50[10], name 0x601070[10])
    "-SHAUFEN" / "-KOEPFEN" / "-GALGEN" / "-KANONE": posts the execution party (G28REC kind 5, variant 3, 0, 2, 4) of
-   the character args[k] for 10:00 in 24 hours, with the judges ai_JudgeCatholic / ai_JudgeProtestant, the
+   the character row->e[k] for 10:00 in 24 hours, with the judges ai_JudgeCatholic / ai_JudgeProtestant, the
    living humans (at most 16 members) and a non-player office holder in the second place (the last member when
    there is none); quiet: the aftermath sends no notes
    The record is cm's G28REC (0x114 bytes): kind 5 / thing -1 / host / flags 0 then 0x22 before gm_AddTime /
@@ -1318,14 +1318,14 @@ int ai_CommandKillPlayer(G12ARG *args, int k)
    Moved code: the netId read at each of its three uses (loop base to netId, the original's
    ai_CharInts/0x7d5f84 refs: 59 -> 54); memcmp(fmt + 1, ..) instead of fmt++ (the original's lea
 ebx,[eax+1]: 26 -> 8); flags = 0x22 before the time copy (8 -> 6); party.variant = kinds[i] directly, no variant local (the name-table M9 crossing went: draft -> shape); the setup stores' order by tryclimb. Left: the setup block's scheduling, '- mov byte ptr [esp+0xe4],dl' right after the -1 store where the original stores list[1]=-1, loads ai_JudgeCatholic, stores kind/flags and only then the variant (dl). No lever: 1500 random orders and all 2602 two-line moves of the 10 setup stores (none below 6 ins); the variant store after flags gives the original's store order but loads kinds[i] late into cl and c early (draft 18 ins); a variant local before or inside the block (draft 18-34); thing = list[1] = -1 chains (draft 34-36). Declaration set insensitive. (tiebreak: insensitive) */
-int ai_CommandExecution(G12ARG *args, int k, char *fmt)
+int ai_CommandExecution(G12ROW *row, int k, char *fmt)
 {
     G28REC party;
     AICHAR *c;
     int kinds[4];
     int i, n;
 
-    c = gm_FindChar(args[k].id);
+    c = gm_FindChar(row->e[k].id);
     if (c == 0 || !ai_IsLivingCharacter(c->id))
         return 0;
     {
@@ -1382,16 +1382,16 @@ int ai_CommandExecution(G12ARG *args, int k, char *fmt)
     return 1;
 }
 /* 0x4b08e0, the STRAFE_KERKER text command (callback 0x601b50[11], name 0x601070[11]) "-n": sets the byte field
-   0x1b1 of the character args[k] to n (message 0x4c3ba0) */
+   0x1b1 of the character row->e[k] to n (message 0x4c3ba0) */
 
-int ai_CommandPrison(G12ARG *args, int k, char *fmt)
+int ai_CommandPrison(G12ROW *row, int k, char *fmt)
 {
     char v = 0;
     AICHAR *c;
 
     if (*fmt == '-') {
         v = (char)atoi(fmt + 1);
-        if (args != 0 && k < 8 && (c = gm_FindChar(args[k].id)) != 0) {
+        if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0) {
             cm_BeginFieldBlock((void *)c, c->netId);
             cm_AddFieldValues(1, 1, 0x1b1, &v);
             cm_SendFieldDeltas();
@@ -1406,7 +1406,7 @@ int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f);    
 
 /* 0x4b0950, the AMTSTRAEGER_INVENTAR_PLUS text command (callback 0x601b50[12], name 0x601070[12]) "-xxxNAME":
    0x4c4880 from every titled character (byte 0x166 or 0x169) with the value of 0x4fe900(fmt + 4) */
-int ai_CommandOfficeInventoryPlus(int a, int b, char *fmt)
+int ai_CommandOfficeInventoryPlus(G12ROW *row, int slot, char *fmt)
 {
     char *s;
     int v, i;
@@ -1432,7 +1432,7 @@ int ai_CommandOfficeInventoryPlus(int a, int b, char *fmt)
 /* 0x4b09f0, the GESETZ text command (callback 0x601b50[13], name 0x601070[13])
    "-RECHTSPRECHUNG_HAERTE_n" / "-AEMTEREINKOMMEN_n": sets the AI decision 0 / 15 to n, clamped to its range
    (refused out of range when its byte 1 is set) */
-int ai_CommandLaw(int a, int b, char *fmt)
+int ai_CommandLaw(G12ROW *row, int slot, char *fmt)
 {
     if (*fmt != '-')
         return 0;
@@ -1468,7 +1468,7 @@ int ai_CommandLaw(int a, int b, char *fmt)
    "-PLUS_<decision>_n" / "-MINUS_...": moves the AI decision 0 / 15 (names of ai_CommandLaw) by n, clamped to its
    range. Sic: after the sign word it skips the length of the sign name with its own index. */
 
-int ai_CommandLawChange(int s, int b, char *fmt)
+int ai_CommandLawChange(G12ROW *row, int slot, char *fmt)
 {
     if (*fmt != '-')
         return 0;
@@ -1525,7 +1525,7 @@ int ai_CommandLawChange(int s, int b, char *fmt)
    instructions. Q1 has evidence, Q2..Q7 pass.
    */
 
-int ai_CommandFaithChange(int a, int b, char *fmt)
+int ai_CommandFaithChange(G12ROW *row, int slot, char *fmt)
 {
     char name[2][16] = { "KATHOLISCH", "EVANGELISCH" };
     char d1[4];
@@ -1606,7 +1606,7 @@ int ai_CommandFaithChange(int a, int b, char *fmt)
 /* 0x4b0fd0, the AUFRUHR text command (callback 0x601b50[16], name 0x601070[16]), the same message as 0x4aff30
    (AUFSTAND) with car 0: message 0x7d for the character ai_PlayerChar, today 8:00 */
 
-int ai_CommandRiot(void)
+int ai_CommandRiot(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
 
@@ -1634,7 +1634,7 @@ int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, i
 
 /* 0x4b1060, the GILDENSITZE_BRACH text command (callback 0x601b50[17]): frees the holders of the offices
    0x1e..0x21 (0x4e6680) and sends message 0x80 (arg 4), today 8:00 */
-int ai_CommandBreakGuildSeats(int a, int b, char *fmt)
+int ai_CommandBreakGuildSeats(G12ROW *row, int slot, char *fmt)
 {
     G12OBJ o;
     AIMSG msg;
@@ -1675,7 +1675,7 @@ void cm_SendGoodsRecord(void *p, unsigned char k);                              
    0x3f, k and 0x80 bytes of p, cm.c) and ai_FindWeaponRecord (0x4cd9d0, the record of ten with id, cm.c) need their
    own units' evidence before a rename. The 1.0f is ai_FloatOne in the original (the literal spelling is the one that
    gives VC6's common subexpression for f + 1) */
-int ai_CommandDemand(int a, int b, char *fmt)
+int ai_CommandDemand(G12ROW *row, int slot, char *fmt)
 {
     GMSTOCK e;
     float f;
@@ -1758,7 +1758,7 @@ int ai_CommandDemand(int a, int b, char *fmt)
 /* 0x4b1600, the SOELDNER_PLUENDERN text command (callback 0x601b50[19]): sends message 0x57 to every living
    player, today at 10..13 o'clock (by id) */
 
-int ai_CommandMercenariesPlunder(void)
+int ai_CommandMercenariesPlunder(G12ROW *row, int slot, char *fmt)
 {
     AITIME t;
     AIMSG msg;
@@ -1784,7 +1784,7 @@ int ai_CommandMercenariesPlunder(void)
 /* 0x4b16e0, the SOELDNER_MARODIEREN text command (callback 0x601b50[20]): the same as
    ai_CommandMercenariesPlunder with message 0x58 at 13..16 o'clock */
 
-int ai_CommandMercenariesMaraud(void)
+int ai_CommandMercenariesMaraud(G12ROW *row, int slot, char *fmt)
 {
     AITIME t;
     AIMSG msg;
@@ -1811,7 +1811,7 @@ int ai_CommandMercenariesMaraud(void)
    N S O W A, the direction): message 0x51 for the player character with n = atoi(fmt + 1) (sic: starts at the letter,
    so n is 0) in the first byte of arg[0] and d in its second, when n > 0 */
 
-int ai_CommandRemoteTradeRaider(int a, int b, char *fmt)
+int ai_CommandRemoteTradeRaider(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
     char *p;
@@ -1842,7 +1842,7 @@ int ai_CommandRemoteTradeRaider(int a, int b, char *fmt)
 /* 0x4b1880, the SPENDE_ANSEHEN text command (callback 0x601b50[22], name 0x601070[22]): sends message 0x54, flags 9,
    from the character itself, to the first 8 living characters (ai_IsLivingHuman), today 12:00 */
 
-int ai_CommandViewDonation(void)
+int ai_CommandViewDonation(G12ROW *row, int slot, char *fmt)
 {
     AITIME t;
     AIMSG msg;
@@ -1869,7 +1869,7 @@ int ai_CommandViewDonation(void)
 /* 0x4b1950, the BETEILIGUNG text command (callback 0x601b50[23], name 0x601070[23]), the same as ai_CommandViewDonation
    with message 0x55 at 10:00 */
 
-int ai_CommandParticipation(void)
+int ai_CommandParticipation(G12ROW *row, int slot, char *fmt)
 {
     AITIME t;
     AIMSG msg;
@@ -1921,7 +1921,7 @@ int hst_ParseDate(int k, int mode, int *year, char *name);              /* 0x4b2
 
 /* 0x4b1a20, the KOMMENTARE text command (callback 0x601b50[24], name 0x601070[24]): looks for the key hst_Key in
    the list from hst_KeyNext on (entries of 6, up to today); found: sends message 0x52 with its index */
-int ai_CommandComments(void)
+int ai_CommandComments(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
     char key[16];
@@ -1960,7 +1960,7 @@ int ai_CommandComments(void)
 /* 0x4b1bd0, the PEST text command (callback 0x601b50[25], name 0x601070[25]) "-n": message 0x59 with n clamped to
    1..10, today 11:00 */
 
-int ai_CommandPlague(int a, int b, char *fmt)
+int ai_CommandPlague(G12ROW *row, int slot, char *fmt)
 {
     AIMSG msg;
     int n;
@@ -1981,15 +1981,15 @@ int ai_CommandPlague(int a, int b, char *fmt)
     return 1;
 }
 /* 0x4b1c90, the INVENTAR_PLUS text command (callback 0x601b50[26], name 0x601070[26]) "-xxxNAME": 0x4c4880 from
-   the character args[k] with the value of 0x4fe900(fmt + 4) (cf. ai_CommandOfficeInventoryPlus) */
+   the character row->e[k] with the value of 0x4fe900(fmt + 4) (cf. ai_CommandOfficeInventoryPlus) */
 
-int ai_CommandInventoryPlus(G12ARG *args, int k, char *fmt)
+int ai_CommandInventoryPlus(G12ROW *row, int k, char *fmt)
 {
     AICHAR *c;
     char *s;
     int v;
 
-    c = gm_FindChar(args[k].id);
+    c = gm_FindChar(row->e[k].id);
     if (c != 0 && ai_IsLivingCharacter(c->id) && *fmt == '-') {
         s = fmt + 1;
         if (strlen(s) >= 4) {
@@ -2025,7 +2025,7 @@ void hst_LoadPlayerTexts(void)
         hst_Lists[i].inUse = 0;
         for (j = 0; j < 4; j++) {
             hst_Lists[i].e[j].id = -1;
-            hst_Lists[i].e[j].v = 0xffff;
+            hst_Lists[i].e[j].token = 0xffff;
         }
     }
     hst_TextFirst = -1;
@@ -2055,7 +2055,7 @@ void hst_ResetPlayerTexts(void)
         hst_Lists[i].inUse = 1;
         for (j = 0; j < 4; j++) {
             hst_Lists[i].e[j].id = -1;
-            hst_Lists[i].e[j].v = 0xffff;
+            hst_Lists[i].e[j].token = 0xffff;
         }
     }
     sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer].name);
@@ -2078,7 +2078,7 @@ int hst_ResetList(unsigned short i)
     hst_Lists[i].inUse = 1;
     for (j = 0; j < 4; j++) {
         hst_Lists[i].e[j].id = -1;
-        hst_Lists[i].e[j].v = 0xffff;
+        hst_Lists[i].e[j].token = 0xffff;
     }
     return 1;
 }
@@ -2092,7 +2092,7 @@ void hst_ResetLists(void)
         hst_Lists[i].inUse = 1;
         for (j = 0; j < 4; j++) {
             hst_Lists[i].e[j].id = -1;
-            hst_Lists[i].e[j].v = 0xffff;
+            hst_Lists[i].e[j].token = 0xffff;
         }
     }
     for (i = 0; i < 0x80; i++) {
@@ -2179,15 +2179,15 @@ int hst_KeyNext = -1;  /* 0x60106c, next entry to look at */
 char hst_CommandNames[27][0x40] = { "FEST", "BELAGERUNG_START", "AUFSTAND", "BRAND", "WIRBELSTURM", "STADTKASSE", "VERMOEGEN_STEUER", "VERMOEGEN", "ANSEHEN_BEI_AMTSTRAEGERN", "KILL_PLAYER", "STRAFE_HINRICHTUNG", "STRAFE_KERKER", "AMTSTRAEGER_INVENTAR_PLUS", "GESETZ", "GESETZ_REL", "GLAUBENSWECHSEL", "AUFRUHR", "GILDENSITZE_BRACH", "NACHFRAGE", "SOELDNER_PLUENDERN", "SOELDNER_MARODIEREN", "FERNHANDEL_RAUBRITTER", "SPENDE_ANSEHEN", "BETEILIGUNG", "KOMMENTARE", "PEST", "INVENTAR_PLUS" };  /* 0x601070, the text command names ("FEST" .. "INVENTAR_PLUS") */
 char hst_TokenNames[15][0x40] = { "BUERGERMEISTER", "BISCHOF", "RND_GILDENMEISTER", "RND_AMTSTRAEGERIN", "RND_AMTSTRAEGER", "RND_AMTSPERSON", "REICHSTER_EINWOHNER", "BESTES_WIRTSHAUS", "GELD", "STADTKASSE", "RND_KIRCHENBERUF", "RND_REICH", "RND_NPC_EINWOHNER", "RND_HANDELSHERR", "RND_SPIELER" };  /* 0x601730, the names of the text tokens (callback */
 char hst_Modes[3][5] = { "_NEW", "_USE", "_REL" };  /* 0x601af0, the modes of a context reference: "_NEW", "_USE", "_REL" */
-extern int (*hst_TokenCallbacks[15])(int mode, G12ARG *args, int k, char *fmt, char *out);
+extern int (*hst_TokenCallbacks[15])(int mode, G12ROW *row, int k, char *fmt, char *out);
 
 /* 0x4b21c0, leaked name (its messages): one replacement "[_NEWn_NAME...]": mode _NEW / _USE / _REL with
-   slot n of ctx (ctx[n + 1].token holds the replacement, ctx[0].token the valid flag), then the callback of
+   slot n of ctx (ctx[n + 1].token holds the replacement, ctx->inUse the valid flag), then the callback of
    NAME; the error messages are written to a local buffer only. s is a local copy of src that lives in the
    dead parameter slot (the original's 'mov [ebp+8],esi' at the entry), which gives the AI_ZERO temps their
    own slots; the found token is consumed inside the search loop, so an exhausted search falls to the one
    "Unknown Replacement" test */
-int hst_ParseContext(char *src, char *out, G12ARG *ctx)
+int hst_ParseContext(char *src, char *out, G12ROW *ctx)
 {
     char buf[0x100];
     char *s;
@@ -2204,7 +2204,7 @@ int hst_ParseContext(char *src, char *out, G12ARG *ctx)
     }
     AI_ZERO(buf, 0x100);
     if (mode != 4) {
-        if (ctx == 0 || ctx[0].token == 0) {
+        if (ctx == 0 || ctx->inUse == 0) {
             sprintf(buf, "hst_ParseContext() failed: Wrong group reference");
             return 0;
         }
@@ -2217,14 +2217,14 @@ int hst_ParseContext(char *src, char *out, G12ARG *ctx)
         }
     }
     if (mode == 1) {
-        k = ctx[slot + 1].token;
+        k = ctx->e[slot].token;
     } else {
         s++;
         for (k = 0; k < 15; k++) {
             if (memcmp(s, hst_TokenNames[k], strlen(hst_TokenNames[k])) == 0) {
                 s += strlen(hst_TokenNames[k]);
                 if (mode == 0)
-                    ctx[slot + 1].token = k;
+                    ctx->e[slot].token = k;
                 break;
             }
         }
@@ -2235,7 +2235,7 @@ int hst_ParseContext(char *src, char *out, G12ARG *ctx)
     }
     r = hst_TokenCallbacks[k](mode, ctx, slot, s, out);
     if (r == 0 && ctx != 0)
-        ctx[0].token = 0;
+        ctx->inUse = 0;
     return r;
 }
 
@@ -2296,7 +2296,7 @@ G12ROW *hst_ParseCommandline_1st_Pass(int k)
     return 0;
 }
 
-int (*hst_TokenCallbacks[15])(int mode, G12ARG *args, int k, char *fmt, char *out) = { ai_TokenMayor, ai_TokenBishop, ai_TokenRandomGuildMaster, ai_TokenRandomOfficeHolderFemale, ai_TokenRandomOfficeHolder, ai_TokenRandomOfficePerson, ai_TokenRichestInhabitant, ai_TokenBestInn, ai_TokenMoney, ai_TokenCityTreasury, ai_TokenRandomChurchProfession, ai_TokenRandomRich, ai_TokenRandomNpcInhabitant, ai_TokenRandomMerchant, ai_TokenRandomPlayer };  /* 0x601b10 */
+int (*hst_TokenCallbacks[15])(int mode, G12ROW *row, int k, char *fmt, char *out) = { ai_TokenMayor, ai_TokenBishop, ai_TokenRandomGuildMaster, ai_TokenRandomOfficeHolderFemale, ai_TokenRandomOfficeHolder, ai_TokenRandomOfficePerson, ai_TokenRichestInhabitant, ai_TokenBestInn, ai_TokenMoney, ai_TokenCityTreasury, ai_TokenRandomChurchProfession, ai_TokenRandomRich, ai_TokenRandomNpcInhabitant, ai_TokenRandomMerchant, ai_TokenRandomPlayer };  /* 0x601b10 */
 int (*hst_CommandCallbacks[27])(G12ROW *row, int slot, char *fmt) = { ai_CommandFest, ai_CommandSiegeStart, ai_CommandUprising, ai_CommandFire, ai_CommandTornado, ai_CommandCityTreasury, ai_CommandWealthTax, ai_CommandWealth, ai_CommandOfficeStanding, ai_CommandKillPlayer, ai_CommandExecution, ai_CommandPrison, ai_CommandOfficeInventoryPlus, ai_CommandLaw, ai_CommandLawChange, ai_CommandFaithChange, ai_CommandRiot, ai_CommandBreakGuildSeats, ai_CommandDemand, ai_CommandMercenariesPlunder, ai_CommandMercenariesMaraud, ai_CommandRemoteTradeRaider, ai_CommandViewDonation, ai_CommandParticipation, ai_CommandComments, ai_CommandPlague, ai_CommandInventoryPlus };  /* 0x601b50 */
 
 /* 0x4b2530, leaked name (its messages): runs every word of text k (or a string above 0x4800) through the text
@@ -2469,7 +2469,7 @@ int hst_ParseText_Fake_2nd_Pass(char *src, int k)
                 *w++ = *p++;
             AI_ZERO(rep, 0x100);
             *w = 0;
-            if (!hst_ParseContext(word, rep, (G12ARG *)row)) {
+            if (!hst_ParseContext(word, rep, row)) {
                 if (row != 0)
                     row->inUse = 0;
                 return 0;
@@ -2490,7 +2490,7 @@ int hst_ParseText_Fake_2nd_Pass(char *src, int k)
     if (in == 1 && dashes == 2) {
         AI_ZERO(rep, 0x100);
         *w = 0;
-        if (!hst_ParseContext(word, rep, (G12ARG *)row)) {
+        if (!hst_ParseContext(word, rep, row)) {
             if (row != 0)
                 row->inUse = 0;
             return 0;

@@ -114,7 +114,7 @@ char d3_TypeInMask(int type, unsigned int mask)
 
 char d3_ForEachObject(D3SCENE *scene, D3OBJECT *obj, unsigned int mask, D3OBJECTCB cb, void *ctx)
 {
-    D3SCENELISTS *s = (D3SCENELISTS *)scene;
+    D3SCENE *s = scene;
     D3OBJECT *p;
     char r;
 
@@ -152,7 +152,7 @@ char d3_ForEachObject(D3SCENE *scene, D3OBJECT *obj, unsigned int mask, D3OBJECT
 
 char d3_ForEachObject2(D3SCENE *scene, D3OBJECT *obj, unsigned int mask, void (*cb)(D3OBJECT *obj))
 {
-    D3SCENELISTS *s = (D3SCENELISTS *)scene;
+    D3SCENE *s = scene;
     D3OBJECT *p;
 
     if (!mask)
@@ -1674,7 +1674,7 @@ void d3_DisposeObject(D3OBJECT *obj)
             d3_Mirror.obj = 0;
             d3_Mirror.info = 0;
         }
-        for (ps = ((D3SCENELISTS *)scene)->parHead; ps != &d3_ParEnd; ps = next) {
+        for (ps = scene->parHead; ps != &d3_ParEnd; ps = next) {
             next = ps->next;
             if (ps->parent == obj)
                 par_Delete(ps);
@@ -2597,7 +2597,7 @@ void d3_Animate(unsigned int mask, char anim, char tick, char all)
             d3_ForEachObject(d3_DefaultScene, 0, flags, (D3OBJECTCB)d3anim_StepObject, (void *)now);
             if (all) {
                 for (i = 0; i < D3_MAX_SCENES; i++) {
-                    if (i != d3_CurrentScene && (o = ((D3SCENELISTS *)&d3_Scenes[i])->first) && o != &d3_ObjEnd) {
+                    if (i != d3_CurrentScene && (o = d3_Scenes[i].first) && o != &d3_ObjEnd) {
                         do {
                             d3_ForEachObject(d3_DefaultScene, o, flags, (D3OBJECTCB)d3anim_StepObject, (void *)(now | 0x80000000));
                             o = o->next;

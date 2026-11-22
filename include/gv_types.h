@@ -73,7 +73,8 @@ typedef struct AIDEC {                  /* 0x24 bytes, a record of the AI decisi
     unsigned char officeNo;             /* 0x1d, the decision's number within that office (1, 2, ..) */
     char b1e;                           /* 0x1e, -1 or 0 .. 0x11 in the table */
     char pad1f;
-    void *fn;                           /* 0x20 */
+    int (*fn)(struct AICHAR *p, int id, int *out);  /* 0x20, the AI office holder's decision callback (am.c ai_Decide*):
+                                           the holder, the decision's id, the value it proposes; nonzero: it proposes */
 } AIDEC;
 
 #pragma pack(push, 1)

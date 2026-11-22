@@ -331,7 +331,7 @@ int ai_MeisterTradeFernEinkauf2(AICHAR *ch, AIOBJ *obj);                 /* 0x48
 /* callees outside this unit */
 struct G15TREE * veg_FindType(int type);                                         /* 0x4bc5a0 */
 struct G15PLANT * veg_FindPlantId(struct G15PLANT *p, int id);                /* 0x4bc670, the plant record with the id (rd.c) */
-void cm_BeginFieldBlock(char *o, int id);                             /* 0x4c3ba0, starts a message about o */
+void cm_BeginFieldBlock(void *o, int id);                             /* 0x4c3ba0, starts a message about o */
 int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v);                /* 0x4c3c00, adds a field */
 int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v);                  /* 0x4c3d00 */
 void cm_BeginGroup(const char *s);                                        /* 0x4c4540 */
@@ -340,7 +340,7 @@ int cm_SendMoveGoods(int a, int b, unsigned char c, int d);                 /* 0
 int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f);         /* 0x4c4880, cm.c */
 int cm_SendFieldDeltas(void);                                                 /* 0x4c49a0, sends the message */
 int cm_SendRelations(int a, int b, int c, int d);                  /* 0x4c4b00 */
-int cm_SendLongMessage(char *msg);                                           /* 0x4c4b70 */
+struct AIMSG; int cm_SendLongMessage(struct AIMSG *msg);                                           /* 0x4c4b70 */
 char * ai_FindWeaponRecord(int id);                                              /* 0x4cd9d0 */
 int gv_EntryIndex(char *r, int *e);                                        /* 0x4ef6b0 */
 int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y);                               /* 0x4f8300 */
@@ -351,7 +351,7 @@ int gm_FindObjectInst(int id);                                              /* 0
 int gm_FindById(struct AIBLD **bld, struct AIOBJ **obj, struct AICHAR **chr, int id);           /* 0x4fea50 */
 struct AIOBJ *gm_QueryNext(void);                                               /* 0x4ffcc0, next of gm_Query */
 struct AIOBJ *gm_Query(void *list, int n, ...);                               /* 0x4ffe90, n (key, value) pairs */
-int gm_FindMarketObject(int id);                                            /* 0x500ec0 */
+struct AIOBJ *gm_FindMarketObject(int id);                                            /* 0x500ec0 */
 struct AIBLD *gm_BuildNext(void);                                               /* 0x501030, next of gm_BuildQuery */
 struct AIBLD *gm_BuildQuery(int n, ...);                                         /* 0x501190, n (key, value) filters; key 6 takes no value */
 int gm_BuildingClass(int type);    /* 0x501d80, the class 0 .. 9 of ai_BTypes[type].kind: kinds 1 .. 0x20 index the byte table 0x501e14 and jump through 0x501dec (1..9), anything else is 0; ai.c dispatches its master / workshop logic on it, f3init.c's init_Betrieb stocks the classes 1 / 4 */
@@ -362,7 +362,7 @@ short * gm_PlayerRecord(struct AICHAR *ch);                                     
 float gm_ItemPrice(int item, unsigned char n);                           /* 0x5087f0 */
 float gm_GoodsPrice(unsigned id, unsigned char p);                           /* 0x5089c0, a price */
 int gm_EquipmentValue(struct AIBLD *b, int level);                                     /* 0x509b10 */
-int gm_ListAmount(short *l, char *o);                                      /* 0x50aaf0 */
+int gm_ListAmount(struct AIOBJ *l, struct AIOBJ *o);                                      /* 0x50aaf0 */
 float gm_Liking(unsigned a, unsigned b, int c);                                 /* 0x50c550 */
 struct AIJOB *he_NextEvent(void);                                             /* 0x53e300, next of he_FindEvent */
 struct AIJOB *he_FindEvent(int n, ...);                                         /* 0x53e400, n (key, value) pairs */

@@ -890,9 +890,6 @@ char dd_Has800x600 = 0;  /* 0x631225 */
 char dd_Has1024x768 = 0;  /* 0x631226 */
 char dd_Has1152x864 = 0;  /* 0x631227 */
 
-/* txt_DlgTitle: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_DlgLabel104: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_DlgLabel105: view of txt_Ptrs (build/mk_txt_views.py) */
 int dd_BytesPerPixel;  /* 0x1463568 */
 ULONG dd_Ref; /* 0x146356c */
 unsigned char dd_RBits; /* 0x1463570 */
@@ -1258,9 +1255,9 @@ BOOL CALLBACK dd_DlgProc(HWND dlg, UINT msg, WPARAM wp, LPARAM lp)
     case WM_INITDIALOG:
         dd_DrvCombo = GetDlgItem(dlg, 102);
         dd_DevCombo = GetDlgItem(dlg, 103);
-        SetWindowText(dlg, txt_DlgTitle);
-        SetDlgItemText(dlg, 104, txt_DlgLabel104);
-        SetDlgItemText(dlg, 105, txt_DlgLabel105);
+        SetWindowText(dlg, txt_Ptrs[TXT_DLG_TITLE]);
+        SetDlgItemText(dlg, 104, txt_Ptrs[TXT_DLG_LABEL_104]);
+        SetDlgItemText(dlg, 105, txt_Ptrs[TXT_DLG_LABEL_105]);
         if (dd_DlgFlag) {
             SetWindowLong(dlg, GWL_STYLE, GetWindowLong(dlg, GWL_STYLE) & ~WS_CAPTION);
             EnableWindow(dd_DrvCombo, FALSE);

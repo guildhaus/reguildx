@@ -332,8 +332,8 @@ void d2_SetLabel(int id, char *s);                         /* 0x46bc70, sets the
 void d2_SetList(int id, int n, ...);                      /* 0x46bca0, sets the widget's "a|b|c|" item list */
 void d2_ListCopyItem(int id, int idx, char *out);              /* 0x46bd30 */
 void d2_SetSliderFlags(int id, int flags);                       /* 0x46bdd0, sets the slider's flags */
-int d2_CreateSlider(int x, int y, int pic, int unk);           /* 0x46be00 */
-int d2_WinCreateSlider(int x, int y, int pic, int unk, int win);  /* 0x46bf10 */
+int d2_CreateSlider(int x, int y, int pic, char *caption);           /* 0x46be00 */
+int d2_WinCreateSlider(int x, int y, int pic, char *caption, int win);  /* 0x46bf10 */
 void d2_DrawButton(int id, D2SURF *surf);                    /* 0x46bf60, draws a button */
 void d2_CenterObj(int obj);                                 /* 0x46c1d0 */
 void d2_SetObjWidth(int obj, short w);                      /* 0x46c260 */

@@ -32,11 +32,9 @@ int ls_Version = 65626;  /* 0x623650 */
 const char ls_LanguageNames[][0x40] = { "GERMAN", "ENGLISH", "FRENCH", "ITALIAN", "SPANISH" };  /* 0x5ee978, the language names (5 of */
 unsigned char ls_SaveSlot = 0;  /* 0x6f1c38, the slot the save header records */
 extern int ai_NextCharNumber, ai_NextPlayerNumber;   /* 0x6f1bb8, 0x6f1bbc, 0x6f1bc0 */
-int gv_WriteCrimes();                     /* 0x4f28d0 */
 
 #define LS_W(p, sz) if (vfs_fwrite((p), (sz), 1, f) <= 0) return 0;
 #include "rd_types.h"                 /* G15BK */
-int gv_WriteGraveyard();                     /* 0x4f17f0 */
 
 #define LS_R(p, sz) if (ls_Read((p), (sz), 1, f) == 0) return 0;
 
@@ -72,7 +70,6 @@ extern char hst_Key[];                 /* 0xf83520, the history key ("G12", 0x20
 #include "dd_vesa.h"
 #include "hmt.h"
 #include "d3_anim.h"
-int gv_ReadEffects();                     /* 0x4ed910 */
 
 /* he_EventTop: view of ai_NextEventId (tools/data_views.py) */
 extern AIJOB he_Events[0x400];  /* 0x6fab40, the 0x400 event records (ls.h cannot see AIJOB) */
@@ -1130,7 +1127,7 @@ int ls_WriteHistory(VFSFILE *f)
     LS_W(&hst_Lists[i].inUse, 4)
     for (j = 0; j < 8; j++) {
       LS_W(&hst_Lists[i].e[j].id, 4)
-      LS_W(&hst_Lists[i].e[j].v, 4)
+      LS_W(&hst_Lists[i].e[j].token, 4)
     }
   }
   return 1;
@@ -1401,7 +1398,7 @@ int ls_LoadScene(VFSFILE *f)
     d3if_SelectScene(1, 0);
     d3if_ClearScene(0);
     d3if_SelectScene(0, 0);
-    d3_LoadScene(0, f, (void *)(unsigned)&main_LoadProgressCallback);
+    d3_LoadScene(0, f, main_LoadProgressCallback);
     d3if_SelectScene(1, 0);
     d3if_SelectScene(0, 0);
     if (((D3FLMAP *)d3_Terrain)->size == 0x80 || ((D3FLMAP *)d3_Terrain)->size != 0x40)
@@ -1414,8 +1411,8 @@ int ls_LoadScene(VFSFILE *f)
         ((D3FLMAP *)d3_Terrain)->lod = init_Detail;
         d3fl_SetDetail(0x80);
     }
-    d3_ForEachObject2(d3_DefaultScene, 0, 0x1c0, (void *)(unsigned)&ls_HookBuildingCB);
-    d3_ForEachObject2(d3_DefaultScene, 0, 0xc0, (void *)(unsigned)&ls_ClearObjectFlag);
+    d3_ForEachObject2(d3_DefaultScene, 0, 0x1c0, (void (*)(D3OBJECT *))ls_HookBuildingCB);
+    d3_ForEachObject2(d3_DefaultScene, 0, 0xc0, (void (*)(D3OBJECT *))ls_ClearObjectFlag);
     d3if_SelectScene(saved, 0);
     return 1;
 }
@@ -1459,11 +1456,11 @@ char ls_HookBuildingCB(D3OBJECT *o)
     }
     return 1;
 }
-/* 0x51d530, scene callback: clears the flag 4 in +0x213 of the object */
+/* 0x51d530, scene callback: clears the flag 4 of the object's flags (D3OBJECT 0x213); returns 1 */
 
-char ls_ClearObjectFlag(char *o)
+char ls_ClearObjectFlag(D3OBJECT *o)
 {
-    o[0x213] &= ~4;
+    o->flags &= ~4;
     return 1;
 }
 /* 0x51d550, reads the buildings ai_Blds from the save file f (the counterpart of ls_WriteBuildings): for each of n
@@ -2325,7 +2322,7 @@ int ls_ReadHistory(VFSFILE *f)
         LS_R(&hst_Lists[i].inUse, 4)
         for (j = 0; j < 8; j++) {
             LS_R(&hst_Lists[i].e[j].id, 4)
-            LS_R(&hst_Lists[i].e[j].v, 4)
+            LS_R(&hst_Lists[i].e[j].token, 4)
         }
     }
     return 1;

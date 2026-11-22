@@ -311,7 +311,6 @@ typedef struct SHOTRESULT {     /* 0x38 bytes, three of them in ai_ShotTable: th
 extern int ai_TutorialChapterOn[5];
 extern int (*ai_TutorialChapterInit[5])(void);
 extern unsigned int ai_GraveChatterAt;
-extern int ai_TutorialBanks[6];
 extern TUTRUN *ai_TutorialRuns;
 extern int ai_TutorialOn;
 extern int ai_TutorialRunning;
@@ -369,19 +368,14 @@ extern const float ai_CannonSwitchDist;
 int ai_TutorialInitMainIntro();
 int ai_TutorialInitMainOutro();
 void ai_TutorialStop();
-int sb_UnloadSampleBank();
-int snd_LoadVoiceBank();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
 struct AICHAR; struct G9REC; struct VFSFILE;
 int sv_RunFrame(void (*cb)(), unsigned mask);
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_ValueBar();
-struct AICHAR *ahm_OwnerChar();
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags);
 int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 int sv_MessageBox(intptr_t text, unsigned flags);
 void txt_Format(char *out, intptr_t id0, ...);
-int ahm_SendCreateAlchemist();
-int ahm_ResearchState(); struct AICHAR *ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
 typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of ai_CannonScene (the other cannon functions still address it by byte offset) */
     D3VECTOR pos;            /* +0x00, d3_PointToWorld of the cannon object; pos.y gets the height of its bounds * 0.8 */
     float pad0c;
@@ -438,41 +432,37 @@ typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of 
     D3VECTOR bmin;           /* +0xf4 */
     float pad100;            /* +0x100, bmin's fourth float: the original's frame keeps 4 bytes behind it */
 } CANNONSCENE;
-char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld); int cm_GetSlotState(); void gv_SetEffectCallback();
+char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
-void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void sv_SetPanelEnabled(); void d3sky_Init(struct D3SKY *s, char build);
-void d3t_GetObjectBounds(); 
+void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void d3sky_Init(struct D3SKY *s, char build);
 char d3if_ShowTree(struct D3OBJECT *obj, char show);
 struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);                 /* 0x447190, d3_interface.h */
 char d3if_Show(struct D3OBJECT *obj, char show);        /* 0x4471b0, d3_interface.h */
-void he_ShowObjectInfos(); void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
+void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
 void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void sv_SetStatusText(char *s); void sv_RedrawScreen();
 void d3if_Prerender(char map); 
 double _CIfmod();
 #include <math.h>
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-void d3_MatTranspose(); float d3_VecAngle2(); int ai_GetDefaultEffect();
+int ai_GetDefaultEffect();
 typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: three floats and a word cleared as an int */
     float x, y, z;
     int w;
 } CANNONROT;
-void d3_DirToWorld();
-int gm_FindById();
-float gv_SalvoCharge(); void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
+void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
 void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
-void gv_CannonScatter(struct AIBLD *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
-int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
-int he_EventOnBuilding(); int sv_MessageBox(intptr_t text, unsigned flags);
-int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
-struct AICHAR *ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
+void gv_CannonScatter(struct AIBLD *o, float *a, float *b); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
+int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade);
+int sv_MessageBox(intptr_t text, unsigned flags);
+int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var); void sv_CameraFollow();
+int amt_GetKindLevel(int k); void cm_SendMoneyDelta(int a, int b);
 void txt_Format(char *out, intptr_t id0, ...); int sv_MessageBox(intptr_t text, unsigned flags);
-void sv_ReleaseNamePlates(void); int sv_RegisterNamePlate(); void ai_StorageWindow();
-void ai_AlchemistResearchWindow(); void ai_AlchemistWindow();
-void cm_BeginFieldBlock(char *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
+void sv_ReleaseNamePlates(void);
+void cm_BeginFieldBlock(void *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 
 /* dcp unit split: the definitions of sv_t the functions of svgrave use */
 void ai_AlchemistResearchWindow(struct AIBLD *obj);
@@ -525,7 +515,7 @@ void ai_GraveSizeButtons(AIBLD *rec, int *w)
     d2_Objs[w[w[12] + 8]].checked = 1;
 }
 
-int sv_CreateScrollButtons(); unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
+unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
 
 /* a row of the graveyard contact window's grave list (w + 0xd, 0x10 rows of 4 dwords; ai_GraveList fills them) */
 typedef struct GVROW {
@@ -1169,7 +1159,6 @@ void ai_GraveSizeButtonsAt(AIBLD *rec, int win, int section, int *btns, int *sel
     d2_Objs[btns[*selp]].checked = 1;
 }
 
-int gv_OrderSetGraveHolder(); int gv_SizeOpen();
 
 /* 0x583de0, the confirmation window of a grave release (272 B): rec / a / b are passed on to
    gv_OrderSetGraveHolder; the form "Locations\Friedhof\Friedhof" (d2_OpenForm (0, 0), the pointer sprite off,
@@ -1589,7 +1578,7 @@ int ai_GraveCare(AIBLD *rec, GVPICK *pick)
                     msg.graveWork.size = pick->size;
                     msg.graveWork.index = pick->index;
                     msg.ids[0] = c->netId;
-                    h = cm_SendLongMessage((char *)&msg);
+                    h = cm_SendLongMessage(&msg);
                     while (h != -1 && cm_GetSlotState(h) == 0)
                         sv_RunFrame(0, 0x20007);
                     r = 1;
@@ -1606,7 +1595,7 @@ int ai_GraveCare(AIBLD *rec, GVPICK *pick)
     return r;
 }
 
-int gv_RoomForRaised(struct AIBLD *o, int *n); int gv_OrderRaiseDead(); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
+int gv_RoomForRaised(struct AIBLD *o, int *n); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
 
 /* 0x584b70, the "GEHILFEN_ERSCHAFFEN" callback of the graveyard window (ai_GraveWindow, a function pointer
    only): raises the picked dead person as a helper. gv_RoomForRaised counts the yard's raised: -1 -> 0; 0 (the
@@ -1681,7 +1670,7 @@ int ai_GraveRaiseHelper(AIBLD *rec, GVPICK *pick)
 }
 
 int sv_CheckCharacterFlag(struct AIBLD *id); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
-void ai_InitProductionTables(void); int ai_UpdateProdGoodsList(); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4);
+void ai_InitProductionTables(void); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4);
 
 /* 0x584d70, the helpers window of a building (the form "HANDEL\HANDEL_SUCHEN"): rec = the building. Its type
    offers two helper kinds (0x225 / 0x226, of the type kind 0x1f 0x293 / 0x294) and a third (0x227 / 0x295) from
@@ -1765,7 +1754,7 @@ void ai_GypsyHelperWindow(AIBLD *rec)
         d2_Objs[id].captionX = 100;
         d2_Objs[id].captionY = 0x10;
         d2_Objs[id].font = 0x54;
-        d2_SetCaption(id, (char *)txt_ObjectNames[kinds[i]][0]);
+        d2_SetCaption(id, txt_Ptrs[TXT_OBJECT_NAMES + 2 * kinds[i]]);
         btns[i] = id;
         d2_SetObjEnabled(id, 1);
     }
@@ -1834,7 +1823,7 @@ void ai_GypsyHelperWindow(AIBLD *rec)
                 for (j = k; j < 4; j += 2)
                     msg.ids[j] = -1;
                 if (k != 0) {
-                    h = cm_SendLongMessage((char *)&msg);
+                    h = cm_SendLongMessage(&msg);
                     while (h != -1 && cm_GetSlotState(h) == 0)
                         sv_RunFrame(0, 0x20007);
                     sv_FrameMask = 0x677c7;
@@ -1854,7 +1843,7 @@ void ai_GypsyHelperWindow(AIBLD *rec)
     sv_CameraFollow();
 }
 
-int snd_QueueVoice(int id, int bank, char *text, int var, unsigned int delay); int ai_MapPick();
+struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay);
 
 /* 0x585380, the graveyard's fog window (the Graveyard Owner's action 0x90, am.c ai_DecideGraveyardOwner1): rec =
    the graveyard. A fog of this graveyard still pending (he_FindEvent 0x90) -> the voice "_NACHRICHTEN_FRIEDHOF_14"
@@ -1889,9 +1878,10 @@ void ai_GraveFogWindow(AIBLD *rec)
     cfg.flags = 1;
     cfg.mode = -1;
     cfg.kind = 6;
-    cfg.filter = 0x1a07c43b4;
+    cfg.classMask[0] = 0xa07c43b4;
+    cfg.classMask[1] = 0x1;
     cfg.option4c = 0x727;
-    target = (AIBLD *)ai_MapPick(1, &cfg, txt_Ptrs[0x40b6], 0, 0);
+    target = ai_MapPick(1, &cfg, txt_Ptrs[0x40b6], 0, 0);
     if (target == 0) {
         sv_CameraFollow();
         return;
@@ -1938,7 +1928,7 @@ void ai_GraveFogWindow(AIBLD *rec)
                     msg.arg[1] = d2_GetObjValue(factor1);
                     msg.arg[2] = d2_GetObjValue(factor2);
                     msg.arg[0] = target->id;
-                    cm_SendLongMessage((char *)&msg);
+                    cm_SendLongMessage(&msg);
                     sv_PopRequest = 1;
                 }
             } else if (d2_PointerObj == btnLeave) {
@@ -2047,13 +2037,12 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
     char text[0x100];
     int variants[8];
     int ids[8];
-    int wait[9];                /* the clock path's delays, the voice path's voice handles */
     char *name1;
     char *name2;
     int script;
     int win;
     int i;
-    int h;
+    struct SBSAMPLE *h;
     int k;                      /* the formula's offset from txt 0x40d7: its pair (/ 6) and variant (% 6) */
     unsigned int t;
 
@@ -2076,13 +2065,15 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
     }
     i = 0;
     if (sb_IsInit() != 0) {
+        struct SBSAMPLE *voice[8];
+
         for (i = 0; i < 8; i++) {
             k = ids[i] - 0x40d7;
             sprintf(text, "_SEANCE_FORMEL_PART_%i_0%i", k / 6 + 1, k % 6);
-            wait[i] = snd_QueueVoice(-7, 0, text, -1, 100);
+            voice[i] = snd_QueueVoice(-7, 0, text, -1, 100);
         }
         for (i = 0; i < 8; i++) {
-            h = wait[i];
+            h = voice[i];
             while (sb_IsPlaying(h) == 0)
                 sv_RunFrame(0, 0x743c7);
             d2_SetForm(win, 0);
@@ -2091,6 +2082,8 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
                 sv_RunFrame(0, 0x743c7);
         }
     } else {
+        int wait[9];
+
         t = d3_Time;
         wait[0] = 0x47;
         wait[1] = 0xf8;
@@ -2136,7 +2129,7 @@ void ai_SeanceRollFormulas(int n, int *ids, int *variants, int base)
     }
 }
 
-int snd_VoiceVariant(); struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt); float gv_SeanceChance(); float util_RandomF();
+struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt); float util_RandomF();
 void cm_SendProofExecuted(int a, int b); 
 
 /* 0x585cb0, the seance kind 1, the ghost of the dead person (rec = the graveyard, ev = the seance window's
@@ -2233,7 +2226,7 @@ void ai_SeanceSacrifice(AIBLD *rec, GVSEANCE *ev)
         msg.time = ai_Time;
         msg.flags = 1;
         msg.arg[0] = amount;
-        cm_SendLongMessage((char *)&msg);
+        cm_SendLongMessage(&msg);
         he_SetLifeByAge(&ai_Chars[ai_PlayerId], 3);
     }
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\Friedhof");
@@ -2482,7 +2475,7 @@ void ai_GraveyardContact(AIBLD *rec)
             c_gehilfen = sv_RegisterNamePlate("contact_GEHILFEN_ERSCHAFFEN", txt_Ptrs[0x4130], 0x28);
             c_vers = sv_RegisterNamePlate("contact_VERSICHERUNG", txt_Ptrs[0x40f4], 0x2b);
             c_liege = sv_RegisterNamePlate("contact_LIEGEPLAN", txt_Ptrs[0x4104], 0x13);
-            c_trans = sv_RegisterNamePlate("contact_TRANSPORT", ai_ContactTextTransport, 0x15);
+            c_trans = sv_RegisterNamePlate("contact_TRANSPORT", txt_Ptrs[TXT_CONTACT_TRANSPORT], 0x15);
         }
         c_mieten = sv_RegisterNamePlate("contact_GRAB_MIETEN", txt_Ptrs[0x4105], 0x16);
         if (ai_ClickedObject != 0) {
@@ -2527,7 +2520,6 @@ void ai_GraveyardContact(AIBLD *rec)
     }
 }
 
-struct AICHAR *ai_AmountMenu(); int sv_CheckMoney();
 
 /* 0x586ab0, the graveyard contact HEIMSUCHUNG (the haunting) for the graveyard rec: the target is picked in the
    amount menu (AMOUNTCFG flags 1, mode 0x400, kind 6, no ids left out; title txt 0x4095), none -> the camera
@@ -2622,7 +2614,7 @@ void ai_GraveHauntContact(AIBLD *rec)
                         ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                         msg.arg[0] = pick;
                     }
-                    id = cm_SendLongMessage((char *)&msg);
+                    id = cm_SendLongMessage(&msg);
                     while (id != -1 && cm_GetSlotState(id) == 0)
                         sv_RunFrame(0, 0x20007);
                     sv_FrameMask = 0x677c7;
@@ -2730,7 +2722,7 @@ void ai_GraveAgeContact(AIBLD *rec)
                             ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                             msg.arg[0] = pick;
                         }
-                        id = cm_SendLongMessage((char *)&msg);
+                        id = cm_SendLongMessage(&msg);
                         while (id != -1 && cm_GetSlotState(id) == 0)
                             sv_RunFrame(0, 0x20007);
                         sv_FrameMask = 0x677c7;
@@ -2864,7 +2856,7 @@ void ai_GraveInsuranceContact(AIBLD *rec)
                     msg.time = ai_Time;
                     msg.arg[0] = f->netId;
                     msg.ids[0] = f->netId;
-                    cm_SendLongMessage((char *)&msg);
+                    cm_SendLongMessage(&msg);
                     sv_PopRequest = 1;
                 }
             } else if (d2_PointerObj == btnLeave) {
@@ -2882,9 +2874,9 @@ void ai_GraveInsuranceContact(AIBLD *rec)
    (sv_ReleaseNamePlates); each frame (sv_RunFrame, pump 0x67fff) the graveyard chatter (ai_GraveyardChatter); with
    the building permission 0x200 the five contact plates are registered (sv_RegisterNamePlate): the graveyard
    chapel's production ("contact_PRODUKTION_FRIEDHOFSKAPELLE", text 0x4155, look 0x13), the transport
-   ("contact_TRANSPORT", ai_ContactTextTransport, 0x15), the master letter ("ob_MEISTERBRIEF",
-   ai_ContactTextMasterLetter, 0xc), the personnel book ("ob_GEHILFENBUCH", ai_ContactTextPersonnelBook, 0xc) and
-   the storage ("contact_LAGER", ai_ContactTextStorage, 0xe); then the "Schlag" action (ai_GraveyardSchlag). A
+   ("contact_TRANSPORT", TXT_CONTACT_TRANSPORT, 0x15), the master letter ("ob_MEISTERBRIEF",
+   TXT_CONTACT_MASTER_LETTER, 0xc), the personnel book ("ob_GEHILFENBUCH", TXT_CONTACT_PERSONNEL_BOOK, 0xc) and
+   the storage ("contact_LAGER", TXT_CONTACT_STORAGE, 0xe); then the "Schlag" action (ai_GraveyardSchlag). A
    clicked plate (ai_ClickedObject) opens its window: ai_ProductionWindow, ai_OpenTransport, ai_MasterLetterWindow,
    ai_HelperBook (with the plate's name) or ai_StorageWindow (with the building's object list) */
 void ai_GraveyardTradeContact(AIBLD *rec)
@@ -2901,10 +2893,10 @@ void ai_GraveyardTradeContact(AIBLD *rec)
         ai_GraveyardChatter(rec);
         if (ai_BuildingPerms & 0x200) {
             c0 = sv_RegisterNamePlate("contact_PRODUKTION_FRIEDHOFSKAPELLE", txt_Ptrs[0x4155], 0x13);
-            c1 = sv_RegisterNamePlate("contact_TRANSPORT", ai_ContactTextTransport, 0x15);
-            c2 = sv_RegisterNamePlate("ob_MEISTERBRIEF", ai_ContactTextMasterLetter, 0xc);
-            c3 = sv_RegisterNamePlate("ob_GEHILFENBUCH", ai_ContactTextPersonnelBook, 0xc);
-            c4 = sv_RegisterNamePlate("contact_LAGER", ai_ContactTextStorage, 0xe);
+            c1 = sv_RegisterNamePlate("contact_TRANSPORT", txt_Ptrs[TXT_CONTACT_TRANSPORT], 0x15);
+            c2 = sv_RegisterNamePlate("ob_MEISTERBRIEF", txt_Ptrs[TXT_CONTACT_MASTER_LETTER], 0xc);
+            c3 = sv_RegisterNamePlate("ob_GEHILFENBUCH", txt_Ptrs[TXT_CONTACT_PERSONNEL_BOOK], 0xc);
+            c4 = sv_RegisterNamePlate("contact_LAGER", txt_Ptrs[TXT_CONTACT_STORAGE], 0xe);
             ai_GraveyardSchlag(rec);
         }
         if (ai_ClickedObject != 0) {
@@ -2960,13 +2952,13 @@ int ai_UpgradeWorkerSend(AIBLD *rec, AICHAR *ch, int sel)
             msg.arg[2] = -1;
         msg.arg[0] = ch->netId;
         msg.arg[1] = sel;
-        cm_SendLongMessage((char *)&msg);
+        cm_SendLongMessage(&msg);
         return 1;
     }
     return 0;
 }
 
-float gm_GetSkill(struct AICHAR *c, int skill); int gm_ClockSeason(); struct AIJOB *he_FindEvent(int n, ...);
+float gm_GetSkill(struct AICHAR *c, int skill); struct AIJOB *he_FindEvent(int n, ...);
 
 /* 0x587810, the graveyard's worker upgrade window for the graveyard rec (the contact of ai_GraveyardFogContact): nothing
    while sv_CheckCharacterFlag (rec) holds. Outside the season 2 of the game clock (gm_ClockSeason) and without
@@ -3088,7 +3080,6 @@ void ai_GraveyardFogContact(AIBLD *rec)
     }
 }
 
-int gm_BuildingJob(); 
 
 /* 0x587b70, the permission bits of the class 0x1d buildings, the graveyard (201 B), called from f3gm.c 0x50359b
    (gm_PermissionBits): ch = the character, b = the building record, x = the picked object or 0. bldg = the
@@ -3219,11 +3210,10 @@ void ai_ClearTurnTable(void)
 /* dcp unit split: the declarations that moved to svtip (copies: drop what svgrave does not use) */
 int gm_BuildingKindCost(struct AICHAR *c, int kind); char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
 float gm_GoodsPrice(unsigned id, unsigned char p);
-int ai_AmountRowStatus(); int ai_DrawAmountRow(); struct AICHAR *gm_FindChar(int id); int gm_TitlesLeft();
+struct AICHAR *gm_FindChar(int id);
 struct AIBLD *gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
-int sv_CreateScrollButtons(); void d2_RadioClear(int g);
+void d2_RadioClear(int g);
 unsigned vfs_fwrite(void *buf, int size, int n, struct VFSFILE *f);
-int ls_Read();
 void * mem_Alloc(int size, char *tag); char dd_Lock(void); void dd_Unlock(); unsigned char bmp_Save24(char *path, int w, int h, unsigned char *data); void mem_Free(void *p);
 void ai_Quicksave(void); void ai_ApplyOptions(); void cm_RaiseSpeedLevel(void); void cm_LowerSpeedLevel(void);
 struct AIOBJ *gm_BuildingMainObject(struct AIBLD *b); struct AIOBJ *gm_GetGebaeudeHauptraum(struct AIBLD *b);

@@ -306,7 +306,6 @@ extern int (*ai_TutorialChapterInit[5])(void);
 extern unsigned int ai_GraveChatterAt;
 extern int ai_DragObj;
 extern int ai_DragViewWin;
-extern int ai_TutorialBanks[6];
 extern TUTRUN *ai_TutorialRuns;
 extern int ai_TutorialOn;
 extern int ai_TutorialRunning;
@@ -369,19 +368,14 @@ extern const float ai_CannonSwitchDist;
 int ai_TutorialInitMainIntro();
 int ai_TutorialInitMainOutro();
 void ai_TutorialStop();
-int sb_UnloadSampleBank();
-int snd_LoadVoiceBank();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
 struct AICHAR; struct G9REC; struct VFSFILE;
 int sv_RunFrame(void (*cb)(), unsigned mask);
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_ValueBar();
-struct AICHAR *ahm_OwnerChar();
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags);
 int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 int sv_MessageBox(intptr_t text, unsigned flags);
 void txt_Format(char *out, intptr_t id0, ...);
-int ahm_SendCreateAlchemist();
-int ahm_ResearchState(); struct AICHAR *ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
 typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of ai_CannonScene (the other cannon functions still address it by byte offset) */
     D3VECTOR pos;            /* +0x00, d3_PointToWorld of the cannon object; pos.y gets the height of its bounds * 0.8 */
     float pad0c;
@@ -438,40 +432,36 @@ typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of 
     D3VECTOR bmin;           /* +0xf4 */
     float pad100;            /* +0x100, bmin's fourth float: the original's frame keeps 4 bytes behind it */
 } CANNONSCENE;
-char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld); int cm_GetSlotState(); void gv_SetEffectCallback();
+char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
-void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void sv_SetPanelEnabled(); void d3sky_Init(struct D3SKY *s, char build);
-void d3t_GetObjectBounds(); 
+void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void d3sky_Init(struct D3SKY *s, char build);
 char d3if_ShowTree(struct D3OBJECT *obj, char show);
 struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);                 /* 0x447190, d3_interface.h */
 char d3if_Show(struct D3OBJECT *obj, char show);        /* 0x4471b0, d3_interface.h */
-void he_ShowObjectInfos(); void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
+void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
 void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void sv_SetStatusText(char *s); void sv_RedrawScreen();
 void d3if_Prerender(char map); 
 double _CIfmod();
 #include <math.h>
-void d3_MatTranspose(); float d3_VecAngle2(); int ai_GetDefaultEffect();
+int ai_GetDefaultEffect();
 typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: three floats and a word cleared as an int */
     float x, y, z;
     int w;
 } CANNONROT;
-void d3_DirToWorld();
-int gm_FindById();
-float gv_SalvoCharge(); void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
+void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
 void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
-void gv_CannonScatter(struct AIBLD *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
-int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
-int he_EventOnBuilding(); int sv_MessageBox(intptr_t text, unsigned flags);
-int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
-struct AICHAR *ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
+void gv_CannonScatter(struct AIBLD *o, float *a, float *b); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
+int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade);
+int sv_MessageBox(intptr_t text, unsigned flags);
+int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var); void sv_CameraFollow();
+int amt_GetKindLevel(int k); void cm_SendMoneyDelta(int a, int b);
 void txt_Format(char *out, intptr_t id0, ...); int sv_MessageBox(intptr_t text, unsigned flags);
-void sv_ReleaseNamePlates(void); int sv_RegisterNamePlate(); void ai_StorageWindow();
-void ai_AlchemistResearchWindow(); void ai_AlchemistWindow();
-void cm_BeginFieldBlock(char *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
+void sv_ReleaseNamePlates(void);
+void cm_BeginFieldBlock(void *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 
 /* dcp unit split: the definitions of sv_t the functions of svgrave use */
 void ai_AlchemistResearchWindow(struct AIBLD *obj);
@@ -489,7 +479,7 @@ extern const int ai_GravePicsAlt[4];
 extern const int ai_GraveGoods[4];
 
 /* dcp unit split: the declarations of svgrave before the moved functions */
-int sv_CreateScrollButtons(); unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
+unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
 typedef struct GVROW {
     int btn;                    /* 0x00, its button object, -1: an unused row */
     GVENTRY *entry;             /* 0x04, the grave entry, 0: unused */
@@ -529,12 +519,11 @@ typedef struct GVPICK {
     GVGRAVE *grave;             /* 0x0c, the dead person picked in it, 0: the grave itself (the slider) */
     int id;                     /* 0x10, that dead person's id, -1: none */
 } GVPICK;
-int gv_OrderSetGraveHolder(); int gv_SizeOpen();
 int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_OpenPlayerBar(struct AIBLD *a, char k); void sv_ClosePlayerBar(void);
-int gv_RoomForRaised(struct AIBLD *o, int *n); int gv_OrderRaiseDead(); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
+int gv_RoomForRaised(struct AIBLD *o, int *n); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
 int sv_CheckCharacterFlag(struct AIBLD *id); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
-void ai_InitProductionTables(void); int ai_UpdateProdGoodsList(); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4);
-int snd_QueueVoice(int id, int bank, char *text, int var, unsigned int delay); int ai_MapPick();
+void ai_InitProductionTables(void); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4);
+struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay);
 typedef struct GVSEANCE {
     int kind;                   /* 0x00, the seance chosen: 1 .. 3, 0 none */
     int cost;                   /* 0x04, its price: 4 / 6 / 8 */
@@ -545,15 +534,13 @@ typedef struct GVSEANCE {
     GVGRAVE grave;              /* 0x14, a copy of the dead person */
 } GVSEANCE;
 int sb_IsInit(); void d2_PlaceViewWindows(int view, unsigned char flags);
-int snd_VoiceVariant(); struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt); float gv_SeanceChance(); float util_RandomF();
+struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt); float util_RandomF();
 void cm_SendProofExecuted(int a, int b); 
 void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);
 void gm_SendMoneyDelta(int a, int b);
 void ai_EndCharExtra(struct AICHAR *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(struct AICHAR *a, int b);
 void sv_ReleaseNamePlates(void); void ai_TradeContactChecks(void);
-struct AICHAR *ai_AmountMenu(); int sv_CheckMoney();
-float gm_GetSkill(struct AICHAR *c, int skill); int gm_ClockSeason(); struct AIJOB *he_FindEvent(int n, ...);
-int gm_BuildingJob(); 
+float gm_GetSkill(struct AICHAR *c, int skill); struct AIJOB *he_FindEvent(int n, ...);
 
 /* dcp unit split: the definitions of svgrave the functions of svtip use */
 void ai_GraveDeadName(GVGRAVE *e, char *out);
@@ -964,7 +951,7 @@ int ai_OpenUpgradeTooltip(int idx)
     return view;
 }
 
-int ai_AmountRowStatus(); int ai_DrawAmountRow(); struct AICHAR *gm_FindChar(int id); int gm_TitlesLeft();
+struct AICHAR *gm_FindChar(int id);
 
 /* 0x588bb0, opens the help tooltip of the record named s: the key "_HILFE_<S>+0" (the name upper-cased) is
    looked up in the texts; without it -1 (no window). Else the form "ToolTip\ToolTip_Contact", centred, its
@@ -1305,7 +1292,7 @@ void ai_SetBookmark(int idx)
     sv_SetStatusText(buf);
 }
 
-int sv_CreateScrollButtons(); void d2_RadioClear(int g);
+void d2_RadioClear(int g);
 
 /* 0x589670, the bookmark window (1066 B): the form "special\geb_hotkeys" (ai_ValidateBookmarks first), the title
    text 0x205b, the scroll buttons of section 1 and the button row of section 3 (texts 0x206b / 0x206a: set,
@@ -1441,7 +1428,6 @@ int ai_SaveBookmarks(VFSFILE *fh)
     return 1;
 }
 
-int ls_Read();
 
 /* 0x589b30, the save game's bookmarks reader, ai_SaveBookmarks's counterpart (136 B): reads the count, then
    that many bookmarks' key (1 byte), building and object (4 bytes each) through ls_Read; 0 on a failed read, 1 */
@@ -1514,7 +1500,7 @@ void ai_Quicksave(void); void ai_ApplyOptions(); void cm_RaiseSpeedLevel(void); 
    0.5f); kb_Last 0 = none and the panel flag sv_QuickJump.panelFlag == 1 return at once; the key 0x1f takes a screenshot
    (0x589bc0), the key 0x10 runs ai_Quicksave while d2_FocusedInput is 0 and sv_FrameMask has no 0x10000; then the
    ai_GameFlags byte: bit 2 (the network game) - with bit 0x10 (the host) the keys 0x4e / 0x4a only raise / lower
-   cm_SpeedLevel (cm_RaiseSpeedLevel / cm_LowerSpeedLevel), without it they show the status text txt_SpeedHostOnly;
+   cm_SpeedLevel (cm_RaiseSpeedLevel / cm_LowerSpeedLevel), without it they show the status text TXT_SPEED_HOST_ONLY;
    without bit 2 they raise / lower and step the speed between 0 and 4 * 40 by 40, then ai_ApplyOptions applies it
    (kb_Last is read once more after each call) */
 void ai_SpeedKeys(void)
@@ -1567,7 +1553,7 @@ void ai_SpeedKeys(void)
         }
     } else {
         if (key == 0x4e || key == 0x4a)
-            sv_SetStatusText(txt_SpeedHostOnly);
+            sv_SetStatusText(txt_Ptrs[TXT_SPEED_HOST_ONLY]);
     }
 }
 

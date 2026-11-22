@@ -524,7 +524,7 @@ char d3_LoadScene(char *name, void *f, D3IOPROGRESS progress)
                     x = 0;
                     if (version >= 0x3a6c00b7)
                         bio_rd_i(in, &x);
-                    ((D3IFSCENE *)d3_DefaultScene)->mapSize = x;
+                    d3_DefaultScene->mapSize = x;
                     bio_rd_i(in, (int *)&col);
                     bio_rd_i(in, (int *)&start);
                     bio_rd_i(in, (int *)&end);
@@ -609,8 +609,8 @@ char d3_LoadScene(char *name, void *f, D3IOPROGRESS progress)
                 d3sm_Destroy(d3sm_Shadow);
                 d3sm_Shadow = 0;
             }
-            if (!((D3IFSCENE *)d3_DefaultScene)->mapSize)
-                ((D3IFSCENE *)d3_DefaultScene)->mapSize = d3_Terrain ? 0x80 : 0x40;
+            if (!d3_DefaultScene->mapSize)
+                d3_DefaultScene->mapSize = d3_Terrain ? 0x80 : 0x40;
             if (d3_Terrain)
                 d3_DefaultScene->map = d3_Terrain;
             tex_ReloadAll(0, (int)progress);
@@ -618,7 +618,7 @@ char d3_LoadScene(char *name, void *f, D3IOPROGRESS progress)
             if (name)
                 strncpy(d3_DefaultScene->name, name, 0x7f);
             d3_DefaultScene->loaded = 1;
-            ((D3IFSCENE *)d3_DefaultScene)->sceneFlags = 0;
+            d3_DefaultScene->sceneFlags = 0;
             return 1;
         }
         if (!f)

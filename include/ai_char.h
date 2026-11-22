@@ -9,7 +9,10 @@
 typedef struct AIARG {                  /* 0x18 bytes, what a decide callback fills for its execute callback (am.h; AICHAR.arg1 / arg2) */
     unsigned char kind;                 /* 0x00 */
     char pad01[3];
-    int ref;                            /* 0x04, what the kind refers to: a building id, an item, a character's netId (kind 7) */
+    union {
+        int ref;                        /* 0x04, what the kind refers to: a building id, an item, a character's netId (kind 7) */
+        struct D3OBJECT *plot;          /* 0x04, kind 0xc: the building site object (ai_PickBuildSite) */
+    };
     unsigned int arg;                   /* 0x08, a second value of the kind: a count (kind 7 at 0x4a8ad0: 1..5), -1 = none */
     int ref2;                           /* 0x0c, a second reference: a character's netId (the helper at 0x4ab3e0, the sender msg.fromId) */
     int arg2;                           /* 0x10, a third value of the kind, passed on in the action's message (msg.arg[3] at 0x48ff40): a count (0x4a9030: graves), a step */

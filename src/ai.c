@@ -4838,7 +4838,7 @@ void ai_MeisterBewaffnen(AICHAR *ch, AIOBJ *b)
    the flag-0x80 clear as its else, the cart walk over the 0x5008 objects (type, goods kind 0x1d,
    AIOBJ.bldId of the cart, the n / n136 counts, the two job searches 11 / 15, the owner chain as the
    original's do { if (v == -1) ... } while (!own)), the move message 0xf (to, time, car, fromId -1, n =
-   own->id, ch, AIMSG.moveArgA0 -1, was unka0), the kind-9 purchases in the original's order (n == n136:
+   own->id, ch, AIMSG.jobId -1, was unka0), the kind-9 purchases in the original's order (n == n136:
    0x134; no 0x136 yet: 0x136; else 0x135 / 0x136 by util_Random(8) < 4) and the other kinds' 0x134 / 0x135
    with the owner-kind 6 / 7 flag 4 test; the misplaced braces of the old text are gone. Every call,
    constant, string and field matches. Left is allocation and cross-jumping: the original keeps n in edi
@@ -4907,7 +4907,7 @@ void ai_MeisterCollectTrans(AICHAR *ch)
                     msg.fromId = -1;
                     msg.n = own->id;
                     msg.ch = ch->bld->id;
-                    msg.moveArgA0 = -1;
+                    msg.jobId = -1;
                     cm_SendLongMessage(&msg);
                     sprintf(buf, "ai_MeisterCollectTrans(): Verlorener Transporter wird von %s nach %s geschickt",
                             own->name, ch->bld->name);

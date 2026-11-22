@@ -6,9 +6,9 @@
    then the globals 0x62aa7c .. 0x62aa88 open this unit's .data block, whose first literal "menu\netlobby" is
    used by 0x589f10 (code seam at the nop fill 0x589f08). End: the literals climb through 0x58ba70; the next block
    starts with "Handel\Handel_PRODUKTION" 0x62b038 (0x58bd60), so its table init 0x58bbd0 opens the next unit.
-   Its texts are views of txt_Ptrs in txt_views.h (the button labels txt_LobbyReady / txt_LobbyCharacter /
-   txt_LobbyLeave, the info-window slots txt_FemaleHonourTitle, txt_JobLabel, txt_FaithLabel, txt_ReadyMark,
-   txt_ChatPrivate, txt_FemaleJobNames, txt_ProfessionNames).
+   Its texts are slots of txt_Ptrs named in txt_views.h (the button labels TXT_LOBBY_READY / TXT_LOBBY_CHARACTER /
+   TXT_LOBBY_LEAVE, the info-window slots TXT_FEMALE_HONOUR_TITLE, TXT_JOB_LABEL, TXT_FAITH_LABEL, TXT_READY_MARK,
+   TXT_CHAT_PRIVATE, TXT_FEMALE_JOB_NAMES, TXT_PROFESSION_NAMES).
    unit of rea 8cef7d5b (src/game/unk_589f10.c); boundaries in decl/text.dcl */
 #include "d2_types.h"
 #include "txt_views.h"
@@ -60,8 +60,7 @@ extern int main_ChoosePlayer(int mask, int flag);
 
 
 
-void d2_FocusInput(); int sprintf(char *buf, const char *fmt, ...);
-int lobby_ChoosePlayer(); int lobby_ChooseProfession();
+int sprintf(char *buf, const char *fmt, ...);
 
 int lobby_Buttons[2] = { -1 };  /* 0x62aa7c, the controls of the lobby form's button row 4 (sv_ButtonRow): [0] ready, [1] the character (the player and profession pickers) */
 int lobby_LeaveButton = -1;  /* 0x62aa84, the control of the button row 8: leave the lobby */
@@ -321,9 +320,9 @@ char *itoa(int, char *, int); char *strupr(char *);
 void lobby_AddButtons(void)
 {
     d2_SetForm(lobby_Form, 4);
-    sv_ButtonRow(d2_LastWindow, 0, lobby_Buttons, 2, txt_LobbyReady, txt_LobbyCharacter);
+    sv_ButtonRow(d2_LastWindow, 0, lobby_Buttons, 2, txt_Ptrs[TXT_LOBBY_READY], txt_Ptrs[TXT_LOBBY_CHARACTER]);
     d2_SetForm(lobby_Form, 8);
-    sv_ButtonRow(d2_LastWindow, 0, &lobby_LeaveButton, 1, txt_LobbyLeave);
+    sv_ButtonRow(d2_LastWindow, 0, &lobby_LeaveButton, 1, txt_Ptrs[TXT_LOBBY_LEAVE]);
     if (cm_NetGame.mode == 0x7f)
         d2_Objs[lobby_Buttons[1]].clickDisabled = 1;
 }
@@ -346,7 +345,7 @@ void lobby_AddChatScroll(void)
 }
 /* 0x58aa30, shows the city of the network game on part 2 of the lobby form: the city's emblem picture
    "_STADTWAPPEN_<NAME>" (upcased; "_STADTWAPPEN_BERLIN" when there is none), right of it the city name and
-   below that the label txt_NetPlayers with the game's player count */
+   below that the label TXT_NET_PLAYERS with the game's player count */
 
 void lobby_ShowCity(void)
 {
@@ -379,7 +378,7 @@ void lobby_ShowCity(void)
     obj = d2_WinOpenPic(5, 5, obj, d2_LastWindow);
     x = d2_Objs[obj].w + 0xf;
     obj = d2_CreateWinText(x, 0x19, city, d2_LastWindow);
-    sprintf(name, "%s: %d", txt_NetPlayers, players);
+    sprintf(name, "%s: %d", txt_Ptrs[TXT_NET_PLAYERS], players);
     d2_CreateWinText(x, d2_Objs[obj].h + 0x1b, name, d2_LastWindow);
 }
 /* 0x58aba0, the current player's info window (384 B): the coat of the player's lobby record, control 3 of the
@@ -404,21 +403,21 @@ void lobby_ShowMyPlayer(void)
     id = d2_WinOpenPic(5, 10, lobby_Player.coat + 0x59a, d2_LastWindow);
     x = d2_Objs[id].w + 0xf;
     if (lobby_Player.sex == 0)
-        u = txt_HonourTitles[1];
+        u = txt_Ptrs[TXT_HONOUR_TITLES + 1];
     else
-        u = txt_FemaleHonourTitle;
+        u = txt_Ptrs[TXT_FEMALE_HONOUR_TITLE];
     sprintf(text, "%s %s %s", u, lobby_Player.firstName, lobby_Player.familyName);
     y = 10;
     id = d2_CreateWinText(x, y, text, d2_LastWindow);
     dy = d2_Objs[id].h + 2;
     y += dy;
     if (lobby_Player.sex == 1)
-        u = txt_FemaleJobNames[lobby_Player.job];
+        u = txt_Ptrs[TXT_FEMALE_JOB_NAMES + lobby_Player.job];
     else
-        u = txt_JobNames[lobby_Player.job];
-    sprintf(text, "%s: %s", txt_JobLabel, u);
+        u = txt_Ptrs[TXT_JOB_NAMES + lobby_Player.job];
+    sprintf(text, "%s: %s", txt_Ptrs[TXT_JOB_LABEL], u);
     d2_CreateWinText(x, y, text, d2_LastWindow);
-    sprintf(text, "%s: %s", txt_FaithLabel, txt_FaithNames[lobby_Player.faith]);
+    sprintf(text, "%s: %s", txt_Ptrs[TXT_FAITH_LABEL], txt_Ptrs[TXT_FAITH_NAMES + lobby_Player.faith]);
     y += dy;
     d2_CreateWinText(x, y, text, d2_LastWindow);
 }
@@ -468,12 +467,12 @@ void lobby_ShowPlayers(void)
             continue;
         id = d2_WinOpenPic(5, y, p->coat + 0x59a, d2_LastWindow);
         if (!p->sex)
-            u = txt_HonourTitles[1];
+            u = txt_Ptrs[TXT_HONOUR_TITLES + 1];
         else
-            u = txt_FemaleHonourTitle;
+            u = txt_Ptrs[TXT_FEMALE_HONOUR_TITLE];
         sprintf(text, "%s %s %s ", u, p->firstName, p->familyName);
         if (p->ready != 0)
-            strcat(text, txt_ReadyMark);
+            strcat(text, txt_Ptrs[TXT_READY_MARK]);
         d2_CreateWinText(d2_Objs[id].w + 10, y, text, d2_LastWindow);
         y = y + 5 + d2_Objs[id].h;
         lobby_Rows[i] = id;
@@ -540,12 +539,12 @@ int lobby_ChoosePlayer(unsigned mask, int b)
     familyIn = d2_GetWinObj(win, 2, io_PrintText(0x1ad1, 0x1ad3));
     d2_SetForm(win, 3);
     io_PrintText(0x1ad4);
-    sv_ButtonRow(d2_LastWindow, 0x1c, row, 2, txt_Male, txt_Female);
+    sv_ButtonRow(d2_LastWindow, 0x1c, row, 2, txt_Ptrs[TXT_MALE], txt_Ptrs[TXT_FEMALE]);
     male = row[0];
     female = row[1];
     d2_SetForm(win, 4);
     io_PrintText(0x1ad7);
-    sv_ButtonRow(d2_LastWindow, 0x1c, row, 2, txt_Faith0, txt_Faith1);
+    sv_ButtonRow(d2_LastWindow, 0x1c, row, 2, txt_Ptrs[TXT_FAITH_0], txt_Ptrs[TXT_FAITH_1]);
     faith0 = row[0];
     faith1 = row[1];
     d2_SetForm(win, 5);
@@ -759,7 +758,7 @@ int lobby_ChooseProfession(int param)
         ids[i + 0xb] = id;
         d2_Objs[id].interactive = 1;
         d2_Objs[id].style = 3;
-        strcpy(d2_Objs[id].caption, txt_ProfessionNames[ids[i]]);
+        strcpy(d2_Objs[id].caption, txt_Ptrs[TXT_PROFESSION_NAMES + ids[i]]);
         d2_Objs[id].capfont = 0x56;
         d2_RadioAdd(obj, id);
     }
@@ -785,7 +784,7 @@ int lobby_ChooseProfession(int param)
 }
 /* 0x58ba70, prints the lobby chat into control 5 of the lobby form: one line per chat record (cm_LobbyChatFirst /
    cm_LobbyChatNextLine) in the colour of the sender's coat of arms (cm_LobbyFindPlayer, 9 for an unknown sender),
-   "name: text" for a line to everybody, "name (txt_ChatPrivate): text" for a private line to or from this player
+   "name: text" for a line to everybody, "name (TXT_CHAT_PRIVATE): text" for a private line to or from this player
    (a private line between others prints the previous text again); when lines came in since the last call and the
    chat box overflows, its content grows by a line (0x18) and scrolls to the end */
 
@@ -812,7 +811,7 @@ void lobby_ShowChat(void)
             id = 9;
         if (p->to != 0) {
             if ((lobby_Me != 0 && p->to == lobby_Me->id) || p->id == lobby_Me->id)
-                sprintf(text, "$%dFF%s (%s): %s$A", id, p->name, txt_ChatPrivate, p->text);
+                sprintf(text, "$%dFF%s (%s): %s$A", id, p->name, txt_Ptrs[TXT_CHAT_PRIVATE], p->text);
         } else {
             sprintf(text, "$%dFF%s: %s$A", id, p->name, p->text);
         }

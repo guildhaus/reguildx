@@ -45,7 +45,7 @@ int sv_CheckStock(short *p, struct AIOBJ *stock, int n, unsigned char t);       
 int sv_MessageBox(intptr_t text, unsigned flags);                            /* 0x521150 */
 int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags);                   /* 0x521410 */
 int sv_MessageBoxYesNo(intptr_t text, unsigned flags);                       /* 0x5216a0 */
-int sv_OpenMessageBox(int text, unsigned char flags);                   /* 0x521900 */
+int sv_OpenMessageBox(intptr_t text, unsigned char flags);                   /* 0x521900 */
 void sv_SelectPanelObject(struct AIBLD *o, int b, char *c);             /* 0x521960 */
 void sv_DrawPanelPointer(void);                                         /* 0x521ba0 */
 void sv_SceneLoadProgress(int kind, int cur, int total);                /* 0x521c10 */
@@ -85,7 +85,7 @@ int sv_MouseCamera(void);                                                 /* 0x5
 int sv_UpdateCamera(void);                                                 /* 0x527640 */
 void sv_FlyCameraToObject(struct AIBLD *o);                                               /* 0x527840 */
 void sv_CameraToObject(struct AIBLD *o);                                               /* 0x527bb0 */
-void sv_FlyCameraToModel(int m);                                               /* 0x527e90 */
+void sv_FlyCameraToModel(struct D3OBJECT *m);                                               /* 0x527e90 */
 void sv_MoveCameraToView(void);                                                /* 0x528140 */
 struct D3OBJECT; struct AIBLD; char sv_CreateBannerCB(struct D3OBJECT *part, struct AIBLD *b);                             /* 0x528180 */
 char sv_ColourBannerCB(struct D3OBJECT *o, struct AIBLD *b);                                    /* 0x528290 */
@@ -95,7 +95,7 @@ struct AIBLD; void sv_UpdateChimneySmoke(struct AIBLD *b);                      
 char sv_CollectBannerCB(char *o, int *p);                                     /* 0x528660 */
 void sv_RemoveBanners(struct AIBLD *b);                                             /* 0x5286a0 */
 void sv_RefreshBanners(void);                                                /* 0x528770 */
-int sv_AddPanelButton(int x, int y, int text);                               /* 0x528800 */
+int sv_AddPanelButton(int x, int y, char *text);                               /* 0x528800 */
 struct AIBLD; void sv_OpenBuildingPanel(struct AIBLD *b);                                /* 0x528860 */
 void sv_OpenItemPanel(struct AIOBJ *p);                                   /* 0x528b80 */
 struct AIOBJ; void sv_OpenCartPanel(struct AIOBJ *c);                                /* 0x528d90 */

@@ -492,7 +492,7 @@ int sv_MessageBoxYesNo(intptr_t text, unsigned flags)
 /* 0x521900, opens a non-modal message box (the form by the flags 0x10 BIG / 0x20 VERY_BIG), shows the text, pumps
    the messages once and returns the form */
 
-int sv_OpenMessageBox(int text, unsigned char flags)
+int sv_OpenMessageBox(intptr_t text, unsigned char flags)
 {
     int form;
 
@@ -1131,7 +1131,7 @@ void sv_UpdateGroundplan(unsigned flags)
                             if (gm_PermissionBits(ai_PlayerId, ai_PlayerBuilding, obj, 0) & 0x4000)
                                 ai_SwitchRoom(-1, obj->id);
                         } else if (obj != 0)
-                            d2_CopyCaption((char *)txt_ObjectNames[obj->id][0]);
+                            d2_CopyCaption(txt_Ptrs[TXT_OBJECT_NAMES + 2 * obj->id]);
                     }
                     b = ai_FallbackBuilding;
                     if (b != 0) {
@@ -1157,7 +1157,7 @@ void sv_UpdateGroundplan(unsigned flags)
                             if (gm_PermissionBits(ai_PlayerId, ai_FallbackBuilding, obj, 0) & 0x4000)
                                 sv_SelectPanelObject(ai_FallbackBuilding, obj->objId, ch_EmptyName);
                         } else if (obj != 0)
-                            d2_CopyCaption((char *)txt_ObjectNames[obj->id][0]);
+                            d2_CopyCaption(txt_Ptrs[TXT_OBJECT_NAMES + 2 * obj->id]);
                     }
                 }
             }
@@ -1185,12 +1185,10 @@ void sv_SetResearchClass(AIBLD *o)
 }
 
 /* 0x46d040 */
-void d2_BlitPart();                     /* 0x479480 */
 struct D2FADE;
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */                     /* 0x4767d0 */
 void d2_ReleaseFade(struct D2FADE *f); /* 0x476860, d2.h */                     /* 0x476860 */
 void d2_PlaceWindow(int win, unsigned char flags);  /* 0x4756b0 */
-int ahm_HasRecord();                     /* 0x4eaad0 */
 struct D3SKY; struct D3SKYLAYER; struct D3VECTOR; int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);  /* 0x453e80 */
 char * cm_CharWeapon(struct AICHAR *c);                     /* 0x4cda50 */
 
@@ -1286,10 +1284,10 @@ void sv_UpdateCityPanel(unsigned char a, int b)
         d2_SetFont(0x55);
         gm_ClockToDate(&ai_Time, (unsigned char *)&t);
         if (ls_GetLanguage() == 2) {
-            sprintf(buf, "%s A.D.%i", d2_Strings[0x4c + gm_Season((char *)&t)], t.year);
+            sprintf(buf, "%s A.D.%i", txt_Ptrs[0x4c + gm_Season((char *)&t)], t.year);
             d2_DrawText(d2_Wins[sv_BarWindow].x + 0x181, 0x17, d2_ScreenSurf, buf, 0);
         } else {
-            sprintf(buf, "%s A.D.%i", d2_Strings[0x4c + gm_Season((char *)&t)], t.year);
+            sprintf(buf, "%s A.D.%i", txt_Ptrs[0x4c + gm_Season((char *)&t)], t.year);
             d2_DrawText(d2_Wins[sv_BarWindow].x + 0x195, 0x17, d2_ScreenSurf, buf, 0);
         }
         h = (int)((ai_Time.min % 0x3c) * 0.8);
@@ -1519,12 +1517,9 @@ void sv_CountGroupMembers(AIJOB *g)
 }
 
 extern float gm_DayStartHours[], gm_DayEndHours[];   /* 0x617830 / 0x617840 */
-int init_BuildingSceneUniverse();                     /* 0x511e60 */
-int init_ObjectSceneUniverse();                     /* 0x511dc0 */
 int gm_ClockSeason(AITIME *c);         /* 0x4fe350, f3gm.c */                     /* 0x4fe350 */
 char *strstr();                   /* 0x5de6b0, strstr (LIBC; as ls.c) */
 int cm_SendExSetHE(int k, struct AIJOB *p);                     /* 0x4c4c60 */
-void he_FreeEvent();                     /* 0x53e1f0 */
 int cm_AddFieldValue(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3d90 */
 int cm_SendFieldValues(void);                     /* 0x4c49e0 */
 
@@ -1757,11 +1752,8 @@ extern struct AICHAR *sv_SelectedChar;
 extern char sv_PlayerBarKind;
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);                     /* 0x472aa0 */
 int d2_CreateWinText(short x, short y, char *text, int win);                     /* 0x473650 */
-void d2_SetObjText();                     /* 0x4734d0 */
 void snd_PlayWorkerClick(struct G16CHARCLICK *c);                     /* 0x4c2c70 */
-void d2_SetObjEnabled();                     /* 0x475e40 */
 void d2_AddPointerItem(int id, int amount);                     /* 0x476b90 */
-float gm_HealthRatio();                     /* 0x4fc8e0 */
 int d2_WinOpenPic(short x, short y, int pic, int win);                     /* 0x4731d0 */
 
 /* 0x524990, rebuilds the member list of the player bar for the building g: rows of characters that are gone
@@ -1973,17 +1965,12 @@ extern float sv_DayPhaseFrac;  /* 0x623e94 */
 /* ai_MapRefs: view of d3_Scenes (tools/data_views.py) */
 const int sv_PhaseMinutes[24] = { 390, 510, 630, 1050, 1170, 1290, 300, 420, 540, 1140, 1260, 1380, 420, 540, 660, 1020, 1140, 1260, 480, 600, 690, 960, 1020, 1140 };  /* 0x5eeab8 */
 
-int d2_GetWinObj();                     /* 0x475b80 */
 void d2_SetViewEnabled(int view, int on);  /* 0x475590 */
 void d2_ClearPointerItems(void);                     /* 0x476c70 */
 void sv_UpdatePanel(void);                     /* 0x52a050 */
 void gm_ClockToDate(struct AITIME *c, unsigned char *out);                     /* 0x4fe2c0 */
 void ai_InitWind(int type, int id, float *from, float *to);                     /* 0x5dbc30 */
-void d3t_FreeSnow();                     /* 0x414b50 */
-struct D3TRAIN * d3t_CreateRain();                     /* 0x413b30 */
 struct D3TRAIN; void d3t_SetRain(struct D3TRAIN *rain, int n, ...);                     /* 0x413d30 */
-void d3t_DeleteRain();                     /* 0x413d00 */
-struct D3TSNOW *d3t_CreateSnow();                     /* 0x4148f0 */
 struct D3TSNOW; void d3t_SetSnow(struct D3TSNOW *snow, int n, ...);                     /* 0x414c60 */
 struct D3SKY; struct D3SKY *d3sky_Create(float horizon, float fogstart, float fogscale);                     /* 0x45da30 */
 struct D3SKY; struct D3SKYLAYER; void d3sky_DeleteLayer(struct D3SKY *s, struct D3SKYLAYER *l);                     /* 0x45d800 */
@@ -2217,9 +2204,9 @@ void sv_UpdateSkyColors(void)
     d3_ForEachObject(d3_DefaultScene, 0, 8, sv_SetSkyLightColors, 0);
     p = sv_WinterWeather == 0 ? sv_LevelAmbient : sv_LevelAmbientWinter;
     for (i = 0; i < 7; i++) {
-        ((D3IFSCENE *)d3_DefaultScene)->levels[i].amb.x = p[i].amb.x;
-        ((D3IFSCENE *)d3_DefaultScene)->levels[i].amb.y = p[i].amb.y;
-        ((D3IFSCENE *)d3_DefaultScene)->levels[i].amb.z = p[i].amb.z;
+        d3_DefaultScene->levels[i].amb.x = p[i].amb.x;
+        d3_DefaultScene->levels[i].amb.y = p[i].amb.y;
+        d3_DefaultScene->levels[i].amb.z = p[i].amb.z;
         d3_AmbientColor.x = p[i].amb.x;
         d3_AmbientColor.y = p[i].amb.y;
         d3_AmbientColor.z = p[i].amb.z;
@@ -2338,10 +2325,7 @@ extern int d3t_CamMoving;  /* 0x6310e4 */
 extern struct D3ANIM *d3t_CamMove;  /* 0x6310e8 */
 extern int sv_ScrollTime;  /* 0x6f2394 */
 extern float sv_ScrollLastMove[4];
-float d3t_GetMeanHeight();                   /* 0x412550 */
 int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);  /* 0x453e80 */
-void d3_MatTranspose();                     /* 0x454040 */
-float d3_VecAngle2();                   /* 0x453b40 */
 
 /* 0x525dd0, in scene 0 sets both camera blend factors to f and places the camera: its height is the near / far height blended by
    f over the terrain's mean height under it, its x angle the near / far angle blended by f; stores the camera's rotation and
@@ -2714,7 +2698,6 @@ extern int sv_FrameBase;  /* 0x6f22a4 */
 extern struct AIBLD *sv_SelectedObject;  /* 0x75ec60 */
 extern int sv_SelectedModel;  /* 0x6f2304 */
 extern char sv_CameraEaseOn;
-int d3t_GetHeightRange();                     /* 0x411c70 */
 short * gm_PlayerRecord(struct AICHAR *ch);                   /* 0x506430 */
 void sv_PlaceCamera(float f);
 void sv_EaseCameraHeight(void);
@@ -3064,9 +3047,6 @@ int stricmp();                     /* 0x5eaa30 (_strcmpi) */
 char d3if_SelectTextureSet(struct D3OBJECT *obj, struct D3SURF *surf, unsigned char set, char reload);                     /* 0x446f30 */
 struct AIBLD *gm_BuildQuery(int n, ...);                     /* 0x501190 */
 struct AIBLD *gm_BuildNext(void);                     /* 0x501030 */
-int d3t_SceneIndex();                     /* 0x411be0 */
-void d3_SetWorldPosRot();                     /* 0x449920 */
-int d3t_PlayAnim();                     /* 0x411960 */
 
 /* 0x527bb0, puts the camera directly 600 units back along its view from the building b's 3D object (its centre,
    the terrain's mean height plus the zoom height, pulled in by the object's height range): the stored view
@@ -3139,7 +3119,7 @@ void sv_CameraToObject(AIBLD *b)
 /* 0x527e90, moves the camera (animated, d3t_PlaceObjectV) to 600 units back along its view from the 3D object
    m, like sv_FlyCameraToObject for a bare object: no stored view, no selection */
 
-void sv_FlyCameraToModel(int m)
+void sv_FlyCameraToModel(D3OBJECT *m)
 {
     float h;                        /* the pull-in factor */
     D3VECTOR4 up;                   /* the camera above the centre (only its height is used) */
@@ -3163,7 +3143,7 @@ void sv_FlyCameraToModel(int m)
     back[0] = rot[8] * vz + rot[4] * vy + rot[0] * vx;
     back[1] = rot[9] * vz + rot[5] * vy + rot[1] * vx;
     back[2] = rot[10] * vz + rot[6] * vy + rot[2] * vx;
-    d3_PointToWorld((char *)m, &((D3OBJECT *)m)->pos, cen);
+    d3_PointToWorld((char *)m, &m->pos, cen);
     pos[0] = cen[0] + back[0];
     pos[1] = cen[1] + back[1];
     pos[2] = cen[2] + back[2];
@@ -3360,10 +3340,8 @@ char sv_CollectBannerCB(char *o, int *p)
 extern int d3_QuadTree, sv_PanelBldPic, sv_PanelHealthBar, sv_PanelCartWin, sv_PanelItemBtn, sv_PanelTransportBtn, sv_PanelCartBtn, sv_PanelActionBtn, sv_PanelCartChar;  /* 0x6f1c28, 0x623864, 0x623868, 0x62387c, 0x623888, 0x62388c, 0x623890, 0x623894, 0x631078 */
 extern int sv_PanelWidgets[4];  /* 0x62386c */
 
-int d2_WinCreateSlider();                     /* 0x46bf10 */
-void d2_SetObjFont();                     /* 0x4760b0 */
 int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int flags, int win);                     /* 0x46a960 */
-int sv_AddPanelButton(int x, int y, int text);
+int sv_AddPanelButton(int x, int y, char *text);
 
 /* 0x5286a0, tints the banners of the building b: its model's parts named "sp_WIMPEL" (0x438d40, 0x40, the collector 0x528660; the model's +0x1f0 cleared when its flag +0x210 & 1 is not set) are recoloured
    (0x458780 with the colour 0x6f1c28, when set) and updated (0x447190) */
@@ -3422,7 +3400,7 @@ void sv_RefreshBanners(void)
 }
 /* 0x528800, creates a panel button at (x + 3, y) from the image 0xc5 (0x46bf10) with the text, the state 0x54, the flag +0x5c = 1 and the frame 0x60; returns the widget id */
 
-int sv_AddPanelButton(int x, int y, int text)
+int sv_AddPanelButton(int x, int y, char *text)
 {
     int w;
 
@@ -3437,8 +3415,8 @@ int sv_AddPanelButton(int x, int y, int text)
    name text 0x48e + 14 * kind and, when b has a name of its own, "$A>name<"), the building picture 0x427 + kind centred in
    the window (sv_PanelBldPic, interactive; its user record is the owner's character unless that is the player), the
    health bar (sv_PanelHealthBar, the level 0 .. 100; not for the kinds 0x47 / 0x1d / 0x57) and, unless flag 1 of
-   b->flags5a is set or for those kinds, the action button 0x8c (sv_PanelActionBtn: txt_PanelBtnOwn for the player's own
-   or permitted building, else txt_PanelBtnForeign) and for the goods carrying classes the "Transport" button
+   b->flags5a is set or for those kinds, the action button 0x8c (sv_PanelActionBtn: TXT_PANEL_BTN_OWN for the player's own
+   or permitted building, else TXT_PANEL_BTN_FOREIGN) and for the goods carrying classes the "Transport" button
    (sv_PanelTransportBtn, not with a fallback building); the unused widget ids are set to -1 */
 void sv_OpenBuildingPanel(AIBLD *b)
 {
@@ -3477,13 +3455,13 @@ void sv_OpenBuildingPanel(AIBLD *b)
         bt = &ai_BTypes[b->type];
         perm = gm_PermissionBits(ai_PlayerId, b, 0, 0);
         if (b->owner != ai_PlayerId && b->masterId != ai_PlayerId && (perm & 0x10) == 0)
-            sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_PanelBtnForeign);
+            sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_Ptrs[TXT_PANEL_BTN_FOREIGN]);
         else
-            sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_PanelBtnOwn);
+            sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_Ptrs[TXT_PANEL_BTN_OWN]);
         if ((cls == 1 || cls == 2 || cls == 4 || cls == 7 || cls == 8 || bt->kind == 0x10 || bt->kind == 0x1e || bt->kind == 0x1f
              || bt->kind == 0x1d) && bt->kind != 5) {
             if (ai_FallbackBuilding == 0)
-                sv_PanelTransportBtn = sv_AddPanelButton(0, 0xa6, (int)"Transport");
+                sv_PanelTransportBtn = sv_AddPanelButton(0, 0xa6, "Transport");
         } else
             sv_PanelTransportBtn = -1;
     } else {
@@ -3496,8 +3474,8 @@ void sv_OpenBuildingPanel(AIBLD *b)
    is one of the goods 0x92 .. 0x97 / 0x2db: the title is the item's name text 0x9a8 + 2 * id, after the kind name and the
    own name of the selected building (ai_PlayerBuilding, else ai_FallbackBuilding) when there is one; the item picture
    0xdf + id (interactive) one pixel left of the window's centre; for a goods type 2 / 6 item in a building the buttons:
-   0x8c (sv_PanelActionBtn, txt_PanelBtnItemOwn) when the player owns the item's building or has permission bit 0x10 and
-   the building lists objects after it (gm_ListObjectsAfter), and always 0xa6 (sv_PanelItemBtn, txt_PanelBtnItem) */
+   0x8c (sv_PanelActionBtn, TXT_PANEL_BTN_ITEM_OWN) when the player owns the item's building or has permission bit 0x10 and
+   the building lists objects after it (gm_ListObjectsAfter), and always 0xa6 (sv_PanelItemBtn, TXT_PANEL_BTN_ITEM) */
 void sv_OpenItemPanel(AIOBJ *p)
 {
     AIBLD *b;
@@ -3528,16 +3506,16 @@ void sv_OpenItemPanel(AIOBJ *p)
             perm = gm_PermissionBits(ai_PlayerId, b, 0, 0);
             if (*owner == ai_PlayerId || (perm & 0x10) != 0) {
                 if (gm_ListObjectsAfter(b, p, 0) != 0)
-                    sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_PanelBtnItemOwn);
-                sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_PanelBtnItem);
+                    sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_Ptrs[TXT_PANEL_BTN_ITEM_OWN]);
+                sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_Ptrs[TXT_PANEL_BTN_ITEM]);
             } else
-                sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_PanelBtnItem);
+                sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_Ptrs[TXT_PANEL_BTN_ITEM]);
         }
     }
 }
 /* 0x528d90, opens the info panel (sv_PanelForm, "panel\infopanel_transporter") for the cart c unless one is open or its
    building has no owner: the title ("$Z%2N1$A%s": the owner character's id and the goods name text 0x9a8 + 2 * id), the
-   cart picture 0xdf + id (interactive), for the player's own cart the button 0xac (sv_PanelCartBtn, txt_PanelBtnCart),
+   cart picture 0xdf + id (interactive), for the player's own cart the button 0xac (sv_PanelCartBtn, TXT_PANEL_BTN_CART),
    the load bar (sv_PanelHealthBar, the fill percent); then notes the panel's window (sv_PanelCartWin) and the scene
    character that shows the cart (sv_PanelCartChar) */
 void sv_OpenCartPanel(AIOBJ *c)
@@ -3557,7 +3535,7 @@ void sv_OpenCartPanel(AIOBJ *c)
     x = ((d2_Wins[d2_LastWindow].w - 0x30) >> 1) - 1;
     ((D2OBJ *)d2_Objs)[d2_WinOpenPic(x, 0x30, c->id + 0xdf, d2_LastWindow)].interactive = 1;
     if (*owner == ai_PlayerId)
-        sv_PanelCartBtn = sv_AddPanelButton(x, 0xac, txt_PanelBtnCart);
+        sv_PanelCartBtn = sv_AddPanelButton(x, 0xac, txt_Ptrs[TXT_PANEL_BTN_CART]);
     sv_PanelHealthBar = d2_WinOpenSlider(0x18, 0x66, 0x30, 0, 100, 0x75, 0x442, d2_LastWindow);
     d2_SetObjValue(sv_PanelHealthBar, 0, 100, c->fill);
     d2_SetForm(sv_PanelForm, 2);
@@ -3575,14 +3553,12 @@ extern char *ai_Unk7662c0p;
 extern unsigned short * sv_SelectedItem;
 extern int ai_BuildingPerms;  /* 0x6f231c */
 int gm_Opinion(int a, int b);                     /* 0x50c520 */
-int gm_MinutesBetween();                     /* 0x4fe280 */
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);                     /* 0x4fe140 */
 int d2_RemoveWindowObjects();                     /* 0x472d20 */
-int gm_ListAmount();                     /* 0x50aaf0 */
-int ai_RunAllows();                     /* 0x5763c0 */
 void ai_CampaignStep(int a, void *b, int c, int d);                     /* 0x576040 */
 void ai_TechTreeWindow(struct AIBLD *param_1, int param_2);                     /* 0x591bf0 */
 int sv_ReturnZero(void);
+int sv_PickNothing(AICHAR *c, int n);  /* the unlinked pick callback at the end (sv_ReturnZero in the exe) */
 void sv_OpenDefaultPanel(void);
 void sv_OpenPersonPanel(AICHAR *c);
 void sv_RefreshPanel(void);
@@ -3604,8 +3580,8 @@ void sv_OpenDefaultPanel(void)
         if (ai_PlayerBuilding == 0) {
             sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_standard");
             d2_SetForm(sv_PanelForm, 0);
-            sv_PanelBuildBtn = sv_AddPanelButton(0, 0x8c, txt_PanelBtnBuild);
-            sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_PanelBtnItem);
+            sv_PanelBuildBtn = sv_AddPanelButton(0, 0x8c, txt_Ptrs[TXT_PANEL_BTN_BUILD]);
+            sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_Ptrs[TXT_PANEL_BTN_ITEM]);
             return;
         }
     } else if (ai_FallbackBuilding->owner == (unsigned short)ai_PlayerId) {
@@ -3619,16 +3595,16 @@ void sv_OpenDefaultPanel(void)
         d2_WinOpenPic(((d2_Wins[d2_LastWindow].w - 0x30) >> 1) - 1, 0x4c, ai_FallbackBuilding->type + 0x427, d2_LastWindow);
         sv_PanelHealthBar = d2_WinOpenSlider(0x15, 0x7a, 0x30, 0, 100, 0x75, 0x442, d2_LastWindow);
         d2_SetObjValue(sv_PanelHealthBar, 0, 100, level);
-        sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_PanelBtnOwn);
+        sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_Ptrs[TXT_PANEL_BTN_OWN]);
         if (ai_FallbackBuilding->type == 0x1e) {
-            sv_PanelPlantBtn = sv_AddPanelButton(0, 0xa6, txt_PanelBtnKind1e);
+            sv_PanelPlantBtn = sv_AddPanelButton(0, 0xa6, txt_Ptrs[TXT_PANEL_BTN_KIND_1E]);
             return;
         }
-        sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_PanelBtnItem);
+        sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_Ptrs[TXT_PANEL_BTN_ITEM]);
     }
 }
 /* 0x5290f0, opens the person info panel ("panel\\infopanel_personen") unless a panel is open: for no character or
-   several selected the text "%i %s" (ai_SelectedCount, txt_PanelPersons); for the character c its name markup and
+   several selected the text "%i %s" (ai_SelectedCount, TXT_PANEL_PERSONS); for the character c its name markup and
    health in percent ("%s %i%%"), the opinion bar (sv_PanelHealthBar: gm_Opinion of the player for c, -127 .. 127),
    the standing picture c->ref54 for the kinds 5 / 6 / 7, for the title job groups 10 .. 12 the pictures 0x5df / 0x5e0
    with the value bars of the skills sk82 / sk83; then the portrait (sv_PanelPortrait: c->picture, interactive, its
@@ -3644,7 +3620,7 @@ void sv_OpenPersonPanel(AICHAR *c)
     sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_personen");
     d2_SetForm(sv_PanelForm, 1);
     if (c == 0 || ai_SelectedCount >= 2) {
-        sprintf(text, "%i %s", ai_SelectedCount, txt_PanelPersons);
+        sprintf(text, "%i %s", ai_SelectedCount, txt_Ptrs[TXT_PANEL_PERSONS]);
         io_PrintText((intptr_t)text);
     } else {
         opinion = gm_Opinion(ai_PlayerId, c->id);
@@ -3977,8 +3953,6 @@ int d2_CreateScreenText(short x, short y, char *text);                     /* 0x
 void d2_MoveObj(short x, short y, int obj);                     /* 0x46cda0 */
 void d2_DrawText(int x, int y, void *surf, char *text, unsigned char flags);                     /* 0x46f000 */
 void d2_DrawTextBox(int x, int y, int w, int h, void *surf, char *text, unsigned int flags);                     /* 0x46f1a0 */
-void d2_AddDirty();                     /* 0x468eb0 */
-int d2_ShpBlit();                     /* 0x47bd70 */
 void d2_SetClipRect(int x0, int y0, int x1, int y1);                     /* 0x47cb40 */
 void * d2_SetFont(int font);                     /* 0x476030 */
 int d2_SetForm(int view, int n);                     /* 0x475f70 */
@@ -4008,7 +3982,7 @@ void sv_UpdatePanel(void)
     AIBLD *b, *sel;
     AIBTYPE *bt;
     int cls, i, perms, room;
-    int st[0x14];
+    AMOUNTCFG st;
 
     b = 0;
     if (sv_PlayerBarForm != -1)
@@ -4065,12 +4039,11 @@ void sv_UpdatePanel(void)
                 }
             }
         } else if (sv_PanelItemBtn != -1 && d2_PointerObj == sv_PanelItemBtn && (sv_FrameMask & 0x2000) != 0 && ai_RunAllows(0x80) == 1) {
-            for (i = 0; i < 0x14; i++)
-                st[i] = 0;
-            st[1] = 0;
-            st[5] = 4;
+            memset(&st, 0, sizeof(st));
+            st.mode = 0;
+            st.option14 = 4;
             ai_CampaignStep(0xf, 0, 0, 0);
-            ai_AmountMenu((int)st, (int)ch_EmptyName, (int)ch_EmptyName, (int)sv_ReturnZero);
+            ai_AmountMenu(&st, ch_EmptyName, ch_EmptyName, sv_PickNothing);
             ai_CampaignStep(0xf, 0, 1, 0);
         }
     }
@@ -4554,13 +4527,10 @@ int sv_StartPoseScript(AICHAR *a, int b)
     return (int)script;
 }
 
-void d2_SetObjEnabled();                     /* 0x475e40 */
-int ai_RunAllows();                     /* 0x5763c0 */
 void ai_CampaignStep(int a, void *b, int c, int d);                     /* 0x576040 */
 int gm_BuildingClass(int kind);                /* 0x501d80, f3gm.c, the class of a building kind */
 void ai_TechTreeWindow(struct AIBLD *param_1, int param_2);                     /* 0x591bf0 */
 void d2_FreeAnim(int n);                     /* 0x47ce30 */
-int d3t_PlaceAtObject();                     /* 0x4118a0 */
 void snd_PlayWorkerClick(struct G16CHARCLICK *c);                     /* 0x4c2c70 */
 
 
@@ -4845,7 +4815,7 @@ void sv_SendSelectedToBuilding(void)
     if (job != 0)
         cm_SendExSetHE(job->stage, job);
     if (msg.type != 0)
-        cm_SendLongMessage((char *)&msg);
+        cm_SendLongMessage(&msg);
 }
 /* 0x52bec0, the selection's mouse handling (every frame): a held left button ends a rubber band (sv_EndBand) or,
    with the right button up, starts one in the player's own building (sv_StartBand). With characters selected a
@@ -5288,7 +5258,7 @@ void sv_SpeakPicked(void)
 }
 /* 0x52cef0, frees the speech bubbles shown more than 300 ms ago and draws the others as text boxes (font 0x54, 0xa0 x 0x60)
    above the screen box of their character's body (its low-poly body while the body is hidden, type 1), for the
-   characters of the current scene; the text is the bubble's own or the d2_Strings line
+   characters of the current scene; the text is the bubble's own or the txt_Ptrs line
    (the body tests read the record's ch again, not the local: VC6 then walks the records by ch, as the
    original) */
 
@@ -5321,7 +5291,7 @@ void sv_DrawBubbles(void)
         if (sv_Bubbles[i].name[0] != 0)
             d2_DrawTextBox(x, y, 0xa0, 0x60, d2_ScreenSurf, sv_Bubbles[i].name, 0x28);
         else
-            d2_DrawTextBox(x, y, 0xa0, 0x60, d2_ScreenSurf, d2_Strings[sv_Bubbles[i].text], 0x28);
+            d2_DrawTextBox(x, y, 0xa0, 0x60, d2_ScreenSurf, txt_Ptrs[sv_Bubbles[i].text], 0x28);
         d2_AddDirty(x, y, d2_TextDrawnW, d2_TextDrawnH);
     }
 }
@@ -5329,7 +5299,7 @@ void sv_DrawBubbles(void)
    building (ai_FallbackBuilding, else ai_PlayerBuilding) finds the item named by the part's name from +0x10
    ("contact_gate_<item>") among the building's objects (kind 6 in a fallback building, else 2), else the room
    object 0xfd of a fallback building, and draws its name above the part's screen box: the item's name with
-   txt_GateItemSuffix, for the room object the shown room's or the building kind's name with txt_GatePlaceSuffix */
+   TXT_GATE_ITEM_SUFFIX, for the room object the shown room's or the building kind's name with TXT_GATE_PLACE_SUFFIX */
 
 void sv_DrawGateName(D3OBJECT *part)
 {
@@ -5369,11 +5339,11 @@ found:
         return;
     if (obj->type == 0xfd) {
         if (sv_PanelShown != 0)
-            sprintf(buf, "%s %s", (char *)txt_ObjectNames[sv_PanelShown->type][0], txt_GatePlaceSuffix);
+            sprintf(buf, "%s %s", txt_Ptrs[TXT_OBJECT_NAMES + 2 * sv_PanelShown->type], txt_Ptrs[TXT_GATE_PLACE_SUFFIX]);
         else
-            sprintf(buf, "%s %s", (char *)ai_BuildingNames[b->type * 0xe - 2], txt_GatePlaceSuffix);
+            sprintf(buf, "%s %s", txt_Ptrs[TXT_BUILDING_NAMES + (b->type * 0xe - 2)], txt_Ptrs[TXT_GATE_PLACE_SUFFIX]);
     } else {
-        sprintf(buf, "%s %s", (char *)txt_ObjectNames[obj->type][0], txt_GateItemSuffix);
+        sprintf(buf, "%s %s", txt_Ptrs[TXT_OBJECT_NAMES + 2 * obj->type], txt_Ptrs[TXT_GATE_ITEM_SUFFIX]);
     }
     if (d3if_ScreenBox(part, &box) != 0) {
         y = box.top;
@@ -5433,7 +5403,7 @@ void sv_DrawItemNames(void)
         if (q->obj != 0 && g->type != 6 && g->type != 2 && d3if_ScreenBox(q->obj, &box) != 0) {
             y = box.top;
             x = (box.right - box.left) / 2 - 0x50 + box.left;
-            d2_DrawTextBox(x, y, 0xa0, 0x60, d2_ScreenSurf, (char *)txt_ObjectNames[q->id][0], 0x28);
+            d2_DrawTextBox(x, y, 0xa0, 0x60, d2_ScreenSurf, txt_Ptrs[TXT_OBJECT_NAMES + 2 * q->id], 0x28);
             d2_AddDirty(x, y, d2_TextDrawnW, d2_TextDrawnH);
         }
     }
@@ -5446,7 +5416,7 @@ void sv_DrawItemNames(void)
         if (q->obj != 0 && (g->type == 6 || g->type == 2) && d3if_ScreenBox(q->obj, &box) != 0) {
             y = box.top;
             x = (box.right - box.left) / 2 - 0x50 + box.left;
-            d2_DrawTextBox(x, y, 0xa0, 0x60, d2_ScreenSurf, (char *)txt_ObjectNames[q->id][0], 0x28);
+            d2_DrawTextBox(x, y, 0xa0, 0x60, d2_ScreenSurf, txt_Ptrs[TXT_OBJECT_NAMES + 2 * q->id], 0x28);
             d2_AddDirty(x, y, d2_TextDrawnW, d2_TextDrawnH);
         }
     }
@@ -5775,8 +5745,6 @@ extern unsigned char d3_MipSkip;
 extern char d3d_ZEnabled;
 
 struct D3OBJECT * d3t_FindObject(char *name, char flags);                     /* 0x411900 */
-int d2_TextWidth();                     /* 0x46ea10 */
-int d2_WinCreateSlider();                     /* 0x46bf10 */
 
 /* 0x52e050, draws the hint text (d2_CaptionCopy) at the mouse position when it is not empty and the option
    ai_GameSwitches byte 2 (show_cursor_txt) is set */
@@ -6325,19 +6293,14 @@ void sv_UpdateBandLed(void)
     }
 }
 
-void dd_Line();                     /* 0x41e8f0 */
 void * mem_Alloc(int size, char *tag);                      /* 0x4223c0 */
 void mem_Free(void *p);                     /* 0x422620 */
-int d3t_ReleaseObjectTextures();                     /* 0x411b70 */
 char d3if_Show(struct D3OBJECT *obj, char show);                     /* 0x4471b0 */
-int d2_LoadView();                     /* 0x474b30 */
 void d2_FillViewTextures(int view, char *tex1, char *tex2); /* 0x474d90 */
 void d2_RedrawView(int view);                     /* 0x474e80 */
 int d2_SetViewTextures(int view, char *tex1, char *tex2);  /* 0x474ca0 */
 void d2_ClearViewTextures(int view);                      /* 0x474d10 */
-void d2_EnableViewObjects();                     /* 0x4754d0 */
 void d3d_SetWBuffer(char w);                     /* 0x437060 */
-char *util_BaseName();                   /* 0x401040 */
 #define SV_ANIMCTL(o) ((D3ANIMCTL *)(o)->material->animCtl)  /* the animation control of an object's material (D3MATERIAL.animCtl at 0xf4) */
 
 /* 0x52f2c0, draws the rubber band rectangle (four dd_Line in colour -1) between the corners of sv_Band while
@@ -6635,18 +6598,12 @@ extern unsigned sv_ChatTime;  /* 0x623ec4 */
 extern int sv_QuickChatForm;  /* 0x623ec8 */
 extern int cm_DialogFrameFlags;  /* 0x60d360 */
 int cm_SendExSysMessage(unsigned char id, void *msg);                     /* 0x4c4db0 */
-int cm_GetSlotState();                     /* 0x4c3ae0 */
 void d2_SetViewEnabled(int view, int on);  /* 0x475590 */
 int cm_FlushSendQueue();                     /* 0x4c3680 */
 int cm_ReceiveMessages();                     /* 0x4c3fd0 */
 int cm_ExecCommands();                     /* 0x4c4190 */
 void d2_SetObjValue(int obj, ...);                     /* 0x475cb0 */
-void d2_SetObjFont();                     /* 0x4760b0 */
 int io_PrintText(intptr_t fmt, ...);                     /* 0x515960 */
-int d2_GetWinObj();                     /* 0x475b80 */
-void d2_SetObjMax();                     /* 0x475f40 */
-int d2_GetObjValue();                     /* 0x475980 */
-void d2_FocusInput();                     /* 0x478320 */
 void cm_SendChat(void *p);                     /* 0x4c5aa0 */
 void sv_ChatConsole(void);
 
@@ -6664,7 +6621,7 @@ void sv_NetworkSyncWait(unsigned fl)
     m = cm_SendExSysMessage(0xe, msg);
     sv_FrameMask = fl;
     fl |= 0x300000;
-    dlg = sv_OpenMessageBox(txt_NetworkSyncWait, 0);
+    dlg = sv_OpenMessageBox((intptr_t)txt_Ptrs[TXT_NETWORK_SYNC_WAIT], 0);
     d2_SetViewEnabled(dlg, 0);
     while (cm_GetSlotState(m) == 0) {
         if (timeGetTime() > t0 + 0x5dc)
@@ -6750,7 +6707,7 @@ void sv_ChatConsole(void)
             i++;
         }
     }
-    w = d2_WinCreateSlider(0, 0, 0xc5, txt_ChatConsoleSlider, d2_LastWindow);
+    w = d2_WinCreateSlider(0, 0, 0xc5, txt_Ptrs[TXT_CHAT_CONSOLE_SLIDER], d2_LastWindow);
     d2_SetObjFont(w, 0x54);
     d2_SetForm(f, 2);
     ed = d2_GetWinObj(f, 2, io_PrintText(0x1cc3, ch_EmptyName));
@@ -6808,11 +6765,7 @@ struct D3TRAIN; void d3t_SetRain(struct D3TRAIN *rain, int n, ...);             
 struct D3SKYLAYER; void d3sky_SetLayerTex(struct D3SKYLAYER *l, char *name);                     /* 0x45d9f0 */
 void d3sky_FadeLayer(struct D3SKY *s, struct D3SKYLAYER *l, unsigned char alpha, float time);   /* 0x45d9a0 */
 void d3sky_SetLayerSpeed(struct D3SKY *s, struct D3SKYLAYER *l, float speed);        /* 0x45d960 */
-void d3t_DrawRain();                     /* 0x414590 */
-void d3t_DrawSnow();                     /* 0x415380 */
 struct D3OBJECT *d3t_CreateSunRays();                     /* 0x417190 */
-void d3t_FadeOutSunRays();                     /* 0x417150 */
-int ai_RunAllows();                     /* 0x5763c0 */
 void ai_CampaignStep(int a, void *b, int c, int d);                     /* 0x576040 */
 extern int sv_SunRaysHour;  /* 0x623ecc */
 
@@ -6995,7 +6948,6 @@ void sv_SetScreenCenter(unsigned fl)
     d2_HalfScreenH = d2_ScreenH >> 1;
 }
 
-int cm_PartyById();                     /* 0x4e50a0 */
 void main_GameLoop(int ctl);                     /* 0x53bb20 */
 void sv_UpdateClock(void);
 
@@ -7332,14 +7284,6 @@ extern struct D3TSNOW *d3t_Snow;
 extern struct D3SKYLAYER *d3_SkyLayers[6];
 extern int d2_HitWindow;
 extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
-/* txt_NetworkSyncWait: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PanelBtnBuild: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PanelBtnOwn: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PanelBtnKind1e: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PanelBtnForeign: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PanelBtnItemOwn: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PanelBtnItem: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_PanelPersons: view of txt_Ptrs (build/mk_txt_views.py) */
 int sv_UnreadData[3] = { 10, 124, 190 };  /* 0x623780, sv's first plain datum (after ls's last string "rbn"): no
    surviving instruction or image dword reads it (tools/exe/holes.py --section data); the original's values */
 float sv_FramesPerTick = 30.0f;  /* 0x62378c */
@@ -7582,3 +7526,9 @@ struct D3TRAIN *d3t_Rain;  /* 0x760618, the rain system (d3t_CreateRain; its cou
 int sv_FrameMask;  /* 0x760638 */
 extern int d2_HitWindow;
 extern struct D3RECT d2_DirtyRect;
+/* unlinked: the item button's amount-menu pick callback (sv_UpdatePanel), which picks nothing (returns 0); LINK
+   folds it (/OPT:ICF) into sv_ReturnZero, 0x52a040, where the original's reference in sv_UpdatePanel points */
+int sv_PickNothing(AICHAR *c, int n)
+{
+    return 0;
+}

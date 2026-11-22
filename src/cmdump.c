@@ -78,10 +78,6 @@ typedef struct CMCUTTYPEMSG {      /* 0x7c bytes, the data of the system message
     int party;                      /* 0x00, the party's id (G28REC.id) */
     char text[0x78];                /* 0x04, "cut_type:%i" with the scene kind */
 } CMCUTTYPEMSG;
-typedef struct CMNOTE {             /* 0x8f8 bytes, a long message (AIMSG) with its texts right after it, as cm_SendPartyNote builds it */
-    AIMSG head;                     /* 0x00 */
-    char text[0x800];               /* 0xf8, the text, then the second one (textFlags 0x10) */
-} CMNOTE;
 typedef struct CMFIELD {            /* the head of one field of a field block (G17FIELDS.buf); its values follow at 0x04 */
     signed char size;               /* 0x00, a value's size: 1, 2 or 4 bytes */
     signed char n;                  /* 0x01, the values */
@@ -134,12 +130,6 @@ typedef struct CMSPYREPORT {            /* an AIOBJ of kind 0xca (a spy report) 
     char pad1c[0x1c];
     HESPYREPORT report;
 } CMSPYREPORT;
-typedef struct CMGUARDREC {
-    char pad000[0x80];
-    int netIds[16];                 /* 0x080, the netIds of the guards already armed, -1 = a free slot (cm_FreeNetIdSlot) */
-    char pad0c0[0x50];
-    int kind;                       /* 0x110, the kind of arming last asked for (1 .. 3) */
-} CMGUARDREC;
 
 char ai_CharKindNames[10][24] = { "DUMMY_NPC", "MEISTER_NPC", "POLITICIAN_NPC", "AI_NPC", "NPC", "PLAYER", "REMOTE_PLAYER", "RELATIVE_PLAYER", "USED_PLAYER", "INVISIBLE_NPC" };  /* 0x60eae0, the names of the NPC kinds */
 
@@ -156,8 +146,8 @@ void ai_DumpPersonHead(AICHAR *c, char *buf)
     else
         name = ai_CharKindNames[p->kind];
     sprintf(buf, "%i\t%i\t%i\t%s\t%s\t%i\t%s\t%i\t%s\t%s\t%s\t%s\t", ai_Time.year, p->netId, p->id, name, p->name, p->health,
-            txt_SexNames[p->sex], p->age, txt_FaithNames[p->faith], txt_HonourTitles[p->level], txt_JobNames[p->jobId],
-            txt_TitleNames[(unsigned char)p->title]);
+            txt_Ptrs[TXT_SEX_NAMES + p->sex], p->age, txt_Ptrs[TXT_FAITH_NAMES + p->faith], txt_Ptrs[TXT_HONOUR_TITLES + p->level], txt_Ptrs[TXT_JOB_NAMES + p->jobId],
+            txt_Ptrs[TXT_TITLE_NAMES + (unsigned char)p->title]);
 }
 /* 0x4e5980, the debug dump of the floats +0x10 .. +0x20 (the 6th "%5.2f" gets the int +0x24 as the original does), the word +0x28 and the bit fields of +0x2c */
 
@@ -188,8 +178,8 @@ void ai_DumpPersonOffices(AICHAR *c, char *buf)
     AICHAR *p;
 
     p = c;
-    sprintf(buf, "%s\t%s\t%s\t%s\t", txt_OfficeNames[p->officeKind], txt_OfficeNames[p->prevOffice], txt_OfficeNames[p->appliedOffice],
-            txt_OfficeNames[p->secondOffice]);
+    sprintf(buf, "%s\t%s\t%s\t%s\t", txt_Ptrs[TXT_OFFICE_NAMES + p->officeKind], txt_Ptrs[TXT_OFFICE_NAMES + p->prevOffice], txt_Ptrs[TXT_OFFICE_NAMES + p->appliedOffice],
+            txt_Ptrs[TXT_OFFICE_NAMES + p->secondOffice]);
 }
 /* 0x4e5af0, the debug dump of a person's money fields (v190, money, spent198, wage, v1a0, v1a4), then its goods value (0x509e60) and its worth (0x50a640) */
 
@@ -200,7 +190,7 @@ void ai_DumpPersonMoney(AICHAR *c, char *buf)
     p = c;
     sprintf(buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\t%i\t", p->v190, p->money, p->spent198, p->wage, p->v1a0, p->v1a4, gm_GetGoodsValue(c), gm_GetWorth(p->id));
 }
-/* 0x4e5b50, the debug dump of the 8 relatives of a person (the ids at +0x5c): "%i\t%s" of each one's netId and name, -1 and 0x143b3f4 (txt_NoRelative) when it does not exist */
+/* 0x4e5b50, the debug dump of the 8 relatives of a person (the ids at +0x5c): "%i\t%s" of each one's netId and name, -1 and 0x143b3f4 (TXT_NO_RELATIVE) when it does not exist */
 
 void ai_DumpPersonRelatives(AICHAR *c, char *buf)
 {
@@ -215,7 +205,7 @@ void ai_DumpPersonRelatives(AICHAR *c, char *buf)
         if (o != 0)
             sprintf(tmp, "%i\t%s", o->netId, o->name);
         else
-            sprintf(tmp, "%i\t%s", -1, txt_NoRelative);
+            sprintf(tmp, "%i\t%s", -1, txt_Ptrs[TXT_NO_RELATIVE]);
         strcat(buf, tmp);
         p++;
     }

@@ -407,7 +407,7 @@ int gv_BuryNewDead(AIBLD *bld, int n)
             e->grave->nameId = util_Random(0x5e) + 1;
             e->grave->year = ai_Time.year - util_Random(4) - 1;
             e->grave->sex = util_Random(2);
-            strncpy(e->grave->family, txt_FamilyNames[util_Random(0x95)], 0xf);
+            strncpy(e->grave->family, txt_Ptrs[TXT_FAMILY_NAMES + util_Random(0x95)], 0xf);
             rec = gm_NameRecord(e->grave->sex, e->grave->nameId);
             e->grave->icon = 0xff;
             r = util_Random(4);
@@ -421,9 +421,9 @@ int gv_BuryNewDead(AIBLD *bld, int n)
                 r = (r + 1) % 4;
             } while (k != 0);
             if (e->grave->sex == 0)
-                strncpy(e->grave->first, txt_MaleFirstNames[util_Random(0xbf)], 0xf);
+                strncpy(e->grave->first, txt_Ptrs[TXT_MALE_FIRST_NAMES + util_Random(0xbf)], 0xf);
             else
-                strncpy(e->grave->first, txt_FemaleFirstNames[util_Random(0x70)], 0xf);
+                strncpy(e->grave->first, txt_Ptrs[TXT_FEMALE_FIRST_NAMES + util_Random(0x70)], 0xf);
         }
         return i;
     }
@@ -1633,7 +1633,7 @@ void gv_GraveyardTurn(AIBLD *bld)
                 m.lease.entry = (unsigned char)gv_EntryIndex((char *)bld->yard, (int *)e);
                 m.lease.price = price;
                 m.lease.years = 10;
-                h = cm_SendLongMessage((char *)&m);
+                h = cm_SendLongMessage(&m);
             } else if ((int)(gm_CharCurrency(c, ai_OwnPlayer) * 0.44f) > price) {
                 h = gv_OrderExtendGrave((int *)c, bld, e->size, gv_EntryIndex((char *)bld->yard, (int *)e), 10, price);
                 rounds++;

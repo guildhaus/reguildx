@@ -62,7 +62,7 @@ CHACTION * ch_Queue = 0;  /* 0x631050 */
 int ch_Time = 0;  /* 0x631054 */
 char ch_MarkWalkErrors = 0;  /* 0x631058, when set, a failed walk animation marks the character's
                                 flags bit 8; a debug switch (no writer in the image, always 0) */
-int ch_SndLib = 0;  /* 0x63105c, sound library for step sounds */
+struct SBBANK *ch_SndLib = 0;  /* 0x63105c, sound library for step sounds */
 int ch_StepSounds = 0;  /* 0x631060 */
 int ch_LowPoly = 0;  /* 0x631064 */
 D3VECTOR ch_PathOffset = {0};  /* 0x631068, added to the last path cell */
@@ -96,13 +96,13 @@ struct D3HMAP *ch_GetHMap(CHARACTER *ch)
     if (!(h = ch->scene->hmap)) {
         df = d3_SceneFlags;
         if (ch->scene != d3_DefaultScene)
-            df = ((D3IFSCENE *)ch->scene)->sceneFlags;
+            df = ch->scene->sceneFlags;
         if (!ch->scene->dirty && df) {
             d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
             flags = df & ~2;
             d3_InflateScene(flags);
         }
-        ch->scene->hmap = d3sm_Create(d3_Terrain, ((D3IFSCENE *)ch->scene)->mapSize, 2);
+        ch->scene->hmap = d3sm_Create(d3_Terrain, ch->scene->mapSize, 2);
         h = ch->scene->hmap;
         if (ch->scene != &d3_Scenes[0] && d3_DefaultScene == ch->scene && h)
             ch_SaveGround(h);
@@ -125,13 +125,13 @@ struct D3HMAP *ch_GetSceneHMap(D3SCENE *scene)
     if (!(h = scene->hmap)) {
         df = d3_SceneFlags;
         if (scene != d3_DefaultScene)
-            df = ((D3IFSCENE *)scene)->sceneFlags;
+            df = scene->sceneFlags;
         if (!scene->dirty && df) {
             d3if_SelectScene(d3t_SceneIndex(scene), 1);
             flags = df & ~2;
             d3_InflateScene(flags);
         }
-        h = scene->hmap = d3sm_Create(d3_Terrain, ((D3IFSCENE *)scene)->mapSize, 2);
+        h = scene->hmap = d3sm_Create(d3_Terrain, scene->mapSize, 2);
         if (scene != &d3_Scenes[0] && d3_DefaultScene == scene && h)
             ch_SaveGround(h);
         if (flags) {
@@ -1269,8 +1269,8 @@ CHACTION *ch_InsertAction(CHARACTER *ch, CHACTION *before, unsigned int type, ..
             ch_RemoveAction(a);
             return 0;
         }
-        if (ch->scene->hmap && (a->args[0] > D3IF_SCENE(a->args[2]).mapSize
-                                || a->args[1] > D3IF_SCENE(a->args[2]).mapSize)) {
+        if (ch->scene->hmap && (a->args[0] > d3_Scenes[a->args[2]].mapSize
+                                || a->args[1] > d3_Scenes[a->args[2]].mapSize)) {
             ch_RemoveAction(before);
             return 0;
         }

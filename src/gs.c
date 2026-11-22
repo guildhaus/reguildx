@@ -70,35 +70,35 @@ typedef struct GVSHOTMSG {              /* 0x80 bytes, the data of message 0x67 
 } GVSHOTMSG;
 
 AIDEC gv_Decisions[0x1d] = {  /* 0x611258 */
-    { 0, 1, 0, 0, 4, 0, 0, 1, 2, 0x18, 1, -1, 0, (void *)ai_DecideLawSeverity },
-    { 1, 2, 0, 0, 1, 0, 0, 0, 0, 0x18, 2, -1, 0, (void *)ai_DecideLaw1 },
-    { 2, 3, 0, 0, 2, 2, 6, 7, 0, 0x1a, 1, 0, 0, (void *)ai_DecideStateReligion },
-    { 3, 2, 0, 0, 1, 2, 6, 1, 0, 0x12, 1, 1, 0, (void *)ai_DecideLaw3 },
-    { 4, 2, 0, 0, 1, 4, 10, 1, 0, 0x16, 1, 2, 0, (void *)ai_DecideLaw4 },
-    { 5, 1, 0, 0, 4, 0, 0, 0, 2, 0x0e, 1, -1, 0, (void *)ai_DecideUpkeepRate },
-    { 6, 1, 0, 0, 4, 0, 0, 0, 2, 0x0a, 1, -1, 0, (void *)ai_DecideBuildingCost },
-    { 7, 1, 0, 0, 4, 0, 0, 0, 2, 0x0b, 1, -1, 0, (void *)ai_DecideLaw7 },
-    { 8, 2, 0, 0, 1, 4, 0, 1, 0, 0x1b, 1, 3, 0, (void *)ai_DecideLaw8 },
-    { 9, 0, 0, 8, 18, 0, 0, 0, 10, 0x0f, 1, -1, 0, (void *)ai_DecideIncomeTaxRate },
-    { 10, 0, 0, 6, 18, 0, 0, 0, 10, 0x0f, 2, -1, 0, (void *)ai_DecideGuildTaxRate },
-    { 11, 0, 0, 6, 10, 0, 0, 0, 8, 0x15, 1, -1, 0, (void *)ai_DecideChurchTaxRate },
-    { 12, 0, 0, 5, 11, 0, 0, 0, 8, 0x0c, 1, -1, 0, (void *)ai_DecideTradeTaxRate },
-    { 13, 0, 0, 10, 25, 0, 0, 0, 16, 0x0e, 2, -1, 0, (void *)ai_DecideInheritanceTaxRate },
-    { 14, 0, 0, 10, 25, 3, 10, 5, 16, 0x10, 1, 4, 0, (void *)ai_DecideBankRate },
-    { 15, 1, 0, 0, 4, 0, 0, 0, 2, 0x19, 1, -1, 0, (void *)ai_DecideOfficePayRate },
-    { 16, 2, 0, 0, 1, 3, 12, 1, 0, 0x0d, 1, 5, 0, (void *)ai_DecideGuiltWeights },
-    { 17, 2, 0, 0, 1, 3, 12, 1, 0, 0x19, 2, 6, 0, (void *)ai_DecideGoodsGuiltWeights },
-    { 18, 2, 0, 0, 1, 3, 12, 1, 0, 0x12, 1, 7, 0, (void *)ai_DecideTrankGuiltWeights },
-    { 19, 2, 0, 0, 1, 3, 12, 1, 0, 0x13, 1, 8, 0, (void *)ai_DecideThreatenGuiltWeights },
-    { 20, 2, 0, 0, 1, 2, 12, 1, 0, 0x13, 2, 9, 0, (void *)ai_DecideLaw20 },
-    { 21, 2, 0, 0, 1, 5, 12, 1, 1, 0x11, 1, 10, 0, (void *)ai_DecideBeatUpGuiltWeights },
-    { 22, 2, 0, 0, 1, 4, 12, 1, 1, 0x14, 1, 11, 0, (void *)ai_DecideBlackmailGuiltWeights },
-    { 23, 2, 0, 0, 1, 5, 12, 1, 1, 0x17, 1, 12, 0, (void *)ai_DecideLaw23 },
-    { 24, 2, 0, 0, 1, 5, 12, 1, 1, 0x16, 2, 13, 0, (void *)ai_DecideSabotageGuiltWeights },
-    { 25, 2, 0, 0, 1, 5, 12, 1, 1, 0x17, 2, 14, 0, (void *)ai_DecideLaw25 },
-    { 26, 2, 0, 0, 1, 5, 12, 1, 1, 0x14, 2, 15, 0, (void *)ai_DecideLaw26 },
-    { 27, 2, 0, 0, 1, 5, 12, 1, 0, 0x1a, 2, 16, 0, (void *)ai_DecideLaw27 },
-    { 28, 2, 0, 0, 1, 5, 12, 1, 0, 0x1b, 2, 17, 0, (void *)ai_DecideLaw28 },
+    { 0, 1, 0, 0, 4, 0, 0, 1, 2, 0x18, 1, -1, 0, ai_DecideLawSeverity },
+    { 1, 2, 0, 0, 1, 0, 0, 0, 0, 0x18, 2, -1, 0, ai_DecideLaw1 },
+    { 2, 3, 0, 0, 2, 2, 6, 7, 0, 0x1a, 1, 0, 0, ai_DecideStateReligion },
+    { 3, 2, 0, 0, 1, 2, 6, 1, 0, 0x12, 1, 1, 0, ai_DecideLaw3 },
+    { 4, 2, 0, 0, 1, 4, 10, 1, 0, 0x16, 1, 2, 0, ai_DecideLaw4 },
+    { 5, 1, 0, 0, 4, 0, 0, 0, 2, 0x0e, 1, -1, 0, ai_DecideUpkeepRate },
+    { 6, 1, 0, 0, 4, 0, 0, 0, 2, 0x0a, 1, -1, 0, ai_DecideBuildingCost },
+    { 7, 1, 0, 0, 4, 0, 0, 0, 2, 0x0b, 1, -1, 0, ai_DecideLaw7 },
+    { 8, 2, 0, 0, 1, 4, 0, 1, 0, 0x1b, 1, 3, 0, ai_DecideLaw8 },
+    { 9, 0, 0, 8, 18, 0, 0, 0, 10, 0x0f, 1, -1, 0, ai_DecideIncomeTaxRate },
+    { 10, 0, 0, 6, 18, 0, 0, 0, 10, 0x0f, 2, -1, 0, ai_DecideGuildTaxRate },
+    { 11, 0, 0, 6, 10, 0, 0, 0, 8, 0x15, 1, -1, 0, ai_DecideChurchTaxRate },
+    { 12, 0, 0, 5, 11, 0, 0, 0, 8, 0x0c, 1, -1, 0, ai_DecideTradeTaxRate },
+    { 13, 0, 0, 10, 25, 0, 0, 0, 16, 0x0e, 2, -1, 0, ai_DecideInheritanceTaxRate },
+    { 14, 0, 0, 10, 25, 3, 10, 5, 16, 0x10, 1, 4, 0, ai_DecideBankRate },
+    { 15, 1, 0, 0, 4, 0, 0, 0, 2, 0x19, 1, -1, 0, ai_DecideOfficePayRate },
+    { 16, 2, 0, 0, 1, 3, 12, 1, 0, 0x0d, 1, 5, 0, ai_DecideGuiltWeights },
+    { 17, 2, 0, 0, 1, 3, 12, 1, 0, 0x19, 2, 6, 0, ai_DecideGoodsGuiltWeights },
+    { 18, 2, 0, 0, 1, 3, 12, 1, 0, 0x12, 1, 7, 0, ai_DecideTrankGuiltWeights },
+    { 19, 2, 0, 0, 1, 3, 12, 1, 0, 0x13, 1, 8, 0, ai_DecideThreatenGuiltWeights },
+    { 20, 2, 0, 0, 1, 2, 12, 1, 0, 0x13, 2, 9, 0, ai_DecideLaw20 },
+    { 21, 2, 0, 0, 1, 5, 12, 1, 1, 0x11, 1, 10, 0, ai_DecideBeatUpGuiltWeights },
+    { 22, 2, 0, 0, 1, 4, 12, 1, 1, 0x14, 1, 11, 0, ai_DecideBlackmailGuiltWeights },
+    { 23, 2, 0, 0, 1, 5, 12, 1, 1, 0x17, 1, 12, 0, ai_DecideLaw23 },
+    { 24, 2, 0, 0, 1, 5, 12, 1, 1, 0x16, 2, 13, 0, ai_DecideSabotageGuiltWeights },
+    { 25, 2, 0, 0, 1, 5, 12, 1, 1, 0x17, 2, 14, 0, ai_DecideLaw25 },
+    { 26, 2, 0, 0, 1, 5, 12, 1, 1, 0x14, 2, 15, 0, ai_DecideLaw26 },
+    { 27, 2, 0, 0, 1, 5, 12, 1, 0, 0x1a, 2, 16, 0, ai_DecideLaw27 },
+    { 28, 2, 0, 0, 1, 5, 12, 1, 0, 0x1b, 2, 17, 0, ai_DecideLaw28 },
 };
 int ai_NextCrimeId = 0;  /* 0x6f1b88 .. */
 int gs_UnreadBss = 0;  /* 0x6f1b8c, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
@@ -1250,7 +1250,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         m.fromId = -1;
         m.arg[0] = 3;
         m.arg[1] = 1;
-        cm_SendLongMessage((char *)&m);
+        cm_SendLongMessage(&m);
         break;
     case 1:
         m.type = 0x5b;
@@ -1261,7 +1261,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         m.fromId = -1;
         m.arg[0] = (int)(worth * 0.03f);
         m.arg[1] = 1;
-        cm_SendLongMessage((char *)&m);
+        cm_SendLongMessage(&m);
         break;
     case 2:
         m.type = 0x5c;
@@ -1272,7 +1272,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         m.fromId = -1;
         m.arg[0] = 3;
         m.arg[1] = 3;
-        cm_SendLongMessage((char *)&m);
+        cm_SendLongMessage(&m);
         break;
     case 3:
         m.type = 0x5b;
@@ -1283,7 +1283,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         m.fromId = -1;
         m.arg[0] = (int)(worth * 0.03f);
         m.arg[1] = 4;
-        cm_SendLongMessage((char *)&m);
+        cm_SendLongMessage(&m);
         break;
     case 4:
         cm_SendMessage5b(c->netId, 1, 0);
@@ -1296,7 +1296,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         break;
     case 7:
         b = (c->level > 2) + 1;
-        cm_BeginFieldBlock((char *)c, c->netId);
+        cm_BeginFieldBlock(c, c->netId);
         cm_AddFieldDelta(1, 1, 0xd, &b);
         cm_SendFieldDeltas();
         break;
@@ -1403,9 +1403,9 @@ void gv_CheckRankUp(unsigned i)
             m.time.min = 0;
             m.rankUp.rank = nb;
             m.rankUp.ch = c->netId;
-            cm_SendLongMessage((char *)&m);
+            cm_SendLongMessage(&m);
         } else {
-            cm_BeginFieldBlock((char *)c, c->netId);
+            cm_BeginFieldBlock(c, c->netId);
             cm_AddFieldDelta(1, 1, 0xd, &nb);
             cm_SendFieldDeltas();
         }
@@ -1428,7 +1428,7 @@ void gv_CheckRankUp(unsigned i)
                     gm_AddTime((struct AITIME *)&m.time, util_Random(4), util_Random(8) * 7, 0);
                 m.rankUp.rank = nb;
                 m.rankUp.ch = c->netId;
-                cm_SendLongMessage((char *)&m);
+                cm_SendLongMessage(&m);
                 n++;
             }
         }

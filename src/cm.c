@@ -24,18 +24,16 @@
    cm_WaitEventOrClick, cm_ClearParty, cm_ResetCutInfos, cm_ShowPartyTexts, cm_AllocParty, cm_AddPartyMember,
    cm_WaitEventFull and cm_CreateChar; cm.h's declaration changes still flip the register tie-breaks of
    ai_TutorialInitChapter2 / ai_TutorialInitChapter3 in sv_t and of ord_CountGridObjects. Types only
-   cm.c uses (CMNOTE, CMCUTTYPEMSG, CMFIELD, CMWALKPATHMSG) stay in its head for that reason. cm.h still
+   cm.c uses (CMCUTTYPEMSG, CMFIELD, CMWALKPATHMSG) stay in its head for that reason. cm.h still
    repeats ord_AddGridAmount, gm_RemoveOwned, gm_BuildingSkill, gm_HealthRatio, rt_FreePoints and rt_CopyPoints
    (the owner headers' prototypes: gv.h, f3gm.h, rt.h; RTPOINT from rt_types.h).
    Open: head: message 0x3f has no record type in cm_types.h (a struct typedef there flips
    ord_CountGridObjects shape -> draft, a declaration-set tie-break the probe does not reproduce), so 0x3f / 0x40
    read the player / item head of the goods record through G17GOODSMSG.goods.
-   The fight scene (cm_SetupFightScene .. cm_MostThreatenedCellNear) reads its fight record as CMFIGHTREC (a partial
-   layout, cm_types.h; cm_FightRecord points to it).
+   The fight scene (cm_SetupFightScene .. cm_MostThreatenedCellNear) reads its fight record as a G28REC party
+   (G28REC.fight, cm_types.h; cm_FightRecord points to it).
    Open: types: CMFIGHTSLOT and CMCUTENTRY (cm_types.h) are one 0x2c-byte record in two views (a cutscene entry is sent
    as the fight command's slot, cm_RunCutOrders casts between them); one type for both is unsettled.
-   Open: types: CMFIGHTREC (this file) is G28REC's raid view (cm_types.h: defenders 0x80, attackers 0xc0, carts 0x100,
-   home 0x10c; escort 0x110 is G28REC's pad110), two declarations of one party record.
    unit of rea 8cef7d5b (src/game/cm.c); boundaries in decl/text.dcl */
 #include "d2_types.h"
 #include "txt_views.h"
@@ -114,10 +112,6 @@ typedef struct CMCUTTYPEMSG {      /* 0x7c bytes, the data of the system message
     int party;                      /* 0x00, the party's id (G28REC.id) */
     char text[0x78];                /* 0x04, "cut_type:%i" with the scene kind */
 } CMCUTTYPEMSG;
-typedef struct CMNOTE {             /* 0x8f8 bytes, a long message (AIMSG) with its texts right after it, as cm_SendPartyNote builds it */
-    AIMSG head;                     /* 0x00 */
-    char text[0x800];               /* 0xf8, the text, then the second one (textFlags 0x10) */
-} CMNOTE;
 typedef struct CMFIELD {            /* the head of one field of a field block (G17FIELDS.buf); its values follow at 0x04 */
     signed char size;               /* 0x00, a value's size: 1, 2 or 4 bytes */
     signed char n;                  /* 0x01, the values */
@@ -722,7 +716,7 @@ int cm_SendGroupState(void)
 }
 /* 0x4c3ba0, starts a field block about object o (id) */
 
-void cm_BeginFieldBlock(char *o, int id)
+void cm_BeginFieldBlock(void *o, int id)
 {
     AIBLD *a;
     AIOBJ *b;
@@ -1414,27 +1408,27 @@ int cm_SendRelations(int a, int b, int c, int d)
 }
 /* 0x4c4b70, message 0x1c: msg (0xf8 bytes, AIMSG) as a long message; zeros at 0x38..0x57 become -1 */
 
-int cm_SendLongMessage(char *msg)
+int cm_SendLongMessage(AIMSG *msg)
 {
     G17MSG m;
     int i;
 
     m.type = 0x1c;
     for (i = 0; i < 8; i++)
-        if (((AIMSG *)msg)->ids[i] == 0)
-            ((AIMSG *)msg)->ids[i] = -1;
+        if (msg->ids[i] == 0)
+            msg->ids[i] = -1;
     cm_SetLongMsg(0xf8, msg);
     cm_QueueSend(&m);
 }
 /* 0x4c4bc0, message 0x1c with len extra bytes after msg (0xf8 bytes) */
 
-int cm_SendLongMessageText(char *msg, unsigned int len, void *extra)
+int cm_SendLongMessageText(AIMSG *msg, unsigned int len, void *extra)
 {
     G17MSG m;
     char *buf;
 
     m.type = 0x1c;
-    if (gm_FindChar(((AIMSG *)msg)->to) == 0)
+    if (gm_FindChar(msg->to) == 0)
         return -1;
     buf = mem_Alloc(len + 0xf8, "tmp");
     memcpy(buf, msg, 0xf8);
@@ -2078,7 +2072,7 @@ int cm_SendObjCell(const char *s, int a, int b, const char *s2)
         m.objCell.name2[0] = 0;
     return cm_QueueSend(&m);
 }
-/* 0x4c5c40, message 0x50 (0x2c bytes of p, the id *cm_CurrentFight). p is the entry's address passed as an integer:
+/* 0x4c5c40, message 0x50 (0x2c bytes of p, the id cm_CurrentFight->id). p is the entry's address passed as an integer:
    the callers' entry locals count as escaped in the original (cm_FightFrame copies into its entry before the pointer
    loads behind it; cm_RunCutOrders orders three stores to m the same way), which a pointer parameter of this body
    does not give (VC6 knows a function defined above does not let p escape) */
@@ -2090,7 +2084,7 @@ int cm_SendCutEntry(int a, int p)
     m.type = 0x50;
     m.cutEntry.playerId = a;
     if (cm_CurrentFight != 0)
-        m.cutEntry.fightId = *cm_CurrentFight;
+        m.cutEntry.fightId = cm_CurrentFight->id;
     else
         m.cutEntry.fightId = -1;
     memcpy(&m.cutEntry.entry, (void *)p, sizeof(m.cutEntry.entry));
@@ -2105,7 +2099,7 @@ int cm_SendCutEntryUpdate(int a, int p)
     m.type = 0x51;
     m.cutEntry.playerId = a;
     if (cm_CurrentFight != 0)
-        m.cutEntry.fightId = *cm_CurrentFight;
+        m.cutEntry.fightId = cm_CurrentFight->id;
     else
         m.cutEntry.fightId = -1;
     memcpy(&m.cutEntry.entry, (void *)p, sizeof(m.cutEntry.entry));
@@ -2153,7 +2147,7 @@ int cm_SendFightCommand(AICHAR *c, int cmd, CMFIGHTSLOT *f)
     D3OBJECT *b;
     AICHAR *t;
 
-    m.fight.fight = *cm_CurrentFight;
+    m.fight.fight = cm_CurrentFight->id;
     m.type = 0x55;
     m.fight.cmd = (unsigned char)cmd;
     m.fight.slot = *f;
@@ -2454,7 +2448,7 @@ int cm_CheckSellObject(G17MSG *m)
                 r = 0;
         } else if (o != 0) {
             if (o->type == 0x2a || o->type == 0x116 || o->type == 0x1dd) {
-                if (gm_FreeCapacity((short *)o, m->sell.item, m->sell.count) < m->sell.count)
+                if (gm_FreeCapacity(o, m->sell.item, m->sell.count) < m->sell.count)
                     return 1;
             }
             r = gm_ObjectBuildingOwner(o);
@@ -3010,7 +3004,7 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
             sprintf(buf, "cm_ExSellObjekt(): Object not found: ObjProt:%i Menge:%i CmdCnt:", m->sell.item, m->sell.count, m->seq);
             return 1;
         }
-        if (ys != 0 && gm_ListAmount((short *)ys, (char *)o) < m->sell.count) {
+        if (ys != 0 && gm_ListAmount(ys, o) < m->sell.count) {
             sprintf(buf, "cm_ExSellObjekt() Not enough Objekts at source: ObjProt:%i Menge:%i CmdCnt:%i", m->sell.item, m->sell.count, m->seq);
             return 1;
         }
@@ -3035,7 +3029,7 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
             if (y->type == 0x2a || y->type == 0x1db || y->type == 0x1dc || y->type == 0x116)
                 y2 = y;
             if ((y2 != 0 || y->type == 0x1dd)
-                && gm_FreeCapacity((short *)y, m->sell.item, m->sell.count) < m->sell.count)
+                && gm_FreeCapacity(y, m->sell.item, m->sell.count) < m->sell.count)
                 return 1;
             q = &y->list;
             r2 = gm_ObjectBuildingOwner(y);
@@ -3054,7 +3048,7 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
     }
     if (ys != 0 && r2 != 0) {
         if (gm_ObjectBuildingOwner(o) != r2 && o->reserve != 0) {
-            if (gm_ListAmount((short *)ys, (char *)o) - ((unsigned int)(gm_ListStock((short *)ys, o->type) * o->reserve) >> 2)
+            if (gm_ListAmount(ys, o) - ((unsigned int)(gm_ListStock(ys, o->type) * o->reserve) >> 2)
                 < (unsigned int)m->sell.count)
                 return 1;
         }
@@ -3185,14 +3179,14 @@ int cm_ExMakeGoods(G17MSG *m, G17STAT *s)
         if (pp[4] != 0) {
             o = gm_Query(y->list, 1, 0, pp[4]);
             if (o != 0) {
-                if (n >= gm_ListAmount((short *)y, (char *)o) / *pp)
-                    n = gm_ListAmount((short *)y, (char *)o) / *pp;
+                if (n >= gm_ListAmount(y, o) / *pp)
+                    n = gm_ListAmount(y, o) / *pp;
             } else {
                 n = 0;
             }
         }
     }
-    v = gm_FreeCapacity((short *)y, m->make.item, g->batch * n) / g->batch;
+    v = gm_FreeCapacity(y, m->make.item, g->batch * n) / g->batch;
     if (n >= v)
         n = v;
     if (n == 0) {
@@ -3907,7 +3901,7 @@ int cm_ExSysMessage(G17MSG *m, G17STAT *s)
                 k = 4;
             cm_SpeedLevel = k;
             cm_SpeedTick = cm_SpeedTicks[k];
-            sv_SetStatusText(txt_SpeedNames[k]);
+            sv_SetStatusText(txt_Ptrs[TXT_SPEED_NAMES + k]);
             ai_ApplyOptions();
             break;
         case 19:
@@ -4084,7 +4078,7 @@ int cm_ExSendCutInfo(G17MSG *m, G17STAT *s)
 
     for (i = 0; i < 16; i++) {
         if (cm_CutInfos[i].playerId == m->cut.playerId) {
-            if (cm_CurrentFight != 0 && *cm_CurrentFight == m->cut.fightId) {
+            if (cm_CurrentFight != 0 && cm_CurrentFight->id == m->cut.fightId) {
                 memcpy(&cm_CutInfos[i], cm_LongMsg, sizeof(CMCUTINFO));
                 cm_CutInfos[i].recvFlag = 0;
                 sprintf(buf, "cm_ExSendCutInfo: PlayerId:%i Valid:%i  Ready:%i  Time:%i", cm_CutInfos[i].playerId,
@@ -4094,7 +4088,7 @@ int cm_ExSendCutInfo(G17MSG *m, G17STAT *s)
         }
     }
     if (i >= 16) {
-        if (cm_CurrentFight != 0 && *cm_CurrentFight == m->cut.fightId)
+        if (cm_CurrentFight != 0 && cm_CurrentFight->id == m->cut.fightId)
             sprintf(buf, "cm_ExSendCutInfo(): io-buffer has not been written, because player not found (player id %i)",
                     m->cut.playerId);
         return 1;
@@ -4713,7 +4707,7 @@ int cm_ExChrGotoBuilding(G17MSG *m, G17STAT *s)
             o = d3_FindObject(0, 0x100, 0, m->go.text);
         else if (to->object != 0) {
             if (p->transport != 0)
-                o = (D3OBJECT *)he_RandomTransporter(to->object);
+                o = he_RandomTransporter(to->object);
             else {
                 o = d3_FindObject((int)to->object, 0x100, 0, "dummy_TUER");
                 if (o == 0)
@@ -5621,14 +5615,14 @@ int cm_ExCreateGeb(G17MSG *m, G17STAT *s)
                     sprintf(name, "cm_ExCreateGeb(): bauplatze name:%s", tmp);
                     if (lc_GetGebaeudeBauplatz(&site, b) != 0) {
                         memset(&list, 0, sizeof(list));
-                        d3_ForEachObject(d3_DefaultScene, (D3OBJECT *)site.object, 0x2c0,
-                                         (D3OBJECTCB)ai_VgFilter, &list);
+                        d3_ForEachObject(d3_DefaultScene, site.object, 0x2c0,
+                                         ai_VgFilter, &list);
                         for (i = 0; i < list.count; i++) {
                             if (d3_QuadTree != 0)
-                                d3q_RemoveObject((D3OBJECT *)list.objs[i], (D3QNODE *)d3_QuadTree);
-                            sprintf(text, "cm_ExCreateGeb(): killing objectptr: %s", (char *)list.objs[i]);
-                            sprintf(text, "cm_ExCreateGeb(): killing objectname: %s", (char *)list.objs[i]);
-                            d3if_Delete((D3OBJECT *)list.objs[i]);
+                                d3q_RemoveObject(list.objs[i], (D3QNODE *)d3_QuadTree);
+                            sprintf(text, "cm_ExCreateGeb(): killing objectptr: %s", list.objs[i]->name);
+                            sprintf(text, "cm_ExCreateGeb(): killing objectname: %s", list.objs[i]->name);
+                            d3if_Delete(list.objs[i]);
                         }
                     } else
                         err_Message("cm_ExCreateGeb(): could not lc_GetGebaeudeBauplatz()...");
@@ -5976,7 +5970,7 @@ int cm_ExFightCommand(G17MSG *m, G17STAT *s)
 {
     AICHAR *c;
 
-    if (cm_CurrentFight == 0 || *cm_CurrentFight != m->fight.fight)
+    if (cm_CurrentFight == 0 || cm_CurrentFight->id != m->fight.fight)
         return 1;
     c = cm_FindFighter(m->fight.slot.id);
     switch (m->fight.cmd) {
@@ -6894,12 +6888,6 @@ int cm_ExLobby(G17MSG *m, G17STAT *s)
 }
 
 /* dcp unit split: the declarations that moved to cmfight (copies: drop what cm does not use) */
-typedef struct CMGUARDREC {
-    char pad000[0x80];
-    int netIds[16];                 /* 0x080, the netIds of the guards already armed, -1 = a free slot (cm_FreeNetIdSlot) */
-    char pad0c0[0x50];
-    int kind;                       /* 0x110, the kind of arming last asked for (1 .. 3) */
-} CMGUARDREC;
 
 extern unsigned int ai_MissionSeed;
 extern struct AIBLD *sv_SelectedObject;
@@ -6918,7 +6906,7 @@ extern char cm_SceneState[1152];
 extern int cm_SceneChars[16];
 extern int cm_SavedNoGroup;
 extern float cm_OrderChances[0xb4];
-extern char * cm_PointList[32];
+extern struct D3OBJECT *cm_PointList[32];
 extern CMPORTRAIT cm_Portraits[6];
 extern G18POP cm_DamagePops[16];
 extern AICHAR cm_Fighters[32];
@@ -6959,31 +6947,6 @@ extern unsigned int cm_GroupFirstSeq;
 extern char d2_CaptionCopy[0x80];
 extern int cm_PickCellX;
 extern int cm_PickCellZ;
-/* txt_HonourTitles: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_JobNames: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_TitleNames: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_OfficeNames: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_FaithNames: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_SexNames: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_FightPaused: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_WeaponEmpty15e: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_WeaponEmpty174: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_WeaponEmpty176: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_ClickNoGround: view of txt_Ptrs (build/mk_txt_views.py) */
-/* cm_FightButtonText: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_AuctionNoteLocal: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_AuctionNoteNet: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_BirthNoteTail: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_ExecNoteTail: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_DuelNoteTail: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_DuelDeathNews: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_DuelHeldNews: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_Unk143e948: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_Unk143e954: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_Unk143e960: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_DeathTreeCaption: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_SpeedNames: view of txt_Ptrs (build/mk_txt_views.py) */
-/* txt_ScenePartySync: view of txt_Ptrs (build/mk_txt_views.py) */
 const int cm_SpeedTicks[] = { 1155, 937, 770, 577, 385, 0 };  /* 0x5edc10 */
 int cm_SpeedTick = 770;  /* 0x60bd80 */
 unsigned int cm_SpeedLevel = 2;  /* 0x60bd84, = 2 (0..4) */
@@ -6991,8 +6954,10 @@ int cm_LastCharId = -1;  /* 0x60bd88, = -1 */
 int cm_LastBuildingId = -1;  /* 0x60bd8c, = -1 */
 int cm_LastObjectId = -1;  /* 0x60bd90, = -1 */
 int cm_LeftPlayerId = -1;  /* 0x60bd94, = -1 */
-int (*cm_Handlers[0x6a])(G17MSG *m, G17STAT *s) = { cm_ExNothing, cm_ExGroupPassed, ai_AlwaysTrue, cm_ExNothing, cm_ExNetFlags, cm_ExNothing, cm_ExNothing, cm_ExNothing, cm_ExLoadSize, cm_ExLoadBlock, cm_ExCreateBuilding, cm_ExCreateCharacter, cm_ExCreateNamedCharacter, cm_ExTakeOverCharacter, cm_ExDeleteObject, cm_ExMoveGoods, cm_ExMoveGoodsUnchecked, cm_ExSellObjekt, cm_ExMakeGoods, cm_ExMoveObject, cm_ExRemoveGoods, cm_ExCreateObject, cm_ExFieldDeltas, cm_ExFieldValues, cm_ExMoodDeltas, cm_ExSetField, cm_ExFloatDelta, cm_ExRelations, cm_ExLongMessage, cm_ExSetHE, cm_ExTime, cm_ExGameOver, cm_ExSysMessage, cm_ExKillCharacter, cm_ExAddStraftat, cm_ExRetireCrime, cm_ExProofExecuted, cm_ExDropEvidence, cm_ExSendCutInfo, cm_ExNewParty, cm_ExAllocCutscene, cm_ExAddPartyMember, cm_ExLeaveParty, cm_ExRemoveOwned, cm_ExSetPlant, cm_ExCreateSermon, cm_ExChrWalkTo, cm_ExChrWalkToDummy, cm_ExChrMoveToUniverse, cm_ExChrStop, cm_ExChrSetPos, cm_ExCartState, cm_ExPlaceOnStage, cm_ExChrGotoBuilding, cm_ExChrUseGates, cm_ExChrAnim, cm_ExOwnership, cm_ExSetHome, cm_ExGebUpgrade, cm_ExBuildingDestroyed, cm_ExHandOverCrimes, cm_ExHire, cm_ExCharModel, cm_ExGoodsRecord, cm_ExGoodsDelta, cm_ExLoadStatistics, cm_ExUpdateSmoke, cm_ExSkillsChanged, cm_ExApplication, cm_ExOfficeMessage, cm_ExDecisionValue, cm_ExChangePlayerHe, cm_ExSetJob, cm_ExSpawnCharacter, cm_ExFreeObject, cm_ExChat, cm_ExCreateGeb, cm_ExCharHalt, cm_ExObjCell, cm_ExWalkPath, cm_ExCutEntry, cm_ExCutEntryUpdate, cm_ExDamage, cm_ExDarkCorner, cm_ExTableRequest, cm_ExFightCommand, cm_ExMessageRecord, cm_ExChrDelete, cm_ExCancelParty, cm_ExCutsceneReady, cm_ExMoneyDelta, cm_ExHeldRounds, cm_ExOfficeSwap, cm_ExAddSkill, cm_ExSpyReport, cm_ExLobbyMessage, cm_ExGraveOrder, cm_ExGraveMove, cm_ExRaiseDead, cm_ExCreateAlchemist, cm_ExAlchemistOrder, cm_ExMasterChange, cm_ExEffect, cm_ExShots, cm_ExSetRoute, cm_ExClearRoute };  /* 0x60bd98, the handler of each message type */
-int (*cm_Checks[0x6a])(G17MSG *m) = { sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, cm_CheckMoveGoods, sv_ReturnZero, cm_CheckSellObject, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, cm_CheckFieldDeltas, sv_ReturnZero, sv_ReturnZero, cm_CheckSetField, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, cm_CheckOwnership, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, cm_CheckApplication, cm_CheckOfficeMessage, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, cm_CheckDarkCorner, cm_CheckTableRequest, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, cm_CheckCutsceneReady, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero, sv_ReturnZero };  /* 0x60bf40, the check of each type (groups 5..6) */
+int cm_ExAccept(G17MSG *m, G17STAT *s);  /* the unlinked handler of type 2 at the end (ai_AlwaysTrue in the exe) */
+int cm_CheckNothing(G17MSG *m);  /* the unlinked check at the end (sv_ReturnZero in the exe) */
+int (*cm_Handlers[0x6a])(G17MSG *m, G17STAT *s) = { cm_ExNothing, cm_ExGroupPassed, cm_ExAccept, cm_ExNothing, cm_ExNetFlags, cm_ExNothing, cm_ExNothing, cm_ExNothing, cm_ExLoadSize, cm_ExLoadBlock, cm_ExCreateBuilding, cm_ExCreateCharacter, cm_ExCreateNamedCharacter, cm_ExTakeOverCharacter, cm_ExDeleteObject, cm_ExMoveGoods, cm_ExMoveGoodsUnchecked, cm_ExSellObjekt, cm_ExMakeGoods, cm_ExMoveObject, cm_ExRemoveGoods, cm_ExCreateObject, cm_ExFieldDeltas, cm_ExFieldValues, cm_ExMoodDeltas, cm_ExSetField, cm_ExFloatDelta, cm_ExRelations, cm_ExLongMessage, cm_ExSetHE, cm_ExTime, cm_ExGameOver, cm_ExSysMessage, cm_ExKillCharacter, cm_ExAddStraftat, cm_ExRetireCrime, cm_ExProofExecuted, cm_ExDropEvidence, cm_ExSendCutInfo, cm_ExNewParty, cm_ExAllocCutscene, cm_ExAddPartyMember, cm_ExLeaveParty, cm_ExRemoveOwned, cm_ExSetPlant, cm_ExCreateSermon, cm_ExChrWalkTo, cm_ExChrWalkToDummy, cm_ExChrMoveToUniverse, cm_ExChrStop, cm_ExChrSetPos, cm_ExCartState, cm_ExPlaceOnStage, cm_ExChrGotoBuilding, cm_ExChrUseGates, cm_ExChrAnim, cm_ExOwnership, cm_ExSetHome, cm_ExGebUpgrade, cm_ExBuildingDestroyed, cm_ExHandOverCrimes, cm_ExHire, cm_ExCharModel, cm_ExGoodsRecord, cm_ExGoodsDelta, cm_ExLoadStatistics, cm_ExUpdateSmoke, cm_ExSkillsChanged, cm_ExApplication, cm_ExOfficeMessage, cm_ExDecisionValue, cm_ExChangePlayerHe, cm_ExSetJob, cm_ExSpawnCharacter, cm_ExFreeObject, cm_ExChat, cm_ExCreateGeb, cm_ExCharHalt, cm_ExObjCell, cm_ExWalkPath, cm_ExCutEntry, cm_ExCutEntryUpdate, cm_ExDamage, cm_ExDarkCorner, cm_ExTableRequest, cm_ExFightCommand, cm_ExMessageRecord, cm_ExChrDelete, cm_ExCancelParty, cm_ExCutsceneReady, cm_ExMoneyDelta, cm_ExHeldRounds, cm_ExOfficeSwap, cm_ExAddSkill, cm_ExSpyReport, cm_ExLobbyMessage, cm_ExGraveOrder, cm_ExGraveMove, cm_ExRaiseDead, cm_ExCreateAlchemist, cm_ExAlchemistOrder, cm_ExMasterChange, cm_ExEffect, cm_ExShots, cm_ExSetRoute, cm_ExClearRoute };  /* 0x60bd98, the handler of each message type */
+int (*cm_Checks[0x6a])(G17MSG *m) = { cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckMoveGoods, cm_CheckNothing, cm_CheckSellObject, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckFieldDeltas, cm_CheckNothing, cm_CheckNothing, cm_CheckSetField, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckOwnership, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckApplication, cm_CheckOfficeMessage, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckDarkCorner, cm_CheckTableRequest, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckCutsceneReady, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing, cm_CheckNothing };  /* 0x60bf40, the check of each type (groups 5..6) */
 int cm_RecvCount = 0;  /* 0x6f0cd0, received messages */
 int cm_NoticeCount = 0;  /* 0x6f0cd4 */
 int cm_LobbyChatCount = 0;  /* 0x6f0cd8, the lines in the ring (at most 15) */
@@ -7044,4 +7009,17 @@ extern AIWATCH ai_Watch;
 extern char d2_CaptionCopy[0x80];
 extern int cm_PickCellX;
 extern int cm_PickCellZ;
-/* txt_AmountUnit: view of txt_Ptrs (build/mk_txt_views.py) */
+
+/* unlinked: the handler of message type 2, which returns 1; LINK folds it (/OPT:ICF) into
+   ai_AlwaysTrue, 0x4a8c10, where the original's cm_Handlers[2] points */
+int cm_ExAccept(G17MSG *m, G17STAT *s)
+{
+    return 1;
+}
+
+/* unlinked: the check of the message types without one, which returns 0; LINK folds it (/OPT:ICF) into
+   sv_ReturnZero, 0x52a040, where the original's cm_Checks entries point */
+int cm_CheckNothing(G17MSG *m)
+{
+    return 0;
+}

@@ -167,7 +167,7 @@ char *itoa(int, char *, int); void d2_SetObjFont(int obj, int font); int sv_RunF
 /* 0x5d34b0, the file selector window "menu\fileselector": lists the files of dir with the extension ext
    (ai_ListFiles, up to 32) under the caption, with their count. With bit 0 of flags a click on a file writes
    "<dir>\<name><ext>" into out and returns 1; without it the click puts the name into the name input
-   (preset txt_DefaultFileName) and the button 0x1ccc writes the input's name into out and returns 1. A right
+   (preset TXT_DEFAULT_FILE_NAME) and the button 0x1ccc writes the input's name into out and returns 1. A right
    click leaves (0). mask is the frame pump's mask (sv_RunFrame) */
 int ai_FilePickWindow(unsigned mask, int flags, char *caption, char *dir, char *ext, char *out)
 {
@@ -204,7 +204,7 @@ int ai_FilePickWindow(unsigned mask, int flags, char *caption, char *dir, char *
         okBtn = d2_GetWinObj(win, 3, io_PrintText(0x1ccc));
         d2_SetForm(win, 0);
         input = d2_GetWinObj(win, 0, 0);
-        d2_SetObjValue(input, txt_DefaultFileName);
+        d2_SetObjValue(input, txt_Ptrs[TXT_DEFAULT_FILE_NAME]);
     }
     d2_SetForm(win, 1);
     for (i = 0; i < n; i++) {
@@ -411,7 +411,7 @@ extern D2INPUTVIEW d2_Inputs[];         /* 0xfa6020, d2.h: D2INPUT [0x80] */
 extern int d2_FontHeight;               /* 0xf8f084, d2.h */
 extern struct D2INPUT *d2_FocusedInput;           /* 0x6ed9dc, d2.h: D2INPUT * */
 extern unsigned char kb_Last;           /* 0x1468410, d2.h */
-int d2_WinCreateSlider(int x, int y, int pic, int unk, int win);     /* 0x46bf10, d2.h: D2OBJ *d2_Objs */
+int d2_WinCreateSlider(int x, int y, int pic, char *caption, int win);     /* 0x46bf10, d2.h: D2OBJ *d2_Objs */
 void d2_CloseView(int view);                                         /* 0x4758f0, d2.h */
 void d2_SetObjWidth(int obj, short w);                               /* 0x46c260, d2.h */
 int d2_OpenInput(int x, int y, int w, int h, unsigned char flags);   /* 0x46a110 */
@@ -485,19 +485,13 @@ int ls_ReadSaveHeader(struct VFSFILE *f, int *h);      /* 0x51cee0, ls.c: reads 
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); /* 0x472aa0, d2.h */
 int d2_WinOpenRaw(int x, int y, int w, int h, void *src, int win);  /* 0x46c390, d2.h */
 int d2_WinOpenPic(short x, short y, int pic, int win); /* 0x4731d0, d2.h: creates a picture object */
-/* ai_EmptySlotNameFormat: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_DifficultyTexts: view of txt_Ptrs (build/mk_txt_views.py) */
 extern int d2_HitWindow;                    /* 0xf8aad0, the window the pointer hit (gfx.c sets it from
                                                d2_PointerWin; also the "double click" id of the slots) */
-/* ai_LoadGameConfirmText: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_SaveProgressText: view of txt_Ptrs (build/mk_txt_views.py) */
-/* ai_SaveOverwriteText: view of txt_Ptrs (build/mk_txt_views.py) */
 extern int ai_GameFlags;                /* 0x6f23f8, the game flags: the load window writes the load mode 10 whole */
 void d2_EnableObject(int obj, int on);      /* 0x475aa0, d2.h: enables / disables an object and its items */
-int sv_OpenMessageBox(int text, unsigned char flags); /* 0x521900, sv.c: opens the waiting box with text */
+int sv_OpenMessageBox(intptr_t text, unsigned char flags); /* 0x521900, sv.c: opens the waiting box with text */
 
 OPTIONBYTES ai_GfxResolution = {0};  /* 0x6f2f94: byte 0 cur_res */
-/* ai_ContactTextProductionTailor: view of txt_Ptrs (build/mk_txt_views.py) */
 MENUOPTIONS ai_Options;  /* 0x6f35c0 .. 0x6f3670, the profile's option values (menu_types.h: the old names are its field macros) */
 extern int ai_Opponents[7];
 extern char ai_OptionsFile[288];
@@ -505,7 +499,6 @@ typedef struct SCREENMODE {                 /* 8 bytes, a screen mode of the tab
     int w;                                  /* +0x0, the width */
     int h;                                  /* +0x4, the height */
 } SCREENMODE;
-/* ai_ContactTextCardGame: view of txt_Ptrs (build/mk_txt_views.py) */
 unsigned char menu_UnreadData[240] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x02, 0x00, 0x02, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x00, 0x01, 0x00, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };  /* 0x62d6c8, menu's first .data datum (after lcamt's last literal "special\uni" 0x62d6bc): no instruction operand or image dword points into it */
 SCREENMODE ai_ScreenModes[3] = { { 800, 600 }, { 1024, 768 }, { 1152, 864 } };  /* 0x62d7b8, the 800x600 / 1024x768 / 1152x864 modes */
 int ai_ScreenModeW = 800;  /* 0x62d7d0, the width of the mode ai_GfxResolution picks */
@@ -594,14 +587,14 @@ void ai_FillSaveSlots(int view, int form, SAVESLOTVIEW *slots, char *files, char
                      (hdr.compactTexts ? 0x18f : 0x130) + hdr.nameTextOffset,
                      (hdr.compactTexts ? 0x27b : 0x253) + hdr.officeTextOffset,
                      timebuf,
-                     ai_DifficultyTexts[hdr.difficulty]);
+                     txt_Ptrs[TXT_DIFFICULTY_TEXTS + hdr.difficulty]);
     }
     memset(ai_ScreenImage, 0, 0x9600);
     for (i = 0; i < 0x10; i++) {
         if (slots[i].win != -1)
             continue;
         memset(&req, 0, 0x210);
-        sprintf(req.name, ai_EmptySlotNameFormat, i);
+        sprintf(req.name, txt_Ptrs[TXT_EMPTY_SLOT_NAME_FORMAT], i);
         slot = ai_RegisterSaveSlot(0x10, slots, i, &req);
         if (slot == -1)
             continue;
@@ -668,7 +661,7 @@ int ai_LoadGameWindow(void)
                     && (d2_PointerObj == slots[i].obj || d2_HitWindow == slots[i].win
                         || (d2_HitWindow != -1
                             && d2_Objs[d2_Wins[d2_HitWindow].parent].win == &d2_Wins[slots[i].win]))) {
-                    if (ai_GameState == 0 || ai_MessageBox(ai_LoadGameConfirmText, 0x101) != 0) {
+                    if (ai_GameState == 0 || ai_MessageBox(txt_Ptrs[TXT_LOAD_GAME_CONFIRM], 0x101) != 0) {
                         sprintf(path, "Gamedata\\Saves\\%s.SAV", slots[i].name);
                         strcpy(main_NetSaveName, path);
                         ai_GameFlags = 10;
@@ -725,7 +718,7 @@ int ai_JoinGameWindow(void)
                     && (d2_PointerObj == slots[i].obj || d2_HitWindow == slots[i].win
                         || (d2_HitWindow != -1
                             && d2_Objs[d2_Wins[d2_HitWindow].parent].win == &d2_Wins[slots[i].win]))) {
-                    if (ai_GameState == 0 || ai_MessageBox(ai_LoadGameConfirmText, 0x101) != 0) {
+                    if (ai_GameState == 0 || ai_MessageBox(txt_Ptrs[TXT_LOAD_GAME_CONFIRM], 0x101) != 0) {
                         strcpy(main_NetSaveName, slots[i].name);
                         sv_PopRequest = 1;
                         ret = 1;
@@ -1204,7 +1197,6 @@ extern int cm_SaveAcks[][2];            /* 0x76fa20, cm.h: 8 slots; [0] = the pl
                                            save name hash, -1 when empty (message 0x10 fills the first free) */
 extern unsigned char ai_NumPlayers;     /* 0x62489c, the player count (ai.c / cm.c / main.c) */
 extern unsigned short ai_PlayerId;      /* 0x6f25b8, the local player (cm.h / am.h / gv.h) */
-/* ai_SaveWaitText: view of txt_Ptrs (build/mk_txt_views.py) */
 
 /* ai.h's AICHAR (0x21c bytes, ai_Chars[0x300] at 0x770b80): the fields this unit reads. */
 typedef struct AICHARVIEW {
@@ -1241,11 +1233,11 @@ typedef struct AICHARKINDVIEW {
    0xbf, the caption texts text1 / text2) at x 0x20 and the row's y, centred (d2_Objs[id].centred,
    d2_SetObjWidth re-centres it on the 300 width). The twin of main_MenuButton (row stride 0x2b).
    Returns the control id. */
-int ai_MenuButton(int row, int text1, int text2)
+int ai_MenuButton(int row, char *text, int win)
 {
     int id;
 
-    id = d2_WinCreateSlider(0x20, row * 0x2e + 10, 0xbf, text1, text2);
+    id = d2_WinCreateSlider(0x20, row * 0x2e + 10, 0xbf, text, win);
     d2_Objs[id].centred = 1;
     d2_SetObjWidth(id, 300);
     return id;
@@ -1425,8 +1417,8 @@ int ai_HasQuicksavePlayer(void)
    0x657c7)), takes the screenshot (ai_Screenshot 0x5d7160), sets the save slot (ls_SaveSlot = 1),
    writes the save (ls_SaveGame 0x5190b0: "Gamedata\Saves\Quicksave.SAV" 0x62db54, "Quicksave"
    0x62db74, 1) and clears the status text (ch_EmptyName 0x631090). In a network game (bit 2): without
-   bit 4 it shows ai_QuickSaveDisabledText; when ai_HasQuicksavePlayer finds no saveable player it
-   shows ai_QuickSaveNoPlayerText; otherwise it sends the 0xf request (CMQUICKSAVE: slot 1, name
+   bit 4 it shows TXT_QUICK_SAVE_DISABLED; when ai_HasQuicksavePlayer finds no saveable player it
+   shows TXT_QUICK_SAVE_NO_PLAYER; otherwise it sends the 0xf request (CMQUICKSAVE: slot 1, name
    "QUICKSAVE" 0x624528) through cm_SendExSysMessage, then waits for the message slot to change
    (cm_GetSlotState) while pumping the net (sv_PumpNet 0x52fe00). Void; the callers ignore the result. */
 
@@ -1440,11 +1432,11 @@ void ai_Quicksave(void)
     flags = ai_GameFlags;
     if ((flags & 4) != 0) {
         if ((flags & 0x10) == 0) {
-            sv_SetStatusText(ai_QuickSaveDisabledText);
+            sv_SetStatusText(txt_Ptrs[TXT_QUICK_SAVE_DISABLED]);
             return;
         }
         if (ai_HasQuicksavePlayer() == 0) {
-            sv_SetStatusText(ai_QuickSaveNoPlayerText);
+            sv_SetStatusText(txt_Ptrs[TXT_QUICK_SAVE_NO_PLAYER]);
             return;
         }
         memset(&rec, 0, sizeof(rec));
@@ -1476,7 +1468,7 @@ void ai_Quicksave(void)
 /* 0x5d7530, saves a network game (0x237 B): saveName is the file name under Gamedata/network, name the
    save name recorded in the header. sv_FrameMask gets 0x20000 and the 8 acknowledgement slots cm_SaveAcks
    are cleared; only in a network game (ai_GameFlags bit 2): the other players are told the status text
-   ai_SaveWaitText (sv_BroadcastText), the player count (kind 6 / 7 records with an id) goes into
+   TXT_SAVE_WAIT (sv_BroadcastText), the player count (kind 6 / 7 records with an id) goes into
    ai_NumPlayers, name into ls_SavePath, ls_SaveSlot takes the requested slot cm_RequestedSaveSlot, the
    standard city screen is shown, then a .SAV file is created with the save header (flag 5) and read back
    to hash the header's 0x78 bytes (util_Hash). The hash and the local player's netId (ai_Chars) go into
@@ -1500,7 +1492,7 @@ void ai_SaveNetworkGame(char *saveName, char *name)
         cm_SaveAcks[i][0] = -1;
     if ((ai_GameFlags & 4) == 0)
         return;
-    sv_BroadcastText(sv_FrameMask, ai_SaveWaitText);
+    sv_BroadcastText(sv_FrameMask, txt_Ptrs[TXT_SAVE_WAIT]);
     ai_NumPlayers = 0;
     for (i = 0; i < 768; i++) {
         c = &((AICHARVIEW *)ai_Chars)[i];
@@ -1535,7 +1527,7 @@ void ai_SaveNetworkGame(char *saveName, char *name)
             sv_PumpNet();
         } while (n < ai_NumPlayers);
     }
-    sv_BroadcastText(sv_FrameMask, ai_SaveWaitText);
+    sv_BroadcastText(sv_FrameMask, txt_Ptrs[TXT_SAVE_WAIT]);
     sprintf(path, "Gamedata\\network\\%s.SRV", saveName);
     ls_SaveGame(path, name, 6);
     sprintf(path, "Gamedata\\network\\%s.SAV", saveName);
@@ -1556,7 +1548,6 @@ int sv_CheckMoney(struct AICHAR *o, int n);         /* 0x520f90, sv.c: 1 when th
 int sv_MessageBox(intptr_t text, unsigned flags); /* 0x521150, sv.c: the modal message box */
 void sv_CameraFollow(void);                /* 0x52d7a0, sv.c: the per-frame camera follow */
 int d2_RemoveWindow(); int io_PrintText(intptr_t fmt, ...);
-int d2_GetObjValue();
 
 /* 0x5d7770, the options menu screen (1112 B): param none, void. The game screen 0x5d7160 is copied
    into the local 0x2580-dword image, the screen fades black (0x5d6fa0), the window "menu\options"
@@ -1595,8 +1586,8 @@ void ai_OptionsMenu(void)
     sv_FitForm(d2_LastWindow);
     sv_ResetScreenClip();
     d2_SetForm(0, 0);
-    id0 = ai_MenuButton(0, (int)ai_TextLoadGame, d2_LastWindow);
-    id1 = ai_MenuButton(1, (int)ai_TextSaveGame, d2_LastWindow);
+    id0 = ai_MenuButton(0, txt_Ptrs[TXT_LOAD_GAME], d2_LastWindow);
+    id1 = ai_MenuButton(1, txt_Ptrs[TXT_SAVE_GAME], d2_LastWindow);
     if ((ai_GameFlags & 4) != 0) {
         d2_SetObjEnabled(id0, 0);
         if ((ai_GameFlags & 0x10) == 0)
@@ -1608,13 +1599,13 @@ void ai_OptionsMenu(void)
         d2_SetObjEnabled(id1, 0);
     }
     sv_MenuOpen = 1;
-    id2 = ai_MenuButton(2, (int)ai_TextGameOptions, d2_LastWindow);
-    id3 = ai_MenuButton(3, (int)ai_TextGfxOptions, d2_LastWindow);
-    id4 = ai_MenuButton(4, (int)ai_TextSfxOptions, d2_LastWindow);
-    id5 = ai_MenuButton(5, (int)ai_TextLeaveGame, d2_LastWindow);
+    id2 = ai_MenuButton(2, txt_Ptrs[TXT_GAME_OPTIONS], d2_LastWindow);
+    id3 = ai_MenuButton(3, txt_Ptrs[TXT_GFX_OPTIONS], d2_LastWindow);
+    id4 = ai_MenuButton(4, txt_Ptrs[TXT_SFX_OPTIONS], d2_LastWindow);
+    id5 = ai_MenuButton(5, txt_Ptrs[TXT_LEAVE_GAME], d2_LastWindow);
     if ((ai_GameFlags & 4) == 0)
         tb_Paused = 1;
-    id7 = ai_MenuButton(7, (int)ai_TextBack, d2_LastWindow);
+    id7 = ai_MenuButton(7, txt_Ptrs[TXT_BACK], d2_LastWindow);
     group = d2_CreateRadioGroup(7, id0, id1, id2, id3, id4, id5, id7);
     msx_SetAmbVolume(0);
     saved = snd_AmbientOn;
@@ -1756,11 +1747,11 @@ int ai_SaveOptionWindow(int image)
                         d2_EnableObject(slots[i].obj, 1);
                         break;
                     }
-                    if (exists == 0 || ai_MessageBox(ai_SaveOverwriteText, 0x101) != 0) {
+                    if (exists == 0 || ai_MessageBox(txt_Ptrs[TXT_SAVE_OVERWRITE], 0x101) != 0) {
                         sprintf(name, "Gamedata/saves/GILDE_SAVEGAME_%i.SAV", i);
                         memcpy(ai_ScreenImage, (void *)image, 0x9600);
                         ls_SaveSlot = i;
-                        view = sv_OpenMessageBox(ai_SaveProgressText, 0);
+                        view = sv_OpenMessageBox((intptr_t)txt_Ptrs[TXT_SAVE_PROGRESS], 0);
                         ls_SaveGame(name, slots[i].title, 1);
                         d2_CloseView(view);
                         sv_PopRequest = 1;
@@ -1830,9 +1821,9 @@ int ai_SaveNameWindow(int image)
                         d2_EnableObject(slots[i].obj, 1);
                         break;
                     }
-                    if (exists == 0 || ai_MessageBox(ai_SaveOverwriteText, 0x101) != 0) {
+                    if (exists == 0 || ai_MessageBox(txt_Ptrs[TXT_SAVE_OVERWRITE], 0x101) != 0) {
                         if (ai_HasQuicksavePlayer() == 0) {
-                            sv_SetStatusText(ai_QuickSaveNoPlayerText);
+                            sv_SetStatusText(txt_Ptrs[TXT_QUICK_SAVE_NO_PLAYER]);
                         } else {
                             memset(&rec, 0, sizeof rec);
                             rec.slot = i;
@@ -2285,7 +2276,6 @@ void ai_PauseGame(void)
 
 /* The message filter's row captions (the text system fills the 0x1441500 .. slots at run time) and
    the getter / setter of its mask (he.c: message kind 0x605 .. 0x60d <-> bit 0 .. 0x100 of 0x6f263c). */
-/* ai_MessageFilterTexts: view of txt_Ptrs (build/mk_txt_views.py) */
 int he_IsMessageKindFiltered(int kind); /* 0x575640, he.c: nonzero when the kind is filtered */
 void he_SetMessageKindFiltered(int kind, int filtered); /* 0x575710, he.c: sets / clears the kind's bit */
 int cm_SendSetField(int a, int b, int c, int d, int e); /* 0x4c4a60, cm.c: message 0x19 (the field block) */
@@ -2294,7 +2284,7 @@ void d2_SetCaption(int obj, char *text);           /* 0x473540, d2.h: sets the c
 /* 0x5d7f10, the message filter window "menu\messagefilter" 0x62dbc8 (390 B), opened from the message
    box's menu: the nine message kinds 0x605 .. 0x60d become a column of checkbox rows (d2_WinOpenPic
    0x4731d0 at x 8, y i * 0x1c + 10, the picture i + 0x605, on the window 0x6ed938): each row is a
-   checkbox (checkable and interactive), gets the font 0x55 and the caption ai_MessageFilterTexts[i],
+   checkbox (checkable and interactive), gets the font 0x55 and the caption TXT_MESSAGE_FILTER_TEXTS + i,
    a 0x78 x 0x1e text box (picW, captionX 0x1e, captionY 3) and is checked while the kind is not
    filtered (he_IsMessageKindFiltered 0x575640). The screen is pumped (sv_RunFrame 0x5309a0 (this,
    0x677c7)) until the pump returns 0; a mouse event / the key 1 closes it (sv_PopRequest 0x6f22a0)
@@ -2316,7 +2306,7 @@ void ai_MessageFilterScreen(void)
         d2_Objs[id].checkable = 1;
         d2_Objs[id].interactive = 1;
         d2_SetObjFont(id, 0x55);
-        d2_SetCaption(id, ai_MessageFilterTexts[i]);
+        d2_SetCaption(id, txt_Ptrs[TXT_MESSAGE_FILTER_TEXTS + i]);
         d2_Objs[id].picW = 0x78;
         d2_Objs[id].captionX = 0x1e;
         d2_Objs[id].captionY = 3;
@@ -2338,15 +2328,6 @@ void ai_MessageFilterScreen(void)
     d2_CloseView(wnd);
 }
 
-/* The request record of the screen callbacks (0x5c bytes, opened by 0x5c1130): the id word, the
-   kind byte (6 / 7 = a player character) and the player handle. */
-typedef struct AIREQ {
-    unsigned short id;                  /* +0x00 */
-    unsigned char kind;                 /* +0x02 */
-    char pad03;
-    int handle;                         /* +0x04 */
-    char pad08[0x54];
-} AIREQ;
 
 
 /* 0x5d8080, the tailor chat request window "locations\schneider\plausch" 0x62dbf8 (733 B, a
@@ -2359,9 +2340,8 @@ typedef struct AIREQ {
    found character only the request handle is cleared. The mouse event 0x14673a0 / the answer
    0xf8a668 == 1 sets sv_PopRequest 1, a click on the control (d2_PointerObj == obj) 3. The pump
    0x5309a0 (this function, 0x67fff) ends with 0x4758f0 (wnd). Void. */
-void ai_TailorChatWindow(int request)
+void ai_TailorChatWindow(AICHAR *req, int n)
 {
-    AIREQ *req;
     AICHARVIEW *rec;
     int count;
     int obj;
@@ -2373,7 +2353,6 @@ void ai_TailorChatWindow(int request)
     int pump;
     int i;
 
-    req = (AIREQ *)request;
     rec = (AICHARVIEW *)&ai_Chars[ai_PlayerId];
     wnd = d2_OpenForm(0, 0, "locations\\schneider\\plausch");
     found = gv_FindAccused(&ai_Chars[ai_PlayerId], 4, ids, &count);
@@ -2403,18 +2382,18 @@ void ai_TailorChatWindow(int request)
                 for (i = 0; i < count; i++)
                     cm_SendProofExecuted(ids[i], ((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId);
                 cm_SendMoneyDelta(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, -1);
-                cm_SendMoneyDelta(req->handle, -1);
+                cm_SendMoneyDelta(req->netId, -1);
                 cm_SendSetField(rec->netId, 0x1cc, 4, 0x20000, 0);
                 txt_Format(buf, 0x422f, req->id);
                 he_ShowNews(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, -1, buf, 0, 0x5ec,
                             0);
                 if (req->kind == 6 || req->kind == 7) {
                     txt_Format(buf, 0x4230, ai_PlayerId, 1);
-                    he_ShowNews(req->handle, -1, buf, 0, 0x5ec, "_NACHRICHTEN_NEU_15");
+                    he_ShowNews(req->netId, -1, buf, 0, 0x5ec, "_NACHRICHTEN_NEU_15");
                 }
                 sv_PopRequest = 3;
             } else {
-                cm_SendMoneyDelta(req->handle, -1);
+                cm_SendMoneyDelta(req->netId, -1);
                 sv_PopRequest = 3;
             }
         }
@@ -2423,38 +2402,30 @@ void ai_TailorChatWindow(int request)
     d2_CloseView(wnd);
 }
 
-/* The 0x50-byte request record 0x5c1130 sends: the kind at +0, the flags / id at +4 and the event
-   kind at +0x10. */
-typedef struct CONTACTREQ {
-    int type;                           /* +0x00 */
-    int a;                              /* +0x04 */
-    char pad08[8];
-    int b;                              /* +0x10 */
-    char pad14[0x3c];
-} CONTACTREQ;
 
 /* 0x5d8360, the tailor contact prompt (198 B), reached from the production-building contact
    listener 0x5d8420 (its contact_PLAUSCH branch): when the character's flags1cc (+0x1cc of
-   ai_Chars[ai_PlayerId]) has bit 0x20000, the message box 0x521150 shows ai_TailorBlockedText
+   ai_Chars[ai_PlayerId]) has bit 0x20000, the message box 0x521150 shows TXT_TAILOR_BLOCKED
    (flags 4) and the function returns. Otherwise sv_CheckMoney (the character, 1) asks whether its
    money covers the chat; when it does, a D3_ZEROed request record (0x50 bytes: +0 = 1, +4 = 0x400,
-   +0x10 = 6) goes through the amount menu ai_AmountMenu (the caption ai_TailorAmountText,
+   +0x10 = 6) goes through the amount menu ai_AmountMenu (the caption TXT_TAILOR_AMOUNT,
    ch_EmptyName as the second text, the callback ai_TailorChatWindow). Ends with the camera follow
    sv_CameraFollow. Void; the two arguments the contact dispatch passes are not read. */
 void ai_TailorContact(AIBLD *building, AIOBJ *arg)
 {
-    CONTACTREQ req;
+    AMOUNTCFG req;
 
     if ((((AICHARVIEW *)&ai_Chars[ai_PlayerId])->flags1cc & 0x20000) != 0) {
-        sv_MessageBox((intptr_t)ai_TailorBlockedText, 4);
+        sv_MessageBox((intptr_t)txt_Ptrs[TXT_TAILOR_BLOCKED], 4);
         return;
     }
     if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 1) != 0) {
         D3_ZERO(&req, sizeof(req));
-        req.type = 1;
-        req.a = 0x400;
-        req.b = 6;
-        ai_AmountMenu((int)&req, (int)ai_TailorAmountText, (int)ch_EmptyName, (int)ai_TailorChatWindow);
+        req.flags = 1;
+        req.mode = 0x400;
+        req.kind = 6;
+        ai_AmountMenu(&req, txt_Ptrs[TXT_TAILOR_AMOUNT], ch_EmptyName, (int (*)(AICHAR *, int))ai_TailorChatWindow);  /* @original: a
+                                           void window as the int pick callback; the menu tests whatever eax holds */
     }
     sv_CameraFollow();
 }
@@ -2485,15 +2456,15 @@ void ai_ProductionContact(AIBLD *building, AIOBJ *arg)
     pump = sv_RunFrame(ai_ProductionContact, 0x67fff);
     while (pump != 0) {
         if ((ai_BuildingPerms & 0x200) != 0) {
-            schn = sv_RegisterNamePlate("contact_PRODUKTION_SCHNEIDER", ai_ContactTextProductionTailor, 0x13);
-            roh = sv_RegisterNamePlate("contact_ROHSTOFFE_SUCHEN_SCHNEIDER", ai_ContactTextRawMaterialSearch, 0x16);
-            plausch = sv_RegisterNamePlate("contact_PLAUSCH", ai_ContactTextChat, 0xc);
+            schn = sv_RegisterNamePlate("contact_PRODUKTION_SCHNEIDER", txt_Ptrs[TXT_CONTACT_PRODUCTION_TAILOR], 0x13);
+            roh = sv_RegisterNamePlate("contact_ROHSTOFFE_SUCHEN_SCHNEIDER", txt_Ptrs[TXT_CONTACT_RAW_MATERIAL_SEARCH], 0x16);
+            plausch = sv_RegisterNamePlate("contact_PLAUSCH", txt_Ptrs[TXT_CONTACT_CHAT], 0xc);
         }
         if ((ai_BuildingPerms & 0x400) != 0) {
-            lager = sv_RegisterNamePlate("contact_LAGER", ai_ContactTextStorage, 0xe);
-            trans = sv_RegisterNamePlate("contact_TRANSPORT", ai_ContactTextTransport, 0x15);
-            personal = sv_RegisterNamePlate("ob_PERSONALBUCH", ai_ContactTextPersonnelBook, 0xc);
-            meister = sv_RegisterNamePlate("ob_MEISTERBRIEF", ai_ContactTextMasterLetter, 0x16);
+            lager = sv_RegisterNamePlate("contact_LAGER", txt_Ptrs[TXT_CONTACT_STORAGE], 0xe);
+            trans = sv_RegisterNamePlate("contact_TRANSPORT", txt_Ptrs[TXT_CONTACT_TRANSPORT], 0x15);
+            personal = sv_RegisterNamePlate("ob_PERSONALBUCH", txt_Ptrs[TXT_CONTACT_PERSONNEL_BOOK], 0xc);
+            meister = sv_RegisterNamePlate("ob_MEISTERBRIEF", txt_Ptrs[TXT_CONTACT_MASTER_LETTER], 0x16);
         }
         if ((click = ai_ClickedObject) != 0) {
             if (click == lager) {
@@ -2526,8 +2497,8 @@ void ai_ProductionContact(AIBLD *building, AIOBJ *arg)
    bodies. Move the listeners back into address order once those have their bodies. ---- */
 
 /* 0x5d9a80, the gypsy contact listener (97 B): building the gypsy building. contact_BLUTRACHE
-   0x62dce0 (ai_ContactTextBloodRevenge 0x144a884, 0x16) opens the blood revenge window 0x5d85e0
-   (ai_BloodRevengeWindow), contact_EHRERBIETUNG 0x62dcc8 (ai_ContactTextHomage 0x144a9d8, 0x16) the
+   0x62dce0 (TXT_CONTACT_BLOOD_REVENGE 0x144a884, 0x16) opens the blood revenge window 0x5d85e0
+   (ai_BloodRevengeWindow), contact_EHRERBIETUNG 0x62dcc8 (TXT_CONTACT_HOMAGE 0x144a9d8, 0x16) the
    homage window 0x5d95a0 (ai_HomageWindow), between sv_ReleaseNamePlates calls and the pump 0x5309a0
    (this function, 0x67fff). The clicked object (ai_ClickedObject) selects one of the plates. */
 void ai_GypsyContact(AIBLD *building)
@@ -2539,8 +2510,8 @@ void ai_GypsyContact(AIBLD *building)
     sv_ReleaseNamePlates();
     while (sv_RunFrame(ai_GypsyContact, 0x67fff) != 0) {
         if ((ai_BuildingPerms & 0x200) != 0) {
-            blutrache = sv_RegisterNamePlate("contact_BLUTRACHE", ai_ContactTextBloodRevenge, 0x16);
-            ehrerbietung = sv_RegisterNamePlate("contact_EHRERBIETUNG", ai_ContactTextHomage, 0x16);
+            blutrache = sv_RegisterNamePlate("contact_BLUTRACHE", txt_Ptrs[TXT_CONTACT_BLOOD_REVENGE], 0x16);
+            ehrerbietung = sv_RegisterNamePlate("contact_EHRERBIETUNG", txt_Ptrs[TXT_CONTACT_HOMAGE], 0x16);
         }
         clicked = ai_ClickedObject;
         if (clicked != 0) {
@@ -2552,7 +2523,7 @@ void ai_GypsyContact(AIBLD *building)
     }
 }
 /* 0x5d9b20, the "Fluch wirken" (cast curse) contact listener (76 B): buildingArg the building.
-   contact_FLUCH_WIRKEN 0x62dcf4 (ai_ContactTextCurse 0x144a8c0, 0x16) opens the curse window 0x5d8c90
+   contact_FLUCH_WIRKEN 0x62dcf4 (TXT_CONTACT_CURSE 0x144a8c0, 0x16) opens the curse window 0x5d8c90
    (ai_CurseWindow) when its plate is the clicked object (ai_ClickedObject), between
    sv_ReleaseNamePlates calls and the pump 0x5309a0 (this function, 0x67fff). */
 
@@ -2566,7 +2537,7 @@ void ai_CurseContact(AIBLD *buildingArg)
     building = buildingArg;
     sv_ReleaseNamePlates();
     while (sv_RunFrame(ai_CurseContact, 0x67fff) != 0) {
-        fluch = sv_RegisterNamePlate("contact_FLUCH_WIRKEN", ai_ContactTextCurse, 0x16);
+        fluch = sv_RegisterNamePlate("contact_FLUCH_WIRKEN", txt_Ptrs[TXT_CONTACT_CURSE], 0x16);
         clicked = ai_ClickedObject;
         if (clicked != 0 && clicked == fluch)
             ai_CurseWindow(building);
@@ -2574,8 +2545,8 @@ void ai_CurseContact(AIBLD *buildingArg)
     return 0;
 }
 /* 0x5d9b90, the theatre / card game contact listener (127 B): building the building.
-   contact_THEATERSTUECK 0x62dd20 (ai_ContactTextTheatre 0x144a98c, 0x16) opens the curse target picker
-   0x5d90e0 (ai_CurseTargetWindow), contact_KARTENSPIEL 0x62dd0c (ai_ContactTextCardGame 0x144aa9c,
+   contact_THEATERSTUECK 0x62dd20 (TXT_CONTACT_THEATRE 0x144a98c, 0x16) opens the curse target picker
+   0x5d90e0 (ai_CurseTargetWindow), contact_KARTENSPIEL 0x62dd0c (TXT_CONTACT_CARD_GAME 0x144aa9c,
    0x16) the poker game 0x5da030 (ai_PokerGame), between sv_ReleaseNamePlates calls and the pump
    0x5309a0 (this function, 0x67fff). */
 
@@ -2588,8 +2559,8 @@ void ai_TheatreContact(AIBLD *building)
     sv_ReleaseNamePlates();
     while (sv_RunFrame(ai_TheatreContact, 0x67fff) != 0) {
         if ((ai_BuildingPerms & 0x200) != 0)
-            theater = sv_RegisterNamePlate("contact_THEATERSTUECK", ai_ContactTextTheatre, 0x16);
-        karten = sv_RegisterNamePlate("contact_KARTENSPIEL", ai_ContactTextCardGame, 0x16);
+            theater = sv_RegisterNamePlate("contact_THEATERSTUECK", txt_Ptrs[TXT_CONTACT_THEATRE], 0x16);
+        karten = sv_RegisterNamePlate("contact_KARTENSPIEL", txt_Ptrs[TXT_CONTACT_CARD_GAME], 0x16);
         clicked = ai_ClickedObject;
         if (clicked != 0) {
             if (clicked == theater)
@@ -2739,12 +2710,13 @@ void ai_BloodRevengeWindow(AIBLD *building)
                                 idp++;
                             }
                         }
-                        cfg.filter = gypsyFilter;
+                        cfg.classMask[0] = (unsigned int)gypsyFilter;
+                        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
                         cfg.option14 = 2;
                         cfg.flags = 1;
                         cfg.mode = 0x400;
                         cfg.kind = 6;
-                        rows[i].rec = (AICHARVIEW *)ai_AmountMenu((int)&cfg, (int)txt_Ptrs[0x41b4 + (i != 0)], 0, 0);
+                        rows[i].rec = (AICHARVIEW *)ai_AmountMenu(&cfg, txt_Ptrs[0x41b4 + (i != 0)], 0, 0);
                         sel[i] = rows[i].rec != 0 ? rows[i].rec->netId : -1;
                         refresh = 1;
                         break;
@@ -2768,8 +2740,7 @@ void ai_BloodRevengeWindow(AIBLD *building)
 void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 struct AITIME;
 int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
-int ai_PokerStart();
-unsigned short ai_PokerStep(); int gm_BuildingSkill(); float ai_NormalizeEffectScale(float x);
+unsigned short ai_PokerStep(); float ai_NormalizeEffectScale(float x);
 
 /* 0x5d8c90, the "Fluch wirken" (curse) window "Locations\zigeuner\blutrache" 0x62dc68 (905 B): the building is the
    gypsy house. When the player's status bit 0x10 (+0x1cc of its record) is set the voice "RAUSWURF" is played and the green
@@ -2801,8 +2772,9 @@ void ai_CurseWindow(AIBLD *building)
     cfg.flags = 1;
     cfg.mode = 0x400;
     cfg.kind = 6;
-    cfg.filter = gypsyFilter;
-    target = (AICHARVIEW *)ai_AmountMenu((int)&cfg, (int)txt_Ptrs[0x41c3], 0, 0);
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = (AICHARVIEW *)ai_AmountMenu(&cfg, txt_Ptrs[0x41c3], 0, 0);
     if (target == 0) {
         sv_CameraFollow();
         return;
@@ -2839,7 +2811,7 @@ void ai_CurseWindow(AIBLD *building)
             if (d2_PointerObj == ids[0]) {
                 if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], v, ai_OwnPlayer) != 0) {
                     char name[100];
-                    CURSEMSG msg;
+                    AIMSG msg;
 
                     cm_SendSetField(((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId, 0x1cc, 4, 0x10, 0);
                     if (ai_PlayerId != building->owner)
@@ -2853,7 +2825,7 @@ void ai_CurseWindow(AIBLD *building)
                     msg.to = ((AICHARVIEW *)&ai_Chars[ai_PlayerId])->netId;
                     memcpy(&msg.time, &ai_Time, sizeof(AITIME));
                     msg.arg[1] = target->netId;
-                    cm_SendLongMessage((char *)&msg);
+                    cm_SendLongMessage(&msg);
                     txt_Format(text, 0x41da, 0x41c1);
                     sprintf(name, "_WAHRSAGERIN_FLUCH_0%d", v);
                     snd_PlayVoice(-7, 0, name, -1);
@@ -2883,7 +2855,7 @@ void ai_CurseWindow(AIBLD *building)
 
 void ai_CurseTargetWindow(AIBLD *building)
 {
-    CURSEMSG msg;
+    AIMSG msg;
     AITIME when;
     int ids[2];                         /* the two buttons */
     int share, victim, form;
@@ -2964,7 +2936,7 @@ void ai_CurseTargetWindow(AIBLD *building)
                     msg.fromId = building->id;
                     memcpy(&msg.time, &ai_Time, sizeof(AITIME));
                     msg.arg[0] = value;
-                    cm_SendLongMessage((char *)&msg);
+                    cm_SendLongMessage(&msg);
                     sv_PopRequest = 1;
                 }
             } else if (d2_PointerObj == ids[1]) {
@@ -3008,8 +2980,9 @@ void ai_HomageWindow(AIBLD *building)
     cfg.flags = 1;
     cfg.mode = 0x400;
     cfg.kind = 6;
-    cfg.filter = gypsyFilter;
-    target = (AICHARVIEW *)ai_AmountMenu((int)&cfg, (int)txt_Ptrs[0x4209], 0, 0);
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = (AICHARVIEW *)ai_AmountMenu(&cfg, txt_Ptrs[0x4209], 0, 0);
     if (target == 0) {
         sv_CameraFollow();
         return;
@@ -3063,7 +3036,7 @@ void ai_HomageWindow(AIBLD *building)
 
 void ai_GypsyBeggingWindow(AIBLD *building)
 {
-    CURSEMSG msg;
+    AIMSG msg;
     int chosen[4];                      /* the indices of the collected characters */
     int ids[2];                         /* the two buttons */
     int form, count, i;
@@ -3100,7 +3073,7 @@ void ai_GypsyBeggingWindow(AIBLD *building)
                     memcpy(&msg.time, &ai_Time, sizeof(AITIME));
                     for (i = 0; i < count; i++)
                         msg.ids[i] = ((AICHARVIEW *)&ai_Chars[chosen[i]])->netId;
-                    cm_SendLongMessage((char *)&msg);
+                    cm_SendLongMessage(&msg);
                     sv_PopRequest = 1;
                 } else {
                     sv_MessageBox((intptr_t)txt_Ptrs[0x41ea], 0);
@@ -3145,14 +3118,14 @@ void ai_GypsyProductionContact(AIBLD *building)
     while (pump != 0) {
         if ((ai_BuildingPerms & 0x200) != 0) {
             zutaten = sv_RegisterNamePlate("contact_ZUTATEN_SUCHEN_ZIGEUNER", txt_Ptrs[0x421d], 0x16);
-            transport = sv_RegisterNamePlate("contact_TRANSPORT", ai_ContactTextTransport, 0x15);
+            transport = sv_RegisterNamePlate("contact_TRANSPORT", txt_Ptrs[TXT_CONTACT_TRANSPORT], 0x15);
             produktion = sv_RegisterNamePlate("contact_PRODUKTION_ZIGEUNER", txt_Ptrs[0x1f76], 0x13);
-            lager = sv_RegisterNamePlate("contact_LAGER", ai_ContactTextStorage, 0xe);
+            lager = sv_RegisterNamePlate("contact_LAGER", txt_Ptrs[TXT_CONTACT_STORAGE], 0xe);
             betteln = sv_RegisterNamePlate("contact_BETTELN", txt_Ptrs[0x41e5], 0x2c);
         }
         if ((ai_BuildingPerms & 0x400) != 0) {
-            personal = sv_RegisterNamePlate("contact_PERSONALBUCH", ai_ContactTextPersonnelBook, 0xc);
-            meister = sv_RegisterNamePlate("contact_MEISTERBRIEF", ai_ContactTextMasterLetter, 0xc);
+            personal = sv_RegisterNamePlate("contact_PERSONALBUCH", txt_Ptrs[TXT_CONTACT_PERSONNEL_BOOK], 0xc);
+            meister = sv_RegisterNamePlate("contact_MEISTERBRIEF", txt_Ptrs[TXT_CONTACT_MASTER_LETTER], 0xc);
         }
         if (ai_ClickedObject != 0) {
             if ((ai_BuildingPerms & 0x200) != 0) {

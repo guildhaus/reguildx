@@ -313,7 +313,6 @@ typedef struct SHOTRESULT {     /* 0x38 bytes, three of them in ai_ShotTable: th
 } SHOTRESULT;
 extern int ai_TutorialChapterOn[5];
 extern int (*ai_TutorialChapterInit[5])(void);
-extern int ai_TutorialBanks[6];
 extern TUTRUN *ai_TutorialRuns;
 extern int ai_TutorialOn;
 extern int ai_TutorialRunning;
@@ -372,19 +371,14 @@ const float ai_CannonSwitchDist = 100.0f;  /* 0x5eec98, how far the cannon sinks
 int ai_TutorialInitMainIntro();
 int ai_TutorialInitMainOutro();
 void ai_TutorialStop();
-int sb_UnloadSampleBank();
-int snd_LoadVoiceBank();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
 struct AICHAR; struct G9REC; struct VFSFILE;
 int sv_RunFrame(void (*cb)(), unsigned mask);
-void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_ValueBar();
-struct AICHAR *ahm_OwnerChar();
+void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags);
 int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 int sv_MessageBox(intptr_t text, unsigned flags);
 void txt_Format(char *out, intptr_t id0, ...);
-int ahm_SendCreateAlchemist();
-int ahm_ResearchState(); struct AICHAR *ahm_OwnerChar(); AHMGRID * ahm_RandomRecipe();
 
 /* dcp unit split: the definitions of sv_t the functions of svcannon use */
 void ai_AlchemistResearchWindow(struct AIBLD *obj);
@@ -458,15 +452,14 @@ typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of 
     D3VECTOR bmin;           /* +0xf4 */
     float pad100;            /* +0x100, bmin's fourth float: the original's frame keeps 4 bytes behind it */
 } CANNONSCENE;
-char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld); int cm_GetSlotState(); void gv_SetEffectCallback();
+char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
-void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void sv_SetPanelEnabled(); void d3sky_Init(struct D3SKY *s, char build);
-void d3t_GetObjectBounds(); 
+void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void d3sky_Init(struct D3SKY *s, char build);
 char d3if_ShowTree(struct D3OBJECT *obj, char show);
 struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);                 /* 0x447190, d3_interface.h */
 char d3if_Show(struct D3OBJECT *obj, char show);        /* 0x4471b0, d3_interface.h */
-void he_ShowObjectInfos(); void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
+void ai_CannonAxes(CANNONSCENE *sc); void ai_CannonAim(CANNONSCENE *sc, float dt);
 void ai_CannonShotResults(CANNONSCENE *sc); void ai_CannonSwitchAnim(struct AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, int mask); int ai_CannonFireCheck(CANNONSCENE *sc); void ai_CannonExplosion(CANNONSCENE *sc, struct AIBLD *rec);
 void sv_SetStatusText(char *s); void sv_RedrawScreen();
 void d3if_Prerender(char map); 
@@ -816,7 +809,7 @@ void ai_CannonAim(CANNONSCENE *sc, float dt)
     sc->rot.y = (float)fmod(sc->rot.y, 6.2831855f);
 }
 
-void d3_MatTranspose(); float d3_VecAngle2(); int ai_GetDefaultEffect();
+int ai_GetDefaultEffect();
 
 typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: three floats and a word cleared as an int */
     float x, y, z;
@@ -967,8 +960,6 @@ void ai_CannonCamera(CANNONSCENE *sc)
     d3_SetObjectPos(sc->obj98, (char *)sc);
 }
 
-void d3_DirToWorld();
-int gm_FindById();
 
 /* 0x57f5d0, the cannon's three axes in world space: d3_DirToWorld of the first barrel (sc->obj8c[0]) turns
    d3_ZAxis into the aim direction sc->dir, d3_YAxis into the up vector sc->up and d3_XAxis into the side
@@ -1065,7 +1056,7 @@ void ai_CannonShotResults(CANNONSCENE *sc)
     }
 }
 
-float gv_SalvoCharge(); void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); int gv_CannonCost(); float ai_GetDefaultEffectScale();
+void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
 void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
 
@@ -1240,8 +1231,8 @@ void ai_CannonSwitchAnim(AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, in
     sc->now = d3_Time;
 }
 
-void gv_CannonScatter(struct AIBLD *o, float *a, float *b); float gv_CannonItemFactor(); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
-int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade); void ai_CannonBuildPanel();
+void gv_CannonScatter(struct AIBLD *o, float *a, float *b); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
+int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade);
 
 /* 0x580160, fires the cannon: sc = the scene, rec = the building record. The two sliders give the cannon kind a
    and the speed b; gv_CannonCost of the player's character for sel + 1 balls (sc->selected) gives the cost, none ->
@@ -1545,7 +1536,7 @@ void ai_CannonBuildPanel(CANNONSCENE *sc, GVEFFECT *run)
     sc->resultClock = d3_Time;
 }
 
-int he_EventOnBuilding(); int sv_MessageBox(intptr_t text, unsigned flags);
+int sv_MessageBox(intptr_t text, unsigned flags);
 
 /* 0x580fe0, whether the building rec may be spied on: 0 when an event already runs on it (he_EventOnBuilding of
    rec->id), the message text 0x3ff7 shown; 1 when it is free */
@@ -1559,8 +1550,8 @@ int ai_CanSpyOn(AIBLD *rec)
     return r == 0;
 }
 
-int gm_GetWorth(unsigned short id); int d2_WinOpenSlider(); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); int snd_PlayVoice(int id, int bank, char *text, int var); void sv_CameraFollow();
+int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var); void sv_CameraFollow();
 
 /* 0x581020, the cabinet's spy window for the building rec: the form "Locations\Domizil\kabinett_spy" (centred,
    fitted, the default pointer) with the title txt 0x4020 centred over the window's width in font 0x54, a slider of
@@ -1643,7 +1634,7 @@ void ai_CabinetSpyWindow(AIBLD *rec)
                     mask.HighPart = 0;
                     ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                     msg.arg[0] = pick;
-                    id = cm_SendLongMessage((char *)&msg);
+                    id = cm_SendLongMessage(&msg);
                     while (id != -1 && cm_GetSlotState(id) == 0)
                         sv_RunFrame(0, 0x20007);
                     snd_PlayVoice(-7, 0, "KOMMENTARE", 0);
@@ -1658,7 +1649,7 @@ void ai_CabinetSpyWindow(AIBLD *rec)
     sv_CameraFollow();
 }
 
-struct AICHAR *ai_AmountMenu(); int amt_GetKindLevel(int k); int sv_CheckMoney(); void cm_SendMoneyDelta(int a, int b);
+int amt_GetKindLevel(int k); void cm_SendMoneyDelta(int a, int b);
 
 /* 0x581400, the cabinet's spy window on a character for the building rec: the target is picked in the amount menu
    (AMOUNTCFG flags 1, mode 0x400, kind 6, no ids left out; title txt 0x400d), none -> return. The three steps of
@@ -1768,7 +1759,7 @@ void ai_CabinetSpyOnCharacter(AIBLD *rec)
                         ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                         msg.arg[0] = pick;
                     }
-                    id = cm_SendLongMessage((char *)&msg);
+                    id = cm_SendLongMessage(&msg);
                     while (id != -1 && cm_GetSlotState(id) == 0)
                         sv_RunFrame(0, 0x20007);
                     snd_PlayVoice(-7, 0, "KOMMENTARE", 0);
@@ -1879,7 +1870,7 @@ void ai_CabinetSpyByMoney(AIBLD *rec)
                         ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                         msg.arg[0] = pick;
                     }
-                    id = cm_SendLongMessage((char *)&msg);
+                    id = cm_SendLongMessage(&msg);
                     while (id != -1 && cm_GetSlotState(id) == 0)
                         sv_RunFrame(0, 0x20007);
                     snd_PlayVoice(-7, 0, "KOMMENTARE", 0);
@@ -1988,7 +1979,7 @@ void ai_CabinetIntrigueWindow(AIBLD *rec)
                         ai_PickActionBuilding(&ai_Chars[ai_PlayerId], 0, mask.QuadPart, 0, 100.0f, &pick);
                         msg.arg[0] = pick;
                     }
-                    id = cm_SendLongMessage((char *)&msg);
+                    id = cm_SendLongMessage(&msg);
                     while (id != -1 && cm_GetSlotState(id) == 0)
                         sv_RunFrame(0, 0x20007);
                     snd_PlayVoice(-7, 0, "KOMMENTARE", -1);
@@ -2003,8 +1994,7 @@ void ai_CabinetIntrigueWindow(AIBLD *rec)
     sv_CameraFollow();
 }
 
-void sv_ReleaseNamePlates(void); int sv_RegisterNamePlate(); void ai_StorageWindow();
-void ai_AlchemistResearchWindow(); void ai_AlchemistWindow();
+void sv_ReleaseNamePlates(void);
 
 /* 0x5821d0, the contacts of the alchemist's laboratory (the room kind 0x24b of the enter-building driver
    ai_EnterBuilding): rec = the building, room = the room object. The name plates are released once, then each frame
@@ -2043,8 +2033,8 @@ void ai_AlchemistLabContact(AIBLD *rec, AIOBJ *room)
         }
         if (ai_BuildingPerms & 0x400) {
             contract = sv_RegisterNamePlate("contact_CONTRACT", txt_Ptrs[0x4038], 0xe);
-            storage = sv_RegisterNamePlate("contact_LAGER", ai_ContactTextStorage, 0xe);
-            transport = sv_RegisterNamePlate("contact_TRANSPORT", ai_ContactTextTransport, 0x15);
+            storage = sv_RegisterNamePlate("contact_LAGER", txt_Ptrs[TXT_CONTACT_STORAGE], 0xe);
+            transport = sv_RegisterNamePlate("contact_TRANSPORT", txt_Ptrs[TXT_CONTACT_TRANSPORT], 0x15);
             alchemistContract = sv_RegisterNamePlate("contact_ALCHIMISTENVERTRAG", txt_Ptrs[0x4037], 0x16);
         }
         if (ai_ClickedObject == 0)
@@ -2070,7 +2060,7 @@ void ai_AlchemistLabContact(AIBLD *rec, AIOBJ *room)
     }
 }
 
-void cm_BeginFieldBlock(char *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
+void cm_BeginFieldBlock(void *o, int id); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 
 /* 0x5823b0, the window that unlocks a room of the building rec (rec unused): the form "Locations\Domizil\kabinett"
    with the texts 0x407d / 0x4171 (the room's unlockPrice) and the two buttons from the text 0x407e on (pay /
@@ -2108,7 +2098,7 @@ void ai_UnlockRoomWindow(AIBLD *rec, AIOBJ *room)
                 if (sv_CheckMoney(&ai_Chars[ai_PlayerId], price) == 1) {
                     zero = 0;
                     gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -price);
-                    cm_BeginFieldBlock((char *)room, room->objId);
+                    cm_BeginFieldBlock(room, room->objId);
                     cm_AddFieldDelta(4, 1, 0x1c, &zero);
                     cm_AddFieldDelta(4, 1, 0x20, &zero);
                     k = cm_SendFieldDeltas();  /* cm.c defines it void; the original's callers use eax: the slot of the block */

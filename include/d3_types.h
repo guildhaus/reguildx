@@ -30,32 +30,6 @@ typedef struct D3EVENT {            /* 0x84 bytes, D3E_NEVENTS of them in D3OBJX
     char name[0x80];                /* 0x04, name of the handler */
 } D3EVENT;
 
-typedef struct D3SCENE {            /* 0x3e0 bytes, 64 of them in d3_Scenes */
-    char name[0x80];                /* 0x000, the scene (file) name; f3init.c names a reserved universe after its building type or goods */
-    struct D3OBJECT *first;         /* 0x80, first top-level object (D3SCENELISTS.first, d3_engine.h) */
-    char pad084[0x28];
-    void *map;                      /* 0x0ac, the scene's terrain map (D3FLMAP, d3_Terrain; d3fl_ReloadTextures) */
-    struct D3HMAP *hmap;            /* 0x0b0, terrain height map */
-    union {                             /* the same bytes, read as the event table by d3_engine.c */
-        char pad0b4[0x320];
-        struct {
-            char pad0b4a[0x314];
-            D3EVENT *events;            /* 0x3c8, the scene's D3EVENT table (D3E_NEVENTS entries,
-                                           allocated by d3e_RegisterSceneEvent, freed in d3_Shutdown) */
-            char pad3cc[0x8];
-        };
-    };
-    char loaded;                    /* 0x3d4, set after a scene file was loaded into the slot; a scene slot
-                                       with loaded or dirty set is not free (d3t_FindFreeScene) */
-    char dirty;                     /* 0x3d5, a reserved scene whose file is not loaded yet: the next use
-                                       reloads it and clears the flag (f3init.c "flagged dirty") */
-    char pad3d6[0x2];
-    unsigned int sceneFlags;        /* 0x3d8, the scene's d3_SceneFlags (d3if_SelectScene saves and restores it;
-                                       d3_interface.h's D3IFSCENE view names the same fields) */
-    unsigned char hardware;         /* 0x3dc, its d3_Hardware */
-    char pad3dd[0x3];
-} D3SCENE;
-
 typedef struct D3SORTENT {          /* 8 bytes, sorted by key with a radix sort (d3_RadixSort) */
     unsigned long key;
     void *item;                     /* a D3PTRI (d3_engine), a D3SMTRI (d3_sm) */
@@ -69,5 +43,49 @@ typedef union D3COLORU {            /* a D3COLOR stored or passed as its dword (
     D3COLOR c;
     unsigned long col;
 } D3COLORU;
+
+typedef struct D3FOGSET {           /* 12 bytes: a fog colour and its range (the 6 fog sets, the current fog of a scene) */
+    D3COLORU col;                   /* 0x00, d3_SetFogSet blends the bytes, the scene file holds the dword */
+    float start, end;               /* 0x04, 0x08 */
+} D3FOGSET;
+
+typedef struct D3LIGHTSET {         /* 0x60 bytes: one of the 7 day-time light sets */
+    D3VECTOR amb;                   /* 0x00, the ambient colour (d3_AmbientColor) */
+    D3VECTOR sun;                   /* 0x0c, the sun colour (d3_SunColor) */
+    D3FOGSET fog[6];                /* 0x18, the fog sets (d3if_Fog) */
+} D3LIGHTSET;
+
+typedef struct D3SCENE {            /* 0x3e0 bytes, 64 of them in d3_Scenes: a scene and its copy of the engine's global
+                                       state (d3if_SelectScene stores the globals of the scene it leaves and loads those
+                                       of the one it selects) */
+    char name[0x80];                /* 0x000, the scene (file) name; f3init.c names a reserved universe after its building type or goods */
+    struct D3OBJECT *first;         /* 0x080, first top-level object (d3_TopFirst) */
+    struct D3OBJECT *last;          /* 0x084, last top-level object (d3_TopLast) */
+    struct D3OBJECT *cam;           /* 0x088, d3if_MegaCam */
+    D3VECTOR campos;                /* 0x08c, cam->pos */
+    D3VECTOR camrot;                /* 0x098, cam->rotation */
+    void *parHead;                  /* 0x0a4, first of the particle list (d3_ParHead, D3PARTSYS * in d3_par.h) */
+    void *parTail;                  /* 0x0a8, last of the particle list (d3_ParTail) */
+    void *map;                      /* 0x0ac, the scene's terrain map (D3FLMAP, d3_Terrain; d3fl_ReloadTextures) */
+    struct D3HMAP *hmap;            /* 0x0b0, terrain height map */
+    int mapSize;                    /* 0x0b4, height map size: 0x80 with terrain, 0x40 without, from the file */
+    struct D3SKY *sky;              /* 0x0b8, d3_Sky */
+    D3VECTOR amb;                   /* 0x0bc, d3_AmbientColor */
+    D3VECTOR sun;                   /* 0x0c8, d3_SunColor */
+    D3FOGSET fog;                   /* 0x0d4, d3_fog_color, d3_FogStart1, d3_FogEnd2 */
+    D3FOGSET fogs[6];               /* 0x0e0, d3if_Fog */
+    D3LIGHTSET levels[7];           /* 0x128, d3if_Levels */
+    D3EVENT *events;                /* 0x3c8, the scene's D3EVENT table (D3E_NEVENTS entries, allocated by
+                                       d3e_RegisterSceneEvent, "d3e:RegisterSceneEvent(eventtable)", freed in d3_Shutdown) */
+    int state0, state1;             /* 0x3cc, d3if_SceneState0 and the word after it (0x5fb5c0, 0x5fb5c4) */
+    char loaded;                    /* 0x3d4, set after a scene file was loaded into the slot; a scene slot
+                                       with loaded or dirty set is not free (d3t_FindFreeScene) */
+    char dirty;                     /* 0x3d5, a reserved scene whose file is not loaded yet: the next use
+                                       reloads it and clears the flag (f3init.c "flagged dirty") */
+    char pad3d6[0x2];
+    unsigned int sceneFlags;        /* 0x3d8, the scene's d3_SceneFlags (d3if_SelectScene saves and restores it) */
+    unsigned char hardware;         /* 0x3dc, its d3_Hardware */
+    char pad3dd[0x3];
+} D3SCENE;
 
 #endif

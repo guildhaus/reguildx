@@ -1440,7 +1440,7 @@ int evt_CallBuiltin(EVTBUILTIN *f)
     }
     if (f->rettype == 7)
         r = evt_FloatResult;
-    if ((evt_Cur->mode == 1 && evt_Cur->waitfn) || evt_Cur->waitfn == (void *)evtc_Wait) {
+    if ((evt_Cur->mode == 1 && evt_Cur->waitfn) || evt_Cur->waitfn == evtc_Wait) {
         for (i = 0; i < f->nargs; i++) {
             evt_Cur->args[i] = args[i];
             if (f->argtype[i] == 6) {
@@ -1857,9 +1857,10 @@ int evt_ImportCommand(char *name, int (*fn)(), int rettype, int nargs, ...)
     } while (c);
     return 1;
 }
-/* 0x42b6c0 */
+/* 0x42b6c0, the event handler of every script event (d3e_Resolve gives it to each): loads and runs the script name;
+   obj, id and arg are not read */
 
-int evt_StartScript(int unused1, int unused2, char *name)
+int evt_StartScript(void *obj, int id, char *name, int arg)
 {
     EVTSCRIPT *sc;
 
@@ -1870,9 +1871,10 @@ int evt_StartScript(int unused1, int unused2, char *name)
     }
     return evt_LastId = -1;
 }
-/* 0x42b700 */
+/* 0x42b700, the event resolver main sets as d3e_Resolve: every event's handler is evt_StartScript (with the
+   handler's name as the script); its parameters are not read */
 
-void *evt_GetStartScript(void)
+int (*evt_GetStartScript(void *obj, int id, char *name))(void *obj, int id, char *name, int arg)
 {
     return evt_StartScript;
 }

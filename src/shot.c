@@ -145,7 +145,7 @@ extern D2INPUTVIEW d2_Inputs[];         /* 0xfa6020, d2.h: D2INPUT [0x80] */
 extern int d2_FontHeight;               /* 0xf8f084, d2.h */
 extern struct D2INPUT *d2_FocusedInput;           /* 0x6ed9dc, d2.h: D2INPUT * */
 extern unsigned char kb_Last;           /* 0x1468410, d2.h */
-int d2_WinCreateSlider(int x, int y, int pic, int unk, int win);     /* 0x46bf10, d2.h: D2OBJ *d2_Objs */
+int d2_WinCreateSlider(int x, int y, int pic, char *caption, int win);     /* 0x46bf10, d2.h: D2OBJ *d2_Objs */
 void d2_CloseView(int view);                                         /* 0x4758f0, d2.h */
 void d2_SetObjWidth(int obj, short w);                               /* 0x46c260, d2.h */
 int d2_OpenInput(int x, int y, int w, int h, unsigned char flags);   /* 0x46a110 */
@@ -215,7 +215,7 @@ extern int d2_HitWindow;                    /* 0xf8aad0, the window the pointer 
                                                d2_PointerWin; also the "double click" id of the slots) */
 extern int ai_GameFlags;                /* 0x6f23f8, the game flags: the load window writes the load mode 10 whole */
 void d2_EnableObject(int obj, int on);      /* 0x475aa0, d2.h: enables / disables an object and its items */
-int sv_OpenMessageBox(int text, unsigned char flags); /* 0x521900, sv.c: opens the waiting box with text */
+int sv_OpenMessageBox(intptr_t text, unsigned char flags); /* 0x521900, sv.c: opens the waiting box with text */
 typedef struct SCREENMODE {                 /* 8 bytes, a screen mode of the table 0x62d7b8 */
     int w;                                  /* +0x0, the width */
     int h;                                  /* +0x4, the height */
@@ -325,7 +325,6 @@ int sv_CheckMoney(struct AICHAR *o, int n);         /* 0x520f90, sv.c: 1 when th
 int sv_MessageBox(intptr_t text, unsigned flags); /* 0x521150, sv.c: the modal message box */
 void sv_CameraFollow(void);                /* 0x52d7a0, sv.c: the per-frame camera follow */
 int d2_RemoveWindow(); int io_PrintText(intptr_t fmt, ...);
-int d2_GetObjValue();
 int he_IsMessageKindFiltered(int kind); /* 0x575640, he.c: nonzero when the kind is filtered */
 void he_SetMessageKindFiltered(int kind, int filtered); /* 0x575710, he.c: sets / clears the kind's bit */
 int cm_SendSetField(int a, int b, int c, int d, int e); /* 0x4c4a60, cm.c: message 0x19 (the field block) */
@@ -362,8 +361,7 @@ extern struct D2PIC *d2_Pics;              /* 0x6ed918, d2.h: D2PIC * */
 void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 struct AITIME;
 int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
-int ai_PokerStart();
-unsigned short ai_PokerStep(); int gm_BuildingSkill(); float ai_NormalizeEffectScale(float x);
+unsigned short ai_PokerStep(); float ai_NormalizeEffectScale(float x);
 typedef struct PLAYERRECVIEW {          /* f3gm.h's player record (gm_PlayerRecord, 0x56 words): only the float the poker game reads */
     char pad00[0x60];
     float luck;                         /* +0x60, the chance that the player sits down to play (decays by * 0.66 - 0.1 per game; reasoned) */

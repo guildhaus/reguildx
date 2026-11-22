@@ -6,6 +6,7 @@
 
 #include "f3init_types.h"                 /* INIT_PLAYER */
 #include "rd_types.h"                     /* G15BK */
+#include "portable.h"                /* intptr_t: a text id or a string in one parameter */
 struct AIBLD;
 struct AIBLD;
 struct D3OBJECT;
@@ -34,14 +35,14 @@ void init_OpenTown(void);                                               /* 0x50f
 char init_CollectSiteObject(struct D3OBJECT *o, void *ctx);             /* 0x510730 */
 void init_LoadSiteScene(char *name);                                    /* 0x510770 */
 int init_InitTown(char *city);                                          /* 0x510ad0 */
-void init_ShowStatus(int t);                                            /* 0x510e20 */
+void init_ShowStatus(intptr_t t);                                            /* 0x510e20 */
 int init_StartNetworkGame(char *name);                                  /* 0x510e50 */
 int init_JoinNetworkGame(int saveName);                                               /* 0x5112d0 */
 int init_SetupNewGame(int n);                                           /* 0x511400 */
 char init_CollectTorchObject(struct D3OBJECT *o, void *ctx);           /* 0x5115b0 */
 void init_StripTorches(struct D3OBJECT *s);                                              /* 0x511600 */
 void init_RebuildQuadTree(void);                                               /* 0x5116b0 */
-char init_TownBuildingHook(struct D3OBJECT *o);                                    /* 0x511700 */
+char init_TownBuildingHook(struct D3OBJECT *o, void *ctx);                                    /* 0x511700 */
 void init_PrepareTownScene(void);                                               /* 0x511790 */
 int init_FlagTreeObject(struct D3OBJECT *o);                                              /* 0x511810 */
 void init_RecreateQuadTree(void);                                               /* 0x511840 */

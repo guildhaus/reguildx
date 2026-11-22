@@ -199,7 +199,7 @@ int d2_SetForm(int view, int n);                                                
 extern int d2_ClickedId;                /* 0xf8a668 */
 int io_PrintText(intptr_t fmt, ...);                                                /* 0x515960, defined elsewhere */
 int sv_RunFrame(void (*cb)(), unsigned mask);                                      /* 0x5309a0, defined elsewhere */
-int snd_PlayVoice(int id, int bank, char *text, int var);                             /* 0x4c2760, plays a speech sample */
+struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var);                             /* 0x4c2760, plays a speech sample */
 int sb_IsPlaying(struct SBSAMPLE *s);                                                       /* 0x426f20 */
 void sb_Stop(struct SBSAMPLE *s, int fade);                                                 /* 0x427290 */
 extern int sv_PopRequest;                /* 0x6f22a0 */
@@ -211,7 +211,7 @@ int ai_MissionOfferDialog(int type, int id)
     char name[0x100];
     G13TYPE *t;
     int view, r;
-    void *snd;
+    struct SBSAMPLE *snd;
 
     r = 0;
     t = ai_GetMissionType(type);
@@ -1007,7 +1007,7 @@ void ai_MissionInfoDialog(int type, int id)
     char name[0x100];
     G13TYPE *t;
     int view;
-    void *snd;
+    struct SBSAMPLE *snd;
 
     t = ai_GetMissionType(type);
     view = d2_OpenForm(0, 0, "special\\mission");
@@ -1062,7 +1062,7 @@ void ai_MissionSuccessDialog(G13TYPE *t, int id)
 {
     char name[0x100];
     int view, ok;
-    void *snd;
+    struct SBSAMPLE *snd;
 
     snd_ClearQueue();
     view = d2_OpenForm(0, 0, "special\\mission");

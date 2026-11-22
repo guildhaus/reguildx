@@ -62,16 +62,16 @@ void par_Unlink(D3PARTSYS *ps)
     D3SCENE *s = ps->scene;
 
     if (ps->prev == D3PAR_HEADNODE)
-        D3PAR_SCENE_PAR(s)->head = ps->next;
+        s->parHead = ps->next;
     else
         ps->prev->next = ps->next;
     if (ps->next == &d3_ParEnd)
-        D3PAR_SCENE_PAR(s)->tail = ps->prev;
+        s->parTail = ps->prev;
     else
         ps->next->prev = ps->prev;
     if (s == d3_DefaultScene) {
-        d3_ParHead = D3PAR_SCENE_PAR(s)->head;
-        d3_ParTail = D3PAR_SCENE_PAR(s)->tail;
+        d3_ParHead = s->parHead;
+        d3_ParTail = s->parTail;
     }
 }
 /* 0x455760, deletes a particle system: unlinks it from its scene (or its list), releases its texture and
@@ -84,10 +84,10 @@ void par_Delete(D3PARTSYS *ps)
     if (s == d3_DefaultScene) {
         ps->next->prev = ps->prev;
         ps->prev->next = ps->next;
-        if (ps == D3PAR_SCENE_PAR(s)->head)
-            D3PAR_SCENE_PAR(s)->head = ps->next;
-        if (ps == D3PAR_SCENE_PAR(s)->tail)
-            D3PAR_SCENE_PAR(s)->tail = ps->next;
+        if (ps == s->parHead)
+            s->parHead = ps->next;
+        if (ps == s->parTail)
+            s->parTail = ps->next;
     } else
         par_Unlink(ps);
     if (ps->tex)

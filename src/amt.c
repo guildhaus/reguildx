@@ -1354,7 +1354,7 @@ int amt_InitApplicant(AICHAR *c, int k)
     cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, a);
     x = util_Random(r.i5 - r.i4 + 1);
     b = x + r.i4;
-    cm_BeginFieldBlock((char *)c, c->netId);
+    cm_BeginFieldBlock(c, c->netId);
     cm_AddFieldDelta(1, 1, 0xd, &b);
     cm_AddFieldDelta(1, 1, 2, &three);
     cm_AddFieldDelta(1, 1, 0x167, &k);
@@ -1710,7 +1710,7 @@ void amt_UpdateOffices(void)
                 r = amt_SendOfficeFree(amt_Table[i].idx);
             if (c != 0 && c->officeKind != 0) {
                 int v = 0;
-                cm_BeginFieldBlock((char *)c, c->netId);
+                cm_BeginFieldBlock(c, c->netId);
                 cm_AddFieldDelta(1, 1, 0x166, &v);
                 cm_SendFieldDeltas();
             }
@@ -1722,7 +1722,7 @@ void amt_UpdateOffices(void)
     for (c = ai_Chars; (int)&c->appliedOffice < (int)&ai_Chars[768].appliedOffice; c++) {
         if (c->appliedOffice != 0) {
             int v = 0;
-            cm_BeginFieldBlock((char *)c, c->netId);
+            cm_BeginFieldBlock(c, c->netId);
             cm_AddFieldDelta(1, 1, 0x168, &v);
             cm_SendFieldDeltas();
         }
@@ -2039,7 +2039,7 @@ void amt_CalcZuenfte(unsigned int kind)
     AICHAR *cand[16];
     AIMSG m;
     char buf[128], name[128];
-    int list[64];
+    D3OBJECT *list[64];
     AIBLD *it;
     AICHAR *ch, *cur, *pick, *cp;
     AIBTYPE *t;
@@ -2101,19 +2101,18 @@ void amt_CalcZuenfte(unsigned int kind)
         t = &ai_BTypes[bld];
         ai_BuildingName(bld, buf);
         cnt = ai_FindBauplaetze(buf, list);
-        j = list[util_Random(cnt)];
+        plot = list[util_Random(cnt)];
         i = 0;
-        while (j == 0) {
+        while (plot == 0) {
             if (i >= cnt)
                 break;
             if (list[i] != 0)
-                j = list[i];
+                plot = list[i];
             i++;
         }
-        if (j != 0) {
-            plot = (D3OBJECT *)j;
+        if (plot != 0) {
             d3_PointToWorld(plot, &plot->pos, (D3VECTOR *)&pos);
-            ai_ObjectAngle(&rot, j);
+            ai_ObjectAngle(&rot, plot);
             d3if_SelectScene(scene, 1);
             strcpy(gb, "gb_");
             strcat(gb, t->name);
@@ -2134,7 +2133,7 @@ void amt_CalcZuenfte(unsigned int kind)
             m.buildRot[1] = rot.y;
             m.buildRot[2] = rot.z;
             strcpy(m.buildPath, name);
-            cm_SendLongMessage((char *)&m);
+            cm_SendLongMessage(&m);
             return;
         }
         err_Message("amt_calc_zuenfte(): could not find a free place...");

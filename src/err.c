@@ -49,7 +49,7 @@ char err_Names[12][32] = {
     "_meister.log", "_d3.log", "_stats.log", "_msx.log", "___tracker.log", "_meister2.log"
 };
 
-int err_Started = 0;  /* 0x632368 */
+void (*err_Started)(void) = 0;  /* 0x632368, the exit function err_Init is given (main_Exit; never called here): nonzero while the handler is started */
 void (*err_CrashCB)(HANDLE) = 0;  /* 0x63236c, set by err_Init, called by the crash filter with the log handle (or -1 when no log was written) */
 unsigned int err_Flags = 0;  /* 0x632370 */
 char err_ShowUnknown = 0;  /* 0x632374 */
@@ -377,7 +377,7 @@ unsigned char err_CheckCall(char *p, int n, int base, int *target)
 /* 0x4220b0, starts the error handling: stores the flags, the window and the crash callback, installs
    err_ExceptionFilter and opens the log files of the enabled channels */
 
-void err_Init(int started, void (*crashCB)(HANDLE), HWND hwnd, unsigned int flags)
+void err_Init(void (*started)(void), void (*crashCB)(HANDLE), HWND hwnd, unsigned int flags)
 {
     char title[256];
     char path[260];

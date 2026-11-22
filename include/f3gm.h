@@ -64,7 +64,7 @@ int gm_CurseObjectCount(struct AIBLD *b);  /* 0x50cfd0 */
 struct AIBLD *gm_ObjectBuilding(struct AIOBJ *o);  /* 0x50a0f0 */
 int gm_TakeableCount(struct AICHAR *c, int proto, int n);  /* 0x50ad70 */
 float gm_HealthFactor(int c);  /* 0x508a20 */
-int gm_FreeStallCapacity(char *l, int id, int n);  /* 0x50acf0, how many of the goods the stall object l can still take, at most n */
+int gm_FreeStallCapacity(struct AIOBJ *l, int id, int n);  /* 0x50acf0, how many of the goods the stall object l can still take, at most n */
 void gm_ChangeBuildingState(struct AIBLD *b, int d);  /* 0x50cad0 */
 int gm_ListWorkers(struct AIBLD *b, int *out);  /* 0x502eb0, the worker lists of the building b (out[1 ..], out[0x19 ..]); returns their number */
 int gm_TitleNumberGroup(int n);  /* 0x504350, the group of the title number n */
@@ -153,8 +153,8 @@ short *gm_PlayerRecord(struct AICHAR *c);  /* 0x506430 */
 int gm_Opinion(int a, int b);  /* 0x50c520 */
 extern int gm_NOffers;  /* 0x7e3f3c */
 float gm_ObjectValue(int n);  /* 0x5086b0 */
-int gm_ListStock(short *l, int id);  /* 0x50ab50 */
-int gm_ListAmountById(char *l, int id);  /* 0x50ab20 */
+int gm_ListStock(struct AIOBJ *l, int id);  /* 0x50ab50 */
+int gm_ListAmountById(struct AIOBJ *l, int id);  /* 0x50ab20 */
 int gm_BuildingClass(int kind);  /* 0x501d80 */
 int gm_BuildingGoodsList(struct AIBLD *b, unsigned *out, int kind);  /* 0x5098a0 */
 int gm_BuildingLevel(struct AIBLD *b);  /* 0x508d70 */
@@ -167,14 +167,14 @@ float gm_StaffFactor(struct AIBLD *b, int n, int *ids);  /* 0x50cdc0, the staff 
 int gm_CollectOffers(int goods);  /* 0x500c20 */
 int gm_EquipmentValue(struct AIBLD *b, int level);  /* 0x509b10 */
 char *gm_FindGoods(int p, unsigned id);  /* 0x4ffc40 */
-int gm_FindMarketObject(int id);  /* 0x500ec0 */
-int gm_FreeCapacity(short *l, int id, int n);  /* 0x50ab80 */
+struct AIOBJ *gm_FindMarketObject(int id);  /* 0x500ec0 */
+int gm_FreeCapacity(struct AIOBJ *l, int id, int n);  /* 0x50ab80 */
 struct AIOBJ *gm_GetGebaeudeHauptraum(struct AIBLD *b);  /* 0x501ce0 */
 int gm_GetGoodsValue(struct AICHAR *c);  /* 0x509e60 */
 float gm_GoodsPrice(unsigned id, unsigned char p);  /* 0x5089c0 */
 float gm_ItemPrice(int item, unsigned char n);  /* 0x5087f0 */
 float gm_Liking(unsigned a, unsigned b, int c);  /* 0x50c550 */
-int gm_ListAmount(short *l, char *o);  /* 0x50aaf0 */
+int gm_ListAmount(struct AIOBJ *l, struct AIOBJ *o);  /* 0x50aaf0 */
 extern struct AIOBJ *ai_Objects;  /* 0x7e3f34 */
 extern int ai_GameFlags;  /* 0x6f23f8 */
 extern struct AIGOOD *ai_Goods;  /* 0x91aaf0 */
@@ -203,7 +203,7 @@ void gm_ChangeObjektZustand(int id, int d);  /* 0x50ca50 */
 float gm_CharacterBaseHealth(struct AICHAR *c);  /* 0x4fc890 */
 char *gm_CharacterHome(struct AICHAR *c, int *out2, int *out3);  /* 0x4fdcb0 */
 struct AICHAR; int gm_DropRank(struct AICHAR *c);  /* 0x504840 */
-int gm_FindPlayerBuilding(int p);  /* 0x501000 */
+struct AIBLD *gm_FindPlayerBuilding(int p);  /* 0x501000 */
 int gm_GetDisease(int n, int *out);  /* 0x5051d0 */
 struct AIBLD; int gm_HandOutMoney(struct AIBLD *b, int *out);  /* 0x4fae50 */
 int gm_JobSlots(int job, int *a, int *b);  /* 0x504100 */

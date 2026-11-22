@@ -135,14 +135,20 @@ int evtc_CallUserFunctionExt(EVTUSERFUNC2 *f, int *a, int *b)
     (*f)(*a, *b);
     return 1;
 }
+/* the unlinked script commands at the end (ai_AlwaysTrue / sv_ReturnZero in the exe) */
+int evtc_Dummy(void);
+int evtc_Print(char **s);
+int evtc_PrintInt(int *n);
+int evtc_PrintFloat(float *f);
+
 /* 0x40b8a0, registers the commands above (the last function of this file) */
 
 void evtc_Register(void)
 {
-    evt_ImportCommand("ecmd_Dummy", (int (*)())ai_AlwaysTrue, 5, 0);
-    evt_ImportCommand("Print", (int (*)())sv_ReturnZero, 5, 1, 6);
-    evt_ImportCommand("PrintInt", (int (*)())sv_ReturnZero, 5, 1, 1);
-    evt_ImportCommand("PrintFloat", (int (*)())sv_ReturnZero, 5, 1, 7);
+    evt_ImportCommand("ecmd_Dummy", evtc_Dummy, 5, 0);
+    evt_ImportCommand("Print", evtc_Print, 5, 1, 6);
+    evt_ImportCommand("PrintInt", evtc_PrintInt, 5, 1, 1);
+    evt_ImportCommand("PrintFloat", evtc_PrintFloat, 5, 1, 7);
     evt_ImportCommand("rnd", evtc_Random, 1, 1, 1);
     evt_ImportCommand("GetTime", evtc_GetTime, 1, 0);
     evt_ImportCommand("RunScript", evtc_RunScript, 1, 1, 6);
@@ -155,4 +161,32 @@ void evtc_Register(void)
     evt_ImportCommand("KillLocalScripts", evtc_StopOthers, 1, 0);
     evt_ImportCommand("CallUserFunction", evtc_CallUserFunction, 1, 2, 1, 1);
     evt_ImportCommand("CallUserFunctionExtended", evtc_CallUserFunctionExt, 1, 3, 1, 1, 1);
+}
+
+/* unlinked: the script command "ecmd_Dummy" (no arguments), which returns 1; LINK folds it (/OPT:ICF) into ai_AlwaysTrue, 0x4a8c10, where the
+   original's reference in evtc_Register points */
+int evtc_Dummy(void)
+{
+    return 1;
+}
+
+/* unlinked: the script command "Print" (a string, printed nowhere in this build), which returns 0; LINK folds it (/OPT:ICF) into sv_ReturnZero, 0x52a040, where the
+   original's reference in evtc_Register points */
+int evtc_Print(char **s)
+{
+    return 0;
+}
+
+/* unlinked: the script command "PrintInt" (an int, printed nowhere), which returns 0; LINK folds it (/OPT:ICF) into sv_ReturnZero, 0x52a040, where the
+   original's reference in evtc_Register points */
+int evtc_PrintInt(int *n)
+{
+    return 0;
+}
+
+/* unlinked: the script command "PrintFloat" (a float, printed nowhere), which returns 0; LINK folds it (/OPT:ICF) into sv_ReturnZero, 0x52a040, where the
+   original's reference in evtc_Register points */
+int evtc_PrintFloat(float *f)
+{
+    return 0;
 }

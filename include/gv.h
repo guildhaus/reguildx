@@ -21,8 +21,8 @@ struct G15PLANT;
 extern AITIME gv_LastTime;              /* 0x6f0e38, ai_Time at the last effect step (struct copies of it) */
 typedef struct GVGRAVE {                /* 0x44 bytes, a dead person in a grave (GVYARD.graves; filled by gv_BuryNewDead) */
     int id;                             /* 0x00, the object id (ai_NextObjectId), -1 when free */
-    char first[0x10];                   /* 0x04, the first name (txt_MaleFirstNames / txt_FemaleFirstNames by sex) */
-    char family[0x10];                  /* 0x14, the family name (txt_FamilyNames) */
+    char first[0x10];                   /* 0x04, the first name (TXT_MALE_FIRST_NAMES / TXT_FEMALE_FIRST_NAMES by sex) */
+    char family[0x10];                  /* 0x14, the family name (TXT_FAMILY_NAMES) */
     unsigned char traits[5];            /* 0x24, five values 42 .. 189 (random 0 .. 7 * 21 + 42) */
     char pad29[3];
     int v2c;                            /* 0x2c, 1 .. 9 */
@@ -138,8 +138,8 @@ struct D3PARTSYS *d3t_CreateExplosion(void *parent, struct D3VECTOR *pos, int co
 struct SBSAMPLE; struct SBBANK;
 struct SBSAMPLE * sb_GetSample(struct SBBANK *bank, char *name);   /* 0x426030 */
 int gm_FindById();                     /* 0x4fea50 */
-int cm_SendLongMessage(char *msg);                     /* 0x4c4b70 */
-void cm_BeginFieldBlock(char *o, int id);                     /* 0x4c3ba0 */
+struct AIMSG; int cm_SendLongMessage(struct AIMSG *msg);                     /* 0x4c4b70 */
+void cm_BeginFieldBlock(void *o, int id);                     /* 0x4c3ba0 */
 int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3d00 */
 int cm_SendFieldDeltas(void);                     /* 0x4c49a0 */
 extern struct AIBLD *ai_Blds;           /* 0x889f74, 256 records of 0xa9 bytes */
@@ -335,8 +335,8 @@ extern const int gv_RankWorth[10];           /* 0x5ee0f8, the worth each rank ne
 extern unsigned char ai_NumPlayers;     /* 0x62489c, the number of players (as ai.h / cm.h / mission.c) */
 int gm_GetWorth(unsigned short id);    /* 0x50a640 */
 int cm_SendSetField(int a, int b, int c, int d, int e);                     /* 0x4c4a60 */
-int cm_SendLongMessage(char *msg);                     /* 0x4c4b70 */
-void cm_BeginFieldBlock(char *o, int id);                     /* 0x4c3ba0 */
+struct AIMSG; int cm_SendLongMessage(struct AIMSG *msg);                     /* 0x4c4b70 */
+void cm_BeginFieldBlock(void *o, int id);                     /* 0x4c3ba0 */
 int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3c00 */
 int cm_SendFieldDeltas(void);                     /* 0x4c49a0 */
 struct AITIME;  /* f3gm.h typedef (gm_AddTime); file-scope so the gm_AddTime prototype below is stable */

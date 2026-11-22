@@ -16,14 +16,6 @@ extern D3PARTSYS *d3_ParHead;       /* 0xfb98f4, head of the default scene's lis
 extern D3PARTSYS *d3_ParTail;       /* 0xfb9598, tail of the default scene's list */
 #endif
 
-/* the scene's own particle list head / tail (D3SCENE +0xa4 / +0xa8), saved while another scene is active */
-typedef struct D3SCENEPAR {
-    char pad000[0xa4];
-    D3PARTSYS *head;                /* 0xa4 */
-    D3PARTSYS *tail;                /* 0xa8 */
-} D3SCENEPAR;
-#define D3PAR_SCENE_PAR(s) ((D3SCENEPAR *)(s))
-
 /* the system's callback time marker at 0x24 (a D3PARTSYS view; the union there holds effect parameters
    otherwise: a per-call spawn cap in d3_tools.c's d3t_EmitterCB, color24 for Erdbrocken (d3_mir.c)) */
 typedef struct D3PARSTIME {

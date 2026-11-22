@@ -98,7 +98,7 @@ struct AIOBJ;
 int rt_ChooseGoodsDialog(struct AIBLD *b, int x, int def);
 int rt_ChooseRouteGood(int x, RTPOINT *p);
 unsigned int rt_ChooseTabGood(struct AIBLD *b, int x, unsigned int def);
-int rt_OpenSlotControls(struct AIOBJ *cart, int a, int good, int k, int x, int y, int win, int *out);
+int rt_OpenSlotControls(struct AIOBJ *cart, struct AIOBJ *a, int good, int k, int x, int y, int win, int *out);
 void rt_RemoveControls(int *out);
 void rt_InitControls(int *out);
 void rt_EditPointDialog(RTPOINT *p, int *win);

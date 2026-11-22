@@ -38,7 +38,6 @@ void he_NoHandlerB(struct AIJOB *ev);  /* unlinked, defined at the end of the un
 #define GAPDATA __declspec(align(1)) unsigned char
 
 
-extern int ai_TransportWindow();
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 extern const unsigned __int64 gypsyFilter;  /* 0x5eed68, lcmap.c */
 #include "menu_types.h"
@@ -105,7 +104,7 @@ typedef struct HEWALKS {                /* the walk event 0x7a's ten slots over 
     char pad00[0xac];
     HEWALKSLOT slots[10];               /* 0xac, the walking characters */
 } HEWALKS;
-typedef struct HEEXAMBOX {              /* the master exam question 0x7e's words over AIJOB's union (from HEEXAMMSG) */
+typedef struct HEEXAMBOX {              /* the master exam question 0x7e's words over AIJOB's union (from AIMSG.exam) */
     char pad00[0xac];
     int chr;                            /* 0xac, the netId of the character asked */
     int examId;                         /* 0xb0, the id of the exam offer event 0x7f that asks (HEEXAMOFFER) */
@@ -115,15 +114,6 @@ typedef struct HEEXAMOFFER {            /* the exam offer event 0x7f's words ove
     int chr;                            /* 0xac, the netId of the character it is for */
     int accepted;                       /* 0xb0, 0 at the start (he_StartExamOffer), 1 when the player said yes (he_RunExamQuestion) */
 } HEEXAMOFFER;
-typedef union HEEXAMMSG {               /* the message 0x7e he_RunExamOffer posts (AIMSG has no names at +0x58 .. for it) */
-    AIMSG msg;
-    struct {
-        char pad00[0x58];
-        int chr;                        /* 0x58, the netId of the character asked */
-        int examId;                     /* 0x5c, the offer event's id */
-        AITIME due;                     /* 0x60, the answer is due: now + 2 hours */
-    } q;
-} HEEXAMMSG;
 typedef struct HECONVERT {              /* the conversion event 0x81's words over AIJOB's union (he_RunConversion) */
     char pad00[0xac];
     int left;                           /* 0xac, the characters still to turn */
@@ -544,13 +534,6 @@ typedef struct HEGESELLE {              /* the "RndGeselle" (a random journeyman
     int slot;                           /* 0xbc, the cm slot of the journeyman's creation (cm_SendMessage3d); its value
                                            is the new character */
 } HEGESELLE;
-typedef struct HEFEEMSG {               /* the AI message 0x56 he_RunMasterExamPay posts (AIMSG has no names at +0x58 /
-                                           +0x5c for it; a member added to AIMSG can flip other units' matches) */
-    char pad00[0x58];
-    unsigned char what;                 /* 0x58, 4 (reasoned: the kind of payment, its reader is not read yet) */
-    char pad59[3];
-    int amount;                         /* 0x5c, the amount paid */
-} HEFEEMSG;
 typedef struct HEEXAMPAY {              /* the master exam payment event's word over AIJOB's union (he_RunMasterExamPay) */
     char pad00[0xb0];
     int fee;                            /* 0xb0, the fee the message box names (5% of the character's worth), paid on yes */
@@ -616,14 +599,7 @@ typedef struct HETRAINING {             /* the training event 0x60's words over 
     unsigned char range;                /* 0xad, the random amount taken off it (util_Random), 2 * (2 + skill / 42 + 1) */
     unsigned char skill;                /* 0xae, the skill trained (AICHAR.skills index) */
 } HETRAINING;
-typedef struct HESKILLMSG {             /* the AI message 0x6a he_RunTraining posts when a player's skill reaches a new
-                                           level (AIMSG has no names at +0x58 / +0x5c for it) */
-    char pad00[0x58];
-    unsigned char skill;                /* 0x58, the skill (AICHAR.skills index) */
-    char pad59[3];
-    int level;                          /* 0x5c, its new level: the value / 42 */
-} HESKILLMSG;
-typedef struct HESKILLUP {              /* the skill level-up event 0x6a's words over AIJOB's union: HESKILLMSG's words as the
+typedef struct HESKILLUP {              /* the skill level-up event 0x6a's words over AIJOB's union: AIMSG.skillLevel's words as the
                                            event takes them over (+0x58 -> +0xac; its init he_StartSkillUp, run handler
                                            he_RunSkillUp) */
     char pad00[0xac];
@@ -684,16 +660,6 @@ typedef struct HEPLAGUE {               /* the plague event 0x59's words over AI
     int target;                         /* 0xcc, the id of the building the carriers are sent to */
     int home;                           /* 0xd0, the id of the start building, where they go back after each target */
 } HEPLAGUE;
-typedef struct HEPLAGUEMSG {            /* the AI message 0x78 he_BeginPlague posts to every player character (AIMSG
-                                           has no names at +0x58 .. +0x6c for it) */
-    char pad00[0x58];
-    int bld;                            /* 0x58, the start building's id */
-    int target;                         /* 0x5c, the target building's id: the start building */
-    int next;                           /* 0x60, -1 */
-    int walk;                           /* 0x64, the event's walk index */
-    int step;                           /* 0x68, the event's walk step */
-    int left;                           /* 0x6c, the event's countdown */
-} HEPLAGUEMSG;
 typedef struct HEGANG {                 /* the pickpocket gang event 0x61's words over AIJOB's union (its alloc handler
                                            he_StartGang, run handler 0x54a7b0; the gang is AIJOB.ids[0..5]) */
     char pad00[0xac];
@@ -728,7 +694,7 @@ typedef struct HEGATHERING {            /* the patrol gathering event 0x65's wor
     char pad00[0xac];
     char place[0x20];                   /* 0xac, the name of the scene object the figures gather at; an event 0x48 of
                                            another character at the same place is its opponent */
-    int home;                           /* 0xcc, the building the figures go back to (the fight party's raidHome) */
+    int home;                           /* 0xcc, the building the figures go back to (the fight party's fight.attackerBld) */
     int homeRoom;                       /* 0xd0, the room object there */
     int party;                          /* 0xd4, the id of the fight party (cm_GetSlotValue), -1 at the start */
     int partySlot;                      /* 0xd8, the cm send slot of the fight party (cm_SendNewParty) */
@@ -747,10 +713,6 @@ typedef struct HEHINTEVENT {            /* the tutorial hint event 0x83's words 
     char pad00[0xac];
     int entry;                          /* 0xac, the index into he_Hints the run handler is at */
 } HEHINTEVENT;
-typedef struct HETRADEMSG {             /* the trade message 0xf's words over AIMSG (he_AllocTrade) */
-    char pad00[0xa0];
-    int jobId;                          /* 0xa0, the id of the event that posted it */
-} HETRADEMSG;
 typedef struct HETRADE {                /* the trade event 0xb's words over AIJOB's union (he_AllocTrade / he_RunTrade) */
     char pad00[0xac];
     int cart;                           /* 0xac, the objId of the trading cart (gm_FindObjectInst; its 0x1dd object holds
@@ -1123,34 +1085,23 @@ void he_SetLifeByAge(AICHAR *c, unsigned short num);
 void d3t_SetColor(D3OBJECT *obj, unsigned char r, unsigned char g, unsigned char b);
 struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);  /* 0x447190, d3_interface.h */
-int d3t_GetHeightRange();
 void sv_PumpNet();
 int sprintf(char *buf, const char *fmt, ...);
 void mem_Free(void *p);
 void err_Message(char *text);
-int rd_PointsNear();
 void sv_MoveToGroup(struct AIBLD *o, struct AIOBJ *it, int c, struct AIJOB *g);
 void ai_ShowTributeDelayedNews(struct AICHAR *param_1);
 void ai_ShowTributeCollectNews(struct AICHAR *param_1);
 void ai_ShowTributeClaimNews(struct AICHAR *param_1, struct AICHAR *param_2);
-int ai_ChooseObjectTarget();
 void ai_ShowTavernHelperNews(struct AICHAR *param_1, struct AICHAR *param_2, int param_3);
-int ai_EvalFest();
-int ai_MasterExamPassed();
 unsigned int ai_MarriageTest(int param_1, int param_2);
 int gv_HeldCrimeIdsOf(int culprit, int *out, unsigned short t);
-void amt_ChangeDistrictOpinion();
-int ai_DrawAmountRow();
 void gm_ChangeRelationToJobs(unsigned short a, int b);
 void ai_PlagueNews(void);
 int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out);
-void amt_ChangeDistrictOpinion();
-int sv_IsAtDoor();
 void ai_PlagueMessage(struct AICHAR *c, void *bld);
 float util_RandomF2();
 int ls_GetLanguage();
-int ai_IsLocalWorker();
-int ai_CanAct();
 typedef struct HEINN {                  /* he_RunInnSim's list of the inns (he_FindGuestInn walks it, 12 bytes each) */
     AIBLD *inn;                         /* 0x0, the inn (a building of kind 0x16), 0: the end of the list */
     AIOBJ *drink1;                      /* 0x4, its bar's good 0x179, 0: none */
@@ -1161,10 +1112,6 @@ unsigned short hmt_RandomRecord(short k);
 unsigned short hmt_RandomTextOffset(unsigned short k);
 struct G11REC *hmt_GetRecord(unsigned short k);
 float ord_GetStatistics(int *o);
-int mem_IsValid();
-void par_Delete();
-int d3t_PlayAnim();
-float d3_VecAngle2();
 int d3t_PlaceObjectV(struct D3OBJECT *camera, struct D3VECTOR *pos, struct D3VECTOR *dir, int unk, char flags);
 void ai_PlagueMessageAll(void);
 void udp_Send(char *buf, int len);
@@ -1196,12 +1143,10 @@ typedef struct HERANKLINE {             /* 0xb9 bytes, one ranked player's packe
     char office2[0x24];                 /* 0x95, the second office (the same texts, + secondOffice) */
 } HERANKLINE;
 #pragma pack(pop)
-int sv_IsAtDoor();
 int he_PickNearBuilding(AICHAR *c, int n, AIBLD **blds, int *bldId, int *objId);
 int amt_InitApplicant(struct AICHAR *c, int k);
 int amt_GetOpenOffice(int k);
 int amt_CreateApplicant(int k);
-int ai_TutorialSetHost();
 int ai_TutorialOpenIntro();
 int ai_TutorialTick();
 int ai_TutorialCloseIntro();
@@ -1211,16 +1156,10 @@ void he_FreeEventNow(AIJOB *r);
 void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2);
 int gm_LevelPayout(int v, int kind);
 int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);
-int sv_IsCartAtDoor();
-int init_BuildingSceneUniverse();
 void sv_SelectPanelObject(struct AIBLD *o, int b, char *c);
 void sv_MoveToGroup(struct AIBLD *o, struct AIOBJ *it, int c, struct AIJOB *g);
-int sv_IsAtDoor();
 int ord_DispatchOrder(int id, struct AICHAR *c, int *m);
-int ai_BrawlWin();
-struct SBBANK * sb_FindBank();
 struct G15PLANT * veg_FindPlantId(struct G15PLANT *p, int id);
-int init_ObjectSceneUniverse();
 float gm_StockPrice(int p, int n);  /* 0x4ffa10 (f3gm.c; f3gm.h does not declare it) */
 typedef struct HEEV3D {                 /* the ransom event 0x3d's words over AIJOB's union (he_AllocRansom / he_RunRansom;
                                            he_RunKidnap's ransom message 0x3d posts it: victim, guild) */
@@ -2068,12 +2007,12 @@ void he_AllocTrade(AIJOB *ev)
     msg.arg[0] = p->cart;
     msg.arg[1] = ev->from;
     msg.arg[2] = p->bld;
-    ((HETRADEMSG *)&msg)->jobId = ev->id;
+    msg.jobId = ev->id;
     if (gm_FindObjectInst(p->cart) != 0) {
         if (ev->flags != 0)
             gm_AddTime(&ev->end, 1, 0x1e, 0);
         else
-            p->msgSlot = cm_SendLongMessage((char *)&msg);
+            p->msgSlot = cm_SendLongMessage(&msg);
     } else
         he_FreeEvent(ev);
     ev->modes = 0;
@@ -2189,7 +2128,7 @@ void he_RunTrade(AIJOB *ev)
                 g = gm_Query(cargo->list, 1, 0, t->sell[i]);
                 if (g != 0) {
                     if (ai_BTypes[bld->type].kind == 0xa)
-                        store = (AIOBJ *)gm_FindMarketObject(t->sell[i]);
+                        store = gm_FindMarketObject(t->sell[i]);
                     else if ((store = gm_Query(bld->objList, 2, 6, 0, 0x2a)) == 0)
                         store = gm_Query(bld->objList, 2, 6, 0, 0x116);
                     if (store != 0) {
@@ -2221,7 +2160,7 @@ void he_RunTrade(AIJOB *ev)
         for (i = 0; i < slots; i++) {
             if (t->buy[i] != 0 && t->buyBld[i] == bld->id) {
                 if (ai_BTypes[bld->type].kind == 0xa)
-                    store = (AIOBJ *)gm_FindMarketObject(t->buy[i]);
+                    store = gm_FindMarketObject(t->buy[i]);
                 else if ((store = gm_Query(bld->objList, 2, 6, 0, 0x2a)) == 0)
                     store = gm_Query(bld->objList, 2, 6, 0, 0x116);
                 if (store != 0) {
@@ -2291,12 +2230,12 @@ void he_RunTrade(AIJOB *ev)
     m.car = cart->objId;
     m.n = bld->id;
     m.ch = t->bld;
-    ((HETRADEMSG *)&m)->jobId = ev->id;
+    m.jobId = ev->id;
     if (m.n == m.ch) {
         gm_AddTime(&ev->end, 0, 5, 0);
         return;
     }
-    t->msgSlot = cm_SendLongMessage((char *)&m);
+    t->msgSlot = cm_SendLongMessage(&m);
     gm_AddTime(&ev->end, 0, 10, 0);
     return;
 moving:
@@ -2379,8 +2318,7 @@ done:
     he_FreeEvent(e);
 }
 
-int ai_FindBauplaetze();
-int ai_FindNearestObject(float *ref, int *list);  /* 0x58fe10 (lc.c) */
+struct D3OBJECT *ai_FindNearestObject(float *ref, struct D3OBJECT **list);  /* 0x58fe10 (lc.c) */
 
 /* 0x56b570, "he_AllocGebaeudeBauen", the alloc of an event of the type 0xd (when another one of the type is still
    below the stage 5 the record is freed): both clocks (end / clock60) = the start clock, due now + 1, workTotal /
@@ -2391,7 +2329,7 @@ void he_AllocGebaeudeBauen(AIJOB *e)
 {
     HEBUILD *b = (HEBUILD *)e;
     char buf[0x80];
-    char tab[0x400];
+    D3OBJECT *tab[0x100];
     AIJOB *e2;
     int n, i, scene;
 
@@ -2867,10 +2805,10 @@ void he_RunConstruction(AIJOB *e)
             return;
         }
         memset(&list, 0, sizeof(list));
-        d3_ForEachObject(d3_DefaultScene, (D3OBJECT *)site.object, 0x2c0, (D3OBJECTCB)ai_VgFilter, &list);
+        d3_ForEachObject(d3_DefaultScene, site.object, 0x2c0, ai_VgFilter, &list);
         c->placing = 0;
         for (i = 0; i < list.count; i++) {
-            o = (D3OBJECT *)list.objs[i];
+            o = list.objs[i];
             door = d3_FindObject((int)nearest->object, 0x100, 0, "dummy_TUER");
             if (o != 0 && o->type != 1 && door != 0) {
                 sc = evt_Load("SpecialEvents\\Hausbau.esc");
@@ -2902,11 +2840,11 @@ void he_RunConstruction(AIJOB *e)
             return;
         }
         memset(&list, 0, sizeof(list));
-        d3_ForEachObject(d3_DefaultScene, (D3OBJECT *)site.object, 0x2c0, (D3OBJECTCB)ai_VgFilter, &list);
+        d3_ForEachObject(d3_DefaultScene, site.object, 0x2c0, ai_VgFilter, &list);
         for (i = 0; i < list.count; i++) {
             if (d3_QuadTree != 0)
-                d3q_RemoveObject((D3OBJECT *)list.objs[i], (D3QNODE *)d3_QuadTree);
-            d3if_Delete((D3OBJECT *)list.objs[i]);
+                d3q_RemoveObject(list.objs[i], (D3QNODE *)d3_QuadTree);
+            d3if_Delete(list.objs[i]);
         }
         e->clock60 = ai_Time;
         e->end = ai_Time;
@@ -3024,7 +2962,7 @@ void he_RunConstruction(AIJOB *e)
                     AITIME now;
 
                     now = ai_Time;
-                    cm_BeginFieldBlock((char *)bld, bld->id);
+                    cm_BeginFieldBlock(bld, bld->id);
                     cm_AddFieldDelta(1, 0xe, 0x69, &now);
                     cm_SendFieldDeltas();
                 }
@@ -3656,7 +3594,7 @@ void he_LabIncident(AICHAR *c, AIJOB *ev, AIBLD *b, int state)
                     int one = 1;
                     int step = util_Random(4) + 3;
 
-                    cm_BeginFieldBlock((char *)task[k], task[k]->objId);
+                    cm_BeginFieldBlock(task[k], task[k]->objId);
                     cm_AddFieldDelta(4, 1, 0x1c, &one);
                     cm_AddFieldDelta(4, 1, 0x20, &step);
                     cm_SendFieldDeltas();
@@ -3673,7 +3611,7 @@ void he_LabIncident(AICHAR *c, AIJOB *ev, AIBLD *b, int state)
                 drop = -6 - util_Random(3);
             else
                 drop = -8 - util_Random(3);
-            cm_BeginFieldBlock((char *)b, b->id);
+            cm_BeginFieldBlock(b, b->id);
             cm_AddFieldValues(1, 1, 0x5c, &drop);
             cm_SendFieldDeltas();
             ai_DomizilMessage04(&ai_Chars[b->owner], c, b);
@@ -4186,7 +4124,7 @@ int he_SecretRoomDomizil(int bldId, AICHAR *victim)
                 msg.arg[0] = victim->netId;     /* the event's partner1 */
                 msg.arg[1] = owner->netId;      /* its partner2 */
                 msg.flags = 2;
-                cm_SendLongMessage((char *)&msg);
+                cm_SendLongMessage(&msg);
                 return 1;
             }
         }
@@ -4790,7 +4728,7 @@ void he_RunPlunder(AIJOB *e)
                     msg.arg[1] = p->agent;
                     msg.arg[2] = ai_Chars[idx].netId;
                     msg.arg[3] = price;
-                    cm_SendLongMessage((char *)&msg);
+                    cm_SendLongMessage(&msg);
                 } else {
                     deal[0] = e->netId;
                     deal[1] = p->agent;
@@ -4853,7 +4791,6 @@ void he_PlunderFailNews(int *a, AICHAR *c)
     he_ShowNews(a[0], -1, text, 1, 0x5f4, 0);
 }
 
-int he_OpenEventSlot();                 /* 0x53d6f0 */
 
 /* 0x570cc0, the run handler of the plunder offer 0x8b (he_RunPlunder sends it to a player victim; its words over
    AIJOB's union are the plunder deal HEPLUNDERDEAL): a missing client (the deal's netId) or a player whose
@@ -4926,7 +4863,6 @@ void he_RunPlunderOffer(AIJOB *e)
 int ai_PickPartnerRandomWalk(struct AICHAR *p, unsigned int fl, int n, unsigned short *ids, float lo, float hi, unsigned short *id); /* 0x4a5d30 */
 void he_PlunderTakePrice(int *a, AICHAR *c);   /* 0x570bf0 */
 void he_PlunderFailNews(int *a, AICHAR *c);   /* 0x570c70 */
-int he_OpenEventSlot();                 /* 0x53d6f0 */
 int sv_UsedGroupSlots(struct AIJOB *g);   /* 0x5241b0 */
 int gv_ListEntry(struct GVYARD *r, int i, unsigned char n);                 /* 0x4ef570 */
 void ai_HauntingText(unsigned short *param_1, struct AICHAR *param_2, unsigned int param_3);                 /* 0x5a9910 */
@@ -5336,7 +5272,7 @@ void he_RunGraveTraining(AIJOB *e)
         gain = (unsigned char)(gain / (*skill * (1.0f / 252) + 1.0));
         if ((float)(gain + *skill) > 252.0f)
             gain = (unsigned char)(252.0f - *skill);
-        cm_BeginFieldBlock((char *)ch, ch->netId);
+        cm_BeginFieldBlock(ch, ch->netId);
         cm_AddFieldValues(1, 1, (char *)ch->skills + (t->skill - (int)cm_FieldObject), &gain);
         cm_SendFieldDeltas();
         e->end = ai_Time;
@@ -5393,7 +5329,7 @@ void he_AllocMeeting(AIJOB *e)
     msg.arg[0] = e->id;
     msg.arg[1] = -1;
     msg.arg[2] = m->radius;
-    cm_SendLongMessage((char *)&msg);
+    cm_SendLongMessage(&msg);
     m->rounds = 0;
     if (m->kind > 2)
         m->kind = 2;
@@ -5485,7 +5421,7 @@ int he_CatchMeetingDisease(AICHAR *ch, float chance, int kind, float *health)
         else if (a == 9)
             bits ^= ((sev << 0x19) ^ bits) & 0x1e000000;
         delta = bits;
-        cm_BeginFieldBlock((char *)ch, ch->netId);
+        cm_BeginFieldBlock(ch, ch->netId);
         cm_AddFieldDelta(4, 1, 0x2c, &delta);
         cm_SendFieldDeltas();
         res = gm_AddHealth(ch->id, -cost);
@@ -5869,7 +5805,7 @@ void he_RunGraveyardWorkers(AIJOB *e)
                                     msg.time = ai_Time;
                                     msg.flags = 1;
                                     msg.arg[0] = ch->netId;
-                                    cm_SendLongMessage((char *)&msg);
+                                    cm_SendLongMessage(&msg);
                                 }
                             }
                         }
@@ -6314,7 +6250,7 @@ void he_GypsyWorkerQuits(AICHAR *pl, AICHAR *per)
     msg.time = ai_Time;
     msg.flags = 1;
     msg.arg[0] = ch->netId;
-    cm_SendLongMessage((char *)&msg);
+    cm_SendLongMessage(&msg);
     if (per == pl) {
         fmt = 0x41dd;
         strcpy(voice, "_NACHRICHTEN_ZIGEUNER_02");
@@ -6388,7 +6324,7 @@ void he_GypsyCurse(AICHAR *pl, AICHAR *per)
     msg.flags = 1;
     msg.arg[0] = pl == per ? -1 : pl->netId;
     msg.arg[1] = per->netId;
-    cm_SendLongMessage((char *)&msg);
+    cm_SendLongMessage(&msg);
     if (per == pl) {
         fmt = 0x41dd;
         strcpy(voice, "_NACHRICHTEN_ZIGEUNER_02");
@@ -6419,7 +6355,7 @@ void he_GypsySlowdown(AICHAR *pl, AICHAR *per)
     msg.fromId = -1;
     msg.time = ai_Time;
     msg.flags = 1;
-    cm_SendLongMessage((char *)&msg);
+    cm_SendLongMessage(&msg);
     if (per == pl) {
         fmt = 0x41dd;
         strcpy(voice, "_NACHRICHTEN_ZIGEUNER_02");
@@ -6800,7 +6736,6 @@ void he_CircusShowPayout(AIJOB *e)
 }
 
 void sv_MoveToGroup(struct AIBLD *o, struct AIOBJ *it, int c, struct AIJOB *g); /* 0x524260, the group register */
-int sv_IsAtDoor();                 /* 0x524770 */
 void he_CircusShowIncome(struct AIJOB *ev, int n);   /* 0x575030 */
 
 /* 0x5748d0, the run of the event 0xa1, a circus show of up to four figures (AIJOB.ids, the ones gm_FindChar finds):

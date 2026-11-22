@@ -834,6 +834,7 @@ int chc_FindInCharacterName(CHARACTER **ch, char **s)
     }
     return strstr((*ch)->name, *s) != 0;
 }
+int chc_PreloadSitMesh(CHARACTER **ch);  /* the unlinked script command at the end (sv_ReturnZero in the exe) */
 /* 0x40d270, registers the commands above (the last function of this file) */
 
 void chc_Register(void)
@@ -862,7 +863,7 @@ void chc_Register(void)
     evt_ImportCommand("SetCharacterCamera", chc_SetCharacterCamera, 5, 2, 1, 6);
     evt_ImportCommand("MoveCharacterCamera", chc_MoveCharacterCamera, 5, 3, 1, 6, 1);
     evt_ImportCommand("PreloadAnimation", chc_PreloadAnimation, 5, 5, 1, 6, 6, 6, 6);
-    evt_ImportCommand("PreloadSitMesh", (int (*)())sv_ReturnZero, 5, 1, 1);
+    evt_ImportCommand("PreloadSitMesh", chc_PreloadSitMesh, 5, 1, 1);
     evt_ImportCommand("CharacterIdle", chc_CharacterIdle, 1, 1, 1);
     evt_ImportCommand("StopCharacter", chc_StopCharacter, 5, 1, 1);
     evt_ImportCommand("KillCharacterAnimations", chc_KillCharacterAnimations, 5, 1, 1);
@@ -879,4 +880,11 @@ void chc_Register(void)
     evt_ImportCommand("SetCharacterTransperancy", chc_SetCharacterTransperancy, 5, 2, 1, 1);
     evt_ImportCommand("CharacterSitsDown", chc_CharacterSitsDown, 5, 1, 1);
     evt_ImportCommand("FindInCharacterName", chc_FindInCharacterName, 1, 2, 1, 6);
+}
+
+/* unlinked: the script command "PreloadSitMesh" (a character), which preloads nothing in this build and returns 0;
+   LINK folds it (/OPT:ICF) into sv_ReturnZero, 0x52a040, where the original's reference in chc_Register points */
+int chc_PreloadSitMesh(CHARACTER **ch)
+{
+    return 0;
 }
