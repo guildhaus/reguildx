@@ -101,7 +101,7 @@ int ocmd_GetSubObjectHandle(D3OBJECT **parent, char **name)
     char msg[0x200];
     D3OBJECT *obj;
 
-    obj = d3_FindObject((int)*parent, 0x140, 0, *name);
+    obj = d3_FindObject(*parent, 0x140, 0, *name);
     if (!obj) {
         sprintf(msg, "GetSubObjectHandle: Could not find object '%s'", *name);
         evt_Error(evt_Cur, evt_Cur->pc, msg);
@@ -123,7 +123,7 @@ int ocmd_CreateObject(float *x, float *y, float *z, char **name)
     pos.x = *x;
     pos.y = *y;
     pos.z = *z;
-    obj = d3_CreateObject(0, (D3VECTOR *)&pos, &rot, *name);
+    obj = d3_CreateObject(0, &pos.v, &rot, *name);
     if (obj)
         d3_RelightObject(obj);
     return (int)obj;
@@ -138,8 +138,8 @@ int ocmd_CreateObjectAtDummy(char **name, D3OBJECT **dummy)
 
     if (!*dummy)
         return 0;
-    d3_PointToWorld(*dummy, &(*dummy)->pos, (D3VECTOR *)&pos);
-    obj = d3_CreateObject(0, (D3VECTOR *)&pos, &(*dummy)->rotation, *name);
+    d3_PointToWorld(*dummy, &(*dummy)->pos, &pos.v);
+    obj = d3_CreateObject(0, &pos.v, &(*dummy)->rotation, *name);
     if (obj)
         d3_RelightObject(obj);
     return (int)obj;
@@ -155,9 +155,9 @@ int ocmd_CreateObjectGroupAtDummy(char **name, D3OBJECT **dummy)
 
     if (!*dummy)
         return 0;
-    d3_PointToWorld(*dummy, &(*dummy)->pos, (D3VECTOR *)&pos);
+    d3_PointToWorld(*dummy, &(*dummy)->pos, &pos.v);
     obj = d3_LoadGroup(*name, 0, 0);
-    d3_SetObjectPos(obj, (D3VECTOR *)&pos);
+    d3_SetObjectPos(obj, &pos.v);
     d3_WorldAngles(*dummy, &rot);
     d3_SetObjectRot(obj, &rot);
     if (obj)
@@ -809,7 +809,7 @@ int ocmd_CreateEmitter(int *a, int *count, int *parent, int *size, char **tex, i
     flags.f0 = *f1;
     flags.f1 = 1;
     flags.b0 = *f0;
-    return (int)par_CreateEmitter(*count, &d3_Origin, *parent, *tex, flags, (float)*size, &d3_EmitterCfg);
+    return (int)par_CreateEmitter(*count, &d3_Origin.v, *parent, *tex, flags, (float)*size, &d3_EmitterCfg);
 }
 /* 0x40f0c0, deletes the emitter *e (par_Delete); an invalid handle is a script error; 0 */
 
@@ -1164,7 +1164,7 @@ int ocmd_SetParticlePos(D3PARTSYS **ps, int *x, int *y, int *z)
     pos.x = (float)*x;
     pos.y = (float)*y;
     pos.z = (float)*z;
-    par_SetPos(p, (D3VECTOR *)&pos);
+    par_SetPos(p, &pos.v);
     return 0;
 }
 

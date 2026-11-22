@@ -54,20 +54,6 @@ typedef struct G10CARD {                /* 16 bytes, the deck at 0xf83660 (24 ca
     int owner;                          /* 0x8, the seat holding it, 3 = in the deck */
     int shown;                          /* 0xc */
 } G10CARD;
-typedef struct G10DIST {                /* 0x18 bytes, a district as 0x4e6f80 fills it */
-    int unk00;                          /* 0x00 */
-    int id;                             /* 0x04 */
-    unsigned char lvl;                  /* 0x08 */
-    char pad09[15];
-} G10DIST;
-typedef struct G10DREC {                /* 0x18 bytes, a district's character as 0x4e6fc0 lists it */
-    int unk00;                          /* 0x00 */
-    int id;                             /* 0x04 */
-    int unk08;                          /* 0x08 */
-    int unk0c;                          /* 0x0c */
-    unsigned char k;                    /* 0x10 */
-    char pad11[7];
-} G10DREC;
 extern G10GAME *ai_PokerTable;                                                    /* 0xf83654 */
 extern G10CARD ai_PokerDeck[24];                                                 /* 0xf83660 */
 extern G10NPC ai_PokerOpponents[2];                                                   /* 0xf837e0 */

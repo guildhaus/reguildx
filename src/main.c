@@ -137,10 +137,6 @@ typedef struct MAINCARRY {          /* 0x21d bytes (+0x219 the entry count), wha
     char rest[0x1e8];
 } MAINCARRY;
 #pragma pack(pop)
-typedef struct MAINPLREC {          /* gm_PlayerRecord's record, the part gm_TitleJob and the round start read */
-    char pad00[0x74];
-    unsigned char job[0x11];        /* 0x74, the job byte of each title group */
-} MAINPLREC;
 typedef struct MAINCHARNEW {        /* the AICHAR fields the character replacement writes (ai.h AICHAR: name is shorter than its 0x58 union) */
     unsigned short id;              /* 0x00 */
     unsigned char kind;             /* 0x02 */
@@ -179,13 +175,13 @@ typedef struct MAINCHARNEW {        /* the AICHAR fields the character replaceme
 extern struct SBBANK *main_SoundBanks[0x80]; /* 0x75df20 */
 extern char cm_RequestedSaveName[0x40];
 extern int main_LastLoadProgress;  /* 0x6f2610 */
-extern int main_BookObject;  /* 0x6f2614 */
+extern struct D3BGF *main_BookObject;  /* 0x6f2614 */
 extern float gm_DayStartHours[], gm_DayEndHours[];  /* 0x617830 / 0x617840 (f3gm.c) */
 extern int main_NoRoundFade;        /* 0x6f25c0, 1 skips the black fade before the round page */
 extern unsigned char main_GameEnded;  /* 0x6f25ad, sv.c: nonzero when the player reached the game's goal */
-extern int main_WindBank;           /* 0x75e630, the wind sound bank */
+extern struct SBBANK *main_WindBank;       /* 0x75e630, the wind sound bank */
 extern int sv_FrameMask;
-extern char ai_MissionMode;
+extern signed char ai_MissionMode;
 extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
 extern int sv_PopRequest;
 
@@ -196,7 +192,7 @@ extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirt
 extern GAPDATA full_data_6024e4[];
 extern int sv_FrameMask;
 extern int sv_PopRequest;
-extern char ai_MissionMode;
+extern signed char ai_MissionMode;
 
 
 extern INIT_PLAYER init_PlayerProfile;
@@ -252,7 +248,7 @@ extern unsigned int d3anim_CacheMax;   /* 0x5f927c, d3_anim.h */
 void ai_ClearTurnTable(void);           /* 0x587de0, sv_t.c: not in sv_t.h (adding it there moves sv_t's drafts ai_TutorialInitChapter3 / ai_TutorialInitChapter5) */
 int main_PreloadSound(char *f);         /* 0x537c70 */
 int main_ChooseCity(int unused, int host);  /* 0x537230, the player setup / city choice of a new game ("Menu\CHOOSECITY", the start menu page "Startmenu/A_Stadtwahl.esc"; host = 1 for a network host (the list of ".NET" files, else ".CTY"): lists the city files
-   "gamedata/cities/*" (0x5d33b0: up to 64 records of 0x210 bytes, the path at +0x109), reads each header (0x51cee0, an LSHEADER: +5 the name, from which the city point is created (ai_CreateCityPoint, its dummy "dummy_<NAME>"), +0x30 slotByte the player limit; diff[i] = limit - players (0x62489c)),
+   "gamedata/cities/*" (0x5d33b0: up to 64 records of 0x210 bytes, the path at +0x109), reads each header (0x51cee0, an LSHDR: +5 the name, from which the city point is created (ai_CreateCityPoint, its dummy "dummy_<NAME>"), +0x30 slotByte the player limit; diff[i] = limit - players (0x62489c)),
    creates the name object of the city (0x59a2c0 "stadt_<name>", the text plate 0x52e1c0 from the table 0x143a1c0 by the key "_STADTAUSWAHL_<NAME>_INFO+0" (0x42e770)), puts the city tower "sp_STADTTURM" (0x446e10,
    "sonstiges\wimpel_STADTTURM.baf") over the picked city (the pick object 0x448630 with a name starting with "stadt_" selects: sel; the default is the object of the 5th city) and shows its description
    ("_STADTAUSWAHL_<NAME>_BESCHR+0"); the buttons: ok (or enter / 0x1c) goes on to main_ChooseDifficulty and main_ChooseHistory (host: ends at once), the second button opens the opponent
@@ -490,9 +486,9 @@ int main_Init(void)
     err_Init(main_Exit, d3io_NoopCallback, main_Window, 0x10);
     mem_Init(48000);
     tr_startup(0x80);
-    sprintf(dir, "%sgamedata\\Screenshots", (char *)(unsigned)&main_GfxPath);
+    sprintf(dir, "%sgamedata\\Screenshots", (char *)main_GfxPath);
     CreateDirectoryA(dir, 0);
-    vfs_Init((char *)(unsigned)&main_GfxPath, 0);
+    vfs_Init((char *)main_GfxPath, 0);
     tb_Init(0xe, 0);
     return 1;
 }
@@ -924,7 +920,7 @@ int main_JoinNetworkGame(void)
         sprintf(path, "gamedata/network/%s.SAV", main_NetSaveName);
         f = vfs_Tfopen(path, "rb", vfs_Root);
         if (f != 0) {
-            ls_ReadSaveHeader(f, (int *)&hdr);
+            ls_ReadSaveHeader(f, &hdr);
             ai_NumPlayers = hdr.players;
             strcpy(main_NetHost, "127.0.0.1");
             ai_GameFlags |= 0x50;
@@ -1011,7 +1007,7 @@ int d2_RemoveWindowObjects();
 void d2_RadioAdd(int g, int obj);
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);
 int sv_OpenMessageBox(intptr_t text, unsigned char flags);
-int ls_ReadSaveHeader(struct VFSFILE *f, int *h);
+int ls_ReadSaveHeader(struct VFSFILE *f, LSHDR *h);
 
 /* 0x532da0, the network game search window "Menu\SEARCH_NETWORK": every 1.5 s (the clock d3_Time) or on the
    refresh button (btn[1]) it scans the LAN (udp_FindServers, port 12345, 3 s, up to 8 hosts) under the message
@@ -1076,7 +1072,7 @@ int main_SearchNetworkGame(int saved)
                         fp = vfs_Tfopen(path, "rb", vfs_Root);
                         if (fp != 0) {
                             ok = 1;
-                            ls_ReadSaveHeader(fp, (int *)&hdr);
+                            ls_ReadSaveHeader(fp, &hdr);
                             for (k = 0; k < hdr.players; k++) {
                                 if (recs[i].info.game.party[k] != hdr.party[k]) {
                                     ok = 0;
@@ -1133,7 +1129,7 @@ int main_SearchNetworkGame(int saved)
                             memset(&joined, 0, sizeof(LSHDR));
                             fp = vfs_Tfopen(path2, "rb", vfs_Root);
                             if (fp != 0) {
-                                ls_ReadSaveHeader(fp, (int *)&joined);
+                                ls_ReadSaveHeader(fp, &joined);
                                 vfs_fclose(fp);
                             }
                             memset(&cm_JoinChar, 0, sizeof(CMJOIN));
@@ -1309,7 +1305,7 @@ int main_MenuButton(int n, char *text, int form)
     return b;
 }
 
-int sv_RegisterNamePlate(char *name, char *text, int look);
+D3OBJECT *sv_RegisterNamePlate(char *name, char *text, int look);
 
 /* 0x533850, "main_Menue": the main menu ("MENU\MAIN_MENU"): fades to black, loads the city scene
    ("scenes/*ChooseCity.ed3", "..._Europa.ed3" for language 1 and up) and the player selection scene
@@ -1320,7 +1316,7 @@ int sv_RegisterNamePlate(char *name, char *text, int look);
    out. */
 void main_Menue(void)
 {
-    unsigned char *fade;
+    D2FADE *fade;
     char again;
     int f, grp, win;
     int bnew, bload, btut, bnet, bopt3, bcred, bquit, bopt1, bopt2, bini, bnetsave, bcheck;
@@ -1336,8 +1332,8 @@ void main_Menue(void)
     di_GetMouse();
     kb_Last = 0;
     evt_ResetNoGroup();
-    fade = (unsigned char *)d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0, 1);
-    while ((*fade & 4) == 0)
+    fade = d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0, 1);
+    while ((fade->flags & 4) == 0)
         sv_RunFrame(0, 0x24087);
     d2_CutsceneActive = 1;
     d3if_SelectScene(0, 0);
@@ -1632,7 +1628,7 @@ void main_GiveStartBuildings(int p)
     }
 }
 
-#define SV_WI2(i, o) (*(int *)(U_I((unsigned)&d2_Objs) + (i) * 0x2ec + (o)))
+#define SV_WI2(i, o) (*(int *)(U_I((uintptr_t)&d2_Objs) + (i) * 0x2ec + (o)))
 
 /* 0x5344f0, puts a person (the template model name n of the list TXT_FAMILY_MODEL_NAMES, index k) at the dummy "a" of the scene: the dummy position (0x458a20), a character object (0x403390 (b, pos)) that
    looks along the dummy's heading (0x458810 / 0x4539f0, 0x43b860), walks ("bewegung/gehen", walkSpeed 0.7), is registered as a status text plate (0x52e1c0); returns the new object or 0 */
@@ -1653,8 +1649,8 @@ CHARACTER *main_PlaceFamilyModel(char *dummy, char *model, int k)
         dir[0] = 0;
         dir[1] = 0.0f;
         dir[2] = 0;
-        d3_DirToWorld(o, &d3_ZAxis, (D3VECTOR *)loc);
-        dir[1] = d3_VecAngle((D3VECTOR *)&d3_ZAxis, (D3VECTOR *)loc);
+        d3_DirToWorld(o, &d3_ZAxis.v, (D3VECTOR *)loc);
+        dir[1] = d3_VecAngle(&d3_ZAxis.v, (D3VECTOR *)loc);
         d3_SetObjectRot(ch->obj, (D3VECTOR *)dir);
         ch_PlaceOnGround(ch, 0);
         ch->obj->owner = ch;
@@ -1823,7 +1819,7 @@ int main_ChooseModel(int job)
     idx = gm_TitleGroup(job);
     dummy = d3_FindObject(0, 0x100, 0, "dummy_SPIELER");
     if (dummy != 0)
-        d3_PointToWorld(dummy, &dummy->pos, (D3VECTOR *)&pos);
+        d3_PointToWorld(dummy, &dummy->pos, &pos.v);
     bnext = d2_CreatePicObj((int)((float)(d2_ScreenScale * 150.0f) + d2_ScreenScale * 330.0f), (int)(d2_ScreenScale * 370.0f), 0x1a);
     d2_Objs[bnext].interactive = 1;
     d2_Objs[bnext].style = 3;
@@ -1888,7 +1884,7 @@ int main_ChooseModel(int job)
                 }
                 strcpy(init_PlayerProfile.model, cur);
                 init_PlayerProfile.modelId = gm_HeadIconNumber(cur) + 0x639;
-                obj = ch_Create(cur, (D3VECTOR *)&pos);
+                obj = ch_Create(cur, &pos.v);
                 ch_PlaceAtObject(obj, dummy);
                 ch_SetVisible(obj, 0);
                 obj->obj->objectFlags &= ~4;
@@ -1983,7 +1979,7 @@ int main_ChooseFamily(int unused)
                             d3anim_FreePath(d3_Camera);
                             d3t_CamMoving = 0;
                             d3t_CamMove = 0;
-                            d3t_PlaceObjectV(d3_Camera, (D3VECTOR *)&camPos, &camDir, 0x50, 8);
+                            d3t_PlaceObjectV(d3_Camera, &camPos.v, &camDir, 0x50, 8);
                         }
                         break;
                     }
@@ -1993,7 +1989,7 @@ int main_ChooseFamily(int unused)
             }
             if (dm_L.rup != 0)
                 sv_PopRequest = 1;
-            if (ai_ClickedObject != 0 && (sel = (CHARACTER *)((D3OBJECT *)ai_ClickedObject)->owner) != 0) {
+            if (ai_ClickedObject != 0 && (sel = (CHARACTER *)ai_ClickedObject->owner) != 0) {
                 if (sel->familySlot == -1) {
                     v = 0;
                     if (sel == o1 || sel == o2)
@@ -2517,7 +2513,7 @@ void main_ChooseOpponents(int n)
     d2_CloseView(f);
 }
 /* 0x537230, the player setup / city choice of a new game ("Menu\CHOOSECITY", the start menu page "Startmenu/A_Stadtwahl.esc"; host = 1 for a network host (the list of ".NET" files, else ".CTY"): lists the city files
-   "gamedata/cities/*" (0x5d33b0: up to 64 records of 0x210 bytes, the path at +0x109), reads each header (0x51cee0, an LSHEADER: +5 the name, from which the city point is created (ai_CreateCityPoint, its dummy "dummy_<NAME>"), +0x30 slotByte the player limit; diff[i] = limit - players (0x62489c)),
+   "gamedata/cities/*" (0x5d33b0: up to 64 records of 0x210 bytes, the path at +0x109), reads each header (0x51cee0, an LSHDR: +5 the name, from which the city point is created (ai_CreateCityPoint, its dummy "dummy_<NAME>"), +0x30 slotByte the player limit; diff[i] = limit - players (0x62489c)),
    creates the name object of the city (0x59a2c0 "stadt_<name>", the text plate 0x52e1c0 from the table 0x143a1c0 by the key "_STADTAUSWAHL_<NAME>_INFO+0" (0x42e770)), puts the city tower "sp_STADTTURM" (0x446e10,
    "sonstiges\wimpel_STADTTURM.baf") over the picked city (the pick object 0x448630 with a name starting with "stadt_" selects: sel; the default is the object of the 5th city) and shows its description
    ("_STADTAUSWAHL_<NAME>_BESCHR+0"); the buttons: ok (or enter / 0x1c) goes on to main_ChooseDifficulty and main_ChooseHistory (host: ends at once), the second button opens the opponent
@@ -2531,7 +2527,7 @@ int main_ChooseCity(int unused, int host)
     D3OBJECT *cityobj[64];
     int diff[64];
     char recs[64][0x210], name[0x40], objName[0x100];
-    LSHEADER hdr;
+    LSHDR hdr;
     char *s, *d;
     char c;
 
@@ -2553,25 +2549,25 @@ int main_ChooseCity(int unused, int host)
         f = vfs_Tfopen(recs[i] + 0x109, "rb", vfs_Root);
         if (f == 0)
             return 0;
-        if (ls_ReadSaveHeader(f, (int *)&hdr) == 0) {
+        if (ls_ReadSaveHeader(f, &hdr) == 0) {
             vfs_fclose(f);
             return 0;
         }
         vfs_fclose(f);
-        diff[i] = (signed char)hdr.slotByte - (ai_NumPlayersW & 0xff);
-        h = ai_CreateCityPoint(hdr.name);
+        diff[i] = (signed char)hdr.playerByte - (ai_NumPlayersW & 0xff);
+        h = ai_CreateCityPoint(hdr.player);
         cityobj[i] = h;
         if (h != 0) {
             char key[0x100];
 
-            sprintf(key, "_STADTAUSWAHL_%s_INFO+0", hdr.name);
+            sprintf(key, "_STADTAUSWAHL_%s_INFO+0", hdr.player);
             strupr(key);
             k = txt_FindKey(key);
             if (k != -1)
                 strcpy(name, txt_Ptrs[k]);
             else
-                strcpy(name, hdr.name);
-            sprintf(objName, "stadt_%s", hdr.name);
+                strcpy(name, hdr.player);
+            sprintf(objName, "stadt_%s", hdr.player);
             strcpy(h->name, objName);
             sv_RegisterNamePlate(objName, name, 0);
         }
@@ -2588,7 +2584,7 @@ int main_ChooseCity(int unused, int host)
         rot.y = 0;
         rot.z = 0;
         pos.z = sel->pos.z;
-        tower = d3_CreateObject(0, (D3VECTOR *)&pos, &rot, "sp_STADTTURM");
+        tower = d3_CreateObject(0, &pos.v, &rot, "sp_STADTTURM");
         tower->objectFlags |= 4;
         tower->stateFlags = (tower->stateFlags & 0xf7) | 4;
         d3_RelightObject(tower);
@@ -2617,14 +2613,14 @@ int main_ChooseCity(int unused, int host)
         do {
             ai_ClickedObject = 0;
             h = d3if_Pick((float)dm_L.x, (float)dm_L.y, 0x60, 1);
-            ai_PickedObject = (char *)h;
+            ai_PickedObject = h;
             if (dm_L.lup != 0) {
-                ai_ClickedObject = (int)h;
+                ai_ClickedObject = h;
             } else if (dm_L.rup != 0 || kb_Last == 1) {
                 sv_PopRequest = 1;
             }
-            if (ai_ClickedObject != 0 && strncmp((char *)ai_ClickedObject, "stadt_", 6) == 0)
-                sel = (D3OBJECT *)ai_ClickedObject;
+            if (ai_ClickedObject != 0 && strncmp(ai_ClickedObject->name, "stadt_", 6) == 0)
+                sel = ai_ClickedObject;
             if (sel != last) {
                 D3VECTOR4 pos;
                 D3VECTOR rot;
@@ -2641,7 +2637,7 @@ int main_ChooseCity(int unused, int host)
                 pos.x = pos.x + sel->pos.x;
                 pos.y = pos.y + sel->pos.y;
                 pos.z = pos.z + sel->pos.z;
-                d3t_PlaceObjectV(tower, (D3VECTOR *)&pos, &rot, 0x28, 0x20);
+                d3t_PlaceObjectV(tower, &pos.v, &rot, 0x28, 0x20);
                 for (i = 0; i < n; i++) {
                     if (sel == cityobj[i]) {
                         if (cityobj[i] != 0) {
@@ -2785,15 +2781,15 @@ void main_LoadProgressCallback(int kind, int cur, int total)
 
 void main_CloseLoadingScreen(void)
 {
-    unsigned char *fade;
+    D2FADE *fade;
     unsigned mask;
 
     mask = 0x24087;
     if (net_Conn.s == -1)
         mask = 0x24086;
     tb_CloseFunction(d3io_NoopCallback);
-    fade = (unsigned char *)d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x1e, 1);
-    while ((*fade & 4) == 0)
+    fade = d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x1e, 1);
+    while ((fade->flags & 4) == 0)
         sv_RunFrame(0, mask);
     d2_CloseView(init_StatusForm);
     main_Nothing();
@@ -3000,7 +2996,7 @@ void main_RundenBeginn(void)
     char b1[0x100], b2[0x100], b3[0x100], b0[0x100];
     char hdr[0x100] = "";
     AICHAR *ch;
-    MAINPLREC *rec;
+    AIFIN *rec;
     AIBLD *r;
     char *e;
     int i, k, m, t;
@@ -3012,12 +3008,12 @@ void main_RundenBeginn(void)
         ch = &ai_Chars[i];
         if (ch->id != 0xffff && ch->kind >= 1 && ch->kind <= 8 && (net_Conn.s == -1 || (ai_CanAct(ch) != 0 && (net_Conn.s == -1 || ch->kind != 7)))) {
             if (ch->kind == 6 || ch->kind == 5) {
-                rec = (MAINPLREC *)gm_PlayerRecord(ch);
+                rec = gm_PlayerRecord(ch);
                 k = 0;
                 do {
                     t = gm_TitleJob(ch->id, k);
                     if (gm_TitlesLeft(t) == 6) {
-                        txt_Format(b4, 0x15c5, rec->job[k] + 0x130);
+                        txt_Format(b4, 0x15c5, rec->jobByGroup[k] + 0x130);
                         e = (char *)he_AddApEvent(ch->id, b4, 1, 0);
                         if (e != 0)
                             *e = *e - 1;
@@ -3118,17 +3114,17 @@ void main_EndRound(void)
     CHARACTER *scene;
     int weight;
 
-    fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+    fin = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
     fade = 0;
-    gm_ClockSeason((unsigned)&ai_Time);
+    gm_ClockSeason(&ai_Time);
     clk = ai_Time;
     if ((ai_GameFlags & 4) != 0 && 1 < main_Round)
         clk.year++;
     season = sv_ClockSeason(&clk);
     ahm_FillSteps();
-    fin->roundFactors[0] = 0.5f;
-    fin->roundFactors[1] = 1.0f;
-    fin->roundFactors[2] = 1.0f;
+    fin->duelBias = 0.5f;
+    fin->tavernChance = 1.0f;
+    fin->pokerChance = 1.0f;
     if (main_GfxOn != 0) {
         d2_DirtyRect.right = 0;
         d2_DirtyRect.left = d2_ScreenW;
@@ -3146,7 +3142,7 @@ void main_EndRound(void)
     if ((ai_GameFlags & 4) != 0)
         sv_NetworkSyncWait(0x24087);
     gm_CollectCarried(ai_PlayerId, (int *)&carry);
-    sv_FillDayPhases((int)&clk);
+    sv_FillDayPhases(&clk);
     sv_Season = sv_ClockSeason(&clk);
     gm_FindRichest(&rid, &k);
     k = 0;
@@ -3331,7 +3327,7 @@ void main_EndRound(void)
                             cm_SendMoveGoods(-1, ai_Chars[k].netId, ai_OwnPlayer, (int)cost);
                             cm_SendLongMessage(&msg);
                             cm_EndGroup("renovieren");
-                            fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[k]);
+                            fin = gm_PlayerRecord(&ai_Chars[k]);
                             if (fin != 0)
                                 fin->renovationSpent = (int)(fin->renovationSpent + cost);
                             value = (int)(budget - cost);
@@ -3383,7 +3379,7 @@ void main_EndRound(void)
 
         x = -1;
         y = -1;
-        if (ai_Chars[k].scene != 0 && he_FindFigurePlace((char *)&ai_Chars[k], &x, &y, &place) != 0) {
+        if (ai_Chars[k].scene != 0 && he_FindFigurePlace(&ai_Chars[k], &x, &y, &place) != 0) {
             fig = ai_Chars[k].scene;
             if (x != fig->group || y != fig->scriptGroup) {
                 if (fig->scriptId != -1)
@@ -3501,10 +3497,10 @@ void main_RoundReport(void)
         while ((fade->flags & 4) == 0)
             sv_RunFrame(0, sv_FrameMask);
     }
-    fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+    fin = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
     fin->missionMoney[4] += ai_Chars[ai_PlayerId].v1a0 + ai_Chars[ai_PlayerId].v1a4;
-    d3_SetObjectPos(d3_Camera, (D3VECTOR *)fin->camPos);
-    d3_SetObjectRot(d3_Camera, (D3VECTOR *)fin->camRot);
+    d3_SetObjectPos(d3_Camera, &fin->camPos.v);
+    d3_SetObjectRot(d3_Camera, &fin->camRot);
     if (main_GfxOn != 0) {
         net = 0;
         d2_SetPointerSprite(0, 0);
@@ -3545,40 +3541,40 @@ void main_RoundReport(void)
             cash -= fin->loansRepaid;
             costs += fin->loansRepaid;
         }
-        if (fin->costA != 0) {
-            io_PrintText(0x201a, fin->costA);
-            cash -= fin->costA;
-            costs += fin->costA;
+        if (fin->customerPaid != 0) {
+            io_PrintText(0x201a, fin->customerPaid);
+            cash -= fin->customerPaid;
+            costs += fin->customerPaid;
         }
-        if (fin->costB != 0) {
-            io_PrintText(0x2015, fin->costB);
-            cash -= fin->costB;
-            costs += fin->costB;
+        if (fin->buildPaid != 0) {
+            io_PrintText(0x2015, fin->buildPaid);
+            cash -= fin->buildPaid;
+            costs += fin->buildPaid;
         }
         if (fin->spyPaid != 0) {
             io_PrintText(0x201c, fin->spyPaid);
             cash -= fin->spyPaid;
             costs += fin->spyPaid;
         }
-        if (fin->incomeA != 0) {
-            io_PrintText(0x200d, fin->incomeA);
-            cash += fin->incomeA;
-            income += fin->incomeA;
+        if (fin->burglaryTakings != 0) {
+            io_PrintText(0x200d, fin->burglaryTakings);
+            cash += fin->burglaryTakings;
+            income += fin->burglaryTakings;
         }
-        if (fin->incomeB != 0) {
-            io_PrintText(0x200c, fin->incomeB);
-            cash += fin->incomeB;
-            income += fin->incomeB;
+        if (fin->gangTakings != 0) {
+            io_PrintText(0x200c, fin->gangTakings);
+            cash += fin->gangTakings;
+            income += fin->gangTakings;
         }
         if (fin->lootTakings != 0) {
             io_PrintText(0x200b, fin->lootTakings);
             cash += fin->lootTakings;
             income += fin->lootTakings;
         }
-        if (fin->incomeC != 0) {
-            io_PrintText(0x2010, fin->incomeC);
-            cash += fin->incomeC;
-            income += fin->incomeC;
+        if (fin->ransomTakings != 0) {
+            io_PrintText(0x2010, fin->ransomTakings);
+            cash += fin->ransomTakings;
+            income += fin->ransomTakings;
         }
         if (fin->cartSpent != 0) {
             io_PrintText(0x201d, fin->cartSpent);
@@ -3610,7 +3606,7 @@ void main_RoundReport(void)
             b = gm_BuildNext();
         }
         /* the interest of the loans the player's banks gave */
-        nrow = gm_BuildingEvents(ai_PlayerId, 0, 0xffff, (int *)loans);
+        nrow = gm_BuildingEvents(ai_PlayerId, 0, 0xffff, loans);
         j = 0;
         v = 0;
         if (nrow > 0) {
@@ -3653,7 +3649,7 @@ void main_RoundReport(void)
         if (wageCost != 0)
             io_PrintText(0x204a, wageCost);
         /* the interest of the player's own loans */
-        j = gm_CreditEvents(ai_PlayerId, 0, (int *)loans);
+        j = gm_CreditEvents(ai_PlayerId, 0, loans);
         iv = 0;
         k = 0;
         if (0 < j) {
@@ -3700,22 +3696,22 @@ void main_RoundReport(void)
         sv_DestroyScrollForm();
     }
     /* the round's parts go into the totals and are cleared */
-    fin->missionMoney[0] += fin->incomeB + fin->incomeA;
-    fin->incomeA = 0;
+    fin->missionMoney[0] += fin->gangTakings + fin->burglaryTakings;
+    fin->burglaryTakings = 0;
     fin->missionMoney[1] += fin->lootTakings;
-    fin->incomeB = 0;
-    fin->missionMoney[2] += fin->incomeC;
+    fin->gangTakings = 0;
+    fin->missionMoney[2] += fin->ransomTakings;
     fin->lootTakings = 0;
     fin->missionMoney[3] += fin->madeValue;
-    fin->incomeC = 0;
+    fin->ransomTakings = 0;
     fin->madeValue = 0;
     fin->spyPaid = 0;
     fin->upgradeSpent = 0;
     fin->renovationSpent = 0;
     fin->loansRepaid = 0;
-    fin->costA = 0;
+    fin->customerPaid = 0;
     fin->cartSpent = 0;
-    fin->costB = 0;
+    fin->buildPaid = 0;
     if (fade != 0) {
         d2_ReleaseFade(fade);
         fade = 0;
@@ -3737,7 +3733,7 @@ void main_RoundReport(void)
     }
 }
 
-#define PL(i) ((unsigned)&ai_Chars + (i) * 0x21c)
+#define PL(i) ((uintptr_t)&ai_Chars + (i) * 0x21c)
 float gm_TitlePeriodServed(int n, int *out);
 
 /* 0x53a250, the daily update of the figure i by its kind: kinds 6 / 7 get the field delta 0x174 (AICHAR.jobDays, the
@@ -4001,7 +3997,7 @@ void main_SettleRound(unsigned short pl)
 
                 for (pass = 0; pass < 2; pass++) {
                     for (j = 0; j < 0xc; j++) {
-                        int wage = (int)(gm_JobWage((char *)ps, p->type, -1, pass) * (p->wageRate * 0.01));
+                        int wage = (int)(gm_JobWage(ps, p->type, -1, pass) * (p->wageRate * 0.01));
 
                         if (workers[1 + pass * 12 + j] != 0xffff) {
                             AICHAR *q = &ai_Chars[workers[1 + pass * 12 + j]];
@@ -4106,7 +4102,7 @@ void main_SettleRound(unsigned short pl)
                 }
                 for (k = 0; k < 0xc; k++) {
                     AICHAR *boss = &ai_Chars[p->owner];
-                    int wage2 = (int)(gm_JobWage((char *)boss, p->type, -1, 0) * (p->wageRate * 0.01));
+                    int wage2 = (int)(gm_JobWage(boss, p->type, -1, 0) * (p->wageRate * 0.01));
                     int w = workers[0x19 + k];
 
                     if (w != 0xffff) {
@@ -4581,7 +4577,7 @@ void main_GameLoop(int ctl)
             main_CloseLoadingScreen();
             return;
         }
-        sv_FillDayPhases((int)&ai_Time);
+        sv_FillDayPhases(&ai_Time);
         sv_Season = sv_ClockSeason(&ai_Time);
     }
     init_LoadTypeBScene();
@@ -4627,7 +4623,7 @@ void main_GameLoop(int ctl)
     /* a loaded game: the weather, and the view at the building / object the save was made at */
     if ((ai_GameFlags & 2) != 0 && (sv_SetupWeather(&ai_Time, 0), ls_LoadedHeader.startBuilding != -1)) {
         bld = gm_FindBuildingById(ls_LoadedHeader.startBuilding);
-        inst = (AIOBJ *)gm_FindObjectInst(ls_LoadedHeader.startObject);
+        inst = gm_FindObjectInst(ls_LoadedHeader.startObject);
         ai_FrameWait = 2;
         if (bld != 0 && inst != 0) {
             init_LoadObjectScene(inst->type);
@@ -4955,7 +4951,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE prev, char *cmd, int show)
         mode = 1;
     if (strstr(cmd, "FULLSCREEN") != 0)
         mode = 3;
-    GetPrivateProfileStringA("General", "GfxPath", "\\project\\gfx\\", (char *)main_GfxPath, 0x104, ai_OptionsFile);
+    GetPrivateProfileStringA("General", "GfxPath", "\\project\\gfx\\", main_GfxPath, 0x104, ai_OptionsFile);
     GetPrivateProfileStringA("General", "GamePath", "\\project\\game\\", main_GamePath, 0x104, ai_OptionsFile);
     GetPrivateProfileStringA("General", "MoviePath", "\\project\\movie\\", main_MoviePath, 0x104, ai_OptionsFile);
     GetPrivateProfileStringA("General", "Language", "german", txt_Language, 0x40, ai_OptionsFile);
@@ -5105,7 +5101,7 @@ int cm_RunCharacters = 1;  /* 0x624570, 1: a later server time also updates the 
 int cm_RunRating = 1;  /* 0x624574, 1: a later server time also advances the rating base and recounts the characters every 6 minutes */
 int cm_RunEvents = 1;  /* 0x624578, 1: a later server time also runs the event handlers */
 int main_ObjectsOn = 1;  /* 0x62457c, nonzero: sv_RunFrame draws the gui objects (d2_DrawObjects) each frame */
-char ai_MissionMode = -2;  /* 0x624580, the mission kind chosen (5: one mission only, -1: none) */
+signed char ai_MissionMode = -2;  /* 0x624580, the mission kind chosen (5: one mission only, -1: none) */
 int main_AmbientSoundOn = 1;  /* 0x624584, the [Sound] ambient key of game.INI (WinMain stores it; no reader in the image) */
 unsigned char main_GfxPath[264] = { 0x5c, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x5c, 0x67, 0x66, 0x78, 0x5c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };  /* 0x624588, the GfxPath option (the vfs root and the base of the screenshot folder) */
 char main_GamePath[264] = { 0x5c, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x5c, 0x67, 0x61, 0x6d, 0x65, 0x5c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };  /* 0x624690 */
@@ -5120,8 +5116,8 @@ int ai_GameFlags = 0;  /* 0x6f23f8 */
 int ai_Difficulty = 0;  /* 0x6f23fc */
 struct SBBANK *snd_SystemBank = 0;  /* 0x6f2400, the handle of the system sample bank system.sbf (main_ 0x532160 loads it) */
 struct SBBANK *snd_Bank = 0;  /* 0x6f2404, the sample bank */
-int snd_ThunderBank = 0;  /* 0x6f2408 */
-int snd_BookBank = 0;  /* 0x6f240c */
+struct SBBANK *snd_ThunderBank = 0;  /* 0x6f2408 */
+struct SBBANK *snd_BookBank = 0;  /* 0x6f240c */
 struct SBBANK *snd_RoomBank = 0;  /* 0x6f2410 */
 struct SBBANK *snd_TransportBank = 0;  /* 0x6f2414 */
 struct MSXTRACK *main_MenuSong = 0;  /* 0x6f2418, the main menu's song (main_Menue) */
@@ -5174,7 +5170,7 @@ int main_UdpOpen = 0;  /* 0x6f25c4, the udp socket of the network game is open (
 int cm_RequestedSaveSlot = 0;  /* 0x6f25c8 */
 char cm_RequestedSaveName[0x40] = {0};  /* 0x6f25d0, the save name a save request carried (cm.c copies it, sv_RunFrame saves) */
 int main_LastLoadProgress = 0;  /* 0x6f2610, the last loading progress the load callback drew */
-int main_BookObject = 0;  /* 0x6f2614, the book object "Buch" loaded at the game start (d3io_LoadObjectRef; released at the end) */
+struct D3BGF *main_BookObject = 0;  /* 0x6f2614, the book object "Buch" loaded at the game start (d3io_LoadObjectRef; released at the end) */
 int ai_NextEventId = 0;  /* 0x6f2618 */
 int he_EventTop = 0;  /* 0x6f261c, the highest used index of he_Events (own object: ai_NextEventId is a 4-byte int) */
 int he_QuickTop = 0;  /* 0x6f2620 / */
@@ -5210,7 +5206,7 @@ char main_NetHost[0x80];  /* 0x75e1c0, the network host address ([Network] Host 
 char main_AppDir[288];  /* 0x75e240 */
 char main_NetSaveName[MAX_PATH];  /* 0x75e360, the network game's city / save name (sprintf "%s/%s.net", read for "gamedata/network/%s.SAV"); size: 257..288 bytes, as LINK's pad puts ai_OptionsFile (32-aligned) at 0x75e480 and no code reads past the name (tools/exe/commongaps.py); MAX_PATH taken */
 int main_PlatformNT;  /* 0x75e62c, the OS is NT based (dwPlatformId != VER_PLATFORM_WIN32_WINDOWS) */
-int main_WindBank;  /* 0x75e630, the wind sample bank (sb_LoadSampleBank "natur\wind.sbf" at the game start) */
+struct SBBANK *main_WindBank;  /* 0x75e630, the wind sample bank (sb_LoadSampleBank "natur\wind.sbf" at the game start) */
 unsigned int ai_MissionSeed;  /* 0x75e120, the random seed of the missions (as mission.h) */
 AITIME ai_TimeCopy;  /* 0x75e130, the clock copy 0x75e130..0x75e13e (14 bytes, written whole by cm.c / sv.c) */
 int ai_Opponents[7];  /* 0x75e160 .. */

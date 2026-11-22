@@ -71,7 +71,7 @@ typedef struct EVTFUNC {            /* 0x14c bytes, function defined in a script
         int nameWord;               /* name[0..3] as the one 4-byte scratch clear of evt_Compile */
     };
     char *body;                     /* 0x20, at its '{' */
-    char nargs;                     /* 0x24 */
+    signed char nargs;              /* 0x24 */
     int argtype[8];                 /* 0x28 */
     char argname[8][0x20];          /* 0x48 */
     int pad148;
@@ -102,7 +102,7 @@ typedef struct EVTLOOP {            /* 0x10 bytes */
     char *start;                    /* loop head (while) */
     int cond;                       /* 0x04 */
     int type;                       /* 0x08, 1 while, 2 if */
-    char braced;                    /* 0x0c */
+    signed char braced;             /* 0x0c */
 } EVTLOOP;
 
 typedef struct EVTFRAME {           /* 0xb0 bytes */

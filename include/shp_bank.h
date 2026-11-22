@@ -11,10 +11,10 @@
 typedef struct D2ANIM {             /* 0x11 bytes, d2_Anims[16]: a playing animation of a bank */
     D2BANK *bank;                   /* 0x00, 0: free */
     signed char frame;              /* 0x04, entry in the bank's table at pal, -1: stopped */
-    char timer;                     /* 0x05 */
+    signed char timer;              /* 0x05 */
     unsigned short shape;           /* 0x06, shape drawn now */
     int shadow;                     /* 0x08, bit 0: draw a half dark copy first */
-    char back;                      /* 0x0c, 1: play backwards */
+    signed char back;               /* 0x0c, 1: play backwards */
     short x, y;                     /* 0x0d */
 } D2ANIM;                           /* 0x11 */
 #pragma pack(pop)

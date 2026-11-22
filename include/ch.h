@@ -43,8 +43,8 @@ typedef struct CHARACTER {         /* 0x244 bytes */
     D3ANIM *turnAnim;               /* 0x78, the path animation a turn action created (CH_ANIM078) */
     struct D3ANIMSLOT *morph;       /* 0x7c, blend between two animations ("morph_%i") */
     struct D3ANIMDATA *next;        /* 0x80, animation to start next */
-    char nextloops;                 /* 0x84 */
-    char lastActionFrame;           /* 0x85, the slot flags.b[0] value a->func2 last ran for, -1: not yet */
+    signed char nextloops;          /* 0x84 */
+    signed char lastActionFrame;          /* 0x85, the slot flags.b[0] value a->func2 last ran for, -1: not yet */
     char pad086[0x2];
     D3SCENE *scene;                 /* 0x88 */
     union {                         /* 0x8c */
@@ -125,7 +125,7 @@ typedef struct CHTRANSPORT {        /* 0x18 bytes, what CHARACTER.transport poin
 
 typedef struct CHFADE {             /* 12 bytes, 16 of them in ch_Fades */
     CHARACTER *ch;
-    char in;                        /* 1: fade in, 0: fade out */
+    signed char in;                 /* 1: fade in, 0: fade out */
     int start;                      /* 0x08, ch_Time when the fade started */
 } CHFADE;
 
@@ -136,11 +136,11 @@ extern unsigned int d3_SceneFlags;   /* 0x63349c */
 int d3t_SceneIndex(D3SCENE *scene);                                                     /* 0x411be0 */
 char d3_DeflateScene(unsigned int flags);                                                  /* 0x43db30 */
 char d3_InflateScene(unsigned int flags);                                                  /* 0x43deb0 */
-void d3_SetObject078(D3OBJECT *obj, D3VECTOR *v);                                       /* 0x43b820 */
+void d3_SetObject078(D3OBJECT *obj, const D3VECTOR *v);                                       /* 0x43b820 */
 char d3if_Show(struct D3OBJECT *obj, char show);                                               /* 0x4471b0 */
 char d3if_ShowTree(D3OBJECT *obj, char show);                                             /* 0x447300 */
-void d3_DirToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                           /* 0x458810 */
-float d3_VecAngle(D3VECTOR *a, D3VECTOR *b);                                            /* 0x4539f0 */
+void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);                           /* 0x458810 */
+float d3_VecAngle(const D3VECTOR *a, D3VECTOR *b);                                            /* 0x4539f0 */
 extern const D3VECTOR4 d3_ZAxis;             /* 0x5ebb74, (0, 0, 1) */
 struct D3SM * d3sm_Create(struct D3TERRAIN *t, int size, int mask);                          /* 0x45eeb0 */
 void err_Message(char *msg);                                                            /* 0x4222b0 */
@@ -170,7 +170,7 @@ typedef struct CHOBJBITS {
     unsigned char b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1;
 } CHOBJBITS;
 #define D3OBJ_BITS(obj, off) ((CHOBJBITS *)((char *)(obj) + (off)))
-float d3_YawTo(struct D3OBJECT *obj, float *p);                                     /* 0x448ac0, angle towards target */
+float d3_YawTo(struct D3OBJECT *obj, const struct D3VECTOR *p);                                     /* 0x448ac0, angle towards target */
 /* D3OBJECT.info is the D3ANIMCTL of animated objects */
 #define D3OBJ_ANIM(obj) ((D3ANIMCTL *)(obj)->info)
 
@@ -182,8 +182,8 @@ extern int ch_CurrentScriptGroup;   /* 0x5f1298, the script group that goes with
 extern int ch_MorphTimeout;         /* 0x5f129c (-1), the D3ANIMSLOT.timeout of morphs in scene != 0 */
 extern int ch_MotionTimeout;        /* 0x5f12a0 (2), the same for motions */
 
-struct D3HMAP *ch_GetHMap(CHARACTER *ch);                                               /* 0x402140 */
-struct D3HMAP *ch_GetSceneHMap(D3SCENE *scene);                                         /* 0x402220 */
+struct D3SM *ch_GetHMap(CHARACTER *ch);                                               /* 0x402140 */
+struct D3SM *ch_GetSceneHMap(D3SCENE *scene);                                         /* 0x402220 */
 void ch_UpdateFades(void);                                                              /* 0x4022e0 */
 void ch_SetVisible(CHARACTER *ch, int show);                                            /* 0x402480 */
 void ch_InflateModel(CHARACTER *ch);                                                       /* 0x402540 */
@@ -217,7 +217,7 @@ int ch_PlaceOnGround(CHARACTER *ch, int force);                                /
                                                                                   ground (force: also when the ground
                                                                                   type is 0 or 0xd); returns the ground
                                                                                   type (0: none) */
-void ch_SaveGround(struct D3HMAP *hmap);                                                 /* 0x404e60 */
+void ch_SaveGround(struct D3SM *hmap);                                                 /* 0x404e60 */
 
 
 /* ---- 0x404360..0x405810 (worker ch2): action queue, camera presets, ground map ---- */
@@ -228,6 +228,7 @@ struct SBSAMPLE;
 
 typedef struct CHACTION CHACTION;
 typedef int (*CHACTFUNC)(CHACTION *a);
+typedef void (*CHACTCB)(CHACTION *a);  /* func2: its result is not read (ch_UpdateAction) */
 
 /* CHACTION.u.walk.flags */
 #define CH_WALK_TARGET   0x08   /* u.walk.target / u.walk.tname: follow that character */
@@ -238,7 +239,7 @@ typedef int (*CHACTFUNC)(CHACTION *a);
 
 struct CHACTION {                   /* 0x194 bytes, 2000 of them in ch_Queue; func == 0: free */
     CHACTFUNC func;                 /* 0x00, called every update */
-    CHACTFUNC func2;                /* 0x04, called when the animation reaches frame func2Frame */
+    CHACTCB func2;                  /* 0x04, called when the animation reaches frame func2Frame */
     unsigned char func2Frame;       /* 0x08, the slot frame func2 is called at (ch_AddActionCB) */
     unsigned char type;             /* 0x09, index into ch_ActDefs; '-' (0x2d): walk */
     char pad0a[0x2];
@@ -270,7 +271,7 @@ struct CHACTION {                   /* 0x194 bytes, 2000 of them in ch_Queue; fu
     union {                         /* 0xf0 */
         char name[0x88];            /* animation name */
         struct {
-            char started;           /* turn actions (worker ch4) */
+            signed char started;    /* turn actions (worker ch4) */
         } turn;
         struct {                    /* the actions of type '3' (0x33): args[1] / args[2] name a building and its
                                        object, the load puts their scene universe into args[0] and here */
@@ -314,7 +315,7 @@ struct CHACTION {                   /* 0x194 bytes, 2000 of them in ch_Queue; fu
         } scriptAction;
         struct {                        /* move actions: where to place the character */
             int unk178;
-            char hasPos;                /* 0x17c, 1: pos holds the position */
+            signed char hasPos;         /* 0x17c, 1: pos holds the position */
             char pad17d[0x3];
             D3VECTOR pos;               /* 0x180 */
         } move;
@@ -355,13 +356,13 @@ struct CHACTION {                   /* 0x194 bytes, 2000 of them in ch_Queue; fu
             struct D3OBJECT *object;    /* 0x180, the object picked up */
         } pickUp;
     };
-    char stop;                      /* 0x190 */
+    signed char stop;               /* 0x190 */
     char pad191[0x3];
 };
 
 typedef struct CHACTDEF {           /* 0x4c bytes, 64 of them in ch_ActDefs */
     CHACTFUNC func;
-    char flags;                     /* 0x04, written 1 for every declared action; no reader in the drafted code
+    signed char flags;              /* 0x04, written 1 for every declared action; no reader in the drafted code
                                        (a guessed name, the original's role is unknown) */
     char name[0x43];                /* 0x05 */
     int nargs;                      /* 0x48 */
@@ -406,7 +407,7 @@ void ch_GetCamera(CHARACTER *ch, int view, D3VECTOR4 *pos, D3VECTOR *rot);      
 void ch_SetCamera(CHARACTER *ch, int view);                                             /* 0x404d80 */
 void ch_MoveCamera(CHARACTER *ch, int view, int time);                                  /* 0x404dd0 */
 int ch_Random(unsigned short n);                                                        /* 0x404e40 */
-void ch_RestoreGround(struct D3HMAP *hmap);                                                 /* 0x404ed0 */
+void ch_RestoreGround(struct D3SM *hmap);                                                 /* 0x404ed0 */
 int ch_SetGroundDiamond(int x, int z, unsigned char scene, int type, int r);                   /* 0x404fc0 */
 int ch_RandomNear(D3VECTOR *pos, D3VECTOR *out);                                        /* 0x405160 */
 int ch_FindNear(CHARACTER *ch, CHARACTER **out, float dist);                            /* 0x405260 */
@@ -571,7 +572,7 @@ void ch_Close(void);                                                            
 void ch_DeleteAll(void);                                                                /* 0x40b240 */
 CHACTION *ch_NewAction(CHARACTER *ch);                                                  /* 0x40b270 */
 CHACTION *ch_AddAction(CHARACTER *ch, unsigned int type, ...);                          /* 0x40b2f0 */
-struct CHACTION * ch_AddActionCB(struct CHARACTER *ch, CHACTFUNC func2, unsigned char frame, unsigned int type, ...); /* 0x40b400 */
+struct CHACTION * ch_AddActionCB(struct CHARACTER *ch, CHACTCB func2, unsigned char frame, unsigned int type, ...); /* 0x40b400 */
 void ch_ClearSceneCallbacks(D3SCENE *scene);                                            /* 0x40b4d0 */
 void ch_SetSitAnim(CHARACTER *ch, char *name);                                          /* 0x40b530 */
 /* the ch2 block declares these two under their addresses */

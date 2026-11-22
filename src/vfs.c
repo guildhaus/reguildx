@@ -24,7 +24,7 @@ int vfs_OpenCount = 0;  /* 0x63340c */
 const char vfs_Ext[][6] = { ".BIN5", ".BIN4", ".BIN3", ".BIN2", ".BIN1", ".BIN0", ".BIN" };  /* 0x5eba40, ".BIN5", ".BIN4", ... */
 
 /* 0x42eca0, compares two names, ignoring case if vfs_IgnoreCase is set. */
-int vfs_strcmp(char *a, char *b)
+int vfs_strcmp(char *a, const char *b)
 {
     if (vfs_IgnoreCase)
         return stricmp(a, b);

@@ -41,8 +41,8 @@ typedef struct SVBOOK {                 /* 0x274 bytes, an open book ("f3_sv:Ope
     int views[16];                      /* +0x228, the page views (d2_LoadView), npages of them */
     int btnNext;                        /* +0x268, the forward button object (-1 = none) */
     int btnPrev;                        /* +0x26c, the backward button object (-1 = none) */
-    char page;                          /* +0x270, the first page shown (the left of the open pair) */
-    char npages;                        /* +0x271 */
+    signed char page;                   /* +0x270, the first page shown (the left of the open pair) */
+    signed char npages;                 /* +0x271 */
     unsigned char zbuffer;              /* +0x272, d3d_ZEnabled at the opening (restored by the close) */
     char pad273;
 } SVBOOK;

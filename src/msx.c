@@ -507,8 +507,8 @@ unsigned int msx_FadeStart = 0;  /* 0x6325b0 */
 LARGE_INTEGER msx_Last = {0};  /* 0x6325b4, counter at the last update */
 int msx_DelayPeak = 0;  /* 0x6325bc */
 int msx_Quit = 0;  /* 0x6325c0, ends the update thread */
-int msx_Driver = 0;  /* 0x6325c4, music */
-int msx_AmbDriver = 0;  /* 0x6325c8, ambient */
+struct SFXDRIVER *msx_Driver = 0;  /* 0x6325c4, music */
+struct SFXDRIVER *msx_AmbDriver = 0;  /* 0x6325c8, ambient */
 MSXTRACK msx_Tracks[MSX_TRACKS] = {0};  /* 0x6325d0 */
 char msx_Path[0x100];  /* 0x14611a0 */
 MSXTRACK msx_Dummy;  /* 0x14612a0, returned when there is no driver */

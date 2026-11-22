@@ -20,11 +20,6 @@ typedef struct HMTFILE {                /* historical.dfn after the magic */
     HMTREC *p;                          /* 0x08 */
     HMTREC *k;                          /* 0x0c */
 } HMTFILE;
-typedef struct HMTOBJ {                 /* 0x18 bytes, filled by 0x4e6ec0 */
-    int obj;                            /* 0x00 */
-    int id;                             /* 0x04, a character id or -1 */
-    char pad08[0x10];
-} HMTOBJ;
 typedef struct HMTCAND {                /* a candidate of the election 0x4ad1c0 */
     AICHAR *c;
     float score;

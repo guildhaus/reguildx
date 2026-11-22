@@ -116,11 +116,11 @@ void d3d_FindTextureFormats(DWORD bpp, DWORD fourcc, DWORD bpp2)
 }
 /* 0x435d70, gets IDirect3D3 and picks the device: the one saved in the registry, else asks. */
 
-char d3d_Init(int bitplanes, int a, int b)
+char d3d_Init(int bitplanes, HWND wnd, int unk)
 {
     char guidstr[256];
     GUID guid;
-    int h;
+    HKEY h;
     int sel;
     char ask;
     char again;
@@ -146,7 +146,7 @@ char d3d_Init(int bitplanes, int a, int b)
                         if (again)
                             ask = 0;
                         h = reg_OpenKey("dd_vesa", 1);
-                        if (h != -1) {
+                        if (h != (HKEY)-1) {
                             if (reg_GetString(h, "d3d_Guid", guidstr) && dd_StringToGuid(guidstr, &guid)) {
                                 for (i = 0; i < d3d_NumDevices; i++) {
                                     if (!memcmp(&guid, &d3d_Devices[i].Guid, sizeof(GUID))) {
@@ -159,7 +159,7 @@ char d3d_Init(int bitplanes, int a, int b)
                         }
                         if (!ask)
                             break;
-                        dd_DeviceDialog(bitplanes, b, a, 1, d3d_D3D);
+                        dd_DeviceDialog(bitplanes, unk, wnd, 1, d3d_D3D);
                         again = 1;
                     }
                 }

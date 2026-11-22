@@ -47,7 +47,9 @@ char *util_BaseName(char *path)
 
 int file_Exists(char *path)
 {
-    return vfs_FindFile(path, (int)vfs_Root, (int *)&path) != 0;
+    VFSDIR *d;
+
+    return vfs_FindFile(path, vfs_Root, &d) != 0;
 }
 /* 0x4010b0, the next line that is neither empty nor a ';' comment, trimmed and upper-cased */
 
@@ -94,7 +96,7 @@ void bio_rd_s(VFSFILE *f, char *s)
 }
 /* 0x4011d0, reads a 4-byte value */
 
-void bio_rd_i(VFSFILE *f, int *i)
+void bio_rd_i(VFSFILE *f, void *i)
 {
     vfs_fread(i, 4, 1, f);
 }
@@ -118,37 +120,41 @@ void bio_wr_i(VFSFILE *f, int i)
 }
 /* 0x401260, reads three 4-byte values (a vector, as raw bits) */
 
-void bio_rd_v3(VFSFILE *f, int *v)
+void bio_rd_v3(VFSFILE *f, void *v)
 {
-    bio_rd_i(f, v);
-    bio_rd_i(f, v + 1);
-    bio_rd_i(f, v + 2);
+    int *w = v;
+    bio_rd_i(f, w);
+    bio_rd_i(f, w + 1);
+    bio_rd_i(f, w + 2);
 }
 /* 0x401290, reads four 4-byte values */
 
-void bio_rd_v4(VFSFILE *f, int *v)
+void bio_rd_v4(VFSFILE *f, void *v)
 {
-    bio_rd_i(f, v);
-    bio_rd_i(f, v + 1);
-    bio_rd_i(f, v + 2);
-    bio_rd_i(f, v + 3);
+    int *w = v;
+    bio_rd_i(f, w);
+    bio_rd_i(f, w + 1);
+    bio_rd_i(f, w + 2);
+    bio_rd_i(f, w + 3);
 }
 /* 0x4012d0, writes three 4-byte values */
 
-void bio_wr_v3(VFSFILE *f, int *v)
+void bio_wr_v3(VFSFILE *f, const void *v)
 {
-    bio_wr_i(f, v[0]);
-    bio_wr_i(f, v[1]);
-    bio_wr_i(f, v[2]);
+    const int *w = v;
+    bio_wr_i(f, w[0]);
+    bio_wr_i(f, w[1]);
+    bio_wr_i(f, w[2]);
 }
 /* 0x401300, writes four 4-byte values */
 
-void bio_wr_v4(VFSFILE *f, int *v)
+void bio_wr_v4(VFSFILE *f, const void *v)
 {
-    bio_wr_i(f, v[0]);
-    bio_wr_i(f, v[1]);
-    bio_wr_i(f, v[2]);
-    bio_wr_i(f, v[3]);
+    const int *w = v;
+    bio_wr_i(f, w[0]);
+    bio_wr_i(f, w[1]);
+    bio_wr_i(f, w[2]);
+    bio_wr_i(f, w[3]);
 }
 /* 0x401340, writes an array: element count, element size, then the data */
 

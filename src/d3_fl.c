@@ -310,7 +310,7 @@ void d3fl_FreeCache(void)
         if (d3fl_Cache[i].tex) {
             if (d3fl_Cache[i].tex->name[0] == '*')
                 while (d3fl_Cache[i].tex->refs > 0)
-                    tex_Release((D3TEXHANDLE *)d3fl_Cache[i].tex);
+                    tex_Release((struct TSTEXTURE *)d3fl_Cache[i].tex);
             d3fl_Cache[i].tex = 0;
             d3fl_Cache[i].flag = 0;
         }
@@ -512,7 +512,7 @@ void d3fl_Flush(void)
         if (d3fl_Cache[i].tex) {
             if (d3fl_Cache[i].tex->name[0] == '*')
                 while (d3fl_Cache[i].tex->refs > 0)
-                    tex_Release((D3TEXHANDLE *)d3fl_Cache[i].tex);
+                    tex_Release((struct TSTEXTURE *)d3fl_Cache[i].tex);
             d3fl_Cache[i].tex = 0;
         }
         d3fl_Cache[i].flag = 0;
@@ -566,7 +566,7 @@ D3FLCACHE *d3fl_Find(unsigned char *map, int mapsize, int x, int y, unsigned int
     for (j = 0; j < n; j++)
         for (i = 0; i < n; i++)
             tiles[j][i] = map[((x + i) & mask) + ((j + y) & mask) * mapsize];
-    hash = util_Hash(tiles, 25) + d3_CurrentScene;
+    hash = util_Hash(tiles[0], sizeof(tiles)) + d3_CurrentScene;
     if (phash)
         *phash = hash;
     for (i = 0, c = d3fl_Cache; i < d3fl_Count; i++, c++)
@@ -578,7 +578,7 @@ D3FLCACHE *d3fl_Find(unsigned char *map, int mapsize, int x, int y, unsigned int
 }
 /* 0x43fc10, the cache texture for the tiles at x, y (created if needed) */
 
-D3FLTEX *d3fl_GetTexture(unsigned char *map, int mapsize, int x, int y, unsigned int size, D3FLSRC *src)
+TSTEXTURE *d3fl_GetTexture(unsigned char *map, int mapsize, int x, int y, unsigned int size, D3FLSRC *src)
 {
     D3FLCACHE *c;
     int hash;
@@ -609,7 +609,7 @@ D3FLTEX *d3fl_GetTexture(unsigned char *map, int mapsize, int x, int y, unsigned
             c->t.texsize = min((0x40 >> d3fl_DetailShift) * size, d3fl_DetailScale << d3fl_DetailSizeShift);
             u.i = 0;
             u.f.b[0] = 0xff;
-            c->tex = (D3FLTEX *)tex_CreateHi(names[size], c->t.texsize, u.f, 0, 0, d3fl_Mips);
+            c->tex = tex_CreateHi(names[size], c->t.texsize, u.f, 0, 0, d3fl_Mips);
             c->tex->reserved = 0;
         } else
             strcpy(c->tex->name, names[size]);
@@ -734,7 +734,7 @@ void d3fl_FreeMap(D3FLMAP *map)
     }
     if (map->regions) {
         for (i = 0; i < map->nregions; i++)
-            tex_Release((D3TEXHANDLE *)map->regions[i].tex);
+            tex_Release((struct TSTEXTURE *)map->regions[i].tex);
         mem_Free(map->regions);
         map->regions = 0;
     }
@@ -837,7 +837,7 @@ void d3fl_PrepareWater(D3FLMAP *map)
     char buf[64];
     unsigned char *mask, *cmask, *c, *w, *w2;
     D3FLREGION *regs;
-    D3FLTEX *tex;
+    TSTEXTURE *tex;
     D3FLTILE *t;
     D3FLWREG *r;
     D3FLPOLY *p;
@@ -978,11 +978,11 @@ void d3fl_PrepareWater(D3FLMAP *map)
                         D3FL_COPY_TO(regs, map->regions, oldn * sizeof(D3FLREGION));
                         first = oldn;
                     }
-                    if (!(tex = (D3FLTEX *)tex_Find("EF_WASS_06A_2T_W_AN0"))) {
+                    if (!(tex = tex_Find("EF_WASS_06A_2T_W_AN0"))) {
                         f.all = 0;
                         f.b[0] = 0xac;
-                        if (tex = (D3FLTEX *)tex_Load("EF_WASS_06A_2T_W_AN0", f, 0, 0))
-                            tex_Reload((D3TEXHANDLE *)tex, 0);
+                        if (tex = tex_Load("EF_WASS_06A_2T_W_AN0", f, 0, 0))
+                            tex_Reload((struct TSTEXTURE *)tex, 0);
                     }
                     for (i = first; i < map->nregions; i++) {
                         regs[i].tex = regs[i].tex2 = tex;
@@ -1159,7 +1159,7 @@ void d3fl_PrepareWater(D3FLMAP *map)
     if (map->watertype == 0xff) {
         if (map->regions) {
             for (i = 0; i < map->nregions; i++)
-                tex_Release((D3TEXHANDLE *)map->regions[i].tex);
+                tex_Release((struct TSTEXTURE *)map->regions[i].tex);
             mem_Free(map->regions);
             map->regions = 0;
         }
@@ -1297,8 +1297,8 @@ char d3fl_LightCB(D3OBJECT *obj, void *ctx)
     } else if (D3_L(obj)->power > 0.0 && D3_L(obj)->range > 0.0) {
         map = ((D3FLLIGHTCTX *)ctx)->map;
         r = D3_L(obj)->range;
-        d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)&pos);
-        if (map_Pick(map, (D3VECTOR *)&pos, 0, &x, &y, &h)) {
+        d3_PointToWorld(obj, &obj->pos, &pos.v);
+        if (map_Pick(map, &pos.v, 0, &x, &y, &h)) {
             d = pos.y - h;
             t = r * r - d * d;
             if (t > 0.0) {
@@ -1377,7 +1377,7 @@ void d3fl_MakeLight(D3FLMAP *map)
                 map->ambient[0] = D3_L(ctx.light)->color.x * (1.0f / 255.0f);
                 map->ambient[1] = D3_L(ctx.light)->color.y * (1.0f / 255.0f);
                 map->ambient[2] = D3_L(ctx.light)->color.z * (1.0f / 255.0f);
-                d3_DirToWorld(ctx.light, &d3_ZAxis, (D3VECTOR *)&dir);
+                d3_DirToWorld(ctx.light, &d3_ZAxis.v, &dir.v);
                 lp = map->light;
                 h = map->height;
                 kx = (map->negScale) * map->hscale * 2.0f;
@@ -1815,7 +1815,7 @@ void d3fl_UpdateWater(unsigned long time, unsigned int n, D3FLREGION *r)
 
     for (k = 0; k < n; k++, r++) {
         if (r->tex && r->tex->frames > 0 && r->tex->speed > 0)
-            r->tex2 = (D3FLTEX *)tex_GetFrame((D3TEXTURE *)r->tex - (D3TEXTURE *)d3_Textures,
+            r->tex2 = tex_GetFrame(r->tex - d3_Textures,
                                    time / d3_AnimDiv[r->tex->speed - 1] % r->tex->frames);
         dt = time - r->time;
         if (dt > 0) {
@@ -1884,7 +1884,7 @@ void d3fl_DrawWater(D3FLMAP *map, D3FLTILE *t)
     D3PVERT *v;
     D3FLPOLY *poly;
     D3CLIPINFO *clip;
-    D3FLTEX *tex;
+    TSTEXTURE *tex;
     float k, fy, h, f;
     unsigned int mask;
     int size, row, ym, x, idx, iv, npoints, npolys, i;
@@ -1895,7 +1895,7 @@ void d3fl_DrawWater(D3FLMAP *map, D3FLTILE *t)
         sun.x = d3fl_AxisY.x;
         sun.y = d3fl_AxisY.y;
         sun.z = d3fl_AxisY.z;
-        d3_Normalize(&sun);
+        d3_Normalize(&sun.v);
         size = map->size;
         mask = map->mask;
         water = map->water;
@@ -1990,7 +1990,7 @@ void d3fl_DrawWater(D3FLMAP *map, D3FLTILE *t)
                 tex = reg->tex2;
                 d3_SortPtr->item = poly;
                 if (tex) {
-                    d3_SortPtr->key = ((D3TEXTURE *)tex - (D3TEXTURE *)d3_Textures) + 1;
+                    d3_SortPtr->key = (tex - d3_Textures) + 1;
                     tex->stamp = d3_FrameCount;
                 } else
                     d3_SortPtr->key = 0;
@@ -2131,7 +2131,7 @@ void d3fl_Draw(D3FLMAP *map, char water)
     D3PVERT *v, *v0, *v1, *v2;
     D3FLPOLY *poly, *np, *pp;
     D3FLSPLIT *sp;
-    D3FLTEX *tex;
+    TSTEXTURE *tex;
     D3FLCACHE *c;
     D3CLIPINFO *clip;
     D3VECTOR4 a, q, r, p, dx, dz;
@@ -2704,7 +2704,7 @@ void d3fl_Draw(D3FLMAP *map, char water)
                             }
                             d3_SortPtr->item = poly;
                             if (tex) {
-                                d3_SortPtr->key = ((D3TEXTURE *)tex - (D3TEXTURE *)d3_Textures) + 1;
+                                d3_SortPtr->key = (tex - d3_Textures) + 1;
                                 tex->stamp = d3_FrameCount;
                             } else
                                 d3_SortPtr->key = 0;
@@ -2739,7 +2739,7 @@ int d3fl_Prerender(D3FLMAP *map)
     unsigned int n, s, nx, ny, i, j, x, y, tx, ty, mx, my;
     int size;
     unsigned char *types;
-    D3FLTEX *tex;
+    TSTEXTURE *tex;
     D3FLCACHE *c;
     D3FLTILE *t;
     void *p;
@@ -2783,9 +2783,9 @@ int d3fl_Prerender(D3FLMAP *map)
                                     count++;
                                 }
                             }
-                            if (!(tex->state & 0x80)) {
+                            if (!(tex->bits & 0x80)) {
                                 d3d_PrecacheTexture(tex->d3dtex);
-                                tex->state |= 0x80;
+                                tex->bits |= 0x80;
                             }
                         }
                     }

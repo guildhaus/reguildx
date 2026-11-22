@@ -202,31 +202,31 @@ void bgi_MatC9(void *f, BGIRD *c)
 
 void bgi_MatSu(void *f, BGIRD *c)
 {
-    bio_rd_i(f, (int *)&BGI_M(c).su);
+    bio_rd_i(f, &BGI_M(c).su);
 }
 /* 0x44f360, binary-format record 0x10: reads the current material's v scale (sv) */
 
 void bgi_MatSv(void *f, BGIRD *c)
 {
-    bio_rd_i(f, (int *)&BGI_M(c).sv);
+    bio_rd_i(f, &BGI_M(c).sv);
 }
 /* 0x44f390, binary-format record 0x11: reads the current material's u offset (ou) */
 
 void bgi_MatOu(void *f, BGIRD *c)
 {
-    bio_rd_i(f, (int *)&BGI_M(c).ou);
+    bio_rd_i(f, &BGI_M(c).ou);
 }
 /* 0x44f3c0, binary-format record 0x12: reads the current material's v offset (ov) */
 
 void bgi_MatOv(void *f, BGIRD *c)
 {
-    bio_rd_i(f, (int *)&BGI_M(c).ov);
+    bio_rd_i(f, &BGI_M(c).ov);
 }
 /* 0x44f3f0, binary-format record 0x13: reads the current material's rotation (rot) */
 
 void bgi_MatRot(void *f, BGIRD *c)
 {
-    bio_rd_i(f, (int *)&BGI_M(c).rot);
+    bio_rd_i(f, &BGI_M(c).rot);
 }
 /* 0x44f420, number of materials */
 
@@ -260,9 +260,9 @@ void bgi_PolyUV(void *f, BGIRD *c)
     int i, t;
 
     for (i = 0; i < 3; i++)
-        bio_rd_i(f, (int *)&BGI_P(c).uv[i][0]);
+        bio_rd_i(f, &BGI_P(c).uv[i][0]);
     for (i = 0; i < 3; i++)
-        bio_rd_i(f, (int *)&BGI_P(c).uv[i][1]);
+        bio_rd_i(f, &BGI_P(c).uv[i][1]);
     for (i = 0; i < 3; i++)
         bio_rd_i(f, &t);
 }
@@ -332,9 +332,9 @@ void bgi_Points(void *f, BGIRD *c)
     int i;
 
     for (i = 0; i < c->npts; i++) {
-        bio_rd_i(f, (int *)&c->pts[c->ptidx][0]);
-        bio_rd_i(f, (int *)&c->pts[c->ptidx][1]);
-        bio_rd_i(f, (int *)&c->pts[c->ptidx][2]);
+        bio_rd_i(f, &c->pts[c->ptidx][0]);
+        bio_rd_i(f, &c->pts[c->ptidx][1]);
+        bio_rd_i(f, &c->pts[c->ptidx][2]);
         c->ptidx++;
     }
 }
@@ -385,9 +385,9 @@ void bgi_Attach(void *f, BGIRD *c)
         bio_rd_c(f, &b);
         bio_rd_s(f, c->attach[i].name);
         bio_rd_c(f, &b);
-        bio_rd_v3(f, (int *)&c->attach[i].f[0]);
+        bio_rd_v3(f, &c->attach[i].f[0]);
         bio_rd_c(f, &b);
-        bio_rd_v3(f, (int *)&c->attach[i].f[3]);
+        bio_rd_v3(f, &c->attach[i].f[3]);
     }
 }
 
@@ -568,7 +568,7 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                                     "d3_io_b:d3_LoadBinaryAnimation(tp_veranimstream->framedata->points)");
                         }
                         for (i = 0; i < nv; i++) {
-                            bio_rd_v3(f, (int *)&v);
+                            bio_rd_v3(f, &v);
                             if (stream) {
                                 if (frame == 0) {
                                     stream->frames[frame].points[ofs + i].x = v.x;
@@ -593,8 +593,8 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                         tag = bgi_ReadId(f);
                         if (tag == 0x22) {
                             for (i = 0; i < nuv; i++) {
-                                bio_rd_v3(f, (int *)&v);
-                                bio_rd_v3(f, (int *)&w);
+                                bio_rd_v3(f, &v);
+                                bio_rd_v3(f, &w);
                             }
                             tag = bgi_ReadId(f);
                         }
@@ -605,8 +605,8 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                     }
                 }
                 if (tag == 0x31) {
-                    bio_rd_v3(f, (int *)&v);
-                    bio_rd_v3(f, (int *)&w);
+                    bio_rd_v3(f, &v);
+                    bio_rd_v3(f, &w);
                     if (stream) {
                         stream->frames[frame].pos[0] = v.x;
                         stream->frames[frame].pos[1] = v.y;
@@ -623,18 +623,18 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                         tag = bgi_ReadId(f);
                     }
                     if (tag == 0x39) {
-                        bio_rd_v3(f, (int *)stream->frames[frame].links[i].a);
+                        bio_rd_v3(f, stream->frames[frame].links[i].a);
                         tag = bgi_ReadId(f);
                     }
                     if (tag == 0x3a) {
-                        bio_rd_v3(f, (int *)stream->frames[frame].links[i].b);
+                        bio_rd_v3(f, stream->frames[frame].links[i].b);
                         tag = bgi_ReadId(f);
                     }
                 }
             }
             if (tag == 0x32) {
-                bio_rd_v3(f, (int *)&v);
-                bio_rd_v3(f, (int *)&w);
+                bio_rd_v3(f, &v);
+                bio_rd_v3(f, &w);
                 tag = bgi_ReadId(f);
             }
             if (tag != 0x2f)

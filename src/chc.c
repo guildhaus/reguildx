@@ -38,7 +38,7 @@ int chc_CreateCharacter(char **name, float *x, float *y, float *z)
     pos.x = *x;
     pos.y = *y;
     pos.z = *z;
-    ch = ch_Create(*name, (D3VECTOR *)&pos);
+    ch = ch_Create(*name, &pos.v);
     if (!ch)
         evt_Error(evt_Cur, evt_Cur->pc, "CreateCharacter(): Could not load character");
     else
@@ -60,18 +60,18 @@ int chc_CreateCharacterAtDummy(char **mesh, D3OBJECT **dummy, char **name)
         evt_Error(evt_Cur, evt_Cur->pc, "CreateCharacterAtDummy(): invalid dummy");
         return 0;
     }
-    d3_PointToWorld(*dummy, &(*dummy)->pos, (D3VECTOR *)&pos);
-    ch = ch_Create(*mesh, (D3VECTOR *)&pos);
+    d3_PointToWorld(*dummy, &(*dummy)->pos, &pos.v);
+    ch = ch_Create(*mesh, &pos.v);
     if (ch) {
         strcpy(ch->name, *name);
         strcpy(ch->obj->name, *name);
         rot.x = 0.0f;
         rot.y = 0.0f;
         rot.z = 0.0f;
-        d3_DirToWorld(*dummy, &d3_ZAxis, &dir);
-        rot.y = d3_VecAngle(&d3_ZAxis, &dir);
+        d3_DirToWorld(*dummy, &d3_ZAxis.v, &dir);
+        rot.y = d3_VecAngle(&d3_ZAxis.v, &dir);
         d3_SetObjectRot(ch->obj, &rot);
-        d3_SetObjectPos(ch->obj, (D3VECTOR *)&pos);
+        d3_SetObjectPos(ch->obj, &pos.v);
         ch->scriptGroup = evt_Cur->group;
     } else
         evt_Error(evt_Cur, evt_Cur->pc, "CreateCharacterAtDummy(): Could not load character");
@@ -232,7 +232,7 @@ int chc_PlayAnimationSound(CHARACTER **ch, char **name, int *n, int *frame, char
         evt_Error(evt_Cur, evt_Cur->pc, "PlayCharacterAniSound(): invalid character");
         return 1;
     }
-    a = ch_AddActionCB(*ch, (CHACTFUNC)chc_AniSoundCB, *frame, 0x2e, *n);
+    a = ch_AddActionCB(*ch, chc_AniSoundCB, *frame, 0x2e, *n);
     if (a) {
         strcpy(a->u.name, *name);
         strcpy(CH_ACTOBJ(a)->name2, *sound);
@@ -270,7 +270,7 @@ int chc_PlayAnimationScript(CHARACTER **ch, char **name, int *n, int *frame, cha
         evt_Error(evt_Cur, evt_Cur->pc, "PlayCharacterAniScript(): invalid character");
         return 1;
     }
-    a = ch_AddActionCB(*ch, (CHACTFUNC)chc_AniScriptCB, *frame, 0x2e, *n);
+    a = ch_AddActionCB(*ch, chc_AniScriptCB, *frame, 0x2e, *n);
     if (a) {
         if (strlen(*name) >= 0x5f) {
             evt_Error(evt_Cur, evt_Cur->pc, "PlayCharacterAniScript(): script name too long");
@@ -313,7 +313,7 @@ int chc_PlayAnimationScriptInt(CHARACTER **ch, char **name, int *n, int *frame, 
         evt_Error(evt_Cur, evt_Cur->pc, "PlayCharacterAniScriptInt(): invalid character");
         return 1;
     }
-    a = ch_AddActionCB(*ch, (CHACTFUNC)chc_AniScriptIntCB, *frame, 0x2e, *n);
+    a = ch_AddActionCB(*ch, chc_AniScriptIntCB, *frame, 0x2e, *n);
     if (a) {
         if (strlen(*name) >= 0x5f) {
             err_Message("PlayCharacterAniScript(): script name too long");
@@ -414,7 +414,7 @@ int chc_TakeObjectScript(CHARACTER **ch, char **name, int *n, D3OBJECT **obj, in
         evt_Error(evt_Cur, evt_Cur->pc, "TakeObjectScript(): Invalid dummy");
         return 1;
     }
-    a = ch_AddActionCB(*ch, (CHACTFUNC)chc_AniScriptCB, *frame, 0x31, *n);
+    a = ch_AddActionCB(*ch, chc_AniScriptCB, *frame, 0x31, *n);
     if (a) {
         strcpy(a->u.name, *name);
         if (*obj && (*obj)->material && (*obj)->material->name)
@@ -443,7 +443,7 @@ int chc_DropObject(CHARACTER **ch, char **name, int *frame, char **obj)
         evt_Error(evt_Cur, evt_Cur->pc, "DropObject(): Invalid character");
         return 1;
     }
-    if (*obj && !d3_FindObject(0, 0x40, (int)*obj, 0))
+    if (*obj && !d3_FindObject(0, 0x40, (D3OBJECT *)*obj, 0))
         return 1;
     if (evt_CurCall && evt_CurCall->fn == chc_DropObject) {
         if ((*ch)->actions) {
@@ -465,7 +465,7 @@ int chc_DropObjectLeft(CHARACTER **ch, char **name, int *frame, char **obj)
         evt_Error(evt_Cur, evt_Cur->pc, "DropObjectLeft(): Invalid character");
         return 1;
     }
-    if (*obj && !d3_FindObject(0, 0x40, (int)*obj, 0))
+    if (*obj && !d3_FindObject(0, 0x40, (D3OBJECT *)*obj, 0))
         return 1;
     if (evt_CurCall && evt_CurCall->fn == chc_DropObjectLeft) {
         if ((*ch)->actions) {
@@ -643,15 +643,15 @@ int chc_DummyBlocked(D3OBJECT **dummy, int *dist)
         return 0;
     }
     i = 0;
-    d3_PointToWorld(*dummy, &(*dummy)->pos, (D3VECTOR *)&pos);
+    d3_PointToWorld(*dummy, &(*dummy)->pos, &pos.v);
     for (; i < CH_MAX; i++) {
         if (ch_List[i] && ch_List[i]->scene == d3_DefaultScene && ch_List[i]->group == evt_NoGroup) {
-            if (d3_VecEqual(&ch_List[i]->obj->pos, (D3VECTOR *)&pos, (float)*dist)) {
+            if (d3_VecEqual(&ch_List[i]->obj->pos, &pos.v, (float)*dist)) {
                 found = ch_List[i];
                 break;
             }
             a = ch_List[i]->actions;
-            if (a && a->type == '-' && d3_VecEqual(&a->u.walk.tpos, (D3VECTOR *)&pos, (float)*dist)) {
+            if (a && a->type == '-' && d3_VecEqual(&a->u.walk.tpos, &pos.v, (float)*dist)) {
                 found = ch_List[i];
                 break;
             }
@@ -704,8 +704,8 @@ int chc_LookAtObject(CHARACTER **ch, D3OBJECT **obj)
     float angle;
 
     if (*ch && *obj) {
-        d3_PointToWorld(*obj, &(*obj)->pos, (D3VECTOR *)&pos);
-        angle = d3_YawTo((*ch)->obj, (D3VECTOR *)&pos);
+        d3_PointToWorld(*obj, &(*obj)->pos, &pos.v);
+        angle = d3_YawTo((*ch)->obj, &pos.v);
         ch_AddAction(*ch, 7, (int)(angle * 57.295776f), 0);
         return 0;
     }
@@ -721,13 +721,13 @@ int chc_SetCharacterToDummy(CHARACTER **ch, D3OBJECT **dummy)
     D3VECTOR4 pos;
 
     if (*ch && *dummy) {
-        d3_PointToWorld(*dummy, &(*dummy)->pos, (D3VECTOR *)&pos);
-        ch_SetPos(*ch, (D3VECTOR *)&pos, 1);
+        d3_PointToWorld(*dummy, &(*dummy)->pos, &pos.v);
+        ch_SetPos(*ch, &pos.v, 1);
         rot.x = 0.0f;
         rot.y = 0.0f;
         rot.z = 0.0f;
-        d3_DirToWorld(*dummy, &d3_ZAxis, &dir);
-        rot.y = d3_VecAngle(&d3_ZAxis, &dir);
+        d3_DirToWorld(*dummy, &d3_ZAxis.v, &dir);
+        rot.y = d3_VecAngle(&d3_ZAxis.v, &dir);
         d3_SetObjectRot((*ch)->obj, &rot);
         return 0;
     }
@@ -754,7 +754,7 @@ int chc_GetCharacterSubObjectHandle(CHARACTER **ch, char **name)
         evt_Error(evt_Cur, evt_Cur->pc, "GetCharacterSubObjectHandle(): invalid character");
         return 0;
     }
-    return (int)d3_FindObject((int)(*ch)->obj, 0x140, 0, *name);
+    return (int)d3_FindObject((*ch)->obj, 0x140, 0, *name);
 }
 /* 0x40d060, SetCharacterStepSample(name): sets the step sound sample name (ch_StepSample); always 1 */
 

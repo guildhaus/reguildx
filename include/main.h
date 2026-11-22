@@ -17,8 +17,8 @@ extern char main_ScreenOpen;            /* 0x6f258c, the video mode is open */
 extern int main_PlatformNT;             /* 0x75e62c, the OS is NT based (not Win9x) */
 extern int main_ScreenSaverOff;         /* 0x6f25bc, the screen saver was switched off and is restored at exit */
 extern int main_MessageBox;             /* 0x624938, the message box over the character creation, -1 = none */
-extern int snd_ThunderBank;     /* 0x6f2408, sample bank handle (natur/blitzunddonner.sbf) */
-extern int snd_BookBank;        /* 0x6f240c, sample bank handle (objekte/buecher.sbf) */
+extern struct SBBANK *snd_ThunderBank;/* 0x6f2408, sample bank handle (natur/blitzunddonner.sbf) */
+extern struct SBBANK *snd_BookBank;   /* 0x6f240c, sample bank handle (objekte/buecher.sbf) */
 extern struct SBBANK *snd_RoomBank;        /* 0x6f2410, sample bank handle (objekte/TuerenUndRaeume.sbf) */
 extern struct SBBANK *snd_TransportBank;   /* 0x6f2414, sample bank handle (objekte/Transporter.sbf) */
 extern int main_UdpOpen;               /* 0x6f25c4, the udp socket of the network game is open */

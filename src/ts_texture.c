@@ -4,7 +4,7 @@
    Open: not included yet (dcp headers conflicts ts_texture HEADER): bio.h; held by own declarations that differ
    from the owner's: file_Exists.
    Open: typing: TSTEXTURE.reserved (0x58) is only ever cleared (slot created / evicted / re-rendered / unloaded),
-   no reader - role unknown; D3TEXTURE (d3.h) and D3FLTEX (d3_fl.h) spell the same slot reserved too.
+   no reader - role unknown; the views of the slot (d3.h D3TEXTURE, d3_fl.h D3FLTEX) are gone.
    unit of rea 8cef7d5b (src/game/ts_texture.c); boundaries in decl/text.dcl */
 #line 1 "D:\\develop\\Units\\d3\\ts_texture.c"
 /* ts_texture.c -- original path D:\develop\Units\d3\ts_texture.c
@@ -609,8 +609,8 @@ TSTEXTURE *tex_Load(char *name, TSFLAGS flags, unsigned char opts, unsigned char
     tex = tex_Find(name);
     if (tex) {
         for (i = tex - d3_Textures, t = tex; i < d3_TexCount; i++, t++) {
-            if (t->refs > 0 && !strcmp(name, t->name) && t->flags.all == flags.all && t->f0 == f0
-                && t->f5 == f5 && t->f6a == f6a && t->f69 == f69 && t->f4 == f4 && t->speed == speed) {
+            if (t->refs > 0 && !strcmp(name, t->name) && t->flags.all == flags.all && t->wrap == f0
+                && t->mirror == f5 && t->f6a == f6a && t->f69 == f69 && t->nocull == f4 && t->speed == speed) {
                 tex = t;
                 break;
             }
@@ -635,11 +635,11 @@ TSTEXTURE *tex_Load(char *name, TSFLAGS flags, unsigned char opts, unsigned char
         a->reserved = 0;
         a->stamp = 0;
         a->flags = flags;
-        a->f0 = f0;
-        a->f5 = f5;
+        a->wrap = f0;
+        a->mirror = f5;
         a->f6a = f6a;
         a->f69 = f69;
-        a->f4 = f4;
+        a->nocull = f4;
         a->alias = 1;
         a->hicolor = tex->hicolor;
         a->nomip = tex->nomip;
@@ -677,11 +677,11 @@ TSTEXTURE *tex_Load(char *name, TSFLAGS flags, unsigned char opts, unsigned char
         tex->reserved = 0;
         tex->stamp = 0;
         tex->flags = flags;
-        tex->f5 = f5;
-        tex->f0 = f0;
+        tex->mirror = f5;
+        tex->wrap = f0;
         tex->f69 = f69;
         tex->f6a = f6a;
-        tex->f4 = f4;
+        tex->nocull = f4;
         tex->alias = 0;
         tex->hicolor = !d3d_UsedTexFormat.fourcc && bpp > 8 ? 1 : 0;
         tex->nomip = strstr(upper, "_NM") != 0;
@@ -704,7 +704,7 @@ TSTEXTURE *tex_Load(char *name, TSFLAGS flags, unsigned char opts, unsigned char
 void tex_GetParams(TSTEXTURE *tex, unsigned char *opts, unsigned char *fmt)
 {
     if (tex && opts && fmt) {
-        *opts = tex->f0 | tex->f4 << 1 | tex->speed << 2 | tex->f5 << 6;
+        *opts = tex->wrap | tex->nocull << 1 | tex->speed << 2 | tex->mirror << 6;
         *fmt = tex->f6a | tex->f69 << 4;
     }
 }
@@ -745,7 +745,7 @@ char tex_Animate(D3OBJECT *obj, unsigned int time)
 
     if (obj->info && ((TSMESH *)obj->info)->ops && ((TSMESH *)obj->info)->nkeys > 0) {
         texs = ((TSMESH *)obj->info)->texs;
-        seed = util_Hash(&obj, 4);
+        seed = util_Hash((unsigned char *)&obj, sizeof(obj));
         ntris = ((TSMESH *)obj->info)->ntris;
         n = ((TSMESH *)obj->info)->ops->count;
         for (i = 0; i < n; i++) {
@@ -972,7 +972,7 @@ TSTEXTURE *tex_Create(char *name, int size, char hicol, TSFLAGS flags, unsigned 
     tex->src = 0;
     tex->reserved = 0;
     tex->stamp = 0;
-    tex->f0 = f0;
+    tex->wrap = f0;
     tex->f6a = f6a;
     tex->alias = 0;
     tex->hicolor = !hicol || d3d_UsedTexFormat.fourcc ? 1 : 0;
@@ -1014,7 +1014,7 @@ TSTEXTURE *tex_CreateHi(char *name, int size, TSFLAGS flags, unsigned char f0, u
         tex->src = 0;
         tex->reserved = 0;
         tex->stamp = 0;
-        tex->f0 = f0;
+        tex->wrap = f0;
         tex->f6a = f6a;
         tex->alias = 0;
         tex->hicolor = 1;

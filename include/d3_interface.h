@@ -53,18 +53,6 @@ typedef struct D3IFMOVE {           /* context of d3if_MoveCB */
     D3SCENE *from, *to;
 } D3IFMOVE;
 
-typedef struct D3IFSPRITE {         /* a D3TEXHANDLE as d3if_DrawSprite reads it */
-    char pad00[0x40];
-    int frames;                     /* 0x40 */
-    char pad44[0x20];
-    struct IDirect3DTexture2 *surftext; /* 0x64 */
-    char pad68[0x4];
-    unsigned char colorkey;         /* 0x6c, 0xff = none */
-    char pad6d;
-    unsigned char flags;            /* 0x6e, bit 0 alpha, bit 1 glow */
-    char pad6f[0x5];
-    unsigned int size;              /* 0x74 */
-} D3IFSPRITE;
 
 typedef union D3IFTEXFLAGS {        /* D3TEXFLAGS with the bits named */
     D3TEXFLAGS raw;                 /* what tex_Load takes by value */
@@ -96,8 +84,8 @@ void d3if_ClearView(void);                                                      
 /* 0x448ac0..0x44aa10 (d3_obj.h until layout 2026-10-22) */
 typedef struct D3FINDCTX {          /* context of the name lookups */
     char *name;                     /* compared with the object's name (a leading '!' ignored), may be 0 */
-    char *obj;                      /* when set, only this object matches (compared by address) */
-    char *found;
+    struct D3OBJECT *obj;           /* when set, only this object matches (compared by address) */
+    struct D3OBJECT *found;
 } D3FINDCTX;
 
 extern const D3VECTOR4 d3_ZAxis;             /* 0x5ebb74, (0, 0, 1) */
@@ -107,7 +95,7 @@ typedef struct D3CORNERCTX {        /* 0x88 bytes: context of d3_CornerCB */
     D3VECTOR4 v[4];                 /* 0x04, the 3D vertex nearest to each screen corner of the texture's area */
     float uv[4][2];                 /* 0x44, its texture coordinates */
     D3CORNERPT pt[4];               /* 0x64, its screen position: top left, top right, bottom left, bottom right */
-    char found;                     /* 0x84 */
+    signed char found;              /* 0x84 */
     char pad85[3];
 } D3CORNERCTX;
 
@@ -130,11 +118,11 @@ typedef struct D3CORNERTRI {        /* D3TRI as the corner search reads it */
     char pad27;
 } D3CORNERTRI;
 
-float d3_YawTo(D3OBJECT *obj, float *p);                          /* 0x448ac0 */
+float d3_YawTo(D3OBJECT *obj, const D3VECTOR *p);                          /* 0x448ac0 */
 char d3_ScreenToUV(float sx, float sy, D3OBJECT *obj, void *tex, float *outu, float *outv);   /* 0x448e60 */
-D3OBJECT *d3_FindObjectNoCase(int a, int flags, int c, char *name);  /* 0x449770, case-insensitive */
-void d3_WorldToParent(D3OBJECT *obj, float *pos, D3MATRIX *rot, D3VECTOR *outpos, D3VECTOR *outrot);  /* 0x4497f0 */
-void d3_SetWorldPosRot(D3OBJECT *obj, float *pos, D3MATRIX *rot);        /* 0x449920 */
+D3OBJECT *d3_FindObjectNoCase(D3OBJECT *a, int flags, D3OBJECT *c, char *name);  /* 0x449770, case-insensitive */
+void d3_WorldToParent(D3OBJECT *obj, const D3VECTOR *pos, D3MATRIX *rot, D3VECTOR *outpos, D3VECTOR *outrot);  /* 0x4497f0 */
+void d3_SetWorldPosRot(D3OBJECT *obj, const D3VECTOR *pos, D3MATRIX *rot);        /* 0x449920 */
 
 typedef struct D3LIGHTKEY {         /* 0x38 bytes, D3LIGHTENTRY: one of the 7 day-time keys of a light */
     D3VECTOR pos;                   /* 0x00, relative to the light's parent */
@@ -232,8 +220,8 @@ void d3_SaveScene(char *name, struct VFSFILE *f);                               
 void d3if_Reset(void);                                         /* 0x4473f0 */
 
 /* declared in other units' headers before (moved to the owner) */
-void d3if_FreeSprite(D3TEXHANDLE *t);  /* 0x4481e0 */
-D3TEXHANDLE *d3if_LoadSprite(char *name, char glow);  /* 0x448200 */
+void d3if_FreeSprite(struct TSTEXTURE *t);  /* 0x4481e0 */
+struct TSTEXTURE *d3if_LoadSprite(char *name, char glow);  /* 0x448200 */
 char d3if_Reload(D3OBJECT *obj, char *name);  /* 0x447340 */
 
 #endif

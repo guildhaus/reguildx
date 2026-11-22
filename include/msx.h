@@ -5,12 +5,13 @@
 #define MSX_H
 #include <windows.h>                  /* Win32 types */
 
+struct SFXDRIVER;
 typedef struct MSXTRACK {           /* 0x128 bytes, MSX_TRACKS of them at msx_Tracks */
     char name[0x100];               /* file name relative to msx_Path; "" = free slot */
-    int stream;                     /* 0x100, sound library stream handle */
-    char playing;                   /* 0x104 */
-    char queued;                    /* 0x105, starts when the playing track has faded out */
-    char bAmbient;                  /* 0x106, played on the ambient driver */
+    void *stream;                   /* 0x100, sound library stream handle (sfx.h HSTREAM) */
+    signed char playing;            /* 0x104 */
+    signed char queued;             /* 0x105, starts when the playing track has faded out */
+    signed char bAmbient;           /* 0x106, played on the ambient driver */
     char pad107;
     int length;                     /* 0x108, ms */
     int pos;                        /* 0x10c, ms */
@@ -29,8 +30,8 @@ typedef struct MSXTRACK {           /* 0x128 bytes, MSX_TRACKS of them at msx_Tr
 extern MSXTRACK msx_Tracks[MSX_TRACKS];     /* 0x6325d0 */
 extern MSXTRACK msx_Dummy;                  /* 0x14612a0, returned when there is no driver */
 extern CRITICAL_SECTION msx_Lock;           /* 0x14613e0 */
-extern int msx_Driver;                      /* 0x6325c4, music */
-extern int msx_AmbDriver;                   /* 0x6325c8, ambient */
+extern struct SFXDRIVER *msx_Driver;                   /* 0x6325c4, music */
+extern struct SFXDRIVER *msx_AmbDriver;                   /* 0x6325c8, ambient */
 extern int msx_Quit;                        /* 0x6325c0, ends the update thread */
 extern LARGE_INTEGER msx_Freq;              /* 0x6323a8 */
 extern int msx_DelayPeak;                   /* 0x6325bc */

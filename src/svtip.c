@@ -177,7 +177,7 @@ extern const int sv_PhaseMinutes[24];
 
 extern unsigned short ai_PlayerId;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 
@@ -221,7 +221,7 @@ extern int d2_LastWindow;
 
 extern int sv_PopRequest;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 
@@ -229,7 +229,7 @@ extern int ai_ClickedObject;
 
 extern GAPDATA full_data_62a450[];
 extern GAPDATA full_data_62a464[];
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
@@ -240,7 +240,7 @@ extern int d2_LastWindow;
 
 extern int sv_PopRequest;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 extern int gm_AllowAll;
@@ -310,7 +310,7 @@ extern TUTRUN *ai_TutorialRuns;
 extern int ai_TutorialOn;
 extern int ai_TutorialRunning;
 extern int ai_ShotDirty;
-extern char *ai_DragPicked;
+extern struct D3OBJECT *ai_DragPicked;
 extern int ai_DragCutscene;
 extern int ai_ScreenshotCount;
 extern AIBOOKMARK ai_Bookmarks[11];
@@ -445,7 +445,7 @@ void sv_SetStatusText(char *s); void sv_RedrawScreen();
 void d3if_Prerender(char map); 
 double _CIfmod();
 #include <math.h>
-int ai_GetDefaultEffect();
+struct EFFECTREC *ai_GetDefaultEffect(void);
 typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: three floats and a word cleared as an int */
     float x, y, z;
     int w;
@@ -456,7 +456,7 @@ void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR
 void gv_CannonScatter(struct AIBLD *o, float *a, float *b); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade);
 int sv_MessageBox(intptr_t text, unsigned flags);
-int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); struct AIFIN *gm_PlayerRecord(struct AICHAR *c);
 int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var); void sv_CameraFollow();
 int amt_GetKindLevel(int k); void cm_SendMoneyDelta(int a, int b);
 void txt_Format(char *out, intptr_t id0, ...); int sv_MessageBox(intptr_t text, unsigned flags);
@@ -479,7 +479,7 @@ extern const int ai_GravePicsAlt[4];
 extern const int ai_GraveGoods[4];
 
 /* dcp unit split: the declarations of svgrave before the moved functions */
-unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
+struct GVENTRY *gv_FindEntry(void *a, struct AIBLD *bld, struct GVENTRY *after, int (*cb)(), int l); int gv_EntryIndex(struct GVYARD *g, struct GVENTRY *e);
 typedef struct GVROW {
     int btn;                    /* 0x00, its button object, -1: an unused row */
     GVENTRY *entry;             /* 0x04, the grave entry, 0: unused */
@@ -520,7 +520,7 @@ typedef struct GVPICK {
     int id;                     /* 0x10, that dead person's id, -1: none */
 } GVPICK;
 int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_OpenPlayerBar(struct AIBLD *a, char k); void sv_ClosePlayerBar(void);
-int gv_RoomForRaised(struct AIBLD *o, int *n); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
+int gv_RoomForRaised(struct AIBLD *o, int *n); void *cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
 int sv_CheckCharacterFlag(struct AIBLD *id); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);
 void ai_InitProductionTables(void); void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4);
 struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay);
@@ -538,7 +538,7 @@ struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt); fl
 void cm_SendProofExecuted(int a, int b); 
 void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);
 void gm_SendMoneyDelta(int a, int b);
-void ai_EndCharExtra(struct AICHAR *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(struct AICHAR *a, int b);
+void ai_EndCharExtra(struct AICHAR *ch, int f); int cm_SendRelations(int a, int b, int c, int d); struct EVTSCRIPT *sv_StartPoseScript(struct AICHAR *a, char *name);
 void sv_ReleaseNamePlates(void); void ai_TradeContactChecks(void);
 float gm_GetSkill(struct AICHAR *c, int skill); struct AIJOB *he_FindEvent(int n, ...);
 
@@ -549,7 +549,7 @@ void ai_EndCharExtra(struct AICHAR *ch, int f);
 int ai_DragWindow = -1;  /* 0x62a8cc, the tooltip view the right-button tooltip handler 0x587e00 opens (-1 = none; sv.c reads it): the first of the .data block before ai_DragObj */
 int ai_DragObj = -1;  /* 0x62a8d0, the right-held d2 object (d2_RightHeldObj) whose tooltip ai_DragWindow shows, -1 = none */
 int ai_DragViewWin = -1;  /* 0x62a8d4, the first window of the tooltip view ai_DragWindow (d2_Views[].wins[0]), -1 = none */
-char *ai_DragPicked = 0;  /* 0x6f266c, the picked object (ai_PickedObject) the tooltip was last opened for, 0 = none */
+struct D3OBJECT *ai_DragPicked = 0;  /* 0x6f266c, the picked object (ai_PickedObject) the tooltip was last opened for, 0 = none */
 int ai_DragCutscene = 0;  /* 0x6f2670, 1 while the tooltip view holds d2_CutsceneActive set */
 int ai_ScreenshotCount = 0;  /* 0x6f2674, the number of the next screenshot (gamedata/screenshots/gilde%04i.bmp, ai_SaveScreenshot) */
 int svg_UnreadBss = 0;  /* 0x6f2678, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
@@ -568,7 +568,7 @@ void ai_HandleItemDrag(void)
 {
     int bkind;
     int item;
-    char *sel;
+    D3OBJECT *sel;
     AICHAR *ch;
     void *user;
     AIGOOD *g;
@@ -638,7 +638,7 @@ void ai_HandleItemDrag(void)
         } else if (bkind != 0) {
             ai_DragWindow = ai_OpenBuildingTooltip(bkind);
         } else if (sel != 0) {
-            ai_DragWindow = ai_OpenHelpTooltip(sel);
+            ai_DragWindow = ai_OpenHelpTooltip(sel->name);
         } else if (ch != 0) {
             ai_DragWindow = ai_OpenCharTooltip(ch);
         }
@@ -741,7 +741,7 @@ int ai_OpenItemTooltip(int idx)
     int view;
     AIGOOD *item;
     float factor;
-    char *w;
+    AIWEAPON *w;
     AIBLD *bld;
     AICHAR *c;
     AICHAR *master;
@@ -754,7 +754,7 @@ int ai_OpenItemTooltip(int idx)
 
     w = ai_FindWeaponRecord(idx);
     item = ai_Goods + idx;
-    if (w != 0 && ((AIWEAPON *)w)->id != 0)
+    if (w != 0 && w->id != 0)
         view = d2_OpenForm(0, 0, "ToolTip\\ToolTip_Objekte_Waffen");
     else
         view = d2_OpenForm(0, 0, "ToolTip\\ToolTip_Objekte_Handelsgut");
@@ -988,7 +988,7 @@ int ai_OpenHelpTooltip(char *s)
 int ai_OpenCharTooltip(AICHAR *ch)
 {
     int view;
-    int row[14];                        /* an amount row (menu.c GYPSYROW): row[0] the character */
+    LCAMOUNTROW row;                    /* c's amount row */
     char line[0x100];
     AICHAR *c;
     AICHAR *p;
@@ -1003,9 +1003,9 @@ int ai_OpenCharTooltip(AICHAR *ch)
     d2_SetForm(0, 1);
     io_PrintText((intptr_t)"$Z$[%1N3$]", c->id);
     d2_SetForm(0, 4);
-    row[0] = (int)c;
-    if (ai_AmountRowStatus(row) != 0)
-        ai_DrawAmountRow(0xa6, 5, d2_LastWindow, row);
+    row.rec = c;
+    if (ai_AmountRowStatus(&row) != 0)
+        ai_DrawAmountRow(0xa6, 5, d2_LastWindow, &row);
     d2_SetForm(0, 2);
     if (c->kind != 0x14)
         io_PrintText(0x2b, (int)gm_CharAge(c->id));
@@ -1098,7 +1098,7 @@ int ai_OpenCharTooltip(AICHAR *ch)
 void ai_CharInfoWindow(AICHAR *ch)
 {
     int view;
-    int row[14];                        /* an amount row (menu.c GYPSYROW): row[0] the character */
+    LCAMOUNTROW row;                    /* c's amount row */
     char line[0x100];
     AICHAR *c;
     AICHAR *p;
@@ -1114,10 +1114,10 @@ void ai_CharInfoWindow(AICHAR *ch)
     d2_SetForm(0, 1);
     io_PrintText((intptr_t)"$Z$[%1N3$]", c->id);
     d2_SetForm(0, 4);
-    memset(row, 0, sizeof(row));
-    row[0] = (int)c;
-    if (ai_AmountRowStatus(row) != 0)
-        ai_DrawAmountRow(0xa6, 5, d2_LastWindow, row);
+    memset(&row, 0, sizeof(row));
+    row.rec = c;
+    if (ai_AmountRowStatus(&row) != 0)
+        ai_DrawAmountRow(0xa6, 5, d2_LastWindow, &row);
     d2_SetForm(0, 2);
     if (c->kind != 0x14)
         io_PrintText(0x2b, (int)gm_CharAge(c->id));
@@ -1195,7 +1195,7 @@ void ai_InitBookmarks(void)
     }
 }
 
-struct AIBLD *gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
+struct AIBLD *gm_FindBuildingById(int id); struct AIOBJ *gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
 
 /* 0x589450, drops the stale bookmarks (113 B): every set one (building not -1) whose building is gone
    (gm_FindBuildingById), whose object is set but gone (gm_FindObjectInst) or whose permission for the own player
@@ -1203,7 +1203,7 @@ struct AIBLD *gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsign
 void ai_ValidateBookmarks(void)
 {
     AIBLD *b;
-    int e;
+    AIOBJ *e;
     int i;
 
     for (i = 0; i < 11; i++) {
@@ -1216,7 +1216,7 @@ void ai_ValidateBookmarks(void)
             e = gm_FindObjectInst(ai_Bookmarks[i].object);
             if (e == 0 && ai_Bookmarks[i].object != -1)
                 ai_ClearBookmark(&ai_Bookmarks[i]);
-            else if ((gm_PermissionBits(ai_PlayerId, b, (struct AIOBJ *)e, 0) & 1) == 0)
+            else if ((gm_PermissionBits(ai_PlayerId, b, e, 0) & 1) == 0)
                 ai_ClearBookmark(&ai_Bookmarks[i]);
         }
     }
@@ -1238,7 +1238,7 @@ void ai_SelectBookmark(void)
             ai_ValidateBookmarks();
             if (ai_Bookmarks[i].building != -1) {
                 b = gm_FindBuildingById(ai_Bookmarks[i].building);
-                o = (AIOBJ *)gm_FindObjectInst(ai_Bookmarks[i].object);
+                o = gm_FindObjectInst(ai_Bookmarks[i].object);
                 if (o != 0)
                     sv_SelectPanelObject(b, o->objId, ch_EmptyName);
                 else
@@ -1356,7 +1356,7 @@ void ai_BookmarkWindow(void)
                 if (ai_Bookmarks[i].building != -1)
                     b = gm_FindBuildingById(ai_Bookmarks[i].building);
                 if (ai_Bookmarks[i].object != -1)
-                    o = (AIOBJ *)gm_FindObjectInst(ai_Bookmarks[i].object);
+                    o = gm_FindObjectInst(ai_Bookmarks[i].object);
                 if (b != 0) {
                     d2_WinOpenPic(0x60, i * 0x38, b->type + 0x427, d2_LastWindow);
                     txt_Format(line, (intptr_t)"%2N8~ %1G", b->owner, b);

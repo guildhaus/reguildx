@@ -1,8 +1,7 @@
 /* f3init.c -- the game initialisation of the town (0x50d100 ..): tag "f3_init:" ("f3_init:Gebaeude des Typs %s allokiert", 0x622ecc) and "init_" in the error strings ("init_LoadObjektScene:", "init_LoadGebaeudeScene:", "init_LocalData()"). The scene object names ("ob_NAME" / "gb_NAME" with the variant suffixes "_A" .. "_H") are mapped to the object / building prototypes, the object and building scenes "scenes/*ob_%s.ed3" / "scenes/*gb_%s.ed3" are loaded into universes of their own (tables 0x76faa0 per object prototype, 0x76fa60 per building class), the start objects are placed. The .data of this unit starts at 0x61adf8 (right after f3gm's last string 0x61ade0): its initialised globals (0x61adf8 / 0x61ae00 and the table of 19 records of 0x6c4 bytes at 0x61ae08) come first, then its strings from "KONTOR" (0x622e94) on. The unit ends at 0x5142e0, where io_text.c's text builders start. Names are ours.
-   Open: type debt - the local view INIT_CAMREC (ai.h's AIFIN, gm_PlayerRecord returns short *) stands in for its
-   type (the scene objects are D3OBJECT, the scene characters ch.h's CHARACTER, the characters
-   AICHAR) (the buildings and objects are AIBLD / AIOBJ), and local canonical prototypes for ai.h /
-   amt.h / rd.h, which do not compile into this unit (gv.h conflicts).
+   Open: type debt - local canonical prototypes for ai.h / amt.h / rd.h, which do not compile into this unit (gv.h
+   conflicts; the scene objects are D3OBJECT, the scene characters ch.h's CHARACTER, the characters AICHAR, the
+   buildings and objects AIBLD / AIOBJ, the player record ai_types.h's AIFIN).
    Open: not included yet (dcp headers conflicts f3init HEADER): ai.h amt.h cm.h d2.h f3snd.h gfx.h hmt.h hst.h
    mission.h rmsg.h; held by own copies of the owners' prototypes (amt_GetKind, amt_GetOffice, amt_GetFirstOffice
    take the AMTREC / AMTKIND of amt_types.h).
@@ -46,13 +45,6 @@ extern AISTORE gm_Offers[];            /* 0x7e4b20 */
 
 
 /* the player record view (ai.h's AIFIN, 0xac bytes, gm_PlayerRecords): the camera fields this unit reads */
-typedef struct INIT_CAMREC {
-    char pad000[0x88];              /* 0x00 .. 0x87 */
-    float angle;                    /* 0x88, AIFIN.camAngle: the camera angle factor */
-    D3VECTOR pos;                   /* 0x8c, AIFIN.camPos: the camera position */
-    char pad098[0x4];               /* 0x98 .. 0x9b */
-    float rot[3];                   /* 0x9c, AIFIN.camRot: the camera's angles (rot[1] = the stored y angle) */
-} INIT_CAMREC;
 
 
 /* stdlib min / max (the body ai.h defines; f3init does not include ai.h yet: its cm_SendExSellObject with an int
@@ -90,11 +82,10 @@ typedef struct INIT_TORCHLIST {
                                           while txt_Keys keeps its original address 0xfe7e40, and our link puts
                                           it at 0x6d0448 (build/link/exe/exe.map), which made the mask 0x6e8607
                                           and every id / parent lookup miss */
-#define INIT_SCENE_HEIGHTMAP_END ((unsigned)init_SceneHeightMaps + 0x40 * 0x3e0) /* one past the height map of the last scene: 0xfd7c50 + 0x40 * 0x3e0 (init_FreeScenes); anchored on the array, not on d3anim_Tail + 0x10 (their linked distance differs from the original's) */
 #define INIT_CHARACTER_COUNT 0x300      /* ch.h's CH_MAX: the slots of the character list ch_List (0x1468ae0) */
 #define INIT_START_CHARACTERS_END ((int)&ai_Chars[16]) /* one past the 16th character record, compared signed (init_StartNewGame) */
 #define INIT_CHARACTERS_END ((unsigned)ai_Chars + 0x300 * 0x21c)  /* one past the character table ai_Chars (0x770b80 + 0x300 * 0x21c = 0x7d5f80; the original's gm_PlayerRecords follows it there, not in our link) */
-#define INIT_LAST_CHARACTER ((unsigned)&ai_Unk770d8c + 0x64fd8)  /* the last character record of ai_Chars (INIT_CHARACTERS_END - 0x21c; the greeting loop walks up to its +2) */
+#define INIT_LAST_CHARACTER ((uintptr_t)&ai_Unk770d8c + 0x64fd8)  /* the last character record of ai_Chars (INIT_CHARACTERS_END - 0x21c; the greeting loop walks up to its +2) */
 #define INIT_FIELD_MONEY 0x1ac          /* the character's money field (the field block of the start purse) */
 #define INIT_FIELD_RELIGION 0x0c        /* the character's religion field: 0 catholic / 1 protestant (the two judges) */
 
@@ -135,7 +126,7 @@ int cm_SendCreateCharacter(unsigned char a, int b, int c, unsigned short d, int 
 int cm_FlushSendQueue();                     /* 0x4c3680 */
 int cm_ReceiveMessages();                     /* 0x4c3fd0 */
 int cm_ExecCommands();                     /* 0x4c4190 */
-int cm_GetSlotValue(int h);                     /* 0x4c3b10 */
+void *cm_GetSlotValue(int h);                   /* 0x4c3b10 */
 int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3c00 */
 int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f);                     /* 0x4c4880 */
 int cm_SendMoveGoods(int a, int b, unsigned char c, int d);                     /* 0x4c47e0 */
@@ -167,7 +158,7 @@ struct AICHAR *ai_JudgeProtestant = 0;  /* 0x6f1c00 */
 AICHAR *ai_KindBChars[8] = {0};  /* 0x6f1c04, the characters of the kind 0xb */
 extern int cm_NetFlags;  /* 0x6f2594 */
 unsigned char init_TextureSet = 0;  /* 0x6f1c24 */
-int d3_QuadTree = 0;  /* 0x6f1c28 */
+struct D3QNODE *d3_QuadTree = 0;  /* 0x6f1c28 */
 int init_TerrainDivide = 0;  /* 0x6f1c2c, nonzero: ai_GameFrame divides the terrain (d3fl_MakeDivide) at the game start and clears it */
 int init_UnreadBss = 0;  /* 0x6f1c30, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 int init_TownSoundCount = 0;  /* 0x6f1c34 */
@@ -213,7 +204,7 @@ extern int init_StatusForm;
 #include "f3init_types.h"
 extern INIT_PLAYER init_PlayerProfile;
 extern struct AICHAR *ai_SceneChars[32];
-#define INIT_WINDOWS_END (unsigned)&sv_SkyScale       /* one past the scene window table 0x7603a0 (0x20 ints) */
+#define INIT_WINDOWS_END (uintptr_t)&sv_SkyScale       /* one past the scene window table 0x7603a0 (0x20 ints) */
 #include "rd_types.h"                 /* G15BK, the building sites ai_Bauplaetze (rd.h cannot be included here) */
 #include "ls.h"
 #include "f3init.h"
@@ -239,10 +230,11 @@ extern struct AICHAR *ai_SceneChars[32];
 #include "vfs.h"
 #include "sv.h"
 #include "sv_quickjump.h"             /* SVQUICKJUMP: sv_QuickJump.panelFlag */
+#include "d2_types.h"                 /* D2FADE: the black fades of the scene loads */
 signed char init_BuildingUniverse[0x22];  /* 0x76fa60, the universe of each building class's scene */
 struct AIOBJ *ai_SceneObject;  /* 0x76fa84 */
 signed char init_ObjectUniverse[0x2dc];  /* 0x76faa0, the universe of each object prototype's scene (-1 = not loaded) */
-int init_TownSounds[16];  /* 0x76fd80, the handles of the town's sounds (16 at most), stopped by */
+struct SBSAMPLE *init_TownSounds[16];  /* 0x76fd80, the handles of the town's sounds (16 at most), stopped by */
 AIBLD *ai_SceneBuilding;  /* 0x76fdc0 */
 extern int ai_NBauplaetze;
 extern G15BK * ai_Bauplaetze;
@@ -319,7 +311,7 @@ void init_SceneObjectDestroyCB(int o)
 {
     he_RemoveGfxInfos(o);
     if (d3_QuadTree != 0)
-        d3q_RemoveObject((D3OBJECT *)o, (D3QNODE *)d3_QuadTree);
+        d3q_RemoveObject((D3OBJECT *)o, d3_QuadTree);
 }
 /* 0x50d380, names the scene object o after its prototype ("gb_NAME" for kind 2, p a building record; "ob_NAME" for
    kind 1, p an object instance), sets its kind (3 for a building, 0 with no mask for a building type of class 10,
@@ -370,11 +362,10 @@ char init_ResetSceneUniverses(void)
 void init_FreeScenes(void)
 {
     int i;
-    int *p;
 
     d3if_SelectScene(0, 0);
     if (d3_QuadTree != 0) {
-        d3q_FreeNode((D3QNODE *)d3_QuadTree);
+        d3q_FreeNode(d3_QuadTree);
         d3_QuadTree = 0;
     }
     d3if_Reset();
@@ -396,14 +387,14 @@ void init_FreeScenes(void)
         }
         i++;
     } while (i < 0x22);
-    p = (int *)init_SceneHeightMaps;
+    i = 0;
     do {
-        if (*p != 0) {
-            d3sm_Destroy(*p);
-            *p = 0;
+        if (d3_Scenes[i].hmap != 0) {
+            d3sm_Destroy(d3_Scenes[i].hmap);
+            d3_Scenes[i].hmap = 0;
         }
-        p += 0xf8;
-    } while ((int)p < (int)INIT_SCENE_HEIGHTMAP_END);
+        i++;
+    } while (i < D3_MAX_SCENES);
 }
 /* 0x50d550, the scene object callback (a function start Ghidra missed) that allocates the building for a "gb_NAME" scene object o (0x50d100 resolved the name to the building type, bits 0x2000000 in +0x48): a new instance of the type without an owner (0x501580), for the KONTOR (type 0x47) the office of the player slot whose name is the part after the last '_' of the object name (the slot number goes to +0x65, its name to +5); the object and the building are linked (+0x61 / +0x200) and "f3_init:Gebaeude des Typs %s allokiert" is the (unused) log text. An object without a state of its own takes its parent's record. */
 
@@ -529,7 +520,7 @@ void init_LoadObjectScene(int n)
     struct D3OBJECT *d;
     void (*cb)(int, int, int);
     unsigned fl;
-    char *bx;
+    D2FADE *bx;
     int changed;
 
     save = d3_CurrentScene;
@@ -538,13 +529,13 @@ void init_LoadObjectScene(int n)
     changed = 0;
     if (ai_GameState != 0 && !(ai_FrameWait > 0)) {
         fl = sv_FrameMask & 0xfffffff7 | 0x100080;
-        bx = (char *)d2_StartFade(0, 0, (int)d2_ScreenW, (int)d2_ScreenH, "BLACK", 0x32, 1);
-        k = (unsigned char)*bx;
+        bx = d2_StartFade(0, 0, (int)d2_ScreenW, (int)d2_ScreenH, "BLACK", 0x32, 1);
+        k = (unsigned char)bx->flags;
         while ((k & 4) == 0) {
             sv_RunFrame(0, fl);
-            k = (unsigned char)*bx;
+            k = (unsigned char)bx->flags;
         }
-        d2_ReleaseFade((struct D2FADE *)bx);
+        d2_ReleaseFade(bx);
         d2_ClearScreen();
         cb = sv_SceneLoadProgress;
     }
@@ -586,7 +577,7 @@ void init_LoadObjectScene(int n)
             for (q = ch_List; (int)q < (int)(ch_List + INIT_CHARACTER_COUNT); q++) {
                 o = *q;
                 if (o != 0 && o->scene == &d3_Scenes[uni]) {
-                    if (d3_VecEqual(&o->pos, &d3_Origin, 0.5f) != 0) {
+                    if (d3_VecEqual(&o->pos, &d3_Origin.v, 0.5f) != 0) {
                         if ((o->transport != 0 && (d = d3_FindObject(0, 0x100, 0, "dummy_TRANSPORTER")) != 0) || (d = ch_FindDummy()) != 0 ||
                             ((d = d3_FindObject(0, 0x100, 0, "dummy_EINGANG")) != 0 || (d = d3_FindObject(0, 0x100, 0, "dummy_TRANSPORTER_ENTRY")) != 0)) {
                             d3_PointToWorld(d, &d->pos, &tmp.vec);
@@ -646,7 +637,7 @@ void init_LoadBuildingScene(int k)
     int save, uni, n, o, cls;
     struct D3OBJECT *d;
     int changed;
-    char *bx;
+    D2FADE *bx;
     char *slot;
     void (*cb)(int, int, int);
     unsigned fl;
@@ -669,14 +660,14 @@ void init_LoadBuildingScene(int k)
     if (*slot == -1) {
         if (ai_GameState != 0 && (ai_FrameWait <= 0 || sv_QuickJump.panelFlag != 0)) {
             fl = sv_FrameMask & 0xfffffff7 | 0x80;
-            bx = (char *)d2_StartFade(0, 0, (int)d2_ScreenW, (int)d2_ScreenH, "BLACK", 0x32, 1);
-            n = (unsigned char)*bx;
+            bx = d2_StartFade(0, 0, (int)d2_ScreenW, (int)d2_ScreenH, "BLACK", 0x32, 1);
+            n = (unsigned char)bx->flags;
             while ((n & 4) == 0) {
                 sv_RunFrame(0, fl);
-                n = (unsigned char)*bx;
+                n = (unsigned char)bx->flags;
             }
             d2_ClearScreen();
-            d2_ReleaseFade((struct D2FADE *)bx);
+            d2_ReleaseFade(bx);
             cb = sv_SceneLoadProgress;
         }
         uni = d3t_FindFreeScene();
@@ -710,14 +701,14 @@ void init_LoadBuildingScene(int k)
         }
         if (ai_GameState != 0 && !(ai_FrameWait > 0)) {
             fl = sv_FrameMask & 0xfffffff7 | 0x80;
-            bx = (char *)d2_StartFade(0, 0, (int)d2_ScreenW, (int)d2_ScreenH, "BLACK", 0x32, 1);
-            n = (unsigned char)*bx;
+            bx = d2_StartFade(0, 0, (int)d2_ScreenW, (int)d2_ScreenH, "BLACK", 0x32, 1);
+            n = (unsigned char)bx->flags;
             while ((n & 4) == 0) {
                 sv_RunFrame(0, fl);
-                n = (unsigned char)*bx;
+                n = (unsigned char)bx->flags;
             }
             d2_ClearScreen();
-            d2_ReleaseFade((struct D2FADE *)bx);
+            d2_ReleaseFade(bx);
             cb = sv_SceneLoadProgress;
         }
         cls = *slot;
@@ -740,7 +731,7 @@ void init_LoadBuildingScene(int k)
             for (q = ch_List; (int)q < (int)(ch_List + INIT_CHARACTER_COUNT); q++) {
                 co = *q;
                 if (co != 0 && co->scene == &d3_Scenes[cls]) {
-                    if (d3_VecEqual(&co->pos, &d3_Origin, 0.5f) != 0) {
+                    if (d3_VecEqual(&co->pos, &d3_Origin.v, 0.5f) != 0) {
                         if ((co->transport != 0 && (d = d3_FindObject(0, 0x100, 0, "dummy_TRANSPORTER")) != 0) || (d = ch_FindDummy()) != 0 ||
                             ((d = d3_FindObject(0, 0x100, 0, "dummy_EINGANG")) != 0 || (d = d3_FindObject(0, 0x100, 0, "dummy_TRANSPORTER_ENTRY")) != 0)) {
                             /* d + 0x4c: D3OBJECT.pos, the dummy's position */
@@ -1047,7 +1038,7 @@ int init_CreateStartCharacters(int unused)
             n++;
         }
         p++;
-    } while ((int)p < (int)INIT_CHARACTERS_END);
+    } while ((intptr_t)p < (intptr_t)INIT_CHARACTERS_END);
     for (i = 0; i < 30; i++)
         ids[i] = i;
     gm_Shuffle(4, ids);
@@ -1508,7 +1499,7 @@ unsigned char init_Detail = 2;  /* 0x61adf8, the detail level of the scene (4 = 
 float init_SoundVolume = 0.699999988f;  /* 0x61adfc, 0.7f: the volume factor of a started town sound ( */
 int init_ShopScript = -1;  /* 0x61ae00, the handle of the shopping script running in the town scene (-1 = none; */
 INIT_ANIMSET init_ClassAnims[19] = { { 20, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "gestik/kinn_kratzen", "gestik/kopf_kratzen", "gestik/bein_kratzen", "arbeit/mist_schaufeln", "arbeit/neufegen2", "arbeit/schweissab", "arbeit/schmieden", "", "", "spezial/runterbeug_such", "spezial/einhand_vom_tisch", "spezial/einhand_vom_tisch", "gestik/herranwinken", "gestik/gespraech1", "gestik/gespraech5", "gestik/gespraech6", "gestik/manipulieren_stehend", "gestik/zeigen", "gestik/kopf_nicken", "gestik/steh_noise7", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "spezial/auf_tisch_legen", "spezial/meckern", "", "", "", "", "", "", "", "", "" } }, { 5, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "gestik/gespraech1", "gestik/kopf_nicken", "gestik/steh_noise7", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/kinn_kratzen", "gestik/kopf_kratzen", "gestik/haende_reiben", "arbeit/schreiben", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 7, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "sitzend/hinsetzen", "sitzend/aufstehen", "gestik/manipulieren_stehend", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/bein_kratzen", "gestik/zeigen", "spezial/runterbeug_such", "spezial/einhand_vom_tisch", "arbeit/neufegen2", "", "", "gestik/gespraech1", "gestik/kopf_nicken", "gestik/steh_noise7", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 6, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "sitzend/sitz_noise2", "sitzend/sitz_noise3", "sitzend/sitz_noise4", "sitzend/sitz_noise5", "sitzend/aufstehen", "sitzend/hinsetzen", "sitzend/wuerfeln", "spezial/meckern", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 8, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "gestik/manipulieren_sitzend", "spezial/runterbeug_such", "spezial/einhand_vom_tisch", "spezial/auf_tisch_legen", "spezial/meckern", "", "sitzend/hinsetzen", "sitzend/aufstehen", "sitzend/sitz_noise3", "sitzend/sitz_noise4", "sitzend/sitz_noise5", "sitzend/sitzgespraech3", "gestik/gespraech1", "gestik/kopf_nicken", "gestik/steh_noise7", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/kinn_kratzen", "gestik/kopf_kratzen", "gestik/bein_kratzen", "gestik/herranwinken", "gestik/gespraech5", "gestik/gespraech6", "gestik/zeigen", "", "", "", "", "", "", "", "", "" } }, { 14, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "sitzend/hinsetzen", "sitzend/aufstehen", "sitzend/sitz_noise3", "spezial/meckern", "spezial/runterbeug_such", "spezial/einhand_vom_tisch", "spezial/auf_tisch_legen", "arbeit/umruehren_auftisch", "", "sitzend/sitz_noise4", "sitzend/sitz_noise5", "gestik/zeigen", "gestik/kinn_kratzen", "gestik/kopf_kratzen", "gestik/bein_kratzen", "gestik/herranwinken", "gestik/gespraech1", "gestik/gespraech5", "gestik/gespraech6", "gestik/kopf_nicken", "gestik/steh_noise7", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/manipulieren_stehend", "", "", "", "", "", "", "", "", "" } }, { 15, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "gestik/steh_noise9", "gestik/durch_haar_fahr", "spezial/einhand_vom_tisch", "arbeit/neufegen2", "arbeit/schweissab", "", "sitzend/hinsetzen", "sitzend/aufstehen", "sitzend/sitz_noise2", "sitzend/sitz_noise3", "sitzend/sitz_noise4", "sitzend/sitz_noise5", "gestik/bein_kratzen", "gestik/steh_noise7", "gestik/steh_noise8", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 16, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "gestik/kopf_kratzen", "gestik/bein_kratzen", "arbeit/schoepfen", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 18, { "sitzend/sitz_noise4", "sitzend/sitz_noise5", "gestik/gespraech1", "gestik/kopf_nicken", "gestik/steh_noise7", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/zeigen", "gestik/kinn_kratzen", "gestik/kopf_kratzen", "gestik/bein_kratzen", "gestik/herranwinken", "gestik/gespraech5", "gestik/gespraech6", "gestik/manipulieren_hockend", "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "spezial/auf_tisch_legen", "spezial/in_andere_hand_geben", "spezial/runterbeug_such", "spezial/einhaendig_vom_boden_nehmen", "arbeit/schweissab", "arbeit/schmieden", "arbeit/schoepfen", "arbeit/metall_erhitzen", "arbeit/neufegen2", "gestik/manipulieren_stehend", "spezial/meckern", "spezial/einhand_vom_tisch", "sitzend/hinsetzen", "sitzend/aufstehen", "sitzend/sitz_noise3", "", "", "" } }, { 19, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "sitzend/hinsetzen", "sitzend/aufstehen", "sitzend/sitz_noise2", "sitzend/sitz_noise3", "sitzend/sitz_noise4", "sitzend/sitz_noise5", "sitzend/sitzgespraech1", "sitzend/sitzgespraech2", "sitzend/sitzgespraech3", "sitzend/sitzgespraech4", "sitzend/sitzgespraech5", "sitzend/sitzgespraech6", "sitzend/sitzgespraech7", "gestik/steh_noise7", "gestik/steh_noise8", "gestik/steh_noise9", "gestik/gespraech1", "gestik/kopf_nicken", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/gespraech5", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 9, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "spezial/runterbeug_such", "spezial/einhand_vom_tisch", "spezial/auf_tisch_legen", "gestik/zeigen", "gestik/gespraech1", "gestik/kopf_nicken", "gestik/steh_noise7", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 13, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "arbeit/schreiben", "arbeit/schoepfen", "", "gestik/zeigen", "kampf/stechen", "kampf/streich", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 21, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "spezial/einhand_vom_tisch", "spezial/runterbeug_such", "arbeit/schweissab", "arbeit/schmieden", "arbeit/saegen", "arbeit/hobeln", "arbeit/neufegen2", "", "", "sitzend/sitz_noise3", "sitzend/sitz_noise4", "sitzend/sitz_noise5", "gestik/kinn_kratzen", "gestik/kopf_kratzen", "gestik/zeigen", "gestik/kopf_nicken", "gestik/bein_kratzen", "gestik/herranwinken", "gestik/gespraech1", "gestik/gespraech5", "gestik/gespraech6", "gestik/steh_noise7", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/manipulieren_hockend", "spezial/meckern", "spezial/auf_tisch_legen", "", "", "", "", "", "" } }, { 11, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "spezial/einhand_vom_tisch", "arbeit/schreiben", "arbeit/schoepfen", "arbeit/schmieden", "arbeit/schweissab", "arbeit/baumfaellen", "gestik/kinn_kratzen", "gestik/kopf_kratzen", "gestik/bein_kratzen", "gestik/herranwinken", "gestik/gespraech1", "gestik/gespraech5", "gestik/gespraech6", "gestik/jubeln", "spezial/meckern", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 22, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "gestik/bein_kratzen", "gestik/herranwinken", "gestik/zeigen", "spezial/meckern", "spezial/runterbeug_such", "spezial/einhand_vom_tisch", "spezial/auf_tisch_legen", "arbeit/zapfen", "arbeit/umruehren_auftisch", "sitzend/hinsetzen", "sitzend/aufstehen", "sitzend/sitz_noise2", "sitzend/sitz_noise3", "sitzend/sitz_noise4", "sitzend/sitz_noise5", "sitzend/sitzgespraech1", "sitzend/sitzgespraech2", "sitzend/sitzgespraech3", "sitzend/sitzgespraech4", "sitzend/sitzgespraech5", "sitzend/sitzgespraech6", "sitzend/sitzgespraech7", "gestik/steh_noise7", "gestik/steh_noise8", "gestik/steh_noise9", "gestik/gespraech1", "gestik/gespraech5", "gestik/gespraech6", "gestik/kopf_nicken", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/kinn_kratzen", "gestik/kopf_kratzen" } }, { 1, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "sitzend/hinsetzen", "sitzend/aufstehen", "sitzend/sitz_noise2", "sitzend/sitz_noise3", "sitzend/sitz_noise4", "sitzend/sitz_noise5", "gestik/steh_noise7", "gestik/steh_noise8", "gestik/steh_noise9", "gestik/gespraech1", "gestik/kopf_nicken", "gestik/kopf_schuetteln", "gestik/durch_haar_fahr", "gestik/gespraech5", "gestik/haende_reiben", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 4, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 12, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "spezial/runterbeug_such", "spezial/einhand_vom_tisch", "arbeit/hacken", "arbeit/mist_schaufeln", "arbeit/schweissab", "", "gestik/manipulieren_stehend", "gestik/bein_kratzen", "gestik/manipulieren_hockend", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } }, { 0, { "bewegung/dreh_90_links", "bewegung/dreh_90_rechts", "bewegung/gehen", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" } } };  /* 0x61ae08 .. */
-extern char ai_MissionMode;        /* 0x624580 */
+extern signed char ai_MissionMode;        /* 0x624580 */
 /* 0x50f910, the opening of a new town's buildings (called by the new-game setup 0x511400; no return
    value, the caller ignores it). For each of up to eight player characters (kind 5 / 6 / 7) the first free building
    whose class lists the character's job (+0x164) is opened (0x50f750); a character without one gets a building of its
@@ -1550,6 +1541,8 @@ void init_OpenTown(void)
     int ncl, i, j, k;
     AIBLD *r, *q;
     int h, n, nch, m, ok;
+    AIBLD *geb;
+    AICHAR *hc;
     AIBLD *b;
     AICHAR *c;
     AIBTYPE *cl;                       /* the type record of the building b */
@@ -1568,7 +1561,7 @@ void init_OpenTown(void)
             ncl++;
         }
         c++;
-    } while ((int)&c->kind < (int)&ai_Chars[0x300].kind);
+    } while ((intptr_t)&c->kind < (intptr_t)&ai_Chars[0x300].kind);
     for (i = 0; i < ncl; i++) {
         c = pl[i];
         if (c == 0 || !(c->kind == 6 || c->kind == 7 || c->kind == 5))
@@ -1612,9 +1605,9 @@ void init_OpenTown(void)
                 h = cm_RequestCreateGeb(c->netId, proto, (D3VECTOR4 *)vecA, (int *)vecB);
                 while (h != -1 && cm_GetSlotState(h) == 0)
                     sv_PumpNet();
-                h = cm_GetSlotValue(h);
-                if (h != 0)
-                    init_OpenBuilding((AIBLD *)h);
+                geb = cm_GetSlotValue(h);
+                if (geb != 0)
+                    init_OpenBuilding(geb);
             }
         }
     }
@@ -1679,8 +1672,8 @@ void init_OpenTown(void)
         h = cm_SendMessage3d(b, 2, ai_BTypes[b->type].title2, 0x2d);
         while (cm_GetSlotState(h) == 0)
             sv_PumpNet();
-        h = cm_GetSlotValue(h);
-        cm_SendOwnership(b->id, ((AICHAR *)h)->netId, ((AICHAR *)h)->netId);
+        hc = cm_GetSlotValue(h);
+        cm_SendOwnership(b->id, hc->netId, hc->netId);
         cm_SendMessage3d(b, 0, ai_BTypes[b->type].title, 0);
         cm_SendMessage3d(b, 0, ai_BTypes[b->type].title2, 0);
         cm_SendExSellObject(b->id, -1, 0x135, 1, ai_OwnPlayer, 0);
@@ -1706,11 +1699,11 @@ void init_OpenTown(void)
                     h = cm_SendMessage3d(b, 2, ai_BTypes[b->type].title2, w);
                     while (cm_GetSlotState(h) == 0)
                         sv_PumpNet();
-                    h = cm_GetSlotValue(h);
-                    cm_SendOwnership(b->id, ((AICHAR *)h)->netId, ((AICHAR *)h)->netId);
-                    cm_SendMoveGoods(((AICHAR *)h)->netId, -1, ai_OwnPlayer, gm_PlayerFactor(3000, ai_OwnPlayer));
+                    hc = cm_GetSlotValue(h);
+                    cm_SendOwnership(b->id, hc->netId, hc->netId);
+                    cm_SendMoveGoods(hc->netId, -1, ai_OwnPlayer, gm_PlayerFactor(3000, ai_OwnPlayer));
                     if (nch < 0x10) {
-                        ch2[nch] = (AICHAR *)h;
+                        ch2[nch] = hc;
                         nch++;
                     }
                     if (cl->kind != 9 && cl->kind != 5) {
@@ -1723,7 +1716,7 @@ void init_OpenTown(void)
                     }
                     cm_SendExSellObject(b->id, -1, 0x135, 1, ai_OwnPlayer, 0);
                     if (cl->kind == 5)
-                        cm_SendMoveGoods(((AICHAR *)h)->netId, -1, ai_OwnPlayer, gm_PlayerFactor(6000, ai_OwnPlayer));
+                        cm_SendMoveGoods(hc->netId, -1, ai_OwnPlayer, gm_PlayerFactor(6000, ai_OwnPlayer));
                     init_Betrieb(b);
                     cm_EndSendGroup();
                     cnt[bk]++;
@@ -1821,7 +1814,7 @@ void init_OpenTown(void)
                 break;
             c++;
             i++;
-        } while ((int)&c->kind < (int)&ai_Chars[0x300].kind);
+        } while ((intptr_t)&c->kind < (intptr_t)&ai_Chars[0x300].kind);
         memset(&m2, 0, sizeof(m2));
         m2.type = 0x4c;
         m2.to = ai_Chars[i].netId;
@@ -1949,7 +1942,8 @@ void init_LoadSiteScene(char *name)
 int init_InitTown(char *city)
 {
     char ok;
-    int h, i;
+    AIBLD *h;
+    int i;
     GMPLAYERSLOT *p;
     AICHAR *ch;
     GMPLAYERSLOT *pc;
@@ -2014,7 +2008,7 @@ int init_InitTown(char *city)
             cm_SendMoveGoods(ai_PlayerChar->netId, -1, i, 200000000);
         p++;
         i++;
-    } while ((int)&p->moneyGood < (int)&ai_PlayerSlots[4].moneyGood);
+    } while ((intptr_t)&p->moneyGood < (intptr_t)&ai_PlayerSlots[4].moneyGood);
     init_CreateOpeningObjects();
     cm_BeginSendGroup();
     init_StockMarketStalls();
@@ -2026,7 +2020,7 @@ int init_InitTown(char *city)
     }
     h = gm_BuildQuery(1, 5, 0x1c);
     while (h != 0) {
-        gm_AssignBuilding((AIBLD *)h, ai_PlayerChar->id, ai_PlayerChar->id);
+        gm_AssignBuilding(h, ai_PlayerChar->id, ai_PlayerChar->id);
         h = gm_BuildNext();
     }
     gm_UpdatePlayers();
@@ -2038,7 +2032,7 @@ int init_InitTown(char *city)
         gm_InitPlayerRecord(i);
         pc++;
         i++;
-    } while ((int)pc < (int)&ai_PlayerSlots[4]);
+    } while ((intptr_t)pc < (intptr_t)&ai_PlayerSlots[4]);
     cm_BeginSendGroup();
     gm_SyncMarket(ai_OwnPlayer);
     cm_EndSendGroup();
@@ -2050,11 +2044,11 @@ int init_InitTown(char *city)
     d3if_SelectScene(1, 0);
     d3if_SelectScene(0, 0);
     if (((D3TERRAIN *)d3_Terrain)->size == 0x80)
-        d3_DefaultScene->hmap = (struct D3HMAP *)d3sm_Create(d3_Terrain, 0x100, 2);
+        d3_DefaultScene->hmap = d3sm_Create(d3_Terrain, 0x100, 2);
     else if (((D3TERRAIN *)d3_Terrain)->size == 0x40)
-        d3_DefaultScene->hmap = (struct D3HMAP *)d3sm_Create(d3_Terrain, 0x80, 2);
+        d3_DefaultScene->hmap = d3sm_Create(d3_Terrain, 0x80, 2);
     else
-        d3_DefaultScene->hmap = (struct D3HMAP *)d3sm_Create(d3_Terrain, 0x100, 2);
+        d3_DefaultScene->hmap = d3sm_Create(d3_Terrain, 0x100, 2);
     return 0;
 }
 /* 0x510e20, prints the title ("$C") and the text t in the form 0x75df00 */
@@ -2078,7 +2072,7 @@ void init_ShowStatus(intptr_t t)
    The remaining difference is the frame (0x310 against the original's 0x384): 0x74 bytes of locals are missing, every local below ini is shifted. @deep frame job */
 extern void * main_Instance;          /* 0x75e140 */
 extern unsigned ai_MissionSeed;           /* 0x75e120 */
-extern char ai_MissionMode;        /* 0x624580 */
+extern signed char ai_MissionMode;        /* 0x624580 */
 extern void *d2_ScreenSurf;                /* 0x6ed924 */
 
 /* 0x510e50, starts a network game: waits for the session flags (cm_NetFlags), the host sends the city file
@@ -2311,7 +2305,7 @@ int init_SetupNewGame(int n)
         init_CreateOpponents((int)ai_PlayerSlots[n].maxPlayers - ai_NumPlayers, 8, tab);
     }
     init_OpenTown();
-    b = (AIBLD *)gm_FirstBuilding(1);
+    b = gm_FirstBuilding(1);
     if (b != 0) {
         o = gm_Query(b->objList, 2, 6, 0, 0x115);
         if (o != 0)
@@ -2366,8 +2360,8 @@ void init_RebuildQuadTree(void)
 {
     d3_ForEachObject2(d3_DefaultScene, 0, 0xc0, init_StripTorches);
     if (d3_QuadTree != 0) {
-        d3q_FreeNode((D3QNODE *)d3_QuadTree);
-        d3_QuadTree = (int)d3q_Create(0, 0x40, 8, 7);
+        d3q_FreeNode(d3_QuadTree);
+        d3_QuadTree = d3q_Create(0, 0x40, 8, 7);
     }
     d3_LightInvalidate(1);
 }
@@ -2438,11 +2432,11 @@ int init_FlagTreeObject(D3OBJECT *o)
 void init_RecreateQuadTree(void)
 {
     if (d3_QuadTree != 0) {
-        d3q_FreeNode((D3QNODE *)d3_QuadTree);
+        d3q_FreeNode(d3_QuadTree);
         d3_QuadTree = 0;
     }
     d3_ForEachObject2(d3_DefaultScene, 0, 0x40, (void (*)(D3OBJECT *))init_FlagTreeObject);
-    d3_QuadTree = (int)d3q_Create(0, 0x40, 8, 7);
+    d3_QuadTree = d3q_Create(0, 0x40, 8, 7);
 }
 /* 0x511890, gives every building of the class 6 (not the type 0x1c) a name: the names of its kind (the 0xc names at 0x143b400 + 0x38 per kind) that no building uses yet, up to 0x20 characters ("Building name too long: %s" is the error text), one picked at random into the building's name field (+5). The original returns nothing (no eax at the end; init_LocalData ignores it)
    @deep s15 (size queue, 542 vs 561): c2trace: b#2 (prio -367) wins ebx over i#1 (-370) by 3; the blocks
@@ -2872,7 +2866,8 @@ void init_LoadShopScript(AIBLD *b, AIOBJ *o)
     char *name;
     int id;
     char buf[0x104];
-    char s1[4], s2[0x30];
+    VFSDIR *dir;                 /* the directory vfs_FindFile found the script in (unread) */
+    char s2[0x30];
 
     name = 0;
     w = 0;
@@ -2895,7 +2890,7 @@ void init_LoadShopScript(AIBLD *b, AIOBJ *o)
             sprintf(buf, "%slocations\\%s\\Einkauf_%s.esc", evt_Path, name + 1, name + 1);
         else
             sprintf(buf, "%slocations\\%s\\Einkauf_%s.esc", evt_Path, goods + 1, goods + 1);
-        if (vfs_FindFile(buf, vfs_Root, s1) != 0) {
+        if (vfs_FindFile(buf, vfs_Root, &dir) != 0) {
             sprintf(s2, "sp_%i", c->netId);
             h = evt_LoadScript(buf);
             if (h != 0) {
@@ -2981,7 +2976,7 @@ void init_SoundObjectFreeHook(D3OBJECT *o)
 
 void init_PlayTownSound(char *name, int volume, int delay)
 {
-    int h;
+    struct SBSAMPLE *h;
 
     h = sb_PlaySample(0, name, 0, 0x3f, (int)(volume * init_SoundVolume), 1, delay);
     if (init_TownSoundCount < 0x10) {
@@ -3227,7 +3222,7 @@ void init_SetCharacterAnimations(AIBLD *b)
                             r->names[10], r->names[11], r->names[12], r->names[13], r->names[14], r->names[15]);
         }
         c++;
-    } while ((int)&c->scene < (int)&ai_Chars[INIT_CHARACTER_COUNT].scene);  /* the original walks and compares the model field's address */
+    } while ((intptr_t)&c->scene < (intptr_t)&ai_Chars[INIT_CHARACTER_COUNT].scene);  /* the original walks and compares the model field's address */
 }
 /* 0x513050, enters the scene of the building b (init_ShowBuildingScene): the room object o (the slot of b's object
    list, or 0xfd = the building's own scene) selects the universe (init_ObjectUniverse / init_BuildingUniverse),
@@ -3500,20 +3495,20 @@ void init_LeaveTownScene(void *bld)
 
 void init_AfterTownLoad(void)
 {
-    INIT_CAMREC *cam;
+    AIFIN *cam;
     AICHAR *c;
     D3EVENT *events;
     int phase;
 
     phase = gm_ClockSeason(&ai_Time);
     if (d3_CurrentScene == 0) {
-        cam = (INIT_CAMREC *)gm_PlayerRecord(&ai_Chars[(unsigned short)ai_PlayerId]);
-        if (cam == 0 || cam->angle == -1.0f) {
+        cam = gm_PlayerRecord(&ai_Chars[(unsigned short)ai_PlayerId]);
+        if (cam == 0 || cam->camAngle == -1.0f) {
             sv_PlaceCamera(0.33f);
         } else {
-            d3_SetObjectPos(d3_Camera, &cam->pos);
-            sv_PlaceCamera(cam->angle);
-            d3_Camera->rotation.y = cam->rot[1];
+            d3_SetObjectPos(d3_Camera, &cam->camPos.v);
+            sv_PlaceCamera(cam->camAngle);
+            d3_Camera->rotation.y = cam->camRot.y;
             d3_SetObjectRot(d3_Camera, &d3_Camera->rotation);
         }
         c = ai_Chars;
@@ -3528,7 +3523,7 @@ void init_AfterTownLoad(void)
                 }
             }
             c++;
-        } while ((int)&c->scene < (int)&ai_Chars[INIT_CHARACTER_COUNT].scene);
+        } while ((intptr_t)&c->scene < (intptr_t)&ai_Chars[INIT_CHARACTER_COUNT].scene);
         if (phase == 1)
             init_TextureSet = 1;
         else if (phase == 0)

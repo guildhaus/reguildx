@@ -24,8 +24,8 @@ extern const int ai_MissionTypeCount;     /* 0x5edbb0, the number of mission typ
 
 int ai_ClearMissions(void);                                                          /* 0x4b39f0 */
 unsigned int ai_MissionRandom(unsigned int n);                                       /* 0x4b3a10 */
-G13MIS *ai_FindOwnerMission(G13MIS *m);                                                 /* 0x4b3a50 */
-void ai_RestartMission(G13MIS *m);                                                    /* 0x4b3a90 */
+G13MIS *ai_FindOwnerMission(struct AICHAR *c);                                                 /* 0x4b3a50 */
+void ai_RestartMission(struct AICHAR *c);                                                    /* 0x4b3a90 */
 G13TYPE *ai_GetMissionType(int type);                                                 /* 0x4b3ae0 */
 int ai_HasMission(int owner);                                                      /* 0x4b3b10 */
 int ai_CountMissionTypes(int kind);                                                      /* 0x4b3b40 */
@@ -38,9 +38,9 @@ G13MIS *ai_NewMission(int owner, int type, int x);                              
 /* declared in other units' headers before (moved to the owner) */
 extern unsigned char ai_NumPlayers;  /* 0x62489c */
 extern int ai_GameOver;  /* 0x6f259c */
-extern char ai_MissionMode;  /* 0x624580 */
+extern signed char ai_MissionMode;  /* 0x624580 */
 extern int ai_MissionPartner;  /* 0x6248a0 */
-int ai_CountMissionEvent(G13MIS *m, int ev);  /* 0x4b44e0 */
+int ai_CountMissionEvent(struct AICHAR *c, int ev);  /* 0x4b44e0 */
 int ai_IsMissionFulfilled(G13MIS *m);  /* 0x4b4f00, 1 if mission m is fulfilled (the condition of its type) */
 extern int sv_FrameMask;  /* 0x760638 */
 

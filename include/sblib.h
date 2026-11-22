@@ -7,17 +7,18 @@
 struct SBSAMPLE;
 struct SBBANK;
 struct SBENTRY;
+struct SFXDRIVER;
 
 typedef struct SBENTRY {            /* 0x40 bytes */
     int offset;                     /* file offset of the data */
     char name[50];                  /* 0x04 */
-    char type;                      /* 0x36, 1 sample (SBDATA), 2 variation (SBVAR) */
+    signed char type;               /* 0x36, 1 sample (SBDATA), 2 variation (SBVAR) */
     void *data;                     /* 0x38, NULL = not loaded */
     int used;                       /* 0x3c, time of last use */
 } SBENTRY;
 
 typedef struct SBSAMPLE {           /* 0x30 bytes, sb_Count of them at sb_Samples */
-    int handle;
+    void *handle;                   /* 0x00, the sound library sample handle (sfx.h HSAMPLE) */
     struct SBENTRY *info;           /* 0x04, NULL = unused */
     int start;                      /* 0x08 */
     int loops;                      /* 0x0c */
@@ -73,7 +74,7 @@ extern unsigned int sb_StopTime;                             /* 0x5f8144 */
 extern int sb_Mem;                                           /* 0x633190 */
 extern int sb_Used;                                          /* 0x633194 */
 extern struct SBBANK * sb_Banks;                                    /* 0x633198 */
-extern int sb_Driver;                                        /* 0x63319c */
+extern struct SFXDRIVER *sb_Driver;                                        /* 0x63319c */
 extern char sb_Path[256];                                    /* 0x6331a8 */
 extern struct SBSAMPLE * sb_Samples;                                /* 0x6332a8 */
 extern int sb_Count;                                         /* 0x6332ac */

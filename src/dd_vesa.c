@@ -1357,7 +1357,7 @@ char dd_Init(int mode, int bpp, HWND parent, int unk)
             if (shown)
                 ask = 0;
             cfg = reg_OpenKey("dd_vesa", 1);
-            if (cfg != -1) {
+            if (cfg != (HKEY)-1) {
                 if (reg_GetString(cfg, "dd_Guid", buf)) {
                     if (!strcmp("00000000-0000-0000-0000000000000000", buf)) {
                         guid = NULL;

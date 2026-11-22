@@ -325,19 +325,19 @@ int d3t_GetFootprint(D3OBJECT *obj, float t, D3VECTOR *c0, D3VECTOR *c1, D3VECTO
     v.x = mn[0];
     v.y = mn[1];
     v.z = mn[2];
-    d3_LocalToWorld(obj, (D3VECTOR *)&v, c0);
+    d3_LocalToWorld(obj, &v.v, c0);
     v.x = mx[0];
     v.y = mn[1];
     v.z = mn[2];
-    d3_LocalToWorld(obj, (D3VECTOR *)&v, c1);
+    d3_LocalToWorld(obj, &v.v, c1);
     v.x = mx[0];
     v.y = mn[1];
     v.z = mx[2];
-    d3_LocalToWorld(obj, (D3VECTOR *)&v, c2);
+    d3_LocalToWorld(obj, &v.v, c2);
     v.x = mn[0];
     v.y = mn[1];
     v.z = mx[2];
-    d3_LocalToWorld(obj, (D3VECTOR *)&v, c3);
+    d3_LocalToWorld(obj, &v.v, c3);
     return 0;
 }
 
@@ -538,23 +538,12 @@ int d3t_GetQuadRange(D3TMAP *map, float *lo, float *hi, D3VECTOR *a, D3VECTOR *b
     return 0;
 }
 
-typedef struct D3HMAP {             /* terrain height map */
-    char pad00[0x4];
-    float base;                     /* 0x04, height of value 0 */
-    char pad08[0xc];
-    float scale;                    /* 0x14, height per unit */
-    char pad18[0x8];
-    int size;                       /* 0x20 */
-    char pad24[0x4];
-    unsigned char *data;            /* 0x28 */
-} D3HMAP;
-
 char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py);              /* 0x45f170 */
 
 /* 0x412550, mean terrain height over the 8x8 cells around pos */
 float d3t_GetMeanHeight(D3VECTOR *pos)
 {
-    D3HMAP *hm;
+    D3SM *hm;
     int x, z, i, j;
     float h;
     float sum = 0.0f;
@@ -564,7 +553,7 @@ float d3t_GetMeanHeight(D3VECTOR *pos)
             for (i = -4; i < 4; i++) {
                 for (j = -4; j < 4; j++) {
                     if (z + i < hm->size - 1 && x + j < hm->size - 1 && z + i > 0 && x + j > 0)
-                        sum += hm->data[(z + i) * hm->size + x + j] * hm->scale + hm->base;
+                        sum += hm->data[(z + i) * hm->size + x + j] * hm->cell.y + hm->origin.y;
                     else
                         sum += h;
                 }
@@ -692,25 +681,25 @@ int d3t_DropObject(D3OBJECT *obj, int maponly, int top)
     d3_SetObjectPosXYZ(d3_Camera, 0, 0, 0);
     d3_SetObjectRotXYZ(d3_Camera, 0, 0, 0);
     if (d3t_GetHeightRange(obj, &q.lo0, &q.hi0)) {
-        d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+        d3_SetObjectPos(d3_Camera, &pos.v);
         d3_SetObjectRot(d3_Camera, &rot);
         if (parent)
             d3_SetParent(obj, parent);
         return 1;
     }
     q.t = (q.hi0 - q.lo0) * 0.1f + q.lo0;
-    if (d3t_GetFootprint(obj, q.t, (D3VECTOR *)&q.c0, (D3VECTOR *)&q.c1, (D3VECTOR *)&q.c2, (D3VECTOR *)&q.c3)) {
-        d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+    if (d3t_GetFootprint(obj, q.t, &q.c0.v, &q.c1.v, &q.c2.v, &q.c3.v)) {
+        d3_SetObjectPos(d3_Camera, &pos.v);
         d3_SetObjectRot(d3_Camera, &rot);
         if (parent)
             d3_SetParent(obj, parent);
         return 1;
     }
-    d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+    d3_SetObjectPos(d3_Camera, &pos.v);
     d3_SetObjectRot(d3_Camera, &rot);
     if (d3_Terrain) {
-        if (d3t_GetQuadRange(d3_Terrain, &q.lo, &q.hi, (D3VECTOR *)&q.c0, (D3VECTOR *)&q.c1,
-                             (D3VECTOR *)&q.c2, (D3VECTOR *)&q.c3)) {
+        if (d3t_GetQuadRange(d3_Terrain, &q.lo, &q.hi, &q.c0.v, &q.c1.v,
+                             &q.c2.v, &q.c3.v)) {
             if (parent)
                 d3_SetParent(obj, parent);
             return 1;
@@ -755,7 +744,7 @@ found:
                 r &= d3t_QueryHeight(&q, o);
             o = o->next;
         } while (o);
-        d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+        d3_SetObjectPos(d3_Camera, &pos.v);
         d3_SetObjectRot(d3_Camera, &rot);
         if (!r || d3_Terrain)
             goto found;
@@ -828,7 +817,7 @@ void d3t_GetObjectBounds(D3VECTOR *mn, D3VECTOR *mx, D3OBJECT *obj)
     }
     for (child = obj->child; child; child = child->next)
         d3t_GetBounds(mn, mx, child);
-    d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+    d3_SetObjectPos(d3_Camera, &pos.v);
     d3_SetObjectRot(d3_Camera, &rot);
 }
 /* 0x413310, bounding box of obj alone with the camera at the origin */
@@ -867,7 +856,7 @@ void d3t_GetMeshBounds(D3VECTOR *mn, D3VECTOR *mx, D3OBJECT *obj)
         mx->y = max(mx->y, v->y);
         mx->z = max(mx->z, v->z);
     }
-    d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+    d3_SetObjectPos(d3_Camera, &pos.v);
     d3_SetObjectRot(d3_Camera, &rot);
 }
 /* 0x4134a0, on: sets every vertex color of obj to grey, off: lets 0x453280 restore them */
@@ -1054,7 +1043,7 @@ int d3t_MoveCameraPath(int time, int n, ...)
    from the flow graph, not from the keyword); `keys[0].time = step` inside the loop (i edx / k ecx but
    step lives in eax through the head and the store stays). Earlier facts that still hold: the frame rules
    out i++ in both arms; preferences cannot give i edx or k ecx (no copy with ecx, none with an assigned
-candidate); k references that work as probes: one in the head or the entry block, two in the exit block, one in an else arm (`else { step = time / n; p1 = k; }` is the original but for the one probe store); identical return arms double the exit references (exact but for their compare); 21 callee prototypes, 9 D3ANIMKEY layouts, 8 ways to pass the flags: no lever. Open: one ordinary construct that leaves a k reference in the entry block, the head or an else arm (or two in the exit block) without an instruction; every dead or duplicate k form is removed before allocation, and k (a constant and ++) has no recomputable value as step has. Later the same session: (1) compiler options are not it (50 variations of /O2 on the unit, with and without the step line: none closer; /Op and /G6 move other code). (2) 2,900 single assignments (9 targets x 36 values, 9 positions, on the step base): none flips i / k without an instruction; the ones that flip are the known probes (a store of k's value in the head or in front of the call, 1 ins). (3) New closest form without a probe, 10 listing lines = ONE instruction: a second index `last` that copies k behind the increment and is used after the loop (`for (i = 0, k = 1, last = 1; ..)`, body `..; k++; step = time / n; last = k;`, exit `keys[last].time = 0;`). last is defined behind the call, so it is not live across it: it takes ecx in the first pass (prio 67, all six registers), i then takes edx, the entry store, the head, the latch and the whole exit block are the original's. Left: the k temporary behind the call (load, inc, store, copy; a piece of prio 88 chosen before last) takes eax, so `mov eax,[k]; inc eax; mov [k],eax; mov ecx,eax` stands for `mov ecx,[k]; inc ecx; mov [k],ecx`. It becomes exact (but for the probe store) with one more reference of last in the head, i.e. when last is chosen before the temporary and the temporary follows the copy. Needed: last >= 88, now 67 (two more uses or two more distinct candidates in the exit block, or one in the head), or step chosen before the temporary while both are live (equal priority 88, the temporary goes first). No lever on this base: statement orders of the body (90), the time store behind the increment (the temporary and step swap: k eax, step ecx), 24 declaration orders, k / last defined in front of the division, `last = k + 1` in front of the increment (the optimizer makes its own induction value, entry store of 2), the copy outside the if (reload in the latch), a previous-key index in the time store (108 forms), the callee declared with a result, eleven exit spellings, the time parameter itself as the stored counter (the index loses its induction pointer). On the last form, continued: the k temporary (k#2: load, inc, store, copy; 2 counted uses at the body's second-pass P 11 = 88) is chosen before last (first-pass terms: entry +22, body copy +32 at P 8, exit +24 = 59) and takes eax, the first free register; last then prefers eax, cannot have it (o) and takes ecx. A candidate's own preference counts (score -1), so the temporary would follow last if last were chosen first. (a) With the step line in an else arm step's tie value (the position of its last definition) is above k's and step is chosen first among the two 88s; if the time store then stands behind the increment (`..; k++; keys[k - 2].time = step; last = k; } else step = time / n;`) step holds eax while the temporary is live, the temporary takes ecx, the copy is deleted and EVERY register is the original's: 5 listing lines left, all of them the time store standing at the end of the body instead of behind the call. With the time store in its place the two ranges do not overlap. (b) A definition of last at the loop top (`last = 0;` / `last = i;` as probes) also gives the original but for that one instruction. Needed, one of: step still in use behind the increment; k loaded in front of the time store; last >= 88 (+29: a second reference of last in the body block is +32); the body's second-pass P <= 6. No lever: the step line also behind the time store, in the for-increment or at the loop end (52: last loses ecx); `last = k + 1` in front of the time store with `k++` or `k = last` at the end (the optimizer builds its own induction value); the increment right behind the call (another allocation altogether, 106); 1,700 single assignments at nine positions on this base (redundant definitions of last from k are removed before allocation). Deletion log (new: C2TRACE_DEL=1 on c2trace --raw logs every instruction the back end unlinks, FUN_10702ae5, with the caller): once allocation has started the only real instructions deleted in this function are self copies (`mov eax,eax` behind idiv and in front of ret, from 0xafd3); everything else deleted there is a load / store pseudo-op of a piece that ends in memory (ops 0x264 / 0x265) or a split mark (0x2b4). The 300 deletions before allocation are the optimizer's. So a reference that leaves no instruction can only be a COPY whose two sides end in one register or one slot (step = CSE temp is that); k, a constant and ++, has no copy unless the text has a second variable: the `last` forms are the only kind that can work, not one guess among many. Also: an int constant used three times as a copy source becomes a candidate of its own (shown as a second const#0). Key pointer form (readable, no step line, same instruction count as the original): `D3ANIMKEY *key = &keys[1]`, body `d3_PointToWorld(o, &o->pos, (D3VECTOR *)&key->pos); key[-1].time = step; key->rot.x -= ..; last = k + 1; k = last; key++;`, exit `keys[last].time = 0`. Here last has prio 93 and takes ecx first, i edx, k lives in memory with NO piece behind the call: its load is a scratch temporary. 15 listing lines left = the scratch rotation behind the call (order eax -> ecx -> edx, the lea in front of the call took ecx, so the next is edx): the step load takes edx and the k load eax (`mov eax,[k]; lea ecx,[eax+1]`) where the original has step eax, k ecx (`mov ecx,[k]; inc ecx`). With `last = k + 1; k = last;` in front of the time store: k edx, step eax (11 lines). Exact would be: the time store first and ONE more scratch step (or edx busy = i live in its register) between the call and the step load. No lever there: the step line in any position (in front of the time store it also switches off every later one), the callee with a result (used or not), i++ written in both arms (the copies do not merge), 504 statement orders. The temporary-register picker, read in c2.dll (FUN_1070c32b(temp operand, instruction); found by a branch-flip run on the key pointer form: 0x1070c536 / 0x1070c54d / 0x1070d3d3 shift every temporary by one step): a temporary first takes its HINT register (descriptor + 0x2c) when that is free: the source register of a copy (ops 1, 0x11f, 0x1dd, 0x17f, 0x181) it is defined by, or the base of the lea that defines it; a hinted temporary does not move the rotation. Without a hint it takes the next register of a cyclic list from one global pointer per type (0x107b1418, read by 0x1070c62e, advanced by 0x1070c64b), skipping a register that holds another temporary (0x107b12e8[reg]) or whose occupancy set (0x107b11c0[reg]) meets the temporary's range. A load from memory has no hint. So on the key pointer form the lea in front of the call takes ecx and the pointer stands at edx: the step load takes edx, the k load eax. Confirmed by probes: one more unhinted temporary behind the call (`p2 = p3`) or i read there (`p2 = i`: edx occupied) gives the original's code but for the probe's own instructions. Nothing ordinary found that does it: memory-to-memory copies between slot-sharing variables (`time = k`, the parameter as the stored counter) are removed before code generation; `last = k; last++; k = last;` is folded to `last = k + 1` (a temporary load and a lea). Also ruled out on the key pointer form: a second loop index copying i (11 spellings: the copy is removed or adds code); i++ in both arms with the if arm's copy behind the call (the two increments do not cross-jump, one is not at the arm's end); 1,860 single statements at five positions around the call (assignments among i, k, n, step, time, last, o, key, path, obj and block-local copies): none exact, every one that moves the rotation leaves an instruction. prior: s31 (one-function session; source unchanged, 49 ins / 132 bytes, raw 418 vs 416). New: the two levers of s8 are two piece EXTENTS, and two minimal probes together give every register of the original: (I) a k reference in the loop head (`{ extern int p1; p1 = k; }` before `if (o = path[i])`: k#2 51 > i#2 47 -> k ecx, i edx) or two in the tail (`p1 = k; p3 = k;`: k#2 45 > 43); (II) an i reference in the found body right behind the call (`{ extern int p2; p2 = i; }` before the time store): i's piece then starts behind the call (reloaded there, not at the block end), edx is busy at the step load and the step temp takes eax, the tail starts at edx. ph-i-aftercall (head k probe + body i probe) differs from the original only by the two probe stores and the order the probe store causes (vdiff: 10 ins); pt-i-aftercall (tail k probes + i probe) the same (11). With i at the body END instead (`p2 = i` behind k++): 9 ins but step edx / i eax swapped. So the original's text references k in head (or tail) and i behind the call, and both references leave no instruction. Ruled out s31 (= control unless named): initializers `= 0` on o, i, k, step, every subset, on six bases (control, `k = 1;` statement, time store before the call, `time / n` CSE, `time /= n`, k = 1 statement + CSE; 72 + 42 variants): only `int i = 0` moves code (49 / 129, raw 419); `k = 1` at the declaration 132 ins; declaration orders; k++ at every body position with shifted indices (73..109); the time store at every position among the subtractions, pos / rot order (224: time position is no lever, pos first 108); block scopes of i and o around / inside the loop (128, 4 codes); a local for n + 1, the anim result, the bound (cnt), ++n / n++ in the call, a key pointer in the tail, a rotation pointer; while / do-while / ++i / ++k / k += 1 / n > i / `!= 0` / split test; an in-loop exit or break (`for (;;) if (i >= n) ..`); i++ in both arms (52, not merged); path[i] written out; time reused as k (with initializers); no-op statements on k (`k = k`, `k += 0`, `k |= 0` .. 13 forms in head, latch, tail, for increment: all removed); types of i / k (int, unsigned, long, short, char, unsigned short / char: 48, unsigned i 53, the rest 62+); climb 4 rounds beam 6 (1379 mutants: best the time store before the call, 45 ins, raw 419); flip.py --want "mov ecx, 1 .. inc edx / cmp edx, ebx": only that swap. Open: an ordinary construct whose k reference (head / tail) and i reference (behind the call) survive to allocation but emit nothing (a copy coalesced after allocation, code merged by cross-jumping); none found. */
+candidate); k references that work as probes: one in the head or the entry block, two in the exit block, one in an else arm (`else { step = time / n; p1 = k; }` is the original but for the one probe store); identical return arms double the exit references (exact but for their compare); 21 callee prototypes, 9 D3ANIMKEY layouts, 8 ways to pass the flags: no lever. Open: one ordinary construct that leaves a k reference in the entry block, the head or an else arm (or two in the exit block) without an instruction; every dead or duplicate k form is removed before allocation, and k (a constant and ++) has no recomputable value as step has. Later the same session: (1) compiler options are not it (50 variations of /O2 on the unit, with and without the step line: none closer; /Op and /G6 move other code). (2) 2,900 single assignments (9 targets x 36 values, 9 positions, on the step base): none flips i / k without an instruction; the ones that flip are the known probes (a store of k's value in the head or in front of the call, 1 ins). (3) New closest form without a probe, 10 listing lines = ONE instruction: a second index `last` that copies k behind the increment and is used after the loop (`for (i = 0, k = 1, last = 1; ..)`, body `..; k++; step = time / n; last = k;`, exit `keys[last].time = 0;`). last is defined behind the call, so it is not live across it: it takes ecx in the first pass (prio 67, all six registers), i then takes edx, the entry store, the head, the latch and the whole exit block are the original's. Left: the k temporary behind the call (load, inc, store, copy; a piece of prio 88 chosen before last) takes eax, so `mov eax,[k]; inc eax; mov [k],eax; mov ecx,eax` stands for `mov ecx,[k]; inc ecx; mov [k],ecx`. It becomes exact (but for the probe store) with one more reference of last in the head, i.e. when last is chosen before the temporary and the temporary follows the copy. Needed: last >= 88, now 67 (two more uses or two more distinct candidates in the exit block, or one in the head), or step chosen before the temporary while both are live (equal priority 88, the temporary goes first). No lever on this base: statement orders of the body (90), the time store behind the increment (the temporary and step swap: k eax, step ecx), 24 declaration orders, k / last defined in front of the division, `last = k + 1` in front of the increment (the optimizer makes its own induction value, entry store of 2), the copy outside the if (reload in the latch), a previous-key index in the time store (108 forms), the callee declared with a result, eleven exit spellings, the time parameter itself as the stored counter (the index loses its induction pointer). On the last form, continued: the k temporary (k#2: load, inc, store, copy; 2 counted uses at the body's second-pass P 11 = 88) is chosen before last (first-pass terms: entry +22, body copy +32 at P 8, exit +24 = 59) and takes eax, the first free register; last then prefers eax, cannot have it (o) and takes ecx. A candidate's own preference counts (score -1), so the temporary would follow last if last were chosen first. (a) With the step line in an else arm step's tie value (the position of its last definition) is above k's and step is chosen first among the two 88s; if the time store then stands behind the increment (`..; k++; keys[k - 2].time = step; last = k; } else step = time / n;`) step holds eax while the temporary is live, the temporary takes ecx, the copy is deleted and EVERY register is the original's: 5 listing lines left, all of them the time store standing at the end of the body instead of behind the call. With the time store in its place the two ranges do not overlap. (b) A definition of last at the loop top (`last = 0;` / `last = i;` as probes) also gives the original but for that one instruction. Needed, one of: step still in use behind the increment; k loaded in front of the time store; last >= 88 (+29: a second reference of last in the body block is +32); the body's second-pass P <= 6. No lever: the step line also behind the time store, in the for-increment or at the loop end (52: last loses ecx); `last = k + 1` in front of the time store with `k++` or `k = last` at the end (the optimizer builds its own induction value); the increment right behind the call (another allocation altogether, 106); 1,700 single assignments at nine positions on this base (redundant definitions of last from k are removed before allocation). Deletion log (new: C2TRACE_DEL=1 on c2trace --raw logs every instruction the back end unlinks, FUN_10702ae5, with the caller): once allocation has started the only real instructions deleted in this function are self copies (`mov eax,eax` behind idiv and in front of ret, from 0xafd3); everything else deleted there is a load / store pseudo-op of a piece that ends in memory (ops 0x264 / 0x265) or a split mark (0x2b4). The 300 deletions before allocation are the optimizer's. So a reference that leaves no instruction can only be a COPY whose two sides end in one register or one slot (step = CSE temp is that); k, a constant and ++, has no copy unless the text has a second variable: the `last` forms are the only kind that can work, not one guess among many. Also: an int constant used three times as a copy source becomes a candidate of its own (shown as a second const#0). Key pointer form (readable, no step line, same instruction count as the original): `D3ANIMKEY *key = &keys[1]`, body `d3_PointToWorld(o, &o->pos, &key->pos.v); key[-1].time = step; key->rot.x -= ..; last = k + 1; k = last; key++;`, exit `keys[last].time = 0`. Here last has prio 93 and takes ecx first, i edx, k lives in memory with NO piece behind the call: its load is a scratch temporary. 15 listing lines left = the scratch rotation behind the call (order eax -> ecx -> edx, the lea in front of the call took ecx, so the next is edx): the step load takes edx and the k load eax (`mov eax,[k]; lea ecx,[eax+1]`) where the original has step eax, k ecx (`mov ecx,[k]; inc ecx`). With `last = k + 1; k = last;` in front of the time store: k edx, step eax (11 lines). Exact would be: the time store first and ONE more scratch step (or edx busy = i live in its register) between the call and the step load. No lever there: the step line in any position (in front of the time store it also switches off every later one), the callee with a result (used or not), i++ written in both arms (the copies do not merge), 504 statement orders. The temporary-register picker, read in c2.dll (FUN_1070c32b(temp operand, instruction); found by a branch-flip run on the key pointer form: 0x1070c536 / 0x1070c54d / 0x1070d3d3 shift every temporary by one step): a temporary first takes its HINT register (descriptor + 0x2c) when that is free: the source register of a copy (ops 1, 0x11f, 0x1dd, 0x17f, 0x181) it is defined by, or the base of the lea that defines it; a hinted temporary does not move the rotation. Without a hint it takes the next register of a cyclic list from one global pointer per type (0x107b1418, read by 0x1070c62e, advanced by 0x1070c64b), skipping a register that holds another temporary (0x107b12e8[reg]) or whose occupancy set (0x107b11c0[reg]) meets the temporary's range. A load from memory has no hint. So on the key pointer form the lea in front of the call takes ecx and the pointer stands at edx: the step load takes edx, the k load eax. Confirmed by probes: one more unhinted temporary behind the call (`p2 = p3`) or i read there (`p2 = i`: edx occupied) gives the original's code but for the probe's own instructions. Nothing ordinary found that does it: memory-to-memory copies between slot-sharing variables (`time = k`, the parameter as the stored counter) are removed before code generation; `last = k; last++; k = last;` is folded to `last = k + 1` (a temporary load and a lea). Also ruled out on the key pointer form: a second loop index copying i (11 spellings: the copy is removed or adds code); i++ in both arms with the if arm's copy behind the call (the two increments do not cross-jump, one is not at the arm's end); 1,860 single statements at five positions around the call (assignments among i, k, n, step, time, last, o, key, path, obj and block-local copies): none exact, every one that moves the rotation leaves an instruction. prior: s31 (one-function session; source unchanged, 49 ins / 132 bytes, raw 418 vs 416). New: the two levers of s8 are two piece EXTENTS, and two minimal probes together give every register of the original: (I) a k reference in the loop head (`{ extern int p1; p1 = k; }` before `if (o = path[i])`: k#2 51 > i#2 47 -> k ecx, i edx) or two in the tail (`p1 = k; p3 = k;`: k#2 45 > 43); (II) an i reference in the found body right behind the call (`{ extern int p2; p2 = i; }` before the time store): i's piece then starts behind the call (reloaded there, not at the block end), edx is busy at the step load and the step temp takes eax, the tail starts at edx. ph-i-aftercall (head k probe + body i probe) differs from the original only by the two probe stores and the order the probe store causes (vdiff: 10 ins); pt-i-aftercall (tail k probes + i probe) the same (11). With i at the body END instead (`p2 = i` behind k++): 9 ins but step edx / i eax swapped. So the original's text references k in head (or tail) and i behind the call, and both references leave no instruction. Ruled out s31 (= control unless named): initializers `= 0` on o, i, k, step, every subset, on six bases (control, `k = 1;` statement, time store before the call, `time / n` CSE, `time /= n`, k = 1 statement + CSE; 72 + 42 variants): only `int i = 0` moves code (49 / 129, raw 419); `k = 1` at the declaration 132 ins; declaration orders; k++ at every body position with shifted indices (73..109); the time store at every position among the subtractions, pos / rot order (224: time position is no lever, pos first 108); block scopes of i and o around / inside the loop (128, 4 codes); a local for n + 1, the anim result, the bound (cnt), ++n / n++ in the call, a key pointer in the tail, a rotation pointer; while / do-while / ++i / ++k / k += 1 / n > i / `!= 0` / split test; an in-loop exit or break (`for (;;) if (i >= n) ..`); i++ in both arms (52, not merged); path[i] written out; time reused as k (with initializers); no-op statements on k (`k = k`, `k += 0`, `k |= 0` .. 13 forms in head, latch, tail, for increment: all removed); types of i / k (int, unsigned, long, short, char, unsigned short / char: 48, unsigned i 53, the rest 62+); climb 4 rounds beam 6 (1379 mutants: best the time store before the call, 45 ins, raw 419); flip.py --want "mov ecx, 1 .. inc edx / cmp edx, ebx": only that swap. Open: an ordinary construct whose k reference (head / tail) and i reference (behind the call) survive to allocation but emit nothing (a copy coalesced after allocation, code merged by cross-jumping); none found. */
 
 D3ANIM *d3t_MoveObjectPath(D3OBJECT *obj, int time, int n, D3OBJECT **path)
 {
@@ -1078,7 +1067,7 @@ D3ANIM *d3t_MoveObjectPath(D3OBJECT *obj, int time, int n, D3OBJECT **path)
     keys[0].time = step;
     for (i = 0, k = 1; i < n; i++) {
         if (o = path[i]) {
-            d3_PointToWorld(o, &o->pos, (D3VECTOR *)&keys[k].pos);
+            d3_PointToWorld(o, &o->pos, &keys[k].pos.v);
             keys[k - 1].time = step;
             keys[k].rot.x -= obj->rotation.x;
             keys[k].rot.y -= obj->rotation.y;
@@ -1483,7 +1472,7 @@ D3TSNOW *d3t_CreateSnow(int count)
     }
     D3_ZERO(&flags, sizeof(flags));
     flags.b[2] |= 2;
-    snow->Texture = (D3TEXHANDLE *)tex_Load("Schneeflocke", flags, 0, 0);
+    snow->Texture = tex_Load("Schneeflocke", flags, 0, 0);
     if (snow->Texture)
         tex_Reload(snow->Texture, 0);
     return snow;
@@ -1496,7 +1485,7 @@ void d3t_FreeSnow(D3TSNOW *snow)
 {
     unsigned int i;
     int s;
-    D3TEXTURE *tex;
+    TSTEXTURE *tex;
 
     if (snow) {
         tex_Release(snow->Texture);
@@ -1504,9 +1493,9 @@ void d3t_FreeSnow(D3TSNOW *snow)
             mem_Free(snow->flakes);
             snow->flakes = 0;
         }
-        tex = (D3TEXTURE *)d3_Textures;
+        tex = d3_Textures;
         for (i = 0; i < d3_TexCount; tex++, i++) {
-            if (tex->refs > 0 && strnicmp("DC_", tex->name, 3) == 0 && !(tex->flags & 2)) {
+            if (tex->refs > 0 && strnicmp("DC_", tex->name, 3) == 0 && !(tex->bits & 2)) {
                 if (!tex_SetHiColor(tex, !d3d_UsedTexFormat.fourcc && tex->filebpp > 8 ? 1 : 0))
                     tex_Unload(tex);
                 tex->reserved = 0;
@@ -1810,7 +1799,7 @@ char d3t_EmitterCB(D3PARTSYS *ps, unsigned long time)
                 n.x = x;
                 n.y = y;
                 n.z = z;
-                d3_Normalize(&n);
+                d3_Normalize(&n.v);
                 if (n.y < 0.0f) {
                     p->flags &= ~1;
                 } else {
@@ -1860,7 +1849,7 @@ D3PARTSYS *d3t_CreateEmitter(D3OBJECT *obj, char *tex, char flag, unsigned long 
         flags.b[2] = flag & 1 | 2;
         ps = par_Create(count, tex, flags, size, obj, d3t_EmitterCB);
         if (ps) {
-            par_SetPos(ps, &d3_Origin);
+            par_SetPos(ps, &d3_Origin.v);
             ps->v00.x = pos->x;
             ps->v00.y = pos->y;
             ps->v00.z = pos->z;
@@ -2261,7 +2250,7 @@ DDSURFACEDESC2 d3t_SnowMip32[9];      /* 0x1466f00 */
 j-loop test (mov eax,[ebp-8]; cmp ecx,eax: +3 bytes twice), and mem_Alloc(size * size) for d3t_SnowDither[i] recomputes the product (mov eax,esi; imul eax,esi; push eax: +6) where ours CSEs n into the push (push edx) - so in the original the product is NOT available at the alloc: something between kills it, or the alloc's argument is not the same expression as n. Our n gets edx in pieces because of that extra reference. The blur loop's up/row/down pointers: the original walks edx/edi/eax with add 4 each (strength-reduced, row in [ebp-0x28], down in [ebp-0x2c], up in [ebp-0x18]); ours computes [up+row-?] differences (lea ebx,[edx+edi]; fadd... */
 void d3t_CreateSnowMipmaps(void)
 {
-    D3TEXHANDLE *snow_tex;
+    struct TSTEXTURE *snow_tex;
     DDSURFACEDESC2 snow_ddsd;
     LPDIRECTDRAWPALETTE lppal;
     PALETTEENTRY pal[1024];
@@ -2271,10 +2260,10 @@ void d3t_CreateSnowMipmaps(void)
     int i, j, k, x, y, size, n, cnt;
 
     flags.all = 0;
-    snow_tex = (D3TEXHANDLE *)tex_Load("snow_256_ns", flags, 0, 0);
+    snow_tex = tex_Load("snow_256_ns", flags, 0, 0);
     lppal = 0;
     if (snow_tex) {
-        tex_SetHiColor((D3TEXTURE *)snow_tex, 1);
+        tex_SetHiColor(snow_tex, 1);
         tex_Reload(snow_tex, 0);
         if (snow_tex->surf) {
             D3_ZERO(&snow_ddsd, sizeof(snow_ddsd));
@@ -2544,7 +2533,7 @@ void d3t_UpdateSunRays(D3OBJECT *obj)
     if (!obj || !obj->info || !d3_Camera)
         return;
     if (!d3_VecEqual(D3T_VSET(pos, d3_Camera->pos.x, d3_Camera->pos.y, d3_Camera->pos.z), &obj->pos, 0.0001f))
-        d3_SetObjectPos(obj, (D3VECTOR *)&pos);
+        d3_SetObjectPos(obj, &pos.v);
     light = d3_FindObject(0, 8, 0, "pLicht");
     if (light) {
         d = light->rotation.y - obj->rotation.y;

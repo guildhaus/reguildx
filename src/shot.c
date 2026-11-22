@@ -54,7 +54,6 @@ extern const unsigned int ai_BuildingTypeMasks[6];
 #include "d3_fl.h"
 #include "dd_vesa.h"
 #include "ch.h"
-#define ai_CharsK ((AICHARKINDVIEW *)((char *)ai_Chars + 2))  /* 0x770b82, the records from their kind byte (ai_HasQuicksavePlayer walks them so) */
 
 extern OPTIONBYTES ai_GfxResolution;
 /* full rebuild: the symbols whose original addresses the code above spells literally */
@@ -153,7 +152,6 @@ void d2_RemoveObj(int obj);                                          /* 0x46e710
 void d2_SetObjFont(int obj, int font);                               /* 0x4760b0 */
 void d2_SetObjValue(int obj, ...);                                               /* 0x475cb0, d2.c (varargs: the call sites pass 1, 3 or 4 values) */
 void d2_SetObjMax(int obj, int v);                                   /* 0x475f40 */
-typedef struct D2FADEVIEW { unsigned char flags; char pad1[0x63]; } D2FADEVIEW;
 extern D2WIN d2_Wins[];             /* 0xf8f120, d2.h: D2WIN d2_Wins[0x61] */
 extern float sv_FramesPerTick;          /* 0x62378c, sv.c: the frames drawn since the last timer tick
                                            (the frame loop counts them in 0x623790, the tick callback
@@ -165,8 +163,8 @@ int io_PrintText(intptr_t fmt, ...);          /* 0x515960, io_text.c: prints a t
 extern short d2_ScreenW;                /* 0xfb9072, d2.h */
 extern short d2_ScreenH;                /* 0xfb9070, d2.h */
 extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
-D2FADEVIEW *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
-void d2_ReleaseFade(D2FADEVIEW *f);        /* 0x476860, d2.h */
+D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
+void d2_ReleaseFade(D2FADE *f);        /* 0x476860, d2.h */
 void d2_ClearScreen(void);              /* 0x46e990, d2.h */
 void d2_ShowPicture(int pic);           /* 0x46cfd0, d2.h */
 void sv_SetPanelEnabled(int on);        /* 0x522100, sv.c: disables the panel widgets when on is 0 */
@@ -178,36 +176,8 @@ extern int sv_PopRequest;               /* 0x6f22a0, cm.h / gv.h: the dialog clo
 extern int d2_CutsceneActive;           /* 0x6ed9d4, cm.h / gfx.h */
 extern unsigned char kb_Last;           /* 0x1468410, d2.h: the last key (di_input.c) */
 void d2_FocusInput(int obj);                                           /* 0x478320 */
-#pragma pack(push, 1)
-typedef struct SAVEHEADERVIEW {             /* 0xfc */
-    int version;                            /* +0x00, the save version (also ls_Version) */
-    unsigned char flags;                    /* +0x04, bit 2: a map only save */
-    char player[0x20];                       /* +0x05, the player's name */
-    char pad25[0x0d];
-    int year;                               /* +0x32, the game clock's year (0x578 + it is the calendar year) */
-    unsigned short hour;                    /* +0x36, its hour */
-    int minute;                             /* +0x38, its minute */
-    char pad3c[4];
-    char scenario[0x10];                    /* +0x40, the character's scenario record */
-    char character[0x0c];                   /* +0x50, the character's saved bytes */
-    char pad5c[4];
-    unsigned char nameTextOffset;           /* +0x60, added to the text id 0x130 (0x18f compact) of the character line */
-    unsigned char officeTextOffset;         /* +0x61, added to the text id 0x253 (0x27b compact) of the character line */
-    unsigned char traitTextOffset;          /* +0x62, added to the text id 0x114 (0x11e compact) of the character line */
-    char pad63[5];
-    int money;                              /* +0x68, the character's money ("%i%c") */
-    unsigned char compactTexts;             /* +0x6c, nonzero: the three text ids shift by +10 / +0x5f / +0x28 */
-    unsigned char slot;                     /* +0x6d, ls_SaveSlot of the save */
-    short pad6e;
-    int playerBuilding;                     /* +0x70, the player's building id, -1 = none */
-    int otherBuilding;                      /* +0x74, the second building id, -1 = none */
-    int party[8];                           /* +0x78, the table 0x76fa24 */
-    int difficulty;                         /* +0x98, ai_Difficulty (2 for a save older than 0x10038) */
-    char title[0x60];                       /* +0x9c, the title shown in the slot */
-} SAVEHEADERVIEW;                           /* 0xfc */
-#pragma pack(pop)
 extern int ls_Version;                      /* 0x623650, ls.c: the version of the save read last */
-int ls_ReadSaveHeader(struct VFSFILE *f, int *h);      /* 0x51cee0, ls.c: reads a save header into h (no header there) */
+int ls_ReadSaveHeader(struct VFSFILE *f, LSHDR *h);      /* 0x51cee0, ls.c: reads a save header into h (no header there) */
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); /* 0x472aa0, d2.h */
 int d2_WinOpenRaw(int x, int y, int w, int h, void *src, int win);  /* 0x46c390, d2.h */
 int d2_WinOpenPic(short x, short y, int pic, int win); /* 0x4731d0, d2.h: creates a picture object */
@@ -281,40 +251,13 @@ void sv_PumpNet(void);                                             /* 0x52fe00, 
 void sv_BroadcastText(unsigned fl, char *t);  /* 0x52fcf0, sv.c: sends t as the network message 0xe and
                                                  shows it until the answer, then clears the status line */
 int ls_WriteSaveHeader(struct VFSFILE *f, unsigned flags); /* 0x5194c0, ls.c: writes the save header (the flag word) */
-int ls_ReadSaveHeader(struct VFSFILE *f, int *h);         /* 0x51cee0, ls.c: reads the save header into h */
+int ls_ReadSaveHeader(struct VFSFILE *f, LSHDR *h);         /* 0x51cee0, ls.c: reads the save header into h */
 extern int cm_RequestedSaveSlot;        /* 0x6f25c8, cm.h: the save slot the request asked for */
 extern char cm_RequestedSaveName[];     /* 0x6f25d0, cm.h: the save name the request carried */
 extern int cm_SaveAcks[][2];            /* 0x76fa20, cm.h: 8 slots; [0] = the player's netId, [1] = the
                                            save name hash, -1 when empty (message 0x10 fills the first free) */
 extern unsigned char ai_NumPlayers;     /* 0x62489c, the player count (ai.c / cm.c / main.c) */
 extern unsigned short ai_PlayerId;      /* 0x6f25b8, the local player (cm.h / am.h / gv.h) */
-typedef struct AICHARVIEW {
-    unsigned short id;                  /* +0x000, 0xffff when free */
-    unsigned char kind;                 /* +0x002, 6 / 7 = a player */
-    char pad003;
-    unsigned int netId;                 /* +0x004 */
-    char pad008[0x15e];
-    unsigned char officeKind;           /* +0x166, the kind of the office held (amt.h AMTCHARVIEW.officeKind) */
-    char pad167[0x21];
-    char selected;                      /* +0x188, the group selection flag (sv.c ai_Selected, cleared by sv_ClearSelection) */
-    char pad189[3];
-    int pic;                            /* +0x18c, the picture of the character the poker panel shows (reasoned: the picture index) */
-    char pad190[0x3c];
-    unsigned int flags1cc;             /* +0x1cc, ai.h's flags1cc (bit 0x20000 = the blood revenge) */
-    char pad1d0[0x3c];
-    int partyId;                        /* +0x20c, the scene party the character belongs to, -1 = none (ai_char.h AICHAR.partyId) */
-    char pad210[0xc];
-} AICHARVIEW;
-#pragma pack(push, 1)
-typedef struct AICHARKINDVIEW {
-    unsigned char kind;                 /* +0x000 (record +2), 6 / 7 = a player */
-    char pad001[5];
-    unsigned char health;               /* +0x006 (record +8), > 0 = alive (ai_char.h AICHAR.health) */
-    char pad007[0x203];
-    int partyId;                        /* +0x20a (record +0x20c), -1 = none (ai_char.h AICHAR.partyId) */
-    char pad20e[0xe];
-} AICHARKINDVIEW;
-#pragma pack(pop)
 struct AIBLD; int ai_ProductionWindow(struct AIBLD *bld); /* 0x58bd60, lc.c: "Handel\Handel_PRODUKTION" */
 int ai_OpenTransport(struct AIBLD *rec);             /* 0x5af1a0, lc.c */
 struct AIOBJ; void ai_TradeSearchWindow(struct AIBLD *bld, struct AIOBJ *room); /* 0x595480, lc.c: "HANDEL\HANDEL_SUCHEN" */
@@ -349,23 +292,11 @@ typedef struct AIBLDVIEW {
     int objList;                        /* +0x5d, AIBLD.objList: the objects of the building */
 } AIBLDVIEW;
 #pragma pack(pop)
-typedef struct GYPSYROW {               /* 0x38 bytes: one row of the special-amount list (ai_AmountRowStatus / ai_AmountRow read it as ints) */
-    AICHARVIEW *rec;                    /* +0x00, the character the row shows (0 = empty) */
-    int ctl;                            /* +0x04, the row's control object (d2_Objs index) */
-    int pad08[2];
-    int x;                              /* +0x10, the position of the row */
-    int y;                              /* +0x14 */
-    int pad18[8];
-} GYPSYROW;
 extern struct D2PIC *d2_Pics;              /* 0x6ed918, d2.h: D2PIC * */
 void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 struct AITIME;
 int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
 unsigned short ai_PokerStep(); float ai_NormalizeEffectScale(float x);
-typedef struct PLAYERRECVIEW {          /* f3gm.h's player record (gm_PlayerRecord, 0x56 words): only the float the poker game reads */
-    char pad00[0x60];
-    float luck;                         /* +0x60, the chance that the player sits down to play (decays by * 0.66 - 0.1 per game; reasoned) */
-} PLAYERRECVIEW;
 /* the cannon constants, read-only, in the original's order (named .rdata 0x5eedf4..0x5eee1c, the unit's first
    .rdata; read from memory, not folded; 0.0254, 0.1, 4/3 pi and -2.5 are these objects at the sites that read them,
    the same values elsewhere are pooled literals) */
@@ -388,9 +319,9 @@ const float ai_AimErrLow = -2.5f;            /* 0x5eee1c, the low bound of ai_So
    empty name, the scale 1.0, the lifetime 25.0, then the entry's ids / callbacks). The twin
    0x5dbc20 returns its scale from the same record. */
 
-int ai_GetDefaultEffect(void)
+EFFECTREC *ai_GetDefaultEffect(void)
 {
-    return (int)&ai_DefaultEffect;
+    return &ai_DefaultEffect;
 }
 /* 0x5dbc20, the default effect scale (13 B): the scale field of the default effect record
    (ai_DefaultEffect.scale 0x62de6c) through the 0 .. 60 -> 0 .. 1 clamp 0x5dd090
@@ -468,9 +399,9 @@ void ai_InitWind(int type, int id, float *from, float *to)
         break;
     }
     ai_EffectState.angle = util_RandomF() * 6.2831855f;
-    ai_DefaultEffect.pos[0] = ai_EffectState.sinTab[6];
-    ai_DefaultEffect.pos[1] = 0;
-    ai_DefaultEffect.pos[2] = ai_EffectState.cosTab[6];
+    ai_DefaultEffect.pos.x = ai_EffectState.sinTab[6];
+    ai_DefaultEffect.pos.y = 0;
+    ai_DefaultEffect.pos.z = ai_EffectState.cosTab[6];
     ai_DefaultEffect.scale = (float)(fabs(sin(ai_EffectState.angle) * ai_EffectState.gust[6]) + ai_EffectState.base[6]);
 }
 /* 0x5dbed0, advances the wind (235 B; sv_RunFrame calls it every frame): the hours since the state's last
@@ -493,10 +424,10 @@ void ai_UpdateWind(void)
     hours = gm_MinutesBetween((struct AITIME *)&last, (struct AITIME *)&ai_Time) * (1.0f / 60.0f);
     if (!(hours < 0.0f)) {
         hour = now->hour;
-        ai_DefaultEffect.pos[1] = 0;
+        ai_DefaultEffect.pos.y = 0;
         ai_EffectState.angle += hours * ai_EffectState.phase[hour];
-        ai_DefaultEffect.pos[0] = ai_EffectState.sinTab[hour];
-        ai_DefaultEffect.pos[2] = ai_EffectState.cosTab[hour];
+        ai_DefaultEffect.pos.x = ai_EffectState.sinTab[hour];
+        ai_DefaultEffect.pos.z = ai_EffectState.cosTab[hour];
         ai_DefaultEffect.scale = ((float)sin(ai_EffectState.angle) + 1.0f) * ai_EffectState.gust[hour] * 0.5f
             + ai_EffectState.base[hour];
         ai_EffectState.year = now->year;
@@ -595,7 +526,7 @@ int ai_InitShot(SHOTREC *shot, D3VECTOR *pos, D3VECTOR *dir, float charge, float
 {
     /* @original the call goes through a pointer: the original calls ai_GetDefaultEffect first and keeps the
        record in edx across ai_SphereVolume; a direct call VC6 sinks to the wind copy (it knows the callee) */
-    EFFECTREC *(*get)(void) = (EFFECTREC *(*)(void))ai_GetDefaultEffect;
+    EFFECTREC *(*get)(void) = ai_GetDefaultEffect;
     EFFECTREC *wind = get();
     SPHEREVOLUME ball;
 
@@ -608,9 +539,9 @@ int ai_InitShot(SHOTREC *shot, D3VECTOR *pos, D3VECTOR *dir, float charge, float
     shot->vel = shot->velStart;
     shot->wind = *wind;
     shot->wind.scale = MAX(MIN(shot->wind.scale, ai_WindGain), 0.0f);
-    shot->wind.pos[0] = shot->wind.scale * shot->wind.pos[0];
-    shot->wind.pos[1] = shot->wind.scale * shot->wind.pos[1];
-    shot->wind.pos[2] = shot->wind.scale * shot->wind.pos[2];
+    shot->wind.pos.x = shot->wind.scale * shot->wind.pos.x;
+    shot->wind.pos.y = shot->wind.scale * shot->wind.pos.y;
+    shot->wind.pos.z = shot->wind.scale * shot->wind.pos.z;
     shot->posStart = *pos;
     shot->pos = *pos;
     shot->mass = ball.reach;
@@ -687,7 +618,7 @@ int ai_StepShot(SHOTREC *shot)
 {
     float fall = ai_Gravity * ai_ShotStep;
     float perMass = ai_ShotStep / shot->mass;
-    D3SM *map = (D3SM *)init_SceneHeightMaps[0];
+    D3SM *map = d3_Scenes[0].hmap;
     int ticks, i, px, pz, npx, npz;
     float height;
     D3VECTOR4 v, next, wind, d, a, b, m;
@@ -701,9 +632,9 @@ int ai_StepShot(SHOTREC *shot)
         shot->energy = 0;
         return 0;
     }
-    wind.x = WINDDRAG(shot->wind.pos[0]);
-    wind.y = WINDDRAGY(shot->wind.pos[1]);
-    wind.z = WINDDRAG(shot->wind.pos[2]);
+    wind.x = WINDDRAG(shot->wind.pos.x);
+    wind.y = WINDDRAGY(shot->wind.pos.y);
+    wind.z = WINDDRAG(shot->wind.pos.z);
     for (i = 0; i < ticks; i++) {
         v.x = shot->vel.v.x;
         v.y = shot->vel.v.y;
@@ -751,7 +682,7 @@ int ai_StepShot(SHOTREC *shot)
         next.x += m.x;
         next.y += m.y;
         next.z += m.z;
-        if (ai_ShotHitsGround(map, &shot->pos, (D3VECTOR *)&next, px, pz, &npx, &npz) && shot->steps > 50) {
+        if (ai_ShotHitsGround(map, &shot->pos, &next.v, px, pz, &npx, &npz) && shot->steps > 50) {
             shot->pos.x = next.x;
             shot->state = 2;
             shot->pos.y = next.y;
@@ -776,7 +707,7 @@ int ai_StepShotSlow(SHOTREC *shot)
 {
     float fall = ai_Gravity * ai_ShotHalfStep;
     float perMass = ai_ShotHalfStep / shot->mass;
-    D3SM *map = (D3SM *)init_SceneHeightMaps[0];
+    D3SM *map = d3_Scenes[0].hmap;
     int ticks, i, px, pz, npx, npz;
     float height;
     D3VECTOR4 v, next, wind, d, a, b, m;
@@ -790,9 +721,9 @@ int ai_StepShotSlow(SHOTREC *shot)
         shot->energy = 0;
         return 0;
     }
-    wind.x = WINDDRAG(shot->wind.pos[0]);
-    wind.y = WINDDRAGY(shot->wind.pos[1]);
-    wind.z = WINDDRAG(shot->wind.pos[2]);
+    wind.x = WINDDRAG(shot->wind.pos.x);
+    wind.y = WINDDRAGY(shot->wind.pos.y);
+    wind.z = WINDDRAG(shot->wind.pos.z);
     for (i = 0; i < ticks; i++) {
         v.x = shot->vel.v.x;
         v.y = shot->vel.v.y;
@@ -840,7 +771,7 @@ int ai_StepShotSlow(SHOTREC *shot)
         next.x += m.x;
         next.y += m.y;
         next.z += m.z;
-        if (ai_ShotHitsGround(map, &shot->pos, (D3VECTOR *)&next, px, pz, &npx, &npz) && shot->steps > 50) {
+        if (ai_ShotHitsGround(map, &shot->pos, &next.v, px, pz, &npx, &npz) && shot->steps > 50) {
             shot->pos.x = next.x;
             shot->state = 2;
             shot->pos.y = next.y;
@@ -896,7 +827,7 @@ int ai_ShotHitsGround(D3SM *map, D3VECTOR *from, D3VECTOR *to, int px, int pz, i
         p.x += d.x;
         p.y += d.y;
         p.z += d.z;
-        d3_GetHeightAt(map, (D3VECTOR *)&p, &cx, &cz, &height);
+        d3_GetHeightAt(map, &p.v, &cx, &cz, &height);
         if (ai_ShotHitHeight + height > p.y) {
             to->x = p.x;
             to->y = p.y;
@@ -944,8 +875,8 @@ float ai_NormalizeEffectScale(float value)
    component). No lever for those: all 1023 operand swaps of the five tail lines, 144 declaration orders of
    s / c, d3_YAxis through a pointer / array view / local copies of c and s (one code each); climb round 1
    best 10 ins by inlining err in both tests (another place differs, not kept). */
-int ai_SolveCannonAim(float *from, float *to, float *range, float *outElev, float *outYaw, float *outSpeed,
-                      float *outDir, float *outUp, float *outSide)
+int ai_SolveCannonAim(const D3VECTOR *from, const D3VECTOR *to, float *range, float *outElev, float *outYaw, float *outSpeed,
+                      D3VECTOR *outDir, D3VECTOR *outUp, D3VECTOR *outSide)
 {
     float g = ai_Gravity;
     float speedStep = (range[1] - range[0]) * 0.5f;
@@ -955,21 +886,21 @@ int ai_SolveCannonAim(float *from, float *to, float *range, float *outElev, floa
     float speed, ang;
     int sign = 0, i;
 
-    dir.x = to[0] - from[0];
-    dir.y = to[1] - from[1];
-    dir.z = to[2] - from[2];
+    dir.x = to->x - from->x;
+    dir.y = to->y - from->y;
+    dir.z = to->z - from->z;
     hdir.x = dir.x;
     hdir.y = 0.0f;
     hdir.z = dir.z;
     horiz = (float)sqrt(dir.x * dir.x + dir.z * dir.z);
-    d3_Normalize(&dir);
-    d3_Normalize(&hdir);
-    *outYaw = d3_VecAngle2((D3VECTOR *)&d3_ZAxis, (D3VECTOR *)&dir);
-    drop = (float)fabs(to[1] - from[1]) * ai_MeterPerInch;
+    d3_Normalize(&dir.v);
+    d3_Normalize(&hdir.v);
+    *outYaw = d3_VecAngle2(&d3_ZAxis.v, &dir.v);
+    drop = (float)fabs(to->y - from->y) * ai_MeterPerInch;
     horiz = ai_MeterPerInch * horiz;
-    if (from[1] > to[1])
+    if (from->y > to->y)
         sign = 1;
-    else if (from[1] < to[1])
+    else if (from->y < to->y)
         sign = -1;
     ang = range[3];
     speed = range[0];
@@ -1007,15 +938,15 @@ int ai_SolveCannonAim(float *from, float *to, float *range, float *outElev, floa
         } else {
             *outSpeed = speed;
             *outElev = ang;
-            outDir[0] = hdir.x;
-            outDir[1] = c * hdir.y - s * hdir.z;
-            outDir[2] = s * hdir.y + c * hdir.z;
-            outUp[0] = d3_YAxis.x;
-            outUp[1] = d3_YAxis.y * c - d3_YAxis.z * s;
-            outUp[2] = d3_YAxis.z * c + d3_YAxis.y * s;
-            outSide[0] = outUp[2] * outDir[1] - outDir[2] * outUp[1];
-            outSide[1] = outDir[2] * outUp[0] - outUp[2] * outDir[0];
-            outSide[2] = outDir[0] * outUp[1] - outDir[1] * outUp[0];
+            outDir->x = hdir.x;
+            outDir->y = c * hdir.y - s * hdir.z;
+            outDir->z = s * hdir.y + c * hdir.z;
+            outUp->x = d3_YAxis.x;
+            outUp->y = d3_YAxis.y * c - d3_YAxis.z * s;
+            outUp->z = d3_YAxis.z * c + d3_YAxis.y * s;
+            outSide->x = outUp->z * outDir->y - outDir->z * outUp->y;
+            outSide->y = outDir->z * outUp->x - outUp->z * outDir->x;
+            outSide->z = outDir->x * outUp->y - outDir->y * outUp->x;
             return 0;
         }
     }

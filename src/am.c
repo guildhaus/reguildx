@@ -5,10 +5,6 @@
    precede amr.c's named constants ag_Pairs.. (the AI actions with the am_RegisterMethod tag are amr.c; the name am
    stays here with am.h). Names are ours.
    Open: am.h keeps the joined parts' character views (AICHAR / AICHAR / AICHAR / AICHAR / AICHAR), and duplicate callee prototypes / cast macros; they need unifying with ai.h's types.
-   Open: AIJOBX (am.h) duplicates ai.h's AIJOB (its id / bldId / price fields are named from it); the AIJOB
-   union member for the building offer's price flips ai_Unk483a60's byte match by the declaration set.
-   Open: the use callers read am_types.h's G9DOMIZIL weight (+0xc) as g[3] through a float view; naming that
-   field moved sv_t's ai_TutorialInitChapter3 (shape -> draft, a declaration-set tie-break).
    Open: not included yet (dcp headers conflicts am HEADER): txt.h.
    unit of rea 8cef7d5b (src/game/am.c); boundaries in decl/text.dcl */
 #include "txt_views.h"
@@ -812,8 +808,8 @@ int ai_ExecUseAlchemyItems(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     AIBLD *bl;
     AIOBJ *o, *q;
-    float *g;
-    AIUSE u;
+    G9DOMIZIL *g;
+    G8USE u;
 
     if (s1->kind == 2) {
         if (s1->arg2 == 1) {
@@ -838,7 +834,7 @@ int ai_ExecUseAlchemyItems(AICHAR *p, AIARG *s1, AIARG *s2)
         o = gm_Query(p->inventory, 1, 1, s1->ref);
         if (!o)
             return 0;
-        g = (float *)ai_FindUsableGood(o->id);
+        g = ai_FindUsableGood(o->id);
         if (g) {
             u.obj = o;
             u.target = s2->ref;
@@ -847,11 +843,11 @@ int ai_ExecUseAlchemyItems(AICHAR *p, AIARG *s1, AIARG *s2)
             u.handled = 0;
             if (ai_UseGood(p, &u) == 1) {
                 if (u.effect == 1) {
-                    ai_Actions[0x48].w3[0].w = ai_Actions[0x48].w1[0].w * g[3];
+                    ai_Actions[0x48].w3[0].w = ai_Actions[0x48].w1[0].w * g->weight;
                     return 0x1c;
                 }
                 if (u.effect == -1)
-                    ai_Actions[0x48].w3[0].w = ai_Actions[0x48].w1[0].w * g[3] * -0.5f;
+                    ai_Actions[0x48].w3[0].w = ai_Actions[0x48].w1[0].w * g->weight * -0.5f;
                 return 0x1c;
             }
         }
@@ -1216,7 +1212,7 @@ int ai_DecideHandleGrave(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
     AIBLD *bld;
     AICHAR *q;
     AIBLD *list[8];
-    int *r, *r2;
+    GVENTRY *r, *r2;
     int n, i, k, v, m, t2;
 
     r = 0;
@@ -1248,21 +1244,21 @@ int ai_DecideHandleGrave(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
         }
     }
     if (r != 0) {
-        if (*r == 3)
+        if (r->size == 3)
             return 0;
-        for (k = 3; k > *r; k--) {
+        for (k = 3; k > r->size; k--) {
             r2 = gv_FindEntry(0, bld, 0, gv_EntryIsFree, k);
             if (r2 != 0) {
-                v = gv_MovePrice(p, *r, *r2, &i);
+                v = gv_MovePrice(p, r->size, r2->size, &i);
                 m = gm_CharCurrency(p, ai_OwnPlayer);
                 if ((int)(m * 0.22f) <= v)
                     return 0;
                 o1->arg2 = 5;
                 o1->ref2 = bld->id;
-                o1->ref = *r2;
+                o1->ref = r2->size;
                 o1->arg = v;
-                o2->ref = *r;
-                o2->arg2 = gv_EntryIndex((char *)bld->yard, r);
+                o2->ref = r->size;
+                o2->arg2 = gv_EntryIndex(bld->yard, r);
                 return 0x3e;
             }
         }
@@ -1279,14 +1275,14 @@ int ai_DecideHandleGrave(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
     {
         int t3;
 
-        v = gv_LeasePrice(p, 0xff, *r2, 1, &t3);
+        v = gv_LeasePrice(p, 0xff, r2->size, 1, &t3);
         m = gm_CharCurrency(p, ai_OwnPlayer);
     }
     if ((int)(m * 0.22f) < v)
         return 0;
     o1->arg2 = 4;
     o1->ref2 = bld->id;
-    o1->ref = *r2;
+    o1->ref = r2->size;
     o1->arg = v;
     return 0x3e;
 }
@@ -1303,7 +1299,7 @@ int ai_ExecHandleGrave(AICHAR *p, AIARG *s1, AIARG *s2)
             return 0x3e;
         }
         if (a->arg2 == 5) {
-            gv_OrderMoveGrave((int *)p, a->ref, (AIBLD *)s1, s2->ref, s2->arg2, a->arg);
+            gv_OrderMoveGrave(p, a->ref, (AIBLD *)s1, s2->ref, s2->arg2, a->arg);
             return 0x3e;
         }
     }
@@ -1386,7 +1382,7 @@ int ai_DecideLawSeverity(AICHAR *p, int a, int *out)
 int ai_DecideLaw1(AICHAR *p, int a, int *out)
 {
     AIDEC d;
-    unsigned short *o;
+    AICHAR *o;
     float f, x, u, v, w, g;
     int t, n, r;
 
@@ -1418,7 +1414,7 @@ int ai_DecideLaw1(AICHAR *p, int a, int *out)
     } else {
         o = amt_GetOfficeHolder(0x11);
         if (o) {
-            g = gm_Liking(*o, p->id, 1);
+            g = gm_Liking(o->id, p->id, 1);
             if (d.cur == 1) {
                 if (g > 0.75f) {
                     *out = 0;

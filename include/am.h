@@ -102,31 +102,19 @@ int ai_DecideLaw28(AICHAR *p, int a, int *out);                    /* 0x492e90, 
 
 int am_RegisterMethod(AIACT *act, int a);                            /* 0x495520, registers an action */
 int ai_EvalMoodWeights(float *a, float *b, int i, AICHAR *p, int f, void *x, void *y);  /* 0x4a49a0 */
-char * amt_GetOfficeHolder(int k);                            /* 0x4e7510 */
+struct AICHAR *amt_GetOfficeHolder(int k);                            /* 0x4e7510 */
 int amt_GetOwnedOfficePay(void);                                         /* 0x4ea990 */
 unsigned char ord_GetRatingByte(int k);                              /* 0x4f97a0 */
 float ord_BuildingCapacityRatio(void);                                       /* 0x4f97c0 */
 int gm_TitleGroup(int k);                                        /* 0x504ad0 */
 float gm_GetSkill(struct AICHAR *c, int skill);                            /* 0x504ec0 */
 int gm_SumListAmounts(void *list, unsigned char p);                       /* 0x509e30 */
-unsigned char * gm_FirstBuilding(int n);                                     /* 0x50b010 */
+struct AIBLD *gm_FirstBuilding(int n);                                     /* 0x50b010 */
 
 
 /* 0x495ee0..0x497490 (was unk_495ee0.h) */
 
 
-typedef struct AIJOBX {                 /* a job (0x53e400 / 0x53e300 list) */
-    char pad00[4];
-    int id;                             /* 0x04, the event id (ai.h AIJOB.id) */
-    char pad08[0xa4];
-    int bldId;                          /* 0xac, a building id (ai.h AIJOB.bldId); of the offer event 0x2c the suitor (he.c HEOFFER.who[0]) */
-    union {
-        int price;                      /* 0xb0, of a building offer (kind 0x1b, +0xac the building) the asking price (0x497fa0 sets it against two thirds of the buyer's money) */
-        int partner;                    /* 0xb0, of the offer event 0x2c the partner's netId (HEOFFER.who[1]) */
-    };
-    int guests[3];                      /* 0xb4, of the offer event 0x2c the first three guests' netIds (HEOFFER.who[2..4]):
-                                           ai_EvalLeastLikedOfEvent weighs them for the character whose event it is */
-} AIJOBX;
 
 
 extern AIACT ai_Actions[];            /* 0xf83ec0, the registered actions */
@@ -157,8 +145,8 @@ int ai_EvalGuiltWeights(float *a, float *b, int i, AICHAR *p, struct AIDEC *d); 
 int ai_PickPartnerChain(AICHAR *p, int a, int *flags, float b, float f, unsigned short *id); /* 0x4a58d0 */
 int cm_SendSetField(int a, int b, int c, int d, int e);                   /* 0x4c4a60 */
 void cm_SendMoneyDelta(int a, int b);                                               /* 0x4c5f60 */
-int amt_GetOfficeApplicants(int k, int n, char **out);                                   /* 0x4e76b0 */
-int ord_DispatchOrder(int id, struct AICHAR *c, int *m);                                     /* 0x4f81c0 */
+int amt_GetOfficeApplicants(int k, int n, struct AICHAR **out);                                   /* 0x4e76b0 */
+struct ORDMSG; int ord_DispatchOrder(int id, struct AICHAR *c, struct ORDMSG *m);                                     /* 0x4f81c0 */
 int gm_CharCurrency(struct AICHAR *c, char p);                                    /* 0x509ee0 */
 int gm_GetWorth(unsigned short id);                                            /* 0x50a640 */
 /* ai.h declares he_FindEvent with five arguments; 0x496b10 calls it with three */
@@ -183,15 +171,9 @@ typedef struct AIBTX {                  /* 0x24d bytes, an AIBTYPE (ai.h) as the
 } AIBTX;
 
 
-typedef struct AIFINX {                 /* what gm_PlayerRecord finds for a character (ai.h AIFIN) */
-    char pad00[0x44];
-    int renovationSpent;                /* 0x44 */
-    char pad48[0x2c];
-    unsigned char jobByGroup[0x11];     /* 0x74, one job id per title group (ai.h AIFIN +0x74, gm_TitleGroup): 0 = none (gm_SetJob fills it; ai_DecideApprenticeship takes a free group) */
-} AIFINX;
 
 typedef struct AIGOODX {                /* 0x41 bytes, an AIGOOD (ai.h) as these callbacks read it */
-    char type;                          /* 0x00 */
+    signed char type;                   /* 0x00 */
     char pad01[0x3f];
     unsigned char noSale;               /* 0x40, AIGOOD.b40: nonzero, the tooltip shows a text instead of the price (reasoned: not for sale; ai_DecideProduceGood never produces such a good) */
 } AIGOODX;
@@ -204,8 +186,6 @@ typedef char ai_AssertAIGOODX[sizeof(AIGOODX) == 0x41 ? 1 : -1];
 #define AI_BTX ((AIBTX *)ai_BTypes)
 #define AI_GOODX ((AIGOODX *)ai_Goods)
 /* ai.h declares gm_BuildQuery with two arguments, am.h above with three */
-#define AI_JOBS1B() ((AIJOBX *)he_FindEvent(1, 0, 0x1b))
-#define AI_JOBNEXT() ((AIJOBX *)he_NextEvent())
 
 int ai_DecideProduceGood(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2);                 /* 0x497660 */
 int ai_ExecuteProduceGood(AICHAR *p, AIARG *s1, AIARG *s2);                               /* 0x4979d0 */
@@ -233,13 +213,13 @@ int ai_RepairCost(struct AIBLD *b, int k);                                      
 int ai_CanBuildType(int a, struct AICHAR *p, int b, struct AIARG *s1, struct AIARG *s2, int f);         /* 0x4a5140 */
 int ai_ExecBuildBuilding(struct AICHAR *p, struct AIARG *s1, struct AIARG *s2);                               /* 0x4a5320 */
 int ai_FindGoodToMake(int *item, int *obj, AIBLD *bld, int f);                       /* 0x4a5540 */
-void gm_SellBuilding(int a, int b, int c, int d, int e);                     /* 0x502fd0 */
+void gm_SellBuilding(int a, int b, int c, struct AIJOB *d, int e);                     /* 0x502fd0 */
 int gm_JobBuildingType(int k);                                                        /* 0x504050 */
 int gm_FirstTitleNumber(int k);                                                        /* 0x504290 */
 /* 0x5044b0 */
 int gm_BuildingJob(int k);                                                        /* 0x5048e0 */
 int gm_TitlesLeft(int k);                                                        /* 0x504ce0 */
-float gm_Mix(int a, int b, int c);                                  /* 0x504e20 */
+float gm_Mix(struct AICHAR *a, struct AICHAR *b, int c);                                  /* 0x504e20 */
 int gm_BuildingKindValue(int k);                                                        /* 0x509d30 */
 int gm_BuildingKindCost(struct AICHAR *c, int kind);                                              /* 0x509dc0 */
 int ord_RandomObjectId(struct AICHAR *c);                                                     /* 0x4f8700 */
@@ -250,32 +230,28 @@ struct AICHAR *gm_ObjectOwnerChar(struct AIOBJ *o);                             
 /* ---- was unk_490830.h ---- */
 #pragma pack(push, 1)
 
+typedef struct AGDUELSIDE {             /* one side of a dice duel (AGDUEL.side1 at +0x0c, side2 at +0x30) */
+    AICHAR *ch;                         /* 0x00, the character throwing */
+    unsigned char n;                    /* 0x04, the dice thrown */
+    char pad05[3];
+    unsigned int stats;                 /* 0x08, an AI opponent's classes (ai_MakeDuelOpponent: second << 8 | first), 0xffff for a player's side */
+    unsigned char t[0x10];              /* 0x0c, the thrown values 1 .. 6 */
+} AGDUELSIDE;
+
 typedef struct AGDUEL {                 /* a dice duel between two characters (ai_DuelStart, 0x493200) */
     int stake;                          /* 0x00, the first throw's stake: gm_PlayerFactor of the player's worth (gm_GetWorth / gm_ConvertMoney, halved per k), paid to the player on a throw of kind 1 and shown as the result (ai_TavernDiceWindow state[0]) */
     int raiseAmount;                    /* 0x04, a tenth of the stake, paid on the throws of kind 2 / 3 */
-    int phase;                          /* 0x08 */
-    AICHAR *side1;                        /* 0x0c */
-    unsigned char n1;                   /* 0x10 */
-    char pad11[3];
-    unsigned int stats1;                /* 0x14, an AI opponent's classes (ai_MakeDuelOpponent: second << 8 | first), 0xffff for a player's side */
-    unsigned char t1[0x10];             /* 0x18 */
+    int phase;                          /* 0x08, 5 / 6 at the end: side1 / side2 won */
+    AGDUELSIDE side1;                   /* 0x0c */
     int kind1;                          /* 0x28, the action the side chose: 1 throw, 2 another die, 3 stop, 4 answer */
     int reserved2c;                     /* 0x2c, only ever zeroed by ai_DuelStart; no reader in the exe */
-    AICHAR *side2;                        /* 0x30 */
-    unsigned char n2;                   /* 0x34 */
-    char pad35[3];
-    unsigned int stats2;                /* 0x38, as stats1 for side2 */
-    unsigned char t2[0x10];             /* 0x3c */
+    AGDUELSIDE side2;                   /* 0x30 */
     int kind2;                          /* 0x4c, as kind1 */
     int reserved50;                     /* 0x50, as reserved2c */
     int total;                          /* 0x54, the stakes paid so far; the winner is paid it (ai_TavernDiceWindow) */
 } AGDUEL;
 #pragma pack(pop)
 
-typedef struct AGFIN {                  /* what 0x506430 finds for a character */
-    char pad00[0x58];
-    float firstBias;                    /* 0x58, the bias for who starts the next duel (ai_DuelStart): below the random draw the player starts and it rises by 0.2 + 0..0.11, else the opponent starts and it falls by the same */
-} AGFIN;
 
 typedef char ai_AssertAGDUEL[sizeof(AGDUEL) == 0x58 ? 1 : -1];
 
@@ -320,13 +296,6 @@ typedef struct AIRECX {                  /* 16 bytes, filled by 0x4a5760 */
     int entry;                          /* 0xc, the inventory entry */
 } AIRECX;
 
-typedef struct AIUSE {                  /* 20 bytes, given to 0x5cf8a0 */
-    AIOBJ *obj;                         /* 0x00 */
-    int target;                         /* 0x04, the target for the good's use callback (the table +0x14): a reference of the action's second argument */
-    int arg;                            /* 0x08, a value for the use callback, -1 none */
-    int effect;                         /* 0x0c, set by the callee: 1 the use took effect (0x175 only one time in three), 0 not; the use callback may set -1 (backfired) */
-    int handled;                        /* 0x10, 0 by the callee, set by a use callback that reported the use itself (no text then) */
-} AIUSE;
 #pragma pack(pop)
 
 
@@ -393,7 +362,7 @@ void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);   
 int ai_DecideTakeCredit(int a, struct AICHAR *p, int f, struct AIARG *o1, struct AIARG *o2);                  /* 0x49eec0 */
 int gm_BuildingKindValue(int a);                                                        /* 0x509d30 */
 int gm_BuildingKindCost(struct AICHAR *c, int kind);                                               /* 0x509dc0 */
-int ai_FindUsableGood(int param_1);                                         /* 0x5ba620 */
+struct G9DOMIZIL *ai_FindUsableGood(int id);                                         /* 0x5ba620 */
 
 /* ---- 0x494020..0x494e70 (was unk_494020.h) ---- */
 #pragma pack(push, 1)
@@ -419,10 +388,10 @@ extern const AIREC10 ai_TortureInstruments[7];         /* 0x5ecfd8 */
 double cm_RandomFloat(void);                                       /* 0x4e5360, a random value */
 unsigned int cm_Random(unsigned int n);                                        /* 0x4e52f0, a random test */
 float gm_MapDistance(int a, int b, int c, int d);                 /* 0x4ffc90 */
-float gm_Mix(int a, int b, int c);                    /* 0x504e20 */
+float gm_Mix(struct AICHAR *a, struct AICHAR *b, int c);                    /* 0x504e20 */
 int gm_ConvertMoney(int a, unsigned char b);                       /* 0x5085b0 */
 int gm_GetWorth(unsigned short id);                            /* 0x50a640 */
-int ord_DispatchOrder(int id, struct AICHAR *c, int *m);           /* 0x4f81c0 */
+struct ORDMSG; int ord_DispatchOrder(int id, struct AICHAR *c, struct ORDMSG *m);           /* 0x4f81c0 */
 
 int ai_PlanWorth(AIPLAN *q);                                    /* 0x494020 */
 int ai_DecideTorture(AIPLAN *q);                                      /* 0x4941b0 */
@@ -473,7 +442,7 @@ void ai_BeginNeedBlock(struct AICHAR *p);                            /* 0x4c3e70
 int ai_AddNeedDelta(int k, float v);                    /* 0x4c3eb0 */
 void ai_SendNeedBlock(void);                                        /* 0x4c4a20 */
 int gm_ExpectedDeathAge(struct AICHAR *c);                                      /* 0x4fc7a0 */
-int amt_GetOfficeCandidates(char *c, int n, struct AMTCAND *out);                     /* 0x4e7150 */
+int amt_GetOfficeCandidates(struct AICHAR *c, int n, struct AMTCAND *out);                     /* 0x4e7150 */
 extern void *main_Instance;              /* 0x75e140, the module handle */
 int ai_RegisterBuildingActions(int a);                                                        /* 0x48fb70 */
 int ai_RegisterBaseActions(int a);                                                        /* 0x4a16f0 */
@@ -513,13 +482,7 @@ int amt_GetKind(int k, struct AMTKIND *out);                             /* 0x4e
 int amt_FindOffice(struct AICHAR *c, struct AMTKIND *kind, struct AMTREC *office);                                    /* 0x4e6030 */
 
 /* ---- 0x49a0a0..0x4a16f0 (was unk_49a0a0.h) ---- */
-typedef struct G8USE {                  /* 20 bytes, given to 0x5cf8a0 (unk_48e070.h: AIUSE) */
-    AIOBJ *obj;                         /* 0x00 */
-    int target;                         /* 0x04, the target for the good's use callback (the table +0x14): a reference of the action's second argument */
-    int arg;                            /* 0x08, a value for the use callback, -1 none */
-    int effect;                         /* 0x0c, set by the callee: 1 the use took effect (0x175 only one time in three), 0 not; the use callback may set -1 (backfired) */
-    int handled;                        /* 0x10, 0 by the callee, set by a use callback that reported the use itself (no text then) */
-} G8USE;
+/* G8USE (20 bytes, ai_UseGood's request) is in am_types.h */
 
 typedef struct G8OFFER {                /* 12 bytes, filled by 0x50a250 */
     int a;                              /* 0x0 */
@@ -607,7 +570,7 @@ int ai_DecideBlackmail(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);          
 int ai_ExecuteBlackmail(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x49d730 */
 int ai_DecideUsePrivileges(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49d750 */
 int ai_ExecuteUsePrivileges(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x49d7d0 */
-float ord_GetStatistics(int *o);                                                   /* 0x4f9e00 */
+struct ORDSTATS; float ord_GetStatistics(struct ORDSTATS *o);                                                   /* 0x4f9e00 */
 int ai_EvalCurrentNeed(float *a, float *b, int i, AICHAR *p, int f, void *x, void *y);                          /* 0x4a4ae0, as in unk_4a3af0.h */
 int ai_EvalMayor(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG *o2); /* 0x49d7f0 */
 int ai_DecideMayor(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49d8d0 */
@@ -623,7 +586,7 @@ int ai_ExecuteMasterBuilder(AICHAR *p, AIARG *s1, AIARG *s2);                   
 int ai_EvalDarkCorner(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG *o2); /* 0x49ec10 */
 int ai_DecideDarkCorner(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49ed10 */
 extern const int ai_RandomStrides[16];                                                   /* 0x5ed140, random steps */
-int gm_GetCreditOffers(struct AIBLD *b, struct AICHAR *p, unsigned cnt, int *out);                       /* 0x50a250 */
+struct ORDCREDIT; int gm_GetCreditOffers(struct AIBLD *b, struct AICHAR *p, unsigned cnt, struct ORDCREDIT *out);                       /* 0x50a250 */
 int ai_DecideTakeCredit(int a, struct AICHAR *p, int f, struct AIARG *o1, struct AIARG *o2);                  /* 0x49eec0 */
 int ai_ExecuteTakeCredit(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x49f370 */
 int ai_EvalChangeProfession(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG *o2); /* 0x49f4f0 */
@@ -719,14 +682,14 @@ extern const int ai_RandomStrides[16];                                          
 /* 0x4a63f0 ai_PickActionBuilding is declared in am.h */
 int ai_PickActionBuildings(AICHAR *p, int a, __int64 mask, float lo, float hi, unsigned char n, int *out); /* 0x4a6570 */
 void d3t_GetObjectBounds(struct D3VECTOR *mn, struct D3VECTOR *mx, struct D3OBJECT *obj);             /* 0x413150, d3_tools.c */
-int ai_BuildingAimPoints(AIBLD *x, float *a, AIBLD *y, float *b);                        /* 0x4a66f0 */
+int ai_BuildingAimPoints(AIBLD *x, struct D3VECTOR *a, AIBLD *y, struct D3VECTOR *b);                        /* 0x4a66f0 */
 typedef struct G9SHOT {                 /* 0x74 bytes, the AI's cannon shot at 0x6f0698 (0x4a67a0) */
     int who;                            /* 0x00, the shooter's id */
     int bld;                            /* 0x04, the cannon building's id */
-    float a[4];                         /* 0x08, start */
-    float b[4];                         /* 0x18 */
-    float d[4];                         /* 0x28 */
-    float c[4];                         /* 0x38 */
+    D3VECTOR4 a;                        /* 0x08, start */
+    D3VECTOR4 b;                        /* 0x18, the barrel direction */
+    D3VECTOR4 d;                        /* 0x28, the side */
+    D3VECTOR4 c;                        /* 0x38, up */
     float ang;                          /* 0x48, the elevation */
     int charge;                         /* 0x4c */
     int k;                              /* 0x50, the elevation in percent of the range */
@@ -754,7 +717,7 @@ extern const G9BALL ai_CannonBalls[5];                                          
 extern const float ai_IronDensity;                                                       /* 0x5eee08, 7874 */
 int ai_SphereVolume(float radius, float size, float *out);                                   /* 0x5dc1a0 */
 struct SPHEREVOLUME; void ai_PositionShare(float a, float b, struct SPHEREVOLUME *rec, float *out);                        /* 0x5dc210 */
-int ai_SolveCannonAim(float *a, float *b, float *rng, float *x, float *y, float *ang, float *vb, float *vc, float *vd); /* 0x5dd100 */
+int ai_SolveCannonAim(const struct D3VECTOR *a, const struct D3VECTOR *b, float *rng, float *x, float *y, float *ang, struct D3VECTOR *vb, struct D3VECTOR *vc, struct D3VECTOR *vd); /* 0x5dd100 */
 int ai_AimCannon(struct AICHAR *p, struct AIBLD *b, struct AIBLD *t);                                  /* 0x4a67a0 */
 int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density); /* 0x5dc240 */
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread);    /* 0x5dc3a0 */

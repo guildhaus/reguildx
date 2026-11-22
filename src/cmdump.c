@@ -31,7 +31,6 @@ extern GAPDATA full_data_602568[];
 #define G17_S(m, o) (*(short *)&(m).data[o])
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
-#define ai_WeaponRecords ((AIWEAPON *)ai_WeaponRecordData)  /* 0x60c7c0, the ten 0x5c-byte weapon records ai_FindWeaponRecord searches (a view) */
 
 #include "f3init.h"
 #include "sv.h"
@@ -112,17 +111,6 @@ typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of
     D3ANIM *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
     int x, y;                       /* 0x08, the target cell */
 } CMGRENADE;
-typedef struct CMAMOUNTROW {        /* 0x38 bytes, one row of the special-amount list (ai_AmountRowStatus / ai_AmountRow read it
-                                       as ints; menu.c GYPSYROW) */
-    AICHAR *rec;                    /* 0x00, the character the row shows */
-    int ctl;                        /* 0x04, the row's control object (d2_Objs index, ai_AmountRow) */
-    int pad08[3];
-    int y;                          /* 0x14 */
-    int pad18[5];
-    int x2c;                        /* 0x2c */
-    int x30;                        /* 0x30 */
-    int pad34;
-} CMAMOUNTROW;
 
 /* dcp unit split: the declarations of cm before the moved functions */
 typedef struct CMSPYREPORT {            /* an AIOBJ of kind 0xca (a spy report) as this unit reads it: the report's words

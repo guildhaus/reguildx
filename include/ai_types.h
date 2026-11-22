@@ -83,6 +83,7 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
                         unsigned short hi;      /* 0xae */
                     } w;
                 } u;
+                unsigned short orderGood;       /* 0xac, of an order (event kind 2): the goods it makes (gm_UpdateTechTree) */
                 unsigned char groupSize;        /* 0xac, of a group job 0x14 rank1Count + rank2Count (ls_FixupAfterLoad
                                                    recounts it after a load) */
                 unsigned char thiefClass;       /* 0xac, of the thief event 0x16 (AIMSG.thiefClass, 0x54 further on): 2 / 3,
@@ -101,7 +102,9 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
                 int graveSize;                  /* 0xb0, of the graveyard order events 0x92 / 0x93 (the master exam at
                                                    a graveyard): the size of the grave the order names, an index into
                                                    ai_GraveNames (he.c 0x5729c0 passes it as the order's size) */
-                int partner2;                   /* 0xb0, of a pair event the second partner's netId */
+                int partner2;                   /* 0xb0, of a pair event the second partner's netId; of the offer event 0x2c
+                                                   the partner's (ai_EvalLeastLikedOfEvent) */
+                int orderObj;                   /* 0xb0, of an order (event kind 2): the AIOBJ.objId of the workshop it is for */
                 int id2;                        /* 0xb0, a second id: a building (kind 100) or a character (kind 0x89) as
                                                    sv_SpeakPicked looks them up */
                 int effectObj;                  /* 0xb0, of an effect event 0x76 the effect object's handle, 0: none yet (its
@@ -145,6 +148,9 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
                     int amount[3];                      /* 0xdc */
                 };
                 AITIME end6c;                   /* 0xb4, of a job kind 0x6c: the end time */
+                int research;                   /* 0xb4, of a research job (event kind 0xc): the goods researched (gm_UpdateTechTree) */
+                int guests[3];                  /* 0xb4, of the offer event 0x2c the first three guests' netIds:
+                                                   ai_EvalLeastLikedOfEvent weighs them for the character whose event it is */
                 int cartBld;                    /* 0xb4, of the job a cart runs (AIOBJ.job24): the building (sv_RefreshPanel prints its kind) */
                 int id3;                        /* 0xb4, a third id: of a kind 0x1a the character sv_SpeakPicked looks up */
                 struct { char padid4[0x10]; int id4; };       /* 0xc4, of a kind 0x18: the character sv_SpeakPicked looks up */
@@ -264,8 +270,8 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
         struct {                        /* 0xac, of the courtship event 0x41 (partner1 / partner2, of different sex; its
                                            alloc handler 0x544630, run handler 0x544840, the picks drawn by 0x544550) */
             char padpair[0xc];
-            char pairRound;             /* 0xb8, the rounds held, 0 at the start (the run handler counts it up) */
-            char pairRounds;            /* 0xb9, the rounds it takes (0x5c6620 of the two partners; the news 0x1cf4
+            signed char pairRound;      /* 0xb8, the rounds held, 0 at the start (the run handler counts it up) */
+            signed char pairRounds;     /* 0xb9, the rounds it takes (0x5c6620 of the two partners; the news 0x1cf4
                                            tells pairRounds - pairRound) */
             unsigned char pairDrawn;    /* 0xba, 1 once a round drew new picks (the run handler), 0 at the start */
             unsigned char pairDone;     /* 0xbb, 1 once the partners are each other's relatives[0] and the party
@@ -312,7 +318,7 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
         unsigned long reaperClock;      /* 0xec, of the reaper event: d3_Time when its object was placed / last moved */
     };
     unsigned char modes;                /* 0xf0, of a kind 0x11 bit 0x40: the game pauses while its event window is active (he_PickActiveEvent) */
-    char flags;                         /* 0xf1, a flags byte (nonzero defers the trade message posting; the bits are unknown) */
+    signed char flags;                  /* 0xf1, a flags byte (nonzero defers the trade message posting; the bits are unknown) */
     char padf2[0x5a];                   /* up to 0x14c: the rest of the message's words from +0x58 (0xac..0x14c) */
 } AIJOB;
 
@@ -330,6 +336,59 @@ typedef struct HELOAN {                 /* the loan event 0x23's words over AIJO
     AITIME due;                         /* 0xc4, the payback date, at 8:00 */
 } HELOAN;
 
+typedef struct AIFIN {                  /* what gm_PlayerRecord finds for a character */
+    unsigned short w00;                 /* 0x00, the character's AICHAR.w050 (cm.c 0x4c6cd0 copies it) */
+    char family[0x10];                  /* 0x02, the family name (cm.c 0x4c6cd0 sets it with the character's) */
+    char pad12[2];                      /* 0x12 */
+    int burglaryTakings;                /* 0x14, the money its character's burglaries took (he_RunBurglary adds it; the round
+                                           report prints it with text 0x200d, then adds it with gangTakings to missionMoney[0]
+                                           and clears it) */
+    int gangTakings;                    /* 0x18, the money the pickpocket gangs brought its character (he_RunGang adds it;
+                                           text 0x200c, rolled into missionMoney[0]) */
+    int lootTakings;                    /* 0x1c, the loot value a won fight / raid took from the loser's goods
+                                           (cm_LootStock and cm_LootCarts add it to the winner's record) */
+    int ransomTakings;                  /* 0x20, the ransoms its character took as a thieves' guild master (he_RunRansomDemand
+                                           adds them; text 0x2010, rolled into missionMoney[2]) */
+    int madeValue;                      /* 0x24, the price value of the goods its workshops made (cm.c 0x4c78c0 adds it
+                                           with the building's AIBLD.roundSums[0]) */
+    int spyPaid;                        /* 0x28, the money the player paid to the cabinet's spies (ai_CabinetSpyWindow adds each payment) */
+    int missionMoney[5];                /* 0x2c .. 0x3f, the money statistics: the round report (main_RoundReport) adds the
+                                           round parts in ([0] burglaryTakings + gangTakings, [1] lootTakings, [2] ransomTakings, [3]
+                                           madeValue, [4] the character's AICHAR.v1a4 + v1a0); read by the mission conditions, converted with
+                                           gm_ConvertMoney: 0x38 by the types 1 / 6 / 14 / 22 / 32, 0x2c + 0x34 by
+                                           20 / 25 / 36, 0x30 by 26 / 37, 0x3c by 27 */
+    int upgradeSpent;                   /* 0x40, the money the record has paid for workshop upgrades (ai_BuyUpgrade) */
+    int renovationSpent;                /* 0x44, the money it has paid for renovations (ai_BuyUpgrade, am.c 0x497ee0) */
+    int loansRepaid;                    /* 0x48, the loan sums the character has paid back at a money lender (ai_RepayLoan adds each) */
+    int customerPaid;                   /* 0x4c, the money its character's customers events cost (he_RunCustomers adds the
+                                           cost; the round report prints it with text 0x201a as a cost and clears it) */
+    int cartSpent;                      /* 0x50, the money the character has paid for new carts (lc.c ai_BuyCartWindow adds each price) */
+    int buildPaid;                      /* 0x54, the money its character paid for new buildings (he_RunConstruction adds the
+                                           price; text 0x2015, a cost cleared by the round report) */
+    float duelBias;                     /* 0x58, the bias for who starts a dice duel (ai_DuelStart: below the random draw the
+                                           player starts and it rises by 0.2 + 0..0.11, else it falls by the same); 0.5 at
+                                           every round change (main.c 0x5384e0) */
+    float tavernChance;                 /* 0x5c, the chance of being invited to the tavern dice game (ai_TavernDiceWindow);
+                                           each visit takes it to * 0.66 - 0.1 (invited) or * 0.66 - 0.02 (not invited,
+                                           after 11 o'clock); 1 at every round change */
+    float pokerChance;                  /* 0x60, the chance of sitting down to the gypsy poker game (ai_PokerGame: above a random
+                                           draw after 11 o'clock, then * 0.66 - 0.1); 1 at every round change and at a load
+                                           before version 0x10018 */
+    int taught;                         /* 0x64, the trial step courses its character finished as the teacher (he_RunTrialSteps
+                                           counts it; the save game keeps it from version 0x10014) */
+    int saved68;                        /* 0x68, an int the save game keeps (from version 0x10014); no other reader known */
+    int officeSentences;                /* 0x6c, the sentences 4 / 6 / 8 its character passed as the judge of a trial on an
+                                           office holder (cm.c 0x4db700) */
+    int saved70;                        /* 0x70, an int the save game keeps (from version 0x10018); no other reader known */
+    unsigned char jobByGroup[0x11];     /* 0x74, one job id per title group (gm_TitleGroup): 0 = none (gm_SetJob fills it; ai_DecideApprenticeship takes a free group) */
+    char pad85[3];
+    float camAngle;                     /* 0x88, the player's camera angle factor (sv_CameraAngleFactor; sv.c) */
+    D3VECTOR4 camPos;                   /* 0x8c, the player's camera position, restored with the view (sv.c; the save game
+                                           keeps all 16 bytes) */
+    D3VECTOR camRot;                    /* 0x9c, its rotation (D3OBJECT.rotation; f3init restores .y) */
+    int savedA8;                        /* 0xa8, an int the save game keeps; no other reader known */
+} AIFIN;                                /* 0xac bytes, the 16 records of gm_PlayerRecords */
+
 typedef struct AIRECIPE {               /* 0xb8 bytes, a goods list: filled by gm_StallGoodsList / gm_BuildingGoodsList
                                            / gm_BuildingGoodsList17 (f3gm.c, which clear and fill it as 0x2e ints) */
     int n;                              /* 0x00, the capacity of the stall (its cap / lvl1c); ai.c walks the entries up to it */
@@ -337,8 +396,9 @@ typedef struct AIRECIPE {               /* 0xb8 bytes, a goods list: filled by g
     int max[16];                        /* 0x08, per entry its stock (gm_ListStock): ai.c takes max - amount as the room left */
     unsigned short item[16];            /* 0x48, per entry the goods id */
     int amount[16];                     /* 0x68, per entry its amount (gm_ListAmount; the object's count of a stall) */
-    int pada8[3];                       /* 0xa8, gm_StallGoodsList: the sum of the stocks, the sum of the amounts, the goods'
-                                           value (gm_ItemPrice at 100 times the count) */
+    int stockSum;                       /* 0xa8, gm_StallGoodsList: the sum of the stocks */
+    int amountSum;                      /* 0xac, gm_StallGoodsList: the sum of the amounts */
+    int value;                          /* 0xb0, gm_StallGoodsList: the goods' value (gm_ItemPrice at 100 times the count) */
     struct AIOBJ *stall;                /* 0xb4, all three fillers: the stall object */
 } AIRECIPE;
 
@@ -372,94 +432,112 @@ typedef struct AIOBJ {                  /* 0x43 bytes, an object (table behind a
         int count;                      /* 0x0e */
     };
     unsigned char fill;                 /* 0x12, how full the cart is in percent (msg.n = 100 - fill; below 0x21 a cart is free for a load, ai_MeisterTrade / ai_UnloadCarts) */
-    char flags13;                       /* 0x13, flags: 0x20 (the guard patrol 0xa6 skips such a cart), 0xa0 set on a sold object (he_RunSale) */
+    signed char flags13;                /* 0x13, flags: 0x20 (the guard patrol 0xa6 skips such a cart), 0xa0 set on a sold object (he_RunSale) */
     union {
         int unk14;                      /* 0x14, the object list it holds */
         struct AIOBJ *list;             /* 0x14, the head of the objects it holds (AIOBJ.next chains them) */
         unsigned short *items;          /* 0x14, the same as the item ids it points to (ahm_CreateAlchemist removes the first until none is left) */
     };
     struct D3OBJECT *obj;               /* 0x18, the scene object that shows it (sv_DrawItemNames draws its name above it) */
-    union {
+    union {                             /* 0x1c..0x3a, per kind */
         struct {
             union {
-                int unk1c;                      /* 0x1c, a building id / a state / a count */
-                int reportStamp;                /* 0x1c, of a spy report: the start of the record its text 0x19fc shows (the
-                                                   reports window passes its address; reasoned: when it was made) */
-                int bldId;                      /* 0x1c, of a cart (gm_Query kind 0x1d): the id of its building (main_EndRound looks it up with gm_BuildQuery(1, 1, id)) */
-                int cnt;                        /* 0x1c */
-                unsigned int reserve;           /* 0x1c, of goods in a store: the quarters of the store's stock (gm_ListStock)
-                                                   kept from buyers other than its owner (cm.c 0x4c70b0); 4 when created
-                                                   there for a character of kind 6 / 7 */
                 struct {
-                    unsigned char lvl1c;        /* 0x1c, a workshop's levels, compared with AIENTRY need1c / need20 */
-                    unsigned char lvl1d;        /* 0x1d */
+                    union {
+                        int unk1c;                      /* 0x1c, a building id / a state / a count */
+                        int reportStamp;                /* 0x1c, of a spy report: the start of the record its text 0x19fc shows (the
+                                                           reports window passes its address; reasoned: when it was made) */
+                        int bldId;                      /* 0x1c, of a cart (gm_Query kind 0x1d): the id of its building (main_EndRound looks it up with gm_BuildQuery(1, 1, id)) */
+                        int cnt;                        /* 0x1c */
+                        unsigned int reserve;           /* 0x1c, of goods in a store: the quarters of the store's stock (gm_ListStock)
+                                                           kept from buyers other than its owner (cm.c 0x4c70b0); 4 when created
+                                                           there for a character of kind 6 / 7 */
+                        struct {
+                            unsigned char lvl1c;        /* 0x1c, a workshop's levels, compared with AIENTRY need1c / need20 */
+                            unsigned char lvl1d;        /* 0x1d */
+                        };
+                        unsigned char cap[2];           /* 0x1c, of the objects 0x2a / 0x116: two capacities from the building
+                                                           kind (gm_SetCapacities) */
+                        unsigned char kindData;         /* 0x1c, the first byte of the per-kind data 0x1c .. 0x3a that
+                                                           gm_CreateObject clears (0x1f bytes) before it sets them by kind */
+                        struct {
+                            int pad1c20;
+                            unsigned int flags20;       /* 0x20, of a cart (kind 0x1d): bit 1 (2) is cleared for the carts of the current building when the selection resets (sv_ResetSelection) */
+                        };
+                        struct {
+                            int pad1c20w;
+                            int usesLeft;               /* 0x20, of a weapon item (kind 5 in a character's inventory): the uses left of
+                                                           a kind 1 / 2 weapon (cm_CharWeapon refuses it at 0; the portrait box shows it) */
+                        };
+                        struct {
+                            int pad1c24[2];
+                            struct AIJOB *job24;        /* 0x24, of a cart: a job whose cartBld names a building (sv_RefreshPanel prints that building's kind; reasoned: the job the cart runs) */
+                        };
+                        int recs[3];                    /* 0x1c..0x27, of a gm_Query kind 300 object in a shop: three record ids for gv_EvidencePrice (0x4ab080 tries them in turn) */
+                        struct {                        /* of a room of a building (the objects of AIBLD.objList the enter-building driver walks) */
+                            int locked;                 /* 0x1c, nonzero: the room's contacts open ai_UnlockRoomWindow, which clears it when paid */
+                            int unlockPrice;            /* 0x20, the money ai_UnlockRoomWindow asks; cleared with locked */
+                        };
+                        struct {                        /* of an alchemist's laboratory device (kinds 0x24b / 0x256 / 0x266 in the
+                                                           building's objList, he_LabIncident) */
+                            int broken;                 /* 0x1c, 0 while it works; the laboratory incident adds 1 (reasoned name) */
+                            int repair;                 /* 0x20, the incident adds 3 .. 6 (reasoned guess: the repair time) */
+                        } lab;
+                        AISERMON sermon;                /* 0x1c..0x22, of a church's sermon object (gm_Query kind 0x1b5 in its
+                                                           objList; cm_SendObject1b5 makes it) */
+                    };
+                    signed char escort;                 /* 0x28, of a cart: its escort kind 0 .. 2 (he_AllocTransport picks it by the goods'
+                                                           value, gm_LevelPayout prices it) */
+                    char pad29;
+                    int reportBld;                      /* 0x2a, of a spy report (gm_Query kind 0xca in a building): the id of the
+                                                           building it reports on (ai.c 0x4817a0, he.c's raid 0x5461c0) */
                 };
-                unsigned char cap[2];           /* 0x1c, of the objects 0x2a / 0x116: two capacities from the building
-                                                   kind (gm_SetCapacities) */
-                unsigned char kindData;         /* 0x1c, the first byte of the per-kind data 0x1c .. 0x3a that
-                                                   gm_CreateObject clears (0x1f bytes) before it sets them by kind */
                 struct {
-                    int pad1c20;
-                    unsigned int flags20;       /* 0x20, of a cart (kind 0x1d): bit 1 (2) is cleared for the carts of the current building when the selection resets (sv_ResetSelection) */
+                    char pad1c29[0xd];
+                    struct RTPOINT *route;              /* 0x29, of a cart: its route, a list of rt.c's RTPOINT (rt_CopyPoints; message 0x68 sets it) */
+                    int routeIdx;                       /* 0x2d, of a cart: the index of its current point in that route (rt_PointAt; he_RunTransport, rt.c) */
                 };
-                struct {
-                    int pad1c20w;
-                    int usesLeft;               /* 0x20, of a weapon item (kind 5 in a character's inventory): the uses left of
-                                                   a kind 1 / 2 weapon (cm_CharWeapon refuses it at 0; the portrait box shows it) */
+                int seats[4];                   /* 0x1c..0x2b, of a table (kind 0x12d in a building): the ids of the characters at its
+                                                   four seats, -1 free (message 0x54 'join' / 'leav' / 'cler', cm_SendTableRequest) */
+                struct {                        /* of a dark corner (kind 300 in a tavern room; its recs[] are the three evidence offers) */
+                    int pad1c28[3];
+                    int cornerYear;             /* 0x28, the dark-corner menu offers its order 0x74 (0x18a7) only while this is below
+                                                   ai_Time.year (ai_DarkCornerMenu; reasoned: the year of the last order) */
                 };
-                struct {
-                    int pad1c24[2];
-                    struct AIJOB *job24;        /* 0x24, of a cart: a job whose cartBld names a building (sv_RefreshPanel prints that building's kind; reasoned: the job the cart runs) */
+                struct {                        /* of a feast table object (gm_Query kind 0x17 in a building, he.c 0x5437c0) */
+                    int festGuests[4];          /* 0x1c..0x2b, the guests' netIds (gm_FindChar; ai_FeastWindow writes them), -1: none */
+                    unsigned char festEssen;    /* 0x2c, the menu pick (AIGRP.essen) */
+                    unsigned char festMusik;    /* 0x2d, the musician pick (AIGRP.musik) */
                 };
-                int recs[3];                    /* 0x1c..0x27, of a gm_Query kind 300 object in a shop: three record ids for gv_EvidencePrice (0x4ab080 tries them in turn) */
-                struct {                        /* of a room of a building (the objects of AIBLD.objList the enter-building driver walks) */
-                    int locked;                 /* 0x1c, nonzero: the room's contacts open ai_UnlockRoomWindow, which clears it when paid */
-                    int unlockPrice;            /* 0x20, the money ai_UnlockRoomWindow asks; cleared with locked */
-                };
-                struct {                        /* of an alchemist's laboratory device (kinds 0x24b / 0x256 / 0x266 in the
-                                                   building's objList, he_LabIncident) */
-                    int broken;                 /* 0x1c, 0 while it works; the laboratory incident adds 1 (reasoned name) */
-                    int repair;                 /* 0x20, the incident adds 3 .. 6 (reasoned guess: the repair time) */
-                } lab;
-                AISERMON sermon;                /* 0x1c..0x22, of a church's sermon object (gm_Query kind 0x1b5 in its
-                                                   objList; cm_SendObject1b5 makes it) */
             };
-            char escort;                        /* 0x28, of a cart: its escort kind 0 .. 2 (he_AllocTransport picks it by the goods'
-                                                   value, gm_LevelPayout prices it) */
-            char pad29;
-            int reportBld;                      /* 0x2a, of a spy report (gm_Query kind 0xca in a building): the id of the
-                                                   building it reports on (ai.c 0x4817a0, he.c's raid 0x5461c0) */
+            unsigned char patrolLevel;          /* 0x31, of a guard cart: picks the steps it waits at its route's start, 12, 8, 4, 2, 0
+                                                   for 0 .. 4 (he_PatrolStep; reasoned: a level) */
+            unsigned char patrolWait;           /* 0x32, of a guard cart: the steps waited so far at its route's start (he_PatrolStep) */
+            unsigned char patrolOn;             /* 0x33, of a guard cart: nonzero for the carts the patrol event 0xa6 steps (he_RunPatrolEvent) */
+            char pad34[2];
+            unsigned char reportGuard;          /* 0x36, of a spy report: (reasoned) the guard level it found: the AI burgles only
+                                                   when reportKnow reaches util_Random(20) + twice it (ai.c 0x481ef0); the reports
+                                                   window shows it after reportKnow (text 0x19fc) */
+            unsigned char reportKnow;           /* 0x37, of a spy report: how much it knows, in percent (ai.c spies again below a
+                                                   random 50 .. 99; the round settlement lowers it by twice the building's rank and
+                                                   drops the report at 5 or less, main.c; the raid adds it to its chance) */
+            char pad38[3];
         };
-        struct {
-            char pad1c29[0xd];
-            struct RTPOINT *route;              /* 0x29, of a cart: its route, a list of rt.c's RTPOINT (rt_CopyPoints; message 0x68 sets it) */
-            int routeIdx;                       /* 0x2d, of a cart: the index of its current point in that route (rt_PointAt; he_RunTransport, rt.c) */
-        };
-        int seats[4];                   /* 0x1c..0x2b, of a table (kind 0x12d in a building): the ids of the characters at its
-                                           four seats, -1 free (message 0x54 'join' / 'leav' / 'cler', cm_SendTableRequest) */
-        struct {                        /* of a dark corner (kind 300 in a tavern room; its recs[] are the three evidence offers) */
-            int pad1c28[3];
-            int cornerYear;             /* 0x28, the dark-corner menu offers its order 0x74 (0x18a7) only while this is below
-                                           ai_Time.year (ai_DarkCornerMenu; reasoned: the year of the last order) */
-        };
-        struct {                        /* of a feast table object (gm_Query kind 0x17 in a building, he.c 0x5437c0) */
-            int festGuests[4];          /* 0x1c..0x2b, the guests' netIds (gm_FindChar; ai_FeastWindow writes them), -1: none */
-            unsigned char festEssen;    /* 0x2c, the menu pick (AIGRP.essen) */
-            unsigned char festMusik;    /* 0x2d, the musician pick (AIGRP.musik) */
+        struct {                        /* of a good held in a character's inventory (ai_InventoryHas, ai_BuildingHasItem,
+                                           the inventory window, the Domizil goods' clock lc_UpdateGoodsReserves) */
+            int minutesLeft;            /* 0x1c, of a Domizil good in use: the minutes its effect still runs
+                                           (lc_UpdateGoodsReserves counts it down from G9DOMIZIL.minutes) */
+            signed char inUse;          /* 0x20, of a Domizil good: set to 1 by ai_UseGood with minutesLeft (the name is
+                                           a reasoned guess) */
+            int active;                 /* 0x21, nonzero when the object counts as held, of a Domizil good while its
+                                           effect runs (ai_InventoryHas tests it; lc_UpdateGoodsReserves clears it
+                                           when minutesLeft runs out; the name is a reasoned guess) */
+            int placeBldId;             /* 0x25, the id of the building the object stands in (reasoned guess:
+                                           ai_BuildingHasItem compares it with AIBLD.id) */
+            char pad29g[4];
+            AITIME since;               /* 0x2d, of a Domizil good in use: when minutesLeft was last counted down */
         };
     };
-    unsigned char patrolLevel;          /* 0x31, of a guard cart: picks the steps it waits at its route's start, 12, 8, 4, 2, 0
-                                           for 0 .. 4 (he_PatrolStep; reasoned: a level) */
-    unsigned char patrolWait;           /* 0x32, of a guard cart: the steps waited so far at its route's start (he_PatrolStep) */
-    unsigned char patrolOn;             /* 0x33, of a guard cart: nonzero for the carts the patrol event 0xa6 steps (he_RunPatrolEvent) */
-    char pad34[2];
-    unsigned char reportGuard;          /* 0x36, of a spy report: (reasoned) the guard level it found: the AI burgles only
-                                           when reportKnow reaches util_Random(20) + twice it (ai.c 0x481ef0); the reports
-                                           window shows it after reportKnow (text 0x19fc) */
-    unsigned char reportKnow;           /* 0x37, of a spy report: how much it knows, in percent (ai.c spies again below a
-                                           random 50 .. 99; the round settlement lowers it by twice the building's rank and
-                                           drops the report at 5 or less, main.c; the raid adds it to its chance) */
-    char pad38[3];
     struct CHARACTER *sceneObj;         /* 0x3b, the scene character (ch.h CHARACTER) that shows a cart (gm_CreateObject
                                            creates the cart man or the horse, ch_Create) */
     struct AIOBJ *next;                 /* 0x3f, the next object of its list (an inventory, a store) */
@@ -648,7 +726,7 @@ typedef struct AIMSG {                  /* 0xf8 bytes, given to cm_SendLongMessa
                 int amount[3];                  /* 0x88, of the bought goods */
                 struct {
                     char pad88;
-                    char patrolRoll;            /* 0x89, of the patrol message 0x43 a random 2 .. 5 (ai_CalcMeisterWache);
+                    signed char patrolRoll;     /* 0x89, of the patrol message 0x43 a random 2 .. 5 (ai_CalcMeisterWache);
                                                    it lands at the event's +0xdd, after patrolRound; no reader known */
                 };
             };
@@ -717,7 +795,7 @@ typedef char ai_AssertAIMSG[sizeof(AIMSG) == 0xf8 ? 1 : -1];
 
 #pragma pack(push, 1)
 typedef struct AIGOOD {                 /* 0x41 bytes, ai_Goods[] */
-    char type;                          /* 0x00 */
+    signed char type;                   /* 0x00 */
     union {
         char name[0x25];                /* 0x01 */
         struct {

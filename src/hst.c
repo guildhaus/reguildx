@@ -5,8 +5,6 @@
    Names are ours except the hst_* ones.
    Open: the ai_Token* searches matched with AI_ZERO_BUF (size temp stored before n1 = buf); the functions still on
    AI_ZERO((char *)n1, ..) keep its _zp slot and may want AI_ZERO_BUF / AI_ZERO_AT.
-   Open: G12OBJ repeats hmt.h's HMTOBJ (0x4e6ec0 / 0x4e6680 declared in both files); G12_B reads AICHAR bytes.
-   Open: gm_FirstBuilding (0x50b010) returns unsigned char * (am.h, f3gm.c) while the callers here use AIBLD *.
    Open: hst_KeyFirst / hst_KeyLast are only ever set -1 (0x520200 reads hst_KeyFirst for hst_KeyNext = hst_KeyFirst + n),
    so ai_CommandComments returns 0 at every call: is the key list ever filled?
    unit of rea 8cef7d5b (src/game/hst.c); boundaries in decl/text.dcl */
@@ -885,7 +883,7 @@ int ai_TokenRandomNpcInhabitant(int mode, G12ROW *row, int k, char *fmt, char *o
                     return 0;
             } else {
                 i = 0;
-                for (q = ai_CharInts[0]; (int)q < (int)ai_CharInts[768]; q += 0x87) {
+                for (q = ai_CharInts[0]; (intptr_t)q < (intptr_t)ai_CharInts[768]; q += 0x87) {
                     if (ai_NotInLists(*q)) {
                         c = (AICHAR *)(q - 1);
                         if (filt == 0 || ((unsigned char *)q)[5] == sex) {
@@ -1623,11 +1621,6 @@ int ai_CommandRiot(G12ROW *row, int slot, char *fmt)
     return 1;
 }
 
-typedef struct G12OBJ {                 /* 0x18 bytes, filled by 0x4e6ec0 (hmt.h: HMTOBJ) */
-    int obj;                            /* 0x00 */
-    int id;                             /* 0x04, a character id or -1 */
-    char pad08[0x10];
-} G12OBJ;
 
 int amt_GetFirstOffice(unsigned int k, struct AMTREC *out);                                         /* 0x4e6ec0, defined elsewhere */
 int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e);                /* 0x4e6680, defined elsewhere */
@@ -1636,19 +1629,19 @@ int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, i
    0x1e..0x21 (0x4e6680) and sends message 0x80 (arg 4), today 8:00 */
 int ai_CommandBreakGuildSeats(G12ROW *row, int slot, char *fmt)
 {
-    G12OBJ o;
+    AMTREC o;
     AIMSG msg;
 
     if (*fmt != '-')
         return 0;
-    if (amt_GetFirstOffice(0x1e, &o) && o.id != -1)
-        amt_SendOfficeMessage(o.obj, 0, 0, 4, 0xff);
-    if (amt_GetFirstOffice(0x1f, &o) && o.id != -1)
-        amt_SendOfficeMessage(o.obj, 0, 0, 4, 0xff);
-    if (amt_GetFirstOffice(0x20, &o) && o.id != -1)
-        amt_SendOfficeMessage(o.obj, 0, 0, 4, 0xff);
-    if (amt_GetFirstOffice(0x21, &o) && o.id != -1)
-        amt_SendOfficeMessage(o.obj, 0, 0, 4, 0xff);
+    if (amt_GetFirstOffice(0x1e, &o) && o.owner != -1)
+        amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
+    if (amt_GetFirstOffice(0x1f, &o) && o.owner != -1)
+        amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
+    if (amt_GetFirstOffice(0x20, &o) && o.owner != -1)
+        amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
+    if (amt_GetFirstOffice(0x21, &o) && o.owner != -1)
+        amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
     atoi(fmt + 1);
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x80;
@@ -1664,10 +1657,6 @@ int ai_CommandBreakGuildSeats(G12ROW *row, int slot, char *fmt)
 }
 
 
-typedef struct G12REC10 {               /* 0x5c bytes, one of the ten records 0x4cd9d0 searches (ai_WeaponRecordData) */
-    int id;                             /* 0x00, the id 0x4cd9d0 matches */
-    char pad04[0x58];
-} G12REC10;
 void cm_SendGoodsRecord(void *p, unsigned char k);                                /* 0x4c56d0, defined elsewhere */
 
 /* 0x4b11e0, text command "-PLUS_<kind>_n" / "-MINUS_<kind>_n" (kind WAFFEN / BUECHER / ENDPRODUKTE): scales
@@ -1716,7 +1705,7 @@ int ai_CommandDemand(G12ROW *row, int slot, char *fmt)
         for (i = 0; i < 0x55; i++) {
             p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
             if (p->item != 0 && p->amount != 0) {
-                G12REC10 *r = (G12REC10 *)ai_FindWeaponRecord(p->item);
+                AIWEAPON *r = ai_FindWeaponRecord(p->item);
 
                 if (r != 0 && r->id != 0) {
                     e = gm_StockBlocks[ai_OwnPlayer].goods[i];

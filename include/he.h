@@ -3,6 +3,7 @@
 #define HE_H
 
 struct D3OBJECT;
+struct D3VECTOR;
 struct AIJOB;
 struct AIMSG;
 struct AICHAR;
@@ -105,7 +106,7 @@ void he_AgeCarryRecs(void);
 void he_CountDownApEvents(void);
 #pragma pack(push, 1)
 typedef struct HEAPEVENT {              /* 0x50 bytes, an AP event (0x100 of them at 0x758ca0, he_AddApEvent) */
-    char counter;                       /* 0x00, rounds left (he_CountDownApEvents counts it down, 2 at the start) */
+    signed char counter;                /* 0x00, rounds left (he_CountDownApEvents counts it down, 2 at the start) */
     char pad01[3];
     int key;                            /* 0x04, the character it belongs to */
     int income;                         /* 0x08, summed by he_SumApEvents into the round's money (main.c 0x537de0) */
@@ -139,7 +140,7 @@ void he_SetEventChar(struct AIJOB *r, int pl);
 
 
 
-void he_CharacterBehavior(struct AIJOB *ev, float *pos);
+void he_CharacterBehavior(struct AIJOB *ev, struct D3VECTOR *pos);
 void he_CharAccident(struct AIJOB *ev, struct AICHAR *c, struct AICHAR *boss, struct AIBLD *bld, float value, int quiet); /* 0x5414a0, a character's accident: carried away ("Unfall") or dead, with the boss's news */
 void he_CharIllness(struct AIJOB *ev, struct AICHAR *c, struct AICHAR *boss, struct AIBLD *bld, int disease, float value); /* 0x5417d0, a character's illness: carried away ("Unfall") or dead, with the boss's news */
 void he_AllocStammtisch(struct AIJOB *r);
@@ -196,7 +197,7 @@ int he_IsMessageKindFiltered(int id);  /* 0x575640 */
 struct D3OBJECT *he_RandomTransporter(struct D3OBJECT *obj);  /* 0x555210 */
 struct AIJOB *ai_FindCurseEvent(struct AIBLD *a);  /* 0x5741d0 */
 int he_HasGraveWork(struct AIBLD *bld, int size, int index);  /* 0x573200, 1 when a work event 0x8d of bld is pending on the grave (size, index) */
-int he_NoEvent35Pair(unsigned short *a, struct AICHAR *b, int *count);  /* 0x553db0 */
+int he_NoEvent35Pair(struct AICHAR *a, struct AICHAR *b, int *count);  /* 0x553db0 */
 
 extern unsigned char he_FindKind;       /* 0x625708, he_FindEvent's filter on AIJOB.kind (key 0), 0xff = any */
 extern int he_FindId;                   /* 0x62570c, its filter on AIJOB.id (key 1), -1 = any */

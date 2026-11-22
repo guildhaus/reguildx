@@ -39,7 +39,7 @@ typedef struct D3TSNOW {             /* 0x94 bytes, the snow system (d3t_CreateS
     int time60, time64, time68, time6c;
     D3VECTOR4 campos;                /* 0x70 */
     D3VECTOR4 cam04c;                /* 0x80 */
-    D3TEXHANDLE *Texture;            /* 0x90 */
+    struct TSTEXTURE *Texture;            /* 0x90 */
 } D3TSNOW;
 
 typedef struct D3TRAINDROP {         /* 0x28 bytes */

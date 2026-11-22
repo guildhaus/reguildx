@@ -23,7 +23,7 @@ typedef struct D3MIRROR {           /* d3_Mirror (0xfb9900), the mirror of the f
     D3OBJECT *obj;                  /* 0x00 */
     D3OBJINFO *info;                /* 0x04, obj->info when the polygon was looked up */
     D3MIRPLANES *planes;            /* 0x08 */
-    D3TEXTURE *tex;                 /* 0x0c, the mirror texture */
+    struct TSTEXTURE *tex;                 /* 0x0c, the mirror texture */
     D3PTRI *tri;                    /* 0x10, the first polygon with it */
     void (*Transform)(D3PVERT *v, int n, int unk);  /* 0x14, d3_MirTransform */
     D3VECTOR4 plane;                /* 0x18, mirror plane (camera space) */
@@ -32,7 +32,7 @@ typedef struct D3MIRROR {           /* d3_Mirror (0xfb9900), the mirror of the f
 
 typedef struct D3MIRSURF {          /* D3SURF as the mirror code sees it */
     D3OBJINFO info;
-    D3TEXTURE **tex;                /* 0x14, D3_OPS(info)->count of them */
+    struct TSTEXTURE **tex;                /* 0x14, D3_OPS(info)->count of them */
 } D3MIRSURF;
 
 typedef struct D3MIRBITS {          /* view of D3OBJECT::objectFlags */
@@ -80,14 +80,14 @@ typedef struct D3MIRBITS {          /* view of D3OBJECT::objectFlags */
 
 extern D3MIRROR d3_Mirror;        /* 0xfb9900 (d3_Unkfb9900.. in d3_engine.h) */
 
-void d3_TriNormal(struct D3VECTOR4 *a, struct D3VECTOR4 *b, struct D3VECTOR4 *c, struct D3VECTOR4 *n);   /* 0x454700, face normal (d3_vec.h; d3_mir.c calls it through its vertex view d3_TriNormalM) */
+void d3_TriNormal(const struct D3VECTOR *a, const struct D3VECTOR *b, const struct D3VECTOR *c, struct D3VECTOR4 *n);   /* 0x454700, face normal (d3_vec.h; d3_mir.c calls it through its vertex view d3_TriNormalM) */
 /* 0x454780: the outline edges of the convex point set pts (pairs into edges, 2 * count into *ne) */
 char d3_MirBoundaryEdges(unsigned int n, unsigned char *conn, D3PVERT **pts, unsigned int *ne, D3PVERT **edges);
 
 /* 0x454890, "d3_mir:CreateOutline*": joins collinear outline edges; *out gets the corner pairs */
 char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PVERT ***out);
 
-D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, D3TEXTURE *tex);      /* 0x454be0, "d3_mir:CrClippingPlanesFinal" */
+D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, struct TSTEXTURE *tex);      /* 0x454be0, "d3_mir:CrClippingPlanesFinal" */
 void d3_MirTransform(D3PVERT *v, int n, int unk);                  /* 0x454ec0, mirrors points at d3_Mirror.plane */
 char d3_MirBoxInPlanes(D3OBJECT *obj, D3MIRROR *m);                  /* 0x454f70, mirrored bounding box visible? */
 char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m);                  /* 0x4550e0, d3_ForEachObject callback */

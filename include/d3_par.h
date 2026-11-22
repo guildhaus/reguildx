@@ -42,7 +42,7 @@ typedef struct PARTFLAGS {
 } PARTFLAGS;
 #define PAR_TF(t) ((PARTFLAGS *)&(t)->flags)
 
-/* the stamp of a texture slot (0x54, see D3FLTEX in d3_fl.h): the frame of its last use */
+/* the stamp of a texture slot (0x54, TSTEXTURE.stamp in ts_texture.h): the frame of its last use */
 typedef struct D3PARSTAMP {
     char pad000[0x54];
     unsigned long stamp;
@@ -60,7 +60,7 @@ typedef union PARCOL {
 #define PAR_TRIS(ps) ((D3PTRI *)(ps)->polys)
 #define PAR_OBJ(ps) ((D3OBJECT *)(ps)->obj)
 #define PAR_EMITTER(ps) ((D3EMITTER *)(ps))
-/* D3FLTEX.flags.b[2] (0x6e): bit 0 = alpha modulates the colour */
+/* TSTEXTURE.flags.b[2] (0x6e): bit 0 = alpha modulates the colour */
 #define PAR_TEXBITS(t) (((unsigned char *)(t))[0x6e])
 
 /* a particle as the emitter callbacks use it (D3PARTICLE, 0x54 bytes) */

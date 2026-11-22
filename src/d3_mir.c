@@ -40,7 +40,7 @@ char d3_MirBoundaryEdges(unsigned int n, unsigned char *used, D3PVERT **pts, uns
         row = used + i;
             for (j = 0; j < n; j++, row += n) {
                 if (i != j && used[i * n + j] == 0) {
-                    d3_TriNormal((D3VECTOR4 *)&d3_Origin, (D3VECTOR4 *)pts[i], (D3VECTOR4 *)pts[j], &nrm);
+                    d3_TriNormal(&d3_Origin.v, &pts[i]->pos, &pts[j]->pos, &nrm);
                     for (k = 0; k < n; k++) {
                         if (k != i && k != j) {
                             p = pts[k];
@@ -117,7 +117,7 @@ char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PV
         dir.x = end->x - start->x;
         dir.y = end->y - start->y;
         dir.z = end->z - start->z;
-        d3_Normalize(&dir);
+        d3_Normalize(&dir.v);
         do {
             for (i = 0; i < nedge; i += 2) {
                 if (!used[i] && (p = edges[i]) == end) {
@@ -125,12 +125,12 @@ char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PV
                     d.x = p->x - q->x;
                     d.y = p->y - q->y;
                     d.z = p->z - q->z;
-                    d3_Normalize(&d);
+                    d3_Normalize(&d.v);
                     nd.x = -d.x;
                     nd.y = -d.y;
                     nd.z = -d.z;
-                    if (d3_VecEqual((D3VECTOR *)&dir, (D3VECTOR *)&d, 0.001f)
-                        || d3_VecEqual((D3VECTOR *)&dir, (D3VECTOR *)&nd, 0.001f)) {
+                    if (d3_VecEqual(&dir.v, &d.v, 0.001f)
+                        || d3_VecEqual(&dir.v, &nd.v, 0.001f)) {
                         used[i] = 1;
                         mark[tail] = 1;
                         tail = i;
@@ -143,12 +143,12 @@ char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PV
                     d.x = p->x - q->x;
                     d.y = p->y - q->y;
                     d.z = p->z - q->z;
-                    d3_Normalize(&d);
+                    d3_Normalize(&d.v);
                     nd.x = -d.x;
                     nd.y = -d.y;
                     nd.z = -d.z;
-                    if (d3_VecEqual((D3VECTOR *)&dir, (D3VECTOR *)&d, 0.001f)
-                        || d3_VecEqual((D3VECTOR *)&dir, (D3VECTOR *)&nd, 0.001f)) {
+                    if (d3_VecEqual(&dir.v, &d.v, 0.001f)
+                        || d3_VecEqual(&dir.v, &nd.v, 0.001f)) {
                         used[i] = 1;
                         /* used[nedge + head], not mark[head]: the form that gives VC6's operand order */
                         used[nedge + head] = 1;
@@ -182,7 +182,7 @@ char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PV
                         dir.x = end->x - start->x;
                         dir.y = end->y - start->y;
                         dir.z = end->z - start->z;
-                        d3_Normalize(&dir);
+                        d3_Normalize(&dir.v);
                         break;
                     }
                 }
@@ -198,7 +198,7 @@ char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PV
 /* 0x454be0: the clipping planes of the mirror: one per outline edge of the visible polygons with tex (through
    the eye point), followed by the view clip planes those polygons touch */
 
-D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, D3TEXTURE *tex)
+D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, TSTEXTURE *tex)
 {
     D3OBJINFO *info;
     D3PTRI *t;
@@ -264,7 +264,7 @@ D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, D3TEXTURE *tex)
                 planes->n = ci->n + ne;
                 planes->mirror = 1;
                 for (j = 0; j < ne; j++) {
-                    d3_TriNormal((D3VECTOR4 *)&d3_Origin, (D3VECTOR4 *)uniq[j * 2], (D3VECTOR4 *)uniq[j * 2 + 1], &planes->p[j]);
+                    d3_TriNormal(&d3_Origin.v, &uniq[j * 2]->pos, &uniq[j * 2 + 1]->pos, &planes->p[j]);
                     p = uniq[j * 2];
                     planes->p[j].w = -(p->x * (planes->p[j].x) + p->y * planes->p[j].y + (p->z) * planes->p[j].z);
                 }
@@ -340,7 +340,7 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
     D3MIRSURF *s;
     D3MESH *mesh;
     D3PTRI *t;
-    D3TEXTURE *tex, *tt;
+    TSTEXTURE *tex, *tt;
     D3PVERT *a, *b, *c;
     D3MIRBITS *bits;
     char redo;
@@ -406,7 +406,7 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
                 && ((t->drawFlags & 4) || ((a->sx - b->sx)) * (a->sy - c->sy) < ((a->sy - b->sy)) * (a->sx - c->sx))) {
                 d3_SortPtr->item = t;
                 if (tt) {
-                    d3_SortPtr->key = (tt - (D3TEXTURE *)d3_Textures) + 1;
+                    d3_SortPtr->key = (tt - d3_Textures) + 1;
                     ((TSTEXTURE *)tt)->stamp = d3_FrameCount;
                 } else
                     d3_SortPtr->key = 0;
@@ -424,8 +424,8 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
 void d3_MirBeginFrame(D3OBJECT *obj, D3MIRROR *m)
 {
     D3MIRSURF *s;
-    D3TEXTURE **tp;
-    D3TEXTURE *tex;
+    TSTEXTURE **tp;
+    TSTEXTURE *tex;
     D3PTRI *t;
     unsigned int i, n;
     int k, ntris;
@@ -436,7 +436,7 @@ void d3_MirBeginFrame(D3OBJECT *obj, D3MIRROR *m)
         tp = s->tex;
         for (i = 0; i < n; i++) {
             tex = *tp++;
-            if (tex && (tex->flags & 0x20))
+            if (tex && (tex->bits & 0x20))
                 goto found;
         }
         return;
@@ -467,7 +467,7 @@ found:
                 m->planes = 0;
             }
             if (m->flags.visible) {
-                d3_DirToRef(obj, d3_Camera, &((D3SRCPOLY *)m->tri->src)->normal, &m->plane);
+                d3_DirToRef(obj, d3_Camera, &((D3SRCPOLY *)m->tri->src)->normal, &m->plane.v);
                 m->plane.w = m->plane.x * m->tri->v[0]->x + m->plane.y * m->tri->v[0]->y + m->plane.z * m->tri->v[0]->z;
                 m->planes = d3_MirCreatePlanes(m->obj, m->tex);
             }

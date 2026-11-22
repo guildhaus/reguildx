@@ -6,6 +6,7 @@ struct AIOBJ;
 #include "portable.h"                /* intptr_t: a text id or a string in one parameter */
 
 #include "sv_types.h"
+#include "d3_types.h"                /* D3VECTOR4 (the stored view, the drag and scroll vectors) */
 #include <windows.h>                    /* MSG (sv_Message) */
 
 typedef struct SVSKYREC {               /* 0x4c bytes, a sky layer: the texture and its scale / v scale / v offset (d3sky_CreateLayer) */
@@ -18,8 +19,8 @@ typedef struct SVSKYREC {               /* 0x4c bytes, a sky layer: the texture 
 typedef struct SVDAYPHASE {             /* 10 bytes, a phase of the day in sv_DayPhases (sv_FillDayPhases) */
     int unk0;                           /* +0, 0 in every record, no reader known (the table starts at 0x623ba4: six
                                            records end exactly at the sky keys 0x623be0) */
-    char hour;                          /* +4 */
-    char min;                           /* +5 */
+    signed char hour;                   /* +4 */
+    signed char min;                    /* +5 */
     int sec;                            /* +6, the second of the day it starts at */
 } SVDAYPHASE;
 #pragma pack(pop)
@@ -75,7 +76,7 @@ char sv_SetSkyLightColors(struct D3OBJECT *o, void *ctx);                       
 struct AITIME; void sv_SetupWeather(struct AITIME *t, int reroll);/* 0x525510 */
 void sv_UpdateSkyColors(void);                                          /* 0x525940 */
 struct AITIME; void sv_FillDayPhases(struct AITIME *t);                                             /* 0x525a00 */
-char sv_SetLampRamp(char *o, int f);                                      /* 0x525a80 */
+char sv_SetLampRamp(struct D3OBJECT *o, void *f);                               /* 0x525a80 */
 struct AITIME; void sv_UpdateSkyPhase(struct AITIME *t);                    /* 0x525ad0 */
 void sv_PlaceCamera(float f);                                           /* 0x525dd0 */
 void sv_EaseCameraHeight(void);                                                /* 0x525ee0 */
@@ -92,7 +93,7 @@ char sv_ColourBannerCB(struct D3OBJECT *o, struct AIBLD *b);                    
 void sv_CreateBanners(struct AIBLD *b);                                             /* 0x5282f0 */
 void sv_ColourBanners(int c);                                               /* 0x528390 */
 struct AIBLD; void sv_UpdateChimneySmoke(struct AIBLD *b);                                /* 0x528490 */
-char sv_CollectBannerCB(char *o, int *p);                                     /* 0x528660 */
+char sv_CollectBannerCB(struct D3OBJECT *o, void *ctx);                                /* 0x528660 */
 void sv_RemoveBanners(struct AIBLD *b);                                             /* 0x5286a0 */
 void sv_RefreshBanners(void);                                                /* 0x528770 */
 int sv_AddPanelButton(int x, int y, char *text);                               /* 0x528800 */
@@ -112,7 +113,7 @@ void sv_HandleObjects(void);                                                /* 0
 void sv_CollectGroupCharacters(struct AIBLD *b);                                /* 0x52b2a0 */
 int sv_RegisterActivity(int kind, char *name, int dayOnly, int icon, int valueOff);            /* 0x52b350 */
 int sv_ActivityName(struct AICHAR *c, struct AIBLD *b, char *out);                 /* 0x52b3c0 */
-int sv_StartPoseScript(struct AICHAR *a, int b);                                       /* 0x52b490 */
+struct EVTSCRIPT *sv_StartPoseScript(struct AICHAR *a, char *name);                                     /* 0x52b490 */
 void sv_RunLocationScripts(struct AIBLD *a);                                      /* 0x52b500 */
 void sv_RunFramesUntilStopped(int id);                                              /* 0x52bb70 */
 void sv_SendSelectedToBuilding(void);                                                /* 0x52bbc0 */
@@ -132,7 +133,7 @@ void sv_DrawHint(void);                                                /* 0x52e0
 void sv_DrawStatusText(void);                                                /* 0x52e0c0 */
 void sv_ClearNamePlates(void);                                          /* 0x52e170 */
 void sv_ReleaseNamePlates(void);                                        /* 0x52e190 */
-int sv_RegisterNamePlate(char *name, char *text, int b);                /* 0x52e1c0 */
+struct D3OBJECT *sv_RegisterNamePlate(char *name, char *text, int b);                /* 0x52e1c0 */
 void sv_SetStatusText(char *s);                                         /* 0x52e330 */
 void sv_ButtonRow(int f, int y, int *out, int n, ...);                  /* 0x52e350 */
 void sv_TabButtonRow(int f, int y, int *out, int n, ...);                  /* 0x52e4b0 */
@@ -141,7 +142,7 @@ void sv_OpenWindowFrame(int f, int b, int c);                                 /*
 int sv_CreateScrollButtons(int x, int y, int f, int g, int p5, int *b, int *a, int *c); /* 0x52e860 */
 void sv_FitForm(int f);                                                 /* 0x52ea30 */
 void sv_ValueBar(int x, int y, int value, int k);                      /* 0x52eaa0, value / 21 half tiles of the picture k */
-void sv_DrawBalanceBar(int x, int y, char *c, int skill, int k);              /* 0x52eb50 */
+void sv_DrawBalanceBar(int x, int y, struct AICHAR *c, int skill, int k);              /* 0x52eb50 */
 void sv_StartBand(void);                                                /* 0x52ee50 */
 void sv_EndBand(void);                                                /* 0x52eed0 */
 void sv_UpdateBand(void);                                                /* 0x52eee0 */
@@ -245,8 +246,8 @@ extern int sv_SavedMaxY;                                    /* 0x6f1c40 */
 extern float sv_ScrollVelYPrev;                                  /* 0x6f1c44 */
 extern int sv_DragLastY;                                    /* 0x6f1c48 */
 extern int sv_SavedMaxX;                                    /* 0x6f1c50 */
-extern float sv_DragLastPos[4];                               /* 0x6f1c64 */
-extern float sv_ScrollLastMove[4];                               /* 0x6f1c74 */
+extern D3VECTOR4 sv_DragLastPos;                               /* 0x6f1c64 */
+extern D3VECTOR4 sv_ScrollLastMove;                               /* 0x6f1c74 */
 extern int sv_SavedMinX;                                    /* 0x6f1c84 */
 extern int sv_DragLastX;                                    /* 0x6f1c88 */
 extern int sv_ZoomStartY;                                    /* 0x6f1c8c */
@@ -258,15 +259,15 @@ extern int sv_FrameBase;                                    /* 0x6f22a4 */
 extern int sv_FocusDepth;                                    /* 0x6f22a8 */
 extern unsigned char sv_Advancing;                           /* 0x6f22ac */
 extern int sv_CameraScrolled;                                    /* 0x6f22b4 */
-extern int sv_ViewShape;                                    /* 0x6f22c0 */
+extern struct D2SHP *sv_ViewShape;                                    /* 0x6f22c0 */
 extern struct D2SURF *sv_GroundplanSurf;                                   /* 0x6f22c4 */
 extern struct D2SURF *sv_GroundplanView;                                   /* 0x6f22c8 */
 extern int sv_BorderViewX;                                    /* 0x6f22cc */
 extern int sv_BorderViewY;                                    /* 0x6f22d0 */
 extern float sv_CameraHeightFactor;                         /* 0x6f22d4 */
 extern float sv_CameraAngleFactor;                          /* 0x6f22d8 */
-extern char * sv_FocusObject;                               /* 0x6f22ec */
-extern int sv_SelectedModel;                                    /* 0x6f2304 */
+extern struct D3OBJECT *sv_FocusObject;                               /* 0x6f22ec */
+extern struct D3OBJECT *sv_SelectedModel;                                    /* 0x6f2304 */
 extern struct AIBLD *ai_PlayerBuilding;                            /* 0x6f2308 */
 extern struct AIBLD *ai_FallbackBuilding;                          /* 0x6f230c */
 extern struct AIOBJ *sv_PanelShown;                         /* 0x6f2310 */
@@ -299,11 +300,11 @@ extern float sv_ZoomStartAngle;                                  /* 0x6f23ac */
 extern float sv_ZoomStartTurn;                                  /* 0x6f23b0 */
 extern float sv_ZoomBaseY;                                  /* 0x6f23b4 */
 extern int sv_MouseDragOn;                                    /* 0x6f23b8 */
-extern int sv_ShownModel;  /* 0x6f2294 */
+extern struct D3OBJECT *sv_ShownModel;  /* 0x6f2294 */
 extern int sv_PanelPerms;  /* 0x6f2320 */
 extern int sv_PickX;  /* 0x623e98 */
 extern int sv_PickY;  /* 0x623e9c */
-extern int sv_HoverLast;  /* 0x6f1c4c */
+extern struct D3OBJECT *sv_HoverLast;  /* 0x6f1c4c */
 extern int sv_HoverItem;  /* 0x6f22f0 */
 extern struct AIBLD *sv_HoverBuilding;  /* 0x6f22f4 */
 extern int sv_ClickedContact;  /* 0x6f22fc */
@@ -312,7 +313,7 @@ extern int sv_HoverBldPerms;  /* 0x6f2324 */
 extern int sv_HoverItemPerms;  /* 0x6f2328 */
 extern int sv_HoverCharPerms;  /* 0x6f232c */
 extern int sv_PointerSpriteFor;  /* 0x6f23dc */
-extern char * sv_LastPicked;  /* 0x6f23e0 */
+extern struct D3OBJECT *sv_LastPicked;  /* 0x6f23e0 */
 extern struct AIBLD *sv_PermsBuilding;  /* 0x6f23e4, the building ai_BuildingPerms was last computed for */
 extern struct AIOBJ *sv_PermsRoom;    /* 0x6f23e8, its room */
 extern unsigned short sv_DisabledWidgets[0x300];  /* 0x6f1c90 */
@@ -337,8 +338,8 @@ extern unsigned short * sv_SelectedItem;                       /* 0x75ec5c */
 extern SVACTIVITY sv_Activities[0x30];                          /* 0x75ec80 */
 extern SVMEMBERROW sv_MemberRows[0x20];                     /* 0x75f280, the member list rows */
 extern SVFRAME sv_Frames[0x80];                             /* 0x75f780, the frame stack, indexed by sv_FrameDepth */
-extern float sv_ViewPos[4];                                 /* 0x75fb80, the stored camera position */
-extern float sv_ViewRot[4];                                 /* 0x75fb90, its rotation */
+extern D3VECTOR4 sv_ViewPos;                                 /* 0x75fb80, the stored camera position */
+extern D3VECTOR4 sv_ViewRot;                                 /* 0x75fb90, its rotation */
 extern float sv_SkyScale;                                  /* 0x760420 */
 extern SVBAND sv_Band;                                       /* 0x760440 */
 #define sv_BandActive (sv_Band.active)                          /* 0x760440 */

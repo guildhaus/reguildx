@@ -118,7 +118,10 @@ typedef struct G17GEBMSG {              /* 0x25 bytes, the data of message 0x4c 
     int objectId;                       /* 0x04, the next object id (the server's, read when connected) */
     unsigned char kind;                 /* 0x08, the building kind */
     D3VECTOR4 pos;                      /* 0x09, the position */
-    int rot[3];                         /* 0x19, the rotation (d3_SetObjectRot) */
+    union {                             /* 0x19, the rotation (d3_SetObjectRot) */
+        int bits[3];                    /* cm_RequestCreateGeb copies the three floats as their bits */
+        D3VECTOR v;
+    } rot;
 } G17GEBMSG;
 
 typedef struct CMFIGHTSLOT {            /* 0x2c bytes, a fighter slot of a fight record (16 at its +0x94, cm_RunCutOrders) */
@@ -805,7 +808,11 @@ typedef struct G17STAT {                /* 10 bytes, cm_SendStates[]: the state 
     unsigned char state;                /* 0x00, 0 sent, 1 free, 2 failed */
     unsigned char kind;                 /* 0x01, what value holds: 0 nothing, 1 a character, 2 a building */
     int idx;                            /* 0x02 */
-    int value;                          /* 0x06 */
+    union {                             /* 0x06, what the message made (kind): */
+        void *ref;                      /* its record at run time (cm_GetSlotValue) */
+        int value;                      /* the record's id while saved (ls_RefsToIds / ls_IdsToRefs,
+                                           ls_FixupAfterLoad; port-side: 4 bytes in the save game) */
+    };
 } G17STAT;
 #pragma pack(pop)
 
@@ -851,7 +858,8 @@ typedef struct G28REC {
                                            no other reader known, the name a reasoned guess) */
     int window;                         /* 0x2c, the form the local run prints the members' texts in (d2_SetForm) */
     unsigned char used;                 /* 0x30, the number of members[] (cm_AddPartyMember: at most 16) */
-    char pad31[3];
+    unsigned char b31;                  /* 0x31, 8 when the party copied in left it 0 (cm_AllocParty) */
+    char pad32[2];
     int members[16];                    /* 0x34, the members' netIds (-1 for one removed, cm_RemovePartyMember); of a fight
                                            the leading characters, [0] the attacker (cm_FightAttacker), [1] the defender
                                            (cm_FightDefender); cm_CutInfos[i] is the cutscene record of members[i] */
@@ -860,7 +868,7 @@ typedef struct G28REC {
     unsigned int seed;                  /* 0x78, the random seed the scene runs with (cut_RandSeed) */
     union {
         struct {
-            char variant;               /* 0x7c, written by gv_PassSentence with a random 0 .. 4; read signed (movsx: cm_RunDuel, cm_RunExecution) */
+            signed char variant;             /* 0x7c, written by gv_PassSentence with a random 0 .. 4; read signed (movsx: cm_RunDuel, cm_RunExecution) */
             unsigned char quiet;        /* 0x7d, of an execution: 1, the aftermath sends no notes (cm_ExecutionAftermath;
                                            ai_CommandExecution sets it, gv_PassSentence clears it) */
         };
@@ -897,26 +905,31 @@ typedef struct CMKIND {
     void (*run)();                      /* 0x00, the scene, called with the party (cm_ExecCutscene) */
     void (*askPlayer)();                /* 0x04, (CMCUTINFO *, the context): asks a player's character (kind 6), cm_RunSceneParty */
     void (*askOther)();                 /* 0x08, (CMCUTINFO *, the context): asks the other members */
-    char allAtOnce;                     /* 0x0c, 1: cm_RunSceneParty asks the members all at once, 0: one after the other */
+    signed char allAtOnce;              /* 0x0c, 1: cm_RunSceneParty asks the members all at once, 0: one after the other */
     char pad0d[3];
     int (*check)();                     /* 0x10, called with the party: 0 cancels it (cm_UpdateParties), 0: none */
 } CMKIND;
 typedef char cm_AssertCMKIND[sizeof(CMKIND) == 0x14 ? 1 : -1];
 
 
-typedef struct AIWEAPON {               /* 0x5c bytes, the 10 weapon records at ai_WeaponRecordData (ai_FindWeaponRecord) */
+typedef struct AIWEAPON {               /* 0x5c bytes, the 10 weapon records ai_WeaponRecords (ai_FindWeaponRecord) */
     int id;                             /* 0x00, the goods item */
     unsigned char accuracy;             /* 0x04, the hit chance in percent of the fighter's skill sk83 (cm_Attack) */
     unsigned char dmgMin;               /* 0x05, the least damage (the bomb adds a random part below dmgMax - dmgMin) */
     unsigned char dmgMax;               /* 0x06, the most damage */
-    char pad07[2];
+    unsigned char ranged;               /* 0x07, 1: a thrown or shot weapon (0x174 / 0x176 / 0x15e / 0x160; the fight setup
+                                           places such fighters at the FERN dummies, cm_PlaceFighters reads the ids) */
+    unsigned char unk08;                /* 0x08, 1 (2 for the item 0x174); no reader found */
     unsigned char speed;                /* 0x09, times 2/7 the fighter's CHARACTER.walkSpeed (cm_AddFighter) */
-    char pad0a[2];
+    unsigned char unk0a;                /* 0x0a, 1 for the stabbing / cutting weapons 0x154 / 0x156 / 0x158 and the fists;
+                                           no reader found */
+    char pad0b;
     float range;                        /* 0x0c, the farthest a hit reaches (cm_HitAction: the hitter's distance to the
                                            victim's body) */
-    char pad10;
+    unsigned char unk10;                /* 0x10, 2 / 5 / 10 by weapon; no reader found */
     char anim[0x43];                    /* 0x11, the hitter's animation (copied to the hit action's name) */
-    int text054;                        /* 0x54, an argument of the text 0x1188 (a stunning hit, weapon 0x16e) */
+    int text054;                        /* 0x54, a text id per weapon (0x1163 ..; an argument of the text 0x1188, a
+                                           stunning hit, weapon 0x16e) */
     int kind;                           /* 0x58, 1 / 2: used up with the item (cm_CharWeapon refuses an item with nothing left) */
 } AIWEAPON;
 typedef char cm_AssertAIWEAPON[sizeof(AIWEAPON) == 0x5c ? 1 : -1];

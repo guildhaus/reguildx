@@ -2,8 +2,6 @@
    the deck 0xf83660 and the two opponents 0xf837e0. The am unit ends before it (its last .data string is
    "%sgebaeude/*%s_%c.ogr" 0x600478); this unit's .data block is the hand names 0x600490, then its strings (the
    NPC models 0x600d90..0x600e10, 0x4a7140's); the next object (aip) starts with ai_LeisureActions. Names are ours.
-   Open: G10DIST / G10DREC duplicate amt.h's AMTKIND / AMTREC (what amt_GetKind / amt_GetColumnOffices fill);
-   the raised callbacks use the amt.h types, the rest still pass the G10 views.
    unit of rea 8cef7d5b (src/game/unk_4a7140.c); boundaries in decl/text.dcl */
 #include "txt_views.h"
 #include <math.h>

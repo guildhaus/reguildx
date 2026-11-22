@@ -3,22 +3,7 @@
 #ifndef UNK_45DB40_H
 #define UNK_45DB40_H
 #include "d3.h"                       /* the D3 records and typedefs this header names */
-
-typedef struct D3SMENTRY {          /* 0x1c bytes, one per height map cell */
-    int type;                       /* ground type, index into d3sm_GroundNames; 0xd = border */
-    char pad04[0x18];
-} D3SMENTRY;
-
-typedef struct D3SM {               /* 0x34 bytes; d3_tools.c sees it as D3HMAP */
-    D3VECTOR4 origin;               /* 0x00 */
-    D3VECTOR4 cell;                 /* 0x10, cell size; cell.y = height per unit */
-    int size;                       /* 0x20, cells per side */
-    D3SMENTRY *entries;             /* 0x24 */
-    unsigned char *data;            /* 0x28, heights */
-    int pad2c;
-    int mask;                       /* 0x30, object shadow mask (D3OBJECT.stateFlags >> 2 & 3), tested as a byte */
-
-} D3SM;
+#include "d3_sm_types.h"             /* D3SM, D3SMENTRY */
 
 typedef struct D3SMBLOCK {          /* 0x64 bytes, 8x8 of them in a terrain */
     unsigned char lo, hi;           /* height range */
@@ -44,7 +29,12 @@ typedef struct D3TERRAIN {          /* the terrain a height map is sampled from 
 #define D3TERRAIN_NAMES(t) ((char (*)[0x40])((char *)(t) + 0x1a64))    /* 8 material names, overlaps blocks */
 
 typedef struct D3SMVERT {           /* 0x50 bytes, D3OBJINFO.keys */
-    float x, y, z;
+    union {
+        struct {
+            float x, y, z;          /* 0x00 */
+        };
+        D3VECTOR pos;               /* 0x00, the same three floats (the 3-float callees: d3_TriNormal) */
+    };
     float pad0c;
     float gx, gz;                   /* 0x10, position in height map cells */
     char pad18[0x29];

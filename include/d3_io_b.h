@@ -86,8 +86,8 @@ typedef struct D3BASTREAM {         /* 0x16c bytes, "tp_veranimstream" */
     D3BAFRAME *frames;              /* 0x15c */
     struct D3BASTREAM *prev;        /* 0x160, list of the loaded animations */
     struct D3BASTREAM *next;        /* 0x164 */
-    char normals;                   /* 0x168, D3ANIMDATA.normals: d3anim_StartAnim sets it once it has calculated the normals */
-    char relative;                  /* 0x169, points relative to the frame position */
+    signed char normals;            /* 0x168, D3ANIMDATA.normals: d3anim_StartAnim sets it once it has calculated the normals */
+    signed char relative;           /* 0x169, points relative to the frame position */
 } D3BASTREAM;
 
 

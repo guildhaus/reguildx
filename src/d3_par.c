@@ -110,13 +110,13 @@ void par_Delete(D3PARTSYS *ps)
 D3PARTSYS *par_Create(int count, char *tex, D3TEXFLAGS flags, float size, void *parent, D3PARTCB cb)
 {
     D3PARTSYS *ps = 0;
-    D3TEXHANDLE *h;
+    struct TSTEXTURE *h;
     int i;
     unsigned long now;
     unsigned int j;
 
     if (size > 0.0 && (unsigned)count > 0) {
-        h = (D3TEXHANDLE *)tex_Load(tex, flags, 0, 0);
+        h = tex_Load(tex, flags, 0, 0);
         if (h) {
             tex_Reload(h, 0);
             ps = mem_Alloc(0x31c, "d3_par:ParticleSystem");
@@ -172,7 +172,7 @@ D3PARTSYS *par_Create(int count, char *tex, D3TEXFLAGS flags, float size, void *
 }
 /* 0x455a20, moves the position of the system's embedded object (the particles are placed relative to it) */
 
-void par_SetPos(D3PARTSYS *ps, D3VECTOR *pos)
+void par_SetPos(D3PARTSYS *ps, const D3VECTOR *pos)
 {
     if (ps)
         d3_SetObjectPos((D3OBJECT *)ps->obj, pos);
@@ -199,7 +199,7 @@ void par_Draw(D3PARTSYS *ps)
     D3PARTICLE *p;
     D3PVERT *v, *v1, *v2, *v3;
     D3PTRI *t;
-    D3TEXTURE *tex;
+    TSTEXTURE *tex;
     PARCOL col;
     D3VECTOR4 c;
     float rz, half, sx, sy, hw, hh;
@@ -250,7 +250,7 @@ void par_Draw(D3PARTSYS *ps)
                 if (p->frame > 0)
                     tex = tex_GetFrame(ps->texindex, p->frame);
                 else
-                    tex = (D3TEXTURE *)ps->tex;
+                    tex = (TSTEXTURE *)ps->tex;
                 t[0].v[0] = v;
                 t[0].v[1] = v1;
                 t[0].v[2] = v2;
@@ -310,10 +310,10 @@ void par_Draw(D3PARTSYS *ps)
         if (d3_Hardware) {
             for (t = PAR_TRIS(ps); n > 0; n--, t++) {
                 if (t->flags & 0x80) {
-                    D3TEXTURE *tt = t->tex;
+                    TSTEXTURE *tt = t->tex;
                     d3_SortPtr->item = t;
                     if (tt) {
-                        d3_SortPtr->key = (tt - (D3TEXTURE *)d3_Textures) + 0x8000;
+                        d3_SortPtr->key = (tt - d3_Textures) + 0x8000;
                         D3PAR_TEXSTAMP(tt) = d3_FrameCount;
                     } else
                         d3_SortPtr->key = 0;
@@ -391,7 +391,7 @@ char par_EmitterCB0(D3PARTSYS *ps, unsigned long time)
                 r.x = PAR_RND() - 0.5f;
                 r.y = PAR_RND() - 0.5f;
                 r.z = PAR_RND() - 0.5f;
-                d3_Normalize(&r);
+                d3_Normalize(&r.v);
                 if (!e->initfill && !e->rebirthfill) {
                     p->birth = time;
                     p->base[0] = (e->size[0]) * r.x;
@@ -541,7 +541,7 @@ char par_EmitterCB1(D3PARTSYS *ps, unsigned long time)
                 r.x = PAR_RND() - 0.5f;
                 r.y = (float)rand() / RAND_MAX - 0.5f;
                 r.z = 0.0f;
-                d3_Normalize(&r);
+                d3_Normalize(&r.v);
                 if (!e->initfill && !e->rebirthfill) {
                     p->birth = time;
                     rad = PAR_RND() * e->size[0];
@@ -562,7 +562,7 @@ char par_EmitterCB1(D3PARTSYS *ps, unsigned long time)
                     r.x -= p->base[0];
                     r.y -= p->base[1];
                     r.z -= p->base[2];
-                    d3_Normalize(&r);
+                    d3_Normalize(&r.v);
                     p->vel.x = r.x * speed;
                     p->vel.y = r.y * speed;
                     p->vel.z = r.z * speed;
@@ -586,7 +586,7 @@ char par_EmitterCB1(D3PARTSYS *ps, unsigned long time)
                     r.x -= p->base[0];
                     r.y -= p->base[1];
                     r.z -= p->base[2];
-                    d3_Normalize(&r);
+                    d3_Normalize(&r.v);
                     f = PAR_RND();
                     p->birth = (unsigned long)(time - e->alpha[2] * f);
                     f *= e->size[2];
@@ -804,7 +804,7 @@ char par_EmitterCB2(D3PARTSYS *ps, unsigned long time)
 }
 /* 0x457b30. The first parameter is the parent (ecmd.h names it count), the third the particle count. */
 
-D3PARTSYS *par_CreateEmitter(int parent, D3VECTOR *pos, int count, char *tex, OCMDTEXFLAGS flags, float size,
+D3PARTSYS *par_CreateEmitter(int parent, const D3VECTOR *pos, int count, char *tex, OCMDTEXFLAGS flags, float size,
                              D3EMITTERCFG *cfg)
 {
     D3PARTSYS *ps = 0;

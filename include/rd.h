@@ -11,7 +11,7 @@ struct D3VECTOR;
 
 typedef struct G15FIND {                /* 0xa4 bytes, context of rd_CollectNamed */
     char name[0x20];                    /* 0x00 */
-    char *objs[0x20];                   /* 0x20, the objects named so */
+    struct D3OBJECT *objs[0x20];        /* 0x20, the objects named so */
     int n;                              /* 0xa0 */
 } G15FIND;
 
@@ -30,12 +30,12 @@ typedef struct G15PLANT {               /* 0x18 bytes, 64 per vegetation map */
     unsigned char x;                    /* 0x08, cell */
     unsigned char z;                    /* 0x09 */
     unsigned short type;                /* 0x0a, G15TREE.id; 0 removes it */
-    char size;                         /* 0x0c, size in cells */
-    char state;                         /* 0x0d, growth state; -1: free */
+    signed char size;                  /* 0x0c, size in cells */
+    signed char state;                       /* 0x0d, growth state; -1: free */
     char pad0e[2];
     int fallId;                         /* 0x10, the id message 0x2c set the fall model with (veg_SetPlant: -1 for a plain
                                            plant); a later 0x2c without fall and that id puts the plant back */
-    char *obj;                          /* 0x14, its 3D object */
+    struct D3OBJECT *obj;               /* 0x14, its 3D object */
 } G15PLANT;
 
 typedef struct G15MAP {                 /* the town map ai_MapRefs (am.h: AIMAPREF[]) */
@@ -54,26 +54,13 @@ typedef struct G15MAP {                 /* the town map ai_MapRefs (am.h: AIMAPR
     char ground[8][0x40];               /* 0x1a64, the ground type names ("EINFACHER_WEG", "PRUNK_WEG", ..) */
 } G15MAP;
 
-typedef struct G15OBJ {                 /* a 3D object (d3.h: D3OBJECT) as rd reads it */
-    char pad00[0x224];
-    int mask;                           /* 0x224, the object's mask bits */
-} G15OBJ;
 
-typedef struct G15SCENE {               /* a scene of d3_Scenes (d3.h: D3SCENE) as rd reads it */
-    char pad00[0xb0];
-    struct G15GRID *hmap;               /* 0xb0, the terrain height map (d3.h: struct D3HMAP *) */
-} G15SCENE;
 
-typedef struct G15GRID {                /* d3sm_Create's grid (D3HMAP, d3_sm.c) */
-    char pad00[0x20];
-    int size;                           /* 0x20 */
-    int *cells;                         /* 0x24, 0x1c bytes per cell, the first int its type (6 / 0xb: road) */
-} G15GRID;
 
 
 typedef struct G15ROAD {                /* 0x1020 bytes, rd_Road */
     G15MAP *map;                        /* 0x00 */
-    G15GRID *grid;                      /* 0x04 */
+    struct D3SM *grid;                  /* 0x04, d3sm_Create's grid: its entries' type 6 / 0xb is a road */
     int simple;                         /* 0x08, the ground type "EINFACHER_WEG" (2 if none) */
     int prunk;                          /* 0x0c, the ground type "PRUNK_WEG" (1 if none) */
     unsigned char path[0x400][2];       /* 0x10, path_Find's cells */
@@ -85,11 +72,12 @@ typedef struct G15ROAD {                /* 0x1020 bytes, rd_Road */
 } G15ROAD;
 
 #include "rd_types.h"                 /* G15BK */
+#include "d3_types.h"                 /* D3VECTOR4 */
 
 typedef struct G15BKFIND {              /* context of rd_FindSiteCB */
     char name[0x40];                    /* 0x00 */
-    float pos[4];                       /* 0x40 */
-    char *found;                        /* 0x50 */
+    D3VECTOR4 pos;                      /* 0x40, the site's place (world) */
+    struct D3OBJECT *found;             /* 0x50, the site object found, 0: none */
 } G15BKFIND;
 
 #ifndef DATA_VIEWS_H
@@ -102,26 +90,26 @@ extern char ai_DataPath[];             /* 0x75dca0, the data path */
 extern void *d3_Terrain;              /* 0x633738, a height map with a transform at 0x90 (as d3.h / f3snd.h) */
 
 /* views of other units */
-struct D3SM * d3sm_Create(struct D3TERRAIN *t, int size, int mask);                         /* 0x45eeb0, d3_sm.h: D3HMAP * */
+struct D3SM * d3sm_Create(struct D3TERRAIN *t, int size, int mask);                         /* 0x45eeb0 */
 struct D3FLMAP; void d3fl_MakeDivide(struct D3FLMAP *map);                                                 /* 0x441300, d3_fl.c */
 struct D3OBJECT;
 char d3if_Delete(struct D3OBJECT *obj);                                          /* 0x447190, d3_interface.h */
 char d3if_ShowTree(struct D3OBJECT *obj, char show);                                        /* 0x447300, d3_interface.h */
 struct D3OBJECT * d3_LoadGroup(char *name, void *f, struct D3OBJECT *parent);                     /* 0x44c3f0, d3_int_io.h: D3OBJECT * */
 void err_Message(char *msg);                                                     /* 0x4222b0 */
-void d3_SetObjectPos(struct D3OBJECT *obj, struct D3VECTOR *pos);                                     /* 0x43b790, d3.h: D3OBJECT *, D3VECTOR * */
-struct D3OBJECT * d3_FindObject(int a, int flags, int c, char *name);                /* 0x449690, d3.h: int a, D3OBJECT * */
+void d3_SetObjectPos(struct D3OBJECT *obj, const struct D3VECTOR *pos);                                     /* 0x43b790, d3.h: D3OBJECT *, D3VECTOR * */
+struct D3OBJECT * d3_FindObject(struct D3OBJECT *a, int flags, struct D3OBJECT *c, char *name);                /* 0x449690, d3.h */
 char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                          /* 0x45f100, ch.h: D3SM *, D3VECTOR * */
 char ch_FindFreeCell(struct D3SM *h, struct D3VECTOR *from, struct D3VECTOR *to, int x, int z, int *px, int *pz, int max, int flags); /* 0x4072a0, ch.h */
 char d3_ForEachObject(struct D3SCENE *scene, struct D3OBJECT *obj, unsigned int mask, char (*cb)(struct D3OBJECT *, void *), void *ctx); /* 0x438d40, d3.h: D3OBJECTCB */
 
-int rd_DoorPos(float *pos);
-int rd_PointsNear(float *pos, int n, float (*pts)[4]);
-int rd_CollectNamed(char *obj, G15FIND *f);
-char *rd_RandomNamedObject(char *name);
+int rd_DoorPos(struct D3VECTOR *pos);
+struct D3VECTOR4; int rd_PointsNear(struct D3VECTOR *pos, int n, struct D3VECTOR4 *pts);
+char rd_CollectNamed(struct D3OBJECT *obj, void *ctx);
+struct D3OBJECT *rd_RandomNamedObject(char *name);
 G15TREE *veg_FindType(int type);
 G15PLANT *veg_FindPlantAt(G15PLANT *p, int x, int z);
-G15PLANT *veg_FindPlantObject(G15PLANT *p, char *obj);
+G15PLANT *veg_FindPlantObject(G15PLANT *p, struct D3OBJECT *obj);
 G15PLANT *veg_FindPlantId(G15PLANT *p, int id);
 G15PLANT *veg_FindPlantArea(G15PLANT *p, int x, int z);
 int veg_Fits(G15PLANT *p, int x, int z, int size);
@@ -133,10 +121,10 @@ void veg_HidePlants(G15PLANT *p);
 int rd_BuildRoad(struct D3OBJECT *obj, int name);
 int rd_PathToRoad(G15ROAD *r, int x, int z, int tx, int tz);
 void rd_AddBauplaetze(G15ROAD *r);
-void rd_AllBauplatzToSupermap(G15ROAD *r, char *name);
-char rd_FindSiteCB(char *obj, G15BKFIND *f);
+void rd_AllBauplatzToSupermap(G15ROAD *r, struct D3OBJECT *site);
+char rd_FindSiteCB(struct D3OBJECT *obj, void *ctx);
 G15BK *rd_GetBKSize(char *name);
-void rd_WorldToCell(float *x, float *z, float *v, char *obj, G15ROAD *r);
+void rd_WorldToCell(float *x, float *z, const struct D3VECTOR *v, struct D3OBJECT *obj, G15ROAD *r);
 void rd_FillQuad(G15ROAD *r, float *c, unsigned char v, int t);
 
 #endif

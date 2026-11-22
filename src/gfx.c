@@ -276,30 +276,30 @@ held:
 
 void d2_CreateItemListSurfaces(void)
 {
-    int desc[16];
+    D2SURF desc;
     int i;
 
     d2_PointerPic = 0;
     d2_PointerLook = 0;
     d2_TextCursorOffset = (d2_TextCursorPic != d2_ExtraSymbolsPic) ? 0 : -7;
-    memset(desc, 0, sizeof desc);
-    desc[1] = 0x40;
-    desc[2] = 0x40;
-    d2_ItemListSurf64 = d2_MakeSurface(desc, 1);
+    memset(&desc, 0, sizeof desc);
+    desc.w = 0x40;
+    desc.h = 0x40;
+    d2_ItemListSurf64 = d2_MakeSurface(&desc, 1);
     for (i = 0; i < 3; i++) {
-        memset(desc, 0, sizeof desc);
+        memset(&desc, 0, sizeof desc);
         d2_ItemListSurf128[i].key0 = -1;
         d2_ItemListSurf128[i].key1 = -1;
-        desc[1] = 0x80;
-        desc[2] = 0x80;
-        d2_ItemListSurf128[i].surf = d2_MakeSurface(desc, 3);
+        desc.w = 0x80;
+        desc.h = 0x80;
+        d2_ItemListSurf128[i].surf = d2_MakeSurface(&desc, 3);
     }
-    memset(desc, 0, sizeof desc);
+    memset(&desc, 0, sizeof desc);
     d2_ItemListSurf256.key0 = -1;
     d2_ItemListSurf256.key1 = -1;
-    desc[1] = 0x100;
-    desc[2] = 0x100;
-    d2_ItemListSurf256.surf = d2_MakeSurface(desc, 3);
+    desc.w = 0x100;
+    desc.h = 0x100;
+    d2_ItemListSurf256.surf = d2_MakeSurface(&desc, 3);
     for (i = 0; i < 6; i++) {
         d2_PointerItems[i].id = -1;
         d2_PointerItems[i].amount = 0;

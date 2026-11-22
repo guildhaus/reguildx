@@ -9,7 +9,12 @@ struct D3SURF;
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 
 typedef struct D3LVERT {            /* 0x50 bytes, a mesh vertex (D3PVERT, D3OBJINFO::keys) as the light code sees it */
-    float x, y, z;                  /* 0x00, camera space */
+    union {
+        struct {
+            float x, y, z;          /* 0x00, camera space */
+        };
+        D3VECTOR pos;               /* 0x00, the same three floats (the 3-float callees: d3_TriNormal) */
+    };
     char pad0c[0x14];
     float nx, ny, nz;               /* 0x20, normal */
     char pad2c[0x4];
@@ -125,17 +130,13 @@ typedef struct D3LCTX2 {            /* context of d3_LightAddObject: the light a
     unsigned char normals;
 } D3LCTX2;
 
-/* Views of the bytes d3_SetVertexColors reads bit by bit. A union member in D3PTRI / D3TEXTURE (d3_engine.h,
-   d3.h) would be the typed-field form, but adding one flips VC6's instruction order in d3_CloneObject
+/* Views of the bytes d3_SetVertexColors reads bit by bit. A union member in D3PTRI / TSTEXTURE (d3_engine.h,
+   ts_texture.h) would be the typed-field form, but adding one flips VC6's instruction order in d3_CloneObject
    (0x43d180) and d3_MirDrawObject (0x4550e0), which are byte; the casts are byte-identical to the original's
    bitfield accesses. Type debt (see the lead comment of src/d3_light.c). */
 typedef struct D3BITS {             /* a byte as bit fields */
     unsigned char b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1;
 } D3BITS;
-typedef struct D3TEXVIEW {          /* D3TEXTURE as d3_SetVertexColors reads it */
-    char pad00[0x6c];
-    D3TEXFLAGS flags;               /* 0x6c, the flags tex_Load was called with (TSTEXTURE.flags, ts_texture.h) */
-} D3TEXVIEW;
 typedef union D3TEXPACK {           /* D3TEXFLAGS as the dword d3_RelightObject zeroes at once */
     int i;
     D3TEXFLAGS f;

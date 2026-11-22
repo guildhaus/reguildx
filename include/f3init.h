@@ -87,7 +87,7 @@ extern int d2_CutsceneActive;                               /* 0x6ed9d4 */
 struct AICHAR;
 extern struct AICHAR *ai_KindBChars[8];                     /* 0x6f1c04, the characters of the kind 0xb */
 extern unsigned char init_TextureSet;                       /* 0x6f1c24 */
-extern int d3_QuadTree;                                     /* 0x6f1c28 */
+extern struct D3QNODE *d3_QuadTree;                                     /* 0x6f1c28 */
 extern int init_TerrainDivide;                              /* 0x6f1c2c, nonzero: the game frame divides the terrain once */
 extern int init_TownSoundCount;                             /* 0x6f1c34 */
 extern int ai_FrameWait;                                    /* 0x6f22bc */
@@ -102,7 +102,7 @@ extern struct AICHAR *ai_SceneChars[32];                    /* 0x7603a0, the cha
 extern signed char init_BuildingUniverse[0x22];             /* 0x76fa60 */
 extern struct AIOBJ *ai_SceneObject;                     /* 0x76fa84 */
 extern signed char init_ObjectUniverse[0x2dc];              /* 0x76faa0 */
-extern int init_TownSounds[16];                             /* 0x76fd80 */
+extern struct SBSAMPLE *init_TownSounds[16];                             /* 0x76fd80 */
 extern struct AIBLD *ai_SceneBuilding;                      /* 0x76fdc0 */
 extern int ai_NBauplaetze;                                  /* 0xf812e0 */
 extern G15BK * ai_Bauplaetze;                               /* 0xf812e4 */

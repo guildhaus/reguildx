@@ -33,14 +33,14 @@ typedef struct D2RUN {              /* a run of a shape line (D2SHP): this heade
 
 typedef struct D2BANK {             /* a bank of shapes: this 0x845 byte header, then the shapes */
     char tag[8];                    /* 0x00, "SHAPBANK" (d2_BankAppendShape) */
-    char version;                   /* 0x08, 1 (d2_BankAppendShape writes it; the name is a reasoned guess) */
+    signed char version;            /* 0x08, 1 (d2_BankAppendShape writes it; the name is a reasoned guess) */
     char pad09;
     char name[0x20];                /* 0x0a, the bank's name (the "Bank:%s" of the invalid shape number message);
                                        the length is the room to n */
     unsigned short n;               /* 0x2a, number of shapes */
     unsigned short w, h;            /* 0x2c, widest / highest shape added */
     int size;                       /* 0x30 */
-    char kind;                      /* 0x34 */
+    signed char kind;               /* 0x34 */
     char pad35[9];
     int pal;                        /* 0x3e */
     char pad42;

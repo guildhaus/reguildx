@@ -10,7 +10,7 @@
    Open: gm_IsBankrupt calls ai_LiquidateAssets (0x5b92e0: netId, character, amount, message) without a prototype;
    its definition in lc.c is still a one-parameter skeleton.
    Open: ai.h is not includable here, so the character / building / object records are read through gv.h's views
-   AICHAR / AIBLD / AIOBJ, the job record through GMJOB (AIJOB, next to AITIME), the crime records ai_Crimes (cm_types.h CRIME,
+   AICHAR / AIBLD / AIOBJ, the job record as ai_types.h's AIJOB, the crime records ai_Crimes (cm_types.h CRIME,
    0x200 of them), the goods prototypes through GMGOOD (AIGOOD, GM_GOOD), the goods records of the
    stock blocks through GMBLOCK / GMSTOCK (f3gm_types.h, GM_BLOCK; f3init.c / hst.c / ls.c use them too),
    the building types through GMBTYPE (AIBTYPE, GM_BTYPE; older functions still by
@@ -164,7 +164,7 @@ float gm_IncomeRating(void)
     float w[7];
     float sum;
     float x;
-    int rec[9];
+    AIDEC rec;
     int i;
 
     w[0] = 0.3f;
@@ -176,8 +176,8 @@ float gm_IncomeRating(void)
     w[6] = 0.1f;
     sum = 0.0f;
     for (i = 9; i <= 0xf; i++) {
-        gv_GetTableRecord(i, rec);
-        x = (1.0 - ((double)rec[6] - rec[1]) / ((double)rec[2] - rec[1])) * w[i - 9];
+        gv_GetTableRecord(i, &rec);
+        x = (1.0 - ((double)rec.cur - rec.min) / ((double)rec.max - rec.min)) * w[i - 9];
         sum = sum + x;
     }
     return sum + x;
@@ -187,13 +187,13 @@ float gm_IncomeRating(void)
 
 int gm_IncomeKind1(unsigned id, GMINCOME *out, unsigned char flags)
 {
-    int rec[9];
+    AIDEC rec;
     int k, n, cnt;
     float x;
     AIBLD *b;
     AIOBJ *o;
 
-    gv_GetTableRecord(9, rec);
+    gv_GetTableRecord(9, &rec);
     for (k = 0; k < 6; k++) {
         if (out->kind[k] == 0)
             break;
@@ -201,7 +201,7 @@ int gm_IncomeKind1(unsigned id, GMINCOME *out, unsigned char flags)
     if (k >= 6)
         return 0;
     cnt = ai_Chars[(unsigned short)id].wage;
-    x = rec[6] * 0.01f;
+    x = rec.cur * 0.01f;
     x = x * cnt;
     if (!(x > 0.0f))
         x = 0.0f;
@@ -209,9 +209,9 @@ int gm_IncomeKind1(unsigned id, GMINCOME *out, unsigned char flags)
     if (cnt > 0) {
         out->kind[k] = 1;
         out->amount[k] = n;
-        out->rate[k] = rec[6];
+        out->rate[k] = rec.cur;
         if (flags & 1) {
-            b = (AIBLD *)gm_FirstBuilding(1);
+            b = gm_FirstBuilding(1);
             o = gm_Query(b->objList, 2, 6, 0, 0x115);
             cm_SendMoveGoodsUnchecked(o->objId, ai_Chars[(unsigned short)id].netId, 0, n);
             gm_NetMsgCount++;
@@ -225,13 +225,13 @@ int gm_IncomeKind1(unsigned id, GMINCOME *out, unsigned char flags)
 
 int gm_IncomeKind2(unsigned id, GMINCOME *out, unsigned char flags)
 {
-    int rec[9];
+    AIDEC rec;
     int k, n, cnt;
     float x;
     AIBLD *b;
     AIOBJ *o;
 
-    gv_GetTableRecord(10, rec);
+    gv_GetTableRecord(10, &rec);
     for (k = 0; k < 6; k++) {
         if (out->kind[k] == 0)
             break;
@@ -239,7 +239,7 @@ int gm_IncomeKind2(unsigned id, GMINCOME *out, unsigned char flags)
     if (k >= 6)
         return 0;
     cnt = ai_Chars[(unsigned short)id].wage;
-    x = rec[6] * 0.01f;
+    x = rec.cur * 0.01f;
     x = x * cnt;
     if (!(x > 0.0f))
         x = 0.0f;
@@ -247,9 +247,9 @@ int gm_IncomeKind2(unsigned id, GMINCOME *out, unsigned char flags)
     if (cnt > 0) {
         out->kind[k] = 2;
         out->amount[k] = n;
-        out->rate[k] = rec[6];
+        out->rate[k] = rec.cur;
         if (flags & 1) {
-            b = (AIBLD *)gm_FirstBuilding(1);
+            b = gm_FirstBuilding(1);
             o = gm_Query(b->objList, 2, 6, 0, 0x115);
             cm_SendMoveGoodsUnchecked(o->objId, ai_Chars[(unsigned short)id].netId, 0, n);
             gm_NetMsgCount++;
@@ -273,9 +273,9 @@ int gm_IncomeKind3(unsigned id, GMINCOME *out, unsigned char flags)
     AIBLD *b;
     AIOBJ *o;
 
-    gv_GetTableRecord(0xd, (int *)&rec);
+    gv_GetTableRecord(0xd, &rec);
     rate = rec.cur;
-    b = (AIBLD *)gm_FirstBuilding(1);
+    b = gm_FirstBuilding(1);
     gm_Query(b->objList, 2, 6, 0, 0x115);
     for (k = 0; k < 6; k++) {
         if (out->kind[k] == 0)
@@ -295,7 +295,7 @@ int gm_IncomeKind3(unsigned id, GMINCOME *out, unsigned char flags)
         out->amount[k] = n;
         out->rate[k] = rate;
         if (flags & 1) {
-            b = (AIBLD *)gm_FirstBuilding(1);
+            b = gm_FirstBuilding(1);
             o = gm_Query(b->objList, 2, 6, 0, 0x115);
             if (gm_GetGoodsValue(&ai_Chars[id]) >= n)
                 cm_SendMoveGoodsUnchecked(o->objId, ai_Chars[id].netId, ai_OwnPlayer, n);
@@ -321,9 +321,9 @@ int gm_IncomeKind4(unsigned id, GMINCOME *out, unsigned char flags)
     AIBLD *b;
     AIOBJ *o;
 
-    gv_GetTableRecord(0xc, (int *)&rec);
+    gv_GetTableRecord(0xc, &rec);
     rate = rec.cur;
-    b = (AIBLD *)gm_FirstBuilding(1);
+    b = gm_FirstBuilding(1);
     gm_Query(b->objList, 2, 6, 0, 0x115);
     id &= 0xffff;
     base = ai_Chars[id].v1a0 + ai_Chars[id].v1a4;
@@ -343,7 +343,7 @@ int gm_IncomeKind4(unsigned id, GMINCOME *out, unsigned char flags)
         out->rate[k] = rate;
         out->amount[k] = n;
         if (flags & 1) {
-            b = (AIBLD *)gm_FirstBuilding(1);
+            b = gm_FirstBuilding(1);
             o = gm_Query(b->objList, 2, 6, 0, 0x115);
             cm_SendMoveGoodsUnchecked(o->objId, ai_Chars[id].netId, 0, n);
             gm_NetMsgCount++;
@@ -359,11 +359,11 @@ int gm_IncomeKind4(unsigned id, GMINCOME *out, unsigned char flags)
 
 int gm_IncomeKind5(unsigned id, GMINCOME *out, unsigned char flags)
 {
-    int rec[9];
+    AIDEC rec;
     int k, n, cnt;
     float x;
 
-    gv_GetTableRecord(0xb, rec);
+    gv_GetTableRecord(0xb, &rec);
     for (k = 0; k < 6; k++) {
         if (out->kind[k] == 0)
             break;
@@ -371,7 +371,7 @@ int gm_IncomeKind5(unsigned id, GMINCOME *out, unsigned char flags)
     if (k >= 6)
         return 0;
     cnt = ai_Chars[(unsigned short)id].wage;
-    x = rec[6] * 0.01f;
+    x = rec.cur * 0.01f;
     x = x * cnt;
     if (!(x > 0.0f))
         x = 0.0f;
@@ -379,7 +379,7 @@ int gm_IncomeKind5(unsigned id, GMINCOME *out, unsigned char flags)
     if (cnt > 0) {
         out->kind[k] = 5;
         out->amount[k] = n;
-        out->rate[k] = rec[6];
+        out->rate[k] = rec.cur;
         if (flags & 1) {
             cm_SendMoveGoodsUnchecked(-1, ai_Chars[(unsigned short)id].netId, 0, n);
             gm_NetMsgCount++;
@@ -428,7 +428,7 @@ int gm_CharacterIncomes(unsigned id, GMINCOME *out, unsigned char flags)
 struct AMTKIND; int amt_GetKind(int k, struct AMTKIND *out);                   /* 0x4e6f80 */
 float gm_AddHealth(unsigned short id, int d);  /* 0x4fca40 */
 float gm_GetSkill(struct AICHAR *c, int skill);                     /* 0x504ec0 */
-float gm_Mix(int a, int b, int c);                     /* 0x504e20 */
+float gm_Mix(struct AICHAR *a, struct AICHAR *b, int c);                     /* 0x504e20 */
 void ai_BeginNeedBlock(struct AICHAR *p);                     /* 0x4c3e70 */
 int ai_AddNeedDelta(int k, float v);                     /* 0x4c3eb0 */
 void ai_SendNeedBlock(void);                     /* 0x4c4a20 */
@@ -450,7 +450,7 @@ void gm_CharacterUpkeep(void)
     int rate, i, v;
 
     seat = gm_PlayerSeat(1);
-    gv_GetTableRecord(5, (int *)&rec);
+    gv_GetTableRecord(5, &rec);
     rate = 0xe - rec.cur;
     rate = gm_PlayerFactor(rate, ai_OwnPlayer);
     gm_NetMsgCount = 0;
@@ -535,7 +535,7 @@ int gm_CharacterWages(unsigned short id, int flag, unsigned char *rec_)  /* the 
     out->amount2 = 0;
     out->amount3 = 0;
     if (ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 && ai_Chars[id].health > 0 && (ai_Chars[id].officeKind != 0 || ai_Chars[id].secondOffice != 0 || (ai_Chars[id].flags1cc & 0xe00) != 0)) {
-        gv_GetTableRecord(0xf, (int *)&rec);
+        gv_GetTableRecord(0xf, &rec);
         pay = amt_Pay[rec.cur];
         amt_GetKind(ai_Chars[id].secondOffice, &kind);
         out->amount2 = (int)(kind.salary * 32 * pay);
@@ -545,7 +545,7 @@ int gm_CharacterWages(unsigned short id, int flag, unsigned char *rec_)  /* the 
         out->amount3 = (int)(kind.salary * 32 * pay);
         res = 1;
         if (flag != 0) {
-            b = (AIBLD *)gm_FirstBuilding(1);
+            b = gm_FirstBuilding(1);
             if (b == 0)
                 return 0;
             if (gm_Query(b->objList, 2, 6, 0, 0x115) == 0)
@@ -763,7 +763,7 @@ int gm_HandOutMoney(AIBLD *b, int *out)
         return 0;
     u = &ai_Chars[b->owner];
     gm_GetSkill(u, 4);
-    gv_GetTableRecord(2, (int *)&rec);
+    gv_GetTableRecord(2, &rec);
     f = (float)gm_BuildingSkill(b, 9, 1) * 0.0125f + 1.0f;
     for (i = 0; i < 0x300; i++) {
         c = &ai_Chars[i];
@@ -790,7 +790,7 @@ int gm_HandOutMoney(AIBLD *b, int *out)
                 if (c->loyalty < 0.95f && c->loyalty > 0.05f)
                     cm_SendFloatDelta(c->netId, 0x1d0, lo);
                 if (out[2] != 0) {
-                    a = (int)(gm_Mix((int)u, (int)c, 4) * 10.0f + 1.0f);
+                    a = (int)(gm_Mix(u, c, 4) * 10.0f + 1.0f);
                     cm_SendRelations(((AICHAR *)out[2])->netId, c->netId, a, 1);
                 }
             }
@@ -814,7 +814,7 @@ void gm_ShiftLoyalty(void)
 
     if (ai_Time.year % 4 != 0)
         return;
-    gv_GetTableRecord(2, (int *)&rec);
+    gv_GetTableRecord(2, &rec);
     if (rec.cur == 2) {
         gm_NetMsgCount = 0;
         for (i = 0; i < 0x300; i++) {
@@ -1197,7 +1197,7 @@ void gm_ChooseHeadIcon(AICHAR *c)
    the model name to c's own head name and chooses the variant and the head icon. The current scene is selected
    again at the end. Returns the model (0 when scene is negative). */
 
-int gm_CreateCharModel(AICHAR *c, int scene, int *p, int *ori, int obj, char *dummy)
+CHARACTER *gm_CreateCharModel(AICHAR *c, int scene, int *p, int *ori, D3OBJECT *obj, char *dummy)
 {
     int saved;
     D3VECTOR4 zero;
@@ -1251,7 +1251,7 @@ int gm_CreateCharModel(AICHAR *c, int scene, int *p, int *ori, int obj, char *du
     }
 done:
     d3if_SelectScene(saved, 1);
-    return (int)c->scene;
+    return c->scene;
 }
 /* 0x4fbd10, puts the character id (it must have no model yet) on the stage of its building, the building of
    the query (1, 1, a): with b != -1 at the object of the query (1, 1, b) over the building's object list,
@@ -1261,7 +1261,7 @@ done:
    script group, and is hidden when the shown building (ai_PlayerBuilding / ai_FallbackBuilding) is another.
    Returns the model or 0. */
 
-int gm_PlaceOnStage(int id, int a, int b, int *p, int *ori)
+CHARACTER *gm_PlaceOnStage(int id, int a, int b, int *p, int *ori)
 {
     int saved;
     AICHAR *c;
@@ -1295,7 +1295,7 @@ int gm_PlaceOnStage(int id, int a, int b, int *p, int *ori)
                     else
                         gm_CreateCharModel(c, sc, p, ori, 0, "dummy_EINGANG");
                 } else
-                    gm_CreateCharModel(c, sc, 0, 0, (int)o->object, "dummy_TUER");
+                    gm_CreateCharModel(c, sc, 0, 0, o->object, "dummy_TUER");
                 if (c->scene != 0)
                     ch_PreloadAnims(c->scene, 1, "bewegung/gehen");
                 d3if_SelectScene(saved, 1);
@@ -1305,7 +1305,7 @@ int gm_PlaceOnStage(int id, int a, int b, int *p, int *ori)
                     if ((ai_PlayerBuilding != 0 && ai_PlayerBuilding != o)
                         || (ai_FallbackBuilding != 0 && ai_FallbackBuilding != o))
                         ch_SetVisible(c->scene, 0);
-                    return (int)c->scene;
+                    return c->scene;
                 }
             }
         }
@@ -1753,7 +1753,7 @@ float gm_AddHealth(unsigned short id, int d)
 extern float gm_BirthChance[6];
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);                     /* 0x4fe140 */
 int cm_SendCreateCharacter(unsigned char a, int b, int c, unsigned short d, int e, unsigned char f, unsigned char g, unsigned char h);                     /* 0x4c4650 */
-int cm_GetSlotValue(int h);                     /* 0x4c3b10 */
+void *cm_GetSlotValue(int h);                   /* 0x4c3b10 */
 int cm_SendNewParty(void *p);                     /* 0x4c4fa0 */
 int gm_TitleNumber(int group, int rank);                     /* 0x5043d0 */
 int ai_WorksForMaster(struct AICHAR *c);                     /* 0x47dd70 */
@@ -2127,8 +2127,8 @@ AIBLD *gm_FindHome(int unused, AIBLD *o)
             ord_GetKindRecord(b->type, kind);
             if ((unsigned short)b->residents < (unsigned short)kind[0] && (b->flags5a & 1) == 0) {
                 if (o != 0 && o->object != 0 && b->object != 0) {
-                    d3_PointToWorld(b->object, &b->object->pos, (D3VECTOR *)&v1);
-                    d3_PointToWorld(o->object, &o->object->pos, (D3VECTOR *)&v2);
+                    d3_PointToWorld(b->object, &b->object->pos, &v1.v);
+                    d3_PointToWorld(o->object, &o->object->pos, &v2.v);
                     v1.x -= v2.x;
                     v1.y -= v2.y;
                     v1.z -= v2.z;
@@ -2377,22 +2377,6 @@ void gm_CountCharacters(void)
 
 
 /* a job record (ai.h AIJOB, he_NextEvent's list) as gm_SellBuilding and gm_FreeObject stamp it */
-#pragma pack(push, 1)
-typedef struct GMJOB {
-    char pad00[0x44];
-    AITIME start;                       /* 0x44, the start time (gm_UpdateTechTree's progress) */
-    AITIME end;                         /* 0x52, the end time (ai.h AIJOB.end) */
-    char pad60[0x18];
-    unsigned char opts;                 /* 0x78, the event's options (ai.h AIJOB.opts); bit 2 = posted when due */
-    char pad79[0xb];
-    int msgSlot;                        /* 0x84, the slot handle of its HE message (cm_SendExSetHE) */
-    char pad88[0x24];
-    unsigned short good;                /* 0xac, of an order (event kind 2): the goods it makes */
-    char padAe[2];
-    int objId;                          /* 0xb0, of an order: the AIOBJ.objId of the workshop it is for */
-    int research;                       /* 0xb4, of a research job (event kind 0xc): the goods researched */
-} GMJOB;
-#pragma pack(pop)
 
 extern int gm_ClassBuilding[32];
 extern int gm_GoodBuilding[732];
@@ -2499,14 +2483,14 @@ extern int ai_CharCount;  /* 0x6f1bc0 */
 extern int f3gm_ObjectCount;  /* 0x6f1bdc */
 extern int gm_AllowAll;                /* 0x6f2448 */
 int gm_TitleGroup(int n);                /* 0x504ad0 */
-unsigned char * gm_FirstBuilding(int n);                   /* 0x50b010 */
-short * gm_PlayerRecord(struct AICHAR *c);                     /* 0x506430 */
+struct AIBLD *gm_FirstBuilding(int n);                   /* 0x50b010 */
+struct AIFIN *gm_PlayerRecord(struct AICHAR *c);                     /* 0x506430 */
 int cm_AddFieldValue(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3d90 */
 int amt_GetKind(int k, struct AMTKIND *out);                     /* 0x4e6f80 */
 float gm_AddHealth(unsigned short id, int d);                   /* 0x4fca40 */
 void gm_ClockToDate(struct AITIME *c, unsigned char *out);                     /* 0x4fe2c0 */
 int ai_InventoryHas(void *ch, int id);                     /* 0x5ba6b0 */
-void ai_RestartMission(struct G13MIS *m);                     /* 0x4b3a90 */
+void ai_RestartMission(struct AICHAR *c);                     /* 0x4b3a90 */
 int gm_EquipmentValue(struct AIBLD *b, int level);                     /* 0x509b10 */
 int gm_CharSumAmounts(struct AICHAR *c);                     /* 0x509eb0 */
 int cm_SendMoveObject(int a, int b, int c);                     /* 0x4c5010 */
@@ -2523,14 +2507,14 @@ int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field,
 struct AIBLD *gm_BuildNext(void);                     /* 0x501030 */
 extern int ai_Difficulty;
 extern float gm_DayStartHours[], gm_DayEndHours[];  /* 0x617830 / 0x617840 */
-int gv_GetTableRecord(int i, int *out);                     /* 0x4f2720 */
+struct AIDEC; int gv_GetTableRecord(int i, struct AIDEC *out);                     /* 0x4f2720 */
 float gm_ItemPrice(int item, unsigned char n);
 int gm_SumListAmounts(void *list, unsigned char p);
 extern int ai_CharCount, ai_NextCharNumber, ai_NextPlayerNumber, gm_AllowAll, ai_NextObjectId;  /* 0x6f1bc0, 0x6f1bb8, 0x6f1bbc, 0x6f2448, 0x61a654 */
 void hmt_Create(int type, int unk, unsigned short v, struct AICHAR *c);                     /* 0x4adbb0 */
 void ai_ResetJob(struct AICHAR *c);                     /* 0x47e940 */
 int sprintf(char *buf, const char *fmt, ...);                     /* 0x5de652 */
-char * ai_FindWeaponRecord(int id);                     /* 0x4cd9d0 */
+AIWEAPON *ai_FindWeaponRecord(int id);                     /* 0x4cd9d0 */
 int gm_EquipmentValue(struct AIBLD *b, int level);
 int gm_GetWorth(unsigned short id);
 int gm_ListAmount(struct AIOBJ *l, struct AIOBJ *o);

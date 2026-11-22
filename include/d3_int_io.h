@@ -63,8 +63,8 @@ typedef struct D3IOLIGHTKEY {       /* D3LIGHTENTRY (0x38 bytes) as the reader f
 
 #ifndef UNK_401000_H                /* bio.h's, for the includers without it (the bio.h / d3_fl.h clash is gone) */
 void bio_rd_c(struct VFSFILE *f, char *c);                                                        /* 0x401180 */
-void bio_rd_v3(struct VFSFILE *f, int *v);                                                        /* 0x401260 */
-struct VFSFILE; void bio_rd_v4(struct VFSFILE *f, int *v);                                                        /* 0x401290 */
+void bio_rd_v3(struct VFSFILE *f, void *v);                                                       /* 0x401260 */
+struct VFSFILE; void bio_rd_v4(struct VFSFILE *f, void *v);                                                       /* 0x401290 */
 int bio_rd_array_quick(struct VFSFILE *f, int size, void **out);                                  /* 0x401380 */
 #endif
 
@@ -140,21 +140,12 @@ typedef struct D3IOTRIFL {
     unsigned char b4 : 4;
 } D3IOTRIFL;
 
-typedef struct D3IOTEX {            /* D3TEXTURE (0x80 bytes) as the stock attach reads it */
-    char pad00[0x68];
-    unsigned char f68;              /* 0x68 */
-    char pad69[0x3];
-    unsigned char colorkey;         /* 0x6c, 0xff = none */
-    char pad6d;
-    unsigned char flags;            /* 0x6e */
-    char pad6f[0x11];
-} D3IOTEX;
 
 typedef struct D3IOTRI {            /* 0x28 bytes, D3TRI */
     D3IOVERT *v[3];
     int pad0c;
     D3IOPOLY *src;                  /* 0x10 */
-    D3IOTEX *tex;                   /* 0x14 */
+    struct TSTEXTURE *tex;          /* 0x14 */
     int f18, f1c, f20;              /* 0x18 */
     unsigned char f24;              /* 0x24 */
     char pad25;
@@ -168,7 +159,7 @@ typedef struct D3IOSURF {           /* 0x198 bytes, D3SURF as the stock attach f
     int nkeys;                      /* 0x08 */
     int ntris;                      /* 0x0c */
     D3IOSTOCK *stock;               /* 0x10 */
-    D3IOTEX **texset;               /* 0x14 */
+    struct TSTEXTURE **texset;      /* 0x14 */
     char pad18[0x17c];
     unsigned char f194;             /* 0x194 */
     unsigned char texSet;           /* 0x195, current texture set (D3SURF.texSet, d3_engine.h) */
@@ -190,7 +181,7 @@ int vfs_fclose(struct VFSFILE *f);                                              
 D3OBJECT *d3_LoadGroup(char *name, void *f, D3OBJECT *parent);                    /* 0x44c3f0 */
 
 /* declared in other units' headers before (moved to the owner) */
-void d3_AttachMesh(D3OBJECT *obj, int unk, char *name);  /* 0x44cbb0 */
+void d3_AttachMesh(D3OBJECT *obj, struct D3SURF *surf, char *name);  /* 0x44cbb0 */
 int d3io_FindStock(char *name);  /* 0x44c5d0 */
 
 #endif

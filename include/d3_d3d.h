@@ -96,9 +96,9 @@ typedef struct D3DTEXFMTCTX {       /* 0x50 bytes, d3d_UsedTexFormat */
     DDPIXELFORMAT pf;               /* 0x08, best format for bpp */
     DWORD bpp2;                     /* 0x28 */
     DDPIXELFORMAT pf2;              /* 0x2c, best format for bpp2 */
-    char exact;                     /* 0x4c, pf2 has the back buffer's channel sizes */
-    char same;                      /* 0x4d, pf and pf2 are the same */
-    char found;                     /* 0x4e, fourcc found */
+    signed char exact;              /* 0x4c, pf2 has the back buffer's channel sizes */
+    signed char same;               /* 0x4d, pf and pf2 are the same */
+    signed char found;              /* 0x4e, fourcc found */
     char pad4f;
 } D3DTEXFMTCTX;
 
@@ -168,7 +168,7 @@ char d3d_CreateDevice(DWORD texbpp, DWORD fourcc, DWORD texbpp2, DWORD zbpp);  /
 void d3d_DrawTriangles(void *unk, D3DTLVERTEX *buf, DWORD num);  /* 0x436510 */
 void d3d_Exit(void);  /* 0x4370e0 */
 int d3d_GetVertexBuffer(void **buf, int *n);  /* 0x4364f0 */
-char d3d_Init(int bitplanes, int a, int b);  /* 0x435d70 */
+char d3d_Init(int bitplanes, HWND wnd, int unk);  /* 0x435d70 */
 void d3d_SetViewport(float w, float h, float x, float y, float zn, float zf);  /* 0x436de0 */
 void d3d_SetWBuffer(char w);  /* 0x437060 */
 void d3d_BuildMipmaps(LPDIRECTDRAWSURFACE4 tex, DDSURFACEDESC2 *ddsd);  /* 0x4371d0 */

@@ -62,7 +62,7 @@ struct VFSDIR {                     /* 0x11c bytes (vfs_IGetSubDir) */
     VFSDIR *child;                  /* 0x10c */
     VFSDIR *parent;                 /* 0x110 */
     VFSNODE *files;                 /* 0x114, until vfs_FinishedFiles */
-    char sorted;                    /* 0x118, files moved to entries */
+    signed char sorted;             /* 0x118, files moved to entries */
 };
 
 
@@ -98,7 +98,7 @@ void err_Message(char *msg);                                                    
 void * mem_Alloc(int size, char *tag);                                                   /* 0x4223c0 */
 void mem_Free(void *p);                                                                 /* 0x422620 */
 
-int vfs_strcmp(char *a, char *b);                                                       /* 0x42eca0, stricmp if vfs_IgnoreCase */
+int vfs_strcmp(char *a, const char *b);                                                       /* 0x42eca0, stricmp if vfs_IgnoreCase */
 char *vfs_UpperCase(char *path);                                                        /* 0x42ecf0, strupr unless vfs_IgnoreCase */
 void vfs_ToSlashes(char *path);                                                         /* 0x42ed10, '\\' -> '/' */
 void vfs_ToBackslashes(char *path);                                                         /* 0x42ed40, '/' -> '\\' */

@@ -10,7 +10,7 @@
 /* 0x424f30, finds a path on map from (sx, sy) to (ex, ey) for the mover type, with the search path_Mode selects;
    writes at most out->max cells (x, y) from the node the search returns back along the parents and returns that node, 0xffff
    when the target is off the map or not reached */
-unsigned short path_Find(PATHOUT *out, PMAP *map, int sx, int sy, int ex, int ey, int type)
+unsigned short path_Find(PATHOUT *out, D3SM *map, int sx, int sy, int ex, int ey, int type)
 {
     unsigned short start, n;
 
@@ -19,7 +19,7 @@ unsigned short path_Find(PATHOUT *out, PMAP *map, int sx, int sy, int ex, int ey
         if (path_Mode) {
             start = path_Search1(map, sx, sy, ex, ey, type);
             if (start != 0xffff)
-                for (n = start; out->count < out->max && n != 0xffff; n = map->nodes[n].parent) {
+                for (n = start; out->count < out->max && n != 0xffff; n = map->entries[n].parent) {
                     out->xy[out->count * 2] = path_Mask & n;
                     out->xy[out->count * 2 + 1] = n >> path_Shift;
                     out->count++;
@@ -27,7 +27,7 @@ unsigned short path_Find(PATHOUT *out, PMAP *map, int sx, int sy, int ex, int ey
         } else {
             start = path_Search2(map, sx, sy, ex, ey, type);
             if (start != 0xffff)
-                for (n = start; out->count < out->max && n != 0xffff; n = map->nodes[n].parent) {
+                for (n = start; out->count < out->max && n != 0xffff; n = map->entries[n].parent) {
                     out->xy[out->count * 2] = path_Mask & n;
                     out->xy[out->count * 2 + 1] = n >> path_Shift;
                     out->count++;
@@ -64,7 +64,7 @@ unsigned short path_Find(PATHOUT *out, PMAP *map, int sx, int sy, int ex, int ey
    (tiebreak: insensitive, dcp headers sample path_Search2: 32 samples, one codegen) prior: behaviour only: size 976 = original,
    instruction multiset differs only by register allocation (zero reg ebx vs edi, ebp/edx/ecx choices) and
    the double-compare idiom (and eax,0x100 vs test ah,0x5/jnp, loop and eax,0x4100); readable met */
-unsigned short path_Search2(PMAP *map, int sx, int sy, short ex, int ey, int type)
+unsigned short path_Search2(D3SM *map, int sx, int sy, short ex, int ey, int type)
 {
     int k;
     unsigned int a;
@@ -87,14 +87,14 @@ unsigned short path_Search2(PMAP *map, int sx, int sy, short ex, int ey, int typ
     path_Start = a;
     path_Goal = (short)(ey << path_Shift) + ex;
     path_Stamp++;
-    PATH_INITNODE(&map->nodes[(unsigned short)a], 5);
+    PATH_INITNODE(&map->entries[(unsigned short)a], 5);
     if (path_Start != path_Goal) {
         b = path_Goal;
-        PATH_INITNODE(&map->nodes[b], 9);
+        PATH_INITNODE(&map->entries[b], 9);
         path_Tab1Sel = path_Tab1[type];
         path_Tab2Sel = path_Tab2[type];
         path_Costs = path_Terrain[type];
-        if (!(path_Costs[map->nodes[(unsigned short)a].type] < 0.0) && !(path_Costs[map->nodes[b].type] < 0.0)) {
+        if (!(path_Costs[map->entries[(unsigned short)a].type] < 0.0) && !(path_Costs[map->entries[b].type] < 0.0)) {
             path_Weight = 0.0f;
             for (k = 1; k < 15; k++)
                 if (path_Costs[k] > 0.0)
@@ -109,9 +109,9 @@ unsigned short path_Search2(PMAP *map, int sx, int sy, short ex, int ey, int typ
                     path_Reverse(map, a);
                     return path_Start;
                 }
-                if ((map->nodes[(unsigned short)a].flags & 0xc) == 0xc) {
+                if ((map->entries[(unsigned short)a].flags & 0xc) == 0xc) {
                     path_Reverse(map, a);
-                    map->nodes[(unsigned short)a].parent = path_Meet;
+                    map->entries[(unsigned short)a].parent = path_Meet;
                     return path_Start;
                 }
                 path_Target = path_Start;
@@ -122,9 +122,9 @@ unsigned short path_Search2(PMAP *map, int sx, int sy, short ex, int ey, int typ
                     break;
                 if (b == path_Start)
                     return path_Start;
-                if ((map->nodes[b].flags & 0xc) == 0xc) {
+                if ((map->entries[b].flags & 0xc) == 0xc) {
                     path_Reverse(map, path_Meet);
-                    map->nodes[path_Meet].parent = b;
+                    map->entries[path_Meet].parent = b;
                     return path_Start;
                 }
                 path_Count++;
@@ -159,7 +159,7 @@ unsigned short path_Search2(PMAP *map, int sx, int sy, short ex, int ey, int typ
    stores interleaved: +29 bytes there, -17 in ours' later block) and the 0xffff / Stamp registers. Same
    open point as the earlier note: what keeps a (unsigned short) in memory. */
 
-unsigned short path_Search1(PMAP *map, int sx, int sy, short ex, int ey, int type)
+unsigned short path_Search1(D3SM *map, int sx, int sy, short ex, int ey, int type)
 {
     int k;
     unsigned int a;
@@ -182,14 +182,14 @@ unsigned short path_Search1(PMAP *map, int sx, int sy, short ex, int ey, int typ
     path_Start = a;
     path_Goal = (short)(ey << path_Shift) + ex;
     path_Stamp++;
-    PATH_INITNODE(&map->nodes[(unsigned short)a], 5);
+    PATH_INITNODE(&map->entries[(unsigned short)a], 5);
     if (path_Start != path_Goal) {
         b = path_Goal;
-        PATH_INITNODE(&map->nodes[b], 9);
+        PATH_INITNODE(&map->entries[b], 9);
         path_Tab1Sel = path_Tab1[type];
         path_Tab2Sel = path_Tab2[type];
         path_Costs = path_Terrain[type];
-        if (!(path_Costs[map->nodes[(unsigned short)a].type] < 0.0) && !(path_Costs[map->nodes[b].type] < 0.0)) {
+        if (!(path_Costs[map->entries[(unsigned short)a].type] < 0.0) && !(path_Costs[map->entries[b].type] < 0.0)) {
             path_Weight = 0.0f;
             for (k = 1; k < 15; k++)
                 if (path_Costs[k] > 0.0)
@@ -204,9 +204,9 @@ unsigned short path_Search1(PMAP *map, int sx, int sy, short ex, int ey, int typ
                     path_Reverse(map, a);
                     return path_Start;
                 }
-                if ((map->nodes[(unsigned short)a].flags & 0xc) == 0xc) {
+                if ((map->entries[(unsigned short)a].flags & 0xc) == 0xc) {
                     path_Reverse(map, a);
-                    map->nodes[(unsigned short)a].parent = path_Meet;
+                    map->entries[(unsigned short)a].parent = path_Meet;
                     return path_Start;
                 }
                 path_Count++;
@@ -232,15 +232,15 @@ unsigned short path_Search1(PMAP *map, int sx, int sy, short ex, int ey, int typ
    p->next in memory, keeps &p->next in ecx (lea ecx,[edi+0x16]) and reloads q = [ecx] after the f test,
    with p in edi and q in edx; ours CSEs p->next into cx and swaps edi/edx. Tried = control: q = head
    before the head test, for(;;) with break, (unsigned short) shift, abs() splits/inline h, tail test
-   through q without casts; worse: loop over map->nodes[q].next (+114), p->f > f (+6), tail test through p
-   (+115), q = map->nodes[q].next (+114). (tiebreak: insensitive, dcp headers
+   through q without casts; worse: loop over map->entries[q].next (+114), p->f > f (+6), tail test through p
+   (+115), q = map->entries[q].next (+114). (tiebreak: insensitive, dcp headers
    sample path_Expand: 32 samples, one codegen) prior: behaviour only: after the double 0.0 and counting-for fixes the remaining
    hunks are register allocation and stack slot layout (our frame sub esp,0x14 vs original sub esp,0x10,
    slots 16); readable met */
 
-unsigned short path_Expand(PMAP *map, unsigned short head)
+unsigned short path_Expand(D3SM *map, unsigned short head)
 {
-    PNODE *cur, *nb, *p;
+    D3SMENTRY *cur, *nb, *p;
     unsigned short self;
     unsigned short k, q;
     int dir;
@@ -248,14 +248,14 @@ unsigned short path_Expand(PMAP *map, unsigned short head)
     float g, h, f;
 
     self = head;
-    cur = &map->nodes[head];
+    cur = &map->entries[head];
     head = cur->next;
     cur->flags = cur->flags & 0xfe | 2;
     if (head != 0xffff)
-        map->nodes[head].prev = cur->prev;
+        map->entries[head].prev = cur->prev;
     for (dir = 0; dir < 8; dir++) {
         k = (unsigned short)(path_DX[dir & 7] + path_DY[dir & 7] + self);
-        nb = &map->nodes[k];
+        nb = &map->entries[k];
         if (nb->stamp == path_Stamp && (nb->flags & path_TestFlag)) {
             nb->flags |= path_SetFlag;
             cur->flags |= path_TestFlag;
@@ -269,11 +269,11 @@ unsigned short path_Expand(PMAP *map, unsigned short head)
             if (nb->stamp == path_Stamp && (nb->flags & 1)) {
                 h = nb->h;
                 if (nb->prev != 0xffff)
-                    map->nodes[nb->prev].next = nb->next;
+                    map->entries[nb->prev].next = nb->next;
                 else
                     head = nb->next;
                 if (nb->next != 0xffff)
-                    map->nodes[nb->next].prev = nb->prev;
+                    map->entries[nb->next].prev = nb->prev;
             } else {
                 dx = (path_Target >> path_Shift) - (k >> path_Shift);
                 dy = (path_Target & path_Mask) - (k & path_Mask);
@@ -295,25 +295,25 @@ unsigned short path_Expand(PMAP *map, unsigned short head)
                     head = k;
                 } else {
                     q = head;
-                    p = &map->nodes[head];
+                    p = &map->entries[head];
                     while (p->next != 0xffff) {
                         if (f < p->f) {
                             nb->next = q;
                             nb->prev = p->prev;
                             if (p->prev != 0xffff)
-                                map->nodes[p->prev].next = k;
+                                map->entries[p->prev].next = k;
                             else
                                 head = k;
                             p->prev = k;
                             break;
                         }
                         q = p->next;
-                        p = &map->nodes[q];
+                        p = &map->entries[q];
                     }
-                    if (map->nodes[q].next == 0xffff) {
+                    if (map->entries[q].next == 0xffff) {
                         nb->prev = q;
                         nb->next = 0xffff;
-                        map->nodes[q].next = k;
+                        map->entries[q].next = k;
                     }
                 }
             }
@@ -326,25 +326,25 @@ unsigned short path_Expand(PMAP *map, unsigned short head)
 /* 0x425af0, turns the parent chain that ends at node `last` into a forward next chain: the chain
    nodes get parent = next from `last` back to the root. */
 
-void path_Reverse(PMAP *map, unsigned int last)
+void path_Reverse(D3SM *map, unsigned int last)
 {
     unsigned int cur, head, n;
 
     last &= 0xffff;
-    if (map->nodes[last].parent != 0xffff) {
-        map->nodes[last].next = 0xffff;
+    if (map->entries[last].parent != 0xffff) {
+        map->entries[last].next = 0xffff;
         cur = last;
         while (cur != 0xffff) {
-            if (map->nodes[cur].parent != 0xffff) {
-                map->nodes[map->nodes[cur].parent].next = cur;
-                head = map->nodes[cur].parent;
+            if (map->entries[cur].parent != 0xffff) {
+                map->entries[map->entries[cur].parent].next = cur;
+                head = map->entries[cur].parent;
             }
-            cur = map->nodes[cur].parent;
+            cur = map->entries[cur].parent;
         }
         n = head;
         while (n != 0xffff) {
-            map->nodes[n].parent = map->nodes[n].next;
-            n = map->nodes[n].next;
+            map->entries[n].parent = map->entries[n].next;
+            n = map->entries[n].next;
         }
     }
 }

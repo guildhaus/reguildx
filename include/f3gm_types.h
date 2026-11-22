@@ -26,7 +26,7 @@ typedef struct GMINCOME {               /* 0x38 bytes, a character's incomes (0x
 #pragma pack(push, 1)
 /* a goods prototype (ai.h AIGOOD, 0x41 bytes, ai_Goods) as this unit reads it: ai.h is not includable here */
 typedef struct GMGOOD {
-    char type;                          /* 0x00 */
+    signed char type;                   /* 0x00 */
     char name[0x20];                    /* 0x01 */
     unsigned char cls;                  /* 0x21, the goods class (gm_ClassBuilding's index) */
     unsigned int workTime;              /* 0x22, AIGOOD.workTime, the production time of one unit */
@@ -167,7 +167,7 @@ typedef struct GMPLAYERSLOT {
                                            "%s, %i %s %i", the statistics panel's text 0x1f0e with ai_Time) */
     int mapX;                           /* 0x40, "KartenPosition": the player's place on the map (am.c 0x4948f0 measures */
     int mapY;                           /* 0x44   gm_MapDistance from it to the other slots' places; the save header keeps both) */
-    char maxPlayers;                    /* 0x48, "MaxPlayer" (saved in the save header, LSHDR.playerByte; signed: init_SetupNewGame reads it with movsx) */
+    signed char maxPlayers;                  /* 0x48, "MaxPlayer" (saved in the save header, LSHDR.playerByte; signed: init_SetupNewGame reads it with movsx) */
     unsigned char faith;                /* 0x49, "Glaube" */
     char pad04a[2];
     int historyStart;                   /* 0x4c, "HistorieStart" (the year) */
@@ -220,9 +220,9 @@ typedef struct GMRANK {
 #pragma pack(push, 1)
 /* the calendar record gm_ClockToDate fills (10 bytes) */
 typedef struct GMDATE {
-    char day;                           /* 0x0, the day of the month: 1 from gm_ClockToDate, gm_BirthDate /
+    signed char day;                    /* 0x0, the day of the month: 1 from gm_ClockToDate, gm_BirthDate /
                                            gm_DeathDate pick it (the character info panel prints it signed) */
-    char month;                         /* 0x1, the first month of the season: season * 3 + 1 */
+    signed char month;                  /* 0x1, the first month of the season: season * 3 + 1 */
     short year;                         /* 0x2, day + 0x578 */
     unsigned char hour;                 /* 0x4 */
     unsigned char min;                  /* 0x5 */

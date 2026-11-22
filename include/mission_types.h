@@ -7,7 +7,7 @@
 
 typedef struct G13MIS {                 /* 0x24 bytes, ai_Missions[0x80], the running missions */
     int type;                           /* 0x00, 0: free */
-    int owner;                          /* 0x04, a character id */
+    int owner;                          /* 0x04, the character's netId (ai_FindOwnerMission compares AICHAR.netId) */
     AITIME time;                        /* 0x08, when it was given */
     short pad16;
     int v18;                            /* 0x18, zeroed at the start of a mission and saved / loaded; no reader

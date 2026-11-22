@@ -29,14 +29,14 @@ typedef struct D3BGFMAT {           /* 0xe0 bytes, a material as stored in the f
     char name[3][0x40];             /* 0x00, 0x40, 0x80: texture names */
     unsigned char kind;             /* 0xc0 */
     unsigned char c1;               /* 0xc1 */
-    char c2;                        /* 0xc2 */
-    char c3;                        /* 0xc3 */
+    signed char c2;                 /* 0xc2 */
+    signed char c3;                 /* 0xc3 */
     char pad4;
-    char c5;
-    char c6;
-    char c7;
-    char c8;
-    char c9;
+    signed char c5;
+    signed char c6;
+    signed char c7;
+    signed char c8;
+    signed char c9;
     char padca[2];
     float su, sv;                   /* 0xcc: scale */
     float ou, ov;                   /* 0xd4: offset */
@@ -50,7 +50,7 @@ typedef struct D3BGFATTACH {        /* 0x58 bytes */
 
 typedef struct D3BGFDESC {          /* 0x198 bytes, what the file reader (0x44f870) fills in */
     char pad00;
-    char flag01;                    /* 0x01 */
+    signed char flag01;             /* 0x01 */
     char pad02[0xa];
     int nmat;                       /* 0x0c */
     D3BGFMAT *mats;                 /* 0x10 */

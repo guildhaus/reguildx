@@ -147,36 +147,36 @@ D3OBJECT *rd_object(void *f, D3OBJECT *parent, unsigned int version, char reload
                 for (k = 0; k < n; k++) {
                     bio_rd_s(f, name);
                     d3io_LoadObject(name, name);
-                    d3_AttachMesh(obj, (int)&D3_MESH(obj)->surf[k], name);
+                    d3_AttachMesh(obj, &D3_MESH(obj)->surf[k], name);
                 }
                 if (version >= 0x3a6c00a3) {
                     bio_rd_c(f, &c);
                     if (c) {
                         bio_rd_s(f, name);
                         d3io_LoadObject(name, name);
-                        d3_AttachMesh(obj, (int)&D3_MESH(obj)->surf[3], name);
+                        d3_AttachMesh(obj, &D3_MESH(obj)->surf[3], name);
                     }
                 } else if (D3_OPS(&D3_MESH(obj)->surf[0].info)) {
                     strcpy(name, (char *)D3_OPS(&D3_MESH(obj)->surf[0].info));
                     strcat(name, "_s");
                     if (d3io_LoadObject(name, name))
-                        d3_AttachMesh(obj, (int)&D3_MESH(obj)->surf[3], name);
+                        d3_AttachMesh(obj, &D3_MESH(obj)->surf[3], name);
                 }
             }
         case 2:
         case 3:
-            bio_rd_v3(f, (int *)&D3_X(obj)->pos);
-            bio_rd_v3(f, (int *)&D3_X(obj)->rot);
+            bio_rd_v3(f, &D3_X(obj)->pos);
+            bio_rd_v3(f, &D3_X(obj)->rot);
             bio_rd_c(f, &c);
             D3IO_FL(obj)->b0 = c;
             if (c) {
-                bio_rd_v3(f, (int *)&obj->savedPos);
-                bio_rd_v3(f, (int *)&obj->savedRot);
+                bio_rd_v3(f, &obj->savedPos);
+                bio_rd_v3(f, &obj->savedRot);
             }
             if (version >= 0x3a6c00af) {
                 for (i = 0; i < 10; i++) {
-                    bio_rd_v3(f, (int *)&obj->views[i].pos);
-                    bio_rd_v3(f, (int *)&obj->views[i].dir);
+                    bio_rd_v3(f, &obj->views[i].pos);
+                    bio_rd_v3(f, &obj->views[i].dir);
                 }
             }
             break;
@@ -185,10 +185,10 @@ D3OBJECT *rd_object(void *f, D3OBJECT *parent, unsigned int version, char reload
             D3IO_FL(obj)->b0 = c;
             if (version < 0x3a6c00a0)
                 D3IO_FL(obj)->b0 = 1;
-            bio_rd_i(f, (int *)&D3_X(obj)->radius);
-            bio_rd_v3(f, (int *)&D3_X(obj)->pos);
-            bio_rd_v3(f, (int *)&obj->savedPos);
-            bio_rd_v3(f, (int *)&obj->savedRot);
+            bio_rd_i(f, &D3_X(obj)->radius);
+            bio_rd_v3(f, &D3_X(obj)->pos);
+            bio_rd_v3(f, &obj->savedPos);
+            bio_rd_v3(f, &obj->savedRot);
             break;
         case 5:
         case 6:
@@ -202,25 +202,25 @@ D3OBJECT *rd_object(void *f, D3OBJECT *parent, unsigned int version, char reload
                     bio_rd_c(f, &c);
                     D3IO_FL(obj)->b4 = c;
                 }
-                bio_rd_i(f, (int *)&obj->lightParams.x);
-                bio_rd_i(f, (int *)&obj->lightParams.y);
-                bio_rd_i(f, (int *)&obj->lightParams.z);
-                bio_rd_v3(f, (int *)&obj->lightColor);
-                bio_rd_v3(f, (int *)&D3_X(obj)->pos);
-                bio_rd_v3(f, (int *)&D3_X(obj)->rot);
+                bio_rd_i(f, &obj->lightParams.x);
+                bio_rd_i(f, &obj->lightParams.y);
+                bio_rd_i(f, &obj->lightParams.z);
+                bio_rd_v3(f, &obj->lightColor);
+                bio_rd_v3(f, &D3_X(obj)->pos);
+                bio_rd_v3(f, &D3_X(obj)->rot);
                 if (version >= 0x3a6c00ac) {
-                    bio_rd_i(f, (int *)&D3_X(obj)->light->flicker);
+                    bio_rd_i(f, &D3_X(obj)->light->flicker);
                     bio_rd_i(f, &D3_X(obj)->light->interval);
                 }
                 for (i = 0; i < cnt; i++) {
-                    bio_rd_i(f, (int *)&D3IO_KEYS(obj)[i].f28);
-                    bio_rd_i(f, (int *)&D3IO_KEYS(obj)[i].f24);
-                    bio_rd_i(f, (int *)&D3IO_KEYS(obj)[i].f2c);
-                    bio_rd_v3(f, (int *)&D3IO_KEYS(obj)[i].v18);
-                    bio_rd_v3(f, (int *)&D3IO_KEYS(obj)[i].v00);
-                    bio_rd_v3(f, (int *)&D3IO_KEYS(obj)[i].v0c);
+                    bio_rd_i(f, &D3IO_KEYS(obj)[i].f28);
+                    bio_rd_i(f, &D3IO_KEYS(obj)[i].f24);
+                    bio_rd_i(f, &D3IO_KEYS(obj)[i].f2c);
+                    bio_rd_v3(f, &D3IO_KEYS(obj)[i].v18);
+                    bio_rd_v3(f, &D3IO_KEYS(obj)[i].v00);
+                    bio_rd_v3(f, &D3IO_KEYS(obj)[i].v0c);
                     if (version >= 0x3a6c00ac) {
-                        bio_rd_i(f, (int *)&D3IO_KEYS(obj)[i].f30);
+                        bio_rd_i(f, &D3IO_KEYS(obj)[i].f30);
                         bio_rd_i(f, &D3IO_KEYS(obj)[i].f34);
                     }
                 }
@@ -236,10 +236,10 @@ D3OBJECT *rd_object(void *f, D3OBJECT *parent, unsigned int version, char reload
                     D3IO_KEYS(obj)[i].v00.z = D3IO_KEYS(obj)[cnt - 1].v00.z;
                 }
             } else {
-                bio_rd_i(f, (int *)&D3_X(obj)->rot.x);
-                bio_rd_i(f, (int *)&D3_X(obj)->rot.y);
+                bio_rd_i(f, &D3_X(obj)->rot.x);
+                bio_rd_i(f, &D3_X(obj)->rot.y);
                 if (version >= 0x3a6c000c)
-                    bio_rd_i(f, (int *)&D3_X(obj)->rot.z);
+                    bio_rd_i(f, &D3_X(obj)->rot.z);
                 else
                     D3_X(obj)->rot.z = 1.0f;
                 obj->lightParams.x = D3_X(obj)->rot.x;
@@ -248,16 +248,16 @@ D3OBJECT *rd_object(void *f, D3OBJECT *parent, unsigned int version, char reload
                 D3_X(obj)->rot.x = 0.0f;
                 D3_X(obj)->rot.y = 0.0f;
                 D3_X(obj)->rot.z = 0.0f;
-                bio_rd_v3(f, (int *)&obj->lightColor);
-                bio_rd_v3(f, (int *)&D3_X(obj)->pos);
+                bio_rd_v3(f, &obj->lightColor);
+                bio_rd_v3(f, &D3_X(obj)->pos);
                 if (version >= 0x3a6c00a1) {
                     cnt = d3_SceneVersion(version);
                     for (i = 0; i < cnt; i++) {
-                        bio_rd_i(f, (int *)&D3IO_KEYS(obj)[i].f28);
-                        bio_rd_i(f, (int *)&D3IO_KEYS(obj)[i].f24);
-                        bio_rd_i(f, (int *)&D3IO_KEYS(obj)[i].f2c);
-                        bio_rd_v3(f, (int *)&D3IO_KEYS(obj)[i].v18);
-                        bio_rd_v3(f, (int *)&D3IO_KEYS(obj)[i].v00);
+                        bio_rd_i(f, &D3IO_KEYS(obj)[i].f28);
+                        bio_rd_i(f, &D3IO_KEYS(obj)[i].f24);
+                        bio_rd_i(f, &D3IO_KEYS(obj)[i].f2c);
+                        bio_rd_v3(f, &D3IO_KEYS(obj)[i].v18);
+                        bio_rd_v3(f, &D3IO_KEYS(obj)[i].v00);
                     }
                     for (; i < 7; i++) {
                         D3IO_KEYS(obj)[i].f28 = D3IO_KEYS(obj)[cnt - 1].f28;
@@ -354,7 +354,7 @@ D3FLMAP *d3io_ReadFloor(void *f, unsigned int version)
     D3FLMAP *map = 0;
     D3FLDESC desc;
     char buf[0x100];
-    D3TEXHANDLE *tex;
+    struct TSTEXTURE *tex;
     int i;
 
     if (version >= 0x3a6c0009) {
@@ -387,7 +387,7 @@ D3FLMAP *d3io_ReadFloor(void *f, unsigned int version)
                         if (name[0]) {
                             fl.all = 0;
                             fl.s.b0 = 0x7f;
-                            tex = (D3TEXHANDLE *)tex_Load(name, fl.f, (c2 & 0xf) << 2 | c3 & 1, 0);
+                            tex = tex_Load(name, fl.f, (c2 & 0xf) << 2 | c3 & 1, 0);
                             if (tex)
                                 tex_Reload(tex, 0);
                         }
@@ -400,23 +400,23 @@ D3FLMAP *d3io_ReadFloor(void *f, unsigned int version)
                         fl.s.c0 = c;
                         bio_rd_c(f, &c);
                         fl.s.c1 = c;
-                        desc.regions[i].tex2 = (D3FLTEX *)tex;
-                        desc.regions[i].tex = (D3FLTEX *)tex;
+                        desc.regions[i].tex2 = tex;
+                        desc.regions[i].tex = tex;
                         desc.regions[i].flags = fl.f;
                         if (version >= 0x3a6c00b6)
-                            bio_rd_i(f, (int *)&desc.regions[i].f14);
+                            bio_rd_i(f, &desc.regions[i].f14);
                         else
                             desc.regions[i].f14 = 63.0f;
-                        bio_rd_i(f, (int *)&desc.regions[i].scrollSpeedU);
-                        bio_rd_i(f, (int *)&desc.regions[i].scrollSpeedV);
-                        bio_rd_v4(f, (int *)desc.regions[i].speed);
+                        bio_rd_i(f, &desc.regions[i].scrollSpeedU);
+                        bio_rd_i(f, &desc.regions[i].scrollSpeedV);
+                        bio_rd_v4(f, desc.regions[i].speed);
                         if (version < 0x3a6c00ac) {
                             desc.regions[i].speed[0] *= 1.0f / 3.0f;
                             desc.regions[i].speed[1] *= 1.0f / 3.0f;
                             desc.regions[i].speed[2] *= 1.0f / 3.0f;
                             desc.regions[i].speed[3] *= 1.0f / 3.0f;
                         }
-                        bio_rd_v4(f, (int *)desc.regions[i].amp);
+                        bio_rd_v4(f, desc.regions[i].amp);
                         if (version >= 0x3a6c00b9) {
                             int water;
                             bio_rd_i(f, &water);
@@ -440,15 +440,15 @@ D3FLMAP *d3io_ReadFloor(void *f, unsigned int version)
             for (i = 0; i < 6; i++)
                 bio_rd_s(f, desc.typenames[i]);
         }
-        bio_rd_i(f, (int *)&desc.scale);
-        bio_rd_i(f, (int *)&desc.hscale);
+        bio_rd_i(f, &desc.scale);
+        bio_rd_i(f, &desc.hscale);
         if (version <= 0x3a6c000f)
             for (i = 0; i < 0x100; i++)
                 bio_rd_s(f, buf);
         map = d3fl_LoadMap(&desc);
         if (version >= 0x3a6c000e) {
             D3VECTOR4 pos;
-            bio_rd_v3(f, (int *)&pos);
+            bio_rd_v3(f, &pos);
             if (map) {
                 map->orgx = pos.x;
                 map->orgy = pos.y;
@@ -508,14 +508,14 @@ char d3_LoadScene(char *name, void *f, D3IOPROGRESS progress)
             d3_Busy++;
             if (version >= 0x3a6c000b) {
                 bio_rd_s(in, cam);
-                bio_rd_i(in, (int *)&t);
-                bio_rd_v3(in, (int *)&v);
+                bio_rd_i(in, &t);
+                bio_rd_v3(in, &v);
                 d3if_Gray = t;
                 d3_AmbientColor.x = v.x;
                 d3_AmbientColor.y = v.y;
                 d3_AmbientColor.z = v.z;
                 if (version >= 0x3a6c00b5) {
-                    bio_rd_v3(in, (int *)&v);
+                    bio_rd_v3(in, &v);
                     d3_SunColor.x = v.x;
                     d3_SunColor.y = v.y;
                     d3_SunColor.z = v.z;
@@ -525,9 +525,9 @@ char d3_LoadScene(char *name, void *f, D3IOPROGRESS progress)
                     if (version >= 0x3a6c00b7)
                         bio_rd_i(in, &x);
                     d3_DefaultScene->mapSize = x;
-                    bio_rd_i(in, (int *)&col);
-                    bio_rd_i(in, (int *)&start);
-                    bio_rd_i(in, (int *)&end);
+                    bio_rd_i(in, &col);
+                    bio_rd_i(in, &start);
+                    bio_rd_i(in, &end);
                     d3_SetFog(start, end, col);
                 }
                 for (x = 0; x < 7; x++) {
@@ -541,23 +541,23 @@ char d3_LoadScene(char *name, void *f, D3IOPROGRESS progress)
                 if (version >= 0x3a6c00a2) {
                     nsets = d3_SceneVersion(version);
                     for (x = 0; x < nsets; x++) {
-                        bio_rd_v3(in, (int *)&v);
+                        bio_rd_v3(in, &v);
                         d3if_Levels[x].amb.x = v.x;
                         d3if_Levels[x].amb.y = v.y;
                         d3if_Levels[x].amb.z = v.z;
                         if (version >= 0x3a6c00b3) {
                             if (version >= 0x3a6c00b5) {
-                                bio_rd_v3(in, (int *)&v);
+                                bio_rd_v3(in, &v);
                                 d3if_Levels[x].sun.x = v.x;
                                 d3if_Levels[x].sun.y = v.y;
                                 d3if_Levels[x].sun.z = v.z;
                             }
                             for (n = 0; n < 6; n++) {
                                 bio_rd_i(in, &fcol);
-                                bio_rd_i(in, (int *)&t);
+                                bio_rd_i(in, &t);
                                 d3if_Levels[x].fog[n].col.col = fcol;
                                 d3if_Levels[x].fog[n].start = t;
-                                bio_rd_i(in, (int *)&t);
+                                bio_rd_i(in, &t);
                                 d3if_Levels[x].fog[n].end = t;
                             }
                         }
@@ -613,7 +613,7 @@ char d3_LoadScene(char *name, void *f, D3IOPROGRESS progress)
                 d3_DefaultScene->mapSize = d3_Terrain ? 0x80 : 0x40;
             if (d3_Terrain)
                 d3_DefaultScene->map = d3_Terrain;
-            tex_ReloadAll(0, (int)progress);
+            tex_ReloadAll(0, progress);
             d3_Busy--;
             if (name)
                 strncpy(d3_DefaultScene->name, name, 0x7f);

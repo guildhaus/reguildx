@@ -117,7 +117,7 @@ extern int ai_TutorialChapterOn[5];     /* 0x62918c, per chapter 1 = played */
 extern int (*ai_TutorialChapterInit[5])(void);  /* 0x6291a0, the chapter chain builders */
 extern int ai_DragObj;  /* 0x62a8d0, the right-held d2 object whose tooltip ai_DragWindow shows */
 extern int ai_DragViewWin;  /* 0x62a8d4, the first window of the tooltip view */
-extern char *ai_DragPicked;  /* 0x6f266c, the picked object the tooltip was last opened for */
+extern struct D3OBJECT *ai_DragPicked;  /* 0x6f266c, the picked object the tooltip was last opened for */
 extern const int ai_GraveNames[4];  /* 0x5eecd0, the text ids of the grave sizes' names */
 extern int ai_DragCutscene;  /* 0x6f2670, 1 while the tooltip view holds d2_CutsceneActive set */
 extern int ai_ScreenshotCount;  /* 0x6f2674, the number of the next screenshot */

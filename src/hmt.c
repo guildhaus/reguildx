@@ -372,7 +372,7 @@ int hmt_Exit(void)
 void hmt_Update(void)
 {
     int year;
-    HMTOBJ ev, ps;
+    AMTREC ev, ps;
     AICHAR *ce, *cp;
     HMTREC *r;
     int kind;
@@ -381,13 +381,13 @@ void hmt_Update(void)
 
     year = ai_Time.year + 0x578;
     if (amt_GetFirstOffice(0x26, &ev) && amt_GetFirstOffice(0x27, &ps)) {
-        ce = gm_FindChar(ev.id);
-        cp = gm_FindChar(ps.id);
-        if (ev.id != -1 && hmt_CurrentEvent != -1) {
+        ce = gm_FindChar(ev.owner);
+        cp = gm_FindChar(ps.owner);
+        if (ev.owner != -1 && hmt_CurrentEvent != -1) {
             r = hmt_Find(hmt_CurrentEvent, &kind);
             if (r != 0 && r->end <= year) {
-                amt_SendOfficeMessage(ev.obj, 0, 0, 1, 0xff);
-                cm_SendKillCharacter(ev.id, 1);
+                amt_SendOfficeMessage(ev.idx, 0, 0, 1, 0xff);
+                cm_SendKillCharacter(ev.owner, 1);
                 if (ce != 0) {
                     txt_Format(text, 0x42b2, ce->id);
                     for (i = 0; i < 768; i++) {
@@ -397,11 +397,11 @@ void hmt_Update(void)
                 }
             }
         }
-        if (ps.id != -1 && hmt_CurrentPerson != -1) {
+        if (ps.owner != -1 && hmt_CurrentPerson != -1) {
             r = hmt_Find(hmt_CurrentPerson, &kind);
             if (r != 0 && r->end <= year) {
-                amt_SendOfficeMessage(ps.obj, 0, 0, 1, 0xff);
-                cm_SendKillCharacter(ps.id, 1);
+                amt_SendOfficeMessage(ps.idx, 0, 0, 1, 0xff);
+                cm_SendKillCharacter(ps.owner, 1);
                 if (cp != 0) {
                     txt_Format(text, 0x42b4, cp->id);
                     for (i = 0; i < 768; i++) {
@@ -441,18 +441,18 @@ HMTREC *hmt_Find(int idx, int *kind)
 void hmt_Begin(void)
 {
     int year;
-    HMTOBJ ev, ps;
+    AMTREC ev, ps;
     HMTREC *r;
     int kind;
 
     year = ai_Time.year + 0x578;
     if (amt_GetFirstOffice(0x26, &ev) && amt_GetFirstOffice(0x27, &ps)) {
-        if (ev.id == -1 && hmt_Event != -1) {
+        if (ev.owner == -1 && hmt_Event != -1) {
             r = hmt_Find(hmt_Event, &kind);
             if (r != 0 && r->begin <= year)
                 cm_SendCreateCharacter(0x15, hmt_Event, -1, util_Random(8) + 0x19, -1, 0, 0, 0);
         }
-        if (ps.id == -1 && hmt_Person != -1) {
+        if (ps.owner == -1 && hmt_Person != -1) {
             r = hmt_Find(hmt_Person, &kind);
             if (r != 0 && r->begin <= year)
                 cm_SendCreateCharacter(0x16, hmt_Person, -1, util_Random(8) + 0x19, -1, 0, 0, 0);
@@ -577,14 +577,14 @@ float hmt_Score(AICHAR *c, AICHAR *obj, int type, int twice)
 void hmt_ClearOffices(void)
 {
     int m, type;
-    HMTOBJ o;
+    AMTREC o;
 
     if (ai_Time.year >= 4) {
         m = ai_Time.year % 4;
         if (m != 0) {
             type = hmt_ElectionObjTypes[m - 1];
-            if (amt_GetFirstOffice(type, &o) && gm_FindChar(o.id) != 0)
-                amt_SendOfficeMessage(o.obj, 0, 0, 1, 0xff);
+            if (amt_GetFirstOffice(type, &o) && gm_FindChar(o.owner) != 0)
+                amt_SendOfficeMessage(o.idx, 0, 0, 1, 0xff);
         }
     }
 }
@@ -596,7 +596,7 @@ void hmt_ClearOffices(void)
 void hmt_DecideElection(void)
 {
     HMTCAND cand[4];
-    HMTOBJ o;
+    AMTREC o;
     float best;
     int type;
     unsigned int bit;
@@ -638,7 +638,7 @@ void hmt_DecideElection(void)
                     }
                 }
                 if (win != 0) {
-                    amt_SendOfficeMessage(o.obj, win, 0, 1, 0xff);
+                    amt_SendOfficeMessage(o.idx, win, 0, 1, 0xff);
                     if (win->kind == 6 || win->kind == 7 || win->kind == 5) {
                         AIMSG msg;
 

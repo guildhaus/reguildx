@@ -100,23 +100,6 @@ typedef struct GVAVATAR {               /* 0xf4 bytes, a record of the avatar ta
 typedef char gv_AssertGVAVATAR[sizeof(GVAVATAR) == 0xf4 ? 1 : -1];
 extern GVAVATAR gv_Avatars[0x20];     /* 0x60f310, the avatars: the characters the graveyard raises (gv_AllocAvatar) */
 
-/* the message record of an order (c = the character, m = this record): the handlers write their text at +0x14 */
-typedef struct ORDMSG {
-    int kind;                       /* 0x000, 1 do / 2 answer / 3 ask / 4 answer */
-    int law;                        /* 0x004, of the law orders: the decision record (AIDEC.id) the office may change */
-    int value;                      /* 0x008, of the law orders asked of the AI: the value it wants (lc.c
-                                       ai_LawPrivilegeWindow) */
-    char pad00c[8];
-    char text[0x200];               /* 0x014, the text the handlers fill */
-    union {
-        int answerFlag;             /* 0x214, 1 = the answer handler picked this order; stored as an int */
-        int target;                 /* 0x214, of an ask that names a character (the courtship, lc.c ai_CourtshipWindow):
-                                       its netId */
-    };
-    char pad218[4];
-    struct AICHAR *partner;             /* 0x21c, the partner character of an answer */
-} ORDMSG;
-#define ORD_MSG(p) ((ORDMSG *)(p))
 
 #pragma pack(push, 1)
 
@@ -133,11 +116,9 @@ extern int d3_CurrentScene;                /* 0x633444 */
 
 struct AIBLD *gm_BuildQuery(int n, ...);                     /* 0x501190 */
 char d3if_Delete(struct D3OBJECT *obj);  /* 0x447190, d3_interface.h */
-int gm_MinutesBetween();                     /* 0x4fe280 */
 struct D3PARTSYS *d3t_CreateExplosion(void *parent, struct D3VECTOR *pos, int count, float radius, float height, float z, float size, unsigned int duration); /* 0x416040, d3_tools.c */
 struct SBSAMPLE; struct SBBANK;
 struct SBSAMPLE * sb_GetSample(struct SBBANK *bank, char *name);   /* 0x426030 */
-int gm_FindById();                     /* 0x4fea50 */
 struct AIMSG; int cm_SendLongMessage(struct AIMSG *msg);                     /* 0x4c4b70 */
 void cm_BeginFieldBlock(void *o, int id);                     /* 0x4c3ba0 */
 int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3d00 */
@@ -220,14 +201,14 @@ int gv_EntryCount(struct AIBLD *o);    /* 0x4ef470 */
 int gv_SizeOpen(struct GVYARD *r, int i);      /* 0x4ef4f0 */
 extern struct AIBTYPE *ai_BTypes;    /* 0x7e3f30, the building types */
 int gv_ListEntry(struct GVYARD *r, int i, unsigned char n);  /* 0x4ef570 */
-int gv_EntryIndex(char *r, int *e);     /* 0x4ef6b0 */
+int gv_EntryIndex(struct GVYARD *g, struct GVENTRY *e);     /* 0x4ef6b0 */
 int gv_EntryHeldBy(struct AICHAR *a, char *b);    /* 0x4ef710 */
 int gv_EntrySameId(int *a, int *b);      /* 0x4ef740 */
 int gv_EntryIsFree(int *a, int *b);      /* 0x4ef760 */
 int gv_EntryIsUsed(int *a, int *b);      /* 0x4ef770 */
 int gv_EntryHasId(int *a, int *b);      /* 0x4ef780 */
-unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l);  /* 0x4ef7c0 */
-unsigned gv_LoadGraveyard(struct AIBLD *o, int *e);  /* 0x4ef900 */
+struct GVENTRY *gv_FindEntry(void *a, struct AIBLD *bld, struct GVENTRY *after, int (*cb)(), int l);  /* 0x4ef7c0 */
+struct GVENTRY *gv_LoadGraveyard(struct AIBLD *o, int *e);  /* 0x4ef900 */
 GVGRAVE *gv_RandomGrave(struct AIBLD *o);/* 0x4ef930 */
 extern const int gv_EntryCounts[];             /* 0x5ee054, entries per kind */
 extern const int gv_ListEntries0[4];         /* 0x5ee084, the entries of list 0 by the building level */
@@ -248,21 +229,20 @@ GVYARD *gv_GrowGraveyard(struct AIBLD *o);  /* 0x4eff50 */
 void gv_FreeGraveyard(int *g);             /* 0x4f0180 */
 int gv_OrderBury(int *g, struct AIBLD *o, int v, int b);  /* 0x4f01d0 */
 int gv_BuryCharacter(int *p);              /* 0x4f0240 */
-int gv_OrderReserveGrave(int *c, struct AIBLD *o, int size, short years, int price);  /* 0x4f0430 */
+int gv_OrderReserveGrave(struct AICHAR *c, struct AIBLD *o, int size, short years, int price);  /* 0x4f0430 */
 int gv_ReserveGrave(GVORDER *m);          /* 0x4f0490 */
 int gv_OrderExtendGrave(int *g, struct AIBLD *o, int v, int b, short s, int x);  /* 0x4f0700 */
 int gv_ExtendGrave(GVORDER *m);           /* 0x4f0770 */
-int gv_OrderSetGraveHolder(int *c, struct AIBLD *o, int size, int entry);  /* 0x4f0900 */
+int gv_OrderSetGraveHolder(struct AICHAR *c, struct AIBLD *o, int size, int entry);  /* 0x4f0900 */
 int gv_SetGraveHolder(GVORDER *m);         /* 0x4f0970 */
-int gv_OrderOpenSize(int *c, struct AIBLD *o, int size);  /* 0x4f0a90 */
-int gm_AddNegative();                     /* 0x500ae0 */
+int gv_OrderOpenSize(struct AICHAR *c, struct AIBLD *o, int size);  /* 0x4f0a90 */
 int gm_AddObjekt(int id, int proto, int n);                     /* 0x500970 */
 int gv_OpenSize(GVORDER *m);           /* 0x4f0af0 */
 int gv_OrderAdjustEntry(struct AIBLD *o, int v, int b, int x);  /* 0x4f0c20 */
 int gv_AdjustEntry(GVORDER *m);          /* 0x4f0c80 */
 int gv_OrderNewDead(struct AIBLD *o, int x);      /* 0x4f0d70 */
 int gv_AddNewDead(unsigned char *p);    /* 0x4f0dd0 */
-int gv_OrderMoveGrave(int *c, int to, struct AIBLD *o, int from, int entry, int price);  /* 0x4f0e80 */
+int gv_OrderMoveGrave(struct AICHAR *c, int to, struct AIBLD *o, int from, int entry, int price);  /* 0x4f0e80 */
 int gv_MoveGrave(GVMOVE *m);           /* 0x4f0ed0 */
 int gv_OrderRaiseDead(struct AIBLD *o, int size, int entry, int grave, int kind);  /* 0x4f1170 */
 int gv_SendGrave(struct AIBLD *o);    /* 0x4f15e0 */
@@ -276,14 +256,14 @@ unsigned gv_RaiseDead(GVRAISE *m);     /* 0x4f1200 */
 int gv_ReadGraveyard(void *f, struct AIBLD *o);  /* 0x4f1aa0, reads the graveyard record of o from the file f (allocated by 0x4efc10) */
 float util_RandomF(void);               /* 0x42ec20 */
 extern int ai_CharCount;                /* 0x6f1bc0, the number of characters in use (of ai_Chars[0x300]) */
-int gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);                     /* 0x4fbd10 */
+struct CHARACTER *gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);                     /* 0x4fbd10 */
 void gm_ChooseHeadIcon(struct AICHAR *c);                     /* 0x4fb890 */
 GVENTRY *gv_FindWornEntry(struct AIBLD *bld, unsigned char m);  /* 0x4f22a0 */
 
-int gv_FindHeldEntry(void *a, unsigned char **o, int *e);  /* 0x4f2540 */
-int gv_FindReservedEntry(void *a, unsigned char **o, int *e);  /* 0x4f25d0 */
+int gv_FindHeldEntry(void *a, struct AIBLD **o, struct GVENTRY **e);  /* 0x4f2540 */
+int gv_FindReservedEntry(void *a, struct AIBLD **o, struct GVENTRY **e);  /* 0x4f25d0 */
 float gv_SeanceChance(struct AIBLD *o);           /* 0x4f2660 */
-int gv_GetTableRecord(int i, int *out);     /* 0x4f2720 */
+int gv_GetTableRecord(int i, AIDEC *out);     /* 0x4f2720 */
 int gv_FindTableRecord(struct AICHAR *c, unsigned b, int *out);  /* 0x4f2870 */
 extern AIDEC gv_Decisions[];           /* 0x611258, 0x1d AIDEC records of 0x24 bytes (the AI decision table) */
 
@@ -314,14 +294,11 @@ void gv_CheckRankUps(void);               /* 0x4f4d10 */
 int gv_EvidencePrice(int id, struct AICHAR *seller, int *price, short *culprit, unsigned *law);  /* 0x4f4d30 */
 void gv_CheckRankUp(unsigned i);              /* 0x4f4970 */
 int gm_CharLevel(unsigned short id, int again);                     /* 0x505e60 */
-float gm_Liking();                   /* 0x50c550 */
 
 void gv_SendCrimes(void);               /* 0x4f3700 */
 int gv_RetireCrime(int id, int m);       /* 0x4f37e0 */
 void gv_SortCrimesByLaw(int n, CRIME *r);     /* 0x4f4390 */
 struct AIJOB *he_FindEvent(int n, ...);         /* 0x53e400, as he.h */
-int cm_GetSlotState();                     /* 0x4c3ae0 */
-void sv_PumpNet();                    /* 0x52fe00 */
 extern unsigned short ai_PlayerId;     /* 0x6f25b8 */
 
 int gv_RetireCrimesOf(int p, int n);        /* 0x4f3a30 */
@@ -343,21 +320,21 @@ struct AITIME;  /* f3gm.h typedef (gm_AddTime); file-scope so the gm_AddTime pro
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);                     /* 0x4fe140 */
 
 int gv_CannonCost(struct AICHAR *o, int a, int b, int d, int *n, int *price);  /* 0x4ef090 */
-int gv_MovePrice(unsigned short *c, int k1, int k2, int *out);  /* 0x4f2440 */
-int gv_ProtectionPrice(unsigned short *c);  /* 0x4f24a0, returns gm_PlayerFactor's value (0x4f2532 ret after the 0x5085f0 call) */
+int gv_MovePrice(struct AICHAR *c, int k1, int k2, int *out);  /* 0x4f2440 */
+int gv_ProtectionPrice(struct AICHAR *c);  /* 0x4f24a0, returns gm_PlayerFactor's value (0x4f2532 ret after the 0x5085f0 call) */
 int gv_CrimeTextLaw2to8(char *out, CRIME r, int mode);  /* 0x4f30a0 */
 int gv_CrimeTextLaw9to16(char *out, CRIME r, int mode);  /* 0x4f31d0 */
 int gv_CrimeTextLaw17to28(char *out, CRIME r, int mode);  /* 0x4f3270 */
 int gv_CrimeText(char *out, CRIME r, int mode);  /* 0x4f3580 */
 struct AICHAR *gv_FindAccused(struct AICHAR *c, int max, int *ids, int *cnt);  /* 0x4f41b0 */
 void gv_PassSentence(struct AICHAR *c, int a, struct AICHAR *judge, struct AICHAR *assessor1, struct AICHAR *assessor2);  /* 0x4f4460 */
-void gv_SentenceText(unsigned short *c, int a, char *out);  /* 0x4f48f0 */
+void gv_SentenceText(struct AICHAR *c, int a, char *out);  /* 0x4f48f0 */
 
-unsigned ord_ApplyForOffice(struct AICHAR *c, int *m);  /* 0x4f4e20 */
+unsigned ord_ApplyForOffice(struct AICHAR *c, ORDMSG *m);  /* 0x4f4e20 */
 struct AIJOB *he_NextEvent(void);                   /* 0x53e300 */
 
-int ord_LevelOrder(struct AICHAR *c, int *m);     /* 0x4f4f20 */
-int ord_ChangeProfessionOrder(struct AICHAR *c, int *m);     /* 0x4f4ff0 */
+int ord_LevelOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f4f20 */
+int ord_ChangeProfessionOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f4ff0 */
 int ord_PrivilegeDialog(char *text, int mode, int arg);  /* 0x4f8200, the privilege dialog */
 
 int gv_SetTableRecord(struct AICHAR *c, int i, int v);  /* 0x4f2750 */
@@ -367,75 +344,72 @@ int gv_Accuse(int i, int v, int a, int b, int obj);  /* 0x4f2e30 */
 float util_RandomF(void);               /* 0x42ec20 */
 
 void gv_GraveyardTurn(struct AIBLD *o);            /* 0x4f1de0 */
-int gv_LeasePrice(unsigned short *c, unsigned char care, int kind, int flag, int *out);  /* 0x4f2330 */
-int cm_FlushSendQueue();                     /* 0x4c3680 */
-int cm_ReceiveMessages();                     /* 0x4c3fd0 */
-int cm_ExecCommands();                     /* 0x4c4190 */
+int gv_LeasePrice(struct AICHAR *c, unsigned char care, int kind, int flag, int *out);  /* 0x4f2330 */
 int cm_SendRelations(int a, int b, int c, int d);                     /* 0x4c4b00 */
 int gm_CharCurrency(struct AICHAR *c, char p);                   /* 0x509ee0 */
 
-int ord_MedicusOrder(struct AICHAR *c, int *m);     /* 0x4f5070 */
+int ord_MedicusOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5070 */
 
-int ord_AccusationOrder(struct AICHAR *c, int *m);     /* 0x4f50f0 */
+int ord_AccusationOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f50f0 */
 
-int ord_BlackmailBuildingOrder(struct AICHAR *c, int *m);     /* 0x4f5190 */
-int ord_IntimidateOrder(struct AICHAR *c, int *m);     /* 0x4f52e0 */
-int ord_BlackmailContactOrder(struct AICHAR *c, int *m);     /* 0x4f5350 */
-int ord_DismissOfficeOrder(struct AICHAR *c, int *m);     /* 0x4f5c30 */
-int ord_LawOrder(struct AICHAR *c, int *m);     /* 0x4f5d50 */
-int ord_LawOrder2(struct AICHAR *c, int *m);     /* 0x4f5f00 */
-int ord_Level3Order(struct AICHAR *c, int *m);     /* 0x4f5200 */
-int ord_Level4Order(struct AICHAR *c, int *m);     /* 0x4f53c0 */
-int ord_Level4Order2(struct AICHAR *c, int *m);     /* 0x4f54a0 */
-int ord_Level4To5Order(struct AICHAR *c, int *m);     /* 0x4f5580 */
-int ord_Level5UpOrder(struct AICHAR *c, int *m);     /* 0x4f5660 */
-int ord_Level5UpOrder2(struct AICHAR *c, int *m);     /* 0x4f5730 */
-int ord_Level6UpOrder(struct AICHAR *c, int *m);     /* 0x4f58e0 */
-int ord_Level6UpOrder2(struct AICHAR *c, int *m);     /* 0x4f59b0 */
+int ord_BlackmailBuildingOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5190 */
+int ord_IntimidateOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f52e0 */
+int ord_BlackmailContactOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5350 */
+int ord_DismissOfficeOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5c30 */
+int ord_LawOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5d50 */
+int ord_LawOrder2(struct AICHAR *c, ORDMSG *m);     /* 0x4f5f00 */
+int ord_Level3Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f5200 */
+int ord_Level4Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f53c0 */
+int ord_Level4Order2(struct AICHAR *c, ORDMSG *m);     /* 0x4f54a0 */
+int ord_Level4To5Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f5580 */
+int ord_Level5UpOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5660 */
+int ord_Level5UpOrder2(struct AICHAR *c, ORDMSG *m);     /* 0x4f5730 */
+int ord_Level6UpOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f58e0 */
+int ord_Level6UpOrder2(struct AICHAR *c, ORDMSG *m);     /* 0x4f59b0 */
 
-int ord_Job11Order(struct AICHAR *c, int *m);     /* 0x4f60b0 */
-int ord_JobMultiOrder(struct AICHAR *c, int *m);     /* 0x4f6180 */
-int ord_Job28Order(struct AICHAR *c, int *m);     /* 0x4f6270 */
-int ord_Job29Order(struct AICHAR *c, int *m);     /* 0x4f6340 */
-int ord_Job34Order(struct AICHAR *c, int *m);     /* 0x4f6410 */
-int ord_JobRangeOrder(struct AICHAR *c, int *m);     /* 0x4f64e0 */
-int ord_JobMultiOrder2(struct AICHAR *c, int *m);     /* 0x4f65c0 */
+int ord_Job11Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f60b0 */
+int ord_JobMultiOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f6180 */
+int ord_Job28Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f6270 */
+int ord_Job29Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f6340 */
+int ord_Job34Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f6410 */
+int ord_JobRangeOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f64e0 */
+int ord_JobMultiOrder2(struct AICHAR *c, ORDMSG *m);     /* 0x4f65c0 */
 
-int ord_BewitchOrder(struct AICHAR *c, int *m);     /* 0x4f66b0 */
+int ord_BewitchOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f66b0 */
 
-int ord_Job17Order(struct AICHAR *c, int *m);     /* 0x4f68d0 */
-int ord_Job17Order2(struct AICHAR *c, int *m);     /* 0x4f69a0 */
-int ord_JobMultiOrder4(struct AICHAR *c, int *m);     /* 0x4f6a70 */
-int ord_Job10Order(struct AICHAR *c, int *m);     /* 0x4f6c60 */
-int ord_Job15Order(struct AICHAR *c, int *m);     /* 0x4f6d30 */
-int ord_CounterEspionageOrder(struct AICHAR *c, int *m);     /* 0x4f67c0 */
-int ord_MisappropriationOrder(struct AICHAR *c, int *m);     /* 0x4f6b40 */
+int ord_Job17Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f68d0 */
+int ord_Job17Order2(struct AICHAR *c, ORDMSG *m);     /* 0x4f69a0 */
+int ord_JobMultiOrder4(struct AICHAR *c, ORDMSG *m);     /* 0x4f6a70 */
+int ord_Job10Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f6c60 */
+int ord_Job15Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f6d30 */
+int ord_CounterEspionageOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f67c0 */
+int ord_MisappropriationOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f6b40 */
 
-int ord_SeatSwapOrder(struct AICHAR *c, int *m);     /* 0x4f6e00 */
-int ord_HatredOrder(struct AICHAR *c, int *m);     /* 0x4f6f10 */
-int ord_HearingOrder(struct AICHAR *c, int *m);     /* 0x4f70f0 */
-int ord_ExpelWorkerOrder(struct AICHAR *c, int *m);     /* 0x4f7200 */
-int ord_ConvertOrder(struct AICHAR *c, int *m);     /* 0x4f7300 */
-int ord_PeaceOrder(struct AICHAR *c, int *m);     /* 0x4f7400 */
-int ord_PenanceOrder(struct AICHAR *c, int *m);     /* 0x4f74f0 */
-int ord_SpyTargetFlagOrder(struct AICHAR *c, int *m);     /* 0x4f75e0 */
-int ord_JobMultiOrder3(struct AICHAR *c, int *m);     /* 0x4f7000 */
+int ord_SeatSwapOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f6e00 */
+int ord_HatredOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f6f10 */
+int ord_HearingOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f70f0 */
+int ord_ExpelWorkerOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f7200 */
+int ord_ConvertOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f7300 */
+int ord_PeaceOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f7400 */
+int ord_PenanceOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f74f0 */
+int ord_SpyTargetFlagOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f75e0 */
+int ord_JobMultiOrder3(struct AICHAR *c, ORDMSG *m);     /* 0x4f7000 */
 
-int ord_MiracleOrder(struct AICHAR *c, int *m);     /* 0x4f76e0 */
-int ord_Level7Order(struct AICHAR *c, int *m);     /* 0x4f77d0 */
-int ord_Level8Order(struct AICHAR *c, int *m);     /* 0x4f78b0 */
-int ord_Level9UpOrder(struct AICHAR *c, int *m);     /* 0x4f7990 */
-int ord_Flag800Order(struct AICHAR *c, int *m);     /* 0x4f7ca0 */
-int ord_Flag800Order2(struct AICHAR *c, int *m);     /* 0x4f7d70 */
-int ord_Flag200Order(struct AICHAR *c, int *m);     /* 0x4f7ef0 */
-int ord_Flag400Order(struct AICHAR *c, int *m);     /* 0x4f8070 */
-int ord_InterrogationOrder(struct AICHAR *c, int *m);     /* 0x4f7a60 */
-int ord_DismissalOrder(struct AICHAR *c, int *m);     /* 0x4f7b80 */
-int ord_InterrogationOrder2(struct AICHAR *c, int *m);     /* 0x4f7e40 */
-int ord_InterrogationOrder3(struct AICHAR *c, int *m);     /* 0x4f7fc0 */
-int ord_DismissWorkerOrder(struct AICHAR *c, int *m);     /* 0x4f8140 */
+int ord_MiracleOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f76e0 */
+int ord_Level7Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f77d0 */
+int ord_Level8Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f78b0 */
+int ord_Level9UpOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f7990 */
+int ord_Flag800Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f7ca0 */
+int ord_Flag800Order2(struct AICHAR *c, ORDMSG *m);     /* 0x4f7d70 */
+int ord_Flag200Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f7ef0 */
+int ord_Flag400Order(struct AICHAR *c, ORDMSG *m);     /* 0x4f8070 */
+int ord_InterrogationOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f7a60 */
+int ord_DismissalOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f7b80 */
+int ord_InterrogationOrder2(struct AICHAR *c, ORDMSG *m);     /* 0x4f7e40 */
+int ord_InterrogationOrder3(struct AICHAR *c, ORDMSG *m);     /* 0x4f7fc0 */
+int ord_DismissWorkerOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f8140 */
 
-extern int (*ord_OrderHandlers[0x3a])(struct AICHAR *c, int *m);    /* 0x611768, the order handler of each order number */
+extern int (*ord_OrderHandlers[0x3a])(struct AICHAR *c, ORDMSG *m);    /* 0x611768, the order handler of each order number */
 int d2_OpenForm(short x, short y, char *name);  /* 0x4741f0, d2.h: loads the view, returns its number */
 void d2_CentreViewWindows(int view);                     /* 0x475600 */
 int d2_SetForm(int view, int n);                       /* 0x475f70 */
@@ -444,10 +418,10 @@ void d2_SetPointerSprite(int a, int pic);            /* 0x476f80, d2.h / gfx.h *
 int sv_RunFrame(void (*cb)(), unsigned mask);                     /* 0x5309a0 */
 extern int sv_PopRequest;                /* 0x6f22a0 */
 extern int d2_ClickedId;                /* 0xf8a668 */
-int ord_DispatchOrder(int id, struct AICHAR *c, int *m);  /* 0x4f81c0 */
+int ord_DispatchOrder(int id, struct AICHAR *c, ORDMSG *m);  /* 0x4f81c0 */
 
-int ord_DivorceOrder(struct AICHAR *c, int *m);     /* 0x4f5800 */
-int ord_WageReportOrder(struct AICHAR *c, int *m);     /* 0x4f5a80 */
+int ord_DivorceOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5800 */
+int ord_WageReportOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5a80 */
 int gm_CharacterWages(unsigned short id, int flag, unsigned char *out);  /* 0x4fa700, the wage record (ORDWAGES) of the character id for the report */
 
 
@@ -499,10 +473,9 @@ float ord_BuildingCapacityRatio(void);              /* 0x4f97c0 */
 
 float ord_StatisticsRating(int *rec);              /* 0x4f9ce0 */
 float ord_WeightedRecordSum(int *out);          /* 0x4f9d40 */
-float ord_GetStatistics(int *o);            /* 0x4f9e00 */
+struct ORDSTATS; float ord_GetStatistics(struct ORDSTATS *o);            /* 0x4f9e00 */
 
 extern AITIME ord_StatisticsClock;      /* 0x91b470, the clock of the last rating step (ord_AdvanceRatingBase) */
-int gm_MinutesBetween();                     /* 0x4fe280 */
 void ord_AdvanceRatingBase(void);               /* 0x4f9c00 */
 
 /* declared in other units' headers before (moved to the owner) */

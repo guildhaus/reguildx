@@ -34,8 +34,8 @@ struct D3ANIMDATA {                 /* 0x16c bytes, cached animation (LRU list) 
     D3ANIMFRAME *frames;            /* 0x15c */
     D3ANIMDATA *next;               /* 0x160 */
     D3ANIMDATA *prev;               /* 0x164 */
-    char normals;                   /* 0x168, normals calculated */
-    char relative;                  /* 0x169, points relative to the frame position (D3BASTREAM.relative) */
+    signed char normals;            /* 0x168, normals calculated */
+    signed char relative;           /* 0x169, points relative to the frame position (D3BASTREAM.relative) */
     char pad16a[0x2];
 };
 
@@ -132,7 +132,7 @@ typedef struct D3ANIMCTL {          /* what d3anim_StartAnim and d3_ReleaseTextu
     D3ANIMOBJ *obj;                 /* 0x18 */
     D3ANIMSLOT slots[3];            /* 0x1c */
     char pad190[0x4];
-    char active;                    /* 0x194 */
+    signed char active;             /* 0x194 */
 } D3ANIMCTL;
 
 int d3anim_GetSize(D3ANIMDATA *a);                                                     /* 0x434a80 */

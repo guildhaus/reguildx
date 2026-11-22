@@ -64,7 +64,7 @@ void d3io_AttachStock(D3OBJECT *obj, D3SURF *surf, char *name)
     D3IOSTOCK *stock;
     D3IOSURF *s;
     D3IOTRI *tri;
-    D3IOTEX *tex;
+    TSTEXTURE *tex;
     D3MESH *mesh;
     char buf[0x100];
     int i, k;
@@ -99,14 +99,14 @@ void d3io_AttachStock(D3OBJECT *obj, D3SURF *surf, char *name)
             }
             tri->f24 = 0;
             if (tri->src->tex >= 0) {
-                tex = (D3IOTEX *)d3_Textures + tri->src->tex;
-                tri->tex = (D3IOTEX *)d3_Textures + tri->src->tex;
-                if (tex->colorkey < 0xff || (tex->flags & 3)) {
-                    col.a = tex->colorkey;
-                    if (tex->flags & 1) {
-                        col.b = tex->colorkey;
-                        col.g = tex->colorkey;
-                        col.r = tex->colorkey;
+                tex = d3_Textures + tri->src->tex;
+                tri->tex = d3_Textures + tri->src->tex;
+                if (tex->flags.b[0] < 0xff || (tex->flags.b[2] & 3)) {
+                    col.a = tex->flags.b[0];
+                    if (tex->flags.b[2] & 1) {
+                        col.b = tex->flags.b[0];
+                        col.g = tex->flags.b[0];
+                        col.r = tex->flags.b[0];
                     } else {
                         col.b = 0xff;
                         col.g = 0xff;
@@ -117,20 +117,20 @@ void d3io_AttachStock(D3OBJECT *obj, D3SURF *surf, char *name)
                         tri->v[k]->col44 = col;
                     }
                 }
-                tri->fl.b3 = tex->f68;
+                tri->fl.b3 = tex->bits;
                 for (k = 0; k < 3; k++)
-                    tri->v[k]->f4d = tex->f68 & 1;
+                    tri->v[k]->f4d = tex->bits & 1;
             } else
                 tri->tex = 0;
         }
         s->texSet = 0;
-        s->texset = mem_Alloc(stock->ntex * 4, "d3_io:CurTexSet");
+        s->texset = mem_Alloc(stock->ntex * sizeof(*s->texset), "d3_io:CurTexSet");
         for (i = 0; i < stock->ntex; i++)
             for (k = 0; k < s->ntris; k++)
                 if (s->tris[k].src && s->tris[k].src->slot == i) {
                     if (s->tris[k].tex) {
                         s->texset[i] = s->tris[k].tex;
-                        tex_AddRef((D3FLTEX *)s->texset[i], 1);
+                        tex_AddRef(s->texset[i], 1);
                     } else
                         sprintf(buf, "stock object %s, texture %s not found", stock, stock->texnames[i]);
                     break;
@@ -212,9 +212,8 @@ char d3io_LodName(char *name, char *name2, int lod, char *out, char *out2)
 /* 0x44cbb0, attaches the stock object `name` to obj: into surf, or (surf 0) its LODs into the mesh's
    surfaces 0..2 and the "_s" variant into surface 3 */
 
-void d3_AttachMesh(D3OBJECT *obj, int unk, char *name)
+void d3_AttachMesh(D3OBJECT *obj, D3SURF *surf, char *name)
 {
-    D3SURF *surf = (D3SURF *)unk;
     char buf[0x100];
     int i, n;
 
@@ -263,7 +262,7 @@ void d3iot_DeleteStockObject(D3BGF *m)
         for (i = z; i < m->npolys; i++) {
             t = m->polys[i].tex;
             if (t != -1 && !used[t]) {
-                tex_Release((D3TEXHANDLE *)&((D3TEXTURE *)d3_Textures)[t]);
+                tex_Release(&d3_Textures[t]);
                 used[m->polys[i].tex] = 1;
             }
         }
@@ -602,7 +601,7 @@ D3BGF *d3iot_LoadBGF(char *path, char *name, char *texnames, int ntexsets, int n
                 for (k = 0; k < m->ntex; k++) {
                     D3BGFFLAGS fl;
                     D3BGFMAT *mt = &desc.mats[k];
-                    D3TEXHANDLE *tex;
+                    struct TSTEXTURE *tex;
                     fl.all = 0;
                     fl.s.b0 = 0xff;
                     if (mt->kind) {
@@ -613,10 +612,10 @@ D3BGF *d3iot_LoadBGF(char *path, char *name, char *texnames, int ntexsets, int n
                     fl.s.b1 = mt->c7;
                     fl.s.c1 = mt->c2;
                     if (mt->name[2][0] == 0)
-                        tex = (D3TEXHANDLE *)tex_Load(m->texnames + k * 0x40, fl.f, ((mt->c3 << 4 | mt->c6) * 2 | mt->c5) * 2, mt->c8 << 4 | mt->c9);
+                        tex = tex_Load(m->texnames + k * 0x40, fl.f, ((mt->c3 << 4 | mt->c6) * 2 | mt->c5) * 2, mt->c8 << 4 | mt->c9);
                     else
-                        tex = (D3TEXHANDLE *)tex_Load(m->texnames + k * 0x40, fl.f, (((mt->c3 << 4 | mt->c6) * 2 | mt->c5) * 2) | 1, mt->c8 << 4 | mt->c9);
-                    mi = tex ? tex - (D3TEXHANDLE *)d3_Textures : -1;
+                        tex = tex_Load(m->texnames + k * 0x40, fl.f, (((mt->c3 << 4 | mt->c6) * 2 | mt->c5) * 2) | 1, mt->c8 << 4 | mt->c9);
+                    mi = tex ? tex - d3_Textures : -1;
                     for (j = 0; j < m->npolys; j++) {
                         if (!used2[j] && m->polys[j].mat == k) {
                             m->polys[j].tex = mi;
@@ -787,7 +786,7 @@ D3IOPATH *d3_LoadObjectAnim(char *file, D3IOOBJ *obj, char reload)
         if (magic == 0x3a610001) {
             p = (D3IOPATH *)mem_Alloc(0x44, "d3_io:ObjAnim");
             bio_rd_i(f, &p->nkeys);
-            bio_rd_i(f, (int *)&p->flags);
+            bio_rd_i(f, &p->flags);
             p->flags.c5 = 0;
             keys = &p->keys;
             p->flags.d1 = reload;

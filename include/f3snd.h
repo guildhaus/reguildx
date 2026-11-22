@@ -35,7 +35,7 @@ typedef struct G16LOC {                 /* 0x114 bytes, snd_LocationTracks[]: a 
     int kinds[4];                       /* 0x00, building kinds (0 ends; 0x2694: outdoors); kinds[0] 0 ends the table */
     char track[0x100];                  /* 0x10 */
     short prio;                         /* 0x110 */
-    char active;                        /* 0x112 */
+    signed char active;                 /* 0x112 */
     char pad113;
 } G16LOC;
 

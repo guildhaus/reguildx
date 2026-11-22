@@ -7,7 +7,6 @@ struct AMTAPP;
 struct AMTMSG;
 struct CHACTION;
 struct CHARACTER;
-struct D3HMAP;
 struct GMSTOCK;
 struct D3BGF;
 struct D3TRAIN;
@@ -119,7 +118,7 @@ struct AIOBJ *gm_GetGebaeudeHauptraum(struct AIBLD *bld);                       
 struct AIOBJ *gm_Query(void *list, int n, ...);                                        /* 0x4ffe90, ai.h: AIOBJ * */
 struct AICHAR; struct AIBLD; struct AICHAR *gm_FindApplicant(struct AIBLD *o, unsigned title, unsigned job);                             /* 0x4fda70 */
 struct AIBLD; struct AIBLD *gm_FindHome(int unused, struct AIBLD *o);                                   /* 0x4fd820 */
-char * gm_FindGoods(int p, unsigned id);                                            /* 0x4ffc40, ai.h: int * */
+struct GMSTOCK *gm_FindGoods(int p, unsigned id);                                   /* 0x4ffc40 */
 extern G28REC *cm_CurrentFight;            /* 0x6f0d90, the scene party running (cm_ExecCutscene) */
 int gm_SumSlotAmounts(void *list, unsigned char i);                                     /* 0x508660 */
 int gm_FreeCapacity(struct AIOBJ *l, int item, int max);                                    /* 0x50ab80 */
@@ -137,10 +136,10 @@ struct AIJOB *he_FindEvent(int n, ...);                                         
 extern int ai_NextObjectId;                /* 0x61a654 */
 unsigned char * gm_CreateBuilding(unsigned char kind, unsigned short owner);                    /* 0x501580 */
 struct AIBLD; unsigned short gm_CreateCharacter(int type, int a2, int a3, unsigned short a4, struct AIBLD *a5, unsigned a6, int a7, int a8); /* 0x507690 */
-short * gm_PlayerRecord(struct AICHAR *ch);                                                    /* 0x506430, ai.h: AIFIN *(AICHAR *) */
+struct AIFIN; struct AIFIN *gm_PlayerRecord(struct AICHAR *ch);                                       /* 0x506430 */
 unsigned gm_TakeOverCharacter(int a, int b);                                                  /* 0x5064d0 */
-int gv_FindHeldEntry(void *a, unsigned char **o, int *e);                                    /* 0x4f2540 */
-int gv_EntryIndex(char *r, int *e);                                       /* 0x4ef6b0 */
+int gv_FindHeldEntry(void *a, struct AIBLD **o, struct GVENTRY **e);                                    /* 0x4f2540 */
+struct GVYARD; struct GVENTRY; int gv_EntryIndex(struct GVYARD *g, struct GVENTRY *e);                                       /* 0x4ef6b0 */
 int gv_OrderBury(int *g, struct AIBLD *o, int v, int b);                     /* 0x4f01d0 */
 int gm_FreeBuilding(struct AIBLD *b);                                                       /* 0x5012e0 */
 void gm_KillSpieler(int c, int mode);                                     /* 0x503c60 */
@@ -177,7 +176,7 @@ int cm_SplitComplete(G17MSG *m);                                                
 unsigned int cm_JoinSplit(G17MSG *m);                                            /* 0x4c38e0 */
 int cm_QueueSend(G17MSG *src);                                                   /* 0x4c39c0 */
 int cm_GetSlotState(int h);                                                         /* 0x4c3ae0 */
-int cm_GetSlotValue(int h);                                                         /* 0x4c3b10 */
+void *cm_GetSlotValue(int h);                                                       /* 0x4c3b10 */
 void cm_BeginSendGroup(void);                                                         /* 0x4c3b30 */
 void cm_EndSendGroup(void);                                                         /* 0x4c3b40 */
 int cm_SendGroupState(void);                                                          /* 0x4c3b50 */
@@ -269,8 +268,8 @@ void cm_SendChat(void *p);                                                      
 int cm_RequestCreateGeb(int owner, int kind, D3VECTOR4 *pos, int *rot);                /* 0x4c5ae0, "cm_RequestCreateGeb" */
 void cm_SendCharHalt(int a);                                                        /* 0x4c5b90 */
 int cm_SendObjCell(const char *s, int a, int b, const char *s2);                  /* 0x4c5bc0 */
-int cm_SendCutEntry(int a, int p);                                               /* 0x4c5c40 */
-int cm_SendCutEntryUpdate(int a, int p);                                               /* 0x4c5ca0 */
+int cm_SendCutEntry(int a, struct CMCUTENTRY *p);                                               /* 0x4c5c40 */
+int cm_SendCutEntryUpdate(int a, struct CMCUTENTRY *p);                                               /* 0x4c5ca0 */
 void cm_SendDamage(int a, int b, int c);                                          /* 0x4c5d00 */
 void cm_SendScriptMessage(void *p);                                                      /* 0x4c5d40 */
 int cm_SendTableRequest(G17TABLEMSG *p);                                               /* 0x4c5d80 */
@@ -338,22 +337,15 @@ void ai_UpdateNeeds(void);  /* 0x47da80 */
 void ai_UpdateCharacters(void);  /* 0x47e560 */
 void ai_RunMasterEvaluation(struct AICHAR *c);  /* 0x47e990 */
 void ai_SetFirstMission(int owner, int type);  /* 0x4b3bd0 */
-int ai_CountMissionEvent();  /* 0x4b44e0 */
-int cm_PartyById(int id);  /* 0x4e50a0, the used party with the id: its record, 0 without */
+struct G28REC *cm_PartyById(int id);  /* 0x4e50a0, the used party with the id: its record, 0 without */
 extern G28REC cm_Parties[96];  /* 0x925520, the scene party records (cm.c) */
-int cm_AllocParty(int *src);  /* 0x4e5150 */
+struct G28REC *cm_AllocParty(void *src);  /* 0x4e5150 */
 int cm_AddPartyMember(int id, int who);  /* 0x4e51b0 */
 int cm_RemovePartyMember(int id, int who);  /* 0x4e5210 */
-int gv_AddEvidence();  /* 0x4f3640 */
-int gv_FreeCrimeSlot();  /* 0x4f36b0 */
-int gv_EvidenceSlot();  /* 0x4f3780 */
-int gv_RetireCrime();  /* 0x4f37e0 */
 void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py);  /* 0x4f8460, gv.h (ord.c) */
-char ord_RandomCellPoint();  /* 0x4f86a0 */
 void ord_AdvanceRatingBase(void);  /* 0x4f9c00, ord.c */
 void gm_CountCharacters(void);  /* 0x4fdfd0 */
 struct AIJOB *he_NextEvent(void);  /* 0x53e300 */
-void he_RunEvents();  /* 0x53ed70 */
 void ai_NotifyPlayerOfChar(struct AICHAR *cRec, struct AICHAR *pRec);  /* 0x5a9170 */
 void lc_UpdateGoodsReserves(void);  /* 0x5ba750 */
 void ai_ApplyOptions(void);  /* 0x5d5e90 */
@@ -363,7 +355,7 @@ extern int ai_NextPartyId;  /* 0x61a658 */
 extern int cm_RunCharacters;  /* 0x624570, 1: a later server time also updates the characters (cm_ExTime) */
 extern int cm_RunRating;  /* 0x624574, 1: a later server time also advances the rating base */
 extern int cm_RunEvents;  /* 0x624578, 1: a later server time also runs the event handlers */
-extern char ai_MissionMode;  /* 0x624580 */
+extern signed char ai_MissionMode;  /* 0x624580 */
 extern unsigned char ai_NumPlayers;  /* 0x62489c */
 extern int ai_MissionPartner;  /* 0x6248a0, the netId of the other player in a network mission (-1 none; set by message 8, cleared by 10) */
 extern struct D3SCENE *ch_Saved0;  /* 0x631084 */
@@ -384,19 +376,12 @@ extern int hst_SeedPending;  /* 0xf83650 */
 struct D3SM; struct D3TERRAIN; void d3sm_Build(struct D3SM *h, struct D3TERRAIN *t);  /* 0x45e620, d3_sm.c: void d3sm_Build(D3SM *, D3TERRAIN *) */
 void hmt_SetPendingElection(int v);  /* 0x4ad1b0 */
 
-struct CHARACTER * ch_FindByName();  /* 0x402a70 */
-int ch_StopActions();  /* 0x405610 */
-int ch_StandUp();  /* 0x405ad0 */
-struct CHACTION * ch_WalkToObject();  /* 0x40a900 */
 struct CHACTION * ch_AddAction(struct CHARACTER *ch, unsigned int type, ...);  /* 0x40b2f0, ch.h ch_AddAction */
 struct G15TREE * veg_FindType(int type);  /* 0x4bc5a0 */
-struct G15PLANT * veg_FindPlantAt();  /* 0x4bc5f0 */
 int veg_Fits(struct G15PLANT *p, int x, int z, int size);  /* 0x4bc710 */
-struct G15PLANT * veg_SetPlant();  /* 0x4bc7c0 */
-void veg_LoadModel();  /* 0x4bc940 */
 void gm_SelectModelVariant(struct AICHAR *o);  /* 0x4fb5a0, f3gm.c: the model variant of the object o */
-int gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);  /* 0x4fbd10 */
-int gm_FindObjectInst(int id);  /* 0x4fe980 */
+struct CHARACTER *gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);  /* 0x4fbd10 */
+struct AIOBJ *gm_FindObjectInst(int id);  /* 0x4fe980 */
 int gm_RemoveOwned(struct AIOBJ **list, int id);  /* 0x5000c0, f3gm.h */
 extern int veg_NextId;  /* 0x6f0748 */
 extern AIBTYPE *ai_BTypes;  /* 0x7e3f30 */
@@ -405,15 +390,8 @@ extern char init_SceneDirty[];  /* 0xfd7f75 */
 #endif
 
 
-int ch_QueueAnim();  /* 0x4057a0 */
-char * vfs_GetPath();  /* 0x42fca0 */
 char d3_SetLightKeyCB(struct D3OBJECT *obj, float *time);  /* 0x449da0 */
-struct D3OBJECT * d3_LoadGroup();  /* 0x44c3f0 */
-float d3_VecAngle();  /* 0x4539f0 */
-void d3_DirToWorld();  /* 0x458810 */
 struct GVYARD *gv_GrowGraveyard(struct AIBLD *o);  /* 0x4eff50 */
-int ord_GetKindRecord();  /* 0x4f8890 */
-int gm_ClockSeason();  /* 0x4fe350 */
 void gm_RefreshGoodsLists(unsigned p);  /* 0x4ff190 */
 void gm_AssignBuilding(struct AIBLD *b, unsigned master, unsigned own);  /* 0x502b60 */
 void ai_DropObjectAt(struct D3OBJECT *obj, struct D3VECTOR *target);  /* 0x58feb0 */
@@ -422,7 +400,6 @@ extern struct VFSDIR *vfs_Root;  /* 0x6333fc */
 extern char ai_DataPath[];  /* 0x75dca0 */
 
 void ai_ResetJob(struct AICHAR *c);  /* 0x47e940 */
-int gv_HandOverCrimes();  /* 0x4f3910 */
 void gm_MoveIntoHome(struct AICHAR *c, struct AIBLD *b);  /* 0x4fda10 */
 struct AIOBJ *gm_HomeObject(struct AIBLD *b);  /* 0x4fdc10 */
 short *gm_SpawnCharacter(unsigned char flags, int p2, int p3, unsigned char p4, unsigned char p5, struct AIBLD *p6);  /* 0x4fddb0 */
@@ -432,23 +409,16 @@ void gm_FreeObject(struct AIOBJ *obj);  /* 0x5034b0 */
 extern struct AIBLD *sv_SelectedObject;  /* 0x75ec60 */
 typedef struct G17B16 { char b[16]; } G17B16;
 
-int amt_AcceptApplication();  /* 0x4e6430 */
-int amt_ExecuteOfficeMessage();  /* 0x4e67a0, amt.h */
-int gv_OnDecisionValue();  /* 0x4f27d0 */
 void ord_LoadStatistics(void *p);  /* 0x4f9020 */
 void gm_ChooseHeadIcon(struct AICHAR *c);  /* 0x4fb890 */
 void gm_SetJob(int i, unsigned n);  /* 0x504790 */
 extern char ch_EmptyName[];  /* 0x631090, "" (ch.h) */
 
-int rd_BuildRoad();  /* 0x4bcc20 */
-int ai_BuildingName();  /* 0x58f640 */
 extern char cm_ChatLog[];  /* 0x75fba0 */
 
 void cm_PlaceFighter(struct AICHAR *c, struct D3VECTOR *pos, struct D3VECTOR *rot, int v);                              /* 0x4cc720 */
-void he_StammtischCommand();  /* 0x541b40 */
-void ai_ShowPurchaseNews(unsigned short *param_1, struct AICHAR *param_2, int param_3, int param_4);  /* 0x5a8c50 */
+void ai_ShowPurchaseNews(struct AICHAR *buyer, struct AICHAR *ownerRec, struct AIBLD *bld, int value);  /* 0x5a8c50 */
 
-int ch_Delete();  /* 0x4028a0 */
 void cm_FighterAct(CMFIGHTSLOT *f);  /* 0x4d6ba0, the action of one fighter (message 0x55) */
 void cm_FightSlotStop(CMFIGHTSLOT *f);  /* 0x4d6f60 */
 void cm_FightSlotCheer(CMFIGHTSLOT *f);  /* 0x4d6f90 */
@@ -459,64 +429,42 @@ int cm_Attack(CMCUTINFO *rec, struct AICHAR *c, struct AICHAR *g);  /* 0x4d7360 
 int ai_InventoryHas(void *ch, int id);  /* 0x5ba6b0 */
 void cm_PlantEscapeFlag(CMFIGHTSLOT *f);  /* 0x4d7190 */
 void cm_ClearParty(int id);  /* 0x4e5180 */
-void amt_ClearOfficesIfAll();  /* 0x4e6e20 */
-int ord_HandleMessageRecord();  /* 0x4f9710 */
 void ai_GameFrame(void);  /* 0x591520 */
 
-int amt_ExecuteSwapMessage();  /* 0x4e6c50 */
-int gv_BuryCharacter();  /* 0x4f0240 */
-int gv_ReserveGrave();  /* 0x4f0490 */
-int gv_ExtendGrave();  /* 0x4f0770 */
-int gv_SetGraveHolder();  /* 0x4f0970 */
-int gv_OpenSize();  /* 0x4f0af0 */
-int gv_AdjustEntry();  /* 0x4f0c80 */
-int gv_AddNewDead();  /* 0x4f0dd0 */
-int gv_MoveGrave();  /* 0x4f0ed0 */
 unsigned gv_RaiseDead(struct GVRAISE *m);  /* 0x4f1200 */
 
 void rt_FreePoints(RTPOINT *p);  /* 0x4bd9e0, rt.h */
 RTPOINT *rt_CopyPoints(RTPOINT *p);  /* 0x4bda00, rt.h */
-int ahm_HasRecord();  /* 0x4eaad0 */
-int ahm_SetShare();  /* 0x4eca00 */
-int ahm_AddPlace();  /* 0x4ecb30 */
-int ahm_RemovePlace();  /* 0x4ecbc0 */
-int ahm_SetPlaceValue();  /* 0x4ecd10 */
-int ahm_AddValue();  /* 0x4ecdb0 */
-int ahm_DeleteAlchemist();  /* 0x4ece60 */
-int gv_ReserveEffect();  /* 0x4eeaa0 */
-int gv_StopEffect();  /* 0x4eeb00 */
-int gv_StartShot();  /* 0x4eee00 */
 
-char *cm_LobbyFreeRecord();  /* 0x4cd350 */
 char *cm_LobbyRecord(int id);  /* 0x4cd380 */
 void cm_LobbyAddChat(int id, int to, char *text);  /* 0x4cd3c0 */
-G18LOG *cm_LobbyChatFirst();  /* 0x4cd480 */
-G18LOG *cm_LobbyChatNextLine();  /* 0x4cd4c0 */
-void cm_LobbyClearChat();  /* 0x4cd500 */
-int cm_LobbyAllReady();  /* 0x4cd510 */
+G18LOG *cm_LobbyChatFirst(void);  /* 0x4cd480 */
+G18LOG *cm_LobbyChatNextLine(void);  /* 0x4cd4c0 */
+void cm_LobbyClearChat(void);  /* 0x4cd500 */
+int cm_LobbyAllReady(void);  /* 0x4cd510 */
 void cm_LobbyStart(int lobbyId, int value);  /* 0x4cd580, opens the lobby from the hello answer */
-unsigned int *cm_LobbyPlayerList();  /* 0x4cd5d0 */
+unsigned int *cm_LobbyPlayerList(void);  /* 0x4cd5d0 */
 CMLOBBYPLAYER *cm_LobbyFindPlayer(int id);  /* 0x4cd5e0, the lobby record of the player id, else a free one; 0 for id 0 */
-CMLOBBYPLAYER *cm_LobbyMyPlayer();  /* 0x4cd5f0 */
-int *cm_LobbyState();  /* 0x4cd600 */
-int cm_LobbyRequestList();  /* 0x4cd610 */
+CMLOBBYPLAYER *cm_LobbyMyPlayer(void);  /* 0x4cd5f0 */
+int *cm_LobbyState(void);  /* 0x4cd600 */
+int cm_LobbyRequestList(void);  /* 0x4cd610 */
 int cm_LobbySetReady(int v);  /* 0x4cd650 */
-int cm_LobbyLeave();  /* 0x4cd6a0 */
+int cm_LobbyLeave(void);  /* 0x4cd6a0 */
 int cm_LobbySendChat(int to, char *text);  /* 0x4cd6e0 */
 int cm_LobbyJoin(CMLOBBYPLAYER *p);  /* 0x4cd760 */
 int cm_LobbyUpdatePlayer(CMLOBBYPLAYER *p);  /* 0x4cd7c0 */
 int cm_LobbyRequestPlayer(int id);  /* 0x4cd820 */
 int cm_ExLobby(G17MSG *m, G17STAT *s);  /* 0x4cd870 */
-char *ai_FindWeaponRecord(int id);  /* 0x4cd9d0 */
-char *cm_CharWeaponAny(struct AICHAR *c);  /* 0x4cda00 */
-char *cm_CharWeapon(struct AICHAR *c);  /* 0x4cda50 */
-char *cm_CharWeaponItem(struct AICHAR *c);  /* 0x4cdac0 */
+AIWEAPON *ai_FindWeaponRecord(int id);  /* 0x4cd9d0 */
+AIWEAPON *cm_CharWeaponAny(struct AICHAR *c);  /* 0x4cda00 */
+AIWEAPON *cm_CharWeapon(struct AICHAR *c);  /* 0x4cda50 */
+struct AIOBJ *cm_CharWeaponItem(struct AICHAR *c);  /* 0x4cdac0 */
 void cm_DiscardWeapons(struct AICHAR *c);  /* 0x4cdb20 */
 char cm_FightWeaponLoss(struct AICHAR *c);  /* 0x4cdb80 */
-float cm_FightStrength(char *c);  /* 0x4cdcf0 */
+float cm_FightStrength(struct AICHAR *c);  /* 0x4cdcf0 */
 void cm_UpdateHandObject(struct AICHAR *c);  /* 0x4cde20 */
-int *cm_CutEntrySlot(char *rec, struct AICHAR *c);  /* 0x4cdf00 */
-int *cm_FightCutEntry(struct AICHAR *c);  /* 0x4cdf80 */
+struct CMCUTINFO; struct CMCUTENTRY; struct CMCUTENTRY *cm_CutEntrySlot(struct CMCUTINFO *rec, struct AICHAR *c);  /* 0x4cdf00 */
+struct CMCUTENTRY *cm_FightCutEntry(struct AICHAR *c);  /* 0x4cdf80 */
 int cm_CellUsable(int x, int y);  /* 0x4cdfe0 */
 int cm_FindNearCell(int a, int b, int *ox, int *oy);  /* 0x4ce040 */
 struct AICHAR *cm_FindFighter(int id);  /* 0x4ce130 */
@@ -525,12 +473,11 @@ float cm_CharObjDistXZ(struct AICHAR *c, char *o);  /* 0x4ce1b0 */
 float cm_CharCellDistXZ(struct AICHAR *c, int x, int y);  /* 0x4ce200 */
 int cm_OtherBuilding(struct AICHAR *a, struct AICHAR *b);  /* 0x4ce270 */
 struct CMBOMB *cm_LayBomb(struct D3VECTOR *p);  /* 0x4ce290 */
-void ch_SetHandObject();  /* 0x406c60 */
 char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100, d3_sm.c */
 float gm_HealthRatio(struct AICHAR *c);  /* 0x4fc8e0, f3gm.h */
 float gm_GetSkill(struct AICHAR *c, int skill);  /* 0x504ec0 */
 int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);  /* 0x53dda0 */
-extern char ai_WeaponRecordData[];  /* 0x60c7c0 */
+extern AIWEAPON ai_WeaponRecords[10];  /* 0x60c7c0 */
 extern int cm_LobbyChatCount;  /* 0x6f0cd8 */
 extern int cm_LobbyChatPos;  /* 0x6f0cdc */
 extern G28REC *cm_FightRecord;  /* 0x6f0d04, the fight being run */
@@ -551,50 +498,37 @@ extern CMJOIN cm_JoinChar;  /* 0x9367a0, the joined character of a saved game (m
 extern int cm_LobbyPlayerId;  /* 0x9367d0, this player's lobby id (G17HELLOMSG.lobbyId) */
 extern int cm_LobbyHelloValue;  /* 0x9367d4, the hello answer's second value (G17HELLOMSG.value) */
 
-int cm_UpdateBombs();  /* 0x4ce300 */
 struct CMGRENADE *cm_ThrowGrenade(struct D3VECTOR *p, int x, int y);  /* 0x4ce5d0 */
 unsigned int cm_Random(unsigned int n);  /* 0x4e52f0, a random number below n */
 extern struct AICHAR *cm_FightAttacker;  /* 0x6f0cec, the attacking side's leader */
 extern struct SBBANK *cm_BombSounds;  /* 0x6f0d14 */
 
-int cm_UpdateGrenades();  /* 0x4ce830 */
 int cm_ObjectOwner(char *c);  /* 0x4ceb70 */
 void cm_WaitEventStop(int id);  /* 0x4ceb80 */
-void cm_CloseCharInfoWins();  /* 0x4cec00 */
-void cm_OpenCharInfoWin(int a, struct AICHAR *c);  /* 0x4cec30 */
-void cm_UpdateCharInfoWins(int a);  /* 0x4ced80 */
-void d3fl_MakeDivide();  /* 0x441300 */
+void cm_OpenCharInfoWin(struct CMCUTINFO *a, struct AICHAR *c);  /* 0x4cec30 */
+void cm_UpdateCharInfoWins(struct CMCUTINFO *a);  /* 0x4ced80 */
 struct D3OBJECT; struct D3RECT; char d3if_ScreenBox(struct D3OBJECT *obj, struct D3RECT *r);  /* 0x4486e0 */
-int d2_WinOpenSlider();  /* 0x46a960 */
-int d2_RemoveWindow();  /* 0x472ce0 */
 int d2_WinOpenPic(short x, short y, int pic, int win);  /* 0x4731d0 */
 void d2_SetObjValue(int obj, ...);  /* 0x475cb0 */
-int gm_SkillPoints();  /* 0x504e00 */
 extern int d2_LastWindow;  /* 0x6ed938 */
 extern int cm_SkipEvents;  /* 0x6f0d8c */
 extern int cm_CharInfoWins[];  /* 0x935d20 */
 
 void cm_ShowDamage(struct AICHAR *c, int v, int kind);  /* 0x4cedc0 */
-void cm_UpdateDamagePops();  /* 0x4cee20 */
-void cm_InitDamagePops();  /* 0x4cef80 */
-void cm_ClearDamagePops();  /* 0x4cefa0 */
-void cm_CloseFightView();  /* 0x4cefe0 */
+void cm_UpdateDamagePops(void);  /* 0x4cee20 */
+void cm_InitDamagePops(void);  /* 0x4cef80 */
+void cm_ClearDamagePops(void);  /* 0x4cefa0 */
 void d2_MoveObj(short x, short y, int obj);  /* 0x46cda0 */
-void d2_RemoveObj();  /* 0x46e710 */
 int d2_CreateScreenText(short x, short y, char *text);  /* 0x473860 */
 void d2_CloseView(int view);  /* 0x4758f0 */
-void d2_EnableObject();  /* 0x475aa0 */
 extern int cm_FightView;  /* 0x60cb60 */
 extern G18POP cm_DamagePops[16];  /* 0x9304c0 */
 
-void cm_UpdateSceneChars();  /* 0x4cf000 */
 char d3if_ShowTree(struct D3OBJECT *obj, char show);  /* 0x447300 */
-float d3_YawTo();  /* 0x448ac0 */
 extern int cm_FightOwner;  /* 0x60cb5c */
 extern struct AICHAR *cm_CutChar;  /* 0x6f0d74, the character the player commands in the running cut scene */
 
-void cm_DrawScrollArrows();  /* 0x4cf370 */
-void * d2_GetPic();  /* 0x4690b0 */
+void cm_DrawScrollArrows(void);  /* 0x4cf370 */
 int d2_DrawShape(int x, int y, void *surf, void *pic, unsigned char i);  /* 0x47c6f0 */
 void d2_SetClipRect(int x0, int y0, int x1, int y1);  /* 0x47cb40 */
 extern const struct D3VECTOR4 d3_Origin;  /* 0x5ebba4, (0, 0, 0), d3_vec.c */
@@ -606,14 +540,12 @@ extern short d2_ScreenW;  /* 0xfb9072 */
 struct D3OBJECT * d3if_Pick(float x, float y, int mask, int one);  /* 0x448630 */
 struct D3SM; char d3sm_Pick(struct D3SM *h, int sx, int sy, int *px, int *pz);  /* 0x45f2b0 */
 char d3if_Show(struct D3OBJECT *obj, char show);  /* 0x4471b0 */
-void cm_UpdatePointer();  /* 0x4cf670 */
 extern int cm_SelectedCount;  /* 0x6f0d08 */
-extern char *cm_HoverObject;  /* 0x6f0ce0 */
+extern struct D3OBJECT *cm_HoverObject;  /* 0x6f0ce0 */
 extern char *cm_PickMarker;  /* 0x6f0cf0 */
-extern char *ai_PickedObject;  /* 0x6f22e8 */
+extern struct D3OBJECT *ai_PickedObject;  /* 0x6f22e8 */
 extern struct AICHAR *ai_PickedChar;  /* 0x6f22f8 */
 
-void cm_UpdatePortraits();  /* 0x4cf9c0 */
 void d2_SetObjText(int obj, char *text);  /* 0x4734d0 */
 void d2_ScaleObject(int obj, int a);  /* 0x475e80 */
 void d2_AddPointerItem(int id, int amount);  /* 0x476b90 */
@@ -622,50 +554,45 @@ extern int d2_ClickedId;  /* 0xf8a668 */
 extern CMPORTRAIT cm_Portraits[6];  /* 0x930400 */
 extern D2OBJ *d2_Objs;          /* 0xf8f080, 0x2ec bytes each (d2.c) */
 
-void cm_BuildPortraits();  /* 0x4cfc10 */
-void cm_ClosePortraits();  /* 0x4cfe70 */
 int d2_CreateWinText(short x, short y, char *text, int win);  /* 0x473650 */
 
-void cm_ClickSceneChar();  /* 0x4cfeb0 */
 struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay);  /* 0x4c27d0 */
-extern int ai_ClickedObject;  /* 0x6f22e4 */
+extern struct D3OBJECT *ai_ClickedObject;  /* 0x6f22e4 */
 extern struct SBBANK *cm_AttackerClickVoices;  /* 0x6f0d24 */
 extern struct SBBANK *cm_DefenderClickVoices;  /* 0x6f0d28 */
 
-int cm_OrderAttack(char *rec, struct AICHAR *c, struct AICHAR *tgt, int x, int z);  /* 0x4cffd0 */
+int cm_OrderAttack(struct CMCUTINFO *rec, struct AICHAR *c, struct AICHAR *tgt, int x, int z);  /* 0x4cffd0 */
 char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py);  /* 0x45f170 */
 
 
 
 
-int cm_OrderEscape(char *rec, struct AICHAR *c, char *tgt);  /* 0x4d0200 */
+int cm_OrderEscape(struct CMCUTINFO *rec, struct AICHAR *c, struct D3OBJECT *tgt);  /* 0x4d0200 */
 
-int cm_OrderConquer(char *rec, struct AICHAR *c, char *tgt);  /* 0x4d02d0 */
-int cm_OrderWare(char *rec, struct AICHAR *c, char *tgt);  /* 0x4d0380 */
+int cm_OrderConquer(struct CMCUTINFO *rec, struct AICHAR *c, struct D3OBJECT *tgt);  /* 0x4d02d0 */
+int cm_OrderWare(struct CMCUTINFO *rec, struct AICHAR *c, struct D3OBJECT *tgt);  /* 0x4d0380 */
 
-int cm_OrderToBestCell(char *rec, struct AICHAR *c);  /* 0x4d0460 */
-void cm_OrderWait(char *rec, struct AICHAR *c);  /* 0x4d0520 */
+int cm_OrderToBestCell(struct CMCUTINFO *rec, struct AICHAR *c);  /* 0x4d0460 */
+void cm_OrderWait(struct CMCUTINFO *rec, struct AICHAR *c);  /* 0x4d0520 */
 int cm_BestCellNear(struct AICHAR *c, int cx, int cy, int r, int *ox, int *oy);  /* 0x4d2170 */
 
-char cm_OrderClick(char *rec, struct AICHAR *c);  /* 0x4d0570 */
+char cm_OrderClick(struct CMCUTINFO *rec, struct AICHAR *c);  /* 0x4d0570 */
 
 
-void cm_FightMouse(char *rec);  /* 0x4d0740 */
+void cm_FightMouse(struct CMCUTINFO *rec);  /* 0x4d0740 */
 struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var);  /* 0x4c2760 */
 char d3if_SelectTextureSet(struct D3OBJECT *obj, struct D3SURF *surf, unsigned char set, char reload);  /* 0x446f30 */
 extern struct SBBANK *cm_AttackerOrderVoices;  /* 0x6f0d34 */
 extern struct SBBANK *cm_DefenderOrderVoices;  /* 0x6f0d38 */
 
-void cm_ClearMarks();  /* 0x4d08c0 */
+void cm_ClearMarks(void);  /* 0x4d08c0 */
 struct AICHAR *cm_AddFighter(int id, char *dummy);  /* 0x4d0920 */
-int gm_CreateCharModel();  /* 0x4fbb80 */
 
-void cm_CollectSceneChars();  /* 0x4d0a30 */
+void cm_CollectSceneChars(void);  /* 0x4d0a30 */
 char cm_CreateDummyFlag(struct D3OBJECT *obj, void *ctx);  /* 0x4d0a80 */
 extern int cm_FlagObjectCount;  /* 0x6f0d58 */
 extern struct D3OBJECT *cm_FlagObjects[32];  /* 0x935980, the conquest flag objects of the fight scene */
 
-void cm_PlaceFlagObjects();  /* 0x4d0ca0 */
 int cm_FreeNetIdSlot(int *a);  /* 0x4d0cd0 */
 void ai_ArmGateGuards(G28REC *rec, unsigned char kind);  /* 0x4d0cf0, arms the guards of the town gate event (the kind 0xb characters ai_KindBChars) */
 char cm_ClearKind3MaskCB(struct D3OBJECT *o);  /* 0x4d0f80 */
@@ -673,12 +600,9 @@ float gm_AddHealth(unsigned short id, int d);  /* 0x4fca40 */
 
 void cm_SetupFightScene(G28REC *rec);  /* 0x4d0fa0, sets up the fight scene of a fight record */
 struct SBBANK *snd_LoadVoiceBank(char *name, int a);  /* 0x4c2830 */
-struct SBBANK * sb_LoadSampleBank();  /* 0x426950 */
-int cm_FightRole();  /* 0x4d4050 */
 void cm_LoadEventScene(char *name);  /* 0x4e2e60, loads the scene file name into a free scene and fades it in */
 void cm_ApplySeason(void);  /* 0x4e3650 */
 void d3sky_Init(struct D3SKY *s, char build);  /* 0x45d690 */
-struct D3BGF * d3io_LoadObjectRef();  /* 0x44e190 */
 struct D3SM * d3sm_Create(struct D3TERRAIN *t, int size, int mask);  /* 0x45eeb0, d3_sm.h */
 void gm_ShuffledBytes(unsigned char n, unsigned char *out);  /* 0x505be0 */
 int gm_BuildingSkill(struct AIBLD *b, unsigned k, int flag);  /* 0x5092e0, f3gm.h (not includable here, cm.c lead comment) */
@@ -697,15 +621,13 @@ extern struct SBBANK *cm_AttackerPainVoices;  /* 0x6f0d44 */
 extern struct SBBANK *cm_DefenderPainVoices;  /* 0x6f0d48 */
 extern int cm_AttackerRole;  /* 0x6f0d50 */
 extern int cm_DefenderRole;  /* 0x6f0d54 */
-extern int cm_BootsObject;  /* 0x6f0d5c */
+extern struct D3BGF *cm_BootsObject;  /* 0x6f0d5c */
 extern float cm_FightCellScale;  /* 0x935d00 */
 extern float cm_DefenseFactor;  /* 0x60cb58 */
 
 void cm_EndFightScene(G28REC *rec);  /* 0x4d1a10, ends the fight scene of a fight record (cm_SetupFightScene its counterpart) */
 void cm_PlaceFighters(int *ids, char *side);  /* 0x4d1c20, places the fighters of one side of the fight at their dummies */
-int cm_FadeToBlack();  /* 0x4e3060 */
-int sb_UnloadSampleBank();  /* 0x426ba0 */
-void d3io_ReleaseObject();  /* 0x44e2c0 */
+int cm_FadeToBlack(void);  /* 0x4e3060 */
 void cm_LeaveEventScene(void);  /* 0x4e30c0 */
 void d2_CopyCaption(char *caption);  /* 0x478870 */
 char ch_FindFreeCell(struct D3SM *h, struct D3VECTOR *from, struct D3VECTOR *to, int x, int z, int *px, int *pz, int max, int flags); /* 0x4072a0, ch.h */
@@ -716,36 +638,33 @@ struct AICHAR *cm_NearestEnemy(struct AICHAR *c);  /* 0x4d1f10, the enemy the fi
 void snd_PlaySpecialTrack(char *name);  /* 0x4c23f0 */
 extern int snd_MusicEnabled;  /* 0x6f2578 */
 extern int sv_FrameMask;  /* 0x760638 */
-extern int cm_FightAmbient;  /* 0x6f0d4c */
+extern struct MSXTRACK *cm_FightAmbient;  /* 0x6f0d4c */
 
 float cm_ThreatAt(struct AICHAR *c, int a, int b, float limit);  /* 0x4d2010, the threat at a height map vertex for the fighter c */
 
 int cm_MostThreatenedCellNear(struct AICHAR *c, int cx, int cy, int r, int *ox, int *oy);  /* 0x4d22d0 */
-char cm_CollectEscapeObject(char *o, int *list);  /* 0x4d2450 */
-char *cm_NearestEscapeObject(struct AICHAR *c);  /* 0x4d2490 */
+char cm_CollectEscapeObject(struct D3OBJECT *o, void *ctx);  /* 0x4d2450 */
+struct D3OBJECT *cm_NearestEscapeObject(struct AICHAR *c);  /* 0x4d2490 */
 char cm_CollectWareObject(struct D3OBJECT *o, void *ctx);  /* 0x4d2550 */
-char *cm_NearestWareObject(struct AICHAR *c);  /* 0x4d25a0 */
+struct D3OBJECT *cm_NearestWareObject(struct AICHAR *c);  /* 0x4d25a0 */
 char cm_CollectConquerPoint(struct D3OBJECT *o, void *ctx);  /* 0x4d2650 */
 struct D3OBJECT *cm_NearestConquerPoint(struct AICHAR *c);  /* 0x4d2680 */
 extern int cm_PointCount;  /* 0x6f0d60 */
 extern struct D3OBJECT *cm_PointList[];  /* 0x930380 */
 
-void cm_InitOrderChances();  /* 0x4d27a0 */
+void cm_InitOrderChances(void);  /* 0x4d27a0 */
 extern float cm_OrderChances[0xb4];  /* 0x9300a0 */
 
-float *cm_OrderChancesFor(int side);  /* 0x4d2c00 */
+float *cm_OrderChancesFor(struct AICHAR *side);  /* 0x4d2c00 */
 
 float cm_OrderRating(struct AICHAR *c, int order);  /* 0x4d2e30 */
 void cm_GiveFightOrders(struct AICHAR *side);  /* 0x4d2f80 */
-float util_RandomF();  /* 0x42ec20 */
-double cm_RandomFloat();  /* 0x4e5360 */
 
-void cm_CarryOutOrder(char *rec, struct AICHAR *c);  /* 0x4d3120 */
-void cm_FallDownAction(char *c);  /* 0x4d3300 */
+void cm_CarryOutOrder(struct CMCUTINFO *rec, struct AICHAR *c);  /* 0x4d3120 */
+void cm_FallDownAction(struct CHACTION *a);  /* 0x4d3300 */
 
 int cm_CheckDeath(struct AICHAR *c);  /* 0x4d3390 */
-struct CHACTION * ch_AddActionCB(struct CHARACTER *ch, int (*func2)(struct CHACTION *), unsigned char frame, unsigned int type, ...); /* 0x40b400, ch.h (CHACTFUNC func2; cm.c calls it through ch_AddActionCBK) */
-void d3_SetWorldPosRot();  /* 0x449920 */
+struct CHACTION * ch_AddActionCB(struct CHARACTER *ch, void (*func2)(struct CHACTION *), unsigned char frame, unsigned int type, ...); /* 0x40b400, ch.h (CHACTFUNC func2; cm.c calls it through ch_AddActionCBK) */
 
 void cm_HitAction(struct CHACTION *a);  /* 0x4d3550 */
 void cm_LayBombAction(char *ev);  /* 0x4d3980 */
@@ -760,14 +679,12 @@ void cm_FightPortraits(int *ids, int x, int y);  /* 0x4d4340 */
 int cm_FightStartDialog(G28REC *a);  /* 0x4d4540 */
 void cm_FightEndDialog(G28REC *a);  /* 0x4d4d70 */
 int cm_CheckFight(G28REC *a);  /* 0x4d60b0 */
-void cm_FightResult(char *r);  /* 0x4d6930 */
-void cm_FightFrame(char *r);  /* 0x4d6970 */
-void cm_BuildFightUI(char *a);  /* 0x4d6a50, a: the member record, unused */
-void cm_CloseFightUI();  /* 0x4d6b70 */
+void cm_FightResult(struct CMCUTINFO *r);  /* 0x4d6930 */
+void cm_FightFrame(struct CMCUTINFO *r);  /* 0x4d6970 */
+void cm_BuildFightUI(struct CMCUTINFO *a);  /* 0x4d6a50, a: the member record, unused */
+void cm_CloseFightUI(void);  /* 0x4d6b70 */
 extern int cm_PickCellX;  /* 0xfa5f00 */
 extern int cm_PickCellZ;  /* 0xfa5f04 */
-int d2_WinCreateSlider();  /* 0x46bf10 */
-void d2_CenterObj();  /* 0x46c1d0 */
 extern int cm_SceneDeadline;  /* 0x6f0d84 */
 extern int cm_SceneTicks;  /* 0x6f0d80 */
 extern int cm_SceneTimedOut;  /* 0x6f0d88 */
@@ -777,7 +694,7 @@ extern int cm_FightForm;  /* 0x6f0d64 */
 
 extern int cm_TextBox;  /* 0x60d368 */
 void cm_RunFight(G28REC *a);  /* 0x4d63e0, runs a fight record */
-unsigned int cut_GetRandSeed();  /* 0x4e52c0 */
+unsigned int cut_GetRandSeed(void);  /* 0x4e52c0 */
 void cut_RandSeed(unsigned int seed);  /* 0x4e52a0 */
 void cm_RunSceneParty(G28REC *party, void *ctx);  /* 0x4e3830 */
 char d3_SetLightSet(unsigned int set, float t, float scale, char calc);  /* 0x449de0 */
@@ -787,8 +704,6 @@ void cm_SendPartyNote(struct AICHAR *a, G28REC *b, char *text, char *extra);  /*
 
 
 
-int gm_TitleGroup();  /* 0x504ad0 */
-int gm_BuildingJob();  /* 0x5048e0 */
 void gm_ChangeBuildingState(struct AIBLD *b, int d);  /* 0x50cad0 */
 
 int d2_OpenForm(short x, short y, char *name);  /* 0x4741f0 */
@@ -796,16 +711,14 @@ int d2_SetForm(int view, int n);  /* 0x475f70 */
 int d2_GetWinObj(int view, int idx, int k);  /* 0x475b80 */
 int io_PrintText(intptr_t fmt, ...);  /* 0x515960 */
 int cm_MessageBox(intptr_t id, int flags);  /* 0x4e5470, a message box for the text id with the flags (see cm.c) */
-int gm_StallGoodsList(char *c, unsigned *out);  /* 0x50aa00 */
+int gm_StallGoodsList(struct AIOBJ *c, struct AIRECIPE *out);  /* 0x50aa00 */
 extern int cm_FightSettled;  /* 0x6f0cf8 */
 extern int cm_FightLootValue;  /* 0x6f0cfc */
 extern struct D2WIN *d2_LastWindowPtr;  /* 0x6ed980, window created last (d2.c) */
 
-int cm_LootCarts(G28REC *a, AIBLD *b, struct AICHAR *d, int unused, float f);  /* 0x4d3ea0 */
+int cm_LootCarts(G28REC *a, AIBLD *b, struct AICHAR *d, struct AICHAR *t, float f);  /* 0x4d3ea0 */
 float gm_GoodsPrice(unsigned id, unsigned char p);  /* 0x5089c0, a price */
 int gm_GetGoodsValue(struct AICHAR *ch);  /* 0x509e60 */
-struct D3HMAP * ch_GetHMap();  /* 0x402140 */
-void ch_SetVisible();  /* 0x402480 */
 
 extern int cm_OrderTicks;  /* 0x92bec0 */
 void cm_RunCutOrders(CMCUTINFO *rec);  /* 0x4d76a0 */
@@ -814,23 +727,21 @@ extern int cm_FightPaused;  /* 0x6f0ce4, fight paused */
 
 extern int cm_ScenePartyRuns;  /* 0x6f0d7c */
 struct MSXTRACK * msx_PlayAmbient(char *name, int vol);  /* 0x4243f0 */
-void cm_FightLoop(char *a, int ctx);  /* 0x4d88c0 */
-void cm_FightMember(char *a, int ctx);  /* 0x4d8b10, the cm_Kinds[].askPlayer callback */
+void cm_FightLoop(struct CMCUTINFO *a, int ctx);  /* 0x4d88c0 */
+void cm_FightMember(struct CMCUTINFO *a, int ctx);  /* 0x4d8b10, the cm_Kinds[].askPlayer callback */
 
-extern int cm_SceneChars[16];  /* 0x92ca80 */
+extern struct CHARACTER *cm_SceneChars[16];  /* 0x92ca80 */
 extern unsigned int cm_FightStart;  /* 0x6f0da4, fight start (d3_Time) */
 void * d2_SetFont(int font);  /* 0x476030 */
 void d2_DrawTextBox(int x, int y, int w, int h, void *surf, char *text, unsigned int flags);  /* 0x46f1a0 */
 void d2_AddDirty(int x, int y, int w, int h);  /* 0x468eb0 */
 extern int d2_TextDrawnW;  /* 0x6ed968 */
 extern int d2_TextDrawnH;  /* 0x6ed96c */
-void cm_ClearSceneChars();  /* 0x4d8b30 */
-void cm_DrawFightTime();  /* 0x4d8b50 */
+void cm_ClearSceneChars(void);  /* 0x4d8b30 */
+void cm_DrawFightTime(void);  /* 0x4d8b50 */
 
-int cm_DeleteChar(int a);  /* 0x4e3250 */
-void cm_DeleteSceneChars();  /* 0x4d8c40 */
+int cm_DeleteChar(struct CHARACTER *a);  /* 0x4e3250 */
 
-int d2_RemoveWindowObjects();  /* 0x472d20 */
 void d2_SetObjFont(int obj, int font);  /* 0x4760b0 */
 
 
@@ -840,7 +751,7 @@ void d2_SetObjFont(int obj, int font);  /* 0x4760b0 */
 extern int cm_TallyYes;  /* 0x6f0d6c, the "yes" pictures of the deposition tally */
 extern int cm_TallyNo;  /* 0x6f0d68, the "no" pictures of the deposition tally */
 extern int cm_TallyAbstain;  /* 0x6f0d70, the abstentions of the deposition tally */
-struct CMAMOUNTROW; void cm_StackPicture(int unused, struct CMAMOUNTROW *o);  /* 0x4d8c70 */
+struct LCAMOUNTROW; void cm_StackPicture(int unused, struct LCAMOUNTROW *o);  /* 0x4d8c70 */
 void cm_TallyStack(int a, int b, int c);  /* 0x4d8cb0 */
 
 typedef struct G22ENT {                 /* 0x18 bytes, one participant of a session (amt_GetColumnOffices) */
@@ -848,41 +759,31 @@ typedef struct G22ENT {                 /* 0x18 bytes, one participant of a sess
     int id;                             /* 0x04, character id */
     int unk08;
     int flag;                           /* 0x0c */
-    char kind;                          /* 0x10, 2 = candidate, 3 = voter */
+    signed char kind;                   /* 0x10, 2 = candidate, 3 = voter */
     char pad[7];
 } G22ENT;
 extern struct D2PIC *d2_Pics;  /* 0x6ed918 */
 struct SBBANK *cm_LoadVoiceBank(char *name, int a);  /* 0x4e3270 */
 void cm_PlaySpecialTrack(char *a);  /* 0x4e3620 */
 int amt_GetColumnOffices(int col, int max, struct AMTREC *out);  /* 0x4e6fc0 */
-int amt_IsColumnDecided();  /* 0x4e83b0 */
-void amt_ElectOffices();  /* 0x4e7c60 */
-int amt_CanTakeOffice();  /* 0x4e75c0 */
 void d2_SetViewEnabled(int view, int on);  /* 0x475590 */
 void d2_CloseView(int view);  /* 0x4758f0 */
-int ai_AmountRowStatus();  /* 0x5be1d0 */
-int ai_AmountRow();  /* 0x5be3b0 */
 struct SBSAMPLE *cm_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay);  /* 0x4e32d0 */
 int cm_RunSceneTicks(int a);  /* 0x4e3570 */
 int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e);  /* 0x4e6680 */
-unsigned * gm_CharNameRecord();  /* 0x4fb390 */
-int cm_StartEventArg(char *name, int arg);  /* 0x4e2c30 */
+int cm_StartEventArg(char *name, char *cmd);  /* 0x4e2c30 */
 int cm_WaitEvent(int a);  /* 0x4e2c70 */
 int cm_UnloadVoiceBank(struct SBBANK *a);  /* 0x4e3290, drops the reference of the voice bank a (0 in the replay mode) */
 int cm_WaitEventFull(int a);  /* 0x4e2d40 */
-void cm_EndSpecialTrack();  /* 0x4e3640 */
-void amt_UpdateOffices();  /* 0x4e85d0 */
+void cm_EndSpecialTrack(void);  /* 0x4e3640 */
 void ai_CampaignStep(int a, void *b, int c, int d);  /* 0x576040 */
 void cm_RunCouncilSession(G28REC *a);  /* 0x4d8e20 */
 extern int cm_DialogFrameFlags;  /* 0x60d360, the frame wait of the dialogs (0x5309a0) */
 extern int d2_ClickedId;  /* 0xf8a668 */
-int d2_GetWinObj();  /* 0x475b80 */
 int cm_DialogTimer(int dlg, int a, int c);  /* 0x4e53e0 */
-int ai_TrustedOfTwo();  /* 0x4aab90 */
 struct AICHAR; int ai_TrustedOfFour(unsigned char k, struct AICHAR *p, int *ids, int *out);  /* 0x4aad30, poker.c */
 int amt_GetOffice(unsigned char i, struct AMTREC *out);  /* 0x4e6f30, amt.c (this unit calls it through amt_GetOfficeI) */
 int amt_GetKind(int k, struct AMTKIND *out);  /* 0x4e6f80 */
-int amt_GetOfficeApplicants();  /* 0x4e76b0 */
 
 int cm_AskDeposeVote(struct AICHAR *a, struct AICHAR *b, struct AICHAR *c, int *out);  /* 0x4da9e0 */
 int cm_AskElectVote(unsigned char office, struct AICHAR *b, int *ids, int *click);  /* 0x4dab50 */
@@ -895,7 +796,7 @@ extern unsigned char cm_DuelLeftInsultWon;  /* 0x6f0daa, the left duellist won t
 extern unsigned char cm_DuelRightInsultWon;  /* 0x6f0dab, the right duellist won the insult round */
 extern unsigned char cm_DuelLeftRollWon;  /* 0x6f0dac, the left duellist won the roll round */
 extern unsigned char cm_DuelRightRollWon;  /* 0x6f0dad, the right duellist won the roll round */
-int cm_CutInfoById(int id);  /* 0x4e50e0, the cutscene record cm_CutInfos whose playerId is id; 0 without */
+struct CMCUTINFO *cm_CutInfoById(int id);  /* 0x4e50e0, the cutscene record cm_CutInfos whose playerId is id; 0 without */
 int cm_WaitTicks(int a);  /* 0x4e3420 */
 void cm_SinkDownAction(struct CHACTION *a);  /* 0x4de4b0 */
 int cm_DuelSinkDown(struct AICHAR *c, int dmg);  /* 0x4de530 */
@@ -908,19 +809,16 @@ void cm_DuelInitVariants(int n);  /* 0x4de5e0 */
 int cm_DuelVariant(int n);  /* 0x4de610 */
 void cm_DuelShotAction(struct CHACTION *a);  /* 0x4de640 */
 extern int cm_DuelRight;  /* 0x92bca0 */
-int amt_FindOffice();  /* 0x4e6030 */
 void cm_DuelOutcome(G28REC *m);  /* 0x4debe0 */
 int cm_ResetCutInfos(G28REC *party);  /* 0x4e36a0 */
 char d3_SetFogSet(unsigned int a, unsigned int b, float t);  /* 0x44a170 */
 int cm_StartScript(char *name);  /* 0x4e2bf0, loads the script name (evt_Load), runs it and returns its id */
 struct SBSAMPLE *cm_PlayVoice(int id, struct SBBANK *bank, char *text, int var);  /* 0x4e32b0, plays the voice sample of speaker id in bank (text, var pick the sample); 0 in the replay mode */
-int sb_IsPlaying();  /* 0x426f20 */
 int cm_StopScript(int a);  /* 0x4e2d90 */
 void cm_RunDuel(G28REC *m);  /* 0x4ded10 */
 
 
 
-int gv_Accuse();  /* 0x4f2e30 */
 int cm_DuelAftermath(G28REC *m);  /* 0x4dfa20 */
 void cm_DuelRoundDialog(CMCUTINFO *r, G28REC *m);  /* 0x4dfcb0 */
 void cm_DuelChooseRound(CMCUTINFO *, G28REC *);  /* 0x4dfdd0, the duel round dialog of the party scene (r, the duel record m) */
@@ -932,15 +830,13 @@ int cm_ExecutionAftermath(G28REC *m);  /* 0x4e0040 */
 
 void cm_CreateSceneSky(char *tex);  /* 0x4e32f0 */
 int cm_StartSceneRain(int a);  /* 0x4e33d0, remembers the result of 0x413b30(a) in 0x6f0dbc */
-int cm_StopSceneRain();  /* 0x4e33f0 */
-int cm_DestroySceneSky();  /* 0x4e3390 */
+int cm_StopSceneRain(void);  /* 0x4e33f0 */
+int cm_DestroySceneSky(void);  /* 0x4e3390 */
 void cm_RunExecution(G28REC *m);  /* 0x4e01e0 */
 int cm_CheckWedding(G28REC *m);  /* 0x4e0580 */
-void sb_Stop();  /* 0x427290 */
 int cm_EndWedding(void *arg);  /* 0x4e06d0 */
 int cm_RunSceneTicksOrClick(int ticks, int (*cb)(void *), void *arg);  /* 0x4e3490 */
 int cm_WaitEventOrClick(int a, int (*cb)(void *), void *arg);  /* 0x4e2cc0 */
-int sb_IsPlaying();  /* 0x426f20 */
 int cm_RunWedding(G28REC *m);  /* 0x4e0770 */
 
 int cm_CheckBirth(G28REC *m);  /* 0x4e0e90 */
@@ -948,38 +844,23 @@ extern struct D2INPUT *d2_FocusedInput;  /* 0x6ed9dc, the focused input (as d2.h
 extern int cm_TutorialActive;  /* 0x6f2438 */
 void snd_ClearQueue(void);  /* 0x4c01b0 */
 void d2_CentreViewWindows(int view);  /* 0x475600 */
-void d2_SetObjMax();  /* 0x475f40 */
-void d2_FocusInput();  /* 0x478320 */
-int d2_GetObjValue();  /* 0x475980 */
 void cm_RunBirth(G28REC *m);  /* 0x4e0f70 */
 int cm_DeathSceneCheck(G28REC *m);  /* 0x4e1220 */
-float gm_CharacterHealth();  /* 0x4fc820 */
-int gm_HasAdultRelative();  /* 0x506480 */
 struct AICHAR; void gm_ForfeitEstate(struct AICHAR *c, char *out, int flag);  /* 0x506e70, the character c forfeits its estate after a lost fight; the announcement into out */
 void ai_FamilyTreeWindow(int param_1, unsigned char param_2, intptr_t param_3, int param_4);  /* 0x5c4150 */
 void cm_RunDeath(G28REC *m);  /* 0x4e1250 */
 
 
 
-int ai_PlanWorth();  /* 0x494020 */
-int ai_DecideTorture();  /* 0x4941b0 */
-int ai_DecideTortureInstrument();  /* 0x4941d0 */
-int ai_DecideTortureMercy();  /* 0x4941e0 */
-int ai_DecideAcquittal();  /* 0x494410 */
-int ai_DecideSentence();  /* 0x4946c0 */
 int gm_GetWorth(unsigned short id);  /* 0x50a640 */
-int ai_PlanRank();  /* 0x4945c0 */
-int gv_CheckSentence();  /* 0x4f4420 */
 void d2_SetObjEnabled(int obj, int on);  /* 0x475e40 */
 void cm_SetViewEnabled(int view, int on);  /* 0x4e2bd0 */
-int cm_StopGroupScripts();  /* 0x4e2dc0 */
 void cm_WaitGroupScripts(void);  /* 0x4e2e00 */
 void snd_EndSpecialTrack(void);  /* 0x4c2480 */
-extern int cm_SceneRain;  /* 0x6f0dbc */
+extern struct D3TRAIN *cm_SceneRain;  /* 0x6f0dbc */
 extern struct D3SKYLAYER *cm_SkyLayer;  /* 0x6f0db4, the layer of cm_CreateSceneSky's sky */
 extern struct D3SKY *cm_SceneSky;  /* 0x6f0db8, the scene's sky (cm_CreateSceneSky) */
 struct D3SKY; struct D3SKYLAYER; void d3sky_DeleteLayer(struct D3SKY *s, struct D3SKYLAYER *l);  /* 0x45d800 */
-void d3sky_Destroy();  /* 0x45daa0 */
 int cm_ShowPartyTexts(G28REC *party);  /* 0x4e37a0 */
 int cm_WaitTicks(int a);  /* 0x4e3420 */
 int cm_PartyAnswered(G28REC *party);  /* 0x4e3750 */
@@ -989,36 +870,22 @@ struct D3SKY; struct D3SKY *d3sky_Create(float horizon, float fogstart, float fo
 void d3sky_SetLayerSpeed(struct D3SKY *s, struct D3SKYLAYER *l, float speed);  /* 0x45d960 */
 void d3sky_FadeLayer(struct D3SKY *s, struct D3SKYLAYER *l, unsigned char alpha, float time);  /* 0x45d9a0 */
 void cm_CreateSceneSky(char *tex);  /* 0x4e32f0 */
-extern char *cm_SceneFade;  /* 0x6f0da0, the fade 0x4e3060 started */
-int cm_PauseSceneChars();  /* 0x4e3fe0 */
-int cm_ResumeSceneChars();  /* 0x4e4020 */
+extern struct D2FADE *cm_SceneFade;  /* 0x6f0da0, the fade 0x4e3060 started */
 extern int cm_SceneDepth;  /* 0x6f0d9c, the scene nesting depth */
 extern int cm_SceneEnterScript;  /* 0x60d36c, -1 or the object waited for (0x4284a0) */
 extern int evt_LastId;  /* 0x5f8438 */
 extern int d3t_CamMoving;  /* 0x6310e4 */
-void d3sm_Destroy();  /* 0x45ef60 */
-void d3if_Reset();  /* 0x4473f0 */
-struct CHARACTER * ch_Create();  /* 0x403390 */
 struct CHARACTER *cm_CreateChar(char *name, struct D3VECTOR *pos);  /* 0x4e3230 */
 void cm_RunBankruptcy(G28REC *m);  /* 0x4e1700 */
 int cm_CheckAuction(G28REC *m);  /* 0x4e19a0 */
 
 
-int gv_GetTableRecord(int i, int *out);  /* 0x4f2720 */
-int gv_CrimeText();  /* 0x4f3580 */
-float gm_Liking();  /* 0x50c550 */
-void gv_SentenceText();  /* 0x4f48f0 */
-void gv_PassSentence();  /* 0x4f4460 */
-int ai_WealthRatingHalf();  /* 0x494830 */
-int ai_PlanRollTries();  /* 0x494300 */
-int ai_WealthRating();  /* 0x4947a0 */
+struct AIDEC; int gv_GetTableRecord(int i, struct AIDEC *out);  /* 0x4f2720 */
 int sb_IsPlaying(struct SBSAMPLE *s);  /* 0x426f20 */
 void msx_StopAmbient(struct MSXTRACK *t);  /* 0x4244b0 */
 
-int ai_AmountLimit();  /* 0x5bd060 */
 int gm_ConvertMoney(int a, unsigned char k);  /* 0x5085b0 */
 int gm_PlayerFactor(int a, unsigned char k);  /* 0x5085f0 */
-int d2_GetObjValue();  /* 0x475980 */
 void d2_SetObjValue(int obj, ...);  /* 0x475cb0 */
 void cm_ShowObjectScene(struct AIBLD *o, int id);  /* 0x4e2910 */
 
@@ -1032,7 +899,6 @@ extern unsigned int d3_SceneFlags;  /* 0x63349c */
 extern unsigned int cm_SceneInflateFlags;  /* 0x6f0d98 */
 
 char d3_LoadScene(char *name, void *f, void (*progress)(int a, int i, int n));  /* 0x44be60 */
-void d3fl_SetDetail();  /* 0x43f8a0 */
 void d3fl_SetShift(struct D3FLMAP *map, unsigned char shift, char light);  /* 0x446dc0, d3_fl.c */
 void d3if_Prerender(char map);  /* 0x447860 */
 
@@ -1046,11 +912,9 @@ void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);  /* 0x4fe140 *
 
 
 
-int cm_FirstPendingParty();  /* 0x4e4f40 */
 char ai_RunPendingParties(int pl);  /* 0x4e4f80, runs the pending parties of the player pl */
 void ai_DebugDumpPerson(struct AICHAR *c);  /* 0x4e5bf0, the debug dump of a person */
-int cm_FindPartyOfKind(int a, int b);  /* 0x4e5050, the used party of the kind a with the thing b: its record, 0 without */
-int cm_FreePartySlot();  /* 0x4e5120 */
+struct G28REC *cm_FindPartyOfKind(int a, int b);  /* 0x4e5050, the used party of the kind a with the thing b: its record, 0 without */
 void cm_InitScenes(void);  /* 0x4e5770, clears the party records and registers the 12 scene kinds */
 
 

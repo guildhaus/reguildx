@@ -7,6 +7,15 @@
 
 struct AICHAR;
 struct AIARG;
+struct AIOBJ;
+
+typedef struct G8USE {                  /* 20 bytes, ai_UseGood's request (0x5cf8a0), handed on to the good's use callback */
+    struct AIOBJ *obj;                  /* 0x00, the inventory object used */
+    int target;                         /* 0x04, the target for the good's use callback (the table +0x14): a reference of the action's second argument */
+    int arg;                            /* 0x08, a value for the use callback, -1 none */
+    int effect;                         /* 0x0c, set by the callee: 1 the use took effect (0x175 only one time in three), 0 not; the use callback may set -1 (backfired) */
+    int handled;                        /* 0x10, 0 by the callee, set by a use callback that reported the use itself (no text then) */
+} G8USE;
 
 typedef struct G9DOMIZIL {              /* 0x1c bytes, an entry of the Domizil table 0x62c420 (ai_FindUsableGood returns it) */
     int id;                             /* 0x00, the good, 0 ends the table */
@@ -16,9 +25,8 @@ typedef struct G9DOMIZIL {              /* 0x1c bytes, an entry of the Domizil t
                                            -1: none */
     float weight;                       /* 0x0c, 1.0 .. 6.0: am.c's AI scales the use action's weight by it */
     unsigned int mask;                 /* 0x10, tested against the character's goodsMask (0x1ec) */
-    int (*use)();                       /* 0x14, the use callback ai_UseGood calls (the character, the G8USE request), 0: none;
-                                           old-style: the callbacks take (AICHAR *, G8USE *), (AICHAR *), (void) or the
-                                           quarrel's (AICHAR *, int *) */
+    int (*use)(struct AICHAR *, struct G8USE *);  /* 0x14, the use callback ai_UseGood calls (the character, the G8USE
+                                           request), 0: none; callbacks that read only the character leave the request unread */
     unsigned short rank;                /* 0x18, the rank the good asks for (the use window prints it with text 0xfe3;
                                            lc's range lookup tests it; the name is a reasoned guess) */
     char pad1a[2];

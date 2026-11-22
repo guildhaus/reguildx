@@ -30,7 +30,7 @@ extern int ai_CameraStep;           /* 0x623814, the camera move step, 100 - cam
                                        it with fild at the float uses (the original loads an int) */
 
 typedef struct EFFECTREC {              /* 0x10 bytes at 0x62de60: the default effect (the wind): a vector and its scale */
-    float pos[3];                       /* +0x00, 0, 0, 1.0 at the start; ai_InitWind sets (sin, 0, cos) of the wind direction 6 */
+    D3VECTOR pos;                       /* +0x00, 0, 0, 1.0 at the start; ai_InitWind sets (sin, 0, cos) of the wind direction 6 */
     union {
         float scale;                    /* +0x0c, 25.0 at the start */
         int scaleBits;                  /* the same bits as an int: 0x5dbc20 passes them through an int K&R view */
@@ -139,7 +139,7 @@ void ai_PokerExchange(int k);           /* 0x4a8630, poker.c: the player exchang
 int gm_PlayerFactor(int a, unsigned char k);   /* 0x5085f0, f3gm.c: a * the factor of the player slot k */
 int gm_GetWorth(unsigned short id);            /* 0x50a640, f3gm.c: the worth of the character id */
 struct AICHAR;
-short *gm_PlayerRecord(struct AICHAR *c);               /* 0x506430, f3gm.c: the player record of a character (kinds 5 / 6 / 7), 0 else */
+struct AIFIN *gm_PlayerRecord(struct AICHAR *c);               /* 0x506430, f3gm.c: the player record of a character (kinds 5 / 6 / 7), 0 else */
 extern POKERUI ai_PokerUi;          /* 0x62dda0 */
 int ai_OpenPokerWindow(void);       /* 0x5d9de0, opens the poker window (1 = opened, 0 = already open / refused) */
 /* Two entries of the run-time text table (the .data slots hold char * into the loaded text file; the
@@ -164,7 +164,7 @@ int sv_PanelImage(void);            /* 0x522040, sv.c: the panel image number of
 void sv_BuildScreenLayout(int s);   /* 0x521e70, sv.c: builds the main screen layout for the panel image s */
 /* The gypsy windows' callees (the special-amount list of lc.c, the money / relation messages). */
 int cm_SendRelations(int a, int b, int c, int d);   /* 0x4c4b00, cm.c: message 0x1b, the relation of a to b changes by c */
-float gm_Mix(int a, int b, int c);                   /* 0x504e20, f3gm.c: the mix of two relation values */
+float gm_Mix(struct AICHAR *a, struct AICHAR *b, int c);                   /* 0x504e20, f3gm.c: the mix of two relation values */
 int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); /* 0x521410, sv.c: the green message box with the title text a and the text b */
 struct AIBLD;
 struct AICHAR;
@@ -217,7 +217,7 @@ void ai_LoadScreenImage(char *path); /* 0x5d7320, the loading screen reader */
 int cm_GetSlotState(int h);         /* 0x4c3ae0, cm.c (as include/cm.h): the state of message slot h */
 void sv_ReleaseNamePlates(void);    /* 0x52e190, sv.c: drops the contact plates (the objects lose their
                                        +0x224 hook, the plate table is cleared) */
-int sv_RegisterNamePlate(char *name, char *text, int b); /* 0x52e1c0, sv.c: finds or creates the contact
+struct D3OBJECT *sv_RegisterNamePlate(char *name, char *text, int b); /* 0x52e1c0, sv.c: finds or creates the contact
                                        plate of the object called name (text shown, b the icon), returns
                                        the object or 0 */
 
@@ -251,12 +251,12 @@ int ai_PokerGame(void);                  /* 0x5da030, the poker game window */
 /* The save / load windows and the three option screens of the options menu 0x5d7770. Their bodies are
    also defined below their caller (see the order note in the .c): VC6 drops a call whose result is
    unused to a side-effect-free body it has already seen, so the caller must not see them. */
-int ai_SaveOptionWindow(int image);             /* 0x5d45d0, the save window (the image to restore) */
+int ai_SaveOptionWindow(int *image);             /* 0x5d45d0, the save window (the image to restore) */
 int ai_FilePickWindow(unsigned mask, int flags, char *caption, char *dir, char *ext, char *out); /* 0x5d34b0, the file pick window (main_Menue: the city INI) */
 int ai_LoadGameWindow(void);             /* 0x5d4080, the load game window, 1: a game was loaded */
 void ai_CreditsScreen(void);             /* 0x5d7ba0, the credits */
 int ai_JoinGameWindow(void);             /* 0x5d42b0, the saved network game pick (main_JoinNetworkGame), 1: chosen */
-int ai_SaveNameWindow(int image);             /* 0x5d4920, the load window (the image to restore) */
+int ai_SaveNameWindow(int *image);             /* 0x5d4920, the load window (the image to restore) */
 void ai_OptionsGfxScreen(void);          /* 0x5d5fd0, "menu\options_gfx" */
 void ai_OptionsSfxScreen(void);          /* 0x5d6580, "menu\options_sfx" */
 void ai_OptionsGameScreen(void);         /* 0x5d6950, "menu\options_game" */
@@ -315,7 +315,7 @@ void txt_Format(char *out, intptr_t id0, ...);   /* 0x5176d0, io_text.c: formats
 /* declared in other units' headers before (moved to the owner) */
 int ai_InitShot(SHOTREC *shot, D3VECTOR *pos, D3VECTOR *dir, float charge, float size, float density);  /* 0x5dc240 */
 int ai_ScatterShot(SHOTREC *shot, float sideSpread, D3VECTOR *side, float otherSpread, D3VECTOR *other, float speedSpread);  /* 0x5dc3a0 */
-int ai_SolveCannonAim(float *from, float *to, float *range, float *outElev, float *outYaw, float *outSpeed, float *outDir, float *outUp, float *outSide);  /* 0x5dd100 */
+int ai_SolveCannonAim(const D3VECTOR *from, const D3VECTOR *to, float *range, float *outElev, float *outYaw, float *outSpeed, D3VECTOR *outDir, D3VECTOR *outUp, D3VECTOR *outSide);  /* 0x5dd100 */
 int ai_SphereVolume(float radius, float size, float *out);  /* 0x5dc1a0 */
 int ai_StepShot(SHOTREC *shot);  /* 0x5dc4a0 */
 int ai_StepShotSlow(SHOTREC *shot);  /* 0x5dc9d0 */

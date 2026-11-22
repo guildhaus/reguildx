@@ -129,7 +129,7 @@ extern struct D2COLKEY d2_TransparentColour;  /* 0x6f0454, shp.c (the type in sh
 struct AMTKIND; int amt_GetKind(int k, struct AMTKIND *out);                   /* 0x4e6f80 */
 float gm_AddHealth(unsigned short id, int d);  /* 0x4fca40 */
 float gm_GetSkill(struct AICHAR *c, int skill);                     /* 0x504ec0 */
-float gm_Mix(int a, int b, int c);                     /* 0x504e20 */
+float gm_Mix(struct AICHAR *a, struct AICHAR *b, int c);                     /* 0x504e20 */
 void ai_BeginNeedBlock(struct AICHAR *p);                     /* 0x4c3e70 */
 int ai_AddNeedDelta(int k, float v);                     /* 0x4c3eb0 */
 void ai_SendNeedBlock(void);                     /* 0x4c4a20 */
@@ -162,7 +162,7 @@ void gm_PopulationStep(void);
 extern float gm_BirthChance[6];
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);                     /* 0x4fe140 */
 int cm_SendCreateCharacter(unsigned char a, int b, int c, unsigned short d, int e, unsigned char f, unsigned char g, unsigned char h);                     /* 0x4c4650 */
-int cm_GetSlotValue(int h);                     /* 0x4c3b10 */
+void *cm_GetSlotValue(int h);                   /* 0x4c3b10 */
 int cm_SendNewParty(void *p);                     /* 0x4c4fa0 */
 int gm_TitleNumber(int group, int rank);                     /* 0x5043d0 */
 int ai_WorksForMaster(struct AICHAR *c);                     /* 0x47dd70 */
@@ -177,22 +177,6 @@ void * mem_Alloc(int size, char *tag);                   /* 0x4223c0 */
 void mem_Free(void *p);                    /* 0x422620 */
 #define GM_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define GM_MAX(a, b) ((a) > (b) ? (a) : (b))
-#pragma pack(push, 1)
-typedef struct GMJOB {
-    char pad00[0x44];
-    AITIME start;                       /* 0x44, the start time (gm_UpdateTechTree's progress) */
-    AITIME end;                         /* 0x52, the end time (ai.h AIJOB.end) */
-    char pad60[0x18];
-    unsigned char opts;                 /* 0x78, the event's options (ai.h AIJOB.opts); bit 2 = posted when due */
-    char pad79[0xb];
-    int msgSlot;                        /* 0x84, the slot handle of its HE message (cm_SendExSetHE) */
-    char pad88[0x24];
-    unsigned short good;                /* 0xac, of an order (event kind 2): the goods it makes */
-    char padAe[2];
-    int objId;                          /* 0xb0, of an order: the AIOBJ.objId of the workshop it is for */
-    int research;                       /* 0xb4, of a research job (event kind 0xc): the goods researched */
-} GMJOB;
-#pragma pack(pop)
 extern int gm_ClassBuilding[32];
 extern int gm_GoodBuilding[732];
 extern struct AIGOOD *ai_Goods;
@@ -511,7 +495,7 @@ int gm_IsBuildingKind(int n)
 }
 /* 0x4fe980, the object instance with the id (int at +2) in the instance table, 0 when none */
 
-int gm_FindObjectInst(int id)
+AIOBJ *gm_FindObjectInst(int id)
 {
     int i;
     AIOBJ *o;
@@ -524,7 +508,7 @@ int gm_FindObjectInst(int id)
         if (i >= 0x5008)
             return 0;
     }
-    return (int)ai_Objects + i * 0x43;
+    return &ai_Objects[i];
 }
 /* 0x4fe9c0, frees the buildings of the group (1, 6) and the four tables (building prototypes, building instances, object prototypes, object instances) */
 
@@ -623,7 +607,7 @@ void gm_UpdatePlayers(void)
         gm_UpdatePrices(i, &ai_Time);
         p++;
         i++;
-    } while ((int)p < (int)&ai_PlayerSlots[4]);
+    } while ((intptr_t)p < (intptr_t)&ai_PlayerSlots[4]);
 }
 /* 0x4feb60, resets the 0x55 goods records of the player p from the template gm_DefaultStock: copies v00c and the base stock, sets the stock (gm_GoodsStock) of the goods of the kinds 0x17 / 0x25 or else the demand (gm_GoodsDemand), the price (gm_ItemPrice of the item, 100), and the mean to the demand */
 
@@ -1089,7 +1073,7 @@ float gm_GoodsValue(int p, unsigned id)
 }
 /* 0x4ffc40, the goods record of the player p with the word at +0 equal to id, 0 when none */
 
-char *gm_FindGoods(int p, unsigned id)
+GMSTOCK *gm_FindGoods(int p, unsigned id)
 {
     int i;
     GMSTOCK *q;
@@ -1098,7 +1082,7 @@ char *gm_FindGoods(int p, unsigned id)
     q = gm_StockBlocks[p].goods;
     do {
         if (q->item == id)
-            return (char *)&gm_StockBlocks[p].goods[i];
+            return &gm_StockBlocks[p].goods[i];
         i++;
         q++;
     } while (i < 0x55);
@@ -1618,7 +1602,7 @@ unsigned short *gm_CreateObject(int id, int proto, int n)
             scene = init_BuildingSceneUniverse(home);
         saved = d3_CurrentScene;
         d3if_SelectScene(scene, 1);
-        dummy = d3_FindObject(gm_IsHomeType(home) != 0 ? 0 : (int)home->object, 0x100, 0, "dummy_TRANSPORTER");
+        dummy = d3_FindObject(gm_IsHomeType(home) != 0 ? 0 : home->object, 0x100, 0, "dummy_TRANSPORTER");
         if (dummy != 0)
             d3_PointToWorld(dummy, &dummy->pos, (D3VECTOR *)pos);
         else if (home->object != 0) {
@@ -2525,8 +2509,8 @@ AIBLD *gm_NearestBuilding(AIBLD *b, unsigned kind)
         while (p != 0) {
             k = (unsigned char *)ai_BTypes + p->type * 0x24d;
             if (gm_IsHomeType(p) == 0 && gm_IsType10(p) == 0 && (o = p->object) != 0 && p != b && *k == kind) {
-                d3_PointToWorld(o, &o->pos, (D3VECTOR *)&v1);
-                d3_PointToWorld(b->object, &b->object->pos, (D3VECTOR *)&v2);
+                d3_PointToWorld(o, &o->pos, &v1.v);
+                d3_PointToWorld(b->object, &b->object->pos, &v2.v);
                 dx = v1.x - v2.x;
                 dy = v1.y - v2.y;
                 dz = v1.z - v2.z;
@@ -2779,26 +2763,33 @@ int gm_GoodPicture(AIOBJ *o)
     }
     return -1;
 }
+typedef struct GMSLOTOBJS {             /* the context of gm_CollectSlotObject (0x204 bytes) */
+    D3OBJECT *obj[0x40];                /* 0x000, the objects */
+    int key[0x40];                      /* 0x100, their prototype keys */
+    int n;                              /* 0x200, the count */
+} GMSLOTOBJS;
+
 /* 0x5029f0, callback of 0x438d40 for 0x502a60: collects the objects whose prototype (low 24 bits of +0x48) is of the kind 0x21 and has
    its top byte 1 into list (0x40 objects, then their keys, then the count); true while there is room */
 
-char gm_CollectSlotObject(char *o, int *list)
+char gm_CollectSlotObject(D3OBJECT *o, void *ctx)
 {
+    GMSLOTOBJS *list = ctx;
     int key;
 
-    key = ((D3OBJECT *)o)->pickId & GM_OBJ_PROTO_MASK;
-    if (o[0x4b] == 1 && ((char *)ai_Goods)[key * 0x40 + key] == 0x21) {
-        list[list[0x80] + 0x40] = key;
-        list[list[0x80]] = (int)o;
-        list[0x80]++;
+    key = o->pickId & GM_OBJ_PROTO_MASK;
+    if (o->pickBytes[3] == 1 && ai_Goods[key].type == 0x21) {
+        list->key[list->n] = key;
+        list->obj[list->n] = o;
+        list->n++;
     }
-    return list[0x80] < 0x40;
+    return list->n < 0x40;
 }
 /* 0x502a60, when the panel shown (sv_PanelShown) is the scene: the five slot bytes of the character c (+0x80 of its record) give the wanted keys 0x17f + 6 k + (int)(slot / 42 - 0.5), 0 for an empty slot; the default scene's objects of goods kind 0x21 (gm_CollectSlotObject) are switched off (d3if_ShowTree (obj, 0)) and those whose key is wanted on again */
 void gm_ShowSlotObjects(int unused, int scene, int c)
 {
     int want[5];
-    int list[0x40 * 2 + 1];
+    GMSLOTOBJS list;
     int i, k, v;
     unsigned char *s;
 
@@ -2810,13 +2801,13 @@ void gm_ShowSlotObjects(int unused, int scene, int c)
                 v = 0;
             want[i] = v;
         }
-        memset(list, 0, sizeof(list));
-        d3_ForEachObject(d3_DefaultScene, 0, 0xc0, gm_CollectSlotObject, list);
-        for (i = 0; i < list[0x40 * 2]; i++) {
-            d3if_ShowTree(list[i], 0);
+        memset(&list, 0, sizeof(list));
+        d3_ForEachObject(d3_DefaultScene, 0, 0xc0, gm_CollectSlotObject, &list);
+        for (i = 0; i < list.n; i++) {
+            d3if_ShowTree(list.obj[i], 0);
             for (k = 0; k < 5; k++)
-                if (list[i + 0x40] == want[k])
-                    d3if_ShowTree(list[i], 1);
+                if (list.key[i] == want[k])
+                    d3if_ShowTree(list.obj[i], 1);
         }
     }
 }
@@ -2996,12 +2987,12 @@ int gm_ListWorkers(AIBLD *b, int *out)
     return n;
 }
 /* 0x502fd0, the sale of the building with the id id to the character with the netId buyer for price (the job record job, the building offer, may be 0; boss: also make the buyer the boss of a home): in the message group "buy_building" the buyer pays the master of the building (a message 0x17e6 "_NACHRICHTEN_HS_30" to the master, cm_SendMoveGoodsUnchecked) or, without a master, the bank (cm_SendMoveGoods), the ownership goes to the buyer (cm_SendOwnership) and for a home (type 2) with boss set the boss too (cm_SendBoss); the job's end is stamped now + 1 second and its HE message sent (cm_SendExSetHE, the slot kept in the job), and the building's field 0x5a set (cm_SendSetField (id, 0x5a, 2, 0, 2)) */
-void gm_SellBuilding(int id, int buyer, int price, int job, int boss)
+void gm_SellBuilding(int id, int buyer, int price, AIJOB *job, int boss)
 {
     AIBLD *bl;
     AICHAR *ch;
     unsigned char *k;
-    GMJOB *j;
+    AIJOB *j;
     char buf[256];
 
     bl = gm_BuildQuery(1, 1, id);
@@ -3021,11 +3012,11 @@ void gm_SellBuilding(int id, int buyer, int price, int job, int boss)
         if (boss != 0 && *k == 2)
             cm_SendBoss(ch->netId, bl->id);
     }
-    j = (GMJOB *)job;
+    j = job;
     if (j != 0) {
         j->end = ai_Time;
         gm_AddTime(&j->end, 0, 0, 1);
-        j->msgSlot = cm_SendExSetHE(-1, (struct AIJOB *)job);
+        j->exSlot = cm_SendExSetHE(-1, job);
     }
     cm_SendSetField(bl->id, 0x5a, 2, 0, 2);
     cm_EndGroup("buy_building");
@@ -3120,15 +3111,15 @@ int gm_RemoveObjectFromBuilding(AIBLD *b, int id)
 
 void gm_FreeObject(AIOBJ *obj)
 {
-    GMJOB *job;
+    AIJOB *job;
     AIBLD *bld;
     struct CHARACTER *model;
     int saved;
 
     saved = d3_CurrentScene;
-    job = (GMJOB *)obj->job24;
+    job = obj->job24;
     if (job != 0 && (job->opts & 2) != 0)
-        job->msgSlot = cm_SendExSetHE(-1, (struct AIJOB *)job);
+        job->exSlot = cm_SendExSetHE(-1, job);
     model = obj->sceneObj;
     if (model != 0) {
         d3if_SelectScene(d3t_SceneIndex(model->scene), 1);
@@ -3399,7 +3390,7 @@ void gm_ReleaseCharacter(AICHAR *c)
 {
     if (c != 0 && c->id != 0xffff) {
         sv_MoveToGroup(0, 0, c->id, 0);
-        he_EndPersonEvents(&c->id);
+        he_EndPersonEvents(c);
         he_EndKind23Events(c);
         d3io_NoopCallback(c);
         amt_ClearOffices(c);
@@ -3652,8 +3643,8 @@ int gm_JobBuildingType(int x)
 
 extern AIOBJ *gm_QueryCursor;
 extern int ai_PermsDirty;
-unsigned char * gm_FirstBuilding(int n);                   /* 0x50b010 */
-short * gm_PlayerRecord(struct AICHAR *c);                     /* 0x506430 */
+struct AIBLD *gm_FirstBuilding(int n);                   /* 0x50b010 */
+struct AIFIN *gm_PlayerRecord(struct AICHAR *c);                     /* 0x506430 */
 int cm_AddFieldValue(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3d90 */
 
 
@@ -3845,14 +3836,14 @@ int gm_TitleNumber(int a, int r)
 
 int gm_TitleJob(int i, int p)
 {
-    unsigned char *rec;     /* the job record: a job byte per group from +0x74 */
+    AIFIN *rec;             /* the job record: a job byte per group (jobByGroup) */
 
     if (gm_TitleGroup((unsigned char)ai_Chars[i].jobId) == p)
         return (unsigned char)ai_Chars[i].jobId;
-    rec = (unsigned char *)gm_PlayerRecord(&ai_Chars[i]);
+    rec = gm_PlayerRecord(&ai_Chars[i]);
     if (rec == 0)
         return 0;
-    return rec[0x74 + p];
+    return rec->jobByGroup[p];
 }
 /* 0x504510, the share of its title period the character n has served in its job: the period is (16 * the titles
    left (gm_TitlesLeft, 1 .. 5) + 72) hours over (1 + the skill of its job group, at least 0.25: group 11 -> skill 2,
@@ -3916,17 +3907,17 @@ float gm_TitlePeriodServed(int n, int *out)
 
 void gm_SetJob(int i, unsigned n)
 {
-    unsigned char *rec;     /* the job record: a job byte per group from +0x74 */
+    AIFIN *rec;             /* the job record: a job byte per group (jobByGroup) */
     int k;
 
     if (n != ai_Chars[i].jobId)
         ai_Chars[i].jobDays = 0;
-    rec = (unsigned char *)gm_PlayerRecord(&ai_Chars[i]);
+    rec = gm_PlayerRecord(&ai_Chars[i]);
     if (rec != 0 && (ai_Chars[i].kind == 6 || ai_Chars[i].kind == 7 || ai_Chars[i].kind == 5)) {
-        rec[0x74 + gm_TitleGroup(ai_Chars[i].jobId)] = ai_Chars[i].jobId;
+        rec->jobByGroup[gm_TitleGroup(ai_Chars[i].jobId)] = ai_Chars[i].jobId;
         k = gm_TitleGroup(n);
-        if ((int)n < rec[0x74 + k] || rec[0x74 + k] == 0)
-            rec[0x74 + k] = (unsigned char)n;
+        if ((int)n < rec->jobByGroup[k] || rec->jobByGroup[k] == 0)
+            rec->jobByGroup[k] = (unsigned char)n;
         ai_PermsDirty = 1;
     }
     ai_Chars[i].jobId = (unsigned char)n;
@@ -4012,19 +4003,19 @@ char *gm_ClassTreasury(AIBLD *b)
     cls = gm_BuildingClass(b->type);
     if (cls == 5) {
         if (ai_Chars[ai_PlayerId].secondOffice == 0x1e)
-            h = (AIBLD *)gm_FirstBuilding(2);
+            h = gm_FirstBuilding(2);
         else if (ai_Chars[ai_PlayerId].secondOffice == 0x1f)
-            h = (AIBLD *)gm_FirstBuilding(3);
+            h = gm_FirstBuilding(3);
         else if (ai_Chars[ai_PlayerId].secondOffice == 0x20)
-            h = (AIBLD *)gm_FirstBuilding(4);
+            h = gm_FirstBuilding(4);
         else if (ai_Chars[ai_PlayerId].secondOffice == 0x21)
-            h = (AIBLD *)gm_FirstBuilding(5);
+            h = gm_FirstBuilding(5);
         else
             h = 0;
         if (h != 0)
             r = (char *)gm_Query(h->objList, 2, 6, 0, 0x142);
     } else if (cls == 3) {
-        h = (AIBLD *)gm_FirstBuilding(1);
+        h = gm_FirstBuilding(1);
         r = (char *)gm_Query(h->objList, 2, 6, 0, 0x115);
     }
     return r;
@@ -4033,7 +4024,7 @@ char *gm_ClassTreasury(AIBLD *b)
 
 struct AIOBJ *gm_PlayerSeat(int p)
 {
-    AIBLD *b = (AIBLD *)gm_FirstBuilding(p);
+    AIBLD *b = gm_FirstBuilding(p);
 
     if (p == 1)
         return gm_Query(b->objList, 2, 6, 0, 0x115);
@@ -4255,13 +4246,13 @@ int gm_TitlesLeft(int n)
 /* 0x504e00, the 0x504ec0 value of (a, b) times 252, truncated (a tail through __ftol) */
 
 
-int gm_SkillPoints(char *c, int skill)
+int gm_SkillPoints(AICHAR *c, int skill)
 {
     return (int)(gm_GetSkill(c, skill) * 252.0f);
 }
 /* 0x504e20, mixes the two 0x504ec0 values u = f (a, c) and v = f (b, c): ((u * u - v) * 0.4 + 0.6 + (u - v * v) * 0.6 + 0.4) * 0.5 */
 
-float gm_Mix(int a, int b, int c)
+float gm_Mix(AICHAR *a, AICHAR *b, int c)
 {
     float u, v, x, y;
 
@@ -5036,7 +5027,7 @@ int gm_DeathDate(AICHAR *c, GMDATE *out)
 /* the bit fields of the word +0x2c of a character (the skill levels): field k starts at the bit FIELD_SHIFT[k] with the mask FIELD_MASK[k] (4, 4, 2, 3, 3, 3, 2, 4 bits) */
 
 
-void ai_RestartMission(struct G13MIS *m);                     /* 0x4b3a90 */
+void ai_RestartMission(struct AICHAR *c);                     /* 0x4b3a90 */
 
 /* 0x506180, the ranking of the players: the up to 8 characters of the kinds 5 / 6 / 7 into out (*count of them),
    each with its talents, title, office, reputation and worth (see GMRANK), the weighted sum 0.15 * (title + office +
@@ -5121,7 +5112,7 @@ void gm_RankPlayers(int *count, GMRANK *out)
 /* 0x506430, the player record (gm_PlayerRecords, AIFIN) of the character c: for the kinds 5 / 6 / 7 whose
    w050 has the top bit set its low 4 bits are the slot; 0 for any other character */
 
-short *gm_PlayerRecord(AICHAR *c)
+AIFIN *gm_PlayerRecord(AICHAR *c)
 {
     AICHAR *ch = c;
     int slot;
@@ -5131,7 +5122,7 @@ short *gm_PlayerRecord(AICHAR *c)
     else
         slot = -1;
     if (slot >= 0 && slot < 0x10)
-        return (short *)&gm_PlayerRecords[slot];
+        return &gm_PlayerRecords[slot];
     return 0;
 }
 /* 0x506480, counts the character c's five active relatives (relatives[3] .. relatives[7] at +0x68: gm_FindChar
@@ -5173,7 +5164,7 @@ unsigned gm_TakeOverCharacter(int a, int b)
     int worth, group, job, left;
     unsigned i, k;
     short j;
-    unsigned char *rec;
+    AIFIN *rec;
     unsigned *head;
     AIBLD *bl;
     AIOBJ *o;
@@ -5181,7 +5172,7 @@ unsigned gm_TakeOverCharacter(int a, int b)
     ca = (AICHAR *)(gm_FindChar(a));
     if (ca == 0)
         return -1;
-    ai_RestartMission((struct G13MIS *)ca);
+    ai_RestartMission(ca);
     for (j = 0; j < 0x100; j++) {
         bl = &((AIBLD *)ai_Blds)[j];
         if (bl->type != 0 && gm_BuildingClass(bl->type) == 2 && bl->owner == ca->id)
@@ -5193,8 +5184,8 @@ unsigned gm_TakeOverCharacter(int a, int b)
     if (cb == 0)
         return -2;
     he_RecheckPersonEvents(&ca->id);
-    he_EndPersonEvents(&ca->id);
-    he_EndPersonEvents(&cb->id);
+    he_EndPersonEvents(ca);
+    he_EndPersonEvents(cb);
     sb = cb->id;
     if (ca->w050 != cb->w050)
         cb->w050 = ca->w050;
@@ -5207,13 +5198,13 @@ unsigned gm_TakeOverCharacter(int a, int b)
     newA.bld2 = ca->bld2;
     group = gm_TitleGroup(cb->jobId);
     if (group != 0) {
-        rec = (unsigned char *)gm_PlayerRecord(ca);
+        rec = gm_PlayerRecord(ca);
         if (rec != 0) {
             job = gm_TitleJob(ca->id, group);
             if (job != 0) {
                 left = gm_TitlesLeft(cb->jobId);
                 if (gm_TitlesLeft(job) < left)
-                    rec[0x74 + group] = cb->jobId;      /* the player record's title byte of the group */
+                    rec->jobByGroup[group] = cb->jobId;      /* the player record's title byte of the group */
                 else
                     newA.jobId = ca->jobId;
             }
@@ -5303,10 +5294,10 @@ void gm_InheritEstate(AICHAR *dead, AICHAR *heir)
 
     n = 0;
     taken = 0;
-    if (gv_FindHeldEntry(dead, (unsigned char **)&s, (int *)&e) != 0) {
-        gv_OrderBury((int *)dead, s, e->size, gv_EntryIndex((char *)s->yard, (int *)e));
+    if (gv_FindHeldEntry(dead, &s, &e) != 0) {
+        gv_OrderBury((int *)dead, s, e->size, gv_EntryIndex(s->yard, e));
         if (heir != 0 && heir != ai_PlayerChar && e->id == dead->netId)
-            gv_OrderSetGraveHolder((int *)heir, s, e->size, gv_EntryIndex((char *)s->yard, (int *)e));
+            gv_OrderSetGraveHolder(heir, s, e->size, gv_EntryIndex(s->yard, e));
     }
     s = gm_BuildQuery(1, 4, dead->id);
     while (s != 0) {
@@ -5635,7 +5626,7 @@ int gm_MayRemoveChar(AICHAR *c)
 extern int ai_Difficulty;
 extern int ai_GameFlags;
 extern float gm_DayStartHours[], gm_DayEndHours[];  /* 0x617830 / 0x617840 */
-int gv_GetTableRecord(int i, int *out);                     /* 0x4f2720 */
+struct AIDEC; int gv_GetTableRecord(int i, struct AIDEC *out);                     /* 0x4f2720 */
 float gm_ItemPrice(int item, unsigned char n);
 int gm_SumListAmounts(void *list, unsigned char p);
 
@@ -5702,7 +5693,7 @@ unsigned short gm_CreateCharacter(int type, int a2, int a3, unsigned short a4, s
     AICHAR *p1;
     AICHAR *p2;
     GVAVATAR *av;
-    short *rec;
+    AIFIN *rec;
     float f, a, l, life, rr, x;
     unsigned char *t;
     char buf[0x400];
@@ -6009,8 +6000,8 @@ unsigned short gm_CreateCharacter(int type, int a2, int a3, unsigned short a4, s
             c->w050 = (unsigned short)ai_NextPlayerNumber | 0x8000;
             rec = gm_PlayerRecord(c);
             if (rec != 0) {
-                ((float *)rec)[0x22] = -1.0f;   /* +0x88 */
-                rec[0] = c->w050;
+                rec->camAngle = -1.0f;
+                rec->w00 = c->w050;
             }
             if (type == 7 || type == 5) {
                 /* the first cart texture set 0x59a .. 0x5a1 no character uses */
@@ -6122,7 +6113,7 @@ float gm_ObjectValue(int n)
 }
 /* 0x508740, the wage of a job (a) or title (b) of the building kind k for the character c, reduced for the kinds 6 / 7 */
 
-float gm_JobWage(char *c, int k, int a, int b)
+float gm_JobWage(AICHAR *c, int k, int a, int b)
 {
     float f;
     char *p;
@@ -6133,7 +6124,7 @@ float gm_JobWage(char *c, int k, int a, int b)
         f = (unsigned char)p[0x229 + a] * 0x380;
     else if (b != -1)
         f = (unsigned char)p[0x233 + b] * 0x380;
-    if (c[2] == 6 || c[2] == 7)
+    if (c->kind == 6 || c->kind == 7)
         f = (1.0 - (2 - ai_Difficulty) * 0.25) * f;
     return f;
 }
@@ -6325,7 +6316,7 @@ int gm_BuildingBalance(AIBLD *b, unsigned id, int *out)
 {
     AIBLD *bld;
     unsigned char *kind;    /* the kind's ai_BTypes record: +0x223 the job ids, +0x22f the title ranks */
-    char *own;
+    AICHAR *own;
     AICHAR *c;
     int i, j, cost, income, wage, found, sum;
     AIOBJ *o;
@@ -6338,7 +6329,7 @@ int gm_BuildingBalance(AIBLD *b, unsigned id, int *out)
         out[i] = 0;
     kind = (unsigned char *)ai_BTypes + bld->type * 0x24d;
     if (id == bld->owner) {
-        own = (char *)&ai_Chars[id];
+        own = &ai_Chars[id];
         if (*kind == 0x1e) {
             if (ahm_OwnerChar(b) != 0) {
                 out[6] = ahm_ObjectValue(b);
@@ -6577,7 +6568,7 @@ int gm_BuildingKindSkill(int kind, unsigned k)
    into it; the rest of a's day, the whole working days between, and b's day up to its clock. The full minutes
    (gm_MinutesBetween) with the game flag bit 7 set or for a building of class 0x1d; 0 when b is before a. x and y
    hold a clock's minutes first and are then clamped into the working day in place */
-int gm_WorkMinutesBetween(AITIME *a, AITIME *b, unsigned char *bld)
+int gm_WorkMinutesBetween(AITIME *a, AITIME *b, AIBLD *bld)
 {
     float lo, hi;
     int season, acc, x, y, day, end;
@@ -6588,7 +6579,7 @@ int gm_WorkMinutesBetween(AITIME *a, AITIME *b, unsigned char *bld)
     hi = gm_DayEndHours[season];
     if (ai_GameFlags & 0x80)
         return gm_MinutesBetween(a, b);
-    if (bld != 0 && ai_BTypes[*bld].kind == 0x1d)
+    if (bld != 0 && ai_BTypes[bld->type].kind == 0x1d)
         return gm_MinutesBetween(a, b);
     if (gm_CompareTime(a, b) > 0)
         return 0;
@@ -6650,14 +6641,13 @@ int gm_FixedWorkMinutesBetween(AITIME *a, AITIME *b)
    capacity its cap[1] (of a market the larger of both caps); else those goods, the capacity its cap[0], and nothing
    for a market. Every goods of a market counts. 0 when the building has no object 0xfd or no stall */
 
-int gm_BuildingGoodsList(AIBLD *bld, unsigned *out, int kind)
+int gm_BuildingGoodsList(AIBLD *bld, AIRECIPE *out, int kind)
 {
     AIOBJ *stall, *o;
     GMGOOD *g;
-    int i, cap;
+    int cap;
 
-    for (i = 0; i < 0x2e; i++)
-        out[i] = 0;
+    memset(out, 0, sizeof(*out));
     if (gm_Query(bld->objList, 1, 0, 0xfd) == 0)
         return 0;
     stall = gm_Query(bld->objList, 2, 6, 0, 0x2a);
@@ -6666,42 +6656,41 @@ int gm_BuildingGoodsList(AIBLD *bld, unsigned *out, int kind)
     if (kind != 0) {
         if (stall->type == 0x116)
             return 0;
-        out[0] = stall->cap[0];
+        out->n = stall->cap[0];
     } else {
         cap = stall->cap[1];
-        out[0] = cap;
+        out->n = cap;
         if (stall->type == 0x116)
-            out[0] = GM_MAX(cap, (int)stall->cap[0]);
+            out->n = GM_MAX(cap, (int)stall->cap[0]);
     }
     o = gm_Query(stall->list, 1, 5);
     while (o) {
         g = GM_GOOD(o->type);
         if (((g->type == 0x17 || g->type == 0x25) && kind != 0) || ((g->type != 0x17 && g->type != 0x25) && kind == 0)
             || stall->type == 0x116) {
-            out[0x1a + out[1]] = gm_ListAmount(stall, o);
-            out[2 + out[1]] = gm_ListStock(stall, o->type);
-            ((AIRECIPE *)out)->item[out[1]] = o->type;
-            out[1]++;
+            out->amount[out->count] = gm_ListAmount(stall, o);
+            out->max[out->count] = gm_ListStock(stall, o->type);
+            out->item[out->count] = o->type;
+            out->count++;
         }
         o = gm_QueryNext();
     }
-    ((AIRECIPE *)out)->stall = stall;
+    out->stall = stall;
     return 1;
 }
 /* 0x5099e0, the goods list of the building b as gm_BuildingGoodsList (the same out record, stall, capacity and
    market rules), with another goods filter: kind != 0 lists only the goods of type 0x17, kind 0 all others, and a
    market gets no exception (f3snd.c uses it for the building classes 0x1e .. 0x20) */
 
-int gm_BuildingGoodsList17(AIBLD *b, unsigned *out, int kind)
+int gm_BuildingGoodsList17(AIBLD *b, AIRECIPE *out, int kind)
 {
     AIBLD *bld;
     AIOBJ *stall, *o;
     GMGOOD *g;
-    int i, cap;
+    int cap;
 
     bld = b;
-    for (i = 0; i < 0x2e; i++)
-        out[i] = 0;
+    memset(out, 0, sizeof(*out));
     if (gm_Query(bld->objList, 1, 0, 0xfd) == 0)
         return 0;
     stall = gm_Query(bld->objList, 2, 6, 0, 0x2a);
@@ -6710,25 +6699,25 @@ int gm_BuildingGoodsList17(AIBLD *b, unsigned *out, int kind)
     if (kind != 0) {
         if (stall->type == 0x116)
             return 0;
-        out[0] = stall->cap[0];
+        out->n = stall->cap[0];
     } else {
         cap = stall->cap[1];
-        out[0] = cap;
+        out->n = cap;
         if (stall->type == 0x116)
-            out[0] = GM_MAX(cap, (int)stall->cap[0]);
+            out->n = GM_MAX(cap, (int)stall->cap[0]);
     }
     o = gm_Query(stall->list, 1, 5);
     while (o) {
         g = GM_GOOD(o->type);
         if ((g->type == 0x17 && kind != 0) || (g->type != 0x17 && kind == 0)) {
-            out[0x1a + out[1]] = gm_ListAmount(stall, o);
-            out[2 + out[1]] = gm_ListStock(stall, o->type);
-            ((AIRECIPE *)out)->item[out[1]] = o->type;
-            out[1]++;
+            out->amount[out->count] = gm_ListAmount(stall, o);
+            out->max[out->count] = gm_ListStock(stall, o->type);
+            out->item[out->count] = o->type;
+            out->count++;
         }
         o = gm_QueryNext();
     }
-    ((AIRECIPE *)out)->stall = stall;
+    out->stall = stall;
     return 1;
 }
 /* 0x509b10, the value of the building b at the level (percent): its type's base value x 0xf00 plus the price (gm_ItemPrice) of its equipment: each object of the type's list of the kinds 2 / 6 that the building holds, and the objects listed after it (up to the next kind 2 / 6) held inside that one; the sum times level / 100 */
@@ -6837,7 +6826,7 @@ int gm_BuildingKindCost(AICHAR *c, int kind)
     f = 0.85f;
     if (c->officeKind != 0xe)
         f = 1.0f;
-    gv_GetTableRecord(6, (int *)&rec);
+    gv_GetTableRecord(6, &rec);
     return (int)(((4 - rec.cur) * 0.1f + 0.8f) * v * f);
 }
 /* 0x509e30, the sum of the amounts of the objects in the list (prototype kind 9, group 1) */
@@ -6917,7 +6906,7 @@ int gm_CharCurrency(AICHAR *c, char p)
 }
 
 /* ---- layout 2026-10-23: the character / building worth helpers 0x509f20 .. 0x50af00 (ROUGH drafts) ---- */
-char * ai_FindWeaponRecord(int id);                     /* 0x4cd9d0 */
+AIWEAPON *ai_FindWeaponRecord(int id);                     /* 0x4cd9d0 */
 int gm_EquipmentValue(struct AIBLD *b, int level);
 int gm_GetWorth(unsigned short id);
 int gm_ListAmount(struct AIOBJ *l, struct AIOBJ *o);
@@ -7030,7 +7019,7 @@ AIBLD *gm_ObjectBuilding(AIOBJ *o)
    charId +0xb0 is its netId), only of the building bld when it is not 0 (their bldId +0xac is its id);
    returns their number */
 
-int gm_CreditEvents(int c, AIBLD *bld, int *out)
+int gm_CreditEvents(int c, AIBLD *bld, HELOAN **out)
 {
     int n;
     GMEVENT23 *ev;
@@ -7039,7 +7028,7 @@ int gm_CreditEvents(int c, AIBLD *bld, int *out)
     ev = (GMEVENT23 *)he_FindEvent(1, 0, 0x23);
     while (ev != 0 && n < 9) {
         if (ev->charId == ai_Chars[c].netId && (bld == 0 || ev->bldId == bld->id)) {
-            out[n] = (int)ev;
+            out[n] = (HELOAN *)ev;
             n++;
         }
         ev = (GMEVENT23 *)he_NextEvent();
@@ -7048,7 +7037,7 @@ int gm_CreditEvents(int c, AIBLD *bld, int *out)
 }
 /* 0x50a1c0, collects into out (up to 9) the events of the kind 0x23 whose building belongs to the owner (AIBLD.owner), only of the building b when b is not 0 and of the character slot c when c is not 0xffff; returns their number */
 
-int gm_BuildingEvents(unsigned owner, int b, int c, int *out)
+int gm_BuildingEvents(unsigned owner, AIBLD *b, int c, HELOAN **out)
 {
     int n;
     GMEVENT23 *ev;
@@ -7058,9 +7047,9 @@ int gm_BuildingEvents(unsigned owner, int b, int c, int *out)
     ev = (GMEVENT23 *)he_FindEvent(1, n, 0x23);
     while (ev != 0 && n < 9) {
         bl = gm_BuildQuery(1, 1, ev->bldId);
-        if (bl != 0 && bl->owner == owner && (b == 0 || b == (int)bl) &&
+        if (bl != 0 && bl->owner == owner && (b == 0 || b == bl) &&
             (c == 0xffff || ai_Chars[c].netId == ev->charId)) {
-            out[n++] = (int)ev;
+            out[n++] = (HELOAN *)ev;
         }
         ev = (GMEVENT23 *)he_NextEvent();
     }
@@ -7084,16 +7073,16 @@ int gm_BuildingEvents(unsigned owner, int b, int c, int *out)
    cm_DoubleOne object (8 forms, = control). (tiebreak: not measured (dcp headers sample
    gm_GetCreditOffers)) */
 
-int gm_GetCreditOffers(AIBLD *b, AICHAR *p, unsigned cnt, int *out)
+int gm_GetCreditOffers(AIBLD *b, AICHAR *p, unsigned cnt, ORDCREDIT *out)
 {
     AIBLD *bank = b;
     AICHAR *ch = p;
-    ORDCREDIT *offers = (ORDCREDIT *)out;
+    ORDCREDIT *offers = out;
     int budget, worth, maxAmount, i, all, amount, term, interest;
     unsigned k;
     float f, add, rate, lim;
-    int events[9];
-    int orders[0x88];
+    HELOAN *events[9];
+    ORDMSG orders;
 
     if (p == 0 || b == 0 || bank->owner == 0xffff || cnt == 0)
         return 0;
@@ -7131,12 +7120,12 @@ int gm_GetCreditOffers(AIBLD *b, AICHAR *p, unsigned cnt, int *out)
         return 0;
     memset(out, 0, cnt * sizeof(ORDCREDIT));
     worth = gm_GetWorth(p->id);
-    memset(orders, 0, sizeof(orders));
+    memset(&orders, 0, sizeof(orders));
     rate = 0.3f;
-    orders[0] = 1;
-    if (ord_DispatchOrder(0xf, p, orders) & 2)
+    orders.kind = 1;
+    if (ord_DispatchOrder(0xf, p, &orders) & 2)
         rate *= 2.0f;
-    else if (ord_DispatchOrder(0xb, p, orders) & 2)
+    else if (ord_DispatchOrder(0xb, p, &orders) & 2)
         rate *= 1.5f;
     lim = worth * rate;
     maxAmount = (int)GM_MIN(lim, budget * 0.5);
@@ -7282,29 +7271,27 @@ int gm_LevelPayout(int v, int level)
    count sums, out[0x2c] the goods' value (gm_ItemPrice at 100 times the count), out[0x2d] the stall; 0 when c
    holds no stall */
 
-int gm_StallGoodsList(char *c, unsigned *out)
+int gm_StallGoodsList(AIOBJ *c, AIRECIPE *out)
 {
     AIOBJ *stall, *o;
-    int i;
 
-    for (i = 0; i < 0x2e; i++)
-        out[i] = 0;
-    stall = (AIOBJ *)gm_Query(((AIOBJ *)c)->list, 1, 0, 0x1dd);
+    memset(out, 0, sizeof(*out));
+    stall = gm_Query(c->list, 1, 0, 0x1dd);
     if (stall == 0)
         return 0;
     o = gm_Query(stall->list, 1, 5);
-    out[0] = stall->lvl1c;
+    out->n = stall->lvl1c;
     while (o) {
-        out[0x1a + out[1]] = o->count;
-        out[2 + out[1]] = gm_ListStock(stall, o->type);
-        out[0x2a] += out[2 + out[1]];
-        out[0x2b] += o->count;
-        ((AIRECIPE *)out)->item[out[1]] = o->type;
-        out[1]++;
-        out[0x2c] = (int)(gm_ItemPrice(o->type, 100) * o->count + (int)out[0x2c]);
+        out->amount[out->count] = o->count;
+        out->max[out->count] = gm_ListStock(stall, o->type);
+        out->stockSum += out->max[out->count];
+        out->amountSum += o->count;
+        out->item[out->count] = o->type;
+        out->count++;
+        out->value = (int)(gm_ItemPrice(o->type, 100) * o->count + out->value);
         o = gm_QueryNext();
     }
-    ((AIRECIPE *)out)->stall = stall;
+    out->stall = stall;
     return 1;
 }
 /* 0x50aaf0, the amount of the object o in the list object l: minus one for the stall objects 0x2a / 0x116 / 0x1db / 0x1dc (the stall itself) */
@@ -7534,29 +7521,29 @@ int gm_CollectCarried(int id, int *out)
 /* 0x50b010, the first building of the class n (1 .. 5: the types 0xf, 0x17 .. 0x1a); 0 for 6 / 7 */
 
 
-unsigned char *gm_FirstBuilding(int n)
+AIBLD *gm_FirstBuilding(int n)
 {
-    unsigned char *r;
+    AIBLD *r;
 
     r = 0;
     switch (n) {
     case 1:
-        r = (unsigned char *)gm_BuildQuery(1, 5, 0xf);
+        r = gm_BuildQuery(1, 5, 0xf);
         break;
     case 6:
     case 7:
         return 0;
     case 2:
-        r = (unsigned char *)gm_BuildQuery(1, 5, 0x17);
+        r = gm_BuildQuery(1, 5, 0x17);
         break;
     case 3:
-        r = (unsigned char *)gm_BuildQuery(1, 5, 0x18);
+        r = gm_BuildQuery(1, 5, 0x18);
         break;
     case 4:
-        r = (unsigned char *)gm_BuildQuery(1, 5, 0x19);
+        r = gm_BuildQuery(1, 5, 0x19);
         break;
     case 5:
-        r = (unsigned char *)gm_BuildQuery(1, 5, 0x1a);
+        r = gm_BuildQuery(1, 5, 0x1a);
         break;
     }
     return r;
@@ -7869,7 +7856,7 @@ void gm_UpdateTechTree(AIBLD *bld, AIOBJ *item)
     AIBLD *bl;
     AIOBJ *ob;
     RTNODE *q;
-    GMJOB *o;
+    AIJOB *o;
     int i, k, cnt, state, saved, parent;
 
     bl = bld;
@@ -7880,7 +7867,7 @@ void gm_UpdateTechTree(AIBLD *bld, AIOBJ *item)
         if (GM_GOOD(NODES[i].id)->type == 6) {
             if (gm_Query(bl->objList, 1, 0, NODES[i].id) != 0) {
                 state = 1;
-                for (o = (GMJOB *)he_FindEvent(2, 0, 0xc, 3, bl->id); o != 0; o = (GMJOB *)he_NextEvent())
+                for (o = he_FindEvent(2, 0, 0xc, 3, bl->id); o != 0; o = he_NextEvent())
                     if (o->research == NODES[i].id) {
                         state = 3;
                         break;
@@ -7923,8 +7910,8 @@ void gm_UpdateTechTree(AIBLD *bld, AIOBJ *item)
             } else if (cnt == 2)
                 state = 2;
             if (state == 2) {
-                for (o = (GMJOB *)he_FindEvent(2, 0, 2, 3, bl->id); o != 0; o = (GMJOB *)he_NextEvent())
-                    if (o->objId == ob->objId && o->good == NODES[i].id) {
+                for (o = he_FindEvent(2, 0, 2, 3, bl->id); o != 0; o = he_NextEvent())
+                    if (o->orderObj == ob->objId && o->orderGood == NODES[i].id) {
                         state = 3;
                         break;
                     }
@@ -7998,12 +7985,12 @@ void gm_UpdateTechTree(AIBLD *bld, AIOBJ *item)
             o = 0;
             if (GM_GOOD(NODES[i].id)->type == 6) {
                 if (gm_Query(bl->objList, 1, 0, NODES[i].id) != 0)
-                    for (o = (GMJOB *)he_FindEvent(2, 0, 0xc, 3, bl->id); o != 0; o = (GMJOB *)he_NextEvent())
+                    for (o = he_FindEvent(2, 0, 0xc, 3, bl->id); o != 0; o = he_NextEvent())
                         if (o->research == NODES[i].id)
                             break;
             } else {
-                for (o = (GMJOB *)he_FindEvent(2, 0, 2, 3, bl->id); o != 0; o = (GMJOB *)he_NextEvent())
-                    if (o->objId == ob->objId && o->good == NODES[i].id)
+                for (o = he_FindEvent(2, 0, 2, 3, bl->id); o != 0; o = he_NextEvent())
+                    if (o->orderObj == ob->objId && o->orderGood == NODES[i].id)
                         break;
             }
             if (o != 0)
@@ -8070,7 +8057,7 @@ int gm_AddToTreasury(int a)
     AIBLD *b;
     AIOBJ *o;
 
-    b = (AIBLD *)gm_FirstBuilding(1);
+    b = gm_FirstBuilding(1);
     o = gm_Query(b->objList, 2, 6, 0, 0x115);
     return cm_SendMoveGoodsUnchecked(-1, o->objId, ai_OwnPlayer, a);
 }
@@ -8128,7 +8115,7 @@ float gm_Liking(unsigned a, unsigned b, int c)
     if (ai_Chars[a].officeKind != 0) {
         amt_GetKind(ai_Chars[a].officeKind, &kind);
         if (kind.col == 4) {
-            bp = (AIBLD *)gm_FirstBuilding(1);
+            bp = gm_FirstBuilding(1);
             if (bp != 0)
                 sum += (float)gm_BuildingSkill(bp, 4, 1);
         }
@@ -8171,25 +8158,25 @@ float gm_Liking(unsigned a, unsigned b, int c)
     if (ai_Chars[b].officeKind != 0) {
         amt_GetKind(ai_Chars[b].officeKind, &kind);
         if (kind.level > 0 && kind.level < 4) {
-            sum += (float)ai_InventoryHas((char *)&ai_Chars[a], 0x155) * 10.0f;
-            sum += (float)ai_InventoryHas((char *)&ai_Chars[a], 0x15d) * 10.0f;
+            sum += (float)ai_InventoryHas(&ai_Chars[a], 0x155) * 10.0f;
+            sum += (float)ai_InventoryHas(&ai_Chars[a], 0x15d) * 10.0f;
         } else if (kind.level > 3 && kind.level < 8) {
-            sum += (float)ai_InventoryHas((char *)&ai_Chars[a], 0x157) * 10.0f;
-            sum += (float)ai_InventoryHas((char *)&ai_Chars[a], 0x15f) * 8.0f;
+            sum += (float)ai_InventoryHas(&ai_Chars[a], 0x157) * 10.0f;
+            sum += (float)ai_InventoryHas(&ai_Chars[a], 0x15f) * 8.0f;
         } else if (kind.level > 7 && kind.level < 10) {
-            sum += (float)ai_InventoryHas((char *)&ai_Chars[a], 0x159) * 7.0f;
-            sum += (float)ai_InventoryHas((char *)&ai_Chars[a], 0x165) * 7.0f;
-            sum += (float)ai_InventoryHas((char *)&ai_Chars[a], 0x166) * 15.0f;
+            sum += (float)ai_InventoryHas(&ai_Chars[a], 0x159) * 7.0f;
+            sum += (float)ai_InventoryHas(&ai_Chars[a], 0x165) * 7.0f;
+            sum += (float)ai_InventoryHas(&ai_Chars[a], 0x166) * 15.0f;
         }
     }
-    if (ai_InventoryHas((char *)&ai_Chars[a], 0x2b6) != 0) {
+    if (ai_InventoryHas(&ai_Chars[a], 0x2b6) != 0) {
         if (ai_Chars[b].officeKind != 0)
             sum += 5.0f;
         if ((ai_Chars[b].flags1cc & 0x3e00) != 0)
             sum += 5.0f;
     }
     if (ai_Chars[b].bld != 0 && ai_Chars[b].bld->owner == a)
-        sum += (float)ai_InventoryHas((char *)&ai_Chars[a], 0x16b) * 7.0f;
+        sum += (float)ai_InventoryHas(&ai_Chars[a], 0x16b) * 7.0f;
     flags = ai_Chars[a].ailments;
     n = flags >> 14 & 7;
     if (n != 0 && ai_Chars[a].sex != ai_Chars[b].sex)
@@ -8354,7 +8341,7 @@ int gm_Homeless(AICHAR *c)
 }
 /* 0x50cd40, the wage of 0x508740 times 3 (9 for the jobs 10 .. 12 of the building kind k) */
 
-float gm_JobCost(char *c, int k, int a, int b)
+float gm_JobCost(AICHAR *c, int k, int a, int b)
 {
     int j;
 

@@ -151,10 +151,10 @@ void anm_UpdateBird(ANMREC *a)
     AIBLD *b, *f;
     unsigned short n, k;
     int i;
-    float p[4];
+    D3VECTOR4 p;
     struct D3OBJECT *e;
-    float q[4];
-    float pts[16][4];
+    D3VECTOR4 q;
+    D3VECTOR4 pts[16];
     AIBLD *bs[256];
 
     if (a->nPoints != -1)
@@ -166,16 +166,16 @@ void anm_UpdateBird(ANMREC *a)
     }
     f = bs[util_Random(n)];
     e = f->object;
-    d3_PointToWorld(e, &e->pos, q);
+    d3_PointToWorld(e, &e->pos, &q.v);
     k = 0;
     for (i = 0; i < n && k < 0x10; i++) {
         b = bs[i];
         e = b->object;
-        d3_PointToWorld(e, &e->pos, p);
-        if (b != f && d3_VecEqual(q, p, 6000.0f)) {
-            pts[k++][0] = p[0];
-            pts[k++][1] = p[1];
-            pts[k++][2] = p[2];
+        d3_PointToWorld(e, &e->pos, &p.v);
+        if (b != f && d3_VecEqual(&q.v, &p.v, 6000.0f)) {
+            pts[k++].x = p.x;
+            pts[k++].y = p.y;
+            pts[k++].z = p.z;
         }
     }
     a->nPoints = k;
@@ -184,17 +184,17 @@ void anm_UpdateBird(ANMREC *a)
 
 void anm_CreateCat(ANMREC *a)
 {
-    float pos[4];
+    D3VECTOR4 pos;
 
-    if (!rd_DoorPos(pos))
+    if (!rd_DoorPos(&pos.v))
         return;
-    a->obj = ch_Create("katze_KATZE", pos);
+    a->obj = ch_Create("katze_KATZE", &pos.v);
     if (a->obj == 0)
         return;
     ((CHARACTER *)a->obj)->walkSpeed = 1.0f;
-    a->pos[0] = pos[0];
-    a->pos[1] = pos[1];
-    a->pos[2] = pos[2];
+    a->pos.x = pos.x;
+    a->pos.y = pos.y;
+    a->pos.z = pos.z;
     a->kind = 1;
     ((CHARACTER *)a->obj)->kind = 2;
     ((CHARACTER *)a->obj)->obj->mask = 0;
@@ -204,17 +204,17 @@ void anm_CreateCat(ANMREC *a)
 
 void anm_CreateDog(ANMREC *a)
 {
-    float pos[4];
+    D3VECTOR4 pos;
 
-    if (!rd_DoorPos(pos))
+    if (!rd_DoorPos(&pos.v))
         return;
-    a->obj = ch_Create("hund_HUND", pos);
+    a->obj = ch_Create("hund_HUND", &pos.v);
     if (a->obj == 0)
         return;
     ((CHARACTER *)a->obj)->walkSpeed = 1.0f;
-    a->pos[0] = pos[0];
-    a->pos[1] = pos[1];
-    a->pos[2] = pos[2];
+    a->pos.x = pos.x;
+    a->pos.y = pos.y;
+    a->pos.z = pos.z;
     a->kind = 0;
     ((CHARACTER *)a->obj)->kind = 2;
     ((CHARACTER *)a->obj)->obj->mask = 0;
@@ -224,20 +224,20 @@ void anm_CreateDog(ANMREC *a)
 
 void anm_CreateSheep(ANMREC *a)
 {
-    char *o;
-    float pos[4];
+    struct D3OBJECT *o;
+    D3VECTOR4 pos;
 
     o = rd_RandomNamedObject("dummy_SHEEP");
     if (o == 0)
         return;
-    d3_PointToWorld(o, o + 0x4c, pos);
-    a->obj = ch_Create("schaf_SCHAF", pos);
+    d3_PointToWorld(o, &o->pos, &pos.v);
+    a->obj = ch_Create("schaf_SCHAF", &pos.v);
     if (a->obj == 0)
         return;
     ((CHARACTER *)a->obj)->walkSpeed = 1.5f;
-    a->pos[0] = pos[0];
-    a->pos[1] = pos[1];
-    a->pos[2] = pos[2];
+    a->pos.x = pos.x;
+    a->pos.y = pos.y;
+    a->pos.z = pos.z;
     a->kind = 4;
     ((CHARACTER *)a->obj)->kind = 2;
     ((CHARACTER *)a->obj)->obj->mask = 0;
@@ -247,20 +247,20 @@ void anm_CreateSheep(ANMREC *a)
 
 void anm_CreateCow(ANMREC *a)
 {
-    char *o;
-    float pos[4];
+    struct D3OBJECT *o;
+    D3VECTOR4 pos;
 
     o = rd_RandomNamedObject("dummy_COW");
     if (o == 0)
         return;
-    d3_PointToWorld(o, o + 0x4c, pos);
-    a->obj = ch_Create("kuh_KUH", pos);
+    d3_PointToWorld(o, &o->pos, &pos.v);
+    a->obj = ch_Create("kuh_KUH", &pos.v);
     if (a->obj == 0)
         return;
     ((CHARACTER *)a->obj)->walkSpeed = 1.5f;
-    a->pos[0] = pos[0];
-    a->pos[1] = pos[1];
-    a->pos[2] = pos[2];
+    a->pos.x = pos.x;
+    a->pos.y = pos.y;
+    a->pos.z = pos.z;
     a->kind = 3;
     ((CHARACTER *)a->obj)->kind = 2;
     ((CHARACTER *)a->obj)->obj->mask = 0;
@@ -271,28 +271,28 @@ void anm_CreateCow(ANMREC *a)
 
 void anm_CreateAnimal(ANMREC *a, int k)
 {
-    float pos[4];
+    D3VECTOR4 pos;
     char buf[0x80];
-    char *o;
+    struct D3OBJECT *o;
 
     sprintf(buf, "dummy_%s", anm_KindNames[k]);
     o = rd_RandomNamedObject(buf);
     if (o == 0)
         return;
-    d3_PointToWorld(o, o + 0x4c, pos);
+    d3_PointToWorld(o, &o->pos, &pos.v);
     if (k == 3)
         strcpy(buf, "kuh_KUH");
     else if (k == 7)
         strcpy(buf, "pferd_PFERD");
     else if (k == 6)
         strcpy(buf, "schwein_SCHWEIN");
-    a->obj = ch_Create(buf, pos);
+    a->obj = ch_Create(buf, &pos.v);
     if (a->obj == 0)
         return;
     ((CHARACTER *)a->obj)->walkSpeed = 1.0f;
-    a->pos[0] = pos[0];
-    a->pos[1] = pos[1];
-    a->pos[2] = pos[2];
+    a->pos.x = pos.x;
+    a->pos.y = pos.y;
+    a->pos.z = pos.z;
     a->kind = k;
     ((CHARACTER *)a->obj)->kind = 2;
     ((CHARACTER *)a->obj)->obj->mask = 0;
@@ -304,12 +304,12 @@ void anm_CreateAnimal(ANMREC *a, int k)
 void anm_UpdateCat(ANMREC *a)
 {
     int px;
-    G15GRID *h;
+    D3SM *h;
     int pz;
     float py;
     int n;
-    float pts[8][4];
-    float (*p)[4];
+    D3VECTOR4 pts[8];
+    D3VECTOR4 *p;
     char *act;
 
     if (((CHARACTER *)a->obj)->anim != 0)
@@ -324,12 +324,12 @@ void anm_UpdateCat(ANMREC *a)
             ch_QueueAnim(a->obj, "bewegung/stehen", util_Random(3) + 1);
         return;
     }
-    h = ((G15SCENE *)d3_DefaultScene)->hmap;
+    h = d3_DefaultScene->hmap;
     n = util_Random(3) + 1;
-    n = rd_PointsNear(a->pos, n, pts);
+    n = rd_PointsNear(&a->pos, n, pts);
     if (n > 0) {
         for (p = pts; n != 0; n--, p++) {
-            if (d3_GetHeightAt(h, *p, &px, &pz, &py)) {
+            if (d3_GetHeightAt(h, &p->v, &px, &pz, &py)) {
                 act = ch_AddAction(a->obj, 0x2d, px, pz, 0);
                 strcpy(act + 0x70, "anm_UpdateCat");
             }
@@ -342,12 +342,12 @@ void anm_UpdateCat(ANMREC *a)
 void anm_UpdateSheep(ANMREC *a)
 {
     int px;
-    G15GRID *h;
+    D3SM *h;
     int pz;
     float py;
     int n;
-    float pts[8][4];
-    float (*p)[4];
+    D3VECTOR4 pts[8];
+    D3VECTOR4 *p;
     char *act;
 
     if (((CHARACTER *)a->obj)->anim != 0)
@@ -359,12 +359,12 @@ void anm_UpdateSheep(ANMREC *a)
             ch_QueueAnim(a->obj, "bewegung/fressen", util_Random(3) + 1);
         return;
     }
-    h = ((G15SCENE *)d3_DefaultScene)->hmap;
+    h = d3_DefaultScene->hmap;
     n = util_Random(3) + 1;
-    n = rd_PointsNear(a->pos, n, pts);
+    n = rd_PointsNear(&a->pos, n, pts);
     if (n > 0) {
         for (p = pts; n != 0; n--, p++) {
-            if (d3_GetHeightAt(h, *p, &px, &pz, &py)) {
+            if (d3_GetHeightAt(h, &p->v, &px, &pz, &py)) {
                 act = ch_AddAction(a->obj, 0x2d, px, pz, 0);
                 strcpy(act + 0x70, "anm_UpdateSheep");
             }
@@ -372,7 +372,7 @@ void anm_UpdateSheep(ANMREC *a)
     }
 }
 /* 0x4bc2e0, pos = the "dummy_TUER" (or the object) of a random building of the gm_BuildQuery(1, 6) list */
-int rd_DoorPos(float *pos)
+int rd_DoorPos(D3VECTOR *pos)
 {
     AIBLD *bs[0x100];
     int n;
@@ -396,15 +396,15 @@ int rd_DoorPos(float *pos)
 }
 /* 0x4bc390, n points pts near pos (a free cell within -4..5 cells, else pos's cell); returns n */
 
-int rd_PointsNear(float *pos, int n, float (*pts)[4])
+int rd_PointsNear(D3VECTOR *pos, int n, D3VECTOR4 *pts)
 {
-    G15GRID *h;
+    D3SM *h;
     int px, pz;
     float py;
     int x, z;
     int i;
 
-    h = ((G15SCENE *)d3_DefaultScene)->hmap;
+    h = d3_DefaultScene->hmap;
     d3_GetHeightAt(h, pos, &px, &pz, &py);
     for (i = 0; i < n; i++) {
         x = util_Random(10) - 4 + px;
@@ -418,23 +418,25 @@ int rd_PointsNear(float *pos, int n, float (*pts)[4])
         if (z < 2)
             z = 2;
         if (ch_FindFreeCell((char *)h, pos, pos, x, z, &x, &z, 600, 0))
-            d3sm_GetVertex((char *)h, x, z, pts[i]);
+            d3sm_GetVertex((char *)h, x, z, &pts[i].v);
         else
-            d3sm_GetVertex((char *)h, px, pz, pts[i]);
+            d3sm_GetVertex((char *)h, px, pz, &pts[i].v);
     }
     return n;
 }
 /* 0x4bc4b0, d3_ForEachObject callback: collects the objects named f->name (at most 32) */
 
-int rd_CollectNamed(char *obj, G15FIND *f)
+char rd_CollectNamed(struct D3OBJECT *obj, void *ctx)
 {
-    if (strcmp(obj, f->name) == 0)
+    G15FIND *f = ctx;
+
+    if (strcmp(obj->name, f->name) == 0)
         f->objs[f->n++] = obj;
     return f->n < 0x20;
 }
 /* 0x4bc520, a random object of the default scene named name, 0 if none */
 
-char *rd_RandomNamedObject(char *name)
+struct D3OBJECT *rd_RandomNamedObject(char *name)
 {
     G15FIND f;
 

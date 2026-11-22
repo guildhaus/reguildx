@@ -20,28 +20,41 @@ typedef struct TSCACHE {            /* 0x14 bytes, ts_CacheSize of them at ts_Ca
     char pad12[0x2];
 } TSCACHE;
 
-/* One texture slot (d3.h has two partial views of it: D3TEXTURE and D3TEXHANDLE). */
+/* One texture slot. */
 typedef struct TSTEXTURE {          /* 0x80 bytes, d3_TexCount of them at d3_Textures */
     char name[0x40];
     int refs;                       /* 0x40, 0 = free slot */
     unsigned char *data;            /* 0x44, 8-bit pixels (software renderer) */
     unsigned short *hicol;          /* 0x48, colour table from ts_GetHiColTab */
-    int mask;                       /* 0x4c, size*size-1 | size-1; for an alias: index of the original */
+    union {                         /* 0x4c */
+        int mask;                   /* size*size-1 | size-1; for an alias: index of the original */
+        struct D3FLCACHE *cache;    /* a "*fltx" ground cache texture: its cache record (d3fl_GetTexture) */
+    };
     int group;                      /* 0x50, animation group, -1 = none */
-    int stamp;                      /* 0x54, d3_FrameCount of the last use (D3FLTEX.stamp) */
+    int stamp;                      /* 0x54, d3_FrameCount of the last use */
     int reserved;                   /* 0x58, no reader in the game: cleared whenever the slot is created, evicted or unloaded (reasoned: unused) */
     struct TSTEXTURE *src;          /* 0x5c */
     IDirectDrawSurface4 *surf;      /* 0x60 */
-    IDirect3DTexture2 *d3dtex;      /* 0x64 */
-    unsigned char f0 : 1;           /* 0x68 */
-    unsigned char alias : 1;        /* shares the surfaces of d3_Textures[mask] */
-    unsigned char hicolor : 1;      /* 16-bit surface (d3_TexFormat16) */
-    unsigned char nomip : 1;        /* name contains "_NM": no mipmaps */
-    unsigned char f4 : 1;
-    unsigned char f5 : 1;
-    unsigned char noscale : 1;      /* name contains "_NS": not shrunk by d3_MipSkip */
-    unsigned char f69 : 5;          /* 0x69 */
-    unsigned char f6a : 5;          /* 0x6a */
+    union {                         /* 0x64, the original calls it surftext (D3DCHECK texts) */
+        IDirect3DTexture2 *d3dtex;
+        IDirect3DTexture2 *surftext;
+    };
+    union {                         /* 0x68 */
+        struct {
+            unsigned char wrap : 1;     /* tex_Load opts bit 0: the triangles wrap their uv (D3PVERT.wrap) */
+            unsigned char alias : 1;    /* shares the surfaces of d3_Textures[mask] */
+            unsigned char hicolor : 1;  /* 16-bit surface (d3_TexFormat16) */
+            unsigned char nomip : 1;    /* name contains "_NM": no mipmaps */
+            unsigned char nocull : 1;   /* tex_Load opts bit 1: no culling for the triangles using it (d3_SetVertexColors) */
+            unsigned char mirror : 1;   /* tex_Load opts bit 6 (not for alpha textures): d3_MirDrawObject draws the mirror
+                                           pass of an object with such a texture */
+            unsigned char noscale : 1;  /* name contains "_NS": not shrunk by d3_MipSkip */
+            unsigned char precached : 1; /* d3d_PrecacheTexture done (d3if_PrecacheCB, d3fl_Prerender) */
+        };
+        unsigned char bits;         /* the byte, copied whole into the triangles' draw flags */
+    };
+    unsigned char f69 : 5;          /* 0x69, the u scroll: index into ts_ScrollV (d3_DrawSortedD3D) */
+    unsigned char f6a : 5;          /* 0x6a, the v scroll: index into ts_ScrollU */
     unsigned char pad6b;
     TSFLAGS flags;                  /* 0x6c, the flags tex_Load was called with */
     union {                         /* 0x70 */

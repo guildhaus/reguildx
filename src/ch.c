@@ -86,12 +86,12 @@ int ch_Ground1[65536];  /* 0x14aaa20, ground types of the default scene */
 CHFADE ch_Fades[16];                /* 0x14eaa20 */
 
 /* 0x402140, creates the height map of the character's scene on first use */
-struct D3HMAP *ch_GetHMap(CHARACTER *ch)
+struct D3SM *ch_GetHMap(CHARACTER *ch)
 {
     int cur = d3_CurrentScene;
     unsigned int flags = 0;
     unsigned int df;
-    struct D3HMAP *h;
+    struct D3SM *h;
 
     if (!(h = ch->scene->hmap)) {
         df = d3_SceneFlags;
@@ -115,12 +115,12 @@ struct D3HMAP *ch_GetHMap(CHARACTER *ch)
 }
 /* 0x402220, the same for a scene */
 
-struct D3HMAP *ch_GetSceneHMap(D3SCENE *scene)
+struct D3SM *ch_GetSceneHMap(D3SCENE *scene)
 {
     int cur = d3_CurrentScene;
     unsigned int flags = 0;
     unsigned int df;
-    struct D3HMAP *h;
+    struct D3SM *h;
 
     if (!(h = scene->hmap)) {
         df = d3_SceneFlags;
@@ -245,14 +245,14 @@ void ch_PlaceAtObject(CHARACTER *ch, D3OBJECT *obj)
     D3VECTOR4 pos;
 
     if (ch) {
-        d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)&pos);
+        d3_PointToWorld(obj, &obj->pos, &pos.v);
         rot.x = 0.0f;
         rot.y = 0.0f;
         rot.z = 0.0f;
-        d3_DirToWorld(obj, &d3_ZAxis, &dir);
-        rot.y = d3_VecAngle(&d3_ZAxis, &dir);
+        d3_DirToWorld(obj, &d3_ZAxis.v, &dir);
+        rot.y = d3_VecAngle(&d3_ZAxis.v, &dir);
         d3_SetObjectRot(ch->obj, &rot);
-        ch_SetPos(ch, (D3VECTOR *)&pos, 1);
+        ch_SetPos(ch, &pos.v, 1);
     }
 }
 /* 0x4026c0, characters in scene (-1: all scenes); all = 0 skips objects of type 1 */
@@ -314,9 +314,9 @@ void ch_UpdatePositions(void)
             pos.z = ch->obj->pos.z + ch->offset.z;
             if (ch->anim) {
                 if (ch->anim->name[9] != '-')
-                    ch_SetPos(ch, (D3VECTOR *)&pos, 0);
+                    ch_SetPos(ch, &pos.v, 0);
             } else
-                ch_SetPos(ch, (D3VECTOR *)&pos, 0);
+                ch_SetPos(ch, &pos.v, 0);
             ch->flags.dirty = 0;
         }
     }
@@ -574,7 +574,7 @@ int ch_CreateMesh(CHARACTER *ch, char *name, D3VECTOR *pos)
 
     if (!ch)
         return 0;
-    ch->obj = d3_CreateObject(0, pos, (D3VECTOR *)&rot, name);
+    ch->obj = d3_CreateObject(0, pos, &rot.v, name);
     ch->scriptId = -1;
     if (!ch->obj) {
         sprintf(msg, "ch_CreateMesh(): Could not load 3D-Character: %s", name);
@@ -650,7 +650,7 @@ int ch_MoveToScene(CHARACTER *ch, D3SCENE *scene)
     char msg[0x100];
 
     if (ch && ch->scene && scene && d3if_MoveObject(ch->obj, ch->scene, scene)) {
-        d3_SetObject078(ch->obj, &d3_Origin);
+        d3_SetObject078(ch->obj, &d3_Origin.v);
         if (ch->transport)
             d3if_MoveObject(*ch->transport, ch->scene, scene);
         if (ch->lowPolyBody)
@@ -678,7 +678,7 @@ CHTRANSPORT *ch_AttachTransport(CHARACTER *ch, D3OBJECT *obj)
     pos.x = 0.0f * ch->obj->matrix._11 + 0.0f * ch->obj->matrix._21 - 70.0f * ch->obj->matrix._31 + ch->obj->matrix._41;
     pos.y = 0.0f * ch->obj->matrix._12 + 0.0f * ch->obj->matrix._22 - 70.0f * ch->obj->matrix._32 + ch->obj->matrix._42;
     pos.z = 0.0f * ch->obj->matrix._13 + 0.0f * ch->obj->matrix._23 - 70.0f * ch->obj->matrix._33 + ch->obj->matrix._43;
-    d3_SetObjectPos(obj, (D3VECTOR *)&pos);
+    d3_SetObjectPos(obj, &pos.v);
     d3_SetObjectRot(obj, &ch->obj->rotation);
     obj->flags &= ~4;
     obj->stateFlags = obj->stateFlags & ~8 | 4;
@@ -741,7 +741,7 @@ void ch_PlaceTransport(CHARACTER *ch, char now)
     v.x = body->pos.x - d.x;
     v.y = body->pos.y - d.y;
     v.z = body->pos.z - d.z;
-    d3_SetObjectPos(obj, (D3VECTOR *)&v);
+    d3_SetObjectPos(obj, &v.v);
     a = -(6.2831855f - d3_YawTo(obj, &body->pos));
     rot.x = obj->rotation.x;
     rot.y = obj->rotation.y;
@@ -1299,16 +1299,16 @@ int ch_PlaceOnGround(CHARACTER *ch, int force)
         pos.x = obj->pos.x;
         pos.y = obj->pos.y;
         pos.z = obj->pos.z;
-        if (d3_GetHeightAt(h, (D3VECTOR *)&pos, &x, &z, &y)) {
+        if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
             type = h->entries[h->size * z + x].type;
             if (force || type != 0 && type != 0xd) {
                 if (ch->scene->map)
-                    map_Pick(ch->scene->map, (D3VECTOR *)&pos, 1, &x, &z, &y);
+                    map_Pick(ch->scene->map, &pos.v, 1, &x, &z, &y);
                 if (!d3t_SceneIndex(ch->scene))
                     pos.y = y + 3.0f;
                 else
                     pos.y = y;
-                d3_SetObjectPos(obj, (D3VECTOR *)&pos);
+                d3_SetObjectPos(obj, &pos.v);
             }
         }
     }
@@ -1405,7 +1405,7 @@ void ch_SetCamera(CHARACTER *ch, int view)
 
     ch_GetCamera(ch, view, &pos, &rot);
     d3_SetObjectRot(d3_Camera, &rot);
-    d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+    d3_SetObjectPos(d3_Camera, &pos.v);
 }
 /* 0x404dd0, moves d3_Camera over time to the character's view 0..3 (ch_GetCamera) */
 
@@ -1419,7 +1419,7 @@ void ch_MoveCamera(CHARACTER *ch, int view, int time)
         d3anim_FreePath(d3_Camera);
         d3t_CamMoving = 0;
         d3t_CamMove = 0;
-        d3t_PlaceObjectV(d3_Camera, (D3VECTOR *)&pos, &rot, time, 0x28);
+        d3t_PlaceObjectV(d3_Camera, &pos.v, &rot, time, 0x28);
     }
 }
 /* 0x404e40, a random number in 0..n-1 (0 when n is 0), the pick of ch_FindDummy */
@@ -1434,7 +1434,7 @@ int ch_Random(unsigned short n)
 }
 /* 0x404e60, saves the ground types of a scene's height map */
 
-void ch_SaveGround(struct D3HMAP *hmap)
+void ch_SaveGround(struct D3SM *hmap)
 {
     D3SM *h = (D3SM *)hmap;
     int *buf;
@@ -1452,7 +1452,7 @@ void ch_SaveGround(struct D3HMAP *hmap)
 }
 /* 0x404ed0, writes the saved ground types of the changed rectangle back into the height map */
 
-void ch_RestoreGround(struct D3HMAP *hmap)
+void ch_RestoreGround(struct D3SM *hmap)
 {
     D3SM *h = (D3SM *)hmap;
     int *buf;
@@ -1486,8 +1486,8 @@ int ch_SetGroundDiamond(int x, int z, unsigned char scene, int type, int r)
     int i = 0;
     int d, xx, zz, x1, z1;
 
-    h = (D3SM *)d3_Scenes[scene].hmap;
-    if (d3_Scenes[0].hmap != (struct D3HMAP *)h && d3_DefaultScene->hmap != (struct D3HMAP *)h)
+    h = d3_Scenes[scene].hmap;
+    if (d3_Scenes[0].hmap != h && d3_DefaultScene->hmap != h)
         return 0;
     if (!h)
         return 0;
@@ -1601,8 +1601,8 @@ int ch_Update(void)
                        && !(ch_List[i]->flags.all & 0x8000) && !ch_List[i]->transport) {
                 if (ch_FindNear(ch_List[i], found, 20.0f)) {
                     h = (D3SM *)ch_GetHMap(ch_List[i]);
-                    ch_RandomNear(&ch_List[i]->obj->pos, (D3VECTOR *)&pos);
-                    if (d3_GetHeightAt(h, (D3VECTOR *)&pos, &x, &z, &y))
+                    ch_RandomNear(&ch_List[i]->obj->pos, &pos.v);
+                    if (d3_GetHeightAt(h, &pos.v, &x, &z, &y))
                         ch_AddAction(ch_List[i], 0x2d, x, z, d3_CurrentScene);
                 }
             } else
@@ -1856,7 +1856,7 @@ void ch_ActUsingGate(CHACTION *a)
     CHACTION *b;
     int cur, scene;
     D3OBJECT *obj;
-    struct D3HMAP *h;
+    struct D3SM *h;
     int x, z;
     float y;
     D3VECTOR4 pos;
@@ -1874,8 +1874,8 @@ void ch_ActUsingGate(CHACTION *a)
     obj = d3_FindObject(0, 0x120, 0, CH_ACTOBJ(a)->name2);
     if (obj) {
         h = d3_Scenes[scene].hmap;
-        d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)&pos);
-        if (d3_GetHeightAt((D3SM *)h, (D3VECTOR *)&pos, &x, &z, &y))
+        d3_PointToWorld(obj, &obj->pos, &pos.v);
+        if (d3_GetHeightAt((D3SM *)h, &pos.v, &x, &z, &y))
             ch_InsertAction(ch, a, 0x2d, x, z, scene);
         else
             sprintf(buf, "UsingGate: d3sm_3D2SuperMap() failed... scene:%s   object:%s", ch->scene, obj);
@@ -2097,8 +2097,8 @@ void ch_ActTurnTo(CHACTION *a)
     D3VECTOR rot, from, to;
     D3VECTOR4 target;
 
-    d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)&target);
-    rot.y = (ang = d3_YawTo(ch->obj, (D3VECTOR *)&target));
+    d3_PointToWorld(obj, &obj->pos, &target.v);
+    rot.y = (ang = d3_YawTo(ch->obj, &target.v));
     rot.x = 0.0f;
     rot.z = 0.0f;
     d3_UnwrapAngles(&rot, &ch->obj->rotation, &from, &to);
@@ -2219,8 +2219,8 @@ void ch_ActMove2Universe(CHACTION *a)
         if (!obj)
             obj = d3_FindObject(0, 0x100, 0, "dummy_EINGANG");
         if (obj) {
-            d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)&pos);
-            ch_SetPos(ch, (D3VECTOR *)&pos, 0);
+            d3_PointToWorld(obj, &obj->pos, &pos.v);
+            ch_SetPos(ch, &pos.v, 0);
         }
     }
     ch->group = a->args[1];
@@ -2258,7 +2258,7 @@ int ch_FollowGround(CHACTION *a)
         pos.x = obj->pos.x;
         pos.y = obj->pos.y;
         pos.z = obj->pos.z;
-        if (d3_GetHeightAt(h, (D3VECTOR *)&pos, &x, &z, &y)) {
+        if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
             type = h->entries[h->size * z + x].type;
             if (type && type != 13 || ch->scene->map) {
                 obj = ch->obj;
@@ -2328,7 +2328,7 @@ void ch_SetHandObject(CHARACTER *ch, int hand, char *name)
             d3if_Delete(*slot);
             *slot = 0;
         }
-        *slot = d3_CreateObject((int)ch->obj, (D3VECTOR *)&pos, &rot, name);
+        *slot = d3_CreateObject(ch->obj, &pos.v, &rot, name);
         if (!*slot) {
             d3if_SelectScene(cur, 1);
             return;
@@ -2390,8 +2390,8 @@ void ch_ActTurn(CHACTION *a)
         if (a->args[1]) {
             D3VECTOR4 dir;
 
-            d3_DirToWorld(ch->obj, &d3_ZAxis, (D3VECTOR *)&dir);
-            angle = -d3_VecAngle(&d3_ZAxis, (D3VECTOR *)&dir) - angle;
+            d3_DirToWorld(ch->obj, &d3_ZAxis.v, &dir.v);
+            angle = -d3_VecAngle(&d3_ZAxis.v, &dir.v) - angle;
             if (angle > 3.1415927f)
                 angle -= 6.2831855f;
             else if (angle < -3.1415927f)
@@ -2537,7 +2537,7 @@ char ch_FindFreeCell(D3SM *h, D3VECTOR *from, D3VECTOR *to, int x, int z, int *p
             p[1].y = to->y;
             p[1].z = to->z;
         } else
-            d3sm_GetVertex(h, x, z, (D3VECTOR *)&p[1]);
+            d3sm_GetVertex(h, x, z, &p[1].v);
         p[0].x = from->x;
         p[0].y = from->y;
         p[0].z = from->z;
@@ -2572,7 +2572,7 @@ char ch_FindFreeCell(D3SM *h, D3VECTOR *from, D3VECTOR *to, int x, int z, int *p
                     for (xi = max(0, x - d); xi <= xmax; xi++) {
                         if (zi >= 0 && zi < h->size && xi >= 0 && xi < h->size
                             && (t = h->entries[h->size * zi + xi].type) && t != 0xd
-                            && d3sm_GetVertex(h, xi, zi, (D3VECTOR *)&p[2])) {
+                            && d3sm_GetVertex(h, xi, zi, &p[2].v)) {
                             dx = p[0].x - p[2].x;
                             dy = p[0].y - p[2].y;
                             dz = p[0].z - p[2].z;
@@ -2643,8 +2643,8 @@ int ch_CellToCell(D3SM *h, int x, int z, D3SM *to, int *px, int *pz)
 {
     D3VECTOR4 v;
 
-    if (d3sm_GetVertex(h, x, z, (D3VECTOR *)&v)) {
-        ch_PosToCell(to, (D3VECTOR *)&v, px, pz);
+    if (d3sm_GetVertex(h, x, z, &v.v)) {
+        ch_PosToCell(to, &v.v, px, pz);
         return 1;
     }
     return 0;
@@ -2931,7 +2931,7 @@ int ch_GetNewPath(CHARACTER *ch, int n, CHARACTER **others)
                 m = ch->scene == d3_Scenes || d3_Terrain ? 5 : 2;
                 if (!ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, gx, gz, &cz, &fz, steps * m,
                                      a->u.walk.flags | 1)) {
-                    ch_RestoreGround((struct D3HMAP *)h);
+                    ch_RestoreGround(h);
                     return -1;
                 }
                 gx = cz;
@@ -2946,8 +2946,8 @@ int ch_GetNewPath(CHARACTER *ch, int n, CHARACTER **others)
                         cx = fz;
                     }
                 }
-                if (path_Find(&ch_Path, (PMAP *)h, sx, cx, gx, gz, ch->pathType) == 0xffff) {
-                    ch_RestoreGround((struct D3HMAP *)h);
+                if (path_Find(&ch_Path, h, sx, cx, gx, gz, ch->pathType) == 0xffff) {
+                    ch_RestoreGround(h);
                     return -1;
                 }
                 cnt = ch_Path.count;
@@ -2976,7 +2976,7 @@ int ch_GetNewPath(CHARACTER *ch, int n, CHARACTER **others)
                     && ((unsigned char *)a->u.walk.path)[a->u.walk.pathLen * 2 - 1]
                        == ((unsigned char *)a->u.walk.path)[a->u.walk.pathLen * 2 - 3])
                     a->u.walk.pathLen--;
-                ch_RestoreGround((struct D3HMAP *)h);
+                ch_RestoreGround(h);
                 ch->contactSteps = 4;
                 if (sx == gx && cx == gz)
                     return -2;
@@ -3016,7 +3016,7 @@ int ch_PathToTarget(CHACTION *a)
     gz = oz;
     ch_Path.xy = ch_PathBuf;
     ch_Path.max = 0x200;
-    if (path_Find(&ch_Path, (PMAP *)h, cx, cz, gx, gz, ch->pathType) == 0xffff)
+    if (path_Find(&ch_Path, h, cx, cz, gx, gz, ch->pathType) == 0xffff)
         return 0;
     if (a->u.walk.path) {
         mem_Free(a->u.walk.path);
@@ -3105,7 +3105,7 @@ int ch_InitWalk(CHACTION *a, D3SM *h)
         ch_FindFreeCell(h, &ch->obj->pos, &ch->obj->pos, t[0], t[1], &t[1], &t[0], 8, a->u.walk.flags);
     ch_Path.xy = ch_PathBuf;
     ch_Path.max = 0x200;
-    if (path_Find(&ch_Path, (PMAP *)h, x, z, t[1], t[0], ch->pathType) == 0xffff) {
+    if (path_Find(&ch_Path, h, x, z, t[1], t[0], ch->pathType) == 0xffff) {
         a->ch->pathState = 0;
         if (ch_MarkWalkErrors)
             a->ch->flags.bytes.lo |= 8;
@@ -3939,16 +3939,16 @@ next:
 CHACTION *ch_WalkToObject(CHARACTER *ch, D3OBJECT *obj)
 {
     CHACTION *a = 0;
-    struct D3HMAP *h;
+    struct D3SM *h;
     int x, z;
     float y;
     D3VECTOR4 pos;
 
-    d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)&pos);
+    d3_PointToWorld(obj, &obj->pos, &pos.v);
     h = obj->scene->hmap;
     if (!h)
         h = ch_GetSceneHMap(obj->scene);
-    if (d3_GetHeightAt((D3SM *)h, (D3VECTOR *)&pos, &x, &z, &y)) {
+    if (d3_GetHeightAt((D3SM *)h, &pos.v, &x, &z, &y)) {
         a = ch_AddAction(ch, 0x2d, x, z, d3t_SceneIndex(obj->scene));
         if (a) {
             a->u.walk.flags |= CH_WALK_DEST;
@@ -3963,7 +3963,7 @@ CHACTION *ch_WalkToObject(CHARACTER *ch, D3OBJECT *obj)
 
 void ch_ActWalk2RndDummy(CHACTION *a)
 {
-    struct D3HMAP *h;
+    struct D3SM *h;
     int cur, scene;
     D3OBJECT *obj;
     CHACTION *w;
@@ -3982,8 +3982,8 @@ void ch_ActWalk2RndDummy(CHACTION *a)
         d3if_SelectScene(scene, 1);
         obj = ch_FindDummy();
         if (obj && h) {
-            d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)&pos);
-            if (d3_GetHeightAt((D3SM *)h, (D3VECTOR *)&pos, &x, &z, &y)) {
+            d3_PointToWorld(obj, &obj->pos, &pos.v);
+            if (d3_GetHeightAt((D3SM *)h, &pos.v, &x, &z, &y)) {
                 w = ch_InsertAction(a->ch, a, 0x2d, x, z, scene);
                 w->u.walk.flags |= CH_WALK_DEST;
                 w->u.walk.dest.x = pos.x;
@@ -4000,17 +4000,17 @@ void ch_ActWalk2RndDummy(CHACTION *a)
 
 void ch_WalkToObjectTurn(CHARACTER *ch, D3OBJECT *obj)
 {
-    struct D3HMAP *h;
+    struct D3SM *h;
     CHACTION *a;
     int x, z;
     float y, ang;
     D3VECTOR4 pos, dir;
 
     h = ch_GetHMap(ch);
-    d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)&pos);
-    d3_DirToWorld(obj, &d3_ZAxis, (D3VECTOR *)&dir);
-    ang = d3_VecAngle(&d3_ZAxis, (D3VECTOR *)&dir);
-    if (d3_GetHeightAt((D3SM *)h, (D3VECTOR *)&pos, &x, &z, &y)) {
+    d3_PointToWorld(obj, &obj->pos, &pos.v);
+    d3_DirToWorld(obj, &d3_ZAxis.v, &dir.v);
+    ang = d3_VecAngle(&d3_ZAxis.v, &dir.v);
+    if (d3_GetHeightAt((D3SM *)h, &pos.v, &x, &z, &y)) {
         a = ch_AddAction(ch, 0x2d, x, z, d3t_SceneIndex(obj->scene));
         a->u.walk.flags |= CH_WALK_DEST;
         a->u.walk.dest.x = pos.x;
@@ -4254,7 +4254,7 @@ CHACTION *ch_AddAction(CHARACTER *ch, unsigned int type, ...)
 }
 /* 0x40b400, like ch_AddAction, with func2 called at the animation frame "frame"; no queue check */
 
-CHACTION *ch_AddActionCB(CHARACTER *ch, CHACTFUNC func2, unsigned char frame, unsigned int type, ...)
+CHACTION *ch_AddActionCB(CHARACTER *ch, CHACTCB func2, unsigned char frame, unsigned int type, ...)
 {
     CHACTION *a;
     int i;

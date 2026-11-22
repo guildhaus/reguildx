@@ -187,7 +187,7 @@ extern const int sv_PhaseMinutes[24];
 
 extern unsigned short ai_PlayerId;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 
@@ -231,7 +231,7 @@ extern int d2_LastWindow;
 
 extern int sv_PopRequest;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 
@@ -239,7 +239,7 @@ extern int ai_ClickedObject;
 
 extern GAPDATA full_data_62a450[];
 extern GAPDATA full_data_62a464[];
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
@@ -250,7 +250,7 @@ extern int d2_LastWindow;
 
 extern int sv_PopRequest;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 extern int gm_AllowAll;
@@ -493,7 +493,7 @@ void ai_CannonScene(AIBLD *rec)
     } saved;                    /* the clip rectangle and the scene to restore: one 20-byte local in the original's frame */
     unsigned mask;
     float dt;
-    unsigned char *pb;
+    D2FADE *pb;
     D3VECTOR4 cam3;
     D3VECTOR4 save3;
 
@@ -531,8 +531,8 @@ void ai_CannonScene(AIBLD *rec)
     sv_ResetScreenClip();
     sv_QuickJump.panelFlag = 0;
     d2_CaptionCopy[0] = 0;
-    pb = (unsigned char *)d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x5a, 1);
-    while (!(*pb & 4))
+    pb = d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x5a, 1);
+    while (!(pb->flags & 4))
         sv_RunFrame(0, mask | 0x100);
     n = 0;
     {
@@ -584,16 +584,16 @@ void ai_CannonScene(AIBLD *rec)
         rotv.y = sc.rot.y;
         rotv.z = sc.rot.z;
         rotv.x = 0.0f;
-        sc.obj98 = d3_CreateObject(0, &d3_Origin, &rotv, "KANONE_UNTERBAU_Aa");
+        sc.obj98 = d3_CreateObject(0, &d3_Origin.v, &rotv, "KANONE_UNTERBAU_Aa");
     }
-    sc.obj8c[0] = d3_CreateObject(sc.obj98, &d3_Origin, &d3_ZeroRot, "KANONE_ROHR_Aa");
-    sc.obj8c[1] = d3_CreateObject(sc.obj98, &d3_Origin, &d3_ZeroRot, "KANONE_DOPPEL_ROHR_Aa");
-    sc.obj8c[2] = d3_CreateObject(sc.obj98, &d3_Origin, &d3_ZeroRot, "KANONE_DREIFACH_ROHR_Aa");
+    sc.obj8c[0] = d3_CreateObject(sc.obj98, &d3_Origin.v, &d3_ZeroRot, "KANONE_ROHR_Aa");
+    sc.obj8c[1] = d3_CreateObject(sc.obj98, &d3_Origin.v, &d3_ZeroRot, "KANONE_DOPPEL_ROHR_Aa");
+    sc.obj8c[2] = d3_CreateObject(sc.obj98, &d3_Origin.v, &d3_ZeroRot, "KANONE_DREIFACH_ROHR_Aa");
     sc.selected = gv_Cannon.selected;
     sc.zoom = 0.0f;
     d3_SetObjectPos(sc.obj98, &sc.pos);
     d3_SetObjectRot(sc.obj98, (D3VECTOR *)&sc.rot);
-    sc.obj9c = d3_CreateObject(sc.obj98, (D3VECTOR *)&ai_WimpelPos, &d3_ZeroRot, "AO_KANONE_WIMPEL_Aa");
+    sc.obj9c = d3_CreateObject(sc.obj98, &ai_WimpelPos.v, &d3_ZeroRot, "AO_KANONE_WIMPEL_Aa");
     d3t_PlayAnim(sc.obj9c, "_ADDON\\AO_KANONE_WIMPEL_Aa.baf", 1);
     sc.obj9c->stateFlags = (sc.obj9c->stateFlags & 0xf7) | 4;
     sc.obj9c->stateFlags |= 0x40;
@@ -648,8 +648,8 @@ void ai_CannonScene(AIBLD *rec)
         sc.last = sc.now;
     }
     sv_SetStatusText(ch_EmptyName);
-    pb = (unsigned char *)d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x5a, 1);
-    while (!(*pb & 4))
+    pb = d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x5a, 1);
+    while (!(pb->flags & 4))
         sv_RunFrame(0, mask);
     d2_CloseView(sc.win_a4);
     d2_CloseView(sc.win_c0);
@@ -680,8 +680,8 @@ void ai_CannonScene(AIBLD *rec)
     d3if_SelectScene(saved.scene, 0);
     if (d3_Sky)
         d3sky_Init(d3_Sky, 1);
-    d3_SetObjectPos(d3_Camera, (D3VECTOR *)&cam3);
-    d3_SetObjectRot(d3_Camera, (D3VECTOR *)&save3);
+    d3_SetObjectPos(d3_Camera, &cam3.v);
+    d3_SetObjectRot(d3_Camera, &save3.v);
     init_SetDetailLevel(d3_Terrain, 0);
     d3if_Prerender(1);
     d2_ReleaseFade(pb);
@@ -809,10 +809,15 @@ void ai_CannonAim(CANNONSCENE *sc, float dt)
     sc->rot.y = (float)fmod(sc->rot.y, 6.2831855f);
 }
 
-int ai_GetDefaultEffect();
+struct EFFECTREC *ai_GetDefaultEffect(void);
 
 typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: three floats and a word cleared as an int */
-    float x, y, z;
+    union {
+        struct {
+            float x, y, z;
+        };
+        D3VECTOR v;             /* the vector, for the D3VECTOR parameters */
+    };
     int w;
 } CANNONROT;
 
@@ -858,34 +863,34 @@ void ai_CannonCamera(CANNONSCENE *sc)
     float speed;
     float fade;
     float k;
-    int def;
+    EFFECTREC *def;
     int i;
 
     pos.x = 0;
     pos.y = sc->rot.y;
     pos.z = 0;
-    d3_SetObjectRot(sc->obj98, (char *)&pos);
+    d3_SetObjectRot(sc->obj98, &pos.v);
     pos.x = sc->rot.x;
     pos.y = 0;
     pos.z = 0;
     for (i = 0; i < 3; i++)
-        d3_SetObjectRot(sc->obj8c[i], (char *)&pos);
+        d3_SetObjectRot(sc->obj8c[i], &pos.v);
     pos.x = 0;
     pos.y = 0;
     pos.z = 0;
     pos.w = 0;
     def = ai_GetDefaultEffect();
-    d3_MatTranspose(&sc->obj98->matrix, (char *)&t);
-    pos.y = (float)(d3_VecAngle2((char *)&d3_ZAxis, def) - 1.5707964f) - sc->rot.y;
+    d3_MatTranspose(&sc->obj98->matrix, &t);
+    pos.y = (float)(d3_VecAngle2(&d3_ZAxis.v, &def->pos) - 1.5707964f) - sc->rot.y;
     pos.x = 0;
     pos.z = 0;
-    d3_SetObjectRot(sc->obj9c, (char *)&pos);
+    d3_SetObjectRot(sc->obj9c, &pos.v);
     if (sc->fired == 0)
         ai_CannonAxes(sc);
     v.x = d3_ZAxis.x * sc->obj98->matrix._11 + d3_ZAxis.y * sc->obj98->matrix._21 + d3_ZAxis.z * sc->obj98->matrix._31;
     v.y = d3_ZAxis.x * sc->obj98->matrix._12 + d3_ZAxis.y * sc->obj98->matrix._22 + d3_ZAxis.z * sc->obj98->matrix._32;
     v.z = d3_ZAxis.x * sc->obj98->matrix._13 + d3_ZAxis.y * sc->obj98->matrix._23 + d3_ZAxis.z * sc->obj98->matrix._33;
-    d3_Normalize((char *)&v);
+    d3_Normalize(&v);
     pos.x = v.x * 30.0f;
     pos.y = v.y * 30.0f;
     pos.z = v.z * 30.0f;
@@ -913,15 +918,15 @@ void ai_CannonCamera(CANNONSCENE *sc)
     pos.x += d.x;
     pos.y += d.y;
     pos.z += d.z;
-    d3_SetObjectPos(d3_Camera, (char *)&pos);
-    d3_SetObjectRot(d3_Camera, (char *)&v);
+    d3_SetObjectPos(d3_Camera, &pos.v);
+    d3_SetObjectRot(d3_Camera, &v);
     if (sc->fired == 0)
         ai_CannonAxes(sc);
     if (sc->fired != 0) {
         if (sc->recoilStart + 0x54 <= sc->now) {
             sc->fired = 0;
             sc->recoilStart = 0;
-            d3_SetObjectPos(sc->obj9c, (char *)&ai_WimpelPos);
+            d3_SetObjectPos(sc->obj9c, &ai_WimpelPos.v);
         } else {
             if (sc->recoilStart + 4 > sc->now)
                 fade = (float)(sc->now - sc->recoilStart) * 0.25f;
@@ -932,7 +937,7 @@ void ai_CannonCamera(CANNONSCENE *sc)
             v.x = sc->dirX;
             v.y = 0;
             v.z = sc->dirZ;
-            d3_Normalize((char *)&v);
+            d3_Normalize(&v);
             k = 1.0f;
             if (sc->rot.x > 0.0f)
                 k = 1.0f - sc->rot.x / ai_CameraPitchMax;
@@ -943,7 +948,7 @@ void ai_CannonCamera(CANNONSCENE *sc)
             v.x = sc->pos.x - v.x;
             v.y = sc->pos.y - v.y;
             v.z = sc->pos.z - v.z;
-            d3_SetObjectPos(sc->obj98, (char *)&v);
+            d3_SetObjectPos(sc->obj98, &v);
             pos.x = d3_ZAxis.x;
             pos.y = d3_ZAxis.y;
             pos.z = d3_ZAxis.z;
@@ -953,11 +958,11 @@ void ai_CannonCamera(CANNONSCENE *sc)
             pos.x += ai_WimpelPos.x;
             pos.y += ai_WimpelPos.y;
             pos.z += ai_WimpelPos.z;
-            d3_SetObjectPos(sc->obj9c, (char *)&pos);
+            d3_SetObjectPos(sc->obj9c, &pos.v);
             return;
         }
     }
-    d3_SetObjectPos(sc->obj98, (char *)sc);
+    d3_SetObjectPos(sc->obj98, &sc->pos);
 }
 
 
@@ -966,9 +971,9 @@ void ai_CannonCamera(CANNONSCENE *sc)
    vector sc->side */
 void ai_CannonAxes(CANNONSCENE *sc)
 {
-    d3_DirToWorld(sc->obj8c[0], (char *)&d3_ZAxis, (char *)&sc->dir);
-    d3_DirToWorld(sc->obj8c[0], (char *)&d3_YAxis, (char *)&sc->up);
-    d3_DirToWorld(sc->obj8c[0], (char *)&d3_XAxis, (char *)&sc->side);
+    d3_DirToWorld(sc->obj8c[0], &d3_ZAxis.v, &sc->dir);
+    d3_DirToWorld(sc->obj8c[0], &d3_YAxis.v, &sc->up);
+    d3_DirToWorld(sc->obj8c[0], &d3_XAxis.v, &sc->side);
 }
 /* 0x57f620, the fire check: nothing (0) while a shot runs (sc->fired) or the zoom is above 0.01; a click on the
    fire button (sc->fireBtn) or the key kb_Down[0x32] (DIK_M) fires: the key is cleared, the recoil clock starts
@@ -1171,14 +1176,14 @@ void ai_CannonSwitchAnim(AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, in
             v.x = sc->dirX;
             v.z = sc->dirZ;
             v.y = 0;
-            d3_Normalize((char *)&v);
+            d3_Normalize(&v.v);
             v.x = (ai_CannonSwitchDist * f) * v.x;
             v.y = (ai_CannonSwitchDist * f) * v.y;
             v.z = (ai_CannonSwitchDist * f) * v.z;
             v.x = sc->pos.x - v.x;
             v.y = sc->pos.y - v.y;
             v.z = sc->pos.z - v.z;
-            d3_SetObjectPos(sc->obj98, (char *)&v);
+            d3_SetObjectPos(sc->obj98, &v.v);
             w.x = d3_ZAxis.x;
             w.y = d3_ZAxis.y;
             w.z = d3_ZAxis.z;
@@ -1189,7 +1194,7 @@ void ai_CannonSwitchAnim(AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, in
             w.x = ai_WimpelPos.x + w.x;
             w.y = ai_WimpelPos.y + w.y;
             w.z = ai_WimpelPos.z + w.z;
-            d3_SetObjectPos(sc->obj9c, (char *)&w);
+            d3_SetObjectPos(sc->obj9c, &w.v);
         }
     }
     for (i = 0; i < 3; i++)
@@ -1207,14 +1212,14 @@ void ai_CannonSwitchAnim(AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, in
             v.z = sc->dirZ;
             v.y = 0;
             f = 1.0f - f;
-            d3_Normalize((char *)&v);
+            d3_Normalize(&v.v);
             v.x = (ai_CannonSwitchDist * f) * v.x;
             v.y = (ai_CannonSwitchDist * f) * v.y;
             v.z = (ai_CannonSwitchDist * f) * v.z;
             v.x = sc->pos.x - v.x;
             v.y = sc->pos.y - v.y;
             v.z = sc->pos.z - v.z;
-            d3_SetObjectPos(sc->obj98, (char *)&v);
+            d3_SetObjectPos(sc->obj98, &v.v);
             w.x = d3_ZAxis.x;
             w.y = d3_ZAxis.y;
             w.z = d3_ZAxis.z;
@@ -1225,7 +1230,7 @@ void ai_CannonSwitchAnim(AIBLD *rec, CANNONSCENE *sc, GVEFFECT *run, int sel, in
             w.x = ai_WimpelPos.x + w.x;
             w.y = ai_WimpelPos.y + w.y;
             w.z = ai_WimpelPos.z + w.z;
-            d3_SetObjectPos(sc->obj9c, (char *)&w);
+            d3_SetObjectPos(sc->obj9c, &w.v);
         }
     }
     sc->now = d3_Time;
@@ -1306,7 +1311,7 @@ void ai_CannonExplosion(CANNONSCENE *sc, AIBLD *rec)
         p1.x = t.x + sc->pos.x;
         p1.y = t.y + sc->pos.y;
         p1.z = t.z + sc->pos.z;
-        ai_InitShot(&shotA, &p1, &sc->dir, charge, size, ai_IronDensity);
+        ai_InitShot(&shotA, &p1.v, &sc->dir, charge, size, ai_IronDensity);
         ai_ScatterShot(&shotA, spread, &sc->side, spread, &sc->up, speedSpread);
         h = gv_FireShots(rec, &ai_Chars[ai_PlayerId], &shotA, 0, 0, gv_SalvoCharge(a, b, 1), cost, x);
         x1 = 0;
@@ -1334,8 +1339,8 @@ void ai_CannonExplosion(CANNONSCENE *sc, AIBLD *rec)
         p2.x = t.x + p2.x;
         p2.y = t.y + p2.y;
         p2.z = t.z + p2.z;
-        ai_InitShot(&shotB, &p1, &sc->dir, charge, size, ai_IronDensity);
-        ai_InitShot(&shotA, &p2, &sc->dir, charge, size, ai_IronDensity);
+        ai_InitShot(&shotB, &p1.v, &sc->dir, charge, size, ai_IronDensity);
+        ai_InitShot(&shotA, &p2.v, &sc->dir, charge, size, ai_IronDensity);
         ai_ScatterShot(&shotB, spread, &sc->side, spread, &sc->up, speedSpread);
         ai_ScatterShot(&shotA, spread, &sc->side, spread, &sc->up, speedSpread);
         h = gv_FireShots(rec, &ai_Chars[ai_PlayerId], &shotB, &shotA, 0, gv_SalvoCharge(a, b, 1), cost, x);
@@ -1382,9 +1387,9 @@ void ai_CannonExplosion(CANNONSCENE *sc, AIBLD *rec)
         p2.x = t.x + p2.x;
         p2.y = t.y + p2.y;
         p2.z = t.z + p2.z;
-        ai_InitShot(&shotC, &p1, &sc->dir, charge, size, ai_IronDensity);
-        ai_InitShot(&shotA, &p2, &sc->dir, charge, size, ai_IronDensity);
-        ai_InitShot(&shotB, &p3, &sc->dir, charge, size, ai_IronDensity);
+        ai_InitShot(&shotC, &p1.v, &sc->dir, charge, size, ai_IronDensity);
+        ai_InitShot(&shotA, &p2.v, &sc->dir, charge, size, ai_IronDensity);
+        ai_InitShot(&shotB, &p3.v, &sc->dir, charge, size, ai_IronDensity);
         ai_ScatterShot(&shotC, spread, &sc->side, spread, &sc->up, speedSpread);
         ai_ScatterShot(&shotA, spread, &sc->side, spread, &sc->up, speedSpread);
         ai_ScatterShot(&shotB, spread, &sc->side, spread, &sc->up, speedSpread);
@@ -1550,7 +1555,7 @@ int ai_CanSpyOn(AIBLD *rec)
     return r == 0;
 }
 
-int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); struct AIFIN *gm_PlayerRecord(struct AICHAR *c);
 int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var); void sv_CameraFollow();
 
 /* 0x581020, the cabinet's spy window for the building rec: the form "Locations\Domizil\kabinett_spy" (centred,
@@ -1613,7 +1618,7 @@ void ai_CabinetSpyWindow(AIBLD *rec)
                     AIMSG msg;
                     int pick;
                     LARGE_INTEGER mask;
-                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+                    AIFIN *fin = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
 
                     if (fin != 0)
                         fin->spyPaid += amount;
@@ -1729,7 +1734,7 @@ void ai_CabinetSpyOnCharacter(AIBLD *rec)
             if (d2_PointerObj == btnPay) {
                 if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], cost[i], ai_OwnPlayer) != 0 &&
                     sv_CheckMoney(&ai_Chars[ai_PlayerId], amt[i]) == 1 && ai_CanSpyOn(rec) != 0) {
-                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+                    AIFIN *fin = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
 
                     if (fin != 0)
                         fin->spyPaid += cost[i];
@@ -1949,7 +1954,7 @@ void ai_CabinetIntrigueWindow(AIBLD *rec)
             if (d2_PointerObj == btnPay) {
                 if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], price, ai_OwnPlayer) != 0 &&
                     sv_CheckMoney(&ai_Chars[ai_PlayerId], 0x10) == 1 && ai_CanSpyOn(rec) != 0) {
-                    AIFIN *fin = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+                    AIFIN *fin = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
 
                     if (fin != 0)
                         fin->spyPaid += price;
@@ -2007,12 +2012,12 @@ void sv_ReleaseNamePlates(void);
    (ai_AlchemistResearchWindow), the alchemist contract (ai_AlchemistWindow) or the contract (ai_AlchemistCandidates) */
 void ai_AlchemistLabContact(AIBLD *rec, AIOBJ *room)
 {
-    int contract;
-    int storage;
-    int transport;
-    int alchemistContract;
-    int production;
-    int recipeBook;
+    D3OBJECT *contract;
+    D3OBJECT *storage;
+    D3OBJECT *transport;
+    D3OBJECT *alchemistContract;
+    D3OBJECT *production;
+    D3OBJECT *recipeBook;
     int r;
     int a;
     int b;
@@ -2120,7 +2125,7 @@ void ai_UnlockRoomWindow(AIBLD *rec, AIOBJ *room)
    registered; any click in a locked room opens ai_UnlockRoomWindow, a click on the cannon the cannon scene */
 void ai_CannonContact(AIBLD *rec, AIOBJ *room)
 {
-    int cannon;
+    D3OBJECT *cannon;
 
     cannon = 0;
     sv_ReleaseNamePlates();
@@ -2146,10 +2151,10 @@ void ai_CannonContact(AIBLD *rec, AIOBJ *room)
    ai_CabinetIntrigueWindow / ai_CabinetSpyOnCharacter */
 void ai_CabinetContact(AIBLD *rec, AIOBJ *room)
 {
-    int poison;
-    int removeSpies;
-    int paralysis;
-    int forgeEvidence;
+    D3OBJECT *poison;
+    D3OBJECT *removeSpies;
+    D3OBJECT *paralysis;
+    D3OBJECT *forgeEvidence;
 
     poison = 0;
     removeSpies = 0;

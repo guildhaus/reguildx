@@ -338,7 +338,7 @@ void ai_MasterUpdate(AICHAR *c)
                     found = 0;
                     p = ai_Chars;
                     while (1) {
-                        if ((int)&p->kind >= (int)&ai_Chars[0x300].kind)
+                        if ((intptr_t)&p->kind >= (intptr_t)&ai_Chars[0x300].kind)
                             break;
                         if (p->id != 0xffff && p->bld == b && (p->kind == 1 || p->kind == 2))
                             found = 1;
@@ -2404,7 +2404,7 @@ void ai_StartBuildingWork(AICHAR *ch)
                 msg.time = ai_Time;
                 msg.flags = 1;
                 msg.graveWork.size = p->size;
-                msg.graveWork.index = gv_EntryIndex((char *)ch->bld->yard, (int *)p);
+                msg.graveWork.index = gv_EntryIndex(ch->bld->yard, p);
                 msg.ids[0] = f->netId;
                 cm_SendLongMessage(&msg);
             }
@@ -3322,7 +3322,7 @@ void ai_BuildTradeOffers(AICHAR *ch, AIOBJ *store, int f)
     AIBLD *bld;
     AIOBJ *o, *o2;
     AIOBJ *it, *it2;
-    int *q;
+    GMSTOCK *q;
     AIJOB *job;
     void *p;
     AIRECIPE rec;
@@ -3339,7 +3339,7 @@ void ai_BuildTradeOffers(AICHAR *ch, AIOBJ *store, int f)
             if (o) {
                 for (it = gm_Query(o->list, 1, 5); it; it = gm_QueryNext()) {
                     q = gm_FindGoods(bld->playerSlot, it->id);
-                    if (q && q[1]) {
+                    if (q && q->amount) {
                         price = gm_GoodsPrice(it->id, (unsigned char)bld->playerSlot);
                         diff = gm_ItemPrice(it->id, 100) - price;
                         for (i = 0; i < ai_NSlots; i++)
@@ -3377,7 +3377,7 @@ void ai_BuildTradeOffers(AICHAR *ch, AIOBJ *store, int f)
                 if (o2) {
                     for (it = gm_Query(o2->list, 1, 5); it; it = gm_QueryNext()) {
                         q = gm_FindGoods(bld->playerSlot, it->id);
-                        if (q && q[1]) {
+                        if (q && q->amount) {
                             price = gm_ItemPrice(it->id, 100);
                             diff = gm_GoodsPrice(it->id, (unsigned char)bld->playerSlot) - price;
                             for (i = 0; i < ai_NEntries; i++)
@@ -3424,7 +3424,7 @@ void ai_BuildTradeOffers(AICHAR *ch, AIOBJ *store, int f)
             if (o) {
                 for (it = gm_Query(o->list, 1, 5); it; it = gm_QueryNext()) {
                     q = gm_FindGoods(ai_OwnPlayer, it->id);
-                    if (q && q[1]) {
+                    if (q && q->amount) {
                         price = gm_GoodsPrice(it->id, ai_OwnPlayer) * bld->priceRate * 0.01f;
                         diff = gm_ItemPrice(it->id, 100) - price;
                         for (i = 0; i < ai_NSlots; i++)

@@ -10,7 +10,7 @@
    Open: head: the prototypes of this unit's functions still sit in he.h (scattered among he's).
    split from he (rea 8cef7d5b, src/game/he.c); boundaries in decl/text.dcl */
 struct AHMSLOT;
-struct D3HMAP;
+struct D3SM;
 struct SBBANK;
 struct SBSAMPLE;
 union AHMGRID;
@@ -85,7 +85,7 @@ struct AICHAR; struct AMTREC; struct CHARACTER; struct CHACTION; struct EVTSCRIP
 
 
 #define AICHAR_FLAGS1C8 0x71  /* the ai_CharInts index of AICHAR.flags1c8 (ai.h, +0x1c8; ai_CharInts starts at +4) */
-#define SLOT(i) ((int *)((unsigned)&he_EventSlots + (i) * 12))
+#define SLOT(i) ((int *)((uintptr_t)&he_EventSlots + (i) * 12))
 
 /* one of the ten 16-byte slots of the walk event 0x7a at AIJOB +0xac (he_StartWalk clears them) */
 typedef struct HEWALKSLOT {
@@ -256,7 +256,7 @@ typedef struct HERESEARCH {             /* the research event 0xc's words over A
     char pad00[0xac];
     int buyer;                          /* 0xac, the id of the building the good is ordered to (the message's buyer) */
     char padb0[4];
-    int good;                           /* 0xb4, the goods prototype researched (f3gm.c GMJOB.research) */
+    int good;                           /* 0xb4, the goods prototype researched (AIJOB.research) */
     int objId;                          /* 0xb8, the objId of the object the order made (the reply's AIOBJ.objId) */
     int wbc;                            /* 0xbc, 0 at the allocation (no reader known) */
     int limit;                          /* 0xc0, the rounds waited for that object (0x20) */
@@ -894,23 +894,6 @@ typedef struct HETITLE {                /* the title ceremony event 0x69's words
     int ch;                             /* 0xb0, the netId of the character who gets it */
     int sent;                           /* 0xb4, 1 once the title was sent as the character's field 0xd, 0 at the start */
 } HETITLE;
-typedef struct HEFINVIEW {              /* the player record gm_PlayerRecord finds (ai.h AIFIN, not included here) at +0x18 / +0x64 */
-    char pad00[0x14];
-    int burglaryTakings;                /* 0x14, the money its character's burglaries took (he_RunBurglary adds it) */
-    int gangTakings;                    /* 0x18, the money the pickpocket gangs brought its character (he_RunGang adds it) */
-    char pad1c[4];
-    int ransomTakings;                  /* 0x20, the ransoms its character took as a thieves' guild master (he_RunRansomDemand adds them) */
-    char pad24[4];
-    int spyPaid;                        /* 0x28, the money paid for spies and saboteurs (ai.h AIFIN.spyPaid; he_RunSabotage adds the fee) */
-    char pad2c[0x20];
-    int customerTakings;                /* 0x4c, the money its character's customers paid (he_RunCustomers adds it) */
-    char pad50[4];
-    int buildPaid;                      /* 0x54, the money its character paid for new buildings (the construction event's
-                                           run handler he_RunConstruction adds the price) */
-    char pad58[0xc];
-    int taught;                         /* 0x64, the trial step courses its character finished as the teacher (he_RunTrialSteps
-                                           counts it; reasoned, its reader is not read yet) */
-} HEFINVIEW;
 #pragma pack(push, 1)
 typedef struct HEOFFER {                /* the offer event 0x2c's words over AIJOB's union (AIJOB has no names at these
                                            odd offsets): the kind, the offer clock and the offer handle */
@@ -1111,7 +1094,7 @@ unsigned short hmt_RecordCount(void);
 unsigned short hmt_RandomRecord(short k);
 unsigned short hmt_RandomTextOffset(unsigned short k);
 struct G11REC *hmt_GetRecord(unsigned short k);
-float ord_GetStatistics(int *o);
+struct ORDSTATS; float ord_GetStatistics(struct ORDSTATS *o);
 int d3t_PlaceObjectV(struct D3OBJECT *camera, struct D3VECTOR *pos, struct D3VECTOR *dir, int unk, char flags);
 void ai_PlagueMessageAll(void);
 void udp_Send(char *buf, int len);
@@ -1155,10 +1138,10 @@ void sv_PopTo(void (*v)());
 void he_FreeEventNow(AIJOB *r);
 void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2);
 int gm_LevelPayout(int v, int kind);
-int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);
+int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);
 void sv_SelectPanelObject(struct AIBLD *o, int b, char *c);
 void sv_MoveToGroup(struct AIBLD *o, struct AIOBJ *it, int c, struct AIJOB *g);
-int ord_DispatchOrder(int id, struct AICHAR *c, int *m);
+int ord_DispatchOrder(int id, struct AICHAR *c, ORDMSG *m);
 struct G15PLANT * veg_FindPlantId(struct G15PLANT *p, int id);
 float gm_StockPrice(int p, int n);  /* 0x4ffa10 (f3gm.c; f3gm.h does not declare it) */
 typedef struct HEEV3D {                 /* the ransom event 0x3d's words over AIJOB's union (he_AllocRansom / he_RunRansom;
@@ -1169,7 +1152,7 @@ typedef struct HEEV3D {                 /* the ransom event 0x3d's words over AI
     AITIME since;                       /* 0xb4, the time of the kidnap (he_AllocRansom: now), shown by the news 0x19c2 */
 } HEEV3D;
 struct AIBLD *gm_NearestBuilding(struct AIBLD *b, unsigned kind);
-int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);
+int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);
 typedef struct HEEV3E {                 /* the ransom demand event 0x3e's words over AIJOB's union (he_RunRansom's message 0x3e) */
     char pad00[0xac];
     int victim;                         /* 0xac, the netId of the kidnapped character (gm_FindChar), who is asked to pay */
@@ -1296,7 +1279,7 @@ void he_AllocIncomeEvent(AIJOB *e)
     e->incomeCounter = 0;
     e->incomeRate = (float)(d * 0.25);
     b = gm_FindBuildingById(e->incomeBld);
-    for (rec = ai_Chars; (int)rec < (int)&ai_Chars[768]; rec++) {
+    for (rec = ai_Chars; (intptr_t)rec < (intptr_t)&ai_Chars[768]; rec++) {
         if (rec->job == e)
             sv_MoveToGroup(b, 0, rec->id, e);
     }
@@ -1548,7 +1531,7 @@ void he_RunProduktion(AIJOB *ev)
                 worker = 0;
                 name[0] = 0;
                 master = gm_FindCharacterByMaster(bld);
-                for (rec = ai_Chars; (int)rec < (int)&ai_Chars[768]; rec++) {
+                for (rec = ai_Chars; (intptr_t)rec < (intptr_t)&ai_Chars[768]; rec++) {
                     if (rec->job == ev)
                         worker = rec;
                 }
@@ -1767,7 +1750,7 @@ lacking:
             ev->stage = -1;
             return;
         }
-        for (rec = ai_Chars; (int)rec < (int)&ai_Chars[768]; rec++) {
+        for (rec = ai_Chars; (intptr_t)rec < (intptr_t)&ai_Chars[768]; rec++) {
             if (rec->job == ev)
                 sv_MoveToGroup(bld, 0, rec->id, 0);
         }
@@ -1780,7 +1763,7 @@ lacking:
         gm_FindById(&bld, 0, 0, p->bld);
         if (bld != 0)
             cm_SendUpdateSmoke(bld->id);
-        for (rec = ai_Chars; (int)rec < (int)&ai_Chars[768]; rec++) {
+        for (rec = ai_Chars; (intptr_t)rec < (intptr_t)&ai_Chars[768]; rec++) {
             if (rec->job == ev)
                 sv_MoveToGroup(0, 0, rec->id, 0);
         }
@@ -1833,7 +1816,7 @@ void he_RunSearchEvent(AIJOB *ev)
         cm_SendExSellObject(s->store, -1, s->good, amount, ai_OwnPlayer, 0);
         txt_Format(text, 0x1bb8, s->good * 2 + 0x9a8, bld, amount);
         he_MessageBoxQuickjump(ai_Chars[bld->owner].netId, -1, text, 0, 0x5f1, bld->id, -1, 0, "_NACHRICHTEN_HS_08");
-        for (rec = ai_Chars; (int)rec < (int)&ai_Chars[768]; rec++) {
+        for (rec = ai_Chars; (intptr_t)rec < (intptr_t)&ai_Chars[768]; rec++) {
             if (rec->job == ev)
                 sv_MoveToGroup(bld, 0, rec->id, 0);
         }
@@ -1841,7 +1824,7 @@ void he_RunSearchEvent(AIJOB *ev)
         return;
     case -2:
     case -1:
-        for (rec = ai_Chars; (int)rec < (int)&ai_Chars[768]; rec++) {
+        for (rec = ai_Chars; (intptr_t)rec < (intptr_t)&ai_Chars[768]; rec++) {
             if (rec->job == ev)
                 sv_MoveToGroup(0, 0, rec->id, 0);
         }
@@ -1929,7 +1912,7 @@ void he_RunSearch9(AIJOB *ev)
             txt_Format(text, 0x1bb8, found->id * 2 + 0x9a8, bld, amount);
             he_MessageBoxQuickjump(ai_Chars[bld->owner].netId, -1, text, 0, 0x5f1, bld->id, -1, 0, "_NACHRICHTEN_HS_08");
         }
-        for (rec = ai_Chars; (int)rec < (int)&ai_Chars[768]; rec++) {
+        for (rec = ai_Chars; (intptr_t)rec < (intptr_t)&ai_Chars[768]; rec++) {
             if (rec->job == ev)
                 sv_MoveToGroup(bld, 0, rec->id, 0);
         }
@@ -1937,7 +1920,7 @@ void he_RunSearch9(AIJOB *ev)
         return;
     case -2:
     case -1:
-        for (rec = ai_Chars; (int)rec < (int)&ai_Chars[768]; rec++) {
+        for (rec = ai_Chars; (intptr_t)rec < (intptr_t)&ai_Chars[768]; rec++) {
             if (rec->job == ev)
                 sv_MoveToGroup(0, 0, rec->id, 0);
         }
@@ -2424,7 +2407,7 @@ void he_ShowConstruction(AIJOB *ev)
             if (o->kind != 5 || (o->flags & 4)) {
                 o->kind = 5;
                 if ((list.items[i]->flags & 4) && d3_QuadTree != 0)
-                    d3q_RemoveObject(list.items[i], (D3QNODE *)d3_QuadTree);
+                    d3q_RemoveObject(list.items[i], d3_QuadTree);
                 list.items[i]->flags &= ~4;
             }
         }
@@ -2437,7 +2420,7 @@ void he_ShowConstruction(AIJOB *ev)
             o = list.items[i];
             if (o->kind != 5 || (o->flags & 4)) {
                 if ((o->flags & 4) && d3_QuadTree != 0)
-                    d3q_RemoveObject(o, (D3QNODE *)d3_QuadTree);
+                    d3q_RemoveObject(o, d3_QuadTree);
                 list.items[i]->kind = 5;
                 list.items[i]->flags &= ~4;
             }
@@ -2469,7 +2452,7 @@ void he_ShowConstruction(AIJOB *ev)
             d3if_ShowTree(bld->object, 1);
         if (obj != 0) {
             if (d3_QuadTree != 0)
-                d3q_RemoveObject(obj, (D3QNODE *)d3_QuadTree);
+                d3q_RemoveObject(obj, d3_QuadTree);
             d3if_Delete(obj);
         }
     }
@@ -2680,7 +2663,7 @@ void he_RunConstruction(AIJOB *e)
     EVTSCRIPT *sc;
     AICHAR *ch;
     AIBLD *home;
-    HEFINVIEW *fin;
+    AIFIN *fin;
     AIBTYPE *bt;
     int i, size, season;
 
@@ -2702,7 +2685,7 @@ void he_RunConstruction(AIJOB *e)
                 break;
             }
             c->slot = cm_SendMoveGoods(-1, c->payer, ai_OwnPlayer, c->carry);
-            fin = (HEFINVIEW *)gm_PlayerRecord(ch);
+            fin = gm_PlayerRecord(ch);
             if (fin != 0)
                 fin->buildPaid += c->carry;
         } else {
@@ -2793,7 +2776,7 @@ void he_RunConstruction(AIJOB *e)
                 v.y -= site.pos[1];
                 v.z -= site.pos[2];
                 dist = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-                if (dist < best && d3_FindObject((int)ai_Blds[i].object, 0x100, 0, "dummy_TUER") != 0) {
+                if (dist < best && d3_FindObject(ai_Blds[i].object, 0x100, 0, "dummy_TUER") != 0) {
                     nearest = &ai_Blds[i];
                     best = dist;
                 }
@@ -2809,7 +2792,7 @@ void he_RunConstruction(AIJOB *e)
         c->placing = 0;
         for (i = 0; i < list.count; i++) {
             o = list.objs[i];
-            door = d3_FindObject((int)nearest->object, 0x100, 0, "dummy_TUER");
+            door = d3_FindObject(nearest->object, 0x100, 0, "dummy_TUER");
             if (o != 0 && o->type != 1 && door != 0) {
                 sc = evt_Load("SpecialEvents\\Hausbau.esc");
                 if (sc != 0) {
@@ -2843,7 +2826,7 @@ void he_RunConstruction(AIJOB *e)
         d3_ForEachObject(d3_DefaultScene, site.object, 0x2c0, ai_VgFilter, &list);
         for (i = 0; i < list.count; i++) {
             if (d3_QuadTree != 0)
-                d3q_RemoveObject(list.objs[i], (D3QNODE *)d3_QuadTree);
+                d3q_RemoveObject(list.objs[i], d3_QuadTree);
             d3if_Delete(list.objs[i]);
         }
         e->clock60 = ai_Time;
@@ -2880,7 +2863,7 @@ void he_RunConstruction(AIJOB *e)
                     v.y -= at.y;
                     v.z -= at.z;
                     dist = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-                    if (dist < best && (house = d3_FindObject((int)ai_Blds[i].object, 0x100, 0, "dummy_TUER")) != 0) {
+                    if (dist < best && (house = d3_FindObject(ai_Blds[i].object, 0x100, 0, "dummy_TUER")) != 0) {
                         best = dist;
                         door = house;
                     }
@@ -2938,7 +2921,7 @@ void he_RunConstruction(AIJOB *e)
                 init_TextureSetHook(bld->object);
             }
             if (d3_QuadTree != 0)
-                d3q_Rebuild(bld->object, (D3QNODE *)d3_QuadTree);
+                d3q_Rebuild(bld->object, d3_QuadTree);
             if (bld->object != 0 && bld->object->type == 1)
                 d3if_ShowTree(bld->object, 1);
             if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 5 || ai_Chars[bld->owner].kind == 7)
@@ -2947,7 +2930,7 @@ void he_RunConstruction(AIJOB *e)
             if (bld->object->info == 0)
                 d3_InflateObject(bld->object);
             if (bld->object->material != 0
-                && d3t_GetBoundingSphere(bld->object, d3_Camera, (D3VECTOR *)&center, &radius) != 0) {
+                && d3t_GetBoundingSphere(bld->object, d3_Camera, &center.v, &radius) != 0) {
                 size = (int)(radius * 1.8);
                 sc = evt_Load("Effekte/geb_bauen.esc");
                 if (sc != 0) {
@@ -2979,7 +2962,7 @@ void he_RunConstruction(AIJOB *e)
                     sb_PlaySample(snd_SystemBank, "NeuesGebaeude_s", 1, 0x3f, 0x7f, 0, 0);
                 }
                 if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 5) {
-                    for (ch = ai_Chars; (int)&ch->netId < (int)&ai_Chars[0x300].netId; ch++) {
+                    for (ch = ai_Chars; (intptr_t)&ch->netId < (intptr_t)&ai_Chars[0x300].netId; ch++) {
                         if ((ch->kind == 6 || ch->kind == 7) && ch->netId != ai_Chars[bld->owner].netId) {
                             txt_Format(text, 0x1c30, bld->owner, bld->type * 14 + 0x48e);
                             he_MessageBoxQuickjump(ch->netId, -1, text, 0, 0x607, bld->id, -1, 0, "_NACHRICHTEN_HS_50");
@@ -3191,7 +3174,7 @@ void he_AllocRecipeResearch(AIJOB *e)
             gm_AddTime(&e->end, 0, 5, 0);
             e->stage = 0;
             sv_MoveToGroup(c->bld, gm_Query((void *)c->bld->objList, 2, 6, 0, 0x24b), c->id,
-                           (char *)e);
+                           e);
             snd_PlayFavourComment();
             return;
         }
@@ -3277,7 +3260,7 @@ void he_AllocResearchRecipe(AIJOB *e)
                 gm_AddTime(&e->end, 0, 5, 0);
                 e->stage = 0;
                 sv_MoveToGroup(c->bld, gm_Query((void *)c->bld->objList, 2, 6, 0, 0x24b), c->id,
-                               (char *)e);
+                               e);
                 snd_PlayFavourComment();
                 return;
             }
@@ -3364,7 +3347,7 @@ void he_AllocTrainShare(AIJOB *e)
             gm_AddTime(&e->end, 0, 5, 0);
             e->stage = 0;
             sv_MoveToGroup(c->bld, gm_Query((void *)c->bld->objList, 2, 6, 0, 0x24b), c->id,
-                           (char *)e);
+                           e);
             snd_PlayFavourComment();
             return;
         }
@@ -4027,7 +4010,7 @@ int he_FindMeetingSlot(int c)
         slot = util_Random(0x1d);
         i = 0x1d;
         do {
-            gv_GetTableRecord(slot, (int *)&dec);
+            gv_GetTableRecord(slot, &dec);
             if (dec.cur == 1 && dec.valueText == 2 && dec.guilt == want)
                 return slot;
             i--;
@@ -4352,7 +4335,7 @@ void he_AllocHaunting(AIJOB *e)
     }
 }
 
-void ai_HauntingText(unsigned short *param_1, struct AICHAR *param_2, unsigned int param_3);                 /* 0x5a9910 */
+void ai_HauntingText(struct AICHAR *param_1, struct AICHAR *param_2, struct AITIME *param_3);                 /* 0x5a9910 */
 
 /* 0x56fda0, the run handler of the graveyard owner's haunting event 0x88 (alloc he_AllocHaunting; am.c's
    ai_ExecGraveyardOwner0 / sv_t.c post it): without the haunter the event is freed; the stages -1 / -2 take the
@@ -4411,7 +4394,7 @@ void he_RunHaunting(AIJOB *e)
             victim = gm_FindChar(h->victim);
             if (victim != 0) {
                 gm_AddTime(&e->end, 0x18, 0, 0);
-                ai_HauntingText((unsigned short *)&ai_Chars[e->chr], victim, (unsigned int)&e->end);
+                ai_HauntingText(&ai_Chars[e->chr], victim, &e->end);
             }
             e->exSlot = cm_SendExSetHE(3, e);
             return;
@@ -4567,7 +4550,7 @@ void he_RunDecay(AIJOB *e)
         gm_AddTime(&e->end, 1, 0, 0);
         victim = gm_FindChar(d->victim);
         agent = gm_FindChar(d->agent);
-        chance = gm_Mix((int)agent, (int)victim, 2);
+        chance = gm_Mix(agent, victim, 2);
         if (victim != 0) {
             if (util_RandomF() + chance > 1.0) {
                 bld = agent->bld;
@@ -4639,7 +4622,7 @@ void he_AllocPlunder(AIJOB *e)
         return;
     mask.LowPart = 4;
     mask.HighPart = 0;
-    r = ai_PickActionBuildings((struct AICHAR *)((unsigned)&ai_Chars + e->chr * 0x21c), 5, mask.QuadPart, 0, 0, 5, p->bld);
+    r = ai_PickActionBuildings((struct AICHAR *)((uintptr_t)&ai_Chars + e->chr * 0x21c), 5, mask.QuadPart, 0, 0, 5, p->bld);
     if (r == 0) {
         he_FreeEvent(e);
         return;
@@ -4712,7 +4695,7 @@ void he_RunPlunder(AIJOB *e)
             return;
         }
         if (ai_PickPartnerRandomWalk(&ai_Chars[e->chr], PLUNDER_PARTNER_FLAGS, 4, p->victims, 0, 100.0f, &idx) != 0) {
-            price = gv_ProtectionPrice((unsigned short *)&ai_Chars[idx]);
+            price = gv_ProtectionPrice(&ai_Chars[idx]);
             worth = gm_ConvertMoney(gm_GetWorth(idx), ai_OwnPlayer);
             p->victims[p->at] = idx;
             if (worth > price && !(ai_Chars[idx].flags1cc & 1)) {
@@ -4865,7 +4848,7 @@ void he_PlunderTakePrice(int *a, AICHAR *c);   /* 0x570bf0 */
 void he_PlunderFailNews(int *a, AICHAR *c);   /* 0x570c70 */
 int sv_UsedGroupSlots(struct AIJOB *g);   /* 0x5241b0 */
 int gv_ListEntry(struct GVYARD *r, int i, unsigned char n);                 /* 0x4ef570 */
-void ai_HauntingText(unsigned short *param_1, struct AICHAR *param_2, unsigned int param_3);                 /* 0x5a9910 */
+void ai_HauntingText(struct AICHAR *param_1, struct AICHAR *param_2, struct AITIME *param_3);                 /* 0x5a9910 */
 
 /* 0x570ea0, 1 when no running haunting event 0x88 has b's netId as its character (+8) and a's netId as its victim
    (+0xb0); 0 when one does */
@@ -5596,7 +5579,7 @@ void he_RunMeetingScene(AIJOB *e)
         scene = d3_CurrentScene;
         d3if_SelectScene(0, 1);
         o = bld->object;
-        d3_PointToWorld(o, &o->pos, (D3VECTOR *)&p);
+        d3_PointToWorld(o, &o->pos, &p.v);
         p.y += 500.0f;
         evt_RunScriptArgs(obj, 3, (int)p.x, (int)p.y, (int)p.z);
         obj->group = 0;
@@ -5629,8 +5612,8 @@ void he_AllocPlunderOfferLease(AIJOB *e)
     e->stage = 0;
 }
 
-void ai_ShowGraveOrderExtended(struct AICHAR *param_1, unsigned short *param_2, int param_3, int param_4, int param_5, int param_6);                 /* 0x5a97e0 */
-void ai_ShowGraveOrderCancelled(struct AICHAR *param_1, unsigned short *param_2, int param_3, int param_4);                 /* 0x5a9880 */
+void ai_ShowGraveOrderExtended(struct AICHAR *param_1, struct AICHAR *param_2, int param_3, int param_4, int param_5, int param_6);                 /* 0x5a97e0 */
+void ai_ShowGraveOrderCancelled(struct AICHAR *param_1, struct AICHAR *param_2, int param_3, int param_4);                 /* 0x5a9880 */
 int gv_OrderExtendGrave(int *g, struct AIBLD *o, int v, int b, short s, int x);                 /* 0x4f0700 */
 void he_AnswerGraveLease(struct AIJOB *ev);          /* 0x5728d0 */
 void he_ExamCancelled(struct AIJOB *ev);          /* 0x5729c0 */
@@ -5658,7 +5641,7 @@ void he_AnswerGraveLease(AIJOB *e)
     if (ai_Chars[bld->owner].kind != 6 && ai_Chars[bld->owner].kind != 7)
         return;
     n = (int)((float)l->price * gv_SaleShares[l->size]);
-    ai_ShowGraveOrderExtended(&ai_Chars[bld->owner], (unsigned short *)per, (int)bld, l->size, l->price, n);
+    ai_ShowGraveOrderExtended(&ai_Chars[bld->owner], per, (int)bld, l->size, l->price, n);
 }
 /* 0x5729c0, the master exam cancelled (the answer "no" of the exam window, its due time over): when the
    answer's building (0x501190 (1, 1, bldId)) is of the kind 0x1d (a graveyard), the grave order is freed
@@ -5675,7 +5658,7 @@ void he_ExamCancelled(AIJOB *e)
     gv_OrderSetGraveHolder(0, bld, e->graveSize, e->graveEntry);
     per = gm_FindChar(e->netId);
     if (per != 0)
-        ai_ShowGraveOrderCancelled((int *)&ai_Chars[bld->owner], (unsigned short *)per, (int)bld, e->graveSize);
+        ai_ShowGraveOrderCancelled(&ai_Chars[bld->owner], per, (int)bld, e->graveSize);
 }
 /* 0x572a50, the run handler of the grave lease offer 0x92 (gv_GraveyardTurn posts it to the player whose grave lease
    runs out; its words over AIJOB's union are HEGRAVELEASE): stage -2 releases the event bar slot and frees the
@@ -5778,7 +5761,7 @@ void he_RunGraveyardWorkers(AIJOB *e)
             if (bld->owner != 0xffff) {
                 chance = (float)gm_BuildingSkill(bld, 0x15, 1) * 0.0025f;
                 n = 0;
-                for (ch = ai_Chars; (int)ch < (int)&ai_Chars[768]; ch++) {
+                for (ch = ai_Chars; (intptr_t)ch < (intptr_t)&ai_Chars[768]; ch++) {
                     if (ch->id != 0xffff && ch->bld == bld)
                         chars[n++] = ch;
                 }
@@ -5823,7 +5806,7 @@ void he_RunGraveyardWorkers(AIJOB *e)
         for (bld = gm_BuildQuery(1, 5, 0x1d); bld != 0; bld = gm_BuildNext()) {
             n = 0;
             master = gm_FindCharacterByMaster(bld);
-            for (ch = ai_Chars; (int)ch < (int)&ai_Chars[768]; ch++) {
+            for (ch = ai_Chars; (intptr_t)ch < (intptr_t)&ai_Chars[768]; ch++) {
                 if (ch->id != 0xffff && ch->bld == bld)
                     chars[n++] = ch;
             }
@@ -6204,7 +6187,7 @@ void he_GypsyRumour(AICHAR *pl, AICHAR *per)
         amt_ChangeDistrictOpinion(per, 1 + util_Random(3), 0x14 + util_Random(0x10));
     } else {
         delta = -0x14 - util_Random(0x10);
-        for (i = 0, ch = ai_Chars; (int)&ch->kind < (int)&ai_Chars[768].kind; ch++, i++) {
+        for (i = 0, ch = ai_Chars; (intptr_t)&ch->kind < (intptr_t)&ai_Chars[768].kind; ch++, i++) {
             if (i == per->id)
                 continue;
             if (ch->kind == 6 || ch->kind == 7 || ch->kind == 5)

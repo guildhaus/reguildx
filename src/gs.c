@@ -106,14 +106,11 @@ const int gv_RankWorth[10] = { 0, 160000, 320000, 640000, 1600000, 3200000, 6400
 
 /* 0x4f2720, copies the AI decision record i (0 .. 0x1c, an AIDEC of the table 0x611258) to out (a struct copy); 0 for i > 0x1c */
 
-int gv_GetTableRecord(int i, int *out)
+int gv_GetTableRecord(int i, AIDEC *out)
 {
-    AIDEC *rec;
-
     if (i >= 0x1d)
         return 0;
-    rec = (AIDEC *)out;
-    *rec = gv_Decisions[i];
+    *out = gv_Decisions[i];
     return 1;
 }
 /* 0x4f2750, sets the AI decision record i (AIDEC.cur) to v, clamped to the record's min .. max: sends message 0x46
@@ -124,7 +121,7 @@ int gv_SetTableRecord(AICHAR *c, int i, int v)
     GVDECMSG m;
     int id;
 
-    if (gv_GetTableRecord(i, (int *)&rec) == 0)
+    if (gv_GetTableRecord(i, &rec) == 0)
         return -1;
     if (c == 0)
         id = -1;
@@ -151,7 +148,7 @@ int gv_OnDecisionValue(GVDECMSG *p)
     char buf[0x100];
     AICHAR *c;
 
-    if (gv_GetTableRecord(p->rec, (int *)&rec) == 0)
+    if (gv_GetTableRecord(p->rec, &rec) == 0)
         return 0;
     gv_Decisions[p->rec].cur = p->value;
     if (ai_Chars[ai_PlayerId].netId != p->id) {
@@ -344,7 +341,7 @@ int gv_Accuse(int i, int v, int a, int b, int obj)
     float escape;
     CRIME m;
 
-    if (gv_GetTableRecord(i, (int *)&rec) == 0)
+    if (gv_GetTableRecord(i, &rec) == 0)
         return -1;
     culprit = (char *)gm_FindChar(a);
     gm_FindChar(b);
@@ -411,7 +408,7 @@ int gv_TableRecordText(char *out, int i)
     int t;
 
     r = 1;
-    if (gv_GetTableRecord(i, (int *)&rec) == 0)
+    if (gv_GetTableRecord(i, &rec) == 0)
         return 0;
     t = rec.id * 5 + 0x13fd;
     switch (rec.valueText) {
@@ -796,7 +793,7 @@ int gv_CulpritGuilt(int c)
     sum = 0;
     for (k = 0; k < 0x200; k++) {
         if (ai_Crimes[k].culprit == c && ai_Crimes[k].state == 1) {
-            gv_GetTableRecord(ai_Crimes[k].law, (int *)&rec);
+            gv_GetTableRecord(ai_Crimes[k].law, &rec);
             sum += rec.guilt;
         }
     }
@@ -1335,11 +1332,11 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
 }
 /* 0x4f48f0, the text of a character action a: 1 text 0x1538 (with 0.03 * the 0x50a640 value), 3 text 0x153e (4, the value), otherwise text 0x1535 + 3 * a */
 
-void gv_SentenceText(unsigned short *c, int a, char *out)
+void gv_SentenceText(AICHAR *c, int a, char *out)
 {
     int v;
 
-    v = (int)(gm_GetWorth(*c) * 0.03f);
+    v = (int)(gm_GetWorth(c->id) * 0.03f);
     switch (a) {
     case 1:
         txt_Format(out, 0x1538, v);
@@ -1460,7 +1457,7 @@ int gv_EvidencePrice(int id, AICHAR *seller, int *price, short *culprit, unsigne
     i = gv_FindCrime(id);
     if (i == -1)
         return 0;
-    if (gv_GetTableRecord(ai_Crimes[i].law, (int *)&rec) == 0 || rec.guilt == 0)
+    if (gv_GetTableRecord(ai_Crimes[i].law, &rec) == 0 || rec.guilt == 0)
         return 0;
     ch = gm_FindChar(ai_Crimes[i].culprit);
     if (ch == 0)

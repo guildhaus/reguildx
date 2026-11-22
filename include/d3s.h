@@ -9,16 +9,16 @@ typedef struct D3SPANPIX {          /* 0x1c bytes per pixel of the rasterizer's 
 } D3SPANPIX;
 
 typedef struct D3SCENT {            /* 0x14 bytes, one cached shadow texture (d3s_Cache); D3SSLOT.cache */
-    D3TEXHANDLE *tex;               /* 0x00 */
+    struct TSTEXTURE *tex;               /* 0x00 */
     void **owner;                   /* 0x04, the slot that uses it (its tex pointer is cleared when taken over) */
     unsigned int time;              /* 0x08, frame of last use */
     unsigned int size;              /* 0x0c, 0 = free */
-    char flag;                      /* 0x10 */
+    signed char flag;               /* 0x10 */
     char pad11[3];
 } D3SCENT;
 
 typedef struct D3SSLOT {            /* 0x80 bytes, 4 per material at +0x754: the shadow of one light */
-    D3TEXHANDLE *tex;               /* 0x00 */
+    struct TSTEXTURE *tex;               /* 0x00 */
     D3OBJECT *light;                /* 0x04 */
     D3SCENT *cache;                 /* 0x08 */
     unsigned char *map;             /* 0x0c, height map data */
@@ -55,7 +55,7 @@ typedef struct D3SPOLY {            /* 0x28 bytes */
     D3SVERT *v[3];                  /* 0x00 */
     int pad0c;
     float *uv;                      /* 0x10 */
-    D3TEXHANDLE *tex;               /* 0x14 */
+    struct TSTEXTURE *tex;               /* 0x14 */
     float z;                        /* 0x18 */
     char pad1c[0xa];
     unsigned char flags;            /* 0x26, 2 = steep, 4 = both sides */

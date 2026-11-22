@@ -192,15 +192,15 @@ void ai_FillNearRing(AICHAR *c)
         }
     }
     if (p->appliedOffice != 0) {
-        char *rivals[6];
+        AICHAR *rivals[6];
         int nrivals;
 
         nrivals = amt_GetOfficeApplicants(p->appliedOffice, 6, rivals);
         for (j = 0; j < nrivals; j++) {
-            if ((AICHAR *)rivals[j] == p)
+            if (rivals[j] == p)
                 continue;
             for (i = 0; i < cnt; i++) {
-                if ((AICHAR *)rivals[j] == ai_NearRing[i].who) {
+                if (rivals[j] == ai_NearRing[i].who) {
                     ai_NearRing[i].flags |= 2;
                     break;
                 }
@@ -211,7 +211,7 @@ void ai_FillNearRing(AICHAR *c)
                 ai_NearRing[cnt].flags = 2;
                 /* the original reads o, the last holder found above, not the applicant */
                 ai_NearRing[cnt].dist = gm_Liking(o->id, p->id, 1);
-                ai_NearRing[cnt].who = (AICHAR *)rivals[j];
+                ai_NearRing[cnt].who = rivals[j];
                 cnt++;
             }
         }
@@ -575,13 +575,13 @@ D3OBJECT *ai_PickBuildSite(AICHAR *p, int name)
 
 int ai_CanBuildType(int a, AICHAR *p, int b, AIARG *s1, AIARG *s2, int f)
 {
-    int q[0x88];
+    ORDMSG q;
     AIBLD *h;
     int k, r;
     D3OBJECT *site;
 
-    memset(q, 0, sizeof(q));
-    q[0] = 1;
+    memset(&q, 0, sizeof(q));
+    q.kind = 1;
     if (s1->kind != 5)
         return 0;
     k = s1->ref;
@@ -590,19 +590,19 @@ int ai_CanBuildType(int a, AICHAR *p, int b, AIARG *s1, AIARG *s2, int f)
         if (h != 0 && ai_BTypes[h->type].cap247 >= ai_BTypes[k].cap247 && ai_BTypes[h->type].kind == 2)
             return 0;
         if (k == 4) {
-            r = ord_DispatchOrder(1, p, q);
+            r = ord_DispatchOrder(1, p, &q);
             if (r != 2 && r != 4)
                 return 0;
         } else if (k == 5) {
-            r = ord_DispatchOrder(5, p, q);
+            r = ord_DispatchOrder(5, p, &q);
             if (r != 2 && r != 4)
                 return 0;
         } else if (k == 6) {
-            r = ord_DispatchOrder(9, p, q);
+            r = ord_DispatchOrder(9, p, &q);
             if (r != 2 && r != 4)
                 return 0;
         } else if (k == 7) {
-            r = ord_DispatchOrder(0xc, p, q);
+            r = ord_DispatchOrder(0xc, p, &q);
             if (r != 2 && r != 4)
                 return 0;
         }
@@ -762,7 +762,7 @@ void ai_FindWantedItems(AICHAR *p, int n, G9REC *rec, int *st)
         for (i = 0; i < n; i++) {
             if (e->id != rec[i].item)
                 continue;
-            d = (G9DOMIZIL *)ai_FindUsableGood(e->id);
+            d = ai_FindUsableGood(e->id);
             if (d == 0) {
                 rec[i].value = -1;
                 st[1]++;
@@ -783,7 +783,7 @@ void ai_FindWantedItems(AICHAR *p, int n, G9REC *rec, int *st)
         }
     }
     for (i = 0; i < n; i++) {
-        if (rec[i].entryId == -1 && (d = (G9DOMIZIL *)ai_FindUsableGood(rec[i].item)) != 0 && (d->mask & p->goodsMask))
+        if (rec[i].entryId == -1 && (d = ai_FindUsableGood(rec[i].item)) != 0 && (d->mask & p->goodsMask))
             st[1]++;
     }
 }
@@ -793,31 +793,31 @@ void ai_FindWantedItems(AICHAR *p, int n, G9REC *rec, int *st)
 
 int ai_PickPartnerChain(AICHAR *p, int a, int *flags, float b, float f, unsigned short *id)
 {
-    unsigned int q[0x14];
+    AMOUNTCFG q;
     G6RING *e;
     unsigned int i, n;
     int found;
 
     if ((unsigned int)a > 3)
         return 0;
-    memset(q, 0, sizeof(q));
-    memset(&q[7], 0xff, 8 * 4);
-    q[5] = 2;
+    memset(&q, 0, sizeof(q));
+    memset(q.ids, 0xff, sizeof(q.ids));
+    q.option14 = 2;
     i = 0;
-    if (ai_Partner != 0 && !(q[1] & 0x10000000)) {
-        q[16] = 0;
-        q[1] = flags[0];
-        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, q, 0) != 0) {
+    if (ai_Partner != 0 && !(q.mode & 0x10000000)) {
+        q.liking = 0;
+        q.mode = flags[0];
+        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, &q, 0) != 0) {
             i = 1;
             id[0] = ai_Partner->id;
         }
     }
     for (; i < (unsigned int)a; i++) {
-        q[1] = flags[i];
+        q.mode = flags[i];
         if (i != 0)
-            ((unsigned short *)&q[7])[i] = id[i - 1];
+            q.ids[i] = id[i - 1];
         else
-            ((unsigned short *)&q[7])[0] = p->id;
+            q.ids[0] = p->id;
         found = 0;
         n = ai_NearRingCount;
         for (e = ai_NextNearRingEntry(); !found; n--, e = ai_NextNearRingEntry()) {
@@ -829,7 +829,7 @@ int ai_PickPartnerChain(AICHAR *p, int a, int *flags, float b, float f, unsigned
             if (e->who == 0)
                 return 0;
             if (!(e->dist < b) && !(e->dist > f)
-                && ai_PassesPartnerFilter(p->id, e->who->id, q, 0) != 0) {
+                && ai_PassesPartnerFilter(p->id, e->who->id, &q, 0) != 0) {
                 found = 1;
                 id[i] = e->who->id;
             }
@@ -842,33 +842,33 @@ int ai_PickPartnerChain(AICHAR *p, int a, int *flags, float b, float f, unsigned
 
 int ai_PickPartnerInRange(AICHAR *p, unsigned int fl, int n, unsigned short *ids, float lo, float hi, unsigned short *id)
 {
-    unsigned int q[0x14];
+    AMOUNTCFG q;
     G6RING *e;
     unsigned int len;
     int k;
 
-    memset(q, 0, sizeof(q));
+    memset(&q, 0, sizeof(q));
     len = n * 2;
     if (len > 0x20)
         len = 0x20;
-    memcpy(&q[7], ids, len);
-    q[5] = 2;
-    if (ai_Partner != 0 && !(q[1] & 0x10000000)) {
-        q[16] = 0;
-        q[1] = fl;
-        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, q, 0) != 0) {
+    memcpy(q.ids, ids, len);
+    q.option14 = 2;
+    if (ai_Partner != 0 && !(q.mode & 0x10000000)) {
+        q.liking = 0;
+        q.mode = fl;
+        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, &q, 0) != 0) {
             *id = ai_Partner->id;
             return 1;
         }
     }
-    q[16] = 0;
+    q.liking = 0;
     k = ai_NearRingCount;
     do {
         e = ai_NextNearRingEntry();
         if (k == 0 || e->who == 0)
             return 0;
         if (!(e->dist < lo) && !(e->dist > hi)
-            && ai_PassesPartnerFilter(p->id, e->who->id, q, 0) != 0) {
+            && ai_PassesPartnerFilter(p->id, e->who->id, &q, 0) != 0) {
             *id = e->who->id;
             return 1;
         }
@@ -880,21 +880,21 @@ int ai_PickPartnerInRange(AICHAR *p, unsigned int fl, int n, unsigned short *ids
 
 int ai_FindPartnersRandomWalk(AICHAR *p, unsigned int a, int *flags, float lo, float hi, unsigned short *id)
 {
-    unsigned int q[0x14];
+    AMOUNTCFG q;
     unsigned int i, c;
     int step, n, found, win;
     float r;
 
     step = ai_CharWalkSteps[util_Random(0x10)];
     i = 0;
-    memset(q, 0, sizeof(q));
+    memset(&q, 0, sizeof(q));
     win = 0;
-    memset(&q[7], 0xff, 8 * 4);
-    q[5] = 2;
+    memset(q.ids, 0xff, sizeof(q.ids));
+    q.option14 = 2;
     if (ai_Partner != 0) {
-        q[16] = 0;
-        q[1] = flags[0];
-        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, q, 0) != 0) {
+        q.liking = 0;
+        q.mode = flags[0];
+        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, &q, 0) != 0) {
             i = 1;
             id[0] = ai_Partner->id;
         }
@@ -902,11 +902,11 @@ int ai_FindPartnersRandomWalk(AICHAR *p, unsigned int a, int *flags, float lo, f
     if ((lo > 0.0 || hi < 100.0) && lo < hi)
         win = 1;
     for (; i < a; i++) {
-        q[1] = flags[i];
+        q.mode = flags[i];
         if (i != 0)
-            ((unsigned short *)&q[7])[i] = id[i - 1];
+            q.ids[i] = id[i - 1];
         else
-            ((unsigned short *)&q[7])[0] = p->id;
+            q.ids[0] = p->id;
         n = 0x300;
         found = 0;
         c = util_Random(0x300);
@@ -916,7 +916,7 @@ int ai_FindPartnersRandomWalk(AICHAR *p, unsigned int a, int *flags, float lo, f
                     return 0;
                 break;
             }
-            if (ai_PassesPartnerFilter(p->id, (unsigned short)c, q, 0) != 0) {
+            if (ai_PassesPartnerFilter(p->id, (unsigned short)c, &q, 0) != 0) {
                 if (!win || (r = gm_Liking(c, p->id, 1), !(r < lo) && !(r > hi))) {
                     found = 1;
                     id[i] = (unsigned short)c;
@@ -933,26 +933,26 @@ int ai_FindPartnersRandomWalk(AICHAR *p, unsigned int a, int *flags, float lo, f
 
 int ai_PickPartnerRandomWalk(AICHAR *p, unsigned int fl, int n, unsigned short *ids, float lo, float hi, unsigned short *id)
 {
-    unsigned int q[0x14];
+    AMOUNTCFG q;
     unsigned int len, c;
     int step, k, found, win;
     float r;
 
     step = ai_CharWalkSteps[util_Random(0x10)];
-    memset(q, 0, sizeof(q));
+    memset(&q, 0, sizeof(q));
     win = 0;
     len = n * 2;
-    memcpy(&q[7], ids, len > 0x20 ? 0x20 : len);
-    q[5] = 2;
+    memcpy(q.ids, ids, len > 0x20 ? 0x20 : len);
+    q.option14 = 2;
     if (ai_Partner != 0) {
-        q[16] = 0;
-        q[1] = fl;
-        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, q, 0) != 0) {
+        q.liking = 0;
+        q.mode = fl;
+        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, &q, 0) != 0) {
             *id = ai_Partner->id;
             return 1;
         }
     }
-    q[1] = fl;
+    q.mode = fl;
     if ((lo > 0.0 || hi < 100.0) && lo < hi)
         win = 1;
     found = 0;
@@ -964,7 +964,7 @@ int ai_PickPartnerRandomWalk(AICHAR *p, unsigned int fl, int n, unsigned short *
                 return 0;
             break;
         }
-        if (ai_PassesPartnerFilter(p->id, (unsigned short)c, q, 0) != 0) {
+        if (ai_PassesPartnerFilter(p->id, (unsigned short)c, &q, 0) != 0) {
             if (!win || (r = gm_Liking(c, p->id, 1), !(r < lo) && !(r > hi))) {
                 found = 1;
                 *id = (unsigned short)c;
@@ -982,7 +982,7 @@ int ai_PickPartnerRandomWalk(AICHAR *p, unsigned int fl, int n, unsigned short *
 
 unsigned int ai_FindCandidates(AICHAR *p, unsigned int n, unsigned int fl, float lo, float hi, unsigned short *out)
 {
-    unsigned int q[0x14];
+    AMOUNTCFG q;
     unsigned int cnt;
     int i, step, k, rank, win;
     unsigned char t;
@@ -990,12 +990,12 @@ unsigned int ai_FindCandidates(AICHAR *p, unsigned int n, unsigned int fl, float
 
     step = ai_CharWalkSteps[util_Random(0x10)];
     win = 0;
-    memset(q, 0, sizeof(q));
-    memset(&q[7], 0xff, 8 * 4);
+    memset(&q, 0, sizeof(q));
+    memset(q.ids, 0xff, sizeof(q.ids));
     if ((lo > 0.0 || hi < 100.0) && lo < hi)
         win = 1;
-    q[5] = 2;
-    q[1] = fl;
+    q.option14 = 2;
+    q.mode = fl;
     rank = gm_CharPrevLevel(p->id, 0);
     cnt = 0;
     k = 0x300;
@@ -1003,7 +1003,7 @@ unsigned int ai_FindCandidates(AICHAR *p, unsigned int n, unsigned int fl, float
     while (cnt < n && k != 0) {
         t = ai_Chars[i].kind;
         if (t != 8 && t != 7 && t != 5 && t != 9 && t != 0x14 && ai_Chars[i].jobId != 0 && ai_Chars[i].jobId != 'R'
-            && ai_PassesPartnerFilter(p->id, (unsigned short)i, q, 0) != 0
+            && ai_PassesPartnerFilter(p->id, (unsigned short)i, &q, 0) != 0
             && abs(rank - gm_CharPrevLevel((unsigned short)i, 0)) < 6
             && (!win || (r = gm_Liking(i, p->id, 1), !(r < lo) && !(r > hi)))) {
             out[cnt++] = (unsigned short)i;
@@ -1016,7 +1016,7 @@ unsigned int ai_FindCandidates(AICHAR *p, unsigned int n, unsigned int fl, float
     while (cnt < n && k != 0) {
         t = ai_Chars[i].kind;
         if (t != 8 && t != 7 && t != 5 && t != 9 && t != 0x14 && ai_Chars[i].jobId == 0
-            && ai_PassesPartnerFilter(p->id, (unsigned short)i, q, 0) != 0
+            && ai_PassesPartnerFilter(p->id, (unsigned short)i, &q, 0) != 0
             && abs(rank - gm_CharPrevLevel((unsigned short)i, 0)) < 6
             && (!win || (r = gm_Liking(i, p->id, 1), !(r < lo) && !(r > hi)))) {
             out[cnt++] = (unsigned short)i;
@@ -1033,21 +1033,21 @@ unsigned int ai_FindCandidates(AICHAR *p, unsigned int n, unsigned int fl, float
 
 unsigned int ai_PickPartnerChainLevel(AICHAR *p, unsigned int a, unsigned int fl, float lo, float hi, int d, unsigned short *id)
 {
-    unsigned int q[0x14];
+    AMOUNTCFG q;
     unsigned int i, c;
     int step, n, found, win, home;
     float r;
 
     step = ai_CharWalkSteps[util_Random(0x10)];
     i = 0;
-    memset(q, 0, sizeof(q));
+    memset(&q, 0, sizeof(q));
     win = 0;
-    memset(&q[7], 0xff, 8 * 4);
-    q[5] = 2;
+    memset(q.ids, 0xff, sizeof(q.ids));
+    q.option14 = 2;
     if (ai_Partner != 0) {
-        q[1] = fl;
-        q[16] = 0;
-        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, q, 0) != 0) {
+        q.mode = fl;
+        q.liking = 0;
+        if (ai_PassesPartnerFilter(p->id, ai_Partner->id, &q, 0) != 0) {
             i = 1;
             id[0] = ai_Partner->id;
         }
@@ -1056,11 +1056,11 @@ unsigned int ai_PickPartnerChainLevel(AICHAR *p, unsigned int a, unsigned int fl
         win = 1;
     home = amt_GetKindLevel(p->officeKind);
     for (; i < a; i++) {
-        q[1] = fl;
+        q.mode = fl;
         if (i != 0)
-            ((unsigned short *)&q[7])[i] = id[i - 1];
+            q.ids[i] = id[i - 1];
         else
-            ((unsigned short *)&q[7])[0] = p->id;
+            q.ids[0] = p->id;
         n = 0x300;
         found = 0;
         c = util_Random(0x300);
@@ -1070,7 +1070,7 @@ unsigned int ai_PickPartnerChainLevel(AICHAR *p, unsigned int a, unsigned int fl
                     return i;
                 break;
             }
-            if (ai_PassesPartnerFilter(p->id, (unsigned short)c, q, 0) != 0
+            if (ai_PassesPartnerFilter(p->id, (unsigned short)c, &q, 0) != 0
                 && (!win || (r = gm_Liking(c, p->id, 1), !(r < lo) && !(r > hi)))
                 && abs(home - amt_GetKindLevel(ai_Chars[c].officeKind)) <= d) {
                 found = 1;
@@ -1090,18 +1090,18 @@ unsigned int ai_PickPartnerChainLevel(AICHAR *p, unsigned int a, unsigned int fl
 
 int ai_PickActionBuilding(AICHAR *p, int a, __int64 mask, float lo, float hi, int *out)
 {
-    unsigned int q[0x14];
+    AMOUNTCFG q;
     AIBLD *b;
     int step, n, found, win, j;
     float r;
 
     step = ai_RandomStrides[util_Random(0x10)];
     win = 0;
-    q[2] = (unsigned int)mask;
+    q.classMask[0] = (unsigned int)mask;
     found = 0;
-    q[5] = 0;
-    q[3] = (unsigned int)((unsigned __int64)mask >> 32) | 0x80000000;
-    q[4] = a;
+    q.option14 = 0;
+    q.classMask[1] = (unsigned int)((unsigned __int64)mask >> 32) | 0x80000000;
+    q.kind = a;
     *out = -1;
     if ((lo > 0.0 || hi < 100.0) && lo < hi)
         win = 1;
@@ -1114,8 +1114,8 @@ int ai_PickActionBuilding(AICHAR *p, int a, __int64 mask, float lo, float hi, in
             break;
         }
         b = &ai_Blds[j];
-        if (b->type != 0 && ai_PassesBuildingFilter(p, q, b) != 0
-            && (!win || (r = gm_Liking(b->owner, p->id, 1), !(r < ((float *)q)[0x11]) && !(r > ((float *)q)[0x11])))) {
+        if (b->type != 0 && ai_PassesBuildingFilter(p, &q, b) != 0
+            && (!win || (r = gm_Liking(b->owner, p->id, 1), !(r < q.likingMin) && !(r > q.likingMin)))) {
             found = 1;
             *out = b->id;
         }
@@ -1131,7 +1131,7 @@ int ai_PickActionBuilding(AICHAR *p, int a, __int64 mask, float lo, float hi, in
 
 int ai_PickActionBuildings(AICHAR *p, int a, __int64 mask, float lo, float hi, unsigned char n, int *out)
 {
-    unsigned int q[0x14];
+    AMOUNTCFG q;
     AIBLD *b;
     int step, k, cnt, win, j, max;
     float r;
@@ -1139,10 +1139,10 @@ int ai_PickActionBuildings(AICHAR *p, int a, __int64 mask, float lo, float hi, u
     step = ai_RandomStrides[util_Random(0x10)];
     cnt = 0;
     win = 0;
-    q[5] = 0;
-    q[2] = (unsigned int)mask;
-    q[3] = (unsigned int)((unsigned __int64)mask >> 32) | 0x80000000;
-    q[4] = a;
+    q.option14 = 0;
+    q.classMask[0] = (unsigned int)mask;
+    q.classMask[1] = (unsigned int)((unsigned __int64)mask >> 32) | 0x80000000;
+    q.kind = a;
     if ((lo > 0.0 || hi < 100.0) && lo < hi)
         win = 1;
     k = 0x100;
@@ -1150,8 +1150,8 @@ int ai_PickActionBuildings(AICHAR *p, int a, __int64 mask, float lo, float hi, u
     max = n;
     while (cnt < max && k != 0) {
         b = &ai_Blds[j];
-        if (b->type != 0 && ai_PassesBuildingFilter(p, q, b) != 0
-            && (!win || (r = gm_Liking(b->owner, p->id, 1), !(r < ((float *)q)[0x11]) && !(r > ((float *)q)[0x11])))) {
+        if (b->type != 0 && ai_PassesBuildingFilter(p, &q, b) != 0
+            && (!win || (r = gm_Liking(b->owner, p->id, 1), !(r < q.likingMin) && !(r > q.likingMin)))) {
             out[cnt] = b->id;
             cnt++;
         }
@@ -1163,17 +1163,17 @@ int ai_PickActionBuildings(AICHAR *p, int a, __int64 mask, float lo, float hi, u
 /* 0x4a66f0: the positions of two buildings' models (0x61) in scene 0: a (raised by 0.8 of its height), b; -1
    when one is missing or they are the same */
 
-int ai_BuildingAimPoints(AIBLD *x, float *a, AIBLD *y, float *b)
+int ai_BuildingAimPoints(AIBLD *x, D3VECTOR *a, AIBLD *y, D3VECTOR *b)
 {
     int scene = d3_CurrentScene;
-    float mn[4];
-    float mx[4];
+    D3VECTOR4 mn;
+    D3VECTOR4 mx;
 
     if (x != 0 && y != 0 && x->object != 0 && y->object != 0 && x != y) {
         d3if_SelectScene(0, 1);
         d3_PointToWorld(x->object, &x->object->pos, a);
-        d3t_GetObjectBounds((D3VECTOR *)mn, (D3VECTOR *)mx, x->object);
-        a[1] = (mx[1] - mn[1]) * 0.8f + a[1];
+        d3t_GetObjectBounds(&mn.v, &mx.v, x->object);
+        a->y = (mx.y - mn.y) * 0.8f + a->y;
         d3_PointToWorld(y->object, &y->object->pos, b);
         d3if_SelectScene(scene, 1);
         return 0;
@@ -1189,13 +1189,13 @@ int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
 {
     G9CANNON *cn;
     G9KIND kind;
-    float pa[4];
-    float pb[4];
+    D3VECTOR4 pa;
+    D3VECTOR4 pb;
     float rng[4];
     float v94[2];
-    float vb[4];
-    float vc[4];
-    float vd[4];
+    D3VECTOR4 vb;
+    D3VECTOR4 vc;
+    D3VECTOR4 vd;
     float x5c, x48;
     int par[5];
     int r, r2, n, cost, x, k;
@@ -1206,7 +1206,7 @@ int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
     cn = gv_FindEffect(b->id);
     if (cn == 0)
         return 0;
-    if (ai_BuildingAimPoints(b, pa, t, pb) != 0)
+    if (ai_BuildingAimPoints(b, &pa.v, t, &pb.v) != 0)
         return 0;
     gv_BuildingCannon(b, &r2, &r);
     r = util_Random(r + 1);
@@ -1221,7 +1221,7 @@ int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
     rng[1] = v94[1];
     rng[2] = -0.2617994f;
     rng[3] = 0.7853982f;
-    if (ai_SolveCannonAim(pa, pb, rng, &x5c, &x48, &ang, vb, vc, vd) != 0)
+    if (ai_SolveCannonAim(&pa.v, &pb.v, rng, &x5c, &x48, &ang, &vb.v, &vc.v, &vd.v) != 0)
         return 0;
     k = (int)((ang - rng[0]) * 100.0f / (rng[1] - rng[0]));
     if (gv_SalvoCharge(r, k, r2 + 1) > cn->charge[r2])
@@ -1231,18 +1231,18 @@ int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
         return 0;
     if ((int)(gm_SumListAmounts(p->inventory, ai_OwnPlayer) * 0.25f) < cost)
         return 0;
-    ai_CannonShot.a[0] = pa[0];
-    ai_CannonShot.a[1] = pa[1];
-    ai_CannonShot.a[2] = pa[2];
-    ai_CannonShot.b[0] = vb[0];
-    ai_CannonShot.b[1] = vb[1];
-    ai_CannonShot.b[2] = vb[2];
-    ai_CannonShot.c[0] = vc[0];
-    ai_CannonShot.c[1] = vc[1];
-    ai_CannonShot.c[2] = vc[2];
-    ai_CannonShot.d[0] = vd[0];
-    ai_CannonShot.d[1] = vd[1];
-    ai_CannonShot.d[2] = vd[2];
+    ai_CannonShot.a.x = pa.x;
+    ai_CannonShot.a.y = pa.y;
+    ai_CannonShot.a.z = pa.z;
+    ai_CannonShot.b.x = vb.x;
+    ai_CannonShot.b.y = vb.y;
+    ai_CannonShot.b.z = vb.z;
+    ai_CannonShot.c.x = vc.x;
+    ai_CannonShot.c.y = vc.y;
+    ai_CannonShot.c.z = vc.z;
+    ai_CannonShot.d.x = vd.x;
+    ai_CannonShot.d.y = vd.y;
+    ai_CannonShot.d.z = vd.z;
     ai_CannonShot.who = p->netId;
     ai_CannonShot.bld = b->id;
     ai_CannonShot.x = x;
@@ -1282,9 +1282,12 @@ int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
 int ai_FireCannon(AICHAR *p, AIBLD *b)
 {
     float u, v;
-    float v1[4], v2[4], v3[4], v4[4];
+    D3VECTOR4 v1;
+    D3VECTOR4 v2;
+    D3VECTOR4 v3;
+    D3VECTOR4 v4;
     float f, c, g;
-    char s1[104], s2[104], s3[104];
+    SHOTREC s1, s2, s3;
     int cost, x;
     const G9BALL *bl;
 
@@ -1297,93 +1300,93 @@ int ai_FireCannon(AICHAR *p, AIBLD *b)
         c = bl->c;
         f = (g * bl->b - bl->a) * (ai_CannonShot.k * 0.01f) + bl->a;
         if (ai_CannonShot.charge == 1) {
-            v1[0] = ai_CannonShot.b[0] * 50.0f;
-            v1[1] = ai_CannonShot.b[1] * 50.0f;
-            v1[2] = ai_CannonShot.b[2] * 50.0f;
-            v1[0] = ai_CannonShot.a[0] + v1[0];
-            v1[1] = ai_CannonShot.a[1] + v1[1];
-            v1[2] = ai_CannonShot.a[2] + v1[2];
-            ai_InitShot(s1, v1, ai_CannonShot.b, f, c, ai_IronDensity);
-            ai_ScatterShot(s1, u, ai_CannonShot.d, u, ai_CannonShot.c, v);
-            gv_FireShots(b, p, s1, 0, 0, gv_SalvoCharge(ai_CannonShot.kind, ai_CannonShot.k, 1), x, cost);
+            v1.x = ai_CannonShot.b.x * 50.0f;
+            v1.y = ai_CannonShot.b.y * 50.0f;
+            v1.z = ai_CannonShot.b.z * 50.0f;
+            v1.x = ai_CannonShot.a.x + v1.x;
+            v1.y = ai_CannonShot.a.y + v1.y;
+            v1.z = ai_CannonShot.a.z + v1.z;
+            ai_InitShot(&s1, &v1.v, &ai_CannonShot.b.v, f, c, ai_IronDensity);
+            ai_ScatterShot(&s1, u, &ai_CannonShot.d.v, u, &ai_CannonShot.c.v, v);
+            gv_FireShots(b, p, &s1, 0, 0, gv_SalvoCharge(ai_CannonShot.kind, ai_CannonShot.k, 1), x, cost);
             return 1;
         }
         if (ai_CannonShot.charge == 2) {
-            v1[0] = ai_CannonShot.b[0] * 40.0f;
-            v1[1] = ai_CannonShot.b[1] * 40.0f;
-            v1[2] = ai_CannonShot.b[2] * 40.0f;
-            v3[0] = v1[0] + ai_CannonShot.a[0];
-            v3[1] = v1[1] + ai_CannonShot.a[1];
-            v3[2] = v1[2] + ai_CannonShot.a[2];
-            v2[0] = v1[0] + ai_CannonShot.a[0];
-            v2[1] = v1[1] + ai_CannonShot.a[1];
-            v2[2] = v1[2] + ai_CannonShot.a[2];
-            v1[0] = ai_CannonShot.d[0] * 5.0f;
-            v1[1] = ai_CannonShot.d[1] * 5.0f;
-            v1[2] = ai_CannonShot.d[2] * 5.0f;
-            v2[0] = v1[0] + v2[0];
-            v2[1] = v1[1] + v2[1];
-            v2[2] = v1[2] + v2[2];
-            v1[0] = ai_CannonShot.d[0] * -5.0f;
-            v1[1] = ai_CannonShot.d[1] * -5.0f;
-            v1[2] = ai_CannonShot.d[2] * -5.0f;
-            v3[0] = v1[0] + v3[0];
-            v3[1] = v1[1] + v3[1];
-            v3[2] = v1[2] + v3[2];
-            ai_InitShot(s2, v2, ai_CannonShot.b, f, c, ai_IronDensity);
-            ai_InitShot(s1, v3, ai_CannonShot.b, f, c, ai_IronDensity);
-            ai_ScatterShot(s2, u, ai_CannonShot.d, u, ai_CannonShot.c, v);
-            ai_ScatterShot(s1, u, ai_CannonShot.d, u, ai_CannonShot.c, v);
-            gv_FireShots(b, p, s2, s1, 0, gv_SalvoCharge(ai_CannonShot.kind, ai_CannonShot.k, 2), x, cost);
+            v1.x = ai_CannonShot.b.x * 40.0f;
+            v1.y = ai_CannonShot.b.y * 40.0f;
+            v1.z = ai_CannonShot.b.z * 40.0f;
+            v3.x = v1.x + ai_CannonShot.a.x;
+            v3.y = v1.y + ai_CannonShot.a.y;
+            v3.z = v1.z + ai_CannonShot.a.z;
+            v2.x = v1.x + ai_CannonShot.a.x;
+            v2.y = v1.y + ai_CannonShot.a.y;
+            v2.z = v1.z + ai_CannonShot.a.z;
+            v1.x = ai_CannonShot.d.x * 5.0f;
+            v1.y = ai_CannonShot.d.y * 5.0f;
+            v1.z = ai_CannonShot.d.z * 5.0f;
+            v2.x = v1.x + v2.x;
+            v2.y = v1.y + v2.y;
+            v2.z = v1.z + v2.z;
+            v1.x = ai_CannonShot.d.x * -5.0f;
+            v1.y = ai_CannonShot.d.y * -5.0f;
+            v1.z = ai_CannonShot.d.z * -5.0f;
+            v3.x = v1.x + v3.x;
+            v3.y = v1.y + v3.y;
+            v3.z = v1.z + v3.z;
+            ai_InitShot(&s2, &v2.v, &ai_CannonShot.b.v, f, c, ai_IronDensity);
+            ai_InitShot(&s1, &v3.v, &ai_CannonShot.b.v, f, c, ai_IronDensity);
+            ai_ScatterShot(&s2, u, &ai_CannonShot.d.v, u, &ai_CannonShot.c.v, v);
+            ai_ScatterShot(&s1, u, &ai_CannonShot.d.v, u, &ai_CannonShot.c.v, v);
+            gv_FireShots(b, p, &s2, &s1, 0, gv_SalvoCharge(ai_CannonShot.kind, ai_CannonShot.k, 2), x, cost);
             return 1;
         }
         if (ai_CannonShot.charge == 3) {
-            v1[0] = ai_CannonShot.b[0] * 40.0f;
-            v1[1] = ai_CannonShot.b[1] * 40.0f;
-            v1[2] = ai_CannonShot.b[2] * 40.0f;
-            v4[0] = v1[0] + ai_CannonShot.a[0];
-            v4[1] = v1[1] + ai_CannonShot.a[1];
-            v4[2] = v1[2] + ai_CannonShot.a[2];
-            v3[0] = v1[0] + ai_CannonShot.a[0];
-            v3[1] = v1[1] + ai_CannonShot.a[1];
-            v3[2] = v1[2] + ai_CannonShot.a[2];
-            v1[0] = v1[0] + ai_CannonShot.a[0];
-            v1[1] = v1[1] + ai_CannonShot.a[1];
-            v1[2] = v1[2] + ai_CannonShot.a[2];
-            v2[0] = ai_CannonShot.c[0] * 5.0f;
-            v2[1] = ai_CannonShot.c[1] * 5.0f;
-            v2[2] = ai_CannonShot.c[2] * 5.0f;
-            v1[0] = v2[0] + v1[0];
-            v1[1] = v2[1] + v1[1];
-            v1[2] = v2[2] + v1[2];
-            v2[0] = ai_CannonShot.c[0] * -3.0f;
-            v2[1] = ai_CannonShot.c[1] * -3.0f;
-            v2[2] = ai_CannonShot.c[2] * -3.0f;
-            v4[0] = v2[0] + v4[0];
-            v4[1] = v2[1] + v4[1];
-            v4[2] = v2[2] + v4[2];
-            v3[0] = v2[0] + v3[0];
-            v3[1] = v2[1] + v3[1];
-            v3[2] = v2[2] + v3[2];
-            v2[0] = ai_CannonShot.d[0] * 5.0f;
-            v2[1] = ai_CannonShot.d[1] * 5.0f;
-            v2[2] = ai_CannonShot.d[2] * 5.0f;
-            v4[0] = v2[0] + v4[0];
-            v4[1] = v2[1] + v4[1];
-            v4[2] = v2[2] + v4[2];
-            v2[0] = ai_CannonShot.d[0] * -5.0f;
-            v2[1] = ai_CannonShot.d[1] * -5.0f;
-            v2[2] = ai_CannonShot.d[2] * -5.0f;
-            v3[0] = v2[0] + v3[0];
-            v3[1] = v2[1] + v3[1];
-            v3[2] = v2[2] + v3[2];
-            ai_InitShot(s3, v4, ai_CannonShot.b, f, c, ai_IronDensity);
-            ai_InitShot(s1, v3, ai_CannonShot.b, f, c, ai_IronDensity);
-            ai_InitShot(s2, v1, ai_CannonShot.b, f, c, ai_IronDensity);
-            ai_ScatterShot(s3, u, ai_CannonShot.d, u, ai_CannonShot.c, v);
-            ai_ScatterShot(s1, u, ai_CannonShot.d, u, ai_CannonShot.c, v);
-            ai_ScatterShot(s2, u, ai_CannonShot.d, u, ai_CannonShot.c, v);
-            gv_FireShots(b, p, s3, s1, s2, gv_SalvoCharge(ai_CannonShot.kind, ai_CannonShot.k, 3), x, cost);
+            v1.x = ai_CannonShot.b.x * 40.0f;
+            v1.y = ai_CannonShot.b.y * 40.0f;
+            v1.z = ai_CannonShot.b.z * 40.0f;
+            v4.x = v1.x + ai_CannonShot.a.x;
+            v4.y = v1.y + ai_CannonShot.a.y;
+            v4.z = v1.z + ai_CannonShot.a.z;
+            v3.x = v1.x + ai_CannonShot.a.x;
+            v3.y = v1.y + ai_CannonShot.a.y;
+            v3.z = v1.z + ai_CannonShot.a.z;
+            v1.x = v1.x + ai_CannonShot.a.x;
+            v1.y = v1.y + ai_CannonShot.a.y;
+            v1.z = v1.z + ai_CannonShot.a.z;
+            v2.x = ai_CannonShot.c.x * 5.0f;
+            v2.y = ai_CannonShot.c.y * 5.0f;
+            v2.z = ai_CannonShot.c.z * 5.0f;
+            v1.x = v2.x + v1.x;
+            v1.y = v2.y + v1.y;
+            v1.z = v2.z + v1.z;
+            v2.x = ai_CannonShot.c.x * -3.0f;
+            v2.y = ai_CannonShot.c.y * -3.0f;
+            v2.z = ai_CannonShot.c.z * -3.0f;
+            v4.x = v2.x + v4.x;
+            v4.y = v2.y + v4.y;
+            v4.z = v2.z + v4.z;
+            v3.x = v2.x + v3.x;
+            v3.y = v2.y + v3.y;
+            v3.z = v2.z + v3.z;
+            v2.x = ai_CannonShot.d.x * 5.0f;
+            v2.y = ai_CannonShot.d.y * 5.0f;
+            v2.z = ai_CannonShot.d.z * 5.0f;
+            v4.x = v2.x + v4.x;
+            v4.y = v2.y + v4.y;
+            v4.z = v2.z + v4.z;
+            v2.x = ai_CannonShot.d.x * -5.0f;
+            v2.y = ai_CannonShot.d.y * -5.0f;
+            v2.z = ai_CannonShot.d.z * -5.0f;
+            v3.x = v2.x + v3.x;
+            v3.y = v2.y + v3.y;
+            v3.z = v2.z + v3.z;
+            ai_InitShot(&s3, &v4.v, &ai_CannonShot.b.v, f, c, ai_IronDensity);
+            ai_InitShot(&s1, &v3.v, &ai_CannonShot.b.v, f, c, ai_IronDensity);
+            ai_InitShot(&s2, &v1.v, &ai_CannonShot.b.v, f, c, ai_IronDensity);
+            ai_ScatterShot(&s3, u, &ai_CannonShot.d.v, u, &ai_CannonShot.c.v, v);
+            ai_ScatterShot(&s1, u, &ai_CannonShot.d.v, u, &ai_CannonShot.c.v, v);
+            ai_ScatterShot(&s2, u, &ai_CannonShot.d.v, u, &ai_CannonShot.c.v, v);
+            gv_FireShots(b, p, &s3, &s1, &s2, gv_SalvoCharge(ai_CannonShot.kind, ai_CannonShot.k, 3), x, cost);
             return 1;
         }
     }

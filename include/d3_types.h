@@ -6,11 +6,22 @@
 #define D3_TYPES_H
 
 typedef struct D3VECTOR {
-    float x, y, z;
+    union {
+        struct {
+            float x, y, z;
+        };
+        float e[3];                 /* the components by index (x, y, z) */
+    };
 } D3VECTOR;
 
-typedef struct D3VECTOR4 {         /* the engine pads most vectors to 16 bytes */
-    float x, y, z, w;
+typedef struct D3VECTOR4 {         /* the engine pads most vectors to 16 bytes: a D3VECTOR and a fourth float */
+    union {
+        struct {
+            float x, y, z;
+        };
+        D3VECTOR v;                 /* the vector itself, for the D3VECTOR parameters */
+    };
+    float w;
 } D3VECTOR4;
 
 typedef struct D3TEXFLAGS {         /* passed by value to tex_Load (TSFLAGS in ts_texture.h) */
@@ -67,7 +78,7 @@ typedef struct D3SCENE {            /* 0x3e0 bytes, 64 of them in d3_Scenes: a s
     void *parHead;                  /* 0x0a4, first of the particle list (d3_ParHead, D3PARTSYS * in d3_par.h) */
     void *parTail;                  /* 0x0a8, last of the particle list (d3_ParTail) */
     void *map;                      /* 0x0ac, the scene's terrain map (D3FLMAP, d3_Terrain; d3fl_ReloadTextures) */
-    struct D3HMAP *hmap;            /* 0x0b0, terrain height map */
+    struct D3SM *hmap;            /* 0x0b0, terrain height map */
     int mapSize;                    /* 0x0b4, height map size: 0x80 with terrain, 0x40 without, from the file */
     struct D3SKY *sky;              /* 0x0b8, d3_Sky */
     D3VECTOR amb;                   /* 0x0bc, d3_AmbientColor */
@@ -78,9 +89,9 @@ typedef struct D3SCENE {            /* 0x3e0 bytes, 64 of them in d3_Scenes: a s
     D3EVENT *events;                /* 0x3c8, the scene's D3EVENT table (D3E_NEVENTS entries, allocated by
                                        d3e_RegisterSceneEvent, "d3e:RegisterSceneEvent(eventtable)", freed in d3_Shutdown) */
     int state0, state1;             /* 0x3cc, d3if_SceneState0 and the word after it (0x5fb5c0, 0x5fb5c4) */
-    char loaded;                    /* 0x3d4, set after a scene file was loaded into the slot; a scene slot
+    signed char loaded;             /* 0x3d4, set after a scene file was loaded into the slot; a scene slot
                                        with loaded or dirty set is not free (d3t_FindFreeScene) */
-    char dirty;                     /* 0x3d5, a reserved scene whose file is not loaded yet: the next use
+    signed char dirty;              /* 0x3d5, a reserved scene whose file is not loaded yet: the next use
                                        reloads it and clears the flag (f3init.c "flagged dirty") */
     char pad3d6[0x2];
     unsigned int sceneFlags;        /* 0x3d8, the scene's d3_SceneFlags (d3if_SelectScene saves and restores it) */

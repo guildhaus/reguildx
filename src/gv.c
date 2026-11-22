@@ -472,7 +472,7 @@ char *gv_FindEffect(int id)
                 return (char *)&gv_Effects[i];
             p += 0x5c;
             i++;
-        } while ((int)p < (int)&gv_Effects[8]);
+        } while ((intptr_t)p < (intptr_t)&gv_Effects[8]);
     }
     return 0;
 }
@@ -548,7 +548,7 @@ void gv_UpdateEffects(void)
             } else if (gv_Effects[i].parts[j].state == 1) {
                 if (gv_Effects[i].f14 == 0 ? ai_StepShot((SHOTREC *)&gv_Effects[i].parts[j]) : ai_StepShotSlow((SHOTREC *)&gv_Effects[i].parts[j])) {
                     if (gv_Effects[i].objs[j] == 0) {
-                        gv_Effects[i].objs[j] = d3_CreateObject(0, &d3_Origin, &d3_ZeroRot, "kugel");
+                        gv_Effects[i].objs[j] = d3_CreateObject(0, &d3_Origin.v, &d3_ZeroRot, "kugel");
                         gv_Effects[i].objs[j]->objectFlags |= 4;
                         gv_Effects[i].objs[j]->stateFlags |= 0xc;
                         gv_Effects[i].objs[j]->objectFlags &= ~8;
@@ -648,7 +648,7 @@ void gv_ExplodeShot(int damage, int effectId, SHOTREC *shot, GVEFFARG *out)
         bld = &ai_Blds[i];
         if (bld->id == -1 || bld->type == 0 || bld->object == 0)
             continue;
-        d3_PointToWorld(bld->object, &bld->object->pos, (D3VECTOR *)&pos);
+        d3_PointToWorld(bld->object, &bld->object->pos, &pos.v);
         dx = c.x - pos.x;
         dy = c.y - pos.y;
         dz = c.z - pos.z;
@@ -714,8 +714,8 @@ void gv_ExplodeShot(int damage, int effectId, SHOTREC *shot, GVEFFARG *out)
     scale = shot->wind.scale;
     color.b = color.g = color.r = 0xc0;
     color.a = 0x7f;
-    dir.x = scale * shot->wind.pos[0];
-    dir.z = scale * shot->wind.pos[2];
+    dir.x = scale * shot->wind.pos.x;
+    dir.z = scale * shot->wind.pos.z;
     dir.y = 0.0f;
     c.y = c.y + 10.0f;
     d3t_CreateSmoke(0, &c, 200, 25.0f, 70.0f, m * 0.25f, 900.0f, 100.0f, 70.0f, &dir, 1500, 7, color);
@@ -795,7 +795,7 @@ int gv_ReserveEffect(int id)
                 return 1;
             p += 0x5c;
             i++;
-        } while ((int)p < (int)&gv_Effects[8]);
+        } while ((intptr_t)p < (intptr_t)&gv_Effects[8]);
         if (first >= -1) {
             p = (int *)gv_Effects;
             p[first * 0x5c] = id;
@@ -937,7 +937,7 @@ char *gv_GetEffect(int id)
             return (char *)&gv_Effects[i];
         p += 0x5c;
         i++;
-    } while ((int)p < (int)((unsigned)&gv_Effects + 0xb80));
+    } while ((intptr_t)p < (intptr_t)((uintptr_t)&gv_Effects + 0xb80));
     return 0;
 }
 /* 0x4eee00, starts a received cannon ball (message 0x67, GVSHOTMSG) in the effect slot of m->id: the first free part (tail 0)

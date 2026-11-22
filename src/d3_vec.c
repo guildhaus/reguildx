@@ -14,15 +14,15 @@
 
 /* 0x4539b0, out = a + (b - a) * t */
 
-void d3_Lerp3(float *a, float *b, float t, float *out)
+void d3_Lerp3(const D3VECTOR *a, const D3VECTOR *b, float t, D3VECTOR *out)
 {
-    out[0] = (b[0] - a[0]) * t + a[0];
-    out[1] = (b[1] - a[1]) * t + a[1];
-    out[2] = (b[2] - a[2]) * t + a[2];
+    out->x = (b->x - a->x) * t + a->x;
+    out->y = (b->y - a->y) * t + a->y;
+    out->z = (b->z - a->z) * t + a->z;
 }
 /* 0x4539f0, signed angle around the y axis from a to b (xz plane) */
 
-float d3_VecAngle(D3VECTOR *a, D3VECTOR *b)
+float d3_VecAngle(const D3VECTOR *a, D3VECTOR *b)
 {
     D3VECTOR4 va, vb, nb;
     float c[3];
@@ -34,14 +34,14 @@ float d3_VecAngle(D3VECTOR *a, D3VECTOR *b)
     va.y = 0.0f;
     vb.x = b->x;
     vb.z = b->z;
-    d3_Normalize(&va);
-    d3_Normalize(&vb);
-    if (d3_VecEqual((D3VECTOR *)&va, (D3VECTOR *)&vb, 1e-7f))
+    d3_Normalize(&va.v);
+    d3_Normalize(&vb.v);
+    if (d3_VecEqual(&va.v, &vb.v, 1e-7f))
         return 0.0f;
     nb.x = -vb.x;
     nb.y = -vb.y;
     nb.z = -vb.z;
-    if (d3_VecEqual((D3VECTOR *)&va, &nb, 1e-7f))
+    if (d3_VecEqual(&va.v, &nb.v, 1e-7f))
         return -3.1415927f;
     c[0] = vb.z * va.y - va.z * vb.y;
     c[1] = vb.x * va.z - vb.z * va.x;
@@ -53,7 +53,7 @@ float d3_VecAngle(D3VECTOR *a, D3VECTOR *b)
 }
 /* 0x453b40, d3_VecAngle wrapped to [-pi, pi) */
 
-float d3_VecAngle2(D3VECTOR *a, D3VECTOR *b)
+float d3_VecAngle2(const D3VECTOR *a, D3VECTOR *b)
 {
     float r = d3_VecAngle(a, b);
 
@@ -76,7 +76,7 @@ void d3_MakeBasis(D3VECTOR *dir, float roll, D3MATRIX *m)
     m->_31 = dir->x;
     m->_32 = dir->y;
     m->_33 = dir->z;
-    d3_Normalize((D3VECTOR4 *)&m->_31);
+    d3_Normalize((D3VECTOR *)&m->_31);
     d = -(u.x * m->_31 + u.z * m->_33 + u.y * m->_32);
     m->_21 = d * m->_31 + u.x;
     m->_22 = d * m->_32 + u.y;
@@ -97,7 +97,7 @@ void d3_MakeBasis(D3VECTOR *dir, float roll, D3MATRIX *m)
             }
         }
     }
-    d3_Normalize((D3VECTOR4 *)&m->_21);
+    d3_Normalize((D3VECTOR *)&m->_21);
     m->_34 = 0.0f;
     m->_24 = 0.0f;
     m->_14 = 0.0f;
@@ -108,21 +108,21 @@ void d3_MakeBasis(D3VECTOR *dir, float roll, D3MATRIX *m)
 }
 /* 0x453d60, ra = a mod 2pi, rb = b mod 2pi, then ra shifted by +-2pi to be the nearest to rb */
 
-void d3_UnwrapAngles(float *a, float *b, float *ra, float *rb)
+void d3_UnwrapAngles(const D3VECTOR *a, const D3VECTOR *b, D3VECTOR *ra, D3VECTOR *rb)
 {
     int i;
     float x;
     float d;
 
     for (i = 0; i < 3; i++) {
-        ra[i] = (float)fmod(a[i], 6.2831855f);
-        x = (float)fmod(b[i], 6.2831855f);
-        rb[i] = x;
-        d = (float)fabs(x - ra[i]);
-        if (d > fabs(x - (ra[i] + 6.2831855f))) {
-            ra[i] = ra[i] + 6.2831855f;
-        } else if (d > fabs(x - (ra[i] - 6.2831855f))) {
-            ra[i] = ra[i] - 6.2831855f;
+        ra->e[i] = (float)fmod(a->e[i], 6.2831855f);
+        x = (float)fmod(b->e[i], 6.2831855f);
+        rb->e[i] = x;
+        d = (float)fabs(x - ra->e[i]);
+        if (d > fabs(x - (ra->e[i] + 6.2831855f))) {
+            ra->e[i] = ra->e[i] + 6.2831855f;
+        } else if (d > fabs(x - (ra->e[i] - 6.2831855f))) {
+            ra->e[i] = ra->e[i] - 6.2831855f;
         }
     }
 }
@@ -140,7 +140,7 @@ float d3_Hermite(float p0, float p1, float m0, float m1, float t)
 }
 /* 0x453e80, all components within eps */
 
-int d3_VecEqual(D3VECTOR *a, D3VECTOR *b, float eps)
+int d3_VecEqual(const D3VECTOR *a, const D3VECTOR *b, float eps)
 {
     if (fabs(b->x - a->x) <= eps && fabs(b->y - a->y) <= eps && fabs(b->z - a->z) <= eps)
         return 1;
@@ -226,7 +226,7 @@ void d3_MatIdentity(D3MATRIX *m)
 }
 /* 0x454560, scales v to unit length in place; a zero vector is left as the zero vector */
 
-void d3_Normalize(D3VECTOR4 *v)
+void d3_Normalize(D3VECTOR *v)
 {
     float l = (float)sqrt(v->z * v->z + v->y * v->y + v->x * v->x);
 
@@ -284,7 +284,7 @@ void d3_MatToAngles(D3VECTOR4 *m, D3VECTOR4 *angles)
 }
 /* 0x454700, normal of the triangle a, b, c */
 
-void d3_TriNormal(D3VECTOR4 *a, D3VECTOR4 *b, D3VECTOR4 *c, D3VECTOR4 *n)
+void d3_TriNormal(const D3VECTOR *a, const D3VECTOR *b, const D3VECTOR *c, D3VECTOR4 *n)
 {
     D3VECTOR4 u, v;
 
@@ -293,7 +293,7 @@ void d3_TriNormal(D3VECTOR4 *a, D3VECTOR4 *b, D3VECTOR4 *c, D3VECTOR4 *n)
     n->x = v.z * u.y - v.y * u.z;
     n->y = v.x * u.z - v.z * u.x;
     n->z = v.y * u.x - v.x * u.y;
-    d3_Normalize(n);
+    d3_Normalize(&n->v);
 }
 
 /* the engine's axes and origin, read-only (.rdata): 4-float vectors (D3VECTOR4, w = 0), 16 bytes each as the

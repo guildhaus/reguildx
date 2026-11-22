@@ -51,7 +51,7 @@ extern int d2_HitUnderPointer;
 
 
 
-extern char * ai_PickedObject;
+extern D3OBJECT *ai_PickedObject;
 extern struct AICHAR *ai_PickedChar;
 extern int d2_HitUnderPointer;
 extern struct AICHAR *ai_SceneChars[32];
@@ -70,7 +70,7 @@ extern struct AICHAR *ai_SceneChars[32];
 extern GAPDATA full_data_602568[];
 extern char cm_ChatLog[2048];
 
-extern char * ai_PickedObject;
+extern D3OBJECT *ai_PickedObject;
 extern int d2_CutsceneActive;
 extern int d2_HitUnderPointer;
 
@@ -86,23 +86,19 @@ extern int di_Absolute, di_MinX, di_MinY, di_MaxX, di_MaxY;  /* 0x5f3240, 0x6310
 extern unsigned char kb_Last;  /* 0x1468410 */
 #define sv_D2Objs d2_Objs  /* 0xf8f080, the typed view d2.h gives it (D2OBJ *) */
 
-extern int sv_ViewShape;  /* 0x6f22c0 */
+extern struct D2SHP *sv_ViewShape;  /* 0x6f22c0 */
 extern struct D2SURF *sv_GroundplanSurf, *sv_GroundplanView;  /* 0x6f22c4, 0x6f22c8 */
 #define d2_TransparentBytes ((unsigned char *)&d2_TransparentColour)  /* 0x6f0454, @original: sv_BuildScreenLayout clears the key byte by byte (mov byte [0x6f0454] / [0x6f0455] / [0x6f0456], bl), not through the D2COLKEY word gb */
 /* the object / character record fields sv.c reads (AIBLD / AICHAR in ai.h; ai.h cannot be included here: its
    declarations of ai_Time / ai_Chars / ai_BTypes / ai_Blds clash with gv.h's char views). Views, as gv.h's ORDCHAR was */
 #pragma pack(push, 1)
 typedef struct SVPLATE {                /* 200 bytes, a name plate record: the object it belongs to */
-    char *obj;                          /* +0x00, the object that shows the plate, 0 = free */
+    D3OBJECT *obj;                      /* +0x00, the object that shows the plate, 0 = free */
     char name[0x40];                    /* +0x04, the object's name (sv_RegisterNamePlate finds the plate by it) */
     int look;                           /* +0x44, the pointer look while the object is hovered (sv_HoverPick reads its
                                            low word; sv_RegisterNamePlate stores it whole) */
     char text[0x80];                    /* +0x48, the plate's text, the hover caption (sv_HoverPick) */
 } SVPLATE;
-typedef struct SVPLATEOBJ {             /* the 3D object fields the plate code clears */
-    char pad00[0x224];
-    int plate;                          /* +0x224, the name plate attached to the object */
-} SVPLATEOBJ;
 #pragma pack(pop)
 extern SVPLATE sv_NamePlates[0x20];
 
@@ -656,7 +652,8 @@ lend:
 
 void sv_BuildScreenLayout(int s)
 {
-    int t, i;
+    void *t;
+    int i;
     int tab[16];
     int *q;
 
@@ -779,7 +776,7 @@ void sv_SetPanelEnabled(int n)
         if (*q != -1)
             d2_EnableObject(*q, n);
         q++;
-    } while ((int)q < (int)((unsigned)&sv_GroundplanButtons + 0x3c));
+    } while ((intptr_t)q < (intptr_t)((uintptr_t)&sv_GroundplanButtons + 0x3c));
 }
 /* 0x522280, closes the panel widgets (0x46e710, id := -1) and hides the rest */
 
@@ -848,7 +845,7 @@ void sv_DestroyScreen(void)
             *q = -1;
         }
         q++;
-    } while ((int)q < (int)((unsigned)&sv_GroundplanButtons + 0x3c));
+    } while ((intptr_t)q < (intptr_t)((uintptr_t)&sv_GroundplanButtons + 0x3c));
     if (sv_GroundplanSurf != 0) {
         d2_FreeSurface(sv_GroundplanSurf);
         sv_GroundplanSurf = 0;
@@ -1189,8 +1186,8 @@ struct D2FADE;
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */                     /* 0x4767d0 */
 void d2_ReleaseFade(struct D2FADE *f); /* 0x476860, d2.h */                     /* 0x476860 */
 void d2_PlaceWindow(int win, unsigned char flags);  /* 0x4756b0 */
-struct D3SKY; struct D3SKYLAYER; struct D3VECTOR; int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);  /* 0x453e80 */
-char * cm_CharWeapon(struct AICHAR *c);                     /* 0x4cda50 */
+struct D3SKY; struct D3SKYLAYER; struct D3VECTOR; int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);  /* 0x453e80 */
+AIWEAPON *cm_CharWeapon(struct AICHAR *c);                     /* 0x4cda50 */
 
 int gm_SumListMoney(void *list);  /* f3gmt.c, folded into gm_SumListAmounts 0x509e30: one push, no player slot */
 /* 0x522f10, the city / time panel (the big panel at the top of the screen), only while the player's character
@@ -1220,7 +1217,7 @@ void sv_UpdateCityPanel(unsigned char a, int b)
        d2_ShpBlit with esi = 1); the original pushes sv_ViewRectLeft, sv_ViewRectTop, d2_ScreenSurf,
        sv_ViewShape. */
     if (sv_ViewShape != 0)
-        d2_ShpBlit(sv_ViewRectLeft, sv_ViewRectTop, (struct D2SURF *)d2_ScreenSurf, (struct D2SHP *)sv_ViewShape);
+        d2_ShpBlit(sv_ViewRectLeft, sv_ViewRectTop, (struct D2SURF *)d2_ScreenSurf, sv_ViewShape);
     if (a & 1) {
         if (sv_ButtonFamilyTree != -1) { d2_RemoveObj(sv_ButtonFamilyTree); sv_ButtonFamilyTree = -1; }
         if (sv_ButtonCompare != -1) { d2_RemoveObj(sv_ButtonCompare); sv_ButtonCompare = -1; }
@@ -1414,7 +1411,7 @@ void sv_UpdateCityPanel(unsigned char a, int b)
    whole screen shown for one message round (0x5309a0 (0, 0x1c6)), the strip 0x623840 shown (0x4756b0) and the background copied back */
 void sv_RedrawScreen(void)
 {
-    int r;
+    D2FADE *r;
 
     d2_ClearSurface(d2_ScreenSurf);
     d2_DrawPic(0, 0, sv_PanelPic, d2_ScreenSurf);
@@ -1661,18 +1658,18 @@ int sv_IsAtDoor(AICHAR *g, AIBLD *o)
 {
     CHARACTER *dst;
     D3OBJECT *door;
-    float pos[4];
+    D3VECTOR4 pos;
 
     dst = g->scene;
     if (o->object != 0) {
         if (dst == 0)
             return 0;
-        door = d3_FindObject((int)(o)->object, 0x100, 0, "dummy_TUER");
+        door = d3_FindObject((o)->object, 0x100, 0, "dummy_TUER");
         if (door != 0)
-            d3_PointToWorld(door, &door->pos, (D3VECTOR *)pos);
+            d3_PointToWorld(door, &door->pos, &pos.v);
         else
-            d3_PointToWorld((D3OBJECT *)(o)->object, &((D3OBJECT *)(o)->object)->pos, (D3VECTOR *)pos);
-        if (d3_VecEqual(&dst->obj->pos, (D3VECTOR *)pos, 750.0f) != 0 && dst->actions == 0)
+            d3_PointToWorld((D3OBJECT *)(o)->object, &((D3OBJECT *)(o)->object)->pos, &pos.v);
+        if (d3_VecEqual(&dst->obj->pos, &pos.v, 750.0f) != 0 && dst->actions == 0)
             return 1;
     }
     if (dst != 0 && dst->group == o->id)
@@ -1688,7 +1685,7 @@ int sv_IsCartAtDoor(char *g, AIBLD *o)
     float r;
     CHARACTER *dst;
     D3OBJECT *door;
-    float pos[4];
+    D3VECTOR4 pos;
 
     r = 650.0f;
     if (ai_BTypes[o->type].kind == 10)
@@ -1698,14 +1695,14 @@ int sv_IsCartAtDoor(char *g, AIBLD *o)
         if (dst == 0)
             return 0;
         if (dst->scene == &d3_Scenes[0]) {
-            door = d3_FindObject((int)(o)->object, 0x100, 0, "dummy_TUER");
+            door = d3_FindObject((o)->object, 0x100, 0, "dummy_TUER");
             if (door != 0)
-                d3_PointToWorld(door, &door->pos, (D3VECTOR *)pos);
+                d3_PointToWorld(door, &door->pos, &pos.v);
             else {
-                d3_PointToWorld((D3OBJECT *)(o)->object, &((D3OBJECT *)(o)->object)->pos, (D3VECTOR *)pos);
+                d3_PointToWorld((D3OBJECT *)(o)->object, &((D3OBJECT *)(o)->object)->pos, &pos.v);
                 r = 3250.0f;
             }
-            if (d3_VecEqual(&dst->obj->pos, (D3VECTOR *)pos, r) != 0)
+            if (d3_VecEqual(&dst->obj->pos, &pos.v, r) != 0)
                 return 1;
         }
     }
@@ -1722,28 +1719,28 @@ int sv_CharStateIcons(AICHAR *c, int *out)
     AIJOB *job;
     unsigned short *word;
     int n, i, *p;
-    int *q;
+    AIWEAPON *w;
 
     job = c->job;
     n = 0;
     if (job != 0 && job->kind != 0) {
         i = 0;
-        p = (int *)(unsigned)&sv_Activities[0].icon;
-        for (; (int)p < (int)((unsigned)&sv_Activities[0].icon + 0x600); p += 8, i++) {
+        p = (int *)(uintptr_t)&sv_Activities[0].icon;
+        for (; (intptr_t)p < (intptr_t)((uintptr_t)&sv_Activities[0].icon + 0x600); p += 8, i++) {
             if (p[-6] == job->kind) {
                 out[n++] = *p;
                 if (p[1] != -1) {
                     /* the entry's valueOff: the offset of a short of the job record (0xac / 0xae / 0xbc) */
-                    word = (unsigned short *)((char *)job + ((int *)(unsigned)&sv_Activities[0].valueOff)[i * 8]);
+                    word = (unsigned short *)((char *)job + ((int *)(uintptr_t)&sv_Activities[0].valueOff)[i * 8]);
                     out[n++] = *word + 0xdf;
                     break;
                 }
             }
         }
     }
-    q = (int *)cm_CharWeapon(c);
-    if (q != 0 && *q != 0)
-        out[n++] = *q + 0xdf;
+    w = cm_CharWeapon(c);
+    if (w != 0 && w->id != 0)
+        out[n++] = w->id + 0xdf;
     return n;
 }
 
@@ -1845,9 +1842,9 @@ void sv_UpdateMemberList(AIBLD *g)
             d2_SetForm(sv_PlayerBarForm, 1);
             sv_MemberRows[n].window = d2_CreateChildWindow(6, y + 0x3f, 0x50, 0xf, 0, d2_LastWindow);
             d2_WinOpenPic(4, 1, 0x5df, d2_LastWindow);
-            sv_DrawBalanceBar(0x10, 4, (char *)&ai_Chars[sv_MemberRows[n].chr], 2, 0x4f1);
+            sv_DrawBalanceBar(0x10, 4, &ai_Chars[sv_MemberRows[n].chr], 2, 0x4f1);
             d2_WinOpenPic(0x28, 1, 0x5e0, d2_LastWindow);
-            sv_DrawBalanceBar(0x34, 4, (char *)&ai_Chars[sv_MemberRows[n].chr], 3, 0x4f1);
+            sv_DrawBalanceBar(0x34, 4, &ai_Chars[sv_MemberRows[n].chr], 3, 0x4f1);
         }
         if (ai_Chars[i].selected != 0)
             d2_SetObjValue(sv_MemberRows[n].check, 1);
@@ -2235,7 +2232,7 @@ void sv_FillDayPhases(struct AITIME *t)
 /* 0x525a80, a d3_ForEachObject callback (the object o, the flag f): sets the brightness ramp of the object's light
    (0x1e8, a D3LDATA) to a random 0.3 .. 0.6 + 0.3 (f = 0) or -0.3 - 0.6 * random (f != 0); returns 1 */
 
-char sv_SetLampRamp(char *o, int f)
+char sv_SetLampRamp(D3OBJECT *o, void *f)
 {
     double v;
 
@@ -2305,7 +2302,7 @@ void sv_UpdateSkyPhase(AITIME *t)
             d3_ForEachObject(d3_DefaultScene, 0, 6, sv_SetLampRamp, 0);
             sv_LampSwitches++;
         } else if (d >= 3 && sv_LampSwitches == 1) {
-            d3_ForEachObject(d3_DefaultScene, 0, 6, sv_SetLampRamp, 1);
+            d3_ForEachObject(d3_DefaultScene, 0, 6, sv_SetLampRamp, (void *)1);
             sv_LampSwitches++;
         }
         sv_LampPhase = d;
@@ -2324,8 +2321,8 @@ extern int sv_BorderViewY;  /* 0x6f22d0 */
 extern int d3t_CamMoving;  /* 0x6310e4 */
 extern struct D3ANIM *d3t_CamMove;  /* 0x6310e8 */
 extern int sv_ScrollTime;  /* 0x6f2394 */
-extern float sv_ScrollLastMove[4];
-int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);  /* 0x453e80 */
+extern D3VECTOR4 sv_ScrollLastMove;
+int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);  /* 0x453e80 */
 
 /* 0x525dd0, in scene 0 sets both camera blend factors to f and places the camera: its height is the near / far height blended by
    f over the terrain's mean height under it, its x angle the near / far angle blended by f; stores the camera's rotation and
@@ -2345,18 +2342,18 @@ void sv_PlaceCamera(float f)
     pos.y = d3_Camera->pos.y;
     pos.z = d3_Camera->pos.z;
     pos.y = (float)((sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + h);
-    d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+    d3_SetObjectPos(d3_Camera, &pos.v);
     rot.x = d3_Camera->rotation.x;
     rot.y = d3_Camera->rotation.y;
     rot.z = d3_Camera->rotation.z;
     rot.x = (sv_CameraAngleFar - sv_CameraAngleNear) * sv_CameraAngleFactor + sv_CameraAngleNear;
     d3_SetObjectRot(d3_Camera, &rot);
-    sv_ViewRot[0] = d3_Camera->rotation.x;
-    sv_ViewRot[1] = d3_Camera->rotation.y;
-    sv_ViewRot[2] = d3_Camera->rotation.z;
-    sv_ViewPos[0] = d3_Camera->pos.x;
-    sv_ViewPos[1] = d3_Camera->pos.y;
-    sv_ViewPos[2] = d3_Camera->pos.z;
+    sv_ViewRot.x = d3_Camera->rotation.x;
+    sv_ViewRot.y = d3_Camera->rotation.y;
+    sv_ViewRot.z = d3_Camera->rotation.z;
+    sv_ViewPos.x = d3_Camera->pos.x;
+    sv_ViewPos.y = d3_Camera->pos.y;
+    sv_ViewPos.z = d3_Camera->pos.z;
 }
 /* 0x525ee0, eases the camera's height toward the wanted one (the near / far height blended by sv_CameraHeightFactor over the
    terrain's mean height, against the camera's height with its offset): more than 5 off, a fifteenth of the difference per call,
@@ -2382,7 +2379,7 @@ void sv_EaseCameraHeight(void)
         pos.z = d3_Camera->pos.z;
         pos.y = pos.y + step;
         if (d3t_CamMove == 0)
-            d3_SetObjectPos(d3_Camera, (D3VECTOR *)&pos);
+            d3_SetObjectPos(d3_Camera, &pos.v);
         sv_CameraHeightStep = step;
         return;
     }
@@ -2440,7 +2437,7 @@ void sv_BorderCameraView(void)
         sv_BorderViewX = 0;
     }
     if (sv_BorderViewX == -1) {
-        if (d3_VecEqual(&d3_Camera->views[3].pos, (D3VECTOR *)&none, 0.2f) != 0)
+        if (d3_VecEqual(&d3_Camera->views[3].pos, &none.v, 0.2f) != 0)
             return;
         pos.x = d3_Camera->views[3].pos.x;
         pos.y = d3_Camera->views[3].pos.y;
@@ -2456,7 +2453,7 @@ void sv_BorderCameraView(void)
         dir.y = d3_Camera->savedRot.y;
         dir.z = d3_Camera->savedRot.z;
     } else if (sv_BorderViewX == 1) {
-        if (d3_VecEqual(&d3_Camera->views[4].pos, (D3VECTOR *)&none, 0.2f) != 0)
+        if (d3_VecEqual(&d3_Camera->views[4].pos, &none.v, 0.2f) != 0)
             return;
         pos.x = d3_Camera->views[4].pos.x;
         pos.y = d3_Camera->views[4].pos.y;
@@ -2465,7 +2462,7 @@ void sv_BorderCameraView(void)
         dir.y = d3_Camera->views[4].dir.y;
         dir.z = d3_Camera->views[4].dir.z;
     } else if (sv_BorderViewY == -1) {
-        if (d3_VecEqual(&d3_Camera->views[1].pos, (D3VECTOR *)&none, 0.2f) != 0)
+        if (d3_VecEqual(&d3_Camera->views[1].pos, &none.v, 0.2f) != 0)
             return;
         pos.x = d3_Camera->views[1].pos.x;
         pos.y = d3_Camera->views[1].pos.y;
@@ -2474,7 +2471,7 @@ void sv_BorderCameraView(void)
         dir.y = d3_Camera->views[1].dir.y;
         dir.z = d3_Camera->views[1].dir.z;
     } else if (sv_BorderViewY == 1) {
-        if (d3_VecEqual(&d3_Camera->views[2].pos, (D3VECTOR *)&none, 0.2f) != 0)
+        if (d3_VecEqual(&d3_Camera->views[2].pos, &none.v, 0.2f) != 0)
             return;
         pos.x = d3_Camera->views[2].pos.x;
         pos.y = d3_Camera->views[2].pos.y;
@@ -2483,16 +2480,16 @@ void sv_BorderCameraView(void)
         dir.y = d3_Camera->views[2].dir.y;
         dir.z = d3_Camera->views[2].dir.z;
     }
-    sv_ViewPos[0] = pos.x;
-    sv_ViewPos[1] = pos.y;
-    sv_ViewPos[2] = pos.z;
-    sv_ViewRot[0] = dir.x;
-    sv_ViewRot[1] = dir.y;
-    sv_ViewRot[2] = dir.z;
+    sv_ViewPos.x = pos.x;
+    sv_ViewPos.y = pos.y;
+    sv_ViewPos.z = pos.z;
+    sv_ViewRot.x = dir.x;
+    sv_ViewRot.y = dir.y;
+    sv_ViewRot.z = dir.z;
     d3anim_FreePath(d3_Camera);
     d3t_CamMoving = 0;
     d3t_CamMove = 0;
-    d3t_PlaceObjectV(d3_Camera, (D3VECTOR *)&pos, (D3VECTOR *)&dir, ai_CameraStep, 8);
+    d3t_PlaceObjectV(d3_Camera, &pos.v, &dir.v, ai_CameraStep, 8);
     sv_BorderMoved = 1;
 }
 /* 0x5263a0, one frame of the camera scroll by the screen border (a 0x40-pixel zone of the mouse window) or the
@@ -2500,14 +2497,17 @@ void sv_BorderCameraView(void)
    elapsed ms, at most 4) up to +-50, decay to 0 otherwise; d2_PointerLook gets the direction (1 .. 8, 5 .. 8
    the corners). The camera moves by the velocities rotated into the view (by the view's heading, or by the
    matrix rows when it looks straight down), slower inside a building, clamped to the height map 20 cells in,
-   unless the move equals the last one (sv_ScrollLastMove). Returns 1 when the camera moved */
+   unless the move equals the last one (&sv_ScrollLastMove.v). Returns 1 when the camera moved */
 
 int sv_ScrollCamera(void)
 {
     int moved, my;
     float dt;                       /* the frame time factor, at most 4 */
     float k, f;
-    float dst[4], v[4], right[16], fwd[4];   /* right is a D3MATRIX: d3_MatTranspose writes 0x40 bytes */
+    D3VECTOR4 dst;
+    D3VECTOR4 v;
+    D3MATRIX right;                   /* the camera matrix, transposed (d3_MatTranspose) */
+    D3VECTOR4 fwd;
     float a;
     D3SM *hm;                       /* the scene's height map */
     float lo, hi;
@@ -2634,54 +2634,54 @@ int sv_ScrollCamera(void)
         else if (ai_PlayerBuilding != 0)
             dt *= 0.25;
         k = (float)(sv_ScrollSpeed * dt * (sv_CameraHeightFactor * 1.5 + 0.6000000238418579));
-        d3_MatTranspose(&d3_Camera->matrix, right);
-        v[0] = sv_ScrollVelX * k * 1.1;
-        v[1] = sv_ScrollVelY * k * 1.1;
-        fwd[0] = right[0] * ax[0] + right[4] * ax[1] + right[8] * ax[2];
-        fwd[2] = right[2] * ax[0] + right[6] * ax[1] + right[10] * ax[2];
-        fwd[1] = 0.0f;
+        d3_MatTranspose(&d3_Camera->matrix, &right);
+        v.x = sv_ScrollVelX * k * 1.1;
+        v.y = sv_ScrollVelY * k * 1.1;
+        fwd.x = right._11 * ax[0] + right._21 * ax[1] + right._31 * ax[2];
+        fwd.z = right._13 * ax[0] + right._23 * ax[1] + right._33 * ax[2];
+        fwd.y = 0.0f;
         /* @original: each arm first sets dst to the move in view space (dead: dst is the target below; the
-           original stores all three, dst[0] in each arm) */
-        if ((float)sqrt(fwd[0] * fwd[0] + fwd[2] * fwd[2]) < 0.1f) {   /* the view looks straight down: the matrix rows (0x526ac2) */
-            dst[0] = v[0];
-            dst[1] = v[1];
-            dst[2] = 0.0f;
-            fwd[0] = 0.0f * right[8] + v[0] * right[0] + v[1] * right[4];
-            fwd[2] = 0.0f * right[10] + v[0] * right[2] + v[1] * right[6];
+           original stores all three, dst.x in each arm) */
+        if ((float)sqrt(fwd.x * fwd.x + fwd.z * fwd.z) < 0.1f) {   /* the view looks straight down: the matrix rows (0x526ac2) */
+            dst.x = v.x;
+            dst.y = v.y;
+            dst.z = 0.0f;
+            fwd.x = 0.0f * right._31 + v.x * right._11 + v.y * right._21;
+            fwd.z = 0.0f * right._33 + v.x * right._13 + v.y * right._23;
         } else {                                                /* else rotated by the view's heading */
-            a = -d3_VecAngle2((char *)&d3_ZAxis, fwd);
-            dst[0] = v[0];
-            dst[1] = 0.0f;
-            dst[2] = v[1];
-            fwd[0] = v[0] * cos(a) + v[1] * sin(a);
-            fwd[2] = v[1] * cos(a) - v[0] * sin(a);
+            a = -d3_VecAngle2(&d3_ZAxis.v, &fwd.v);
+            dst.x = v.x;
+            dst.y = 0.0f;
+            dst.z = v.y;
+            fwd.x = v.x * cos(a) + v.y * sin(a);
+            fwd.z = v.y * cos(a) - v.x * sin(a);
         }
-        fwd[1] = 0.0f;
-        dst[0] = fwd[0] + d3_Camera->pos.x;
-        dst[1] = d3_Camera->pos.y;
-        dst[2] = fwd[2] + d3_Camera->pos.z;
-        if (d3_VecEqual(sv_ScrollLastMove, dst, 0.1f) == 0) {
+        fwd.y = 0.0f;
+        dst.x = fwd.x + d3_Camera->pos.x;
+        dst.y = d3_Camera->pos.y;
+        dst.z = fwd.z + d3_Camera->pos.z;
+        if (d3_VecEqual(&sv_ScrollLastMove.v, &dst.v, 0.1f) == 0) {
             hm = (D3SM *)d3_DefaultScene->hmap;
             if (hm != 0) {                                       /* clamped to the height map, 20 cells in */
                 lo = hm->cell.x * 20.0f + hm->origin.x;
-                if (dst[0] < lo)
-                    dst[0] = lo;
+                if (dst.x < lo)
+                    dst.x = lo;
                 else {
                     hi = (float)(hm->size - 20) * hm->cell.x + hm->origin.x;
-                    if (dst[0] > hi)
-                        dst[0] = hi;
+                    if (dst.x > hi)
+                        dst.x = hi;
                 }
                 lo = hm->cell.z * 20.0f + hm->origin.z;
                 hi = (float)(hm->size - 20) * hm->cell.z + hm->origin.z;
-                dst[2] = max(dst[2], hi);           /* z runs from the far edge (a negative cell): hi is the lower bound */
-                dst[2] = min(dst[2], lo);
+                dst.z = max(dst.z, hi);           /* z runs from the far edge (a negative cell): hi is the lower bound */
+                dst.z = min(dst.z, lo);
             }
-            d3_SetObjectPos(d3_Camera, (struct D3VECTOR *)dst);
+            d3_SetObjectPos(d3_Camera, &dst.v);
             moved = 1;
         }
-        sv_ScrollLastMove[0] = fwd[0];
-        sv_ScrollLastMove[1] = fwd[1];
-        sv_ScrollLastMove[2] = fwd[2];
+        sv_ScrollLastMove.x = fwd.x;
+        sv_ScrollLastMove.y = fwd.y;
+        sv_ScrollLastMove.z = fwd.z;
     }
     sv_ScrollVelXPrev = sv_ScrollVelX;
     sv_ScrollVelYPrev = sv_ScrollVelY;
@@ -2689,16 +2689,17 @@ int sv_ScrollCamera(void)
 }
 
 extern int sv_MouseDragOn, sv_ZoomTurnOn, sv_MouseCamActive, sv_DragStartX, sv_DragStartY, sv_DragLastX, sv_DragLastY, sv_SavedMaxX, sv_SavedMaxY, sv_SavedMinX, sv_SavedMinY, sv_ZoomStartX, sv_ZoomStartY;  /* 0x6f23b8, 0x6f23a0, 0x6f23a4, 0x6f2398, 0x6f239c, 0x6f1c88, 0x6f1c48, 0x6f1c50, 0x6f1c40, 0x6f1c84, 0x6f2298, 0x6f2290, 0x6f1c8c */
-extern float sv_ZoomStartHeight, sv_ZoomStartAngle, sv_ZoomStartTurn, sv_ZoomBaseY, sv_DragLastPos[4];  /* 0x6f23a8, 0x6f23ac, 0x6f23b0, 0x6f23b4, 0x6f1c64 */
+extern float sv_ZoomStartHeight, sv_ZoomStartAngle, sv_ZoomStartTurn, sv_ZoomBaseY;  /* 0x6f23a8, 0x6f23ac, 0x6f23b0, 0x6f23b4 */
+extern D3VECTOR4 sv_DragLastPos;  /* 0x6f1c64 */
 extern int tb_Paused;  /* 0x6333e0 */
 extern int ai_DragWindow;  /* 0x62a8cc */
 extern int sv_CameraScrolled;  /* 0x6f22b4 */
 extern int sv_FrameDepth;  /* 0x6f229c */
 extern int sv_FrameBase;  /* 0x6f22a4 */
 extern struct AIBLD *sv_SelectedObject;  /* 0x75ec60 */
-extern int sv_SelectedModel;  /* 0x6f2304 */
+extern D3OBJECT *sv_SelectedModel;  /* 0x6f2304 */
 extern char sv_CameraEaseOn;
-short * gm_PlayerRecord(struct AICHAR *ch);                   /* 0x506430 */
+struct AIFIN *gm_PlayerRecord(struct AICHAR *ch);                   /* 0x506430 */
 void sv_PlaceCamera(float f);
 void sv_EaseCameraHeight(void);
 int sv_ScrollCamera(void);
@@ -2706,12 +2707,12 @@ int sv_MouseCamera(void);
 
 /* the player's camera record gets the camera's position and rotation */
 #define SV_CAMREC(r) do { \
-        (r)->camPos[0] = d3_Camera->pos.x; \
-        (r)->camPos[1] = d3_Camera->pos.y; \
-        (r)->camPos[2] = d3_Camera->pos.z; \
-        (r)->camRot[0] = d3_Camera->rotation.x; \
-        (r)->camRot[1] = d3_Camera->rotation.y; \
-        (r)->camRot[2] = d3_Camera->rotation.z; \
+        (r)->camPos.x = d3_Camera->pos.x; \
+        (r)->camPos.y = d3_Camera->pos.y; \
+        (r)->camPos.z = d3_Camera->pos.z; \
+        (r)->camRot.x = d3_Camera->rotation.x; \
+        (r)->camRot.y = d3_Camera->rotation.y; \
+        (r)->camRot.z = d3_Camera->rotation.z; \
     } while (0)
 
 static const float sv_ZoomPixelsPerUnit = -666.6667f;  /* 0x5eeb78, .rdata: -1 / 0.0015, the mouse y pixels per unit of the zoom / angle factor (the original loads it from memory, it is not folded) */
@@ -2760,7 +2761,10 @@ int sv_MouseCamera(void)
     double k;                       /* the drag scale: the scroll speed option / 16.5 */
     D3VECTOR4 zpos;                 /* the camera position of the zoom and turn */
     D3VECTOR zrot;                  /* its rotation */
-    float dst[4], right[16], fwd[4], v[4];   /* right is a D3MATRIX: d3_MatTranspose writes 0x40 bytes */
+    D3VECTOR4 dst;
+    D3MATRIX right;                   /* the camera matrix, transposed (d3_MatTranspose) */
+    D3VECTOR4 fwd;
+    D3VECTOR4 v;
     D3SM *hm;                       /* the scene's height map */
     const float *ax = (const float *)&d3_ZAxis;
 
@@ -2841,10 +2845,10 @@ go:
             zrot.z = ((D3OBJECT *)cam)->rotation.z;
             zrot.x = (sv_CameraAngleFar - sv_CameraAngleNear) * sv_CameraAngleFactor + sv_CameraAngleNear;
             zrot.y = sv_ZoomStartTurn - (dm_P.x - sv_ZoomStartX) * 0.0035f;
-            if (d3_VecEqual(&((D3OBJECT *)cam)->pos, (D3VECTOR *)&zpos, 0.1f) == 0 || d3_VecEqual(&d3_Camera->rotation, &zrot, 0.001f) == 0) {
-                d3_SetObjectPos(d3_Camera, (D3VECTOR *)&zpos);
+            if (d3_VecEqual(&((D3OBJECT *)cam)->pos, &zpos.v, 0.1f) == 0 || d3_VecEqual(&d3_Camera->rotation, &zrot, 0.001f) == 0) {
+                d3_SetObjectPos(d3_Camera, &zpos.v);
                 d3_SetObjectRot(d3_Camera, &zrot);
-                rec = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+                rec = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
                 if (rec != 0) {
                     rec->camAngle = sv_CameraAngleFactor;
                     SV_CAMREC(rec);
@@ -2858,7 +2862,7 @@ go:
                 z = z > 1.0 ? 1.0 : z;
                 z = z < 0.0 ? 0.0 : z;
                 sv_PlaceCamera(z);
-                rec = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+                rec = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
                 if (rec != 0) {
                     rec->camAngle = sv_CameraAngleFactor;
                     SV_CAMREC(rec);
@@ -2866,54 +2870,54 @@ go:
             }
             cam = (char *)d3_Camera;
             if (cam != 0 && dm_L.rhold != 0 && dm_L.ldown == 0) {    /* the right button alone: drag the map */
-                d3_MatTranspose(&d3_Camera->matrix, right);
+                d3_MatTranspose(&d3_Camera->matrix, &right);
                 k = ai_OptionScrollSpeed * (1.0 / 16.5);
-                v[0] = (dm_P.x - sv_DragLastX) * k;
-                v[1] = -(dm_P.y - sv_DragLastY) * k;
-                fwd[0] = right[0] * ax[0] + right[4] * ax[1] + right[8] * ax[2];
-                fwd[2] = right[2] * ax[0] + right[6] * ax[1] + right[10] * ax[2];
-                fwd[1] = 0.0f;
-                if ((float)sqrt(fwd[0] * fwd[0] + fwd[2] * fwd[2]) < 0.1f) {   /* the view looks straight down: the matrix rows (0x527386) */
-                    dst[1] = v[1];
-                    dst[2] = 0.0f;
-                    fwd[0] = 0.0f * right[8] + v[0] * right[0] + v[1] * right[4];
-                    fwd[2] = 0.0f * right[10] + v[0] * right[2] + v[1] * right[6];
+                v.x = (dm_P.x - sv_DragLastX) * k;
+                v.y = -(dm_P.y - sv_DragLastY) * k;
+                fwd.x = right._11 * ax[0] + right._21 * ax[1] + right._31 * ax[2];
+                fwd.z = right._13 * ax[0] + right._23 * ax[1] + right._33 * ax[2];
+                fwd.y = 0.0f;
+                if ((float)sqrt(fwd.x * fwd.x + fwd.z * fwd.z) < 0.1f) {   /* the view looks straight down: the matrix rows (0x527386) */
+                    dst.y = v.y;
+                    dst.z = 0.0f;
+                    fwd.x = 0.0f * right._31 + v.x * right._11 + v.y * right._21;
+                    fwd.z = 0.0f * right._33 + v.x * right._13 + v.y * right._23;
                 } else {                                                /* else rotated by the view's heading */
-                    ang = -d3_VecAngle2((char *)&d3_ZAxis, fwd);
-                    dst[1] = 0.0f;
-                    dst[2] = v[1];
-                    fwd[0] = v[0] * cos(ang) + v[1] * sin(ang);
-                    fwd[2] = v[1] * cos(ang) - v[0] * sin(ang);
+                    ang = -d3_VecAngle2(&d3_ZAxis.v, &fwd.v);
+                    dst.y = 0.0f;
+                    dst.z = v.y;
+                    fwd.x = v.x * cos(ang) + v.y * sin(ang);
+                    fwd.z = v.y * cos(ang) - v.x * sin(ang);
                 }
-                dst[0] = v[0];
-                fwd[1] = 0.0f;
-                dst[0] = fwd[0] + d3_Camera->pos.x;
-                dst[1] = d3_Camera->pos.y;
-                dst[2] = fwd[2] + d3_Camera->pos.z;
-                if (d3_VecEqual(sv_DragLastPos, dst, 0.1f) == 0) {
+                dst.x = v.x;
+                fwd.y = 0.0f;
+                dst.x = fwd.x + d3_Camera->pos.x;
+                dst.y = d3_Camera->pos.y;
+                dst.z = fwd.z + d3_Camera->pos.z;
+                if (d3_VecEqual(&sv_DragLastPos.v, &dst.v, 0.1f) == 0) {
                     hm = (D3SM *)d3_DefaultScene->hmap;
                     if (hm != 0) {                                      /* clamped to the height map, 20 cells in */
                         lo = hm->cell.x * 20.0f + hm->origin.x;
-                        if (dst[0] < lo)
-                            dst[0] = lo;
+                        if (dst.x < lo)
+                            dst.x = lo;
                         else {
                             hi = (float)(hm->size - 20) * hm->cell.x + hm->origin.x;
-                            if (dst[0] > hi)
-                                dst[0] = hi;
+                            if (dst.x > hi)
+                                dst.x = hi;
                         }
                         lo = hm->cell.z * 20.0f + hm->origin.z;
                         hi = (float)(hm->size - 20) * hm->cell.z + hm->origin.z;
-                        dst[2] = max(dst[2], hi);           /* z runs from the far edge (a negative cell) */
-                        dst[2] = min(dst[2], lo);
+                        dst.z = max(dst.z, hi);           /* z runs from the far edge (a negative cell) */
+                        dst.z = min(dst.z, lo);
                     }
-                    d3_SetObjectPos(d3_Camera, (struct D3VECTOR *)dst);
-                    rec = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+                    d3_SetObjectPos(d3_Camera, &dst.v);
+                    rec = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
                     if (rec != 0)
                         SV_CAMREC(rec);
                 }
-                sv_DragLastPos[0] = dst[0];
-                sv_DragLastPos[1] = dst[1];
-                sv_DragLastPos[2] = dst[2];
+                sv_DragLastPos.x = dst.x;
+                sv_DragLastPos.y = dst.y;
+                sv_DragLastPos.z = dst.z;
                 sv_DragLastX = (int)dm_P.x;
                 sv_DragLastY = (int)dm_P.y;
                 sv_MouseCamActive = 1;
@@ -2941,16 +2945,16 @@ int sv_UpdateCamera(void)
             if (sv_CameraEaseOn != 0 && kb_Down[0xf] == 0)
                 sv_EaseCameraHeight();
             if (sv_CameraScrolled != 0 && sv_FrameDepth == sv_FrameBase && ai_PlayerBuilding == 0 && ai_FallbackBuilding == 0
-                && (rec = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId])) != 0) {
+                && (rec = gm_PlayerRecord(&ai_Chars[ai_PlayerId])) != 0) {
                 SV_CAMREC(rec);
                 rec->camAngle = sv_CameraAngleFactor;
             }
-            sv_ViewRot[0] = d3_Camera->rotation.x;
-            sv_ViewRot[1] = d3_Camera->rotation.y;
-            sv_ViewRot[2] = d3_Camera->rotation.z;
-            sv_ViewPos[0] = d3_Camera->pos.x;
-            sv_ViewPos[1] = d3_Camera->pos.y;
-            sv_ViewPos[2] = d3_Camera->pos.z;
+            sv_ViewRot.x = d3_Camera->rotation.x;
+            sv_ViewRot.y = d3_Camera->rotation.y;
+            sv_ViewRot.z = d3_Camera->rotation.z;
+            sv_ViewPos.x = d3_Camera->pos.x;
+            sv_ViewPos.y = d3_Camera->pos.y;
+            sv_ViewPos.z = d3_Camera->pos.z;
         }
         return sv_CameraScrolled;
     }
@@ -2972,13 +2976,13 @@ int sv_UpdateCamera(void)
 
 void sv_FlyCameraToObject(AIBLD *b)
 {
-    float pos[4];                   /* the target camera position (a padded vector) */
-    float dir[3];                   /* the camera rotation, kept */
+    D3VECTOR4 pos;   /* the target camera position (a padded vector) */
+    D3VECTOR dir;                   /* the camera rotation, kept */
     float lo, hi;                   /* the object's height range */
-    float back[4];                  /* 600 units back along the view */
-    float cen[4];                   /* the object's centre in the world */
-    float rot[16];                  /* the camera matrix, transposed (a 4x4 D3MATRIX) */
-    float up[4];                    /* the camera above the centre (a padded vector, only y used) */
+    D3VECTOR4 back;   /* 600 units back along the view */
+    D3VECTOR4 cen;   /* the object's centre in the world */
+    D3MATRIX rot;                 /* the camera matrix, transposed (d3_MatTranspose) */
+    D3VECTOR4 up;   /* the camera above the centre (a padded vector, only y used) */
     float h;                        /* the pull-in factor */
     double t;                       /* the mean terrain height there */
     float step, dx, dy, dz, len;
@@ -2990,56 +2994,56 @@ void sv_FlyCameraToObject(AIBLD *b)
 
     obj = b->object;
     d3t_GetHeightRange(obj, &lo, &hi);
-    d3_MatTranspose(&d3_Camera->matrix, rot);
+    d3_MatTranspose(&d3_Camera->matrix, &rot);
     vx = ax[0] * -600.0f;
     vy = ax[1] * -600.0f;
     vz = ax[2] * -600.0f;
-    back[0] = rot[8] * vz + rot[4] * vy + rot[0] * vx;
-    back[1] = rot[9] * vz + rot[5] * vy + rot[1] * vx;
-    back[2] = rot[10] * vz + rot[6] * vy + rot[2] * vx;
-    d3_PointToWorld(obj, &obj->pos, cen);
-    pos[0] = cen[0] + back[0];
-    pos[1] = cen[1] + back[1];
-    pos[2] = cen[2] + back[2];
-    t = d3t_GetMeanHeight((struct D3VECTOR *)pos);
-    pos[1] = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
-    up[1] = pos[1] - cen[1];
+    back.x = rot._31 * vz + rot._21 * vy + rot._11 * vx;
+    back.y = rot._32 * vz + rot._22 * vy + rot._12 * vx;
+    back.z = rot._33 * vz + rot._23 * vy + rot._13 * vx;
+    d3_PointToWorld(obj, &obj->pos, &cen.v);
+    pos.x = cen.x + back.x;
+    pos.y = cen.y + back.y;
+    pos.z = cen.z + back.z;
+    t = d3t_GetMeanHeight(&pos.v);
+    pos.y = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
+    up.y = pos.y - cen.y;
     d3t_GetHeightRange(obj, &lo, &hi);
-    h = back[1] / ((hi - lo) * 0.5f + up[1]);
-    pos[0] = pos[0] - (h * back[0] - back[0] * 1.8);
-    pos[2] = pos[2] - (h * back[2] - back[2] * 1.8);
-    dir[0] = d3_Camera->rotation.x;
-    dir[1] = d3_Camera->rotation.y;
-    dir[2] = d3_Camera->rotation.z;
+    h = back.y / ((hi - lo) * 0.5f + up.y);
+    pos.x = pos.x - (h * back.x - back.x * 1.8);
+    pos.z = pos.z - (h * back.z - back.z * 1.8);
+    dir.x = d3_Camera->rotation.x;
+    dir.y = d3_Camera->rotation.y;
+    dir.z = d3_Camera->rotation.z;
     d3anim_FreePath(d3_Camera);
     d3t_CamMove = 0;
     d3t_CamMoving = 0;
-    t = d3t_GetMeanHeight((struct D3VECTOR *)pos);
+    t = d3t_GetMeanHeight(&pos.v);
     cam = d3_Camera;
-    pos[1] = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
-    dx = pos[0] - cam->pos.x;
-    dy = pos[1] - cam->pos.y;
-    dz = pos[2] - cam->pos.z;
+    pos.y = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
+    dx = pos.x - cam->pos.x;
+    dy = pos.y - cam->pos.y;
+    dz = pos.z - cam->pos.z;
     step = (float)ai_CameraStep;
     len = (float)sqrt(dz * dz + dy * dy + dx * dx) * step * 0.0005f;   /* the steps for the distance */
-    d3t_PlaceObjectV(cam, (struct D3VECTOR *)pos, (struct D3VECTOR *)dir, (int)min(ai_CameraStep * 3, max(step, len)), 0x68);
-    sv_ViewRot[0] = dir[0];
-    sv_ViewRot[1] = dir[1];
-    sv_ViewRot[2] = dir[2];
-    sv_ViewPos[0] = pos[0];
-    sv_ViewPos[1] = pos[1];
-    sv_ViewPos[2] = pos[2];
-    rec = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+    d3t_PlaceObjectV(cam, &pos.v, &dir, (int)min(ai_CameraStep * 3, max(step, len)), 0x68);
+    sv_ViewRot.x = dir.x;
+    sv_ViewRot.y = dir.y;
+    sv_ViewRot.z = dir.z;
+    sv_ViewPos.x = pos.x;
+    sv_ViewPos.y = pos.y;
+    sv_ViewPos.z = pos.z;
+    rec = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
     if (rec != 0) {
-        rec->camPos[0] = pos[0];
-        rec->camPos[1] = pos[1];
-        rec->camPos[2] = pos[2];
-        rec->camRot[0] = dir[0];
-        rec->camRot[1] = dir[1];
-        rec->camRot[2] = dir[2];
+        rec->camPos.x = pos.x;
+        rec->camPos.y = pos.y;
+        rec->camPos.z = pos.z;
+        rec->camRot.x = dir.x;
+        rec->camRot.y = dir.y;
+        rec->camRot.z = dir.z;
     }
     sv_SelectedObject = b;
-    sv_SelectedModel = (int)b->object;
+    sv_SelectedModel = b->object;
 }
 
 int d3t_PlaceObject(struct D3OBJECT *camera, float px, float py, float pz, float dx, float dy, float dz, int unk, char flags);                     /* 0x411680 */
@@ -3054,13 +3058,13 @@ struct AIBLD *gm_BuildNext(void);                     /* 0x501030 */
    sv_FlyCameraToObject does the same with an animated move */
 void sv_CameraToObject(AIBLD *b)
 {
-    float pos[4];                   /* the new camera position (a padded vector) */
-    float dir[3];                   /* the camera rotation, kept */
+    D3VECTOR4 pos;   /* the new camera position (a padded vector) */
+    D3VECTOR dir;                   /* the camera rotation, kept */
     float lo, hi;                   /* the object's height range */
-    float back[4];                  /* 600 units back along the view */
-    float cen[4];                   /* the object's centre in the world */
-    float rot[16];                  /* the camera matrix, transposed (a 4x4 D3MATRIX) */
-    float up[4];                    /* the camera above the centre (a padded vector, only y used) */
+    D3VECTOR4 back;   /* 600 units back along the view */
+    D3VECTOR4 cen;   /* the object's centre in the world */
+    D3MATRIX rot;                 /* the camera matrix, transposed (d3_MatTranspose) */
+    D3VECTOR4 up;   /* the camera above the centre (a padded vector, only y used) */
     float h;                        /* the pull-in factor */
     double t;                       /* the mean terrain height there */
     D3OBJECT *obj;
@@ -3070,51 +3074,51 @@ void sv_CameraToObject(AIBLD *b)
 
     obj = b->object;
     d3t_GetHeightRange(obj, &lo, &hi);
-    d3_MatTranspose(&d3_Camera->matrix, rot);
+    d3_MatTranspose(&d3_Camera->matrix, &rot);
     vx = ax[0] * -600.0f;
     vy = ax[1] * -600.0f;
     vz = ax[2] * -600.0f;
-    back[0] = rot[8] * vz + rot[4] * vy + rot[0] * vx;
-    back[1] = rot[9] * vz + rot[5] * vy + rot[1] * vx;
-    back[2] = rot[10] * vz + rot[6] * vy + rot[2] * vx;
-    d3_PointToWorld(obj, &obj->pos, cen);
-    pos[0] = cen[0] + back[0];
-    pos[1] = cen[1] + back[1];
-    pos[2] = cen[2] + back[2];
-    t = d3t_GetMeanHeight((struct D3VECTOR *)pos);
-    pos[1] = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
-    up[1] = pos[1] - cen[1];
+    back.x = rot._31 * vz + rot._21 * vy + rot._11 * vx;
+    back.y = rot._32 * vz + rot._22 * vy + rot._12 * vx;
+    back.z = rot._33 * vz + rot._23 * vy + rot._13 * vx;
+    d3_PointToWorld(obj, &obj->pos, &cen.v);
+    pos.x = cen.x + back.x;
+    pos.y = cen.y + back.y;
+    pos.z = cen.z + back.z;
+    t = d3t_GetMeanHeight(&pos.v);
+    pos.y = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
+    up.y = pos.y - cen.y;
     d3t_GetHeightRange(obj, &lo, &hi);
-    h = back[1] / ((hi - lo) * 0.5f + up[1]);
-    pos[0] = pos[0] - (h * back[0] - back[0] * 1.8);
-    pos[2] = pos[2] - (h * back[2] - back[2] * 1.8);
-    dir[0] = d3_Camera->rotation.x;
-    dir[1] = d3_Camera->rotation.y;
-    dir[2] = d3_Camera->rotation.z;
+    h = back.y / ((hi - lo) * 0.5f + up.y);
+    pos.x = pos.x - (h * back.x - back.x * 1.8);
+    pos.z = pos.z - (h * back.z - back.z * 1.8);
+    dir.x = d3_Camera->rotation.x;
+    dir.y = d3_Camera->rotation.y;
+    dir.z = d3_Camera->rotation.z;
     d3anim_FreePath(d3_Camera);
     d3t_CamMove = 0;
     d3t_CamMoving = 0;
-    t = d3t_GetMeanHeight((struct D3VECTOR *)pos);
-    pos[1] = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
-    sv_ViewRot[0] = dir[0];
-    sv_ViewRot[1] = dir[1];
-    sv_ViewRot[2] = dir[2];
-    sv_ViewPos[0] = pos[0];
-    sv_ViewPos[2] = pos[2];
-    sv_ViewPos[1] = pos[1];
-    d3_SetObjectPos(d3_Camera, pos);
-    d3_SetObjectRot(d3_Camera, dir);
-    rec = (AIFIN *)gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
+    t = d3t_GetMeanHeight(&pos.v);
+    pos.y = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
+    sv_ViewRot.x = dir.x;
+    sv_ViewRot.y = dir.y;
+    sv_ViewRot.z = dir.z;
+    sv_ViewPos.x = pos.x;
+    sv_ViewPos.z = pos.z;
+    sv_ViewPos.y = pos.y;
+    d3_SetObjectPos(d3_Camera, &pos.v);
+    d3_SetObjectRot(d3_Camera, &dir);
+    rec = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
     if (rec != 0) {
-        rec->camPos[0] = pos[0];
-        rec->camPos[1] = pos[1];
-        rec->camPos[2] = pos[2];
-        rec->camRot[0] = dir[0];
-        rec->camRot[1] = dir[1];
-        rec->camRot[2] = dir[2];
+        rec->camPos.x = pos.x;
+        rec->camPos.y = pos.y;
+        rec->camPos.z = pos.z;
+        rec->camRot.x = dir.x;
+        rec->camRot.y = dir.y;
+        rec->camRot.z = dir.z;
     }
     sv_SelectedObject = b;
-    sv_SelectedModel = (int)b->object;
+    sv_SelectedModel = b->object;
 }
 /* 0x527e90, moves the camera (animated, d3t_PlaceObjectV) to 600 units back along its view from the 3D object
    m, like sv_FlyCameraToObject for a bare object: no stored view, no selection */
@@ -3123,58 +3127,58 @@ void sv_FlyCameraToModel(D3OBJECT *m)
 {
     float h;                        /* the pull-in factor */
     D3VECTOR4 up;                   /* the camera above the centre (only its height is used) */
-    float pos[4];                   /* the target camera position (a padded vector) */
-    float dir[3];                   /* the camera rotation, kept */
+    D3VECTOR4 pos;   /* the target camera position (a padded vector) */
+    D3VECTOR dir;                   /* the camera rotation, kept */
     float lo, hi;                   /* the object's height range */
-    float back[4];                  /* 600 units back along the view */
-    float cen[4];                   /* the object's centre in the world */
-    float rot[16];                  /* the camera matrix, transposed (a 4x4 D3MATRIX) */
+    D3VECTOR4 back;   /* 600 units back along the view */
+    D3VECTOR4 cen;   /* the object's centre in the world */
+    D3MATRIX rot;                 /* the camera matrix, transposed (d3_MatTranspose) */
     double t;                       /* the mean terrain height there */
     float step, dx, dy, dz, len;
     D3OBJECT *cam;
     const float *ax = (const float *)&d3_ZAxis;
     float vx, vy, vz;               /* the view axis (0, 0, 1) scaled to -600 */
 
-    d3t_GetHeightRange((char *)m, &lo, &hi);
-    d3_MatTranspose(&d3_Camera->matrix, rot);
+    d3t_GetHeightRange(m, &lo, &hi);
+    d3_MatTranspose(&d3_Camera->matrix, &rot);
     vx = ax[0] * -600.0f;
     vy = ax[1] * -600.0f;
     vz = ax[2] * -600.0f;
-    back[0] = rot[8] * vz + rot[4] * vy + rot[0] * vx;
-    back[1] = rot[9] * vz + rot[5] * vy + rot[1] * vx;
-    back[2] = rot[10] * vz + rot[6] * vy + rot[2] * vx;
-    d3_PointToWorld((char *)m, &m->pos, cen);
-    pos[0] = cen[0] + back[0];
-    pos[1] = cen[1] + back[1];
-    pos[2] = cen[2] + back[2];
-    t = d3t_GetMeanHeight((struct D3VECTOR *)pos);
-    pos[1] = (float)((sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t);
-    up.y = pos[1] - cen[1];
-    d3t_GetHeightRange((char *)m, &lo, &hi);
-    h = back[1] / ((hi - lo) * 0.5f + up.y);
-    pos[0] = pos[0] - (h * back[0] - back[0] * 1.8);
-    pos[2] = pos[2] - (h * back[2] - back[2] * 1.8);
-    dir[0] = d3_Camera->rotation.x;
-    dir[1] = d3_Camera->rotation.y;
-    dir[2] = d3_Camera->rotation.z;
+    back.x = rot._31 * vz + rot._21 * vy + rot._11 * vx;
+    back.y = rot._32 * vz + rot._22 * vy + rot._12 * vx;
+    back.z = rot._33 * vz + rot._23 * vy + rot._13 * vx;
+    d3_PointToWorld(m, &m->pos, &cen.v);
+    pos.x = cen.x + back.x;
+    pos.y = cen.y + back.y;
+    pos.z = cen.z + back.z;
+    t = d3t_GetMeanHeight(&pos.v);
+    pos.y = (float)((sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t);
+    up.y = pos.y - cen.y;
+    d3t_GetHeightRange(m, &lo, &hi);
+    h = back.y / ((hi - lo) * 0.5f + up.y);
+    pos.x = pos.x - (h * back.x - back.x * 1.8);
+    pos.z = pos.z - (h * back.z - back.z * 1.8);
+    dir.x = d3_Camera->rotation.x;
+    dir.y = d3_Camera->rotation.y;
+    dir.z = d3_Camera->rotation.z;
     d3anim_FreePath(d3_Camera);
     d3t_CamMove = 0;
     d3t_CamMoving = 0;
-    t = d3t_GetMeanHeight((struct D3VECTOR *)pos);
+    t = d3t_GetMeanHeight(&pos.v);
     cam = d3_Camera;
-    pos[1] = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
-    dx = pos[0] - cam->pos.x;
-    dy = pos[1] - cam->pos.y;
-    dz = pos[2] - cam->pos.z;
+    pos.y = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_CameraHeightNear + t;
+    dx = pos.x - cam->pos.x;
+    dy = pos.y - cam->pos.y;
+    dz = pos.z - cam->pos.z;
     step = (float)ai_CameraStep;
     len = (float)sqrt(dz * dz + dy * dy + dx * dx) * step * 0.0005f;   /* the steps for the distance */
-    d3t_PlaceObjectV(cam, (struct D3VECTOR *)pos, (struct D3VECTOR *)dir, (int)min(ai_CameraStep * 3, max(step, len)), 0x68);
+    d3t_PlaceObjectV(cam, &pos.v, &dir, (int)min(ai_CameraStep * 3, max(step, len)), 0x68);
 }
 /* 0x528140, moves the camera (0x411680) to the stored view (sv_ViewPos / sv_ViewRot) with the step ai_CameraStep / 8 */
 
 void sv_MoveCameraToView(void)
 {
-    d3t_PlaceObject(d3_Camera, sv_ViewPos[0], sv_ViewPos[1], sv_ViewPos[2], sv_ViewRot[0], sv_ViewRot[1], sv_ViewRot[2], ai_CameraStep, 8);
+    d3t_PlaceObject(d3_Camera, sv_ViewPos.x, sv_ViewPos.y, sv_ViewPos.z, sv_ViewRot.x, sv_ViewRot.y, sv_ViewRot.z, ai_CameraStep, 8);
 }
 /* 0x528180, the d3_ForEachObject callback of 0x5282f0 over the model parts of the building b: for the part named
    "dummy_FAHNE" it creates the banner object "sp_WIMPEL" in b's model scene at the dummy's world position, turned by pi
@@ -3191,13 +3195,13 @@ char sv_CreateBannerCB(D3OBJECT *part, AIBLD *b)
         rot.x = 0;
         rot.y = 0;
         rot.z = 0;
-        d3_PointToWorld(part, &part->pos, (D3VECTOR *)&pos);
-        o = d3_CreateObject((int)b->object, (D3VECTOR *)&pos, &rot, "sp_WIMPEL");
+        d3_PointToWorld(part, &part->pos, &pos.v);
+        o = d3_CreateObject(b->object, &pos.v, &rot, "sp_WIMPEL");
         rot.x = 0;
         rot.y = 3.1415927f;
         rot.z = 0;
         d3_MatFromAngles((D3VECTOR4 *)&rot, &m);
-        d3_SetWorldPosRot(o, &pos, &m);
+        d3_SetWorldPosRot(o, &pos.v, &m);
         if (b->owner != 0xffff) {
             d3if_SelectTextureSet(o, (struct D3SURF *)o->info, (unsigned char)((char)ai_Chars[b->owner].ref54 + 'f'), 1);
             o->kind = 4;
@@ -3305,9 +3309,9 @@ void sv_UpdateChimneySmoke(AIBLD *b)
                         return;
                     scene = d3_CurrentScene;
                     d3if_SelectScene(0, 1);
-                    d = d3_FindObject((int)b->object, 0x100, 0, "dummy_RAUCH_0");
+                    d = d3_FindObject(b->object, 0x100, 0, "dummy_RAUCH_0");
                     if (d != 0 && (e = evt_Load("effekte\\Schornstein_dunkel.esc")) != 0) {
-                        d3_PointToWorld(d, &d->pos, (D3VECTOR *)&pos);
+                        d3_PointToWorld(d, &d->pos, &pos.v);
                         if (evt_RunScriptArgs(e, 3, (int)pos.x, (int)pos.y, (int)pos.z) != 0)
                             b->smokeEffect = e->id;
                         e->group = 0;
@@ -3326,18 +3330,25 @@ void sv_UpdateChimneySmoke(AIBLD *b)
         }
     }
 }
-/* 0x528660, a callback collecting the names o that contain "sp_WIMPEL" into the list p (p[0] the count, then the pointers); 1 while below 0x20 */
+typedef struct SVBANNERS {      /* the banner parts sv_CollectBannerCB collects for sv_RemoveBanners */
+    int count;
+    D3OBJECT *objs[0x20];
+} SVBANNERS;
 
-char sv_CollectBannerCB(char *o, int *p)
+/* 0x528660, a callback collecting the objects o whose names contain "sp_WIMPEL" into the list ctx (an SVBANNERS); 1 while below 0x20 */
+
+char sv_CollectBannerCB(D3OBJECT *o, void *ctx)
 {
-    if (strstr(o, "sp_WIMPEL") != 0) {
-        p[p[0] + 1] = (int)o;
-        p[0]++;
+    SVBANNERS *p = ctx;
+
+    if (strstr(o->name, "sp_WIMPEL") != 0) {
+        p->objs[p->count] = o;
+        p->count++;
     }
-    return p[0] < 0x20;
+    return p->count < 0x20;
 }
 
-extern int d3_QuadTree, sv_PanelBldPic, sv_PanelHealthBar, sv_PanelCartWin, sv_PanelItemBtn, sv_PanelTransportBtn, sv_PanelCartBtn, sv_PanelActionBtn, sv_PanelCartChar;  /* 0x6f1c28, 0x623864, 0x623868, 0x62387c, 0x623888, 0x62388c, 0x623890, 0x623894, 0x631078 */
+extern int sv_PanelBldPic, sv_PanelHealthBar, sv_PanelCartWin, sv_PanelItemBtn, sv_PanelTransportBtn, sv_PanelCartBtn, sv_PanelActionBtn, sv_PanelCartChar;  /* 0x623864, 0x623868, 0x62387c, 0x623888, 0x62388c, 0x623890, 0x623894, 0x631078 */
 extern int sv_PanelWidgets[4];  /* 0x62386c */
 
 int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int flags, int win);                     /* 0x46a960 */
@@ -3347,30 +3358,29 @@ int sv_AddPanelButton(int x, int y, char *text);
    (0x458780 with the colour 0x6f1c28, when set) and updated (0x447190) */
 void sv_RemoveBanners(AIBLD *bld)
 {
-    int list[33];
+    SVBANNERS list;
     int i;
     D3OBJECT *m;
     D3OBJECT *save;
 
     m = bld->object;
     if (m != 0) {
-        for (i = 0; i < 0x21; i++)
-            list[i] = 0;
+        memset(&list, 0, sizeof(list));
         if ((m->state & 1) == 0) {
             save = m->next;
             m->next = 0;
-            d3_ForEachObject(d3_DefaultScene, bld->object, 0x40, sv_CollectBannerCB, list);
+            d3_ForEachObject(d3_DefaultScene, bld->object, 0x40, sv_CollectBannerCB, &list);
             bld->object->next = save;
         } else
-            d3_ForEachObject(d3_DefaultScene, m, 0x40, sv_CollectBannerCB, list);
+            d3_ForEachObject(d3_DefaultScene, m, 0x40, sv_CollectBannerCB, &list);
         i = 0;
-        if (0 < list[0]) {
+        if (0 < list.count) {
             do {
                 if (d3_QuadTree != 0)
-                    d3q_RemoveObject((D3OBJECT *)list[i + 1], (D3QNODE *)d3_QuadTree);
-                d3if_Delete((struct D3OBJECT *)list[i + 1]);
+                    d3q_RemoveObject(list.objs[i], d3_QuadTree);
+                d3if_Delete(list.objs[i]);
                 i++;
-            } while (i < list[0]);
+            } while (i < list.count);
         }
     }
 }
@@ -3479,7 +3489,7 @@ void sv_OpenBuildingPanel(AIBLD *b)
 void sv_OpenItemPanel(AIOBJ *p)
 {
     AIBLD *b;
-    unsigned short *owner;
+    AICHAR *owner;
     unsigned perm;
     AIGOOD *g;
 
@@ -3504,7 +3514,7 @@ void sv_OpenItemPanel(AIOBJ *p)
         if (b != 0 && (g->type == 2 || g->type == 6)) {
             owner = gm_ObjectBuildingOwner(p);
             perm = gm_PermissionBits(ai_PlayerId, b, 0, 0);
-            if (*owner == ai_PlayerId || (perm & 0x10) != 0) {
+            if (owner->id == ai_PlayerId || (perm & 0x10) != 0) {
                 if (gm_ListObjectsAfter(b, p, 0) != 0)
                     sv_PanelActionBtn = sv_AddPanelButton(0, 0x8c, txt_Ptrs[TXT_PANEL_BTN_ITEM_OWN]);
                 sv_PanelItemBtn = sv_AddPanelButton(0, 0xa6, txt_Ptrs[TXT_PANEL_BTN_ITEM]);
@@ -3520,7 +3530,7 @@ void sv_OpenItemPanel(AIOBJ *p)
    character that shows the cart (sv_PanelCartChar) */
 void sv_OpenCartPanel(AIOBJ *c)
 {
-    unsigned short *owner;
+    AICHAR *owner;
     int x;
 
     if (sv_PanelForm != -1)
@@ -3530,11 +3540,11 @@ void sv_OpenCartPanel(AIOBJ *c)
         return;
     sv_PanelForm = d2_OpenForm(d2_ScreenW - 0x68, 0x106, "panel\\infopanel_transporter");
     d2_SetForm(sv_PanelForm, 1);
-    io_PrintText((intptr_t)"$Z%2N1$A%s", *owner, c->id * 2 + 0x9a8);
+    io_PrintText((intptr_t)"$Z%2N1$A%s", owner->id, c->id * 2 + 0x9a8);
     d2_SetForm(sv_PanelForm, 0);
     x = ((d2_Wins[d2_LastWindow].w - 0x30) >> 1) - 1;
     ((D2OBJ *)d2_Objs)[d2_WinOpenPic(x, 0x30, c->id + 0xdf, d2_LastWindow)].interactive = 1;
-    if (*owner == ai_PlayerId)
+    if (owner->id == ai_PlayerId)
         sv_PanelCartBtn = sv_AddPanelButton(x, 0xac, txt_Ptrs[TXT_PANEL_BTN_CART]);
     sv_PanelHealthBar = d2_WinOpenSlider(0x18, 0x66, 0x30, 0, 100, 0x75, 0x442, d2_LastWindow);
     d2_SetObjValue(sv_PanelHealthBar, 0, 100, c->fill);
@@ -4032,7 +4042,7 @@ void sv_UpdatePanel(void)
                 if ((cls == 1 || cls == 2 || cls == 4 || cls == 7 || cls == 8 || bt->kind == 0x10 || bt->kind == 0x1e) && ai_RunAllows(0x400) == 1) {
                     ai_BuildingPerms = gm_PermissionBits(ai_PlayerId, sel, 0, 0);
                     ai_CampaignStep(0x12, sel, 0, 0);
-                    ai_TransportWindow((int)sel, 1);
+                    ai_TransportWindow(sel, 1);
                     ai_CampaignStep(0x12, sel, 1, 0);
                     sv_SelectedObject = sel;
                     sv_ResetScreenClip();
@@ -4134,7 +4144,7 @@ refresh:
    d2_CaptionCopy and the picked object is kept in sv_HoverLast */
 void sv_HoverPick(void)
 {
-    char *o;
+    D3OBJECT *o;
     AIBLD *b;
     AIOBJ *it;
     AIGOOD *g;
@@ -4181,9 +4191,9 @@ void sv_HoverPick(void)
         sv_HoverBuilding = 0;
         ai_PickedChar = 0;
         sv_HoverContact = 0;
-        switch (ai_PickedObject[0x4b]) {   /* the top byte of D3OBJECT.pickId: the record kind the object stands for */
+        switch (ai_PickedObject->pickBytes[3]) {   /* the top byte of D3OBJECT.pickId: the record kind the object stands for */
         case 1:
-            sv_HoverItem = (int)((D3OBJECT *)ai_PickedObject)->owner;
+            sv_HoverItem = (int)ai_PickedObject->owner;
             if (ai_FallbackBuilding != 0)
             sv_PanelPerms = gm_PermissionBits(ai_PlayerId, ai_FallbackBuilding, (struct AIOBJ *)sv_HoverItem, 0);
         else
@@ -4202,7 +4212,7 @@ void sv_HoverPick(void)
             sv_HoverItemPerms = sv_PanelPerms;
             break;
         case 2:
-            sv_HoverBuilding = ((D3OBJECT *)ai_PickedObject)->owner;
+            sv_HoverBuilding = ai_PickedObject->owner;
             sv_PanelPerms = gm_PermissionBits(ai_PlayerId, sv_HoverBuilding, 0, 0);
             b = sv_HoverBuilding;
             if (b != 0 && (b->flags5a & 1) == 0) {
@@ -4214,7 +4224,7 @@ void sv_HoverPick(void)
             sv_HoverBldPerms = sv_PanelPerms;
             break;
         case 3:
-            ai_PickedChar = ((D3OBJECT *)ai_PickedObject)->owner;
+            ai_PickedChar = ai_PickedObject->owner;
             sv_PanelPerms = gm_PermissionBits(ai_PlayerId, 0, 0, ai_PickedChar);
             if (ai_PickedChar != 0) {
                 io_CharacterName(ai_PickedChar->id, 1, 4, d2_CaptionCopy);
@@ -4233,8 +4243,8 @@ void sv_HoverPick(void)
             && (sv_HoverBuilding->flags5a & 1) == 0)
             d2_PointerLook = 0xb;
         b = ai_FallbackBuilding;
-        if ((b != 0 || (b = ai_PlayerBuilding) != 0) && ai_PickedObject != 0 && strncmp(ai_PickedObject, "contact_gate_", 0xd) == 0) {
-            strcpy(goods, ai_PickedObject + 0x10);
+        if ((b != 0 || (b = ai_PlayerBuilding) != 0) && ai_PickedObject != 0 && strncmp(ai_PickedObject->name, "contact_gate_", 0xd) == 0) {
+            strcpy(goods, ai_PickedObject->name + 0x10);
             if (ai_FallbackBuilding != 0)
                 it = gm_Query(b->objList, 1, 4, 6);
             else
@@ -4264,7 +4274,7 @@ void sv_HoverPick(void)
             }
         }
         o = ai_PickedObject;
-        if (strcmp(o, "tp_TUER") == 0 && (b = (AIBLD *)((D3OBJECT *)o)->owner) != 0) {
+        if (strcmp(o->name, "tp_TUER") == 0 && (b = (AIBLD *)o->owner) != 0) {
             if ((sv_PanelPerms & 1) != 0) {
                 d2_PointerLook = 0xb;
                 if (b->name[0] != 0)
@@ -4287,7 +4297,7 @@ void sv_HoverPick(void)
             d2_PointerSprite = -1;
             sv_PointerSpriteFor = 0;
         }
-        sv_HoverLast = (int)ai_PickedObject;
+        sv_HoverLast = ai_PickedObject;
     }
 }
 /* 0x52adb0, resets the selection (item, object, model, sv_SelectedExtra) and clears the bit 2 of the carts (kind 0x1d) of the building ai_FallbackBuilding; without a player building (ai_PlayerBuilding) and without a fallback it
@@ -4327,13 +4337,13 @@ void sv_ClearSelection(void)
 {
     char *q;
 
-    q = (char *)(unsigned)&ai_Selected;
+    q = (char *)(uintptr_t)&ai_Selected;
     sv_SelectedChar = 0;
     sv_SelectedModel = 0;
     do {
         *q = 0;
         q += 0x21c;
-    } while ((int)q < (int)((unsigned)&ai_Selected + 0x65400));
+    } while ((intptr_t)q < (intptr_t)((uintptr_t)&ai_Selected + 0x65400));
     ai_SelectedCount = 0;
 }
 /* 0x52ae70, "sv_HandleObjects": turns a click into the selection. A pending quick jump (sv_QuickJump.panelFlag) looks up its
@@ -4368,7 +4378,7 @@ void sv_HandleObjects(void)
             if (sv_QuickJump.contactName[0] != 0) {
                 o = d3_FindObject(0, 0x60, 0, sv_QuickJump.contactName);
                 if (o != 0) {
-                    ai_PickedObject = (char *)o;
+                    ai_PickedObject = o;
                     found = 1;
                 } else
                     sprintf(msg, "sv_HandleObjects(): Could not find QuickJump.ContactName: %s", sv_QuickJump.contactName);
@@ -4379,7 +4389,7 @@ void sv_HandleObjects(void)
             if (sv_QuickJump.contactName[0] != 0) {
                 o = d3_FindObject(0, 0x60, 0, sv_QuickJump.contactName);
                 if (o != 0) {
-                    ai_PickedObject = (char *)o;
+                    ai_PickedObject = o;
                     found = 1;
                 } else
                     sprintf(msg, "sv_HandleObjects(): Could not find QuickJump.ContactName: %s", sv_QuickJump.contactName);
@@ -4393,18 +4403,18 @@ void sv_HandleObjects(void)
         if (ai_PickedObject != 0) {
             sv_ClickedBuilding = sv_HoverBuilding;
             sv_ClickedItem = sv_HoverItem;
-            ai_ClickedObject = (int)ai_PickedObject;
+            ai_ClickedObject = ai_PickedObject;
             sv_ClickedChar = ai_PickedChar;
             sv_ClickedContact = sv_HoverContact;
             if (sv_HoverItem != 0)
                 cls = &ai_Goods[((AIOBJ *)sv_HoverItem)->id];
-            if (strcmp(ai_PickedObject, "tp_TUER") == 0 || (cls != 0 && cls->type == 6) || sv_HoverContact != 0)
+            if (strcmp(ai_PickedObject->name, "tp_TUER") == 0 || (cls != 0 && cls->type == 6) || sv_HoverContact != 0)
                 door = 1;
-            if ((((D3OBJECT *)ai_PickedObject)->objectFlags & 1) != 0 && door == 0) {
-                d3t_PlaceAtObject((D3OBJECT *)ai_PickedObject, ai_CameraStep);
+            if ((ai_PickedObject->objectFlags & 1) != 0 && door == 0) {
+                d3t_PlaceAtObject(ai_PickedObject, ai_CameraStep);
                 sv_FocusObject = ai_PickedObject;
-                if (ai_PickedObject != 0 && ((D3OBJECT *)ai_PickedObject)->events != 0 && ((D3OBJECT *)ai_PickedObject)->events[2].fn != 0)
-                    ((D3OBJECT *)ai_PickedObject)->events[2].fn((D3OBJECT *)ai_PickedObject, 2, ((D3OBJECT *)ai_PickedObject)->events[2].name, 0);
+                if (ai_PickedObject != 0 && ai_PickedObject->events != 0 && ai_PickedObject->events[2].fn != 0)
+                    ai_PickedObject->events[2].fn(ai_PickedObject, 2, ai_PickedObject->events[2].name, 0);
                 sv_FocusDepth = sv_FrameDepth;
             }
             sv_LastPicked = ai_PickedObject;
@@ -4421,14 +4431,14 @@ void sv_HandleObjects(void)
                 sv_PanelCartChar = (int)ai_Chars[ai_PickedChar->id].scene;
             }
             if (ai_SelectedCount == 0 && sv_OtherSelected == 0 && sv_HoverBuilding != 0 && sv_SelectedItem == 0)
-                sv_SelectedModel = (int)ai_PickedObject;
+                sv_SelectedModel = ai_PickedObject;
             sv_SelectedObject = sv_HoverBuilding;
             sv_SelectedItem = (unsigned short *)sv_HoverItem;
             if (sv_HoverBuilding != 0)
-                sv_SelectedModel = (int)ai_PickedObject;
+                sv_SelectedModel = ai_PickedObject;
             if (sv_HoverItem != 0) {
                 cls = &ai_Goods[((AIOBJ *)sv_HoverItem)->id];
-                sv_SelectedModel = (int)ai_PickedObject;
+                sv_SelectedModel = ai_PickedObject;
                 if (cls->type == 0x1d)
                     sv_ClearSelection();
             }
@@ -4507,10 +4517,10 @@ int sv_ActivityName(AICHAR *c, AIBLD *b, char *out)
     }
     return 0;
 }
-/* 0x52b490, starts the role pose script "sp_<netId>" of the character a from the template b (an .esc name) and
+/* 0x52b490, starts the role pose script "sp_<netId>" of the character a from the template name (an .esc name) and
    links it back: the script's character (+0xc94) and the character model's scriptId (+0x28 of the model at +0x184) */
 
-int sv_StartPoseScript(AICHAR *a, int b)
+EVTSCRIPT *sv_StartPoseScript(AICHAR *a, char *name)
 {
     AICHAR *c;
     EVTSCRIPT *script;
@@ -4518,13 +4528,13 @@ int sv_StartPoseScript(AICHAR *a, int b)
 
     c = a;
     sprintf(buf, "sp_%i", c->netId);
-    script = evt_Load((char *)b);
+    script = evt_Load(name);
     if (script != 0) {
         evt_RunScriptArgs(script, 1, buf);
         script->character = c->scene;
         c->scene->scriptId = script->id;
     }
-    return (int)script;
+    return script;
 }
 
 void ai_CampaignStep(int a, void *b, int c, int d);                     /* 0x576040 */
@@ -4910,9 +4920,9 @@ void sv_HandleSelectionMouse(void)
             char name[0x80];
 
             t = -1;
-            sprintf(name, "dummy_%s", ((D3OBJECT *)ai_ClickedObject)->name + 8);
+            sprintf(name, "dummy_%s", ai_ClickedObject->name + 8);
             if (d3_FindObject(ai_ClickedObject, 0x100, 0, name) == 0)
-                strcpy(name, ((D3OBJECT *)ai_ClickedObject)->name);
+                strcpy(name, ai_ClickedObject->name);
             for (j = 0; j < 0x20; j++) {
                 c = ai_SceneChars[j];
                 b = 0;
@@ -4988,7 +4998,7 @@ void sv_MarkMasterCarts(void)
     for (cart = gm_Query(0, 2, 7, 4, 0x1d); cart != 0; cart = gm_QueryNext()) {
         cart->flags20 = 0;
         /* the original walks the records and ends at the bld field (a signed compare on that address) */
-        for (ch = ai_Chars; (int)&ch->bld < (int)&ai_Chars[768].bld; ch++) {
+        for (ch = ai_Chars; (intptr_t)&ch->bld < (intptr_t)&ai_Chars[768].bld; ch++) {
             if (ch->id != 0xffff && ch->kind == 1 && ch->bld != 0 &&
                 ch->bld->id == cart->bldId && (ch->flags1b4 & 1) != 0)
                 cart->flags20 |= 1;
@@ -5067,7 +5077,7 @@ void sv_SpeakPicked(void)
     char plain;
 
     if (ai_PickedChar == 0) {
-        if (ai_PickedObject == 0 || ((D3OBJECT *)ai_PickedObject)->kind != 2 || sv_HoverItem != 0)
+        if (ai_PickedObject == 0 || ai_PickedObject->kind != 2 || sv_HoverItem != 0)
             return;
     }
     if (dm_L.lup == 0)
@@ -5085,7 +5095,7 @@ void sv_SpeakPicked(void)
     if (ai_PickedChar != 0)
         ch = ai_PickedChar->scene;
     else if (ai_PickedObject != 0)
-        ch = ch_FindByObject((D3OBJECT *)ai_PickedObject);
+        ch = ch_FindByObject(ai_PickedObject);
     else
         ch = 0;
     if (ch != 0 && (ch->kind & 1) == 0)
@@ -5096,7 +5106,7 @@ void sv_SpeakPicked(void)
     id = -1;
     {
         char text[0x200] = "";
-        float st[10];
+        ORDSTATS st;
 
         if (ai_PickedChar != 0) {
             c = ai_PickedChar;
@@ -5216,10 +5226,10 @@ void sv_SpeakPicked(void)
             id = kind * 15 + 0x11e9;
         if (util_Random(2) == 0 && he_FindEvent(1, 0, 0x52) != 0)
             kind = 5;
-        ord_GetStatistics((int *)st);
+        ord_GetStatistics(&st);
         switch (kind) {
         case 1:
-            id = (int)(3.0 * (st[1] * 5.0) + id);
+            id = (int)(3.0 * (st.col[1] * 5.0) + id);
             id += util_Random(3);
             break;
         case 2:
@@ -5227,11 +5237,11 @@ void sv_SpeakPicked(void)
             id += util_Random(3);
             break;
         case 3:
-            id = (int)(3.0 * (st[2] * 5.0) + id);
+            id = (int)(3.0 * (st.col[2] * 5.0) + id);
             id += util_Random(3);
             break;
         case 4:
-            id = (int)(3.0 * (st[0] * 5.0) + id);
+            id = (int)(3.0 * (st.col[0] * 5.0) + id);
             id += util_Random(3);
             break;
         case 5:
@@ -5252,7 +5262,7 @@ void sv_SpeakPicked(void)
             if (text[0] != 0)
                 sv_ShowBubble(ai_PickedChar->scene, 0, text);
         } else if (ai_PickedObject != 0) {
-            sv_ShowBubble(ch_FindByObject((D3OBJECT *)ai_PickedObject), id, 0);
+            sv_ShowBubble(ch_FindByObject(ai_PickedObject), id, 0);
         }
     }
 }
@@ -5364,7 +5374,7 @@ void sv_DrawNamePlates(void)
 
     d2_SetFont(0x54);
     for (i = 0; i < 0x20; i++) {
-        o = (D3OBJECT *)sv_NamePlates[i].obj;
+        o = sv_NamePlates[i].obj;
         if (sv_NamePlates[i].obj != 0 && (o->info != 0 || o->type == 0) && d3if_ScreenBox(o, &box) != 0) {
             y = box.top;
             x = (box.right - box.left) / 2 - 0x50 + box.left;
@@ -5450,30 +5460,30 @@ void sv_DrawBorderArrows(void)
     pic = d2_GetPic(0x52c);
     if (sv_BorderViewX == -1) {
         right = 1;
-        if (d3_VecEqual(&d3_Camera->views[4].pos, &d3_Origin, 0.2f) == 0)
+        if (d3_VecEqual(&d3_Camera->views[4].pos, &d3_Origin.v, 0.2f) == 0)
             right = 2;
     } else if (sv_BorderViewX == 1) {
         left = 1;
-        if (d3_VecEqual(&d3_Camera->views[3].pos, &d3_Origin, 0.2f) == 0)
+        if (d3_VecEqual(&d3_Camera->views[3].pos, &d3_Origin.v, 0.2f) == 0)
             left = 2;
     } else if (sv_BorderViewX == 0) {
-        if (d3_VecEqual(&d3_Camera->views[3].pos, &d3_Origin, 0.2f) == 0)
+        if (d3_VecEqual(&d3_Camera->views[3].pos, &d3_Origin.v, 0.2f) == 0)
             left = 1;
-        if (d3_VecEqual(&d3_Camera->views[4].pos, &d3_Origin, 0.2f) == 0)
+        if (d3_VecEqual(&d3_Camera->views[4].pos, &d3_Origin.v, 0.2f) == 0)
             right = 1;
     }
     if (sv_BorderViewY == -1) {
         bottom = 1;
-        if (d3_VecEqual(&d3_Camera->views[1].pos, &d3_Origin, 0.2f) == 0)
+        if (d3_VecEqual(&d3_Camera->views[1].pos, &d3_Origin.v, 0.2f) == 0)
             bottom = 2;
     } else if (sv_BorderViewY == 1) {
         top = 1;
-        if (d3_VecEqual(&d3_Camera->views[2].pos, &d3_Origin, 0.2f) == 0)
+        if (d3_VecEqual(&d3_Camera->views[2].pos, &d3_Origin.v, 0.2f) == 0)
             top = 2;
     } else if (sv_BorderViewY == 0) {
-        if (d3_VecEqual(&d3_Camera->views[1].pos, &d3_Origin, 0.2f) == 0)
+        if (d3_VecEqual(&d3_Camera->views[1].pos, &d3_Origin.v, 0.2f) == 0)
             bottom = 1;
-        if (d3_VecEqual(&d3_Camera->views[2].pos, &d3_Origin, 0.2f) == 0)
+        if (d3_VecEqual(&d3_Camera->views[2].pos, &d3_Origin.v, 0.2f) == 0)
             top = 1;
     }
     d2_SetClipRect(0, 0, ((int *)d2_ScreenSurf)[1], ((int *)d2_ScreenSurf)[2]);
@@ -5507,13 +5517,13 @@ void sv_CameraFollow(void)
 
     placed = 0;
     if (d3t_CamMove != 0) {
-        if (d3_VecEqual(&d3t_PlaceTarget, (D3VECTOR *)sv_ViewPos, 0.1f) != 0) {
+        if (d3_VecEqual(&d3t_PlaceTarget, &sv_ViewPos.v, 0.1f) != 0) {
             d3anim_FreePath(d3_Camera);
             d3t_CamMove = 0;
             d3t_CamMoving = 0;
             placed = 1;
-            d3_SetObjectPos(d3_Camera, (D3VECTOR *)sv_ViewPos);
-            d3_SetObjectRot(d3_Camera, (D3VECTOR *)sv_ViewRot);
+            d3_SetObjectPos(d3_Camera, &sv_ViewPos.v);
+            d3_SetObjectRot(d3_Camera, &sv_ViewRot.v);
         } else {
             d3anim_FreePath(d3_Camera);
             d3t_CamMove = 0;
@@ -5521,11 +5531,11 @@ void sv_CameraFollow(void)
         }
     }
     if (sv_FrameDepth <= sv_FrameBase || placed) {
-        if ((d3_VecEqual(&d3_Camera->rotation, (D3VECTOR *)sv_ViewRot, 0.1f) == 0 || d3_VecEqual(&d3_Camera->pos, (D3VECTOR *)sv_ViewPos, 0.1f) == 0)
+        if ((d3_VecEqual(&d3_Camera->rotation, &sv_ViewRot.v, 0.1f) == 0 || d3_VecEqual(&d3_Camera->pos, &sv_ViewPos.v, 0.1f) == 0)
             && !placed) {
             sv_MoveCameraToView();
             if (sv_FocusObject != 0) {
-                ev = ((D3OBJECT *)sv_FocusObject)->events;
+                ev = sv_FocusObject->events;
                 if (ev != 0 && ev[3].fn != 0)
                     ev[3].fn(sv_FocusObject, 3, ev[3].name, 0);
                 sv_FocusObject = 0;
@@ -5535,7 +5545,7 @@ void sv_CameraFollow(void)
         sv_MoveCameraToView();
         sv_FocusDepth = sv_FrameDepth - sv_PopRequest;
         if (sv_FocusObject != 0) {
-            ev = ((D3OBJECT *)sv_FocusObject)->events;
+            ev = sv_FocusObject->events;
             if (ev != 0 && ev[3].fn != 0)
                 ev[3].fn(sv_FocusObject, 3, ev[3].name, 0);
             sv_FocusObject = 0;
@@ -5611,15 +5621,15 @@ void sv_HandleRightClick(unsigned fl)
                 sb_PlaySample(snd_RoomBank, "RaumWechseln_s", 1, 0x3f, 0x7f, 0, 0);
                 ai_PlayerBuilding->mainRoom = ((AIOBJ *)sv_ClickedContact)->id;
                 sv_PopRequest = sv_FrameDepth - sv_FrameBase + 1;
-                d3_SetObjectPos(d3_Camera, (D3VECTOR *)sv_ViewPos);
-                d3_SetObjectRot(d3_Camera, (D3VECTOR *)sv_ViewRot);
+                d3_SetObjectPos(d3_Camera, &sv_ViewPos.v);
+                d3_SetObjectRot(d3_Camera, &sv_ViewRot.v);
                 sv_BorderViewX = 0;
                 sv_BorderViewY = 0;
             }
         } else if (ai_FallbackBuilding != 0 && sv_PanelShown != 0 && sv_ClickedContact != 0 && ai_SelectedCount == 0 && sv_OtherSelected == 0) {
             sv_PopRequest = sv_FrameDepth - sv_FrameBase + 1;
-            d3_SetObjectPos(d3_Camera, (D3VECTOR *)sv_ViewPos);
-            d3_SetObjectRot(d3_Camera, (D3VECTOR *)sv_ViewRot);
+            d3_SetObjectPos(d3_Camera, &sv_ViewPos.v);
+            d3_SetObjectRot(d3_Camera, &sv_ViewRot.v);
             sv_BorderViewX = 0;
             sv_BorderViewY = 0;
         }
@@ -5636,13 +5646,13 @@ void sv_HandleRightClick(unsigned fl)
         if (d3t_CamMove != 0) {
             if (ai_PlayerBuilding == 0 && ai_FallbackBuilding == 0)
                 goto done;
-            if (d3_VecEqual(&d3t_PlaceTarget, (D3VECTOR *)sv_ViewPos, 0.1f) != 0) {
+            if (d3_VecEqual(&d3t_PlaceTarget, &sv_ViewPos.v, 0.1f) != 0) {
                 d3anim_FreePath(d3_Camera);
                 d3t_CamMove = 0;
                 d3t_CamMoving = 0;
                 placed = 1;
-                d3_SetObjectPos(d3_Camera, (D3VECTOR *)sv_ViewPos);
-                d3_SetObjectRot(d3_Camera, (D3VECTOR *)sv_ViewRot);
+                d3_SetObjectPos(d3_Camera, &sv_ViewPos.v);
+                d3_SetObjectRot(d3_Camera, &sv_ViewRot.v);
             } else {
                 d3anim_FreePath(d3_Camera);
                 d3t_CamMove = 0;
@@ -5658,18 +5668,18 @@ void sv_HandleRightClick(unsigned fl)
                 sv_MoveCameraToView();
             sv_FocusDepth = sv_FrameDepth - sv_PopRequest;
             if (sv_FocusObject != 0) {
-                ev = ((D3OBJECT *)sv_FocusObject)->events;
+                ev = sv_FocusObject->events;
                 if (ev != 0 && ev[3].fn != 0)
                     ev[3].fn(sv_FocusObject, 3, ev[3].name, 0);
                 sv_FocusObject = 0;
             }
             sv_ResetSelection();
-        } else if (d3_VecEqual(&d3_Camera->rotation, (D3VECTOR *)sv_ViewRot, 0.1f) == 0 && d3_VecEqual(&d3_Camera->pos, (D3VECTOR *)sv_ViewPos, 0.1f) == 0 && !placed) {
+        } else if (d3_VecEqual(&d3_Camera->rotation, &sv_ViewRot.v, 0.1f) == 0 && d3_VecEqual(&d3_Camera->pos, &sv_ViewPos.v, 0.1f) == 0 && !placed) {
             /* the camera is off the stored view: back to it */
             if (ai_PlayerBuilding != 0 || ai_FallbackBuilding != 0)
                 sv_MoveCameraToView();
             if (sv_FocusObject != 0) {
-                ev = ((D3OBJECT *)sv_FocusObject)->events;
+                ev = sv_FocusObject->events;
                 if (ev != 0 && ev[3].fn != 0)
                     ev[3].fn(sv_FocusObject, 3, ev[3].name, 0);
                 sv_FocusObject = 0;
@@ -5706,8 +5716,8 @@ void sv_HandleRightClick(unsigned fl)
             sv_PopRequest = 1;
             if (ai_PlayerBuilding != 0 && sv_PanelShown == 0)
                 ai_PlayerBuilding = 0;
-            d3_SetObjectPos(d3_Camera, (D3VECTOR *)sv_ViewPos);
-            d3_SetObjectRot(d3_Camera, (D3VECTOR *)sv_ViewRot);
+            d3_SetObjectPos(d3_Camera, &sv_ViewPos.v);
+            d3_SetObjectRot(d3_Camera, &sv_ViewRot.v);
             sv_BorderViewX = 0;
             sv_BorderViewY = 0;
         }
@@ -5790,7 +5800,7 @@ void sv_ClearNamePlates(void)
         p++;
     } while ((int)p < (int)(sv_NamePlates + 0x20));
 }
-/* 0x52e190, releases the name plates: the objects lose their plate hook (+0x224), the records are cleared */
+/* 0x52e190, releases the name plates: the objects lose their pick mask (D3OBJECT.mask, which sv_RegisterNamePlate sets to 1), the records are cleared */
 
 void sv_ReleaseNamePlates(void)
 {
@@ -5799,7 +5809,7 @@ void sv_ReleaseNamePlates(void)
     p = sv_NamePlates;
     do {
         if (p->obj != 0)
-            ((SVPLATEOBJ *)p->obj)->plate = 0;
+            p->obj->mask = 0;
         p->obj = 0;
         p++;
     } while ((int)p < (int)(sv_NamePlates + 0x20));
@@ -5809,15 +5819,15 @@ void sv_ReleaseNamePlates(void)
    object becomes pickable (mask 1). Returns the object, 0 when it is not found or all records are used (the
    "RegisterStatusText()" message is formatted but not shown) */
 
-int sv_RegisterNamePlate(char *name, char *text, int look)
+D3OBJECT *sv_RegisterNamePlate(char *name, char *text, int look)
 {
     int i;
     char msg[0x100];
 
     for (i = 0; i < 0x20; i++) {
         if (sv_NamePlates[i].obj != 0 && strcmp(sv_NamePlates[i].name, name) == 0) {
-            ((D3OBJECT *)sv_NamePlates[i].obj)->mask = 1;
-            return (int)sv_NamePlates[i].obj;
+            sv_NamePlates[i].obj->mask = 1;
+            return sv_NamePlates[i].obj;
         }
     }
     for (i = 0; i < 0x20; i++) {
@@ -5828,7 +5838,7 @@ int sv_RegisterNamePlate(char *name, char *text, int look)
         sprintf(msg, "RegisterStatusText(): Too many Objects:%s", name);
         return 0;
     }
-    sv_NamePlates[i].obj = (char *)d3t_FindObject(name, 2);
+    sv_NamePlates[i].obj = d3t_FindObject(name, 2);
     if (sv_NamePlates[i].obj == 0) {
         sprintf(msg, "RegisterStatusText(): Object not found: %s", name);
         return 0;
@@ -5838,8 +5848,8 @@ int sv_RegisterNamePlate(char *name, char *text, int look)
     strncpy(sv_NamePlates[i].name, name, 0x40);
     sv_NamePlates[i].text[0x7f] = 0;
     sv_NamePlates[i].name[0x3f] = 0;
-    ((D3OBJECT *)sv_NamePlates[i].obj)->mask = 1;
-    return (int)sv_NamePlates[i].obj;
+    sv_NamePlates[i].obj->mask = 1;
+    return sv_NamePlates[i].obj;
 }
 /* 0x52e330, sets the status line text sv_StatusText and its time stamp sv_StatusTime (d3_Time) */
 
@@ -6102,13 +6112,13 @@ void sv_ValueBar(int x, int y, int value, int k)
    k + 2 / k + 3 and the current value over it in k / k + 1; above the base the current value in k + 4 / k + 5 and
    the base over it in k, its half tile in k too (the original pushes k there). */
 
-void sv_DrawBalanceBar(int x, int y, char *c, int skill, int k)
+void sv_DrawBalanceBar(int x, int y, AICHAR *c, int skill, int k)
 {
     int cur, base, top, n, odd, w, i;
 
     w = d2_Pics[k].w + 2;
     cur = gm_SkillPoints(c, skill);
-    base = (unsigned char)c[0x80 + skill];
+    base = c->skills[skill];
     top = cur;
     if (cur <= base)
         top = base;
@@ -6349,7 +6359,7 @@ SVBOOK *sv_OpenBook(char *model, char *at, char n, ...)
     if (at != 0) {
         d3if_Show(bk->obj, 0);
         bk->hidden = bk->obj;
-        bk->obj = d3_CreateObject((int)bk->obj->parent, &bk->obj->pos, &bk->obj->rotation, at);
+        bk->obj = d3_CreateObject(bk->obj->parent, &bk->obj->pos, &bk->obj->rotation, at);
     } else {
         bk->hidden = 0;
     }
@@ -6972,7 +6982,7 @@ int sv_RunFrame(void (*cb)(), unsigned mask)
             di_ClearButtons();
         if (ai_PlayerId != 0xffff) {
             if ((ai_Chars[ai_PlayerId].kind == 6 || ai_Chars[ai_PlayerId].kind == 7) && ai_Chars[ai_PlayerId].health == 0 && sv_FrameDepth > sv_FrameBase
-                && (party = (G28REC *)cm_PartyById(ai_Chars[ai_PlayerId].partyId)) != 0 && party->kind == 8 && (mask & 0x10000) == 0) {
+                && (party = cm_PartyById(ai_Chars[ai_PlayerId].partyId)) != 0 && party->kind == 8 && (mask & 0x10000) == 0) {
                 sv_PopRequest = sv_FrameDepth - sv_FrameBase;
                 sv_SetStatusText(txt_Ptrs[0x89]);
             }
@@ -7037,7 +7047,7 @@ l64:
         evt_StepAll();
     if (ai_FrameWait == 0 && ((mask & 0x80) == 0 || (d2_FlushDirty(), ai_FrameWait == 0)) && (mask & 0x40) != 0 && sv_WorldOn != 0) {
         if ((mask & 0x10000) == 0 && (mask & 0x40000) != 0)
-            sv_UpdateSkyPhase((unsigned)&ai_Time);
+            sv_UpdateSkyPhase(&ai_Time);
         if (d3_CurrentScene == 0)
             d3q_Mark(d3_QuadTree, d3_Camera, d3_FrameCount);
         d3t_UpdateCamera();
@@ -7393,17 +7403,17 @@ int sv_SunRaysHour = -1;  /* 0x623ecc, the hour the sun rays started (sv_Weather
 int sv_SavedMaxY = 0;  /* 0x6f1c40 */
 float sv_ScrollVelYPrev = 0;  /* 0x6f1c44 */
 int sv_DragLastY = 0;  /* 0x6f1c48 */
-int sv_HoverLast = 0;  /* 0x6f1c4c, the scene object sv_HoverPick picked last (0: none) */
+D3OBJECT *sv_HoverLast = 0;  /* 0x6f1c4c, the scene object sv_HoverPick picked last (0: none) */
 int sv_SavedMaxX = 0;  /* 0x6f1c50 */
 int sv_UnreadBss1[4] = {0};  /* 0x6f1c54, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
-float sv_DragLastPos[4] = {0};  /* 0x6f1c64, a 16-byte (D3VECTOR4-padded) vector: x, y, z read, the fourth float unread */
-float sv_ScrollLastMove[4] = {0};  /* 0x6f1c74, a 16-byte vector like sv_DragLastPos */
+D3VECTOR4 sv_DragLastPos = {0};  /* 0x6f1c64, a 16-byte (D3VECTOR4-padded) vector: x, y, z read, the fourth float unread */
+D3VECTOR4 sv_ScrollLastMove = {0};  /* 0x6f1c74, a 16-byte vector like sv_DragLastPos */
 int sv_SavedMinX = 0;  /* 0x6f1c84 */
 int sv_DragLastX = 0;  /* 0x6f1c88 */
 int sv_ZoomStartY = 0;  /* 0x6f1c8c */
 unsigned short sv_DisabledWidgets[0x300] = {0};  /* 0x6f1c90, the d2 objects sv_DisableVisibleWidgets disabled (one per d2_Objs record at most) */
 int sv_ZoomStartX = 0;  /* 0x6f2290 */
-int sv_ShownModel = 0;  /* 0x6f2294, sv_SelectedModel when sv_UpdatePanel last built the panel */
+D3OBJECT *sv_ShownModel = 0;  /* 0x6f2294, sv_SelectedModel when sv_UpdatePanel last built the panel */
 int sv_SavedMinY = 0;  /* 0x6f2298 */
 int sv_FrameDepth = 0;  /* 0x6f229c, the depth of the frame callback stack */
 int sv_PopRequest = 0;  /* 0x6f22a0 */
@@ -7414,7 +7424,7 @@ int sv_UnreadBss2 = 0;  /* 0x6f22b0, no surviving instruction or pointer refers 
 int sv_CameraScrolled = 0;  /* 0x6f22b4 */
 int sv_UnreadBss3 = 0;  /* 0x6f22b8, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 int ai_FrameWait = 0;  /* 0x6f22bc */
-int sv_ViewShape = 0;  /* 0x6f22c0 */
+struct D2SHP *sv_ViewShape = 0;  /* 0x6f22c0 */
 struct D2SURF *sv_GroundplanSurf = 0;  /* 0x6f22c4, the groundplan bitmap while sv_LoadGroundplan reads it */
 struct D2SURF *sv_GroundplanView = 0;  /* 0x6f22c8, the groundplan copy the panel blits */
 int sv_BorderViewX = 0;  /* 0x6f22cc */
@@ -7423,15 +7433,15 @@ float sv_CameraHeightFactor = 0;  /* 0x6f22d4 */
 float sv_CameraAngleFactor = 0;  /* 0x6f22d8 */
 int sv_PendingMoney = 0;  /* 0x6f22dc, the money the money panel adds to the player's (the credit window: the limit minus the amount chosen; the transport window: minus the goods' total); sv's by use */
 int sv_UnreadBss4 = 0;  /* 0x6f22e0, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
-int ai_ClickedObject = 0;  /* 0x6f22e4: the object clicked in the scene (cm.h declares it for the units that include cm.h) */
-char * ai_PickedObject = 0;  /* 0x6f22e8 */
-char * sv_FocusObject = 0;  /* 0x6f22ec, the clicked object the camera was placed at (d3t_PlaceAtObject): its handler (+0x1d4) gets message 2 at the focus (+0x108) and 3 at the release (+0x18c) */
+D3OBJECT *ai_ClickedObject = 0;  /* 0x6f22e4: the object clicked in the scene (cm.h declares it for the units that include cm.h) */
+D3OBJECT *ai_PickedObject = 0;  /* 0x6f22e8 */
+D3OBJECT *sv_FocusObject = 0;  /* 0x6f22ec, the clicked object the camera was placed at (d3t_PlaceAtObject): its handler (+0x1d4) gets message 2 at the focus (+0x108) and 3 at the release (+0x18c) */
 int sv_HoverItem = 0;  /* 0x6f22f0, the item (AIOBJ) under the pointer, from the picked object's +0x200 (kind 1) */
 struct AIBLD *sv_HoverBuilding = 0;  /* 0x6f22f4, the building (AIBLD) under the pointer (kind 2) */
 struct AICHAR *ai_PickedChar = 0;  /* 0x6f22f8 */
 int sv_ClickedContact = 0;  /* 0x6f22fc, sv_HoverContact at the last click (sv_HandleObjects) */
 int sv_HoverContact = 0;  /* 0x6f2300, the goods item a contact gate under the pointer resolves to */
-int sv_SelectedModel = 0;  /* 0x6f2304 */
+D3OBJECT *sv_SelectedModel = 0;  /* 0x6f2304 */
 AIBLD *ai_PlayerBuilding = 0;  /* 0x6f2308 */
 AIBLD *ai_FallbackBuilding = 0;  /* 0x6f230c */
 struct AIOBJ *sv_PanelShown = 0;  /* 0x6f2310, the room object (its type: the scene record) the info panel shows now */
@@ -7484,7 +7494,7 @@ struct AICHAR *sv_ShownChar = 0;  /* 0x6f23d0, sv_SelectedChar when sv_UpdatePan
 int sv_ShownOther = 0;  /* 0x6f23d4, sv_OtherSelected when sv_UpdatePanel last built the panel */
 int sv_ShownCount = 0;  /* 0x6f23d8, ai_SelectedCount when sv_UpdatePanel last built the panel */
 int sv_PointerSpriteFor = 0;  /* 0x6f23dc, reset with the pointer sprite (-1 / 0 when sv_HoverPick frees d2_PointerSprite; reasoned: what the sprite was made for) */
-char * sv_LastPicked = 0;  /* 0x6f23e0, ai_PickedObject at the last click (sv_HandleObjects; nothing reads it) */
+D3OBJECT *sv_LastPicked = 0;  /* 0x6f23e0, ai_PickedObject at the last click (sv_HandleObjects; nothing reads it) */
 AIBLD *sv_PermsBuilding = 0;  /* 0x6f23e4, the building ai_BuildingPerms was last computed for (the right-click handler 0x52d940) */
 struct AIOBJ *sv_PermsRoom = 0;  /* 0x6f23e8, the room (sv_PanelShown) it was computed for */
 int sv_DisabledCount = 0;  /* 0x6f23ec, the entries of sv_DisabledWidgets */
@@ -7499,8 +7509,8 @@ unsigned short * sv_SelectedItem;  /* 0x75ec5c */
 SVACTIVITY sv_Activities[0x30];  /* 0x75ec80, the character activities the he.c scripts register (sv_RegisterActivity) */
 SVMEMBERROW sv_MemberRows[0x20];  /* 0x75f280, the member panel: the member list rows */
 SVFRAME sv_Frames[0x80];  /* 0x75f780, the frame stack, indexed by sv_FrameDepth (sv_RunFrame pushes and pops it) */
-float sv_ViewPos[4];  /* 0x75fb80, the stored camera position (a padded vector): set by the camera moves, restored when the player leaves a building */
-float sv_ViewRot[4];  /* 0x75fb90, its rotation (D3OBJECT.rotation) */
+D3VECTOR4 sv_ViewPos;  /* 0x75fb80, the stored camera position (a padded vector): set by the camera moves, restored when the player leaves a building */
+D3VECTOR4 sv_ViewRot;  /* 0x75fb90, its rotation (D3OBJECT.rotation) */
 float sv_SkyScale;  /* 0x760420 */
 SVBAND sv_Band;  /* 0x760440, the rubber band: sv_BandActive and its corners */
 int sv_Season;  /* 0x760454, the season of the game clock (sv_ClockSeason's result), stored by main_EndRound / main_GameLoop (sv.c itself never reads it) */

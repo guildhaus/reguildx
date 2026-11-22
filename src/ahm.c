@@ -856,7 +856,7 @@ int ahm_CreateAlchemist(AHMCREATEMSG *m)
     }
     g = gm_Query(o->objList, 1, 0, 0x24b);
     gm_PlaceOnStage(c->netId, o->id, g != 0 ? g->objId : -1, 0, 0);
-    gm_ChooseHeadIcon(&c->id);
+    gm_ChooseHeadIcon(c);
     if (o->ahm == 0)
         o->ahm = mem_Alloc(sizeof(AHMREC), "ahm_AllocAhmInfo");
     memset(o->ahm, 0, sizeof(AHMREC));

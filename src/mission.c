@@ -41,23 +41,23 @@ unsigned int ai_MissionRandom(unsigned int n)
     ai_MissionSeed = ai_MissionSeed * 0x41c64e6d + 0x3039;
     return (*((unsigned short *)&ai_MissionSeed + 1) % 0x7fffu) % n;
 }
-/* 0x4b3a50, the running mission of m's owner */
+/* 0x4b3a50, the running mission of the character c (its owner is c's netId) */
 
-G13MIS *ai_FindOwnerMission(G13MIS *m)
+G13MIS *ai_FindOwnerMission(AICHAR *c)
 {
     int i;
 
     for (i = 0; i < 0x80; i++) {
-        if (ai_Missions[i].type && ai_Missions[i].owner == m->owner)
+        if (ai_Missions[i].type && ai_Missions[i].owner == c->netId)
             return &ai_Missions[i];
     }
     return 0;
 }
-/* 0x4b3a90, restarts the running mission of m's owner now */
+/* 0x4b3a90, restarts the running mission of the character c (owner: its netId) now */
 
-void ai_RestartMission(G13MIS *m)
+void ai_RestartMission(AICHAR *c)
 {
-    G13MIS *e = ai_FindOwnerMission(m);
+    G13MIS *e = ai_FindOwnerMission(c);
 
     if (e != 0) {
         e->time = ai_Time;
@@ -462,10 +462,10 @@ int ai_ChooseMissionFrom(int n)
 
 int ai_TimedCondition(int x, int ok, int y);                                          /* 0x4b5160 */
 
-/* 0x4b44e0, counts event ev (11, 19, 23, 28, 40) for the running mission of m's owner when it is of that type */
-int ai_CountMissionEvent(G13MIS *m, int ev)
+/* 0x4b44e0, counts event ev (11, 19, 23, 28, 40) for the running mission of the character c when it is of that type */
+int ai_CountMissionEvent(AICHAR *c, int ev)
 {
-    G13MIS *e = ai_FindOwnerMission(m);
+    G13MIS *e = ai_FindOwnerMission(c);
 
     if (e != 0) {
         switch (ev) {
@@ -774,7 +774,7 @@ int ai_CondDecisionSumZero(AICHAR *c, G13TYPE *t)
     return 0;
 }
 
-struct VFSFILE; float ord_GetStatistics(int *o);                                                /* 0x4f9e00, defined elsewhere */
+struct VFSFILE; struct ORDSTATS; float ord_GetStatistics(struct ORDSTATS *o);                                                /* 0x4f9e00, defined elsewhere */
 
 /* 0x4b4dc0, mission condition (type 46, from year 10): the order statistics' rating base (ai_RatingBase,
    ORDSTATS.base) is at or above t->goal, held for t->threshold minutes (ai_TimedCondition) */
@@ -784,7 +784,7 @@ int ai_CondRatingBaseTimed(AICHAR *c, int x, G13TYPE *t)
 
     if (ai_Time.year < 10)
         return 0;
-    ord_GetStatistics((int *)&e);
+    ord_GetStatistics(&e);
     if (t->goal < e.base)
         return ai_TimedCondition(x, 0, t->threshold);
     return ai_TimedCondition(x, 1, t->threshold);
@@ -797,7 +797,7 @@ int ai_CondTownDecline(AICHAR *c, G13TYPE *t)
 {
     ORDSTATS e;
 
-    if (ord_GetStatistics((int *)&e) > 0.1)
+    if (ord_GetStatistics(&e) > 0.1)
         return 0;
     if (e.col[3] < 0.3f)
         return 0;

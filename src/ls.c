@@ -308,16 +308,16 @@ void ls_RefsToIds(void)
             b->object->owner = (void *)b->id;
     }
     d3if_SelectScene(saved, 1);
-    for (p = cm_SendStates; (int)&p->value < (int)&cm_SendStates[0x8000].value; p++) {
-        if (p->value != 0) {
+    for (p = cm_SendStates; (intptr_t)&p->value < (intptr_t)&cm_SendStates[0x8000].value; p++) {
+        if (p->ref != 0) {
             if (p->kind == 1)
-                p->value = ((AICHAR *)p->value)->netId;
+                p->value = ((AICHAR *)p->ref)->netId;
             if (p->kind == 3)
-                p->value = ((AIOBJ *)p->value)->objId;
+                p->value = ((AIOBJ *)p->ref)->objId;
             if (p->kind == 2)
-                p->value = ((AIBLD *)p->value)->id;
+                p->value = ((AIBLD *)p->ref)->id;
             if (p->kind == 9)
-                p->value = ((G28REC *)p->value)->id;
+                p->value = ((G28REC *)p->ref)->id;
         }
     }
 }
@@ -340,16 +340,16 @@ void ls_IdsToRefs(void)
             b->object->owner = b;
     }
     d3if_SelectScene(saved, 1);
-    for (p = cm_SendStates; (int)&p->value < (int)&cm_SendStates[0x8000].value; p++) {
+    for (p = cm_SendStates; (intptr_t)&p->value < (intptr_t)&cm_SendStates[0x8000].value; p++) {
         if (p->value != 0) {
             if (p->kind == 1)
-                p->value = (int)gm_FindChar(p->value);
+                p->ref = gm_FindChar(p->value);
             if (p->kind == 3)
-                p->value = gm_FindObjectInst(p->value);
+                p->ref = gm_FindObjectInst(p->value);
             if (p->kind == 2)
-                p->value = gm_FindBuildingById(p->value);
+                p->ref = gm_FindBuildingById(p->value);
             if (p->kind == 9)
-                p->value = cm_PartyById(p->value);
+                p->ref = cm_PartyById(p->value);
         }
     }
 }
@@ -482,7 +482,7 @@ int ls_WriteBuildings(VFSFILE *f)
     return 1;
 }
 /* 0x51a1a0, writes the 16 player records gm_PlayerRecords (AIFIN, 0xac bytes each; the counterpart of the reader
-   0x51db00): each record's fields, costB .. officeSentences only when ls_Version is 0x10014 or later. Returns 1,
+   0x51db00): each record's fields, buildPaid .. officeSentences only when ls_Version is 0x10014 or later. Returns 1,
    0 when a write fails. */
 
 
@@ -493,10 +493,10 @@ int ls_WritePlayerRecords(VFSFILE *f)
     for (k = 0; k < 0x10; k++) {
         LS_W(&gm_PlayerRecords[k].w00, 2)
         LS_W(gm_PlayerRecords[k].family, 0x10)
-        LS_W(&gm_PlayerRecords[k].incomeA, 4)
+        LS_W(&gm_PlayerRecords[k].burglaryTakings, 4)
         LS_W(&gm_PlayerRecords[k].spyPaid, 4)
         LS_W(&gm_PlayerRecords[k].lootTakings, 4)
-        LS_W(&gm_PlayerRecords[k].incomeC, 4)
+        LS_W(&gm_PlayerRecords[k].ransomTakings, 4)
         LS_W(&gm_PlayerRecords[k].missionMoney[0], 4)
         LS_W(&gm_PlayerRecords[k].missionMoney[1], 4)
         LS_W(&gm_PlayerRecords[k].missionMoney[2], 4)
@@ -504,22 +504,22 @@ int ls_WritePlayerRecords(VFSFILE *f)
         LS_W(&gm_PlayerRecords[k].upgradeSpent, 4)
         LS_W(&gm_PlayerRecords[k].renovationSpent, 4)
         LS_W(&gm_PlayerRecords[k].loansRepaid, 4)
-        LS_W(&gm_PlayerRecords[k].costA, 4)
+        LS_W(&gm_PlayerRecords[k].customerPaid, 4)
         LS_W(&gm_PlayerRecords[k].cartSpent, 4)
         if (ls_Version >= 0x10014) {
-            LS_W(&gm_PlayerRecords[k].costB, 4)
-            LS_W(&gm_PlayerRecords[k].roundFactors[0], 4)
-            LS_W(&gm_PlayerRecords[k].roundFactors[1], 4)
+            LS_W(&gm_PlayerRecords[k].buildPaid, 4)
+            LS_W(&gm_PlayerRecords[k].duelBias, 4)
+            LS_W(&gm_PlayerRecords[k].tavernChance, 4)
             LS_W(&gm_PlayerRecords[k].missionMoney[4], 4)
-            LS_W(&gm_PlayerRecords[k].saved64[0], 4)
-            LS_W(&gm_PlayerRecords[k].saved64[1], 4)
+            LS_W(&gm_PlayerRecords[k].taught, 4)
+            LS_W(&gm_PlayerRecords[k].saved68, 4)
             LS_W(&gm_PlayerRecords[k].officeSentences, 4)
         }
-        LS_W(&gm_PlayerRecords[k].roundFactors[2], 4)
+        LS_W(&gm_PlayerRecords[k].pokerChance, 4)
         LS_W(gm_PlayerRecords[k].jobByGroup, 0x11)
         LS_W(&gm_PlayerRecords[k].camAngle, 4)
-        LS_W(gm_PlayerRecords[k].camPos, 0x10)
-        LS_W(gm_PlayerRecords[k].camRot, 0xc)
+        LS_W(&gm_PlayerRecords[k].camPos, 0x10)
+        LS_W(&gm_PlayerRecords[k].camRot, 0xc)
         LS_W(&gm_PlayerRecords[k].savedA8, 4)
         LS_W(&gm_PlayerRecords[k].saved70, 4)
     }
@@ -1187,7 +1187,7 @@ int ls_WriteEnvironment(VFSFILE *f)
 {
     int i;
 
-    LS_W((char *)(unsigned)&sv_WinterWeather, 4)
+    LS_W((char *)(uintptr_t)&sv_WinterWeather, 4)
     for (i = 0; i < 24; i++) {
         LS_W(&sv_Weather.clouds[i], 4)
         LS_W(&sv_Weather.storm[i], 4)
@@ -1214,7 +1214,7 @@ int ls_Read(void *buf, int size, int count, VFSFILE *f)
 
 extern LSSAVE ls_SavePath;
 unsigned short ai_ScreenImage[19200];  /* 0x766320, the */
-LSHEADER ls_LoadedHeader;  /* 0x76f920, the 0x100-byte header of the loaded save game (id, flag byte, name, ..; ls_ReadSaveHeader fills it up to +0xfc) */
+LSHDR ls_LoadedHeader;  /* 0x76f920, the 0x100-byte header of the loaded save game (id, flag byte, name, ..; ls_ReadSaveHeader fills it up to +0xfc) */
 int cm_SaveAcks[8][2];  /* 0x76fa20 */
 extern char * cm_LoadBuf;                /* 0xf31140 */
 #define LS_RD(p, sz) ls_Read((p), (sz), 1, h)
@@ -1237,7 +1237,7 @@ int ls_LoadGame(char *name, int kind)
     ai_JudgeCatholic = 0;
     ai_JudgeProtestant = 0;
     init_FreeScenes();
-    if (ls_ReadSaveHeader(h, (int *)&ls_LoadedHeader) == 0 || ls_LoadedHeader.version > 0x1005a || ls_LoadedHeader.version < 0x10026
+    if (ls_ReadSaveHeader(h, &ls_LoadedHeader) == 0 || ls_LoadedHeader.version > 0x1005a || ls_LoadedHeader.version < 0x10026
         || !LS_RD(&ai_NextObjectId, 4) || !LS_RD(&ai_NextEventId, 4) || !LS_RD(&ai_Time, 0xe)
         || !LS_RD(&ai_OwnPlayer, 1) || !LS_RD(&ai_PlayerChar, 4) || !LS_RD(&ai_NextCharNumber, 4)
         || !LS_RD(&ai_NextPlayerNumber, 4) || !LS_RD(&ai_CharCount, 4))
@@ -1294,8 +1294,10 @@ int ls_LoadGame(char *name, int kind)
     init_RecreateQuadTree();
     if (ls_ReadSceneRecords(h) == 0)
         LS_LOADFAIL
-    ai_JudgeCatholic = gm_FindChar(ai_JudgeCatholic);
-    ai_JudgeProtestant = gm_FindChar(ai_JudgeProtestant);
+    /* the judges hold the netIds ls_ReadCharacters read into them (4 bytes each; port-side: the low half of a
+       64-bit pointer) until they are looked up here */
+    ai_JudgeCatholic = gm_FindChar((int)(intptr_t)ai_JudgeCatholic);
+    ai_JudgeProtestant = gm_FindChar((int)(intptr_t)ai_JudgeProtestant);
     if (ai_LoadMissions(h) == 0)
         LS_LOADFAIL
     if (ls_Version >= 0x10029 && ai_LoadBookmarks(h) == 0)
@@ -1319,14 +1321,13 @@ close:
     vfs_fclose(h);
     return 0;
 }
-/* 0x51cee0, reads the header of a save game into h (an LSHEADER), each field from the version it came in
+/* 0x51cee0, reads the header of a save game into h (an LSHDR), each field from the version it came in
    with (the version itself goes to ls_Version); the 160 x 120 screen shot (24 bit, 0xe100 bytes) is converted
    into ai_ScreenImage. Returns 1, 0 when a read fails or the version is below 0x10025 */
 
 
-int ls_ReadSaveHeader(VFSFILE *f, int *h)
+int ls_ReadSaveHeader(VFSFILE *f, LSHDR *hd)
 {
-    LSHEADER *hd = (LSHEADER *)h;
     char *shot;
     int i, j, k = 0;
 
@@ -1334,25 +1335,25 @@ int ls_ReadSaveHeader(VFSFILE *f, int *h)
     LS_R(&hd->version, 4)
     ls_Version = hd->version;
     LS_R(&hd->flags, 1)
-    LS_R(hd->name, 0x20)
-    LS_R(hd->slotPair, 8)
-    LS_R(&hd->slotByte, 1)
+    LS_R(hd->player, 0x20)
+    LS_R(hd->playerWords, 8)
+    LS_R(&hd->playerByte, 1)
     if (ls_Version >= 0x10033)
-        LS_R(&hd->numPlayers, 1)
+        LS_R(&hd->players, 1)
     if (ls_Version >= 0x10028) {
-        LS_R(hd->clock, 0xe)
-        LS_R(hd->charText30, 0x10)
+        LS_R(&hd->time, 0xe)
+        LS_R(hd->charText1, 0x10)
         if (ls_Version >= 0x10054) {
-            LS_R(hd->charText40, 0x10)
-            LS_R(&hd->charByte0c, 1)
-            LS_R(&hd->charRef54, 4)
+            LS_R(hd->charText2, 0x10)
+            LS_R(&hd->char0c, 1)
+            LS_R(&hd->char54, 4)
         }
-        LS_R(&hd->charByte164, 1)
-        LS_R(&hd->charByte166, 1)
-        LS_R(&hd->charByte0d, 1)
+        LS_R(&hd->char164, 1)
+        LS_R(&hd->char166, 1)
+        LS_R(&hd->char0d, 1)
         LS_R(&hd->worth, 4)
-        LS_R(&hd->charByte09, 1)
-        LS_R(&hd->saveSlot, 1)
+        LS_R(&hd->char09, 1)
+        LS_R(&hd->slot, 1)
         if (ls_Version >= 0x1002b) {
             LS_R(&hd->startBuilding, 4)
             LS_R(&hd->startObject, 4)
@@ -1402,9 +1403,9 @@ int ls_LoadScene(VFSFILE *f)
     d3if_SelectScene(1, 0);
     d3if_SelectScene(0, 0);
     if (((D3FLMAP *)d3_Terrain)->size == 0x80 || ((D3FLMAP *)d3_Terrain)->size != 0x40)
-        d3_Scenes[0].hmap = (struct D3HMAP *)d3sm_Create((struct D3TERRAIN *)d3_Terrain, 0x100, 2);
+        d3_Scenes[0].hmap = d3sm_Create((struct D3TERRAIN *)d3_Terrain, 0x100, 2);
     else
-        d3_Scenes[0].hmap = (struct D3HMAP *)d3sm_Create((struct D3TERRAIN *)d3_Terrain, 0x80, 2);
+        d3_Scenes[0].hmap = d3sm_Create((struct D3TERRAIN *)d3_Terrain, 0x80, 2);
     saved = d3_CurrentScene;
     d3if_SelectScene(0, 0);
     if (d3_Terrain != 0) {
@@ -1562,7 +1563,7 @@ int ls_ReadBuildings(VFSFILE *f)
     }
     return 1;
 }
-/* 0x51db00, reads the 16 player records gm_PlayerRecords (AIFIN, 0xac bytes each; the counterpart of the writer 0x51a1a0): the fields, each version gated (spyPaid from 0x1002c, costB .. officeSentences from 0x10014, roundFactors[2] = 1.0 below 0x10056, the 0x11 (0x0e below 0x10046) jobByGroup bytes from 0x10015, saved70 from 0x10018). Returns 1, 0 when a read fails. */
+/* 0x51db00, reads the 16 player records gm_PlayerRecords (AIFIN, 0xac bytes each; the counterpart of the writer 0x51a1a0): the fields, each version gated (spyPaid from 0x1002c, buildPaid .. officeSentences from 0x10014, pokerChance = 1.0 below 0x10056, the 0x11 (0x0e below 0x10046) jobByGroup bytes from 0x10015, saved70 from 0x10018). Returns 1, 0 when a read fails. */
 
 
 int ls_ReadPlayerRecords(VFSFILE *f)
@@ -1572,11 +1573,11 @@ int ls_ReadPlayerRecords(VFSFILE *f)
     for (k = 0; k < 0x10; k++) {
         LS_R(&gm_PlayerRecords[k].w00, 2)
         LS_R(gm_PlayerRecords[k].family, 0x10)
-        LS_R(&gm_PlayerRecords[k].incomeA, 4)
+        LS_R(&gm_PlayerRecords[k].burglaryTakings, 4)
         if (ls_Version >= 0x1002c)
             LS_R(&gm_PlayerRecords[k].spyPaid, 4)
         LS_R(&gm_PlayerRecords[k].lootTakings, 4)
-        LS_R(&gm_PlayerRecords[k].incomeC, 4)
+        LS_R(&gm_PlayerRecords[k].ransomTakings, 4)
         LS_R(&gm_PlayerRecords[k].missionMoney[0], 4)
         LS_R(&gm_PlayerRecords[k].missionMoney[1], 4)
         LS_R(&gm_PlayerRecords[k].missionMoney[2], 4)
@@ -1584,21 +1585,21 @@ int ls_ReadPlayerRecords(VFSFILE *f)
         LS_R(&gm_PlayerRecords[k].upgradeSpent, 4)
         LS_R(&gm_PlayerRecords[k].renovationSpent, 4)
         LS_R(&gm_PlayerRecords[k].loansRepaid, 4)
-        LS_R(&gm_PlayerRecords[k].costA, 4)
+        LS_R(&gm_PlayerRecords[k].customerPaid, 4)
         LS_R(&gm_PlayerRecords[k].cartSpent, 4)
         if (ls_Version >= 0x10014) {
-            LS_R(&gm_PlayerRecords[k].costB, 4)
-            LS_R(&gm_PlayerRecords[k].roundFactors[0], 4)
-            LS_R(&gm_PlayerRecords[k].roundFactors[1], 4)
+            LS_R(&gm_PlayerRecords[k].buildPaid, 4)
+            LS_R(&gm_PlayerRecords[k].duelBias, 4)
+            LS_R(&gm_PlayerRecords[k].tavernChance, 4)
             LS_R(&gm_PlayerRecords[k].missionMoney[4], 4)
-            LS_R(&gm_PlayerRecords[k].saved64[0], 4)
-            LS_R(&gm_PlayerRecords[k].saved64[1], 4)
+            LS_R(&gm_PlayerRecords[k].taught, 4)
+            LS_R(&gm_PlayerRecords[k].saved68, 4)
             LS_R(&gm_PlayerRecords[k].officeSentences, 4)
         }
         if (ls_Version >= 0x10056) {
-            LS_R(&gm_PlayerRecords[k].roundFactors[2], 4)
+            LS_R(&gm_PlayerRecords[k].pokerChance, 4)
         } else {
-            gm_PlayerRecords[k].roundFactors[2] = 1.0f;
+            gm_PlayerRecords[k].pokerChance = 1.0f;
         }
         if (ls_Version >= 0x10015) {
             n = (((ls_Version >= 0x10046) - 1) & 0xfffffffd) + 0x11;
@@ -1606,8 +1607,8 @@ int ls_ReadPlayerRecords(VFSFILE *f)
                 LS_R(&gm_PlayerRecords[k].jobByGroup[i], 1)
         }
         LS_R(&gm_PlayerRecords[k].camAngle, 4)
-        LS_R(gm_PlayerRecords[k].camPos, 0x10)
-        LS_R(gm_PlayerRecords[k].camRot, 0xc)
+        LS_R(&gm_PlayerRecords[k].camPos, 0x10)
+        LS_R(&gm_PlayerRecords[k].camRot, 0xc)
         LS_R(&gm_PlayerRecords[k].savedA8, 4)
         if (ls_Version >= 0x10018)
             LS_R(&gm_PlayerRecords[k].saved70, 4)
@@ -2214,7 +2215,7 @@ int ls_ReadEventTables(VFSFILE *f)
             if (rec->textSize != 0) {
                 tb = (char *)mem_Alloc(0x400, "messagebox");
                 rec->text = tb;
-                if (ls_Read((int)tb, rec->textSize, 1, f) == 0)
+                if (ls_Read(tb, rec->textSize, 1, f) == 0)
                     return 0;
             }
             if (rec->kind == 0xc) {
@@ -2279,10 +2280,10 @@ int ls_ReadParties(VFSFILE *f)
         LS_R(&r->flags, 1)
         LS_R(&r->used, 1)
         if (ls_Version >= 0x10059) {
-            if (ls_Read((int)r->members, 4, 0x10, f) == 0)
+            if (ls_Read(r->members, 4, 0x10, f) == 0)
                 return 0;
         } else {
-            if (ls_Read((int)tmp, 0x40, 0x10, f) == 0)
+            if (ls_Read(tmp, 0x40, 0x10, f) == 0)
                 return 0;
             for (k = 0; k < 16; k++)
                 r->members[k] = tmp[k];
@@ -2378,7 +2379,7 @@ int ls_ReadEnvironment(VFSFILE *f)
 {
   int i;
 
-  if (ls_Read((int)(unsigned)&sv_WinterWeather, 4, 1, f) == 0)
+  if (ls_Read(&sv_WinterWeather, 4, 1, f) == 0)
     return 0;
   for (i = 0; i < 24; i++) {
     LS_R(&sv_Weather.clouds[i], 4)
@@ -2464,7 +2465,7 @@ int ls_FixupAfterLoad(void)
     }
     saved = d3_CurrentScene;
     d3if_SelectScene(0, 0);
-    for (j = he_Events; (int)j < (int)&he_Events[0x400]; j++) {
+    for (j = he_Events; (intptr_t)j < (intptr_t)&he_Events[0x400]; j++) {
         if (j->kind == 0)
             continue;
         if (j->kind == 0x29 || j->kind == 0x2d || j->kind == 0x2f || j->kind == 0x11 || j->kind == 0x25 || j->kind == 5
@@ -2489,7 +2490,7 @@ int ls_FixupAfterLoad(void)
             if (bld != 0)
                 he_ShowConstruction(j);
         } else if (j->kind == 0xf) {
-            o = (AIOBJ *)gm_FindObjectInst(j->from);
+            o = gm_FindObjectInst(j->from);
             if (o != 0)
                 o->job24 = j;
         } else if (j->kind == 0x78) {
@@ -2510,13 +2511,13 @@ int ls_FixupAfterLoad(void)
     for (i = 0; i < 0x8000; i++) {
         if (cm_SendStates[i].value != 0) {
             if (cm_SendStates[i].kind == 1)
-                cm_SendStates[i].value = (int)gm_FindChar(cm_SendStates[i].value);
+                cm_SendStates[i].ref = gm_FindChar(cm_SendStates[i].value);
             if (cm_SendStates[i].kind == 3)
-                cm_SendStates[i].value = gm_FindObjectInst(cm_SendStates[i].value);
+                cm_SendStates[i].ref = gm_FindObjectInst(cm_SendStates[i].value);
             if (cm_SendStates[i].kind == 2)
-                cm_SendStates[i].value = (int)gm_FindBuildingById(cm_SendStates[i].value);
+                cm_SendStates[i].ref = gm_FindBuildingById(cm_SendStates[i].value);
             if (cm_SendStates[i].kind == 9)
-                cm_SendStates[i].value = cm_PartyById(cm_SendStates[i].value);
+                cm_SendStates[i].ref = cm_PartyById(cm_SendStates[i].value);
         }
     }
     gm_ResetStock();
@@ -2595,7 +2596,7 @@ int ls_ReceiveGame(void)
         return 0;
     }
     ai_PlayerChar = 0;
-    ls_ReadSaveHeader(h, (int *)&hdr);
+    ls_ReadSaveHeader(h, &hdr);
     if ((hdr.flags & 2) == 0 || hdr.version > 0x1005a)
         LS_LOADFAIL
     if (!LS_RD(&ai_NextObjectId, 4) || !LS_RD(&ai_NextEventId, 4) || !LS_RD(&ai_Time, 0xe)

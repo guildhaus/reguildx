@@ -194,11 +194,11 @@ void d3snd_UpdatePan(D3SOUND *s)
         dir.x = d3_ZAxis.x * m._11 + d3_ZAxis.y * m._21 + d3_ZAxis.z * m._31;
         dir.y = d3_ZAxis.x * m._12 + d3_ZAxis.y * m._22 + d3_ZAxis.z * m._32;
         dir.z = d3_ZAxis.x * m._13 + d3_ZAxis.y * m._23 + d3_ZAxis.z * m._33;
-        d3_PointToWorld(s->obj, &s->obj->pos, (D3VECTOR *)&pos);
+        d3_PointToWorld(s->obj, &s->obj->pos, &pos.v);
         rel.x = pos.x - d3_Camera->pos.x;
         rel.y = pos.y - d3_Camera->pos.y;
         rel.z = pos.z - d3_Camera->pos.z;
-        sb_SetPan(s->snd, (int)(sin(d3_VecAngle((D3VECTOR *)&rel, (D3VECTOR *)&dir)) * 63.5 + 63.0));
+        sb_SetPan(s->snd, (int)(sin(d3_VecAngle(&rel.v, &dir.v)) * 63.5 + 63.0));
     }
 }
 /* 0x417b10, volume from the distance to the camera; opens the sound when it gets audible */
@@ -211,7 +211,7 @@ void d3snd_UpdateVolume(D3SOUND *s)
 
     if (!s || !s->obj)
         return;
-    d3_PointToWorld(s->obj, &s->obj->pos, (D3VECTOR *)&pos);
+    d3_PointToWorld(s->obj, &s->obj->pos, &pos.v);
     dx = pos.x - d3_Camera->pos.x;
     dy = pos.y - d3_Camera->pos.y;
     dz = pos.z - d3_Camera->pos.z;
@@ -564,7 +564,7 @@ void d3sndw_Update(void)
     ground = (int)(d3_Camera->pos.y - d3t_GetMeanHeight(&d3_Camera->pos));
     if (ground > 2000)
         ground = 2000;
-    if (!map_Pick(d3_Terrain, (D3VECTOR *)&campos, 1, &gx, &gy, unk))
+    if (!map_Pick(d3_Terrain, &campos.v, 1, &gx, &gy, unk))
         return;
     nfound = 0;
     dist = 39.37f;
@@ -576,7 +576,7 @@ void d3sndw_Update(void)
     dir.x = d3_ZAxis.x * m._11 + d3_ZAxis.y * m._21 + d3_ZAxis.z * m._31;
     dir.z = d3_ZAxis.x * m._13 + d3_ZAxis.y * m._23 + d3_ZAxis.z * m._33;
     dir.y = 0.0f;
-    d3_Normalize(&dir);
+    d3_Normalize(&dir.v);
     idx = map_Region(d3_Terrain, gx, gy);
     if (idx < 0 || (type = ((D3MAP *)d3_Terrain)->regions[idx].water) > 3 || type == 0) {
         for (i = 0; i < d3sndw_N; i++)
@@ -596,7 +596,7 @@ void d3sndw_Update(void)
         probe.z = dir.z * dist + campos.z;
         for (i = 0; i < d3sndw_N; i++) {
             if (d3sndw_State[i]) {
-                if (map_Pick(d3_Terrain, (D3VECTOR *)&probe, 0, &gx2, &gy2, unk)) {
+                if (map_Pick(d3_Terrain, &probe.v, 0, &gx2, &gy2, unk)) {
                     idx = map_Region(d3_Terrain, gx2, gy2);
                     if (idx >= 0)
                         d3sndw_Type[i] = ((D3MAP *)d3_Terrain)->regions[idx].water;

@@ -24,7 +24,12 @@ typedef union D3CLIP {              /* clip code of a point or a box */
 } D3CLIP;
 
 typedef struct D3PVERT {            /* 0x50 bytes, a mesh vertex after the transformation (D3VERTEX) */
-    float x, y, z;                  /* camera space */
+    union {
+        struct {
+            float x, y, z;          /* 0x00, camera space */
+        };
+        D3VECTOR pos;               /* 0x00, the same three floats (the 3-float callees: d3_TriNormal) */
+    };
     float pad0c;
     float sx, sy;                   /* 0x10, screen position */
     float sz;
@@ -53,7 +58,7 @@ typedef struct D3PTRI {             /* 0x28 bytes (D3TRI) */
     D3PVERT *v[3];
     void *clip;                     /* 0x0c, &d3_ClipInfo[clip code] */
     void *src;                      /* 0x10, source polygon (D3SRCPOLY); a particle tri's static UV table */
-    D3TEXTURE *tex;                 /* 0x14 */
+    struct TSTEXTURE *tex;                 /* 0x14 */
     float zofs;                     /* 0x18, depth offset: d3_DrawSortedD3D adds it (less the frame's
                                        nearest z) to every vertex's z */
     float uofs, vofs;               /* 0x1c, texture offsets added to u and v (with the texture's scroll) */
@@ -128,7 +133,7 @@ typedef struct D3SURFTEX {     /* 0x7c bytes, one of a surface's three animation
 
 typedef struct D3SURF {             /* 0x198 bytes, a mesh part with its own geometry */
     D3OBJINFO info;                 /* points, polys, counts, ops */
-    void *texHandles;               /* 0x14, array of the surf's texture handles (D3TEXHANDLE *, ops->count of them) */
+    void *texHandles;               /* 0x14, array of the surf's texture handles (struct TSTEXTURE *, ops->count of them) */
     D3OBJECT *owner;                /* 0x18, the object whose mesh this surf belongs to (set by d3_InitSurf) */
     D3SURFTEX slots[3];        /* 0x1c, the three animation slots (D3ANIMSLOT) */
     union {
@@ -142,7 +147,7 @@ typedef struct D3SURF {             /* 0x198 bytes, a mesh part with its own geo
 
 typedef struct D3MESHSUB {          /* 0x80 bytes, D3SSLOT (d3s.h): the shadow of one light, 4 per mesh at
                                        D3S_SLOTS; only cleared here */
-    D3TEXHANDLE *tex;               /* 0x00, D3SSLOT.tex */
+    struct TSTEXTURE *tex;               /* 0x00, D3SSLOT.tex */
     D3OBJECT *light;                /* 0x04, D3SSLOT.light */
     char pad08[0x10];
     D3VECTOR dir;                   /* 0x18, D3SSLOT.dir: light direction the shadow was made for */
@@ -239,7 +244,7 @@ typedef struct D3RELOADCTX {        /* context of d3_ReloadMeshCB */
     int type;                       /* 0x04, compared with D3OBJECT::kind */
     int n;                          /* 0x08 */
     int i;                          /* 0x0c */
-    char count;                     /* 0x10, only count the objects */
+    signed char count;              /* 0x10, only count the objects */
 } D3RELOADCTX;
 
 unsigned char d3_ClipBox(void *box, float *zmin, float *zmax);                        /* 0x439650 */
@@ -248,7 +253,7 @@ void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, floa
 void d3_FreeObjectData(D3OBJECT *obj);                                                  /* 0x43c670 */
 void d3fl_Inflate(struct D3FLMAP *map);                                                 /* 0x441ea0, d3_fl.c */
 struct D3SM; struct D3TERRAIN; void d3sm_Build(struct D3SM *h, struct D3TERRAIN *t);                                                    /* 0x45e620, d3_sm.c: void d3sm_Build(D3SM *, D3TERRAIN *) */
-void d3_AttachMesh(D3OBJECT *obj, int unk, char *name);                                  /* 0x44cbb0 */
+void d3_AttachMesh(D3OBJECT *obj, struct D3SURF *surf, char *name);                                  /* 0x44cbb0 */
 struct D3BGF *d3io_LoadObject(char *a, char *b);                                         /* 0x44e080, d3_io_t.c (d3io_LoadObject; d3_io_t.h declares it too) */
 
 typedef struct D3LIGHTENTRY {       /* 0x38 bytes, one key of the 7 (D3LKEY in d3_light.h) */
@@ -343,8 +348,8 @@ void d3_UpdateWorldMatrix(struct D3OBJECT *obj, struct D3OBJECT *camera, char fo
 void d3_PointToRef(struct D3OBJECT *obj, struct D3OBJECT *ref, struct D3VECTOR *in, struct D3VECTOR *out);             /* 0x458b20 */
 
 typedef struct D3TEXMAP {           /* d3_SetObjectAlpha: a texture and its replacement */
-    D3TEXTURE *from;
-    D3TEXTURE *to;
+    struct TSTEXTURE *from;
+    struct TSTEXTURE *to;
 } D3TEXMAP;
 struct TSTEXTURE; struct TSTEXTURE *tex_ReleaseAlias(struct TSTEXTURE *tex, char group);                                /* 0x461610, ts_texture.c */
 struct TSTEXTURE; struct TSTEXTURE *tex_AliasForFlags(struct TSTEXTURE *tex, D3TEXFLAGS flags, char group);  /* 0x4616a0, ts_texture.c (TSFLAGS is D3TEXFLAGS) */
@@ -473,7 +478,7 @@ extern D3CVERT *d3_ClipList[2][0x80];       /* 0xfc4c60, polygon vertex lists (p
 extern D3CVERT d3_ClipPool[];               /* 0xfc5360, vertices made by the clipper */
 D3CVERT **d3_ClipPoly(D3CLIPINFO *info);                                               /* 0x439c90 */
 #define D3_CV(p) ((D3CVERT *)(p))
-#define D3_TEXB(t, off) (((unsigned char *)(t))[off])  /* D3TEXTURE bytes: 0x68 bit 0 wrap, 0x6c alpha, 0x6e bit 0 */
+#define D3_TEXB(t, off) (((unsigned char *)(t))[off])  /* TSTEXTURE bytes: 0x68 bit 0 wrap, 0x6c alpha, 0x6e bit 0 */
 typedef void (*D3TRIFUNC)(D3PTRI *t);
 extern D3TRIFUNC d3_TriFuncs[];             /* 0xfe75e0, software triangle fillers by mode */
 extern int d3_TextureSwitches;                    /* 0xfe75b4 */
@@ -535,7 +540,7 @@ void d3io_NoopCallback(void *t);               /* 0x44ee40 */
 char dd_Init(int mode, int bpp, HWND parent, int unk);                                  /* 0x41cfb0, dd_vesa.c */
 void dd_SetClipRect(int left, int top, int right, int bottom);                          /* 0x41d190, dd_vesa.c */
 char dd_SetMode(int xres, int yres, int bpp, int mode, HWND wnd, int notused, char triple); /* 0x41d2e0, dd_vesa.c */
-char d3d_Init(int bitplanes, int a, int b);                                             /* 0x435d70, d3_d3d.c */
+char d3d_Init(int bitplanes, HWND wnd, int unk);                                        /* 0x435d70, d3_d3d.c */
 char d3d_CreateDevice(DWORD texbpp, DWORD fourcc, DWORD texbpp2, DWORD zbpp);           /* 0x436160, d3_d3d.c */
 struct D3DCONFIG; void d3d_SetConfig(struct D3DCONFIG *c);                                                            /* 0x436560, d3_d3d.c */
 void d3d_SetWBuffer(char w);                                                            /* 0x437060, d3_d3d.c */
@@ -544,21 +549,6 @@ void d3sky_InitColors(void);                                                    
 void d3fl_Init(unsigned int n, unsigned int detail, char mips, char b);                 /* 0x43fe00, d3_fl.c */
 void d3_InitShadows(unsigned int size, unsigned int maxsize, int ncache, int age, char mips, int polys, int mapsize);                     /* 0x45ad80 */
 void par_Init(void);                                                                    /* 0x455630, d3_par.c */
-typedef struct D3TEXV {             /* D3PTRI::tex as the draw loop sees it */
-    char pad00[0x64];
-    struct IDirect3DTexture2 *d3dtex;   /* 0x64 */
-    unsigned char flags;            /* 0x68, bit 0 wrap, bit 3 compressed (size / 8) */
-    unsigned char uofs, vofs;       /* 0x69, 0x6a: low 5 bits index d3_UOfs/d3_VOfs */
-    char pad6b[0x1];
-    unsigned char alpha;            /* 0x6c */
-    char pad6d[0x1];
-    unsigned char blend;            /* 0x6e, bit 0 glow (additive), bit 1 colour key: d3_SetBlendState's
-                                       2nd and 3rd arguments */
-    char pad6f[0x5];
-    unsigned int w;                 /* 0x74, width in pixels (the size estimate shifts it unsigned) */
-    char pad78[0x4];
-    unsigned char bytes;            /* 0x7c, bytes per pixel */
-} D3TEXV;
 typedef struct D3TLV {              /* D3DTLVERTEX as filled by the draw macros */
     float sx, sy, sz, rhw;
     unsigned long color, specular;
@@ -681,7 +671,7 @@ void ts_UpdateScroll(unsigned long now);                                        
 
 #include "d3_event.h"                       /* the event tables ("d3e:"), d3_event.c */
 void bio_rd_s(struct VFSFILE *f, char *s);      /* 0x4011a0 */
-void bio_rd_i(struct VFSFILE *f, int *i);         /* 0x4011d0 */
+void bio_rd_i(struct VFSFILE *f, void *i);        /* 0x4011d0 */
 void bio_wr_s(struct VFSFILE *f, char *s);       /* 0x401210 */
 void bio_wr_i(struct VFSFILE *f, int i);         /* 0x401240 */
 
@@ -698,6 +688,6 @@ void d3_SetAlpha(D3OBJECT *obj, D3TEXFLAGS *f);  /* 0x43d690, the alpha flags f 
 char d3_AttachToBone(D3OBJECT *obj, char *name);  /* 0x43d6c0 */
 char d3_DeflateScene(unsigned int flags);  /* 0x43db30 */
 char d3_InflateScene(unsigned int flags);  /* 0x43deb0 */
-void d3_SetObject078(D3OBJECT *obj, D3VECTOR *v);  /* 0x43b820 */
+void d3_SetObject078(D3OBJECT *obj, const D3VECTOR *v);  /* 0x43b820 */
 
 #endif

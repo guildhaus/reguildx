@@ -15,14 +15,14 @@ int file_Exists(char *path);                                                    
 char *util_ReadLine(VFSFILE *f);                                                         /* 0x4010b0 */
 void bio_rd_c(VFSFILE *f, char *c);                                                     /* 0x401180 */
 void bio_rd_s(struct VFSFILE *f, char *s);                                                     /* 0x4011a0 */
-void bio_rd_i(struct VFSFILE *f, int *i);                                                      /* 0x4011d0 */
+void bio_rd_i(struct VFSFILE *f, void *i);                                                     /* 0x4011d0 */
 void bio_wr_c(VFSFILE *f, unsigned char c);                                                   /* 0x4011f0 */
 void bio_wr_s(struct VFSFILE *f, char *s);                                                     /* 0x401210 */
 void bio_wr_i(struct VFSFILE *f, int i);                                                       /* 0x401240 */
-void bio_rd_v3(VFSFILE *f, int *v);                                                     /* 0x401260 */
-void bio_rd_v4(VFSFILE *f, int *v);                                                     /* 0x401290 */
-void bio_wr_v3(VFSFILE *f, int *v);                                                     /* 0x4012d0 */
-void bio_wr_v4(VFSFILE *f, int *v);                                                     /* 0x401300 */
+void bio_rd_v3(VFSFILE *f, void *v);                                                    /* 0x401260 */
+void bio_rd_v4(VFSFILE *f, void *v);                                                    /* 0x401290 */
+void bio_wr_v3(VFSFILE *f, const void *v);                                               /* 0x4012d0 */
+void bio_wr_v4(VFSFILE *f, const void *v);                                               /* 0x401300 */
 void bio_wr_array(VFSFILE *f, int size, int n, void *data);                             /* 0x401340 */
 int bio_rd_array_quick(VFSFILE *f, int size, void **out);                               /* 0x401380 */
 

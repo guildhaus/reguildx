@@ -32,7 +32,7 @@ typedef struct D3SKYLAYER {         /* 0x2c bytes */
     float fadespeed;                /* 0x10, per ms */
     float voffset;                  /* 0x14 */
     float vscale;                   /* 0x18 */
-    D3TEXHANDLE *t;                 /* 0x1c */
+    struct TSTEXTURE *t;                 /* 0x1c */
     D3TEXFLAGS flags;               /* 0x20, b[0] initial alpha, b[2] 1: modulate with the sky colour alpha, 2: ? */
     unsigned char alpha0;           /* 0x24 */
     unsigned char alpha1;           /* 0x25 */

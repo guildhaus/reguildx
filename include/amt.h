@@ -52,14 +52,6 @@ extern AMTKIND amt_Kinds[40];           /* 0x60ed58 */
 extern const float amt_Pay[];                 /* 0x5edfbc */
 extern float amt_Rates[];               /* 0x60ec90, 7 floats per row */
 /* views of the records as amt_Rating reads them (type debt) */
-typedef struct AMTGOODS {              /* a 0x80-byte goods record (gm_FindGoods / the price table 0x4ffa10) */
-    char pad000[0x20];
-    float amount;                       /* 0x20, the amount (0x4ffa10 weighs it against the mean) */
-    float mean;                         /* 0x24 */
-    char pad028[0x10];
-    float price;                        /* 0x38, the price 0x4ffa10 computes */
-    char pad03c[0x44];
-} AMTGOODS;
 typedef union AMTFLOATBITS { float f; int i; } AMTFLOATBITS;    /* a float read as its bit pattern */
 #define AMT_BITS(p) (((AMTFLOATBITS *)(p))->i)
 typedef struct AMTKINDF {               /* an AMTKIND's +0x14 dword read as a float */
@@ -79,7 +71,7 @@ typedef struct AMTSET {                 /* the office message of 0x4e67a0 (12 by
     unsigned char idx;                  /* 0x00, the office (compared with AMTREC.idx as a byte) */
     int owner;                          /* 0x01, the new owner or -1 */
     unsigned char state;                /* 0x05, the new state */
-    char code;                          /* 0x06, unused here */
+    signed char code;                   /* 0x06, unused here */
     int x14;                            /* 0x07, the second character or -1 */
 } AMTSET;
 #pragma pack(pop)
@@ -133,12 +125,12 @@ int amt_GetColumnOffices(int col, int max, AMTREC *out);  /* 0x4e6fc0 */
 
 int amt_GetColumnOfficesOwned(int col, int max, struct AMTREC *out);  /* 0x4e7040 */
 int amt_GetColumn7Offices(int all, int max, AMTREC *out);  /* 0x4e70f0 */
-int amt_GetOfficeCandidates(char *c, int n, struct AMTCAND *out);   /* 0x4e7150 */
-int amt_GetOfficeCandidatesFull(char *c, int n, AMTCAND *out, int *full);  /* 0x4e7320 */
-char *amt_GetOfficeHolder(int k);       /* 0x4e7510 */
-char *amt_GetSuperiorOfficeHolder(int k);             /* 0x4e7550 */
+int amt_GetOfficeCandidates(struct AICHAR *c, int n, struct AMTCAND *out);   /* 0x4e7150 */
+int amt_GetOfficeCandidatesFull(struct AICHAR *c, int n, AMTCAND *out, int *full);  /* 0x4e7320 */
+struct AICHAR *amt_GetOfficeHolder(int k);       /* 0x4e7510 */
+struct AICHAR *amt_GetSuperiorOfficeHolder(int k);             /* 0x4e7550 */
 int amt_CanTakeOffice(struct AICHAR *c, int k);      /* 0x4e75c0 */
-int amt_GetOfficeApplicants(int k, int n, char **out);  /* 0x4e76b0 */
+int amt_GetOfficeApplicants(int k, int n, struct AICHAR **out);  /* 0x4e76b0 */
 int amt_GetEligibleOffices(struct AICHAR *c, int n, int *out);  /* 0x4e7770 */
 
 int amt_GetOpenOffice(int k);           /* 0x4e78a0 */

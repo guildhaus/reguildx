@@ -44,7 +44,7 @@ typedef struct SBBANK {             /* 0x144 bytes, also the file header */
 int sb_Mem = 0;  /* 0x633190 */
 int sb_Used = 0;  /* 0x633194 */
 SBBANK * sb_Banks = 0;  /* 0x633198 */
-int sb_Driver = 0;  /* 0x63319c */
+struct SFXDRIVER *sb_Driver = 0;  /* 0x63319c */
 int sb_UnreadBss[2] = {0};  /* 0x6331a0, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 char sb_Path[256] = {0};  /* 0x6331a8 */
 SBSAMPLE * sb_Samples = 0;  /* 0x6332a8 */
@@ -80,7 +80,7 @@ int sb_Init(int mem, int count, int a, int b, int c)
             if (sb_Samples) {
                 D3_ZERO_AT(sb_Samples, sb_Count * sizeof(SBSAMPLE));
                 for (i = 0; i < sb_Count; i++)
-                    if (sfx_AllocSample(sb_Driver, &sb_Samples[i]) == -1)
+                    if (sfx_AllocSample(sb_Driver, &sb_Samples[i].handle) == -1)
                         ret = -1;
                 srand(time(NULL));
                 sprintf(sb_Msg, "sblib successfully initialzied ! May use %d bytes of memory", mem);

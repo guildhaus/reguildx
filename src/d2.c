@@ -7,7 +7,7 @@
    Open: 0x476b70 (d2_ClearInput) may belong to gfx.c instead; the evidence does not decide, codegen neutral.
    Open: d2.h is not yet the only declaration of d2's functions (K&R copies in menu.c, sv_t.c, cm.h, rt.h and
    others), and it declares vfs_ / err_ functions itself.
-   Open: d2.h views D2WINF / D2PAINTWIN (of D2WIN) and D2TEXX (of D2TEX) are still to be folded into their types.
+   Open: d2.h views D2WINF / D2PAINTWIN (of D2WIN) are still to be folded into their types.
    unit of rea 8cef7d5b (src/game/d2.c); boundaries in decl/text.dcl */
 #include "txt_views.h"
 #include <stdio.h>
@@ -94,7 +94,7 @@ int d2_UnreadBss3 = 0;  /* 0x6ed950, no surviving instruction or pointer refers 
 int d2_TextSegCount = 0;  /* 0x6ed954, number of text pieces */
 int d2_CurrentView = 0;  /* 0x6ed958, the view a form was opened in */
 int d2_UnreadBss4 = 0;  /* 0x6ed95c, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
-D2TEX *d2_CaptionTex = 0;           /* 0x6ed960 */
+TSTEXTURE *d2_CaptionTex = 0;       /* 0x6ed960 */
 D2OBJ **d2_DrawOrder = 0;          /* 0x6ed964, the objects in drawing order */
 int d2_TextDrawnW = 0;  /* 0x6ed968 */
 int d2_TextDrawnH = 0;  /* 0x6ed96c */
@@ -262,7 +262,7 @@ void d2_Exit(void)
             d2_RemoveWindow(i);
         w += sizeof(D2WIN) / 4;
         i++;
-    } while ((int)w < (int)((unsigned)&d2_Wins + 0x16c00));
+    } while ((intptr_t)w < (intptr_t)((uintptr_t)&d2_Wins + 0x16c00));
     i = 0;
     do {
         d2_RemoveObj(i);
@@ -298,7 +298,7 @@ void d2_Exit(void)
     }
     d2_FreeLightTable();
     if (d2_CaptionTex) {
-        d3if_FreeSprite((int)d2_CaptionTex);
+        d3if_FreeSprite(d2_CaptionTex);
         d2_CaptionTex = 0;
     }
     if (d2_File)
@@ -917,7 +917,7 @@ int d2_OpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int f
     int mw, mh;
     D2PIC *ic0, *ic1, *ic3;
     D2PICHDR *frame;
-    int desc[16];
+    D2SURF desc;
 
     obj = d2_NewObject();
     ic1 = &d2_Pics[pic + 1];
@@ -959,10 +959,10 @@ int d2_OpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int f
     d2_Objs[obj].clipy1 = d2_ScreenH;
     d2_Objs[obj].clipx0 = 0;
     d2_Objs[obj].clipx1 = d2_ScreenW;
-    memset(desc, 0, sizeof desc);
-    desc[1] = mw * 3;
-    desc[2] = mh * 3;
-    d2_Objs[obj].u.s.img = d2_MakeSurface(desc, 0xb);
+    memset(&desc, 0, sizeof desc);
+    desc.w = mw * 3;
+    desc.h = mh * 3;
+    d2_Objs[obj].u.s.img = d2_MakeSurface(&desc, 0xb);
     if (!d2_Objs[obj].u.s.img) {
         err_Message("d2_OpenSlider:Could not create surface...");
         return -1;
@@ -2275,7 +2275,7 @@ int d2_FindWindowAt(short x, short y)
 int d2_HitTestViews(int x, int y)
 {
     D2VIEW *v;
-    D2TEX *t;
+    TSTEXTURE *t;
     D2WIN *win;
     D2OBJ *o;
     char *s;
@@ -3784,11 +3784,11 @@ int win;
     D2WIN *w = &d2_Wins[win];
 
     if (w->spr) {
-        d3if_FreeSprite((int)w->spr);
+        d3if_FreeSprite(w->spr);
         w->spr = 0;
     }
     if (name && *name) {
-        w->spr = (D2TEX *)d3if_LoadSprite(name, 1);
+        w->spr = d3if_LoadSprite(name, 1);
         if (!w->spr) {
             sprintf(buf, "d2_SetBackgroundTexture(): Could not open %s.BMP name");
             err_Message(buf);
@@ -3856,7 +3856,7 @@ int d2_CreateWindow(x, y, w, h, flags)
 short x, y, w, h;
 unsigned int flags;
 {
-    int desc[16];
+    D2SURF desc;
     int i, j, ob;
     D2WIN *win;
     void *surf;
@@ -3897,26 +3897,26 @@ unsigned int flags;
     if (flags & 1)
         win->alpha = 0.65f;
     if (flags & 0x1000) {
-        memset(desc, 0, sizeof desc);
-        desc[1] = w;
-        desc[2] = h;
-        win->surf0 = d2_MakeSurface(desc, 0xb);
+        memset(&desc, 0, sizeof desc);
+        desc.w = w;
+        desc.h = h;
+        win->surf0 = d2_MakeSurface(&desc, 0xb);
         if (!win->surf0)
             return 0;
     }
     if ((win->flags & 1) && (win->flags & 0x1000)) {
-        memset(desc, 0, sizeof desc);
-        desc[1] = win->w;
-        desc[2] = win->h;
-        win->surf1 = d2_MakeSurface(desc, 0xb);
+        memset(&desc, 0, sizeof desc);
+        desc.w = win->w;
+        desc.h = win->h;
+        win->surf1 = d2_MakeSurface(&desc, 0xb);
         if (!win->surf1)
             return 0;
     }
     if (win->flags & 0x10000) {
-        memset(desc, 0, sizeof desc);
-        desc[1] = win->w;
-        desc[2] = win->h;
-        surf = d2_MakeSurface(desc, 0xb);
+        memset(&desc, 0, sizeof desc);
+        desc.w = win->w;
+        desc.h = win->h;
+        surf = d2_MakeSurface(&desc, 0xb);
         win->surf2 = surf;
         d2_ClearSurface(surf);
         if (!win->surf2)
@@ -3999,7 +3999,7 @@ void d2_ResizeWindow(short w, short h, int win)
 {
     D2WIN *wn = &d2_Wins[win];
     int delta, dw, i;
-    int desc[16];
+    D2SURF desc;
     D2OBJ *o;
     void *ns, *old;
 
@@ -4020,10 +4020,10 @@ void d2_ResizeWindow(short w, short h, int win)
             wn->surf1 = 0;
         }
         if (wn->surf2) {
-            memset(desc, 0, sizeof desc);
-            desc[1] = w;
-            desc[2] = h;
-            ns = d2_MakeSurface(desc, 0xb);
+            memset(&desc, 0, sizeof desc);
+            desc.w = w;
+            desc.h = h;
+            ns = d2_MakeSurface(&desc, 0xb);
             old = wn->surf2;
             d2_BlitPart(0, 0, ((int *)old)[1], ((int *)old)[2], old, 0, 0, ns);
             d2_FreeSurface(wn->surf2);
@@ -4181,7 +4181,7 @@ int d2_CloseWindow(int win)
     if (w->surf2)
         d2_FreeSurface(w->surf2);
     if (w->spr)
-        d3if_FreeSprite((int)w->spr);
+        d3if_FreeSprite(w->spr);
     if (w->text) {
         mem_Free(w->text);
         w->text = 0;
@@ -4518,7 +4518,7 @@ void d2_ReplaceInputText(int obj, char *text)
 
 int d2_Open(int hwnd, int w, int h, char *dir, char *file)
 {
-    int desc[16];
+    D2SURF desc;
     char path[256];
     char sd0[0x7c];
     char sd1[0x7c];
@@ -4583,30 +4583,30 @@ int d2_Open(int hwnd, int w, int h, char *dir, char *file)
     d2_SetClipRect(0, 0, w, h);
     d2_HalfScreenW = dd_Width / 2;
     d2_HalfScreenH = dd_Height / 2;
-    memset(desc, 0, sizeof desc);
-    desc[1] = dd_Width;
-    desc[2] = dd_Height;
-    d2_BackSurf = d2_MakeSurface(desc, 0xb);
+    memset(&desc, 0, sizeof desc);
+    desc.w = dd_Width;
+    desc.h = dd_Height;
+    d2_BackSurf = d2_MakeSurface(&desc, 0xb);
     if (!d2_BackSurf)
         return 0;
-    memset(desc, 0, sizeof desc);
-    desc[1] = 0x100;
-    desc[2] = 0x100;
-    d2_BackgroundTile = d2_MakeSurface(desc, 3);
+    memset(&desc, 0, sizeof desc);
+    desc.w = 0x100;
+    desc.h = 0x100;
+    d2_BackgroundTile = d2_MakeSurface(&desc, 3);
     if (!d2_BackgroundTile)
         return 0;
-    memset(desc, 0, sizeof desc);
-    desc[1] = dd_Width;
-    desc[2] = dd_Height;
-    desc[8] = (int)dd_BackBuffer;
-    d2_ScreenSurf = d2_MakeSurface(desc, 4);
+    memset(&desc, 0, sizeof desc);
+    desc.w = dd_Width;
+    desc.h = dd_Height;
+    desc.DDSurface = dd_BackBuffer;
+    d2_ScreenSurf = d2_MakeSurface(&desc, 4);
     if (!d2_ScreenSurf)
         return 0;
-    memset(desc, 0, sizeof desc);
-    desc[1] = dd_Width;
-    desc[2] = dd_Height;
-    desc[8] = (int)dd_FrontBuffer;
-    d2_FrontSurf = d2_MakeSurface(desc, 6);
+    memset(&desc, 0, sizeof desc);
+    desc.w = dd_Width;
+    desc.h = dd_Height;
+    desc.DDSurface = dd_FrontBuffer;
+    d2_FrontSurf = d2_MakeSurface(&desc, 6);
     if (!d2_FrontSurf)
         return 0;
     d2_GetSurfaceDesc(d2_ScreenSurf, sd0);
@@ -4616,7 +4616,7 @@ int d2_Open(int hwnd, int w, int h, char *dir, char *file)
         d2_UnlockSurface(d2_ScreenSurf);
     }
     d2_SetFont(d2_FindPic("_FONT"));
-    d2_CaptionTex = (D2TEX *)d3if_LoadSprite("BLACK", 0);
+    d2_CaptionTex = d3if_LoadSprite("BLACK", 0);
     if (!d2_CaptionTex)
         err_Message("d2_Open: Could not init transparency...");
     d2_ScrollMarkerPic = d2_FindPic("_WIN_ICONS");
@@ -4846,7 +4846,7 @@ int d2_LoadView(int x, int y, char *name)
     int view, i, j;
     D2VIEW *v;
     D2WIN *w;
-    int desc[16];
+    D2SURF desc;
 
     view = d2_OpenForm(x, y, name);
     if (view != 0) {
@@ -4859,14 +4859,14 @@ int d2_LoadView(int x, int y, char *name)
     }
     v->loaded = 1;
     w = &d2_Wins[v->wins[0]];
-    memset(desc, 0, sizeof(desc));
-    desc[1] = w->w;
-    desc[2] = w->h;
-    v->viewSurf = (int)d2_MakeSurface(desc, 3);
-    memset(desc, 0, sizeof(desc));
-    desc[1] = w->w;
-    desc[2] = w->h;
-    v->texSurf = (int)d2_MakeSurface(desc, 3);
+    memset(&desc, 0, sizeof(desc));
+    desc.w = w->w;
+    desc.h = w->h;
+    v->viewSurf = (int)d2_MakeSurface(&desc, 3);
+    memset(&desc, 0, sizeof(desc));
+    desc.w = w->w;
+    desc.h = w->h;
+    v->texSurf = (int)d2_MakeSurface(&desc, 3);
     return view;
     }
     return 0;
@@ -4898,7 +4898,7 @@ void d2_ClearViewTextures(int view)
 
     for (i = 0; i < 2; i++) {
         char *name;
-        D2TEXX *t;
+        TSTEXTURE *t;
 
         if (i == 0)
             name = v->tex1;
@@ -4907,7 +4907,7 @@ void d2_ClearViewTextures(int view)
         else
             continue;
         if (*name != 0) {
-            t = (D2TEXX *)tex_Find(name);
+            t = tex_Find(name);
             if (t != 0) {
                 unsigned int sz = t->size;
 
@@ -4927,8 +4927,8 @@ void d2_ClearViewTextures(int view)
 void d2_FillViewTextures(int view, char *tex1, char *tex2)
 {
     D2VIEW *v = &d2_Views[view];
-    D2TEXX *t1 = 0;
-    D2TEXX *t2;
+    TSTEXTURE *t1 = 0;
+    TSTEXTURE *t2;
     char *s, *d;
     char c;
 
@@ -4940,9 +4940,9 @@ void d2_FillViewTextures(int view, char *tex1, char *tex2)
             d[s - tex1] = c;
             s++;
         } while (c != 0);
-        t1 = (D2TEXX *)tex_Find(tex1);
+        t1 = tex_Find(tex1);
         if (t1 != 0) {
-            tex_SetHiColor((D3TEXTURE *)t1, 1);
+            tex_SetHiColor(t1, 1);
             d2_BlitPartFromDD(0, 0, t1->size, t1->size, t1->surf, 0, 0, (void *)v->texSurf);
         }
     }
@@ -4954,9 +4954,9 @@ void d2_FillViewTextures(int view, char *tex1, char *tex2)
             d[s - tex2] = c;
             s++;
         } while (c != 0);
-        t2 = (D2TEXX *)tex_Find(tex2);
+        t2 = tex_Find(tex2);
         if (t2 != 0) {
-            tex_SetHiColor((D3TEXTURE *)t2, 1);
+            tex_SetHiColor(t2, 1);
             d2_BlitPartFromDD(0, 0, t2->size, ((D2SURF *)v->texSurf)->h - t1->size, t2->surf, 0, t1->size,
                          (void *)v->texSurf);
         }
@@ -4971,7 +4971,7 @@ void d2_RedrawView(int view)
     D2VIEW *v = &d2_Views[view];
     D2OBJ *o;
     D2WIN *w;
-    D2TEXX *t;
+    TSTEXTURE *t;
     void *surf;
     int i, j, x, y, tx, ty, tw, th;
     unsigned int mode;
@@ -5098,12 +5098,12 @@ void d2_RedrawView(int view)
         if (v->tex1[0] == 0 && v->tex2[0] == 0)
             return;
         if (v->tex1[0] != 0) {
-            t = (D2TEXX *)tex_Find(v->tex1);
+            t = tex_Find(v->tex1);
             if (t != 0)
                 d2_BlitPartToDD(0, 0, t->size, t->size, (void *)v->viewSurf, 0, 0, t->surf);
         }
         if (v->tex2[0] != 0) {
-            D2TEXX *t2 = (D2TEXX *)tex_Find(v->tex2);
+            TSTEXTURE *t2 = tex_Find(v->tex2);
 
             /* @original reads t->size even when tex1 is empty or not found: t is then
                uninitialized / 0 (the original reloads t's stale stack slot) */
@@ -5741,7 +5741,7 @@ D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned i
     f->h = h;
     f->flags = flags;
     f->dur = dur;
-    f->sprite = (D2TEX *)d3if_LoadSprite(name, 1);
+    f->sprite = d3if_LoadSprite(name, 1);
     f->start = tb_Calls;
     f->last = tb_Calls;
     d2_Fades[i] = f;
@@ -5756,7 +5756,7 @@ void d2_ReleaseFade(D2FADE *f)
     for (i = 0; i < 0x20; i++) {
         if (d2_Fades[i] == f) {
             d2_Fades[i] = 0;
-            d3if_FreeSprite((int)f->sprite);
+            d3if_FreeSprite(f->sprite);
             mem_Free(f);
             return;
         }

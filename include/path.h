@@ -3,25 +3,7 @@
 #ifndef UNK_424F30_H
 #define UNK_424F30_H
 
-typedef struct PNODE {              /* 0x1c bytes */
-    int type;                       /* terrain type, index into the cost table */
-    short stamp;                    /* 0x04, path_Stamp of the search that touched the node */
-    short pad06;
-    float f;                        /* 0x08, g + h */
-    float g;                        /* 0x0c */
-    float h;                        /* 0x10 */
-    unsigned char flags;            /* 0x14, 1 open, 2 closed, 4/8 reached from start/goal */
-    unsigned char pad15;
-    unsigned short next;            /* 0x16, open list, sorted by f */
-    unsigned short prev;            /* 0x18 */
-    unsigned short parent;          /* 0x1a */
-} PNODE;
-
-typedef struct PMAP {
-    char pad00[0x20];
-    int size;                       /* 0x20, grid is size x size, a power of two */
-    PNODE *nodes;                   /* 0x24 */
-} PMAP;
+#include "d3_sm_types.h"             /* D3SM: the grid, its D3SMENTRY cells the nodes */
 
 typedef struct PATHOUT {
     int count;
@@ -51,10 +33,10 @@ extern unsigned short path_Meet;            /* 0x1460abe */
 extern float path_Weight;                   /* 0x1460ac0 */
 extern int path_Mode;                       /* 0x633184, 1 = one-directional search */
 
-unsigned short path_Find(PATHOUT *out, PMAP *map, int sx, int sy, int ex, int ey, int type); /* 0x424f30 */
-unsigned short path_Search2(PMAP *map, int sx, int sy, short ex, int ey, int type);       /* 0x4250a0, bidirectional */
-unsigned short path_Search1(PMAP *map, int sx, int sy, short ex, int ey, int type);       /* 0x425470 */
-unsigned short path_Expand(PMAP *map, unsigned short n);                                    /* 0x425780 */
-void path_Reverse(PMAP *map, unsigned int n);                                           /* 0x425af0 */
+unsigned short path_Find(PATHOUT *out, D3SM *map, int sx, int sy, int ex, int ey, int type); /* 0x424f30 */
+unsigned short path_Search2(D3SM *map, int sx, int sy, short ex, int ey, int type);       /* 0x4250a0, bidirectional */
+unsigned short path_Search1(D3SM *map, int sx, int sy, short ex, int ey, int type);       /* 0x425470 */
+unsigned short path_Expand(D3SM *map, unsigned short n);                                    /* 0x425780 */
+void path_Reverse(D3SM *map, unsigned int n);                                           /* 0x425af0 */
 
 #endif

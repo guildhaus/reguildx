@@ -184,7 +184,7 @@ extern const int sv_PhaseMinutes[24];
 
 extern unsigned short ai_PlayerId;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 
@@ -228,7 +228,7 @@ extern int d2_LastWindow;
 
 extern int sv_PopRequest;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 
@@ -236,7 +236,7 @@ extern int ai_ClickedObject;
 
 extern GAPDATA full_data_62a450[];
 extern GAPDATA full_data_62a464[];
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 extern unsigned short ai_PlayerId;
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
@@ -247,7 +247,7 @@ extern int d2_LastWindow;
 
 extern int sv_PopRequest;
 extern int ai_BuildingPerms;
-extern int ai_ClickedObject;
+extern struct D3OBJECT *ai_ClickedObject;
 
 
 extern int gm_AllowAll;
@@ -446,7 +446,7 @@ void d3if_Prerender(char map);
 double _CIfmod();
 #include <math.h>
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
-int ai_GetDefaultEffect();
+struct EFFECTREC *ai_GetDefaultEffect(void);
 typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: three floats and a word cleared as an int */
     float x, y, z;
     int w;
@@ -457,7 +457,7 @@ void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR
 void gv_CannonScatter(struct AIBLD *o, float *a, float *b); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade);
 int sv_MessageBox(intptr_t text, unsigned flags);
-int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); short * gm_PlayerRecord(struct AICHAR *c);
+int gm_GetWorth(unsigned short id); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t); struct AIFIN *gm_PlayerRecord(struct AICHAR *c);
 int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out); struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var); void sv_CameraFollow();
 int amt_GetKindLevel(int k); void cm_SendMoneyDelta(int a, int b);
 void txt_Format(char *out, intptr_t id0, ...); int sv_MessageBox(intptr_t text, unsigned flags);
@@ -515,7 +515,7 @@ void ai_GraveSizeButtons(AIBLD *rec, int *w)
     d2_Objs[w[w[12] + 8]].checked = 1;
 }
 
-unsigned gv_FindEntry(void *a, struct AIBLD *bld, unsigned after, int (*cb)(), int l); int gv_EntryIndex(char *r, int *e);
+struct GVENTRY *gv_FindEntry(void *a, struct AIBLD *bld, struct GVENTRY *after, int (*cb)(), int l); int gv_EntryIndex(struct GVYARD *g, struct GVENTRY *e);
 
 /* a row of the graveyard contact window's grave list (w + 0xd, 0x10 rows of 4 dwords; ai_GraveList fills them) */
 typedef struct GVROW {
@@ -582,14 +582,14 @@ void ai_GraveList(AIBLD *rec, int *w, int sel)
     d2_SetForm(w[0], 4);
     io_PrintText((intptr_t)"$C");
     sv_CreateScrollButtons(0, 0, w[5], w[2], 0x35, a, b, &sel);
-    e = (GVENTRY *)gv_FindEntry(0, rec, 0, 0, w[0xc]);
+    e = gv_FindEntry(0, rec, 0, 0, w[0xc]);
     n = 0;
     if (e) {
         row = ((GVWIN *)w)->rows;
         do {
             row->entry = e;
             row->size = e->size;
-            row->index = gv_EntryIndex((char *)rec->yard, (int *)e);
+            row->index = gv_EntryIndex(rec->yard, e);
             if (e->id == -1)
                 row->btn = d2_WinOpenPic(1, n * 0x35 + 2, ai_GravePics[w[0xc]], w[2]);
             else
@@ -598,7 +598,7 @@ void ai_GraveList(AIBLD *rec, int *w, int sel)
                 d2_WinOpenPic(0xf, n * 0x35 + 9, 0x7de, w[2]);
             d2_Objs[row->btn].interactive = 1;
             d2_Objs[row->btn].style = 3;
-            e = (GVENTRY *)gv_FindEntry(0, rec, (unsigned)e, 0, w[0xc]);
+            e = gv_FindEntry(0, rec, e, 0, w[0xc]);
             n++;
             row++;
         } while (e);
@@ -929,14 +929,14 @@ void ai_GraveWindow(GVPICK *out, AIBLD *rec, char *title, int flag, void (*cb)(A
                     if (out) {
                         out->entry = ((GVWIN *)w)->rows[w[0x4d]].entry;
                         out->size = out->entry->size;
-                        out->index = gv_EntryIndex((char *)rec->yard, (int *)out->entry);
+                        out->index = gv_EntryIndex(rec->yard, out->entry);
                         out->grave = ((GVWIN *)w)->items[j].grave;
                         out->id = out->grave->id;
                     }
                     if (cb) {
                         pick.entry = ((GVWIN *)w)->rows[w[0x4d]].entry;
                         pick.size = pick.entry->size;
-                        pick.index = gv_EntryIndex((char *)rec->yard, (int *)pick.entry);
+                        pick.index = gv_EntryIndex(rec->yard, pick.entry);
                         pick.grave = ((GVWIN *)w)->items[j].grave;
                         pick.id = pick.grave->id;
                         d2_SetViewEnabled(w[0], 0);
@@ -950,14 +950,14 @@ void ai_GraveWindow(GVPICK *out, AIBLD *rec, char *title, int flag, void (*cb)(A
                 if (out) {
                     out->entry = ((GVWIN *)w)->rows[w[0x4d]].entry;
                     out->size = out->entry->size;
-                    out->index = gv_EntryIndex((char *)rec->yard, (int *)out->entry);
+                    out->index = gv_EntryIndex(rec->yard, out->entry);
                     out->grave = 0;
                     out->id = -1;
                 }
                 if (cb) {
                     whole.entry = ((GVWIN *)w)->rows[w[0x4d]].entry;
                     whole.size = whole.entry->size;
-                    whole.index = gv_EntryIndex((char *)rec->yard, (int *)whole.entry);
+                    whole.index = gv_EntryIndex(rec->yard, whole.entry);
                     whole.grave = 0;
                     whole.id = -1;
                     d2_SetViewEnabled(w[0], 0);
@@ -1280,7 +1280,7 @@ int ai_GraveMoveConfirm(AIBLD *rec, int from, unsigned char entry, int to)
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == yes) {
                 if (cost == 0 || sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], cost, ai_OwnPlayer)) {
-                    h = gv_OrderMoveGrave((int *)&ai_Chars[ai_PlayerId], to, rec, from, entry, cost);
+                    h = gv_OrderMoveGrave(&ai_Chars[ai_PlayerId], to, rec, from, entry, cost);
                     while (h != -1 && cm_GetSlotState(h) == 0)
                         sv_RunFrame(0, 0x20007);
                     sv_FrameMask = 0x677c7;
@@ -1418,7 +1418,7 @@ int ai_GraveRentConfirm(AIBLD *rec, int size)
     if (rec->owner == ai_PlayerId)
         cost = 0;
     else
-        cost = gv_LeasePrice((unsigned short *)&ai_Chars[ai_PlayerId], 0xff, size, 1, &share);
+        cost = gv_LeasePrice(&ai_Chars[ai_PlayerId], 0xff, size, 1, &share);
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\Friedhof");
     d2_SetPointerSprite(0, 0);
     d2_CentreViewWindows(win);
@@ -1440,7 +1440,7 @@ int ai_GraveRentConfirm(AIBLD *rec, int size)
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == yes) {
                 if (cost == 0 || sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], cost, ai_OwnPlayer)) {
-                    h = gv_OrderReserveGrave((int *)&ai_Chars[ai_PlayerId], rec, size, 10, cost);
+                    h = gv_OrderReserveGrave(&ai_Chars[ai_PlayerId], rec, size, 10, cost);
                     while (h != -1 && cm_GetSlotState(h) == 0)
                         sv_RunFrame(0, 0x20007);
                     sv_FrameMask = 0x677c7;
@@ -1595,7 +1595,7 @@ int ai_GraveCare(AIBLD *rec, GVPICK *pick)
     return r;
 }
 
-int gv_RoomForRaised(struct AIBLD *o, int *n); int cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
+int gv_RoomForRaised(struct AIBLD *o, int *n); void *cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
 
 /* 0x584b70, the "GEHILFEN_ERSCHAFFEN" callback of the graveyard window (ai_GraveWindow, a function pointer
    only): raises the picked dead person as a helper. gv_RoomForRaised counts the yard's raised: -1 -> 0; 0 (the
@@ -1687,7 +1687,7 @@ void ai_GypsyHelperWindow(AIBLD *rec)
 {
     AIBTYPE *type;
     AIJOB *job;
-    char *res;
+    AIOBJ *res;
     int win;
     int counts[3];
     int btns[3];
@@ -1702,7 +1702,7 @@ void ai_GypsyHelperWindow(AIBLD *rec)
     int x;
 
     kinds[2] = 0x227;
-    res = (char *)gm_Query(rec->objList, 2, 6, 0, 0x2a);
+    res = gm_Query(rec->objList, 2, 6, 0, 0x2a);
     type = &ai_BTypes[rec->type];
     if (type->kind == 0x1f) {
         kinds[0] = 0x293;
@@ -2388,11 +2388,11 @@ void ai_GraveSeance(AIBLD *rec)
     char line[0x100];
     GVENTRY *e;
 
-    e = (GVENTRY *)gv_FindEntry((char *)&ai_Chars[ai_PlayerId], rec, 0, gv_EntrySameId, 0xff);
+    e = gv_FindEntry((char *)&ai_Chars[ai_PlayerId], rec, 0, gv_EntrySameId, 0xff);
     if (e != 0) {
         w.entry = e;
         w.size = e->size;
-        w.index = gv_EntryIndex((char *)rec->yard, (int *)e);
+        w.index = gv_EntryIndex(rec->yard, e);
         txt_Format(line, 0x4107, ai_GraveNames[e->size]);
         if (ai_GraveDetailOpen((int *)&w, txt_Ptrs[0x40cc]) == 0) {
             sv_CameraFollow();
@@ -2422,7 +2422,7 @@ void ai_GraveSeance(AIBLD *rec)
     }
 }
 
-void ai_EndCharExtra(struct AICHAR *ch, int f); int cm_SendRelations(int a, int b, int c, int d); int sv_StartPoseScript(struct AICHAR *a, int b);
+void ai_EndCharExtra(struct AICHAR *ch, int f); int cm_SendRelations(int a, int b, int c, int d); struct EVTSCRIPT *sv_StartPoseScript(struct AICHAR *a, char *name);
 
 /* 0x5867c0, the graveyard "Schlag" action (114 B): when the character under the pointer (ai_PickedChar) exists
    with the at-work flag bit 0 of +0x1b4 and the left button (dm_L.lup) is latched: ends its extra (ai_EndCharExtra,
@@ -2438,7 +2438,7 @@ void ai_GraveyardSchlag(AIBLD *unused)
         ai_EndCharExtra(c, 0);
         c = ai_PickedChar;
         cm_SendRelations(ai_CharInts[ai_PlayerId][0], c->netId, -5, 0);
-        script = (EVTSCRIPT *)sv_StartPoseScript((char *)ai_PickedChar, "locations/friedhof/schlag_FRIEDHOF.esc");
+        script = sv_StartPoseScript(ai_PickedChar, "locations/friedhof/schlag_FRIEDHOF.esc");
         if (script != 0)
             script->ownScene = 1;
     }
@@ -2454,7 +2454,7 @@ void sv_ReleaseNamePlates(void); void ai_TradeContactChecks(void);
    0x19 / 0x16 / 0x11 open the handlers directly (a cheat path, a reasoned guess) */
 void ai_GraveyardContact(AIBLD *rec)
 {
-    int c_altern, c_heim, c_zut, c_graeber, c_gehilfen, c_vers, c_liege, c_trans, c_mieten;
+    D3OBJECT *c_altern, *c_heim, *c_zut, *c_graeber, *c_gehilfen, *c_vers, *c_liege, *c_trans, *c_mieten;
 
     c_altern = 0;
     c_heim = 0;
@@ -2760,22 +2760,22 @@ void ai_GravePlanContact(AIBLD *rec)
 void ai_GraveRentContact(AIBLD *rec)
 {
     GVENTRY *e;
-    unsigned char *bld;
+    AIBLD *bld;
     GVDETAILWIN w;
     char line[0x100];
 
-    e = (GVENTRY *)gv_FindEntry((char *)&ai_Chars[ai_PlayerId], rec, 0, gv_EntrySameId, 0xff);
+    e = gv_FindEntry((char *)&ai_Chars[ai_PlayerId], rec, 0, gv_EntrySameId, 0xff);
     if (e != 0) {
         w.entry = e;
         w.size = e->size;
-        w.index = gv_EntryIndex((char *)rec->yard, (int *)e);
+        w.index = gv_EntryIndex(rec->yard, e);
         txt_Format(line, 0x4107, ai_GraveNames[e->size]);
         if (ai_GraveDetailOpen((int *)&w, line) == 0)
             return;
         ai_GraveDetailButtons(rec, (int *)&w);
         d2_CloseView(w.win);
         sv_CameraFollow();
-    } else if (gv_FindReservedEntry((char *)&ai_Chars[ai_PlayerId], &bld, (int *)&e) == 0) {
+    } else if (gv_FindReservedEntry((char *)&ai_Chars[ai_PlayerId], &bld, &e) == 0) {
         ai_RentGraveSelect(rec);
         sv_CameraFollow();
     } else {
@@ -2881,7 +2881,7 @@ void ai_GraveInsuranceContact(AIBLD *rec)
    ai_HelperBook (with the plate's name) or ai_StorageWindow (with the building's object list) */
 void ai_GraveyardTradeContact(AIBLD *rec)
 {
-    int c0, c1, c2, c3, c4;
+    D3OBJECT *c0, *c1, *c2, *c3, *c4;
 
     c0 = 0;
     c1 = 0;
@@ -2919,7 +2919,7 @@ void ai_GraveyardTradeContact(AIBLD *rec)
 
 void ai_GraveyardSeanceContact(AIBLD *rec)
 {
-    int c;
+    D3OBJECT *c;
 
     while (sv_RunFrame(ai_GraveyardSeanceContact, 0x67fff) != 0) {
         c = sv_RegisterNamePlate("contact_SEANCE", txt_Ptrs[0x4169], 0x16);
@@ -3061,7 +3061,7 @@ void ai_UpgradeWorkerWindow(AIBLD *rec)
 
 void ai_GraveyardFogContact(AIBLD *rec)
 {
-    int c0, c1;
+    D3OBJECT *c0, *c1;
 
     c0 = 0;
     c1 = 0;
@@ -3211,7 +3211,7 @@ void ai_ClearTurnTable(void)
 int gm_BuildingKindCost(struct AICHAR *c, int kind); char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
 float gm_GoodsPrice(unsigned id, unsigned char p);
 struct AICHAR *gm_FindChar(int id);
-struct AIBLD *gm_FindBuildingById(int id); int gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
+struct AIBLD *gm_FindBuildingById(int id); struct AIOBJ *gm_FindObjectInst(int id); unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
 void d2_RadioClear(int g);
 unsigned vfs_fwrite(void *buf, int size, int n, struct VFSFILE *f);
 void * mem_Alloc(int size, char *tag); char dd_Lock(void); void dd_Unlock(); unsigned char bmp_Save24(char *path, int w, int h, unsigned char *data); void mem_Free(void *p);

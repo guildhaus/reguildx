@@ -4,6 +4,7 @@ struct D3VECTOR;
 /* Declarations of anm.c (0x4bb810..): animals (module tag "anm:animals", "DOG", "CAT", ..). Names are ours. */
 #ifndef ANM_H
 #define ANM_H
+#include "d3_types.h"                /* D3VECTOR */
 
 typedef struct ANMREC {                 /* 0x124 bytes, anm_Animals[32], an animal */
     void *obj;                          /* 0x00, its 3D object (->0x34->0x1ec, flags byte 0x96d) */
@@ -11,7 +12,7 @@ typedef struct ANMREC {                 /* 0x124 bytes, anm_Animals[32], an anim
     int nPoints;                        /* 0x08, kind 2: collected coordinates, 3 per building; -1 = not yet */
     unsigned char remove;               /* 0x0c, 1: to be removed (anm_RemoveAnimal) */
     char pad0d[3];
-    float pos[3];                       /* 0x10, where it was created */
+    D3VECTOR pos;                       /* 0x10, where it was created */
     char pad1c[4];
     unsigned int birth;                 /* 0x20, d3_Time of its anm_NewAnimal */
     char pad24[0x100];
@@ -34,7 +35,7 @@ struct CHARACTER *ch_Create(char *name, struct D3VECTOR *pos);                  
 struct CHACTION *ch_AddAction(struct CHARACTER *ch, unsigned int type, ...);                            /* 0x40b2f0, ch.c */
 int ch_Delete(struct CHARACTER *ch);                                                         /* 0x4028a0, ch.c: CHARACTER * */
 void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                               /* 0x458a20, d3.h: D3 types */
-int d3_VecEqual(struct D3VECTOR *a, struct D3VECTOR *b, float eps);                                  /* 0x453e80, d3.h: D3VECTOR */
+int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);                                  /* 0x453e80, d3.h: D3VECTOR */
 struct AIBLD *gm_BuildQuery(int n, ...);                                                  /* 0x501190, ai.h: AIBLD * */
 struct AIBLD *gm_BuildNext(void);                                                        /* 0x501030 */
 int gm_IsHomeType(struct AIBLD *b);                                                       /* 0x502520 */

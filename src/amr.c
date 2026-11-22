@@ -161,13 +161,13 @@ unsigned int ai_MakeDuelOpponent(unsigned int k)
 
 int ai_DuelStart(AICHAR *p, AGDUEL *d, int k)
 {
-    AGFIN *fin;
+    AIFIN *fin;
     unsigned int stats;
     int m, r;
     double x;
     float old;
 
-    fin = (AGFIN *)gm_PlayerRecord(p);
+    fin = gm_PlayerRecord(p);
     if (p == 0 || p->kind != 6 || d == 0 || (k != 1 && k != 2 && k != 4))
         return 0;
     d->stake = 0;
@@ -184,19 +184,19 @@ int ai_DuelStart(AICHAR *p, AGDUEL *d, int k)
     d->reserved2c = 0;
     d->kind2 = 0;
     d->reserved50 = 0;
-    if (fin->firstBias < util_RandomF()) {
-        d->side1 = p;
-        d->stats1 = 0xffff;
-        d->side2 = &ai_DuelOpponent;
-        d->stats2 = stats;
-        fin->firstBias = util_RandomF() * 0.11f + fin->firstBias + 0.2f;
+    if (fin->duelBias < util_RandomF()) {
+        d->side1.ch = p;
+        d->side1.stats = 0xffff;
+        d->side2.ch = &ai_DuelOpponent;
+        d->side2.stats = stats;
+        fin->duelBias = util_RandomF() * 0.11f + fin->duelBias + 0.2f;
     } else {
-    d->side2 = p;
-    d->stats2 = 0xffff;
-    d->side1 = &ai_DuelOpponent;
-    d->stats1 = stats;
-    old = fin->firstBias;
-    fin->firstBias = (old - 0.2f) - util_RandomF() * 0.11f;
+    d->side2.ch = p;
+    d->side2.stats = 0xffff;
+    d->side1.ch = &ai_DuelOpponent;
+    d->side1.stats = stats;
+    old = fin->duelBias;
+    fin->duelBias = (old - 0.2f) - util_RandomF() * 0.11f;
     }
     d->phase = 1;
     return 1;
@@ -208,16 +208,16 @@ int ai_DuelAcceptAction(AGDUEL *d, AICHAR *c, int k)
     int v;
     const int *q;
 
-    if (c == d->side1)
+    if (c == d->side1.ch)
         v = d->kind1;
-    else if (c == d->side2)
+    else if (c == d->side2.ch)
         v = d->kind2;
     else
         return 0;
     q = &ag_Pairs[0][1];
     while (q[-1] != v || *q != k) {
         q += 2;
-        if ((int)q >= (int)&ag_Pairs[9][1])
+        if ((intptr_t)q >= (intptr_t)&ag_Pairs[9][1])
             return 0;
     }
     return 1;
@@ -229,9 +229,9 @@ int ai_DuelSetAction(AGDUEL *d, AICHAR *c, int k)
     int *q;
     int i;
 
-    if (c == d->side1)
+    if (c == d->side1.ch)
         q = &d->kind1;
-    else if (c == d->side2)
+    else if (c == d->side2.ch)
         q = &d->kind2;
     else
         return 0;
@@ -254,12 +254,12 @@ void ai_DuelThrow(AGDUEL *d, AICHAR *c, int k)
     int i, j, sum, w, m, best, a, b, g, extra, h;
     short sv;
 
-    if (c == d->side1) {
-        t = d->t1;
-        n = &d->n1;
-    } else if (c == d->side2) {
-        t = d->t2;
-        n = &d->n2;
+    if (c == d->side1.ch) {
+        t = d->side1.t;
+        n = &d->side1.n;
+    } else if (c == d->side2.ch) {
+        t = d->side2.t;
+        n = &d->side2.n;
     }
     f = gm_GetSkill(c, 2);
     lvl = (int)(f * 100.0f) / 20;
@@ -416,21 +416,21 @@ int ai_DuelOpponentAction(AGDUEL *d, AICHAR *c)
     float f;
 
     if (c->kind == 10) {
-        if (c == d->side1) {
+        if (c == d->side1.ch) {
             s = d->kind1;
-            u = d->stats1 & 0xff;
-            b1 = d->n1;
-            t = d->t1;
-            b2 = d->n2;
+            u = d->side1.stats & 0xff;
+            b1 = d->side1.n;
+            t = d->side1.t;
+            b2 = d->side2.n;
             me = 0;
         } else {
-            if (c != d->side2)
+            if (c != d->side2.ch)
                 return 0;
             s = d->kind2;
-            u = d->stats2 & 0xff;
-            b1 = d->n2;
-            t = d->t2;
-            b2 = d->n1;
+            u = d->side2.stats & 0xff;
+            b1 = d->side2.n;
+            t = d->side2.t;
+            b2 = d->side1.n;
             me = 1;
         }
         for (i = 0, sum = 0; i < b1; i++)
@@ -480,10 +480,10 @@ void ai_DuelNextPhase(AGDUEL *d)
         return;
     }
     if (ph == 2) {
-        if (d->t1[0] == d->t1[1] && d->t1[0] == d->t1[2])
-            s1 = d->t1[2] + d->t1[1] + d->t1[0];
-        if (d->t2[0] == d->t2[1] && d->t2[0] == d->t2[2])
-            s2 = d->t2[2] + d->t2[1] + d->t2[0];
+        if (d->side1.t[0] == d->side1.t[1] && d->side1.t[0] == d->side1.t[2])
+            s1 = d->side1.t[2] + d->side1.t[1] + d->side1.t[0];
+        if (d->side2.t[0] == d->side2.t[1] && d->side2.t[0] == d->side2.t[2])
+            s2 = d->side2.t[2] + d->side2.t[1] + d->side2.t[0];
         if (s1 > s2) {
             d->phase = 5;
             return;
@@ -499,10 +499,10 @@ void ai_DuelNextPhase(AGDUEL *d)
         d->phase = d->kind2 == 4 ? 5 : 3;
         return;
     } else {
-        for (i = 0; i < d->n1; i++)
-            sum1 += d->t1[i];
-        for (i = 0; i < d->n2; i++)
-            sum2 += d->t2[i];
+        for (i = 0; i < d->side1.n; i++)
+            sum1 += d->side1.t[i];
+        for (i = 0; i < d->side2.n; i++)
+            sum2 += d->side2.t[i];
         if (ph == 3) {
             if (sum1 > 17 || d->kind1 == 4) {
                 d->phase = 6;
@@ -900,7 +900,7 @@ int ai_DecideSentence(AICHAR *ch, AIPLAN *q)
     AICHAR *c;
 
     n = ai_PlanRank(q);
-    gv_GetTableRecord(0, (int *)&dec);
+    gv_GetTableRecord(0, &dec);
     k = (5.0f - (float)dec.cur) * 0.1f + 0.7f;
     c = gm_FindChar(q->c18);
     d = gm_Liking(c->id, ch->id, 1);
@@ -1082,17 +1082,17 @@ int ai_BrawlWin(AICHAR *attacker, AICHAR *defender, int *out)
 {
     float sum, modifier;
     int appliedOrder;
-    int msg[0x88];
+    ORDMSG msg;
 
     sum = gm_Mix(attacker, defender, 3) + util_RandomF();
     modifier = 0.0f;
     appliedOrder = 0x3b;
-    memset(msg, 0, sizeof(msg));
-    msg[0] = 1;
-    if (ord_DispatchOrder(0xd, defender, msg) & 2) {
+    memset(&msg, 0, sizeof(msg));
+    msg.kind = 1;
+    if (ord_DispatchOrder(0xd, defender, &msg) & 2) {
         modifier = -0.25f;
         appliedOrder = 0xd;
-    } else if (ord_DispatchOrder(10, defender, msg) & 2) {
+    } else if (ord_DispatchOrder(10, defender, &msg) & 2) {
         modifier = 0.1f;
         appliedOrder = 10;
     }
@@ -1524,7 +1524,7 @@ int ai_ExecuteDummyPleasure(AICHAR *p, AIARG *s1, AIARG *s2)
 
 int ai_DecideTrainSkill(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 {
-    int q[0x88];
+    ORDMSG q;
     float w[5];
     unsigned int cnt[5], n[5];
     int ids[5], valid[5];
@@ -1560,10 +1560,10 @@ int ai_DecideTrainSkill(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
     if (he_FindEvent(2, 2, p->id, 0, 0x60))
         return 0;
     if (o1->kind == 0xe) {
-        memset(q, 0, sizeof(q));
+        memset(&q, 0, sizeof(q));
         k = o1->ref;
-        q[0] = 1;
-        f = (ord_DispatchOrder(ids[k], p, q) & 2) ? -1.0f : 0.0f;
+        q.kind = 1;
+        f = (ord_DispatchOrder(ids[k], p, &q) & 2) ? -1.0f : 0.0f;
         if (p->skills[k] < 42)
             v = 1;
         else if (p->skills[k] < 84)
@@ -1585,13 +1585,13 @@ int ai_DecideTrainSkill(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
         return 4;
     }
     for (i = 0; i < 5; i++) {
-        memset(q, 0, sizeof(q));
-        q[0] = 1;
+        memset(&q, 0, sizeof(q));
+        q.kind = 1;
         valid[i] = 1;
         cnt[i] = ord_GetRatingByte(i);
         if (!cnt[i])
             cnt[i] = 252;
-        f = (ord_DispatchOrder(ids[i], p, q) & 2) ? -1.0f : 0.0f;
+        f = (ord_DispatchOrder(ids[i], p, &q) & 2) ? -1.0f : 0.0f;
         if (p->skills[i] < 42)
             n[i] = 1;
         else if (p->skills[i] < 84)
@@ -1679,7 +1679,7 @@ int ai_ExecuteTrainSkill(AICHAR *p, AIARG *s1, AIARG *s2)
 int ai_DecideTrainJobSkill(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 {
     JOBTALENTS jt;
-    int q[0x88];
+    ORDMSG q;
     float w[5];
     unsigned int cnt[5], n[5];
     int ids[5], valid[5];
@@ -1736,9 +1736,9 @@ int ai_DecideTrainJobSkill(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
     ka = util_Random(5);
     kb = util_Random(5);
     for (i = 0; i < 5; i++) {
-        memset(q, 0, sizeof(q));
+        memset(&q, 0, sizeof(q));
         v = jt.skills[i];
-        q[0] = 1;
+        q.kind = 1;
         if (v > best) {
             if (best > 0) {
                 kb = ka;
@@ -1754,7 +1754,7 @@ int ai_DecideTrainJobSkill(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
         cnt[i] = ord_GetRatingByte(i);
         if (!cnt[i])
             cnt[i] = 252;
-        f = (ord_DispatchOrder(ids[i], p, q) & 2) ? -1.0f : 0.0f;
+        f = (ord_DispatchOrder(ids[i], p, &q) & 2) ? -1.0f : 0.0f;
         if (p->skills[i] < 42)
             n[i] = 1;
         else if (p->skills[i] < 84)
@@ -1859,7 +1859,7 @@ int ai_EvalLeastLikedOfEvent(float *a, float *b, int i, AICHAR *p, int f, AIARG 
 {
     AIDEC d;
     AIACT *act;
-    AIJOBX *job;
+    AIJOB *job;
     AICHAR *c[3];
     float dist[3], best;
     int x, y, j, bi;
@@ -1880,8 +1880,8 @@ int ai_EvalLeastLikedOfEvent(float *a, float *b, int i, AICHAR *p, int f, AIARG 
         goto fallback;
     x = ai_JudgeCatholic ? ai_JudgeCatholic->netId : -1;
     y = ai_JudgeProtestant ? ai_JudgeProtestant->netId : -1;
-    for (job = (AIJOBX *)he_FindEvent(1, 0, 0x2c); job; job = (AIJOBX *)he_NextEvent())
-        if (job->partner == p->netId)
+    for (job = he_FindEvent(1, 0, 0x2c); job; job = he_NextEvent())
+        if (job->partner2 == p->netId)
             break;
     if (!job || job->guests[0] == x || job->guests[0] == y)
         goto fallback;
@@ -2164,7 +2164,7 @@ int ai_DecideProduceGood(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
     bld = 0;
     c = 0;
     if (o2->kind == 1) {
-        obj = (AIOBJ *)gm_FindObjectInst(o2->ref);
+        obj = gm_FindObjectInst(o2->ref);
         if (!obj)
             return 0;
         g = &AI_GOODX[obj->id];
@@ -2245,7 +2245,7 @@ int ai_ExecuteProduceGood(AICHAR *p, AIARG *s1, AIARG *s2)
     int id, price;
 
     if (s2->kind == 1) {
-        o = (AIOBJ *)gm_FindObjectInst(s2->ref);
+        o = gm_FindObjectInst(s2->ref);
         if (!o)
             return 0;
         id = o->objId;
@@ -2392,7 +2392,7 @@ int ai_DecideRepairBuilding(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 int ai_ExecuteRepairBuilding(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     AIMSG msg;
-    AIFINX *fin;
+    AIFIN *fin;
 
     memset(&msg, 0, sizeof(msg));
     msg.type = 0x1c;
@@ -2405,7 +2405,7 @@ int ai_ExecuteRepairBuilding(AICHAR *p, AIARG *s1, AIARG *s2)
     cm_SendMoveGoods(-1, s2->ref, ai_OwnPlayer, (int)s1->fvalue);
     cm_SendLongMessage(&msg);
     cm_EndGroup("renovieren");
-    fin = (AIFINX *)gm_PlayerRecord(p);
+    fin = gm_PlayerRecord(p);
     if (fin)
         fin->renovationSpent = (int)(fin->renovationSpent + s1->fvalue);
     return 15;
@@ -2427,7 +2427,7 @@ int ai_ExecuteRepairBuilding(AICHAR *p, AIARG *s1, AIARG *s2)
 
 int ai_DecideBuyBuilding(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 {
-    int buf[0x88];
+    ORDMSG buf;
     int ok[4];
     AIBLD *bl;
     AIJOB *j;
@@ -2437,8 +2437,8 @@ int ai_DecideBuyBuilding(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 
     if (p->kind == 3)
         return 0;
-    memset(buf, 0, sizeof(buf));
-    buf[0] = 1;
+    memset(&buf, 0, sizeof(buf));
+    buf.kind = 1;
     if (b == 0) {
         if (o1->kind != 0)
             return 0;
@@ -2465,22 +2465,22 @@ int ai_DecideBuyBuilding(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
     return 0;
 found:
     lim = (int)(gm_CharCurrency(p, ai_OwnPlayer) * 0.66f);
-    r = ord_DispatchOrder(1, p, buf);
+    r = ord_DispatchOrder(1, p, &buf);
     if (r == 2 || r == 4)
         ok[0] = 1;
     else
         ok[0] = 0;
-    r = ord_DispatchOrder(5, p, buf);
+    r = ord_DispatchOrder(5, p, &buf);
     if (r == 2 || r == 4)
         ok[1] = 1;
     else
         ok[1] = 0;
-    r = ord_DispatchOrder(9, p, buf);
+    r = ord_DispatchOrder(9, p, &buf);
     if (r == 2 || r == 4)
         ok[2] = 1;
     else
         ok[2] = 0;
-    r = ord_DispatchOrder(0xc, p, buf);
+    r = ord_DispatchOrder(0xc, p, &buf);
     if (r == 2 || r == 4)
         ok[3] = 1;
     else
@@ -2497,7 +2497,7 @@ found:
                     || (bl->type == 7 && ok[3]))) {
                 for (j = he_FindEvent(1, 0, 0x1b); j; j = he_NextEvent()) {
                     if (j->u.id == bl->id) {
-                        v = ((AIJOBX *)j)->price;
+                        v = j->salePrice;
                         if (lim < v) {
                             r = gm_EquipmentValue(bl, bl->level);
                             if ((float)(v - lim) / v < (float)((float)(v - r) / r * -0.5f) + 0.25f) {
@@ -2532,7 +2532,7 @@ found:
             if ((unsigned char)ai_BTypes[bl->type].kind == o1->ref) {
                 for (j = he_FindEvent(1, 0, 0x1b); j; j = he_NextEvent()) {
                     if (j->u.id == bl->id) {
-                        v = ((AIJOBX *)j)->price;
+                        v = j->salePrice;
                         if (lim < v) {
                             r = gm_EquipmentValue(bl, bl->level);
                             if ((float)(v - lim) / v < (float)((float)(v - r) / r * -0.5f) + 0.25f) {
@@ -2570,7 +2570,7 @@ int ai_ExecuteBuyBuilding(AICHAR *p, AIARG *s1, AIARG *s2)
     }
     if (j == 0)
         return 0;
-    gm_SellBuilding(s1->ref, p->netId, ((AIJOBX *)j)->price, (AIJOBX *)j, 1);
+    gm_SellBuilding(s1->ref, p->netId, j->salePrice, j, 1);
     return 0x10;
 }
 /* 0x4984d0, decide callback: buy or upgrade the character's house (a building of kind 2) when it owns a building
@@ -2817,7 +2817,7 @@ int ai_DecideBuildBusiness(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
     AIARG t1, t2, s1, s2;
     AIBTX *bt;
     AIBLD *bl;
-    AIJOBX *j;
+    AIJOB *j;
     int i, tot, cnt, ones, sel, maxn, lim, k, n, v, r, d, h;
 
     tot = 0;
@@ -2942,9 +2942,9 @@ int ai_DecideBuildBusiness(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
         s2.kind = 0;
         for (bl = gm_BuildQuery(1, 5, k); s1.kind == 0 && bl; bl = gm_BuildNext()) {
             if (AI_BTX[bl->type].level <= h && (bl->flags5a & 2)) {
-                for (j = AI_JOBS1B(); j; j = AI_JOBNEXT()) {
+                for (j = he_FindEvent(1, 0, 0x1b); j; j = he_NextEvent()) {
                     if (j->bldId == bl->id) {
-                        v = j->price;
+                        v = j->salePrice;
                         if (lim < v) {
                             r = gm_EquipmentValue(bl, bl->level);
                             lim = v - lim;
@@ -2977,13 +2977,13 @@ int ai_DecideBuildBusiness(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 int ai_ExecuteBuildBusiness(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     AIMSG msg;
-    AIJOBX *j;
+    AIJOB *j;
 
     if (s1->kind == 4 && s2->kind == 8) {
-        j = (AIJOBX *)he_FindEvent(1, 1, s2->ref);
+        j = he_FindEvent(1, 1, s2->ref);
         if (!j)
             return 0;
-        gm_SellBuilding(s1->ref, p->netId, j->price, j, 1);
+        gm_SellBuilding(s1->ref, p->netId, j->salePrice, j, 1);
         return 0x13;
     }
     if (s2->kind == 4) {
@@ -3061,23 +3061,23 @@ int ai_DecideUpgradeBusiness(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 
 int ai_DecideVisitMedicus(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 {
-    int buf[0x88];
+    ORDMSG buf;
 
     if (a)
         return 0;
-    memset(buf, 0, sizeof(buf));
-    buf[0] = 1;
-    return ord_DispatchOrder(2, p, buf) == 2 ? 0x16 : 0;
+    memset(&buf, 0, sizeof(buf));
+    buf.kind = 1;
+    return ord_DispatchOrder(2, p, &buf) == 2 ? 0x16 : 0;
 }
 /* 0x499580, execute of 0x499520 */
 
 int ai_ExecuteVisitMedicus(AICHAR *p, AIARG *s1, AIARG *s2)
 {
-    int buf[0x88];
+    ORDMSG buf;
 
-    memset(buf, 0, sizeof(buf));
-    buf[0] = 1;
-    return ord_DispatchOrder(2, p, buf) == 2 ? 0x16 : 0;
+    memset(&buf, 0, sizeof(buf));
+    buf.kind = 1;
+    return ord_DispatchOrder(2, p, &buf) == 2 ? 0x16 : 0;
 }
 /* 0x4995d0, evaluate: decision record 0x18, the default rating without it */
 
@@ -3096,7 +3096,7 @@ int ai_EvalSabotage(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIAR
 
 int ai_DecideSabotage(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 {
-    int buf[0x88];
+    ORDMSG buf;
     AIDEC d;
     AIARG s1, s2;
     AIBLD *y;
@@ -3150,11 +3150,11 @@ int ai_DecideSabotage(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
                 || ai_PickActionBuilding(p, 6, mask.QuadPart, 0, util_Random(0x20) + 19.0f, &x)) {
                 gm_FindById(&y, 0, 0, x);
                 if (y && y->owner != 0xffff && he_NoEvent88Pair(&ai_Chars[y->owner], p)) {
-                    memset(buf, 0, sizeof(buf));
-                    buf[0] = 1;
+                    memset(&buf, 0, sizeof(buf));
+                    buf.kind = 1;
                     v = (int)(gm_EquipmentValue(y, 100) * 0.05f + gm_GetWorth(p->id) * 0.02f);
                     ch = &ai_Chars[y->owner];
-                    if (ord_DispatchOrder(0x1b, p, buf) & 2)
+                    if (ord_DispatchOrder(0x1b, p, &buf) & 2)
                         v /= 2;
                     if (!(m * 0.44f < v)) {
                         g = gm_Mix(p, ch, 2);
@@ -3241,7 +3241,7 @@ int ai_EvalBeatUp(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG 
 
 int ai_DecideBeatUp(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 {
-    int buf[0x88];
+    ORDMSG buf;
     AIDEC d;
     AIARG s1, s2;
     AICHAR *c;
@@ -3250,10 +3250,10 @@ int ai_DecideBeatUp(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 
     m = gm_CharCurrency(p, ai_OwnPlayer);
     if (!b) {
-        memset(buf, 0, sizeof(buf));
-        buf[0] = 1;
+        memset(&buf, 0, sizeof(buf));
+        buf.kind = 1;
         v = (int)(gm_GetWorth(p->id) * 0.0085f);
-        if (ord_DispatchOrder(0x1b, p, buf) & 2)
+        if (ord_DispatchOrder(0x1b, p, &buf) & 2)
             v /= 2;
         if (!(m * 0.22f < v)) {
             if (p->bld2 == 0 && p->kind != 3) {
@@ -3566,12 +3566,12 @@ int ai_ExecuteUseMilitaryObject(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = s2->ref;
@@ -3580,11 +3580,11 @@ int ai_ExecuteUseMilitaryObject(AICHAR *p, AIARG *s1, AIARG *s2)
         u.handled = 0;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x1b].w3[0].w = ai_Actions[0x1b].w1[0].w * g[3];
+                ai_Actions[0x1b].w3[0].w = ai_Actions[0x1b].w1[0].w * g->weight;
                 return 0x1b;
             }
             if (u.effect == -1)
-                ai_Actions[0x1b].w3[0].w = ai_Actions[0x1b].w1[0].w * g[3] * -0.5f;
+                ai_Actions[0x1b].w3[0].w = ai_Actions[0x1b].w1[0].w * g->weight * -0.5f;
             return 0x1b;
         }
     }
@@ -3703,12 +3703,12 @@ int ai_ExecuteUseReputationObject(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.effect = 0;
@@ -3717,11 +3717,11 @@ int ai_ExecuteUseReputationObject(AICHAR *p, AIARG *s1, AIARG *s2)
         u.arg = s2->arg;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x1c].w3[0].w = ai_Actions[0x1c].w1[0].w * g[3];
+                ai_Actions[0x1c].w3[0].w = ai_Actions[0x1c].w1[0].w * g->weight;
                 return 0x1c;
             }
             if (u.effect == -1)
-                ai_Actions[0x1c].w3[0].w = ai_Actions[0x1c].w1[0].w * g[3] * -0.5f;
+                ai_Actions[0x1c].w3[0].w = ai_Actions[0x1c].w1[0].w * g->weight * -0.5f;
             return 0x1c;
         }
     }
@@ -3801,12 +3801,12 @@ int ai_ExecuteUseApsObject(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = -1;
@@ -3815,11 +3815,11 @@ int ai_ExecuteUseApsObject(AICHAR *p, AIARG *s1, AIARG *s2)
         u.handled = 0;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x1d].w3[0].w = ai_Actions[0x1d].w1[0].w * g[3];
+                ai_Actions[0x1d].w3[0].w = ai_Actions[0x1d].w1[0].w * g->weight;
                 return 0x1d;
             }
             if (u.effect == -1)
-                ai_Actions[0x1d].w3[0].w = -(ai_Actions[0x1d].w1[0].w * g[3] * 0.5f);
+                ai_Actions[0x1d].w3[0].w = -(ai_Actions[0x1d].w1[0].w * g->weight * 0.5f);
             return 0x1d;
         }
     }
@@ -3893,12 +3893,12 @@ int ai_ExecuteUseEducationObject(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = -1;
@@ -3907,11 +3907,11 @@ int ai_ExecuteUseEducationObject(AICHAR *p, AIARG *s1, AIARG *s2)
         u.handled = 0;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x1e].w3[0].w = ai_Actions[0x1e].w1[0].w * g[3];
+                ai_Actions[0x1e].w3[0].w = ai_Actions[0x1e].w1[0].w * g->weight;
                 return 0x1e;
             }
             if (u.effect == -1)
-                ai_Actions[0x1e].w3[0].w = -(ai_Actions[0x1e].w1[0].w * g[3]);
+                ai_Actions[0x1e].w3[0].w = -(ai_Actions[0x1e].w1[0].w * g->weight);
             return 0x1e;
         }
     }
@@ -3985,12 +3985,12 @@ int ai_ExecuteUseHealthObject(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = -1;
@@ -3999,11 +3999,11 @@ int ai_ExecuteUseHealthObject(AICHAR *p, AIARG *s1, AIARG *s2)
         u.handled = 0;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x1f].w3[0].w = ai_Actions[0x1f].w1[0].w * g[3];
+                ai_Actions[0x1f].w3[0].w = ai_Actions[0x1f].w1[0].w * g->weight;
                 return 0x1f;
             }
             if (u.effect == -1)
-                ai_Actions[0x1f].w3[0].w = -(ai_Actions[0x1f].w1[0].w * g[3]);
+                ai_Actions[0x1f].w3[0].w = -(ai_Actions[0x1f].w1[0].w * g->weight);
             return 0x1f;
         }
     }
@@ -4144,23 +4144,23 @@ int ai_ExecuteUseDynastyObject(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = s2->ref;
         u.arg = -1;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x20].w3[0].w = ai_Actions[0x20].w1[0].w * g[3];
+                ai_Actions[0x20].w3[0].w = ai_Actions[0x20].w1[0].w * g->weight;
                 return 0x20;
             }
             if (u.effect == -1)
-                ai_Actions[0x20].w3[0].w = -(ai_Actions[0x20].w1[0].w * g[3] * 0.5f);
+                ai_Actions[0x20].w3[0].w = -(ai_Actions[0x20].w1[0].w * g->weight * 0.5f);
             return 0x20;
         }
     }
@@ -4316,29 +4316,29 @@ int ai_ExecuteUseMeanObject(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = s2->ref;
         u.arg = s2->arg;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x21].w3[0].w = ai_Actions[0x21].w1[0].w * g[3];
-                ai_Actions[0x21].w3[1].w = ai_Actions[0x21].w1[1].w * g[3];
-                ai_Actions[0x21].w3[2].w = ai_Actions[0x21].w1[2].w * g[3];
-                ai_Actions[0x21].w3[3].w = ai_Actions[0x21].w1[3].w * g[3];
+                ai_Actions[0x21].w3[0].w = ai_Actions[0x21].w1[0].w * g->weight;
+                ai_Actions[0x21].w3[1].w = ai_Actions[0x21].w1[1].w * g->weight;
+                ai_Actions[0x21].w3[2].w = ai_Actions[0x21].w1[2].w * g->weight;
+                ai_Actions[0x21].w3[3].w = ai_Actions[0x21].w1[3].w * g->weight;
                 return 0x21;
             }
             if (u.effect == -1) {
-                ai_Actions[0x21].w3[0].w = -(ai_Actions[0x21].w1[0].w * g[3] * 0.5f);
-                ai_Actions[0x21].w3[1].w = -(ai_Actions[0x21].w1[1].w * g[3] * 0.5f);
-                ai_Actions[0x21].w3[2].w = -(ai_Actions[0x21].w1[2].w * g[3] * 0.5f);
-                ai_Actions[0x21].w3[3].w = -(ai_Actions[0x21].w1[3].w * g[3] * 0.5f);
+                ai_Actions[0x21].w3[0].w = -(ai_Actions[0x21].w1[0].w * g->weight * 0.5f);
+                ai_Actions[0x21].w3[1].w = -(ai_Actions[0x21].w1[1].w * g->weight * 0.5f);
+                ai_Actions[0x21].w3[2].w = -(ai_Actions[0x21].w1[2].w * g->weight * 0.5f);
+                ai_Actions[0x21].w3[3].w = -(ai_Actions[0x21].w1[3].w * g->weight * 0.5f);
             }
             return 0x21;
         }
@@ -4437,12 +4437,12 @@ int ai_ExecuteUseSafetyObject(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = -1;
@@ -4451,11 +4451,11 @@ int ai_ExecuteUseSafetyObject(AICHAR *p, AIARG *s1, AIARG *s2)
         u.handled = 0;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x22].w3[0].w = ai_Actions[0x22].w1[0].w * g[3];
+                ai_Actions[0x22].w3[0].w = ai_Actions[0x22].w1[0].w * g->weight;
                 return 0x22;
             }
             if (u.effect == -1)
-                ai_Actions[0x22].w3[0].w = ai_Actions[0x22].w1[0].w * g[3] * -0.5f;
+                ai_Actions[0x22].w3[0].w = ai_Actions[0x22].w1[0].w * g->weight * -0.5f;
             return 0x22;
         }
     }
@@ -4470,7 +4470,7 @@ int ai_EvalUsePerfume(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AI
     *a = 0.0f;
     *b = 0.0f;
     if (o2->arg2 >= 0x1c && o2->arg2 <= 0x22) {
-        gv_GetTableRecord(0x11, (AIPOS *)&d);
+        gv_GetTableRecord(0x11, &d);
         if (d.cur != 0)
             return ai_EvalGuiltWeights(a, b, i, p, &d);
         return ai_EvalMoodWeights(a, b, i, p, f, o1, o2);
@@ -4491,29 +4491,29 @@ int ai_ExecuteUsePerfume(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = s2->ref;
         u.arg = s2->arg;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x23].w3[0].w = ai_Actions[s2->arg2].w1[0].w * g[3];
-                ai_Actions[0x23].w3[1].w = ai_Actions[s2->arg2].w1[1].w * g[3];
-                ai_Actions[0x23].w3[2].w = ai_Actions[s2->arg2].w1[2].w * g[3];
-                ai_Actions[0x23].w3[3].w = ai_Actions[s2->arg2].w1[3].w * g[3];
+                ai_Actions[0x23].w3[0].w = ai_Actions[s2->arg2].w1[0].w * g->weight;
+                ai_Actions[0x23].w3[1].w = ai_Actions[s2->arg2].w1[1].w * g->weight;
+                ai_Actions[0x23].w3[2].w = ai_Actions[s2->arg2].w1[2].w * g->weight;
+                ai_Actions[0x23].w3[3].w = ai_Actions[s2->arg2].w1[3].w * g->weight;
                 return 0x23;
             }
             if (u.effect == -1) {
-                ai_Actions[0x23].w3[0].w = -(ai_Actions[s2->arg2].w1[0].w * g[3] * 0.5f);
-                ai_Actions[0x23].w3[1].w = -(ai_Actions[s2->arg2].w1[1].w * g[3] * 0.5f);
-                ai_Actions[0x23].w3[2].w = -(ai_Actions[s2->arg2].w1[2].w * g[3] * 0.5f);
-                ai_Actions[0x23].w3[3].w = -(ai_Actions[s2->arg2].w1[3].w * g[3] * 0.5f);
+                ai_Actions[0x23].w3[0].w = -(ai_Actions[s2->arg2].w1[0].w * g->weight * 0.5f);
+                ai_Actions[0x23].w3[1].w = -(ai_Actions[s2->arg2].w1[1].w * g->weight * 0.5f);
+                ai_Actions[0x23].w3[2].w = -(ai_Actions[s2->arg2].w1[2].w * g->weight * 0.5f);
+                ai_Actions[0x23].w3[3].w = -(ai_Actions[s2->arg2].w1[3].w * g->weight * 0.5f);
             }
             return 0x23;
         }
@@ -4529,7 +4529,7 @@ int ai_EvalUseTrank(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIAR
     *a = 0.0f;
     *b = 0.0f;
     if (o2->arg2 >= 0x1c && o2->arg2 <= 0x22) {
-        gv_GetTableRecord(0x12, (AIPOS *)&d);
+        gv_GetTableRecord(0x12, &d);
         if (d.cur != 0)
             return ai_EvalGuiltWeights(a, b, i, p, &d);
         return ai_EvalMoodWeights(a, b, i, p, f, o1, o2);
@@ -4550,29 +4550,29 @@ int ai_ExecuteUseTrank(AICHAR *p, AIARG *s1, AIARG *s2)
 {
     G8USE u;
     AIOBJ *o;
-    float *g;
+    G9DOMIZIL *g;
 
     o = gm_Query(p->inventory, 1, 1, s1->ref);
     if (o == 0)
         return 0;
-    g = (float *)ai_FindUsableGood(o->id);
+    g = ai_FindUsableGood(o->id);
     if (g != 0) {
         u.obj = o;
         u.target = s2->ref;
         u.arg = s2->arg;
         if (ai_UseGood(p, &u) == 1) {
             if (u.effect == 1) {
-                ai_Actions[0x24].w3[0].w = ai_Actions[s2->arg2].w1[0].w * g[3];
-                ai_Actions[0x24].w3[1].w = ai_Actions[s2->arg2].w1[1].w * g[3];
-                ai_Actions[0x24].w3[2].w = ai_Actions[s2->arg2].w1[2].w * g[3];
-                ai_Actions[0x24].w3[3].w = ai_Actions[s2->arg2].w1[3].w * g[3];
+                ai_Actions[0x24].w3[0].w = ai_Actions[s2->arg2].w1[0].w * g->weight;
+                ai_Actions[0x24].w3[1].w = ai_Actions[s2->arg2].w1[1].w * g->weight;
+                ai_Actions[0x24].w3[2].w = ai_Actions[s2->arg2].w1[2].w * g->weight;
+                ai_Actions[0x24].w3[3].w = ai_Actions[s2->arg2].w1[3].w * g->weight;
                 return 0x24;
             }
             if (u.effect == -1) {
-                ai_Actions[0x24].w3[0].w = -(ai_Actions[s2->arg2].w1[0].w * g[3] * 0.5f);
-                ai_Actions[0x24].w3[1].w = -(ai_Actions[s2->arg2].w1[1].w * g[3] * 0.5f);
-                ai_Actions[0x24].w3[2].w = -(ai_Actions[s2->arg2].w1[2].w * g[3] * 0.5f);
-                ai_Actions[0x24].w3[3].w = -(ai_Actions[s2->arg2].w1[3].w * g[3] * 0.5f);
+                ai_Actions[0x24].w3[0].w = -(ai_Actions[s2->arg2].w1[0].w * g->weight * 0.5f);
+                ai_Actions[0x24].w3[1].w = -(ai_Actions[s2->arg2].w1[1].w * g->weight * 0.5f);
+                ai_Actions[0x24].w3[2].w = -(ai_Actions[s2->arg2].w1[2].w * g->weight * 0.5f);
+                ai_Actions[0x24].w3[3].w = -(ai_Actions[s2->arg2].w1[3].w * g->weight * 0.5f);
             }
             return 0x24;
         }
@@ -4762,7 +4762,7 @@ int ai_ExecuteBuyIndulgence(AICHAR *p, AIARG *s1, AIARG *s2)
         cm_SendMoveGoodsUnchecked(-1, p->netId, ai_OwnPlayer, s1->arg2);
         cm_SendMoveGoodsUnchecked(ai_Chars[b->owner].netId, -1, ai_OwnPlayer, d);
         gv_RetireCrimesOf(p->netId, (int)s1->fvalue);
-        ai_ShowIndulgenceNews(p, &ai_Chars[b->owner], (int)b, d, s1->arg2);
+        ai_ShowIndulgenceNews(p, &ai_Chars[b->owner], b, d, s1->arg2);
         ai_Actions[0x26].w3[0].w = ai_Actions[0x26].w1[0].w * s1->fvalue;
         ai_Actions[0x26].w3[1].w = ai_Actions[0x26].w1[1].w * s1->fvalue;
         ai_Actions[0x26].w3[2].w = ai_Actions[0x26].w1[2].w * s1->fvalue;
@@ -4772,7 +4772,7 @@ int ai_ExecuteBuyIndulgence(AICHAR *p, AIARG *s1, AIARG *s2)
         gv_RetireCrimesOf(p->netId, (int)s1->fvalue);
         gm_SendMoneyDelta(p->netId, -s1->arg2);
         gm_SendMoneyDelta(ai_Chars[b->owner].netId, 1);
-        ai_ShowPaymentNews(p, &ai_Chars[b->owner], (int)b);
+        ai_ShowPaymentNews(p, &ai_Chars[b->owner], b);
         return 0x26;
     }
     return 0;
@@ -4811,7 +4811,7 @@ int ai_EvalThreaten(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIAR
 
     *a = 0.0f;
     *b = 0.0f;
-    gv_GetTableRecord(0x13, (AIPOS *)&d);
+    gv_GetTableRecord(0x13, &d);
     if (d.cur != 0)
         return ai_EvalGuiltWeights(a, b, i, p, &d);
     return ai_EvalMoodWeights(a, b, i, p, f, o1, o2);
@@ -4907,7 +4907,7 @@ int ai_EvalPamphlets(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIA
     }
     *a = 0.0f;
     *b = 0.0f;
-    gv_GetTableRecord(3, (AIPOS *)&d);
+    gv_GetTableRecord(3, &d);
     if (d.cur != 0)
         return ai_EvalGuiltWeights(a, b, i, p, &d);
     return ai_EvalMoodWeights(a, b, i, p, 0, o1, o2);
@@ -5059,7 +5059,7 @@ int ai_EvalInsult(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG 
     }
     *a = 0.0f;
     *b = 0.0f;
-    gv_GetTableRecord(4, (AIPOS *)&d);
+    gv_GetTableRecord(4, &d);
     if (d.cur != 0)
         return ai_EvalGuiltWeights(a, b, i, p, &d);
     return ai_EvalMoodWeights(a, b, i, p, 0, o1, o2);
@@ -5104,7 +5104,7 @@ int ai_EvalBlackmail(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIA
     }
     *a = 0.0f;
     *b = 0.0f;
-    gv_GetTableRecord(0x16, (AIPOS *)&d);
+    gv_GetTableRecord(0x16, &d);
     if (d.cur != 0)
         return ai_EvalGuiltWeights(a, b, i, p, &d);
     return ai_EvalMoodWeights(a, b, i, p, 0, o1, o2);
@@ -5167,7 +5167,7 @@ int ai_ExecuteUsePrivileges(AICHAR *p, AIARG *s1, AIARG *s2)
 
 int ai_EvalMayor(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG *o2)
 {
-    float d[10];
+    ORDSTATS d;
 
     if (p->officeKind != 0xf) {
         *a = -1e30f;
@@ -5176,8 +5176,8 @@ int ai_EvalMayor(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG *
     }
     *a = 0.0f;
     *b = 0.0f;
-    ord_GetStatistics(d);
-    if (d[3] > (float)((p->mood[10][0] - 2.0) * 0.4f)) {
+    ord_GetStatistics(&d);
+    if (d.col[3] > (float)((p->mood[10][0] - 2.0) * 0.4f)) {
         ai_EvalCurrentNeed(a, b, i, p, f, o1, o2);
         *a *= 3.0f;
         *b *= 3.0f;
@@ -5202,7 +5202,7 @@ int ai_DecideMayor(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     char lvl;
     int count[3];        /* per building type 1..3: how many */
     int n, money, v;
-    float d[10];
+    ORDSTATS d;
 
     best = 0;
     spare[0] = 0;
@@ -5216,7 +5216,7 @@ int ai_DecideMayor(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
         return 0;
     o = gm_Query(b->objList, 2, 6, 0, 0x115);
     money = gm_SumListAmounts(o->list, ai_OwnPlayer);
-    ord_GetStatistics(d);
+    ord_GetStatistics(&d);
     rec = ai_Blds;
     for (n = 0x100; n != 0; n--, rec++) {
         k = rec->type;
@@ -5240,7 +5240,7 @@ int ai_DecideMayor(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
                 spare[0] = rec;
         }
     }
-    if (d[3] > (float)((p->mood[10][0] - 2.0) * 0.4f)) {
+    if (d.col[3] > (float)((p->mood[10][0] - 2.0) * 0.4f)) {
         if (count[0] != 0 && spare[0] != 0) {
             o1->kind = 4;
             o1->ref = 2;
@@ -5401,7 +5401,7 @@ int ai_DecideMayorTownHall(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     AIBLD *y;
     AIOBJ *o;
     LARGE_INTEGER m;
-    float d[10];
+    ORDSTATS d;
     int x, w, z, r, money, act, v;
     char lvl;
 
@@ -5460,14 +5460,14 @@ int ai_DecideMayorTownHall(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     }
     if (y->flags5a & 0x41)
         return 0;
-    ord_GetStatistics(d);
+    ord_GetStatistics(&d);
     if (y->type == 0x24) {
         act = 0x25;
-        if (util_Random(0x200) + d[6] < 1250.0f)
+        if (util_Random(0x200) + d.base < 1250.0f)
             return 0;
     } else if (y->type == 0x25) {
         act = 0x26;
-        if (util_Random(0x400) + d[6] < 5000.0f)
+        if (util_Random(0x400) + d.base < 5000.0f)
             return 0;
     } else
         return 0;
@@ -5521,7 +5521,7 @@ int ai_DecideMayorPrison(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     AIBLD *y;
     AIOBJ *o;
     LARGE_INTEGER m;
-    float d[10];
+    ORDSTATS d;
     int x, w, z, r, money, act;
     char lvl;
 
@@ -5583,14 +5583,14 @@ int ai_DecideMayorPrison(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     }
     if (y->flags5a & 0x41)
         return 0;
-    ord_GetStatistics(d);
+    ord_GetStatistics(&d);
     if (y->type == 0x11) {
         act = 0x12;
-        if (util_Random(0x200) + d[6] < 1250.0f)
+        if (util_Random(0x200) + d.base < 1250.0f)
             return 0;
     } else if (y->type == 0x12) {
         act = 0x13;
-        if (util_Random(0x400) + d[6] < 5000.0f)
+        if (util_Random(0x400) + d.base < 5000.0f)
             return 0;
     } else
         return 0;
@@ -5877,7 +5877,7 @@ int ai_ExecuteDarkCorner(AICHAR *p, AIARG *s1, AIARG *s2)
 int ai_DecideTakeCredit(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
 {
     int lim[4];
-    G8OFFER rec[3];
+    ORDCREDIT rec[3];
     AIDEC d;
     AIBLD *own, *b;
     int i, n, h, j, best;
@@ -5931,7 +5931,7 @@ int ai_DecideTakeCredit(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
             return 0;
         gv_GetTableRecord(0xe, &d);
         for (i = 0; i < n; i++)
-            ((float *)lim)[i + 1] = (float)(d.cur - 2) / rec[i].c * (rec[i].b * 0.14285715f) * rec[i].a;
+            ((float *)lim)[i + 1] = (float)(d.cur - 2) / rec[i].interest * (rec[i].term * 0.14285715f) * rec[i].amount;
         m = 0.0f;
         best = -1;
         for (i = 0; i < n; i++) {
@@ -5946,9 +5946,9 @@ int ai_DecideTakeCredit(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
         o1->ref = b->id;
         o1->arg = own->id;
         o2->kind = 0x14;
-        o2->ref = rec[best].a;
-        o2->arg = rec[best].b;
-        o2->arg2 = rec[best].c;
+        o2->ref = rec[best].amount;
+        o2->arg = rec[best].term;
+        o2->arg2 = rec[best].interest;
         return 0x33;
     }
     if (o1->kind != 0x12)
@@ -5969,8 +5969,8 @@ int ai_DecideTakeCredit(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
         return 0;
     gv_GetTableRecord(0xe, &d);
     for (i = 0; i < n; i++)
-        ((float *)lim)[i + 1] = (unsigned int)rec[i].a > o1->arg
-            ? (float)(d.cur - 2) / rec[i].c * (rec[i].b * 0.14285715f) * rec[i].a : -1.0f;
+        ((float *)lim)[i + 1] = (unsigned int)rec[i].amount > o1->arg
+            ? (float)(d.cur - 2) / rec[i].interest * (rec[i].term * 0.14285715f) * rec[i].amount : -1.0f;
     m = 0.0f;
     best = -1;
     for (i = 0; i < n; i++) {
@@ -5985,9 +5985,9 @@ int ai_DecideTakeCredit(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     o1->ref = b->id;
     o1->arg = -1;
     o2->kind = 0x14;
-    o2->ref = rec[best].a;
-    o2->arg = rec[best].b;
-    o2->arg2 = rec[best].c;
+    o2->ref = rec[best].amount;
+    o2->arg = rec[best].term;
+    o2->arg2 = rec[best].interest;
     return 0x33;
 }
 /* 0x49f370, execute callback 0x33: the AI credit ("AI Kredit"): message 0x23 from the lender's building s1->unk04
@@ -6069,12 +6069,12 @@ int ai_DecideChangeProfession(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     AIARG s2;
     int cnt[17];
     int own[17];
-    AIFINX *q;
+    AIFIN *q;
     AIJOB *j;
     AIBTYPE *bt;
     int money, k, n, r, c, x, y;
 
-    q = (AIFINX *)gm_PlayerRecord(p);
+    q = gm_PlayerRecord(p);
     if (p->kind != 5 || p->money < 4 || q == 0)
         return 0;
     money = gm_CharCurrency(p, ai_OwnPlayer);
@@ -6482,7 +6482,7 @@ AICHAR *ai_PickLeastLikedRival(AICHAR *p)
         }
         return best;
     }
-    if (p->appliedOffice != 0 && (n = amt_GetOfficeApplicants(p->appliedOffice, 5, (char **)list)) != 0) {
+    if (p->appliedOffice != 0 && (n = amt_GetOfficeApplicants(p->appliedOffice, 5, list)) != 0) {
         for (i = 0; i < n; i++) {
             if (list[i] != p) {
                 if (best == 0) {
@@ -6960,7 +6960,7 @@ int ai_EvalApprenticeship(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1
 int ai_DecideApprenticeship(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
 {
     AICHAR *c, *best;
-    AIFINX *fin;
+    AIFIN *fin;
     unsigned char k;
     int m, price, q, n;             /* m: the relatives' index, then the random title group */
 
@@ -6994,7 +6994,7 @@ int ai_DecideApprenticeship(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
         return 0;
     q = util_Random(0xf) + 1;
     if (p->kind == 5) {
-        fin = (AIFINX *)gm_PlayerRecord(p);
+        fin = gm_PlayerRecord(p);
         m = util_Random(0x10);
         for (n = 0x10; n != 0; n--) {
             if (m != 0 && fin->jobByGroup[m] == 0) {

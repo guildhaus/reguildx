@@ -46,12 +46,12 @@ typedef struct AIBLD {                  /* 0xa9 bytes, ai_Blds[256] */
     float priceFactor;                  /* 0x49, the factor on the goods price a trade cart pays when it buys here (he_RunTrade; a
                                            market (AIBTYPE.kind 0xa) asks 1.1 instead) */
     int roundSums[3];                   /* 0x4d, cleared at every round settlement (main_SettleRound); reasoned guess: per-round sums */
-    char prodScroll;                    /* 0x59, the scroll position of the production window, in rows (lc.c ai_ProductionWindow restores and saves it) */
+    signed char prodScroll;             /* 0x59, the scroll position of the production window, in rows (lc.c ai_ProductionWindow restores and saves it) */
     union {
         unsigned char flags5a;          /* 0x5a */
         unsigned short flags5aw;        /* 0x5a, read as a word: bits 0x3800 are cleared at the round settlement (cm_SendSetField(id, 0x5a, 2, 0, 0x3800)) */
     };
-    char level;                         /* 0x5c, the building's level 0 .. 100 (renovation below a rolled
+    signed char level;                  /* 0x5c, the building's level 0 .. 100 (renovation below a rolled
                                            threshold, 100 - level in the renovation message, am.c) */
     struct AIOBJ *objList;              /* 0x5d, head of the building's object-instance list (gm_Query 0x4ffe90,
                                            released with gm_RemoveObject) */

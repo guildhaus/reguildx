@@ -897,7 +897,7 @@ int ai_MsgCartFillDropType22(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
-        o = (AIOBJ *)gm_FindObjectInst(j->u.id);
+        o = gm_FindObjectInst(j->u.id);
         if (o != 0 && o->fightSide == c->id) {
             gm_FindById(&u, 0, 0, j->id3);
             gm_FindById(&w, 0, 0, j->id2);
@@ -950,7 +950,7 @@ int ai_MsgJobTime(G14MSG *m)
     if (ai_InventoryHas(c, 0x290))
         return 0x400;
     for (j = he_FindEvent(1, 0, 0xf); j != 0 && n < 8; j = he_NextEvent()) {
-        o = (AIOBJ *)gm_FindObjectInst(j->u.id);
+        o = gm_FindObjectInst(j->u.id);
         if (o != 0 && o->fightSide == c->id) {
             gm_FindById(&u, 0, 0, j->id3);
             gm_FindById(&w, 0, 0, j->id2);
