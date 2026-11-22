@@ -8,21 +8,30 @@ Linux or macOS.
 ## Requirements
 
 - CMake >= 3.25 and Ninja
-- llvm-mingw (tested: 20261117, clang 23.1). Any host build works (`ucrt-x86_64` on Windows). The
-  `ucrt-i686` build is useful too: its 32-bit `lldb` can debug the game natively, while the x86_64
-  `lldb` can't unwind WoW64 processes.
+- llvm-mingw (tested: 20261117, clang 23.1). Any host build works (`ucrt-x86_64` on Windows).
 
 ## Build and run
 
-Everything is CMake: building, staging a run directory and starting the game.
+CMake builds the game and stages a run directory; CLion runs and debugs it.
 
 ```sh
-cmake --preset play               # once: configure (the plain preset likewise)
-cmake --build --preset run        # build, stage build-cmake/run, run the game in a window
-cmake --build --preset run-plain  # the same with the plain preset
-cmake --build --preset debug      # under the 32-bit lldb
-cmake --build --preset play       # build only -> build-cmake/play/reguildx.exe
+cmake --preset play                      # once: configure (the plain preset likewise)
+cmake --build --preset play              # build only -> build-cmake/play/reguildx.exe
+cmake --build --preset play -t stage     # build and stage build-cmake/play/run
 ```
+
+Each build directory stages its own run directory (`build-cmake/plain/run`, `build-cmake/play/run`), with
+its own `game.ini`. In CLion, the presets show up as CMake profiles, and two shared run configurations
+(`.idea/runConfigurations/`) build the `stage` target and start the staged `GildeGold.exe` there:
+
+| run configuration | profile | starts |
+|---|---|---|
+| `fullscreen` | `plain` | `build-cmake/plain/run/GildeGold.exe FULLSCREEN` |
+| `windowed`   | `play`  | `build-cmake/play/run/GildeGold.exe DIRECTWINDOW` |
+
+Run starts the game, Debug starts it under CLion's bundled GDB (64-bit, debugs the 32-bit game fine). A
+CLion toolchain with all tools bundled is enough: the compiler comes from the CMake toolchain file. A
+normal quit exits with 1.
 
 | preset  | options                                                                   |
 |---------|---------------------------------------------------------------------------|
@@ -35,19 +44,17 @@ Cache variables, all with defaults:
 |---|---|
 | `LLVM_MINGW_ROOT` | the `LLVM_MINGW_ROOT` environment variable, else the newest `C:/Tools/llvm-mingw-*-x86_64`, else `PATH` |
 | `REGUILDX_GAME_DIR` | `C:/Program Files/GOG Galaxy/Games/The Guild Gold` (the install, never written) |
-| `REGUILDX_RUN_DIR` | `build-cmake/run` |
-| `REGUILDX_RUN_ARGS` | `DIRECTWINDOW` |
-| `REGUILDX_LLDB` | the newest `C:/Tools/llvm-mingw-*-i686/bin/lldb.exe` (the `debug` target needs a 32-bit lldb) |
+| `REGUILDX_RUN_DIR` | `run` in the build directory |
 | `REGUILDX_DEBT_WARNINGS` | `OFF`: hides the ~11k loose-typing warnings (see below) |
 
 Staging (`cmake/stage-run.cmake`, also the `stage` target) links the install's folders into the run
-directory and copies its ini / dll / asi files once. The run directory's `game.ini` is its own: the first
-run turns the intro off and the volumes to 0, and every run enforces the window mode and the sound
-switches. The options menu's settings are kept; delete the file for a fresh copy of the install's. On
+directory and copies its ini / dll / asi files once. The run directory's `game.ini` is its own copy and
+is never rewritten: the options menu's settings are kept, and the window mode comes from the run
+configuration's argument (`DIRECTWINDOW` or `FULLSCREEN`, which override the ini's `Bildmodus`). Delete
+the file for a fresh copy of the install's. On
 current Windows, DirectDraw only reports 16-bit display modes under the `DWM8And16BitMitigation`
 compatibility layer, and without it the game exits during start-up. Staging sets it for the staged exe
-(HKCU, `reg add`). The `run` target accepts a normal quit (exit 0 or 1) and fails on anything else, with
-the code in hex.
+(HKCU, `reg add`).
 
 ## Modernization debt
 
@@ -63,7 +70,6 @@ follow-up step:
 - `-fno-strict-aliasing -fwrapv -fno-delete-null-pointer-checks`: type punning and other UB assumed safe.
 - `-fno-auto-import`: needed because the asm blocks use every register.
 - `--disable-dynamicbase`: fixed image base until the code is known to be ASLR-clean.
-- `cmake/symbol-aliases.cmake`: one object reachable under several names (linker `alternatename`).
 - About 230 function-pointer cast macros (`#define f ((type (*)(...))g)`, most marked `@original`) call
   a function through a prototype other than its own. Some depended on MSVC 6 code generation (for
   example `d2_PlaceMainWindow` relied on a tail jump to forward an undeclared argument). Each needs

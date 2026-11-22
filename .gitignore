@@ -4,3 +4,7 @@ __pycache__/
 .venv/
 decompanion.local.toml
 /build-cmake/
+
+# CLion: only the shared run configuration is tracked
+/.idea/*
+!/.idea/runConfigurations/

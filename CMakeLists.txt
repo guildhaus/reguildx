@@ -84,4 +84,4 @@ target_link_libraries(reguildx PRIVATE
   ole32 winmm ws2_32 gdi32 user32 advapi32 kernel32
 )
 
-include(cmake/run.cmake)
+include(cmake/stage.cmake)

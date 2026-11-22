@@ -1,11 +1,10 @@
-# Stages the run directory (cmake -P; called by the run / debug targets, cmake/run.cmake).
+# Stages the run directory (cmake -P; called by the stage target, cmake/stage.cmake).
 #
 #   -DGAME_DIR=<the install>  -DRUN_DIR=<the run directory>  -DEXE=<the built exe>
 #
 # The install is never written: its folders are linked (junctions), its ini / dll / asi files copied once.
-# game.ini is the run's own copy, kept between runs: the first run turns the intro off and the volumes to 0 (a
-# mark line records that), every run enforces the window mode and the sound switches (read only at startup).
-# Delete RUN_DIR/game.ini for a fresh copy of the install's.
+# game.ini is the run's own copy, never rewritten: the game's options menu changes it, the run configuration's
+# FULLSCREEN / DIRECTWINDOW argument overrides its window mode. Delete RUN_DIR/game.ini for a fresh copy.
 
 foreach(_v GAME_DIR RUN_DIR EXE)
   if(NOT DEFINED ${_v})
@@ -51,57 +50,6 @@ foreach(_pattern "*.ini" "*.dll" "*.asi" "*.as6" "*.def" "*.sdb" "*.info")
 endforeach()
 
 file(COPY_FILE "${EXE}" "${RUN_DIR}/GildeGold.exe" ONLY_IF_DIFFERENT)
-
-# game.ini: line by line (';' is a list separator in CMake: carried as \x1f while the lines are a list)
-set(_ini "${RUN_DIR}/game.ini")
-set(_mark "; run: own copy, the options persist (cmake/stage-run.cmake)")
-file(READ "${_ini}" _text)
-string(ASCII 31 _semi)
-string(ASCII 30 _bslash)
-string(REPLACE "\\" "${_bslash}" _text "${_text}")
-string(REPLACE ";" "${_semi}" _text "${_text}")
-string(REPLACE "\r\n" "\n" _text "${_text}")
-string(REGEX REPLACE "\n$" "" _text "${_text}")
-string(REPLACE "\n" ";" _lines "${_text}")
-string(REPLACE ";" "${_semi}" _mark_escaped "${_mark}")
-list(FIND _lines "${_mark_escaped}" _at)
-if(_at EQUAL -1)
-  set(_first TRUE)
-  set(_out "${_mark_escaped}")
-else()
-  set(_first FALSE)
-  set(_out "")
-endif()
-set(_window FALSE)
-foreach(_line IN LISTS _lines)
-  string(FIND "${_line}" "=" _eq)
-  if(_eq GREATER 0)
-    string(SUBSTRING "${_line}" 0 ${_eq} _key)
-    string(STRIP "${_key}" _key)
-    string(TOLOWER "${_key}" _key)
-    if(_key STREQUAL "bildmodus")
-      set(_line "Bildmodus=DIRECTWINDOW")
-      set(_window TRUE)
-    elseif(_key MATCHES "^(msx|sfx|weather)$")
-      set(_line "${_key}=1")
-    elseif(_first AND _key STREQUAL "show_intro")
-      set(_line "show_intro=0")
-    elseif(_first AND _key MATCHES "^(master_vol|sfx_vol|msx_vol|speech_vol)$")
-      set(_line "${_key}=0")
-    endif()
-  endif()
-  list(APPEND _out "${_line}")
-endforeach()
-string(REPLACE ";" "\r\n" _new "${_out}")
-string(REPLACE "${_semi}" ";" _new "${_new}\r\n")
-string(REPLACE "${_bslash}" "\\" _new "${_new}")
-file(READ "${_ini}" _old)
-if(NOT _new STREQUAL _old)
-  file(WRITE "${_ini}" "${_new}")
-endif()
-if(NOT _window)
-  message(WARNING "stage-run: game.ini has no Bildmodus line, the game starts fullscreen")
-endif()
 
 # current Windows reports 16-bit display modes only under this compatibility layer (else the game exits at start)
 if(CMAKE_HOST_WIN32)

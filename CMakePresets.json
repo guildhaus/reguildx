@@ -35,30 +35,6 @@
     {
       "name": "play",
       "configurePreset": "play"
-    },
-    {
-      "name": "run",
-      "displayName": "build play, stage, run the game",
-      "configurePreset": "play",
-      "targets": [
-        "run"
-      ]
-    },
-    {
-      "name": "run-plain",
-      "displayName": "build plain, stage, run the game",
-      "configurePreset": "plain",
-      "targets": [
-        "run"
-      ]
-    },
-    {
-      "name": "debug",
-      "displayName": "build play, stage, run under lldb",
-      "configurePreset": "play",
-      "targets": [
-        "debug"
-      ]
     }
   ]
 }
