@@ -21,24 +21,24 @@ cmake --preset play               # once: configure (the plain preset likewise)
 cmake --build --preset run        # build, stage build-cmake/run, run the game in a window
 cmake --build --preset run-plain  # the same with the plain preset
 cmake --build --preset debug      # under the 32-bit lldb
-cmake --build --preset play       # build only -> build-cmake/play/GildeGold.exe
+cmake --build --preset play       # build only -> build-cmake/play/reguildx.exe
 ```
 
 | preset  | options                                                                   |
 |---------|---------------------------------------------------------------------------|
 | `plain` | none: the game as the original builds it (garbled in a window on a 32-bit desktop) |
-| `play`  | `GILDEGOLD_FIX_16BPP` (16-bit back buffer in a window), `GILDEGOLD_FRAME_DUMP` |
+| `play`  | `REGUILDX_FIX_16BPP` (16-bit back buffer in a window), `REGUILDX_FRAME_DUMP` |
 
 Cache variables, all with defaults:
 
 | variable | default |
 |---|---|
 | `LLVM_MINGW_ROOT` | the `LLVM_MINGW_ROOT` environment variable, else the newest `C:/Tools/llvm-mingw-*-x86_64`, else `PATH` |
-| `GILDEGOLD_GAME_DIR` | `C:/Program Files/GOG Galaxy/Games/The Guild Gold` (the install, never written) |
-| `GILDEGOLD_RUN_DIR` | `build-cmake/run` |
-| `GILDEGOLD_RUN_ARGS` | `DIRECTWINDOW` |
-| `GILDEGOLD_LLDB` | the newest `C:/Tools/llvm-mingw-*-i686/bin/lldb.exe` (the `debug` target needs a 32-bit lldb) |
-| `GILDEGOLD_DEBT_WARNINGS` | `OFF`: hides the ~11k loose-typing warnings (see below) |
+| `REGUILDX_GAME_DIR` | `C:/Program Files/GOG Galaxy/Games/The Guild Gold` (the install, never written) |
+| `REGUILDX_RUN_DIR` | `build-cmake/run` |
+| `REGUILDX_RUN_ARGS` | `DIRECTWINDOW` |
+| `REGUILDX_LLDB` | the newest `C:/Tools/llvm-mingw-*-i686/bin/lldb.exe` (the `debug` target needs a 32-bit lldb) |
+| `REGUILDX_DEBT_WARNINGS` | `OFF`: hides the ~11k loose-typing warnings (see below) |
 
 Staging (`cmake/stage-run.cmake`, also the `stage` target) links the install's folders into the run
 directory and copies its ini / dll / asi files once. The run directory's `game.ini` is its own: the first
@@ -59,7 +59,7 @@ follow-up step:
   beyond x86.
 - `-Wno-error=incompatible-pointer-types`, `int-conversion`, `incompatible-function-pointer-types`,
   `return-mismatch`: loose typing from the decompilation. Together with `deprecated-non-prototype`
-  these are ~11k warnings, hidden unless `GILDEGOLD_DEBT_WARNINGS=ON`.
+  these are ~11k warnings, hidden unless `REGUILDX_DEBT_WARNINGS=ON`.
 - `-fno-strict-aliasing -fwrapv -fno-delete-null-pointer-checks`: type punning and other UB assumed safe.
 - `-fno-auto-import`: needed because the asm blocks use every register.
 - `--disable-dynamicbase`: fixed image base until the code is known to be ASLR-clean.

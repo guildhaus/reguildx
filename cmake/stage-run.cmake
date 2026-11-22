@@ -13,7 +13,7 @@ foreach(_v GAME_DIR RUN_DIR EXE)
   endif()
 endforeach()
 if(NOT EXISTS "${GAME_DIR}/GildeGold.exe")
-  message(FATAL_ERROR "stage-run: no GildeGold.exe in '${GAME_DIR}' (set GILDEGOLD_GAME_DIR)")
+  message(FATAL_ERROR "stage-run: no GildeGold.exe in '${GAME_DIR}' (set REGUILDX_GAME_DIR)")
 endif()
 
 file(MAKE_DIRECTORY "${RUN_DIR}")

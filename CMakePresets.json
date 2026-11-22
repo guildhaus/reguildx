@@ -22,8 +22,8 @@
       "displayName": "manual testing: 16-bit back buffer in a window, frame dumps",
       "binaryDir": "${sourceDir}/build-cmake/play",
       "cacheVariables": {
-        "GILDEGOLD_FIX_16BPP": "ON",
-        "GILDEGOLD_FRAME_DUMP": "ON"
+        "REGUILDX_FIX_16BPP": "ON",
+        "REGUILDX_FRAME_DUMP": "ON"
       }
     }
   ],

@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(GildeGold LANGUAGES C)
+project(reguildx LANGUAGES C)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
-  message(FATAL_ERROR "GildeGold is 32-bit only for now: configure with --toolchain cmake/llvm-mingw-i686.cmake")
+  message(FATAL_ERROR "reguildx is 32-bit only for now: configure with --toolchain cmake/llvm-mingw-i686.cmake")
 endif()
 if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
   message(WARNING "only clang (llvm-mingw) is tested")
@@ -16,15 +16,15 @@ endif()
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_EXTENSIONS ON)
 
-file(GLOB GILDEGOLD_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
+file(GLOB REGUILDX_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 
-add_executable(GildeGold WIN32 ${GILDEGOLD_SOURCES})
-target_include_directories(GildeGold PRIVATE include)
+add_executable(reguildx WIN32 ${REGUILDX_SOURCES})
+target_include_directories(reguildx PRIVATE include)
 
 # Dialect crutches inherited from the MSVC 6 original. Each one is a modernization item to remove:
 #   -fms-extensions -fasm-blocks   __declspec, MS-style __asm { } blocks
 #   -fno-strict-aliasing -fwrapv   the code type-puns and relies on wrapping arithmetic
-target_compile_options(GildeGold PRIVATE
+target_compile_options(reguildx PRIVATE
   -fms-extensions
   -fasm-blocks
   -fno-strict-aliasing
@@ -39,9 +39,9 @@ target_compile_options(GildeGold PRIVATE
 )
 # The four warnings that make ~95% of the build output are that same loose typing, thousands of them.
 # Off by default so the rest (format, return-type, ...) stays readable; ON shows the debt.
-option(GILDEGOLD_DEBT_WARNINGS "show the loose-typing warnings of the decompilation" OFF)
-if(NOT GILDEGOLD_DEBT_WARNINGS)
-  target_compile_options(GildeGold PRIVATE
+option(REGUILDX_DEBT_WARNINGS "show the loose-typing warnings of the decompilation" OFF)
+if(NOT REGUILDX_DEBT_WARNINGS)
+  target_compile_options(reguildx PRIVATE
     -Wno-deprecated-non-prototype
     -Wno-int-conversion
     -Wno-incompatible-pointer-types
@@ -49,14 +49,14 @@ if(NOT GILDEGOLD_DEBT_WARNINGS)
 endif()
 
 # The game was written against the DirectX 6/7 SDK: DirectInputCreate is gone from the default (8) dinput.h.
-target_compile_definitions(GildeGold PRIVATE DIRECTINPUT_VERSION=0x0700)
+target_compile_definitions(reguildx PRIVATE DIRECTINPUT_VERSION=0x0700)
 
 # Build options the original's units used (see decompanion.toml [[variant]] for where they applied).
-option(GILDEGOLD_FIX_16BPP "16-bit back buffer in a window (dd_vesa)" OFF)
-option(GILDEGOLD_FRAME_DUMP "frame dumps (dd_vesa, d3_d3d, shp, gfx, d2)" OFF)
+option(REGUILDX_FIX_16BPP "16-bit back buffer in a window (dd_vesa)" OFF)
+option(REGUILDX_FRAME_DUMP "frame dumps (dd_vesa, d3_d3d, shp, gfx, d2)" OFF)
 foreach(_opt FIX_16BPP FRAME_DUMP)
-  if(GILDEGOLD_${_opt})
-    target_compile_definitions(GildeGold PRIVATE REA_${_opt})
+  if(REGUILDX_${_opt})
+    target_compile_definitions(reguildx PRIVATE REA_${_opt})
   endif()
 endforeach()
 
@@ -73,22 +73,22 @@ add_custom_command(
   COMMENT "Building mss32 import library"
   VERBATIM)
 add_custom_target(mss32_implib DEPENDS "${MSS32_LIB}")
-add_dependencies(GildeGold mss32_implib)
+add_dependencies(reguildx mss32_implib)
 
 # Names that different units still use for one object (left over from the decompilation). The linker
 # resolves each first name to the second; unifying them in the sources removes an entry.
 include(cmake/symbol-aliases.cmake)
-foreach(_pair IN LISTS GILDEGOLD_SYMBOL_ALIASES)
+foreach(_pair IN LISTS REGUILDX_SYMBOL_ALIASES)
   string(REPLACE "=" ";" _ab "${_pair}")
   list(GET _ab 0 _from)
   list(GET _ab 1 _to)
-  target_link_options(GildeGold PRIVATE "LINKER:-Xlink=-alternatename:_${_from}=_${_to}")
+  target_link_options(reguildx PRIVATE "LINKER:-Xlink=-alternatename:_${_from}=_${_to}")
 endforeach()
 
 # Fixed base like the original (stable addresses for debugging; the code has not been audited for ASLR yet).
-target_link_options(GildeGold PRIVATE "LINKER:--disable-dynamicbase")
+target_link_options(reguildx PRIVATE "LINKER:--disable-dynamicbase")
 
-target_link_libraries(GildeGold PRIVATE
+target_link_libraries(reguildx PRIVATE
   "${MSS32_LIB}"
   ddraw dinput dxguid strmiids
   ole32 winmm ws2_32 gdi32 user32 advapi32 kernel32

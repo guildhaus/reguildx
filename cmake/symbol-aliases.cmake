@@ -1,5 +1,5 @@
 # Symbol aliases: FROM=TO, the linker resolves FROM to TO (see CMakeLists.txt).
-set(GILDEGOLD_SYMBOL_ALIASES
+set(REGUILDX_SYMBOL_ALIASES
   d3_YAxisXYZ=d3_YAxis
   d3_SnapEpsilon=d3_ScrollPool
   gypsyFilterValue=gypsyFilter

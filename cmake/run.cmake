@@ -3,34 +3,34 @@
 #   cmake --build --preset run        (= the play preset's build, target run)
 #   cmake --build --preset debug      under the 32-bit lldb
 
-set(GILDEGOLD_GAME_DIR "C:/Program Files/GOG Galaxy/Games/The Guild Gold" CACHE PATH
+set(REGUILDX_GAME_DIR "C:/Program Files/GOG Galaxy/Games/The Guild Gold" CACHE PATH
     "the game install (GildeGold.exe, Data, gfx, ...); never written")
-set(GILDEGOLD_RUN_DIR "${CMAKE_SOURCE_DIR}/build-cmake/run" CACHE PATH
+set(REGUILDX_RUN_DIR "${CMAKE_SOURCE_DIR}/build-cmake/run" CACHE PATH
     "the run directory: links to the install, its own game.ini")
-set(GILDEGOLD_RUN_ARGS "DIRECTWINDOW" CACHE STRING "the game's command line (a ;-list)")
+set(REGUILDX_RUN_ARGS "DIRECTWINDOW" CACHE STRING "the game's command line (a ;-list)")
 
 # lldb must be a 32-bit build to debug the game (llvm-mingw's i686 host package): the x86_64 one cannot
 # unwind WoW64 processes
 file(GLOB _lldb_hints "C:/Tools/llvm-mingw-*-i686/bin")
 list(SORT _lldb_hints ORDER DESCENDING)
-find_program(GILDEGOLD_LLDB NAMES lldb PATHS ${_lldb_hints} NO_DEFAULT_PATH
+find_program(REGUILDX_LLDB NAMES lldb PATHS ${_lldb_hints} NO_DEFAULT_PATH
              DOC "a 32-bit lldb for the debug target")
 
-set(_stage "${CMAKE_COMMAND}" -DGAME_DIR=${GILDEGOLD_GAME_DIR} -DRUN_DIR=${GILDEGOLD_RUN_DIR}
-           "-DEXE=$<TARGET_FILE:GildeGold>" -P "${CMAKE_SOURCE_DIR}/cmake/stage-run.cmake")
-set(_exe "${GILDEGOLD_RUN_DIR}/GildeGold.exe")
+set(_stage "${CMAKE_COMMAND}" -DGAME_DIR=${REGUILDX_GAME_DIR} -DRUN_DIR=${REGUILDX_RUN_DIR}
+           "-DEXE=$<TARGET_FILE:reguildx>" -P "${CMAKE_SOURCE_DIR}/cmake/stage-run.cmake")
+set(_exe "${REGUILDX_RUN_DIR}/GildeGold.exe")
 
 add_custom_target(stage
   COMMAND ${_stage}
-  DEPENDS GildeGold
-  COMMENT "Staging ${GILDEGOLD_RUN_DIR}"
+  DEPENDS reguildx
+  COMMENT "Staging ${REGUILDX_RUN_DIR}"
   VERBATIM)
 
 # The game is started by ninja itself, not through cmake's execute_process: that one starts its children
 # hidden (SW_HIDE in their startup info), and the game's first ShowWindow takes the show mode from there.
 # WinMain returns 1 on a normal quit, which ninja would count as a failed step: on Windows a generated batch
 # file runs the game (a batch waits for a GUI program) and accepts 0 and 1, reporting other codes in hex.
-list(JOIN GILDEGOLD_RUN_ARGS " " _args)
+list(JOIN REGUILDX_RUN_ARGS " " _args)
 file(TO_NATIVE_PATH "${_exe}" _exe_native)
 if(CMAKE_HOST_WIN32)
   set(_launcher "${CMAKE_BINARY_DIR}/run-game.cmd")
@@ -46,20 +46,20 @@ exit /b %rc%\r
 ")
   set(_run_cmd "${_launcher}")
 else()
-  set(_run_cmd "${_exe}" ${GILDEGOLD_RUN_ARGS})
+  set(_run_cmd "${_exe}" ${REGUILDX_RUN_ARGS})
 endif()
 
 add_custom_target(run
   COMMAND ${_run_cmd}
-  WORKING_DIRECTORY "${GILDEGOLD_RUN_DIR}"
+  WORKING_DIRECTORY "${REGUILDX_RUN_DIR}"
   USES_TERMINAL
   VERBATIM)
 add_dependencies(run stage)
 
-if(GILDEGOLD_LLDB)
+if(REGUILDX_LLDB)
   add_custom_target(debug
-    COMMAND "${GILDEGOLD_LLDB}" -o run -- "${_exe}" ${GILDEGOLD_RUN_ARGS}
-    WORKING_DIRECTORY "${GILDEGOLD_RUN_DIR}"
+    COMMAND "${REGUILDX_LLDB}" -o run -- "${_exe}" ${REGUILDX_RUN_ARGS}
+    WORKING_DIRECTORY "${REGUILDX_RUN_DIR}"
     USES_TERMINAL
     VERBATIM)
   add_dependencies(debug stage)
