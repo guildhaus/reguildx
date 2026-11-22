@@ -61,12 +61,12 @@ compatibility layer, and without it the game exits during start-up. Staging sets
 The first port kept the MSVC 6 dialect alive with compiler switches. Removing each of these is a
 follow-up step:
 
-- `-fms-extensions -fasm-blocks`: `__declspec` and MS-style `__asm { }` blocks (`shp.c`,
+- `-fms-extensions`: `__declspec`, MS-style `__asm { }` blocks and the `i64` literal suffix (`shp.c`,
   `shp_asm.c`, `d2.c` / `d3_engine.c` fill macros, ...). Replacing them with C makes the code portable
   beyond x86.
-- `-Wno-error=incompatible-pointer-types`, `int-conversion`, `incompatible-function-pointer-types`,
-  `return-mismatch`: loose typing from the decompilation. Together with `deprecated-non-prototype`
-  these are ~11k warnings, hidden unless `REGUILDX_DEBT_WARNINGS=ON`.
+- `-Wno-error=incompatible-pointer-types`, `int-conversion`, `return-mismatch`: loose typing from the
+  decompilation (about 100, 19 and 5 sites). Together with `incompatible-function-pointer-types` and
+  `deprecated-non-prototype` these are ~550 warnings, hidden unless `REGUILDX_DEBT_WARNINGS=ON`.
 - `-fno-strict-aliasing -fwrapv -fno-delete-null-pointer-checks`: type punning and other UB assumed safe.
 - `-fno-auto-import`: needed because the asm blocks use every register.
 - `--disable-dynamicbase`: fixed image base until the code is known to be ASLR-clean.

@@ -22,22 +22,21 @@ add_executable(reguildx WIN32 ${REGUILDX_SOURCES})
 target_include_directories(reguildx PRIVATE include)
 
 # Dialect crutches inherited from the MSVC 6 original. Each one is a modernization item to remove:
-#   -fms-extensions -fasm-blocks   __declspec, MS-style __asm { } blocks
+#   -fms-extensions                __declspec, MS-style __asm { } blocks (it enables them: no -fasm-blocks
+#                                  needed), the i64 literal suffix
 #   -fno-strict-aliasing -fwrapv   the code type-puns and relies on wrapping arithmetic
 target_compile_options(reguildx PRIVATE
   -fms-extensions
-  -fasm-blocks
   -fno-strict-aliasing
   -fwrapv
   -fno-delete-null-pointer-checks
   -fno-auto-import   # extern data is addressed directly (the asm blocks need every register)
   # Loose typing MSVC 6 accepted with a warning; modern clang rejects it by default.
   -Wno-error=incompatible-pointer-types
-  -Wno-error=incompatible-function-pointer-types
   -Wno-error=int-conversion
   -Wno-error=return-mismatch
 )
-# The four warnings that make ~95% of the build output are that same loose typing, thousands of them.
+# The four warnings that make most of the build output are that same loose typing (~550 of them).
 # Off by default so the rest (format, return-type, ...) stays readable; ON shows the debt.
 option(REGUILDX_DEBT_WARNINGS "show the loose-typing warnings of the decompilation" OFF)
 if(NOT REGUILDX_DEBT_WARNINGS)
