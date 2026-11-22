@@ -95,7 +95,7 @@ void d2_MouseUpdate(void);                                            /* 0x4784c
 int d2_AddHitRect(int x, int y, int w, int h, int user);     /* 0x478890, adds a hit rectangle */
 void d2_RemoveHitRect(int i);                                           /* 0x4788f0 */
 int d2_CompareColour(char *a, char *b);                                 /* 0x478930 */
-void d2_SetColour(D2RGB *c, unsigned char r, unsigned char g, unsigned char b);     /* 0x478960 */
+void d2_SetColour(unsigned char *c, unsigned char r, unsigned char g, unsigned char b);  /* 0x478960 */
 unsigned int d2_GetBmpSize(char *name);                              /* 0x478980, size of a bmp */
 int d2_ReadBmpPixels(char *name, unsigned char *dst);               /* 0x478a00, reads the pixels of a 24 bit bmp */
 D2SURF *d2_LoadBmpSurface(char *name);                             /* 0x478b50, surface from a bmp */

@@ -432,7 +432,7 @@ typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of 
     D3VECTOR bmin;           /* +0xf4 */
     float pad100;            /* +0x100, bmin's fourth float: the original's frame keeps 4 bytes behind it */
 } CANNONSCENE;
-char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
+struct GVEFFECT *gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
 void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void d3sky_Init(struct D3SKY *s, char build);
 char d3if_ShowTree(struct D3OBJECT *obj, char show);
@@ -452,7 +452,7 @@ typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: thr
 } CANNONROT;
 void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
-void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
+void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, signed char p);
 void gv_CannonScatter(struct AIBLD *o, float *a, float *b); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade);
 int sv_MessageBox(intptr_t text, unsigned flags);

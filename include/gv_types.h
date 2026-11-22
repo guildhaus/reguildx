@@ -84,6 +84,15 @@ typedef struct GVDECMSG {               /* 9 bytes, the data of message 0x46 (cm
     unsigned char rec;                  /* 0x04, the record index (0 .. 0x1c) */
     int value;                          /* 0x05, the new AIDEC.cur, clamped to min .. max */
 } GVDECMSG;
+typedef struct GVMOVE {                 /* 0x19 bytes, a grave move: the data of message 0x61 (cm_SendGraveMove), run by gv_MoveGrave */
+    int chr;                            /* 0x00, the paying character's netId (AICHAR.netId) */
+    int bld;                            /* 0x04, the graveyard building's id (AIBLD.id) */
+    int from;                           /* 0x08, the source grave size (GVYARD.lists index) */
+    unsigned char entry;                /* 0x0c, the entry of that list */
+    int to;                             /* 0x0d, the target grave size */
+    int price;                          /* 0x11, > 0: the character pays it */
+    int objId;                          /* 0x15, ai_NextObjectId when the game is networked */
+} GVMOVE;
 #pragma pack(pop)
 
 /* the message record of an order (ord_DispatchOrder hands it to the order handlers with the character; the callers

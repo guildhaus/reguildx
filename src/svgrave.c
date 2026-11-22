@@ -432,7 +432,7 @@ typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of 
     D3VECTOR bmin;           /* +0xf4 */
     float pad100;            /* +0x100, bmin's fourth float: the original's frame keeps 4 bytes behind it */
 } CANNONSCENE;
-char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
+struct GVEFFECT *gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
 void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void d3sky_Init(struct D3SKY *s, char build);
 char d3if_ShowTree(struct D3OBJECT *obj, char show);
@@ -453,7 +453,7 @@ typedef struct CANNONROT {  /* ai_CannonCamera's rotation / position vector: thr
 } CANNONROT;
 void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
-void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
+void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, signed char p);
 void gv_CannonScatter(struct AIBLD *o, float *a, float *b); void ai_ShotTableReset(); int ai_InitShot(struct SHOTREC *shot, struct D3VECTOR *pos, struct D3VECTOR *dir, float charge, float size, float density);
 int ai_ScatterShot(struct SHOTREC *shot, float sideSpread, struct D3VECTOR *side, float otherSpread, struct D3VECTOR *other, float speedSpread); int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x); struct SBBANK; struct SBSAMPLE *sb_PlayVariation(struct SBBANK *bank, char *name, int idx, int loops, int pan, int volume, int fade);
 int sv_MessageBox(intptr_t text, unsigned flags);
@@ -566,8 +566,8 @@ typedef struct GVDETAILWIN {
    window scrolled */
 void ai_GraveList(AIBLD *rec, int *w, int sel)
 {
-    char a[4];
-    char b[4];
+    int up;
+    int down;
     GVENTRY *e;
     GVROW *row;
     int saved;
@@ -581,7 +581,7 @@ void ai_GraveList(AIBLD *rec, int *w, int sel)
     io_PrintText((intptr_t)"$C");
     d2_SetForm(w[0], 4);
     io_PrintText((intptr_t)"$C");
-    sv_CreateScrollButtons(0, 0, w[5], w[2], 0x35, a, b, &sel);
+    sv_CreateScrollButtons(0, 0, w[5], w[2], 0x35, &up, &down, &sel);
     e = gv_FindEntry(0, rec, 0, 0, w[0xc]);
     n = 0;
     if (e) {
@@ -711,7 +711,7 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
         d2_Objs[item->btn].interactive = flag == 0;
         d2_Objs[item->btn].style = 3;
         ai_GraveDeadName(item->grave, buf);
-        ai_GraveDeadDescription((char *)item->grave, line2);
+        ai_GraveDeadDescription(item->grave, line2);
         y = d2_Wins[w[3]].h * i + 0x38;
         k = d2_CreateWinText(0, y, buf, w[3]);
         d2_Objs[k].centred = 1;
@@ -2037,8 +2037,8 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
     char text[0x100];
     int variants[8];
     int ids[8];
-    char *name1;
-    char *name2;
+    GMHEAD *name1;
+    GMHEAD *name2;
     int script;
     int win;
     int i;
@@ -2054,13 +2054,13 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
     script = (int)evt_Load("LOCATIONS\\KRYPTA\\SEANCE_KRYPTA.esc");
     if (script != 0) {
         GVGRAVE *g = &ev->grave;
-        name1 = (char *)gm_NameRecord(ai_Chars[ai_PlayerId].sex, ai_Chars[ai_PlayerId].jobId);
+        name1 = gm_NameRecord(ai_Chars[ai_PlayerId].sex, ai_Chars[ai_PlayerId].jobId);
         if (name1 == 0)
             gm_NameRecord(ai_Chars[ai_PlayerId].sex, 0);   /* @original drops the result: name1 stays 0 */
-        name2 = (char *)gm_NameRecord(g->sex, g->nameId);
+        name2 = gm_NameRecord(g->sex, g->nameId);
         if (name2 == 0)
-            name2 = (char *)gm_NameRecord(g->sex, 0);
-        sprintf(buf, "%s %s", name1 + 4, name2 + 4);
+            name2 = gm_NameRecord(g->sex, 0);
+        sprintf(buf, "%s %s", name1->name, name2->name);
         evt_RunCommand((EVTSCRIPT *)script, buf);
     }
     i = 0;

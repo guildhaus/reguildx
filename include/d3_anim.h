@@ -39,107 +39,11 @@ struct D3ANIMDATA {                 /* 0x16c bytes, cached animation (LRU list) 
     char pad16a[0x2];
 };
 
-typedef struct D3ANIMVERT {         /* 0x18 bytes */
-    D3VECTOR pos;
-    char pad0c[0xc];
-} D3ANIMVERT;
-
-typedef struct D3ANIMFACE {         /* 0x38 bytes */
-    char pad00[0x18];
-    int v[3];                       /* 0x18, vertex indices */
-    char pad24[0x14];
-} D3ANIMFACE;
-
-typedef struct D3ANIMBONE {         /* 0x58 bytes, a bone of the mesh in its rest pose */
-    char name[0x40];
-    D3VECTOR pos;                   /* 0x40 */
-    D3VECTOR rot;                   /* 0x4c */
-} D3ANIMBONE;
-
-typedef struct D3ANIMMESH {         /* the animated mesh */
-    char pad000[0x40];
-    D3ANIMVERT *verts;              /* 0x40 */
-    int nverts;                     /* 0x44 */
-    D3ANIMFACE *faces;              /* 0x48 */
-    int nfaces;                     /* 0x4c */
-    char pad050[0x24];
-    D3ANIMBONE bones[4];            /* 0x74 */
-    float radius;                   /* 0x1d4 */
-    char pad1d8[0x30];
-    unsigned char nbones;           /* 0x208 */
-} D3ANIMMESH;
-
-typedef struct D3ANIMOBJ {
-    char pad00[0x40];
-    unsigned long time;             /* 0x40, d3_Time */
-} D3ANIMOBJ;
-
-typedef struct D3ANIMSLOT {         /* 0x7c bytes */
-    int frame;                      /* 0x00, current key frame */
-    int nextFrame;                  /* 0x04, the frame the blend interpolates to (d3anim_NextFrame) */
-    int subFrame;                   /* 0x08, position inside the frame, in 1/count units */
-    int lastFrame;                  /* 0x0c, last frame the root motion was applied at */
-    int lastSub;                    /* 0x10, sub-frame within lastFrame */
-    int attachFirst;                /* 0x14, frame the bone attach starts at, -1: none */
-    int attachLast;                 /* 0x18, frame it ends at, -1: none */
-    int attachBone;                 /* 0x1c, bone index of the attached object */
-    D3VECTOR attachPos;             /* 0x20, the attached object's position when the attachment started
-                                       (d3anim_StepObject adds it to the attachment point) */
-    char pad2c[0x4];
-    int attached;                   /* 0x30, the object attached to the bone, 0: none */
-    int fadeStart;                  /* 0x34, fade-in start time (ms) */
-    int fadeEnd;                    /* 0x38, fade-in end time */
-    int timeout;                    /* 0x3c, how long the animation may run (ms), -1: no limit */
-    float weight;                   /* 0x40, blend weight */
-    float fadeFrom;                 /* 0x44, weight at fadeStart */
-    float fadeTo;                   /* 0x48, weight at fadeEnd */
-    D3VECTOR4 stopPos;              /* 0x4c, the root position the motion stops at (d3anim_StepObject
-                                       compares x/z with stopRadius) */
-    float stopRadius;               /* 0x5c */
-    float speed;                    /* 0x60, animation speed, frames per ms */
-    float frameTime;                /* 0x64, sub-frame time accumulator (d3_AnimBlendWeights) */
-    D3ANIMDATA *data;               /* 0x68 */
-    union {
-        D3ANIMFLAGS flags;          /* 0x6c, as passed to d3anim_StartAnim */
-        struct {
-            unsigned char pad6c[8];
-            unsigned char unk74_0 : 1;
-            unsigned char play : 1; /* 0x74 bit 1 */
-        };
-        struct {                    /* D3ANIMFLAGS.b[4..7] as the dword the flag bitfields live in */
-            unsigned char pad6c4[4];
-            union {
-                unsigned int rootFlags; /* 0x70, bits 0/1 (CHANIMFLAGS.a / .b): the root motion
-                                           ch_ReleaseSlot applies; a sit animation clears them */
-                struct {
-                    int turn : 2;   /* 0x70 bits 0..1, signed -2..1: the turn the root motion
-                                       follows (d3anim_StepObject passes it to d3anim_ApplyRootMotion /
-                                       d3anim_ApplyMotionTo) */
-                    unsigned int turnPad : 30;
-                };
-            };
-        };
-    };
-    unsigned char map[4];           /* 0x78, bone index per child object (d3anim_MapBones), 0xff = none */
-} D3ANIMSLOT;
-
-typedef struct D3ANIMCTL {          /* what d3anim_StartAnim and d3_ReleaseTexture get as "list" */
-    char pad00[0x8];
-    int nverts;                     /* 0x08 */
-    char pad0c[0x4];
-    D3ANIMMESH *mesh;               /* 0x10 */
-    char pad14[0x4];
-    D3ANIMOBJ *obj;                 /* 0x18 */
-    D3ANIMSLOT slots[3];            /* 0x1c */
-    char pad190[0x4];
-    signed char active;             /* 0x194 */
-} D3ANIMCTL;
-
 int d3anim_GetSize(D3ANIMDATA *a);                                                     /* 0x434a80 */
 char d3anim_Purge(int limit, int size);                                                 /* 0x434af0 */
 void d3anim_Release(D3ANIMDATA *a, char now);                                           /* 0x434b70 */
 float d3anim_MaxRadius(D3VECTOR4 *v, int n);                                            /* 0x434d00 */
-void d3anim_CalculateAnimNormals(D3ANIMDATA *a, D3ANIMMESH *mesh);                     /* 0x434d60 */
+void d3anim_CalculateAnimNormals(D3ANIMDATA *a, D3BGF *mesh);                     /* 0x434d60 */
 
 int d3anim_NextFrame(D3ANIMFLAGS f, int frame, int a, int b, int c);                        /* 0x4324e0 */
 char d3anim_MapBones(D3OBJECT *obj);                                                       /* 0x4319e0 */
@@ -176,25 +80,6 @@ typedef struct D3PATH {             /* 0x44 bytes, at D3OBJECT + 0x1d0 */
 } D3PATH;
 
 #define D3_OBJPATH(obj) (*(D3PATH **)((char *)(obj) + 0x1d0))
-
-/* Skeleton animations of a mesh: D3MATERIAL.tex[3] (0x178, 0x7c bytes each) hold them, the child objects
-   are the bones, matched by name. */
-typedef struct D3BONEANIM {
-    char pad000[0x40];
-    char names[4][0x40];            /* 0x40, bone names; real count unknown */
-    char pad140[0x4];
-    int nbones;                     /* 0x144 */
-} D3BONEANIM;
-
-typedef struct D3BONESLOT {         /* 0x7c bytes, at D3MATERIAL + 0x178 */
-    D3BONEANIM *anim;
-    char pad04[0xc];
-    union {
-        unsigned char map[4];       /* 0x10, indices of the bones that are child objects, 0xff = none */
-        unsigned int mapAll;        /* the four map bytes at once; -1 = no bone mapped */
-    };
-    char pad14[0x68];
-} D3BONESLOT;
 
 /* Inline-asm copy as D3_COPY (d3.h), with the destination temp declared (and stored) first. */
 #define D3PATH_COPY(dst, src, size) {                               \
@@ -241,21 +126,13 @@ void d3path_Init(D3PATH *p);                                                    
 }
 #define D3ANIM_COPY3_LABEL(n) D3_ZERO_CAT(d3anim_copy3_tail, n)
 #define D3ANIM_BONENAME(a, i) ((a)->name + 0x40 * ((i) + 1))     /* bone names follow the name */
-typedef struct D3ANIMMESHX {        /* D3ANIMMESH with the root position and angles */
-    char pad000[0x40];
-    D3ANIMVERT *verts;              /* 0x40 */
-    int nverts;                     /* 0x44 */
-    char pad048[0x8];
-    D3VECTOR pos;                   /* 0x50 */
-    D3VECTOR rot;                   /* 0x5c */
-} D3ANIMMESHX;
-D3ANIMDATA *d3anim_CreateMorphAnim(D3ANIMMESH *mesh, D3ANIMDATA *src, D3ANIMFRAME *frame, D3ANIMDATA *dst,
-                                   D3ANIMFRAME *dframe, D3ANIMMESH *dmesh, char *name, int n);  /* 0x433f80 */
+D3ANIMDATA *d3anim_CreateMorphAnim(D3BGF *mesh, D3ANIMDATA *src, D3ANIMFRAME *frame, D3ANIMDATA *dst,
+                                   D3ANIMFRAME *dframe, D3BGF *dmesh, char *name, int n);  /* 0x433f80 */
 
 /* declared in other units' headers before (moved to the owner) */
 void d3anim_ApplyRootMotion(D3OBJECT *obj, D3ANIMSLOT *s, int from, int to, int flags);  /* 0x4315c0 */
-void d3anim_PauseAnim(D3ANIMCTL *ctl, char *name);  /* 0x435810 */
-void d3anim_PlayAnim(D3ANIMCTL *ctl, char *name, char on);  /* 0x435870 */
+void d3anim_PauseAnim(D3SURF *ctl, char *name);  /* 0x435810 */
+void d3anim_PlayAnim(D3SURF *ctl, char *name, char on);  /* 0x435870 */
 void d3anim_SetFrame(D3OBJECT *obj, D3ANIMSLOT *s, int frame);  /* 0x435950 */
 char d3anim_StepObject(D3OBJECT *obj, void *ctx);  /* 0x432750 */
 

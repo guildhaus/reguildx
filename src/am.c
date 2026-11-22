@@ -698,7 +698,7 @@ int ai_ExecBuildSculpture(AICHAR *p, AIARG *s1, AIARG *s2)
 
 int ai_DecideUseAlchemyItems(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
 {
-    AIRECX rec[15];
+    G9REC rec[15];
     int st[3];
     int r;
 
@@ -753,7 +753,7 @@ int ai_DecideUseAlchemyItems(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
         r = (r + 1) % 15;
     o1->kind = 1;
     o1->arg = 1;
-    o1->ref = rec[r].id;
+    o1->ref = rec[r].entryId;
     o1->fvalue = 0.05f;
     o1->arg2 = 3;
     o2->kind = 0;

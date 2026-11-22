@@ -417,8 +417,8 @@ int chc_TakeObjectScript(CHARACTER **ch, char **name, int *n, D3OBJECT **obj, in
     a = ch_AddActionCB(*ch, chc_AniScriptCB, *frame, 0x31, *n);
     if (a) {
         strcpy(a->u.name, *name);
-        if (*obj && (*obj)->material && (*obj)->material->name)
-            strcpy(CH_ACTOBJ(a)->name2, (*obj)->material->name);
+        if (*obj && (*obj)->material && (*obj)->material->surf[0].mesh)
+            strcpy(CH_ACTOBJ(a)->name2, (*obj)->material->surf[0].mesh->name);
         strcpy(a->scriptName, *script);
         a->scriptAction.group = evt_NoGroup;
     }

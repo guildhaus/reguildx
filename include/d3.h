@@ -6,6 +6,8 @@
 
 struct D3IOPATH;                   /* d3_io_t.h: the return of d3_LoadObjectAnim */
 struct D3IOOBJ;
+typedef struct D3SURF D3SURF;      /* below: a surface of a mesh (D3MESH.surf), what D3OBJECT.info points to */
+struct D3ANIMSLOT;
 
 #include "d3_types.h"                /* D3VECTOR, D3VECTOR4, D3SCENE, D3TEXFLAGS */
 
@@ -20,34 +22,7 @@ typedef struct D3RECT {
     int left, top, right, bottom;
 } D3RECT;
 
-typedef struct D3TEXSLOT {          /* 0x7c bytes */
-    char *name;
-    char pad04[0x78];
-} D3TEXSLOT;
-
 struct D3OBJECT;
-typedef struct D3MESHOPS {          /* function table of a mesh driver */
-    char pad000[0x1f4];
-    struct D3BOXVERT *(*GetBox)(struct D3OBJECT *obj, void *list, void *unk);   /* 0x1f4 */
-} D3MESHOPS;
-
-typedef struct D3MATERIAL {
-    void (*freeCallback)(struct D3OBJECT *obj); /* 0x000, called before the mesh is freed (d3_engine.h D3MESH.freeCallback;
-                                       init_HookObject sets init_SceneObjectDestroyCB) */
-    char pad004[0x4];
-    char meshData[0xec];            /* 0x08..0xf4, the D3MESH block (d3_engine.h): worldMatrix 0x08 (a D3MATRIX,
-                                       passed to d3_GetBoxVerts / GetBox), cameraMatrix 0x48, zMin/zMax, frameStamp */
-    char animCtl[0x10];             /* 0xf4, the animation control (a D3ANIMCTL at 0xf4) passed to
-                                       d3anim_StartAnim / d3_ReleaseTexture as their "list" */
-    union {
-        D3MESHOPS *ops;             /* 0x104, the mesh driver's function table (d3_GetBoxVerts, GetBox) */
-        char *name;                 /* 0x104, an animated mesh's model name (ch_TakeObject, chc_TakeObjectScript,
-                                       d3_interface.c: the same pointer, read as a string) */
-    };
-    char pad108[0x70];
-    D3TEXSLOT tex[3];               /* 0x178 */
-} D3MATERIAL;
-
 struct D3OBJECT;
 
 typedef struct D3OBJECT D3OBJECT;
@@ -64,6 +39,10 @@ typedef struct D3OBJBITS {          /* D3OBJECT::state as bitfields (D3OBJECT.bi
 struct D3OBJECT {
     union {
         char name[0x4c];            /* compared with _strcmpi by name lookups; real length unknown */
+        struct {
+            char padtime[0x40];
+            unsigned long animTime; /* 0x40, d3_Time of the object's last vertex animation step (d3anim_StepObject) */
+        };
         struct {
             char padname[0x48];
             union {
@@ -97,14 +76,14 @@ struct D3OBJECT {
         D3VECTOR dir;
     } views[10];
     D3MATRIX matrix;                /* 0x18c */
-    struct D3OBJINFO *info;         /* 0x1cc, the mesh data holder (D3OBJINFO / D3SMMESH / D3ANIMCTL views) */
+    struct D3SURF *info;         /* 0x1cc, the current surface of the mesh (material->surf[k]; D3SMMESH view) */
     struct D3PATH *path;            /* 0x1d0, the path animation it follows (d3_anim.h D3PATH, D3_OBJPATH), 0: none */
     union {
         float radius;               /* 0x1d4, the mesh driver's radius (D3LOPS::radius, d3_light.h); read as obj->info->mesh->radius */
         D3EVENT *events;            /* 0x1d4, the object's D3E_NEVENTS event handlers (d3e_RegisterEvent: D3OBJX.events), 0 = none */
     };
     char pad1d8[0x14];
-    D3MATERIAL *material;           /* 0x1ec */
+    struct D3MESH *material;        /* 0x1ec, the mesh: its surfaces (levels of detail) and their animations */
     D3OBJECT *next;                 /* 0x1f0, sibling list */
     D3OBJECT *prev;                 /* 0x1f4 */
     D3OBJECT *parent;               /* 0x1f8, set with d3_SetParent */
@@ -153,7 +132,7 @@ typedef struct D3VERTEX {          /* 0x50 bytes, what D3TRI::v points to */
     char pad48[0x8];
 } D3VERTEX;
 
-D3BOXVERT *d3_GetBoxVerts(D3OBJECT *obj, struct D3OBJINFO *info, void *unk);           /* 0x459ab0 */
+D3BOXVERT *d3_GetBoxVerts(D3OBJECT *obj, struct D3SURF *info, void *unk);           /* 0x459ab0 */
 
 typedef struct D3MESHKEY {          /* 0x50 bytes */
     int unk00;
@@ -167,14 +146,6 @@ typedef struct D3TRI {              /* 0x28 bytes */
     D3VECTOR *v[3];
     char pad0c[0x1c];
 } D3TRI;
-
-typedef struct D3OBJINFO {
-    D3MESHKEY *keys;                /* followed by the 8 bounding box corners */
-    D3TRI *tris;                    /* 0x04 */
-    int nkeys;                      /* 0x08 */
-    int ntris;                      /* 0x0c */
-    D3OBJECT *mesh;                 /* 0x10, the mesh driver (D3OPS, d3_engine.h; starts with the mesh name) */
-} D3OBJINFO;
 
 void d3_TransformSurf(D3OBJECT *obj);                                                       /* 0x43d7c0 */
 char d3_RelightObject(struct D3OBJECT *obj);                                                       /* 0x453280 */
@@ -243,7 +214,7 @@ extern long d3d_hr;                         /* 0x14661a4, result of the last che
 typedef char (*D3OBJECTCB)(D3OBJECT *obj, void *ctx);
 
 char d3_ForEachObject(struct D3SCENE *scene, struct D3OBJECT *obj, unsigned int mask, D3OBJECTCB cb, void *ctx); /* 0x438d40 */
-void d3_ReleaseTexture(void *list, char *name);                                         /* 0x435740 */
+void d3_ReleaseTexture(struct D3SURF *ctl, char *name);                                 /* 0x435740 */
 void d3_UpdateObject(D3OBJECT *obj, unsigned char full);                                           /* 0x43b6b0 */
 void d3_InflateObject(D3OBJECT *obj);                                                       /* 0x43dbc0 */
 void d3_MatFromAngles(D3VECTOR4 *v, D3MATRIX *m);                                           /* 0x4545c0 */
@@ -257,6 +228,178 @@ typedef struct D3ANIMFLAGS {        /* passed by value to d3anim_CreatePath */
     unsigned char b[12];
 } D3ANIMFLAGS;
 
+struct D3ANIMDATA;                  /* d3_anim.h: a cached vertex animation */
+typedef struct D3ANIMSLOT {         /* 0x7c bytes */
+    int frame;                      /* 0x00, current key frame */
+    int nextFrame;                  /* 0x04, the frame the blend interpolates to (d3anim_NextFrame) */
+    int subFrame;                   /* 0x08, position inside the frame, in 1/count units */
+    int lastFrame;                  /* 0x0c, last frame the root motion was applied at */
+    int lastSub;                    /* 0x10, sub-frame within lastFrame */
+    int attachFirst;                /* 0x14, frame the bone attach starts at, -1: none */
+    int attachLast;                 /* 0x18, frame it ends at, -1: none */
+    int attachBone;                 /* 0x1c, bone index of the attached object */
+    D3VECTOR attachPos;             /* 0x20, the attached object's position when the attachment started
+                                       (d3anim_StepObject adds it to the attachment point) */
+    char pad2c[0x4];
+    int attached;                   /* 0x30, the object attached to the bone, 0: none */
+    int fadeStart;                  /* 0x34, fade-in start time (ms) */
+    int fadeEnd;                    /* 0x38, fade-in end time */
+    int timeout;                    /* 0x3c, how long the animation may run (ms), -1: no limit */
+    float weight;                   /* 0x40, blend weight */
+    float fadeFrom;                 /* 0x44, weight at fadeStart */
+    float fadeTo;                   /* 0x48, weight at fadeEnd */
+    D3VECTOR4 stopPos;              /* 0x4c, the root position the motion stops at (d3anim_StepObject
+                                       compares x/z with stopRadius) */
+    float stopRadius;               /* 0x5c */
+    float speed;                    /* 0x60, animation speed, frames per ms */
+    float frameTime;                /* 0x64, sub-frame time accumulator (d3_AnimBlendWeights) */
+    struct D3ANIMDATA *data;        /* 0x68, the animation (d3_anim.h); its name and bone names come first */
+    union {
+        D3ANIMFLAGS flags;          /* 0x6c, as passed to d3anim_StartAnim */
+        unsigned int flagWord;      /* flags.b[0..3] as one dword (d3_InitSurf clears it whole) */
+        struct {
+            unsigned char pad6c[8];
+            unsigned char unk74_0 : 1;
+            unsigned char play : 1; /* 0x74 bit 1 */
+        };
+        struct {                    /* D3ANIMFLAGS.b[4..7] as the dword the flag bitfields live in */
+            unsigned char pad6c4[4];
+            union {
+                unsigned int rootFlags; /* 0x70, bits 0/1 (CHANIMFLAGS.a / .b): the root motion
+                                           ch_ReleaseSlot applies; a sit animation clears them */
+                struct {
+                    int turn : 2;   /* 0x70 bits 0..1, signed -2..1: the turn the root motion
+                                       follows (d3anim_StepObject passes it to d3anim_ApplyRootMotion /
+                                       d3anim_ApplyMotionTo) */
+                    unsigned int turnPad : 30;
+                };
+            };
+        };
+    };
+    union {
+        unsigned char map[4];       /* 0x78, bone index per child object (d3anim_MapBones), 0xff = none */
+        unsigned int mapAll;        /* the four map bytes at once; -1 = no bone mapped */
+    };
+} D3ANIMSLOT;
+
+typedef struct D3BGFPOLY {          /* 0x38 bytes, D3BGF::polys */
+    float uv[3][2];                 /* 0x00 */
+    int v[3];                       /* 0x18, vertex indices */
+    int tex;                        /* 0x24, index into d3_Textures or -1 */
+    int mat;                        /* 0x28, material index while loading */
+    D3VECTOR n;                     /* 0x2c, the face normal (d3_TriNormal of its three vertices, summed into the vertex normals, d3_io_fl.c) */
+} D3BGFPOLY;
+
+typedef struct D3BGFVERT {          /* 0x18 bytes, a point of a stock object and its normal */
+    float x, y, z, nx, ny, nz;
+} D3BGFVERT;
+
+typedef struct D3BGFATTACH {        /* 0x58 bytes, an attachment point; an animated mesh's bones in their rest pose */
+    char name[0x40];
+    union {
+        float f[6];                 /* 0x40, as the loader reads and copies them */
+        struct {
+            D3VECTOR pos;           /* 0x40 */
+            D3VECTOR rot;           /* 0x4c */
+        };
+    };
+} D3BGFATTACH;
+
+typedef struct D3BGF D3BGF;
+struct D3BGF {                      /* 0x20c bytes, a loaded mesh ("d3_io:LoadAGI_obj"): a stock object, the mesh driver
+                                       of the surfaces that show it (D3SURF.mesh, read as D3OPS in d3_engine.h);
+                                       the loaded ones are linked between the sentinels d3_StockListStart and d3_StockListEnd */
+    char name[0x40];
+    union {
+        float *verts;               /* 0x40, 6 floats each (as the loaders write them), followed by the 8 corners of
+                                       the bounding box */
+        D3BGFVERT *vtx;             /* the same points as records */
+    };
+    int nverts;                     /* 0x44 */
+    D3BGFPOLY *polys;               /* 0x48 */
+    int npolys;                     /* 0x4c */
+    D3VECTOR pos;                   /* 0x50, the root position and angles (d3anim_CreateMorphAnim: the move and
+                                       turn between two meshes) */
+    D3VECTOR rot;                   /* 0x5c */
+    float cx, cy, cz;               /* 0x68, centre of the box */
+    D3BGFATTACH attach[4];          /* 0x74 */
+    union {
+        float radius;               /* 0x1d4 */
+        int radiusBits;             /* 0x1d4, the same as the fast chunk writes it (bio_wr_i, d3_AddFLChunk) */
+    };
+    float diagonal;                 /* 0x1d8 */
+    int refs;                       /* 0x1dc */
+    int ntex;                       /* 0x1e0 */
+    int nsets;                      /* 0x1e4, texture sets of the name table (D3OPS.nsets, d3_engine.h) */
+    void (*Release)(D3BGF *m);      /* 0x1e8, the stock object's callbacks (d3io_LoadObjectFile): d3iot_DeleteStockObject */
+    void (*TransformNormals)(struct D3OBJECT *obj, struct D3LINFO *info);                       /* 0x1ec */
+    void (*Transform)(struct D3OBJECT *obj, struct D3LINFO *info, struct D3MATRIX *m);          /* 0x1f0 */
+    struct D3BOXVERT *(*GetBox)(struct D3OBJECT *obj, struct D3SURF *info, void *unk);       /* 0x1f4 */
+    float (*GetRadius)(int unused, struct D3SURF *info);                                     /* 0x1f8 */
+    D3BGF *next;                    /* 0x1fc, the stock object list: towards d3_StockListEnd */
+    D3BGF *prev;                    /* 0x200, towards the head sentinel d3_StockListStart */
+    char *texnames;                 /* 0x204, ntex names of 0x40 bytes */
+    unsigned char nattach;          /* 0x208, the attachment points in use (d3_FindBGF stores the low byte of their count) */
+    char pad209[3];
+};
+
+struct D3SURF {                     /* 0x198 bytes, a surface of a mesh (one level of detail) with its own geometry */
+    D3MESHKEY *keys;                /* 0x00, the points, followed by the 8 bounding box corners */
+    D3TRI *tris;                    /* 0x04 */
+    int nkeys;                      /* 0x08 */
+    int ntris;                      /* 0x0c */
+    struct D3BGF *mesh;             /* 0x10, the mesh driver: the loaded stock object the surface shows */
+    struct TSTEXTURE **texHandles;  /* 0x14, the surf's textures (mesh->ntex of them) */
+    D3OBJECT *owner;                /* 0x18, the object whose mesh this surf belongs to (set by d3_InitSurf) */
+    D3ANIMSLOT slots[3];            /* 0x1c, the three vertex animation slots (d3anim_StartAnim) */
+    union {
+        int i;
+        D3TEXFLAGS f;               /* f.b[0] = alpha */
+    } flags;                        /* 0x190 */
+    signed char active;             /* 0x194, a vertex animation runs (d3anim_StartAnim sets it, d3_ReleaseTexture clears it
+                                       with the last slot): the surf is transformed and drawn even when nothing else changed */
+    unsigned char texSet;           /* 0x195, current texture set: index into the ops' name table (D3IOSURF.texSet) */
+    char pad196[0x2];
+};
+
+typedef struct D3MESHSUB {          /* 0x80 bytes, D3SSLOT (d3s.h): the shadow of one light, 4 per mesh at
+                                       D3S_SLOTS; only cleared here */
+    struct TSTEXTURE *tex;               /* 0x00, D3SSLOT.tex */
+    D3OBJECT *light;                /* 0x04, D3SSLOT.light */
+    char pad08[0x10];
+    D3VECTOR dir;                   /* 0x18, D3SSLOT.dir: light direction the shadow was made for */
+    char pad24[0x5c];
+} D3MESHSUB;
+
+typedef struct D3MESH {             /* 0x970 bytes, what D3OBJECT::material points to ("d3:AddObjectDrawData") */
+    void (*freeCallback)(D3OBJECT *obj);    /* 0x000, optional object callback, called before the mesh is freed
+                                       (d3_DisposeObject); only cleared in the drafted code */
+    D3OBJECT *camera;               /* 0x004, the camera cameraMatrix was transformed for */
+    D3MATRIX worldMatrix;           /* 0x008, the object's world matrix (d3_WorldMatrix writes it) */
+    D3MATRIX cameraMatrix;          /* 0x048, worldMatrix with the camera transform applied;
+                                       GetBox / Transform take it to put the box / the verts in camera space */
+    float zMin;                     /* 0x088, nearest z of the box in camera space (d3_ClipBox writes it) */
+    float zMax;                     /* 0x08c, farthest z of the box in camera space */
+    char pad090[0x20];
+    int frameStamp;                 /* 0x0b0, the frame the mesh was last transformed/clipped in (d3_FrameCount);
+                                       equal to the current frame: already current, only flag 0x40 is set;
+                                       -1 = never (d3_AddObjectDrawData) */
+    char boneName[0x40];            /* 0x0b4, the parent's bone the object is attached to (d3_AttachToBone writes it,
+                                       d3anim_MapBones / d3anim_PoseBones match the children by it); the length is the
+                                       room to surf */
+    D3SURF surf[4];                 /* 0x0f4, surf[3] at 0x5bc */
+    D3MESHSUB sub[4];               /* 0x754 */
+    float groundOffset;             /* 0x954, offset added to the mesh's ground height (d3s_GetGround) */
+    float lightScale;               /* 0x958, light brightness scale (ch.c: 1.8 for characters) */
+    unsigned int lightGeneration;   /* 0x95c */
+    struct D3PVERT *mirrorPoints;          /* 0x960, mirrored point array ("d3_mir:MirroredPoints") */
+    struct D3PTRI *mirrorPolys;             /* 0x964, mirrored polygon array ("d3_mir:MirroredPolys") */
+    D3SURF *mirrorSource;           /* 0x968, the surf the mirror copy was made from */
+    unsigned char nsurf;            /* 0x96c */
+    unsigned char flags;            /* 0x96d, 0x40 = no vertex animation (d3anim_StepObject) */
+    char pad96e[0x2];
+} D3MESH;
+
 typedef struct D3ANIMKEY {          /* 0x58 bytes */
     int time;
     D3VECTOR4 pos;                  /* 0x04, relative to the object's position */
@@ -267,7 +410,7 @@ typedef struct D3ANIMKEY {          /* 0x58 bytes */
 D3ANIM *d3anim_CreatePath(D3OBJECT *obj, D3ANIMFLAGS f, int nkeys, D3ANIMKEY *keys);          /* 0x433d70 */
 void d3_UnwrapAngles(const struct D3VECTOR *a, const struct D3VECTOR *b, struct D3VECTOR *ra, struct D3VECTOR *rb);                            /* 0x453d60, angles mod 2pi */
 int d3_FindAnim(char *name);                                                           /* 0x433f40, anim loaded? */
-int d3anim_StartAnim(void *list, char *name, D3ANIMFLAGS f);                                /* 0x435550, @original: this typedef spelling (not struct D3ANIMFLAGS) keeps the /O2 operand order of the byte-matched d3_LoadScene44be60 (d3_int_io.c, 0x27f) */
+struct D3ANIMSLOT *d3anim_StartAnim(struct D3SURF *ctl, char *name, D3ANIMFLAGS f);                          /* 0x435550, @original: this typedef spelling (not struct D3ANIMFLAGS) keeps the /O2 operand order of the byte-matched d3_LoadScene44be60 (d3_int_io.c, 0x27f) */
 struct D3IOPATH *d3_LoadObjectAnim(char *file, struct D3IOOBJ *obj, char reload);                                 /* 0x44e2e0 */
 extern struct VFSDIR *d3io_StockDir;          /* 0xfba940, the stock object directory (d3io_SetStockDir, d3_int_io.c) */
 char *util_BaseName(char *path);            /* 0x401040, strips the extension in place, returns the file name */
@@ -293,7 +436,7 @@ extern unsigned int d3_TexCount;            /* 0xfb9084 */
 extern void *d3_Terrain;                  /* 0x633738 */
 
 struct TSTEXTURE; struct TSTEXTURE *tex_Load(char *name, D3TEXFLAGS flags, unsigned char opts, unsigned char fmt);  /* 0x4605c0, ts_texture.c (TSFLAGS is D3TEXFLAGS) */
-void d3_SetObjectAlpha(D3OBJECT *obj, struct D3OBJINFO *info, D3TEXFLAGS f);           /* 0x43d430, f.b[0] = alpha */
+void d3_SetObjectAlpha(D3OBJECT *obj, struct D3SURF *info, D3TEXFLAGS f);           /* 0x43d430, f.b[0] = alpha */
 struct TSTEXTURE; void tex_Reload(struct TSTEXTURE *tex, char keep);                                               /* 0x460e50 */  /* @original: ts_texture.c defines (TSTEXTURE *, char); the d3 callers were compiled against this */
 struct TSTEXTURE; void tex_Release(struct TSTEXTURE *tex);                                                          /* 0x45fbc0 */
 struct TSTEXTURE; char tex_SetHiColor(struct TSTEXTURE *tex, unsigned char hicolor);                                            /* 0x4611b0 */

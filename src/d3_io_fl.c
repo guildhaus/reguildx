@@ -48,8 +48,8 @@ D3BGF *d3_FindBGF(char *path, char *name, char *texnames, int ntexsets, int ntex
         if (*pn > 0) {
             m->verts = (float *)mem_Alloc((*pn * 3 + 0x18) * 8, "d3_io_fl:LoadFastChunk(poi)");
             for (cnt = 0; cnt < *pn + 8; cnt++) {
-                bio_rd_v3(f, &((D3BGFVERT *)m->verts)[cnt].x);
-                bio_rd_v3(f, &((D3BGFVERT *)m->verts)[cnt].nx);
+                bio_rd_v3(f, &m->vtx[cnt].x);
+                bio_rd_v3(f, &m->vtx[cnt].nx);
             }
         }
         bio_rd_i(f, &m->radius);
@@ -158,7 +158,7 @@ void d3_CalcNormals(D3BGF *m)
         d3_TriNormal((D3VECTOR *)(v + p[i].v[0] * 6), (D3VECTOR *)(v + p[i].v[1] * 6),
                      (D3VECTOR *)(v + p[i].v[2] * 6), (D3VECTOR4 *)&p[i].n);
     }
-    vt = (D3BGFVERT *)m->verts;
+    vt = m->vtx;
     for (i = 0; i < m->nverts; i++, vt++) {
         s.x = 0.0f;
         s.y = 0.0f;

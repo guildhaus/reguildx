@@ -188,7 +188,7 @@ int d3t_PlayAnim(D3OBJECT *obj, char *name, unsigned int flags)
     if (flags & 0x20)
         af.b[1] |= 4;
     af.b[8] |= 2;
-    if (obj->material && d3anim_StartAnim(obj->material->animCtl, base, af))
+    if (obj->material && d3anim_StartAnim(&obj->material->surf[0], base, af))
         return 1;
     sprintf(msg, "%s%s.oam", d3io_StockDir, name);
     anim = (D3ANIM *)d3_LoadObjectAnim(msg, obj, 1);
@@ -212,8 +212,8 @@ int d3t_ReleaseObjectTexture(D3OBJECT *obj, char *name)
 {
     int i;
     for (i = 0; i < 3; i++) {
-        if (obj->material && obj->material->tex[i].name && strcmpi(obj->material->tex[i].name, name) == 0) {
-            d3_ReleaseTexture(obj->material->animCtl, name);
+        if (obj->material && obj->material->surf[0].slots[i].data && strcmpi(obj->material->surf[0].slots[i].data->name, name) == 0) {
+            d3_ReleaseTexture(&obj->material->surf[0], name);
             d3_UpdateObject(obj, 0);
         }
     }
@@ -225,8 +225,8 @@ int d3t_ReleaseObjectTextures(D3OBJECT *obj)
 {
     int i;
     for (i = 0; i < 3; i++) {
-        if (obj->material && obj->material->tex[i].name)
-            d3_ReleaseTexture(obj->material->animCtl, obj->material->tex[i].name);
+        if (obj->material && obj->material->surf[0].slots[i].data)
+            d3_ReleaseTexture(&obj->material->surf[0], obj->material->surf[0].slots[i].data->name);
     }
     return 1;
 }
@@ -276,7 +276,7 @@ int d3t_GetHeightRange(D3OBJECT *obj, float *lo, float *hi)
     *lo = 0.0f;
     if (obj->type == 4) {
         d3_UpdateWorldMatrix(obj, d3_Camera, 0);
-        v = d3_GetBoxVerts(obj, obj->info, obj->material->meshData);
+        v = d3_GetBoxVerts(obj, obj->info, &obj->material->worldMatrix);
         if (v) {
             *lo = v->y;
             *hi = v->y;
@@ -341,24 +341,22 @@ int d3t_GetFootprint(D3OBJECT *obj, float t, D3VECTOR *c0, D3VECTOR *c1, D3VECTO
     return 0;
 }
 
-typedef struct D3MESHLIST { char pad[0x10]; D3MESHOPS *ops; } D3MESHLIST;
-
 /* 0x411eb0, center and radius of a mesh's 8-corner box as seen from the camera; returns 1 when the
    box was read (d3_GetBounds' mesh branch: the results stored under one `if (ok)`). */
 char d3t_GetBoundingSphere(D3OBJECT *obj, D3OBJECT *camera, D3VECTOR *center, float *radius)
 {
     char ok = 0;
-    D3MESHLIST *list;
+    D3SURF *list;
     D3BOXVERT *v;
     D3VECTOR4 c;
     float dx, dy, dz, r, d;
     D3BOXVERT *w;
     int i;
 
-    if (obj && (center || radius) && obj->material->ops) {
-        list = (D3MESHLIST *)obj->material->animCtl;
+    if (obj && (center || radius) && obj->material->surf[0].mesh) {
+        list = &obj->material->surf[0];
         d3_UpdateWorldMatrix(obj, camera, 0);
-        v = list->ops->GetBox(obj, list, obj->material->meshData);
+        v = list->mesh->GetBox(obj, list, &obj->material->worldMatrix);
         if (v) {
             c.x = v[0].x;
             c.y = v[0].y;

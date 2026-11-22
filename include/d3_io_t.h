@@ -17,14 +17,6 @@ typedef union D3BGFFLAGS {          /* tex_Load flags as the loader builds them 
     } s;
 } D3BGFFLAGS;
 
-typedef struct D3BGFPOLY {          /* 0x38 bytes, D3BGF::polys */
-    float uv[3][2];                 /* 0x00 */
-    int v[3];                       /* 0x18, vertex indices */
-    int tex;                        /* 0x24, index into d3_Textures or -1 */
-    int mat;                        /* 0x28, material index while loading */
-    D3VECTOR n;                     /* 0x2c, the face normal (d3_TriNormal of its three vertices, summed into the vertex normals, d3_io_fl.c) */
-} D3BGFPOLY;
-
 typedef struct D3BGFMAT {           /* 0xe0 bytes, a material as stored in the file */
     char name[3][0x40];             /* 0x00, 0x40, 0x80: texture names */
     unsigned char kind;             /* 0xc0 */
@@ -43,11 +35,6 @@ typedef struct D3BGFMAT {           /* 0xe0 bytes, a material as stored in the f
     float rot;                      /* 0xdc */
 } D3BGFMAT;
 
-typedef struct D3BGFATTACH {        /* 0x58 bytes */
-    char name[0x40];
-    float f[6];
-} D3BGFATTACH;
-
 typedef struct D3BGFDESC {          /* 0x198 bytes, what the file reader (0x44f870) fills in */
     char pad00;
     signed char flag01;             /* 0x01 */
@@ -64,42 +51,9 @@ typedef struct D3BGFDESC {          /* 0x198 bytes, what the file reader (0x44f8
     D3BGFATTACH attach[4];          /* 0x38 */
 } D3BGFDESC;
 
-typedef struct D3BGF D3BGF;
-struct D3LINFO;
-struct D3BGF {                      /* 0x20c bytes, a loaded mesh ("d3_io:LoadAGI_obj"): a stock object, the mesh driver
-                                       of the surfaces that show it (D3OBJINFO.mesh, read as D3OPS in d3_engine.h);
-                                       the loaded ones are linked between the sentinels d3_StockListStart and d3_StockListEnd */
-    char name[0x40];
-    float *verts;                   /* 0x40, 6 floats each, followed by the 8 corners of the bounding box */
-    int nverts;                     /* 0x44 */
-    D3BGFPOLY *polys;               /* 0x48 */
-    int npolys;                     /* 0x4c */
-    char pad50[0x18];
-    float cx, cy, cz;               /* 0x68, centre of the box */
-    D3BGFATTACH attach[4];          /* 0x74 */
-    union {
-        float radius;               /* 0x1d4 */
-        int radiusBits;             /* 0x1d4, the same as the fast chunk writes it (bio_wr_i, d3_AddFLChunk) */
-    };
-    float diagonal;                 /* 0x1d8 */
-    int refs;                       /* 0x1dc */
-    int ntex;                       /* 0x1e0 */
-    int nsets;                      /* 0x1e4, texture sets of the name table (D3OPS.nsets, d3_engine.h) */
-    void (*Release)(D3BGF *m);      /* 0x1e8, the stock object's callbacks (d3io_LoadObjectFile): d3iot_DeleteStockObject */
-    void (*TransformNormals)(struct D3OBJECT *obj, struct D3LINFO *info);                       /* 0x1ec */
-    void (*Transform)(struct D3OBJECT *obj, struct D3LINFO *info, struct D3MATRIX *m);          /* 0x1f0 */
-    struct D3BOXVERT *(*GetBox)(struct D3OBJECT *obj, struct D3OBJINFO *info, void *unk);       /* 0x1f4 */
-    float (*GetRadius)(int unused, struct D3OBJINFO *info);                                     /* 0x1f8 */
-    D3BGF *next;                    /* 0x1fc, the stock object list: towards d3_StockListEnd */
-    D3BGF *prev;                    /* 0x200, towards the head sentinel d3_StockListStart */
-    char *texnames;                 /* 0x204, ntex names of 0x40 bytes */
-    unsigned char nattach;          /* 0x208, the attachment points in use (d3_FindBGF stores the low byte of their count) */
-    char pad209[3];
-};
-
 /* The eight bounding-box corners are appended to the vertex array as D3BGFVERT records (d3_io_fl.h):
    D3BGF_CORNER(m, k) is corner k (x, y, z; its normals stay unset) */
-#define D3BGF_CORNER(m, k) (((D3BGFVERT *)((char *)(m)->verts + (m)->nverts * 0x18)) + (k))
+#define D3BGF_CORNER(m, k) ((m)->vtx + (m)->nverts + (k))
 
 extern struct VFSDIR *vfs_Root;                                                                  /* 0x6333fc */
 struct VFSDIR;
@@ -110,14 +64,14 @@ void d3iot_CalcBounds(D3BGF *m);                                                
 void d3iot_Finish(D3BGF *m, char bounds);                                               /* 0x44d1c0 */
 void d3iot_LoadTexSet(char *name, char **out, int *w, int *h);                          /* 0x44d1f0 */
 D3BGF *d3iot_LoadBGF(char *path, char *name, char *texnames, int ntexsets, int ntex);     /* 0x44d330 */
-float d3iot_GetRadius(int unused, D3OBJINFO *info);                                     /* 0x44df20 */
+float d3iot_GetRadius(int unused, D3SURF *info);                                     /* 0x44df20 */
 
 /* 0x44df40..0x44e570 (worker d3io3, joined at the round-10 close) */
 
 typedef struct D3IOOBJ D3IOOBJ;
 struct D3IOOBJ {                    /* a D3OBJECT as d3_LoadObjectAnim sees it (the stock objects are D3BGF) */
     char pad000[0x40];
-    int time;                       /* 0x40, d3_Time of the object's last animation update (D3ANIMOBJ.time);
+    int time;                       /* 0x40, d3_Time of the object's last animation update (D3OBJECT.animTime);
                                        d3_LoadObjectAnim sets it when the path is attached */
     char pad044[0x8];
     float pos[3];                   /* 0x4c */

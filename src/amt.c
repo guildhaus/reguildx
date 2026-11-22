@@ -479,10 +479,10 @@ int amt_SendOfficeMessage(unsigned char a, AICHAR *b, AICHAR *c, int d, unsigned
     if (i >= 42)
         return -1;
     m.office = a;
-    m.a = netIdB;
-    m.d = d;
-    m.e = e;
-    m.b = netIdC;
+    m.owner = netIdB;
+    m.state = d;
+    m.code = e;
+    m.second = netIdC;
     return cm_SendOfficeRecord(&m);
 }
 /* 0x4e6710, checks the office message m (AMTMSG: +0 the office, +1 / +7 two character ids or -1, +6 the code): with a code (not 0xff) the
@@ -494,7 +494,7 @@ int amt_CheckOfficeMessage(AMTMSG *m)
     AMTREC *q;
     int i;
 
-    if (m->e != 0xff) {
+    if (m->code != 0xff) {
         i = 0;
         q = amt_Table;
         do {
@@ -511,25 +511,25 @@ int amt_CheckOfficeMessage(AMTMSG *m)
             return 0;
         if (amt_Table[i].x14 != -1)
             return 0;
-        if (m->b != -1) {
-            if (gm_FindChar(m->b) == 0)
+        if (m->second != -1) {
+            if (gm_FindChar(m->second) == 0)
                 return 0;
         }
-        if (m->a != -1) {
-            if (gm_FindChar(m->a) == 0)
+        if (m->owner != -1) {
+            if (gm_FindChar(m->owner) == 0)
                 return 0;
         }
     }
     return 1;
 }
-/* 0x4e67a0, executes the office message p (AMTSET: +0 the office, +1 the new owner or -1, +5 the new state, +7 the x14
+/* 0x4e67a0, executes the office message p (AMTMSG: +0 the office, +1 the new owner or -1, +5 the new state, +7 the second
    character; message 0x45, the only caller is cm.c's handler of the type 0x45): the old owner loses the rank / the status
    bit of the office, the new owner takes it (officeKind +0x166, prevOffice +0x167, secondOffice +0x169, status bits
    +0x1cc), the applicants' counts are settled; 0 when a character does not exist
    ai_ShowOfficeNews (the text 0x20bb with the x14 character's id to the new owner, event 0x5fd, only for a player
    character kind 6/7): its name is a reasoned guess from this call (see its address comment). */
 
-int amt_ExecuteOfficeMessage(AMTSET *p)
+int amt_ExecuteOfficeMessage(AMTMSG *p)
 {
     int i, j, owner;
     AICHAR *c, *o, *x;
@@ -541,8 +541,8 @@ int amt_ExecuteOfficeMessage(AMTSET *p)
     i = 0;
     owner = -1;
     x = 0;
-    if (p->x14 != -1) {
-        x = gm_FindChar(p->x14);
+    if (p->second != -1) {
+        x = gm_FindChar(p->second);
         if (x == 0)
             return 0;
     }
@@ -555,7 +555,7 @@ int amt_ExecuteOfficeMessage(AMTSET *p)
     }
     q = amt_Table;
     do {
-        if (q->idx == p->idx)
+        if (q->idx == p->office)
             break;
         q++;
         i++;
@@ -650,7 +650,7 @@ next:
     }
 done:
     amt_Table[i].owner = owner;
-    amt_Table[i].x14 = p->x14;
+    amt_Table[i].x14 = p->second;
     amt_Table[i].state = p->state;
     if (p->state == 3)
         amt_Table[i].cnt = 0;
@@ -1387,7 +1387,7 @@ void amt_ElectOffices(int unused, int n, AMTREC *recs)
     int tie;
     AICHAR *o, *x, *c;
     AMTREC *p;
-    char buf[4];
+    int why;                        /* the out values (what decided the vote), unread */
 
     pending = 0;
     for (i = 0; i < n; i++) {
@@ -1413,7 +1413,7 @@ void amt_ElectOffices(int unused, int n, AMTREC *recs)
             votes[j] = 3;
             c = gm_FindChar(recs[j].owner);
             if (c != 0 && c->officeKind != 0 && c->heldRounds == 0) {
-                s = ai_TrustedOfTwo(c, o, x, buf);
+                s = ai_TrustedOfTwo(c, o, x, &why);
                 votes[j] = s;
                 tally[s]++;
             }
@@ -1499,7 +1499,7 @@ void amt_ElectOffices(int unused, int n, AMTREC *recs)
             votes[j] = -1;
             c = gm_FindChar(recs[j].owner);
             if (c != 0 && amt_CanTakeOffice(c, recs[i].kind) != 0 && !(c->heldRounds > 0))
-                votes[j] = ai_TrustedOfFour(recs[i].idx, c, ids, buf);
+                votes[j] = ai_TrustedOfFour(recs[i].idx, c, ids, &why);
         }
         for (j = 0; j < n; j++) {
             v = votes[j];
@@ -1665,7 +1665,7 @@ int amt_IsColumnDecided(int col)
             }
         }
     }
-    if ((char)f & 2)
+    if ((signed char)f & 2)
         return 1;
     return 0;
 }
@@ -2325,11 +2325,11 @@ int amt_CanUseMayorPower3(AICHAR *c)
 /* 0x4e9660, executes the guild-house price message m (kind 3, +4 the job number 1 .. 7, +8 = 1 / -1 raise / lower) of the character c:
    the best building of the district (the type's level +0x247) selects the row of gm_BuildingItemGroups (0x15 bytes: the building kind and 10 goods
    ids), gm_Shuffled picks one or two of those goods and their price records (gm_FindGoods) get the factor gm_GetSkill(c, 2) times a random
-   1.2 .. 2.0 (raise) or 0.5 .. 1.0 (lower); the goods go back through cm_SendGoodsDelta, m[3] / m[4] return them, c uses its power flag
+   1.2 .. 2.0 (raise) or 0.5 .. 1.0 (lower); the goods go back through cm_SendGoodsDelta, m->good1 / m->good2 return them, c uses its power flag
    0x4000000 and pays 3 money (gm_SendMoneyDelta), every player character except c is told the news text (0x1655 / 0x1659 + the goods
    names) and c gets it as a message box when it is a player character (kind 6). Always 0. */
 
-int amt_ExecutePriceMessage(AICHAR *c, int *m)
+int amt_ExecutePriceMessage(AICHAR *c, G8REQ *m)
 {
     int best;
     AIBTYPE *bt;                        /* the building's type */
@@ -2346,10 +2346,10 @@ int amt_ExecutePriceMessage(AICHAR *c, int *m)
     best = 0;
     id = 0;
     id2 = 0;
-    m[3] = 0;
-    m[4] = 0;
-    if (m[0] == 3 && (m[2] == 1 || m[2] == -1) && (unsigned int)m[1] >= 1 && (unsigned int)m[1] <= 7) {
-        t = gm_JobBuildingType(m[1]);
+    m->good1 = 0;
+    m->good2 = 0;
+    if (m->kind == 3 && (m->b == 1 || m->b == -1) && (unsigned int)m->a >= 1 && (unsigned int)m->a <= 7) {
+        t = gm_JobBuildingType(m->a);
         if (t != 0) {
             it = gm_BuildQuery(1, 5, t);
             if (it != 0) {
@@ -2384,7 +2384,7 @@ int amt_ExecutePriceMessage(AICHAR *c, int *m)
                                 id2 = cands[pick[1]];
                             }
                             f = gm_GetSkill(c, 2);
-                            if (m[2] == 1)
+                            if (m->b == 1)
                                 f = (util_RandomF() + 1.0f) * f * 0.4f + 1.2f;
                             else
                                 f = 1.0 - ((util_RandomF() + 1.0f) * f * 0.3f + 0.2);
@@ -2394,23 +2394,23 @@ int amt_ExecutePriceMessage(AICHAR *c, int *m)
                                 rec.mean = rec.demand * f;
                                 rec.price = gm_GoodsValue(ai_OwnPlayer, id);
                                 cm_SendGoodsDelta(&rec, ai_OwnPlayer);
-                                m[3] = id;
+                                m->good1 = id;
                                 p = gm_FindGoods(ai_OwnPlayer, id2);
                                 if (p != 0) {
                                     rec = *p;
                                     rec.mean = rec.demand * f;
                                     rec.price = gm_GoodsValue(ai_OwnPlayer, id2);
                                     cm_SendGoodsDelta(&rec, ai_OwnPlayer);
-                                    m[4] = id2;
+                                    m->good2 = id2;
                                 }
                                 cm_SendSetField(c->netId, 0x1c8, 4, 0x4000000, 0);
                                 gm_SendMoneyDelta(c->netId, -3);
                                 r = util_Random(3);
-                                if (m[2] == 1) {
-                                    txt_Format(buf, r + 0x1656, m[1] + 0x1648);
+                                if (m->b == 1) {
+                                    txt_Format(buf, r + 0x1656, m->a + 0x1648);
                                     txt_Format(msg, 0x1655, buf, id * 2 + 0x9a8, id2 * 2 + 0x9a8);
                                 } else {
-                                    txt_Format(buf, r + 0x165a, m[1] + 0x1648);
+                                    txt_Format(buf, r + 0x165a, m->a + 0x1648);
                                     txt_Format(msg, 0x1659, buf, id * 2 + 0x9a8, id2 * 2 + 0x9a8);
                                 }
                                 for (i = 0; i < 768; i++) {
@@ -2431,12 +2431,12 @@ int amt_ExecutePriceMessage(AICHAR *c, int *m)
 }
 /* 0x4e9a00, executes the guild-house gift message m (kind 2, +4 the object id, +8 the goods amount) of the character c: when the object's
    owner (+0x27) is not c and not -1, c's gift (the skill 4 of c, times a random factor 1 .. 2, times 15, plus 5, times 2.55) costs every
-   character at the object (the +0x16c pointer, the owner itself skipped) that many relations points (cm_SendRelations), the amount m[2]
-   leaves c (cm_SendMoveGoodsUnchecked) and m[2] / count + 0x20 goes back to each of them; c pays 5 money and uses its power flag
+   character at the object (the +0x16c pointer, the owner itself skipped) that many relations points (cm_SendRelations), the amount m->b
+   leaves c (cm_SendMoveGoodsUnchecked) and m->b / count + 0x20 goes back to each of them; c pays 5 money and uses its power flag
    0x8000000, the owner gets the text 0x1663 as a quick jump, every player character the text 0x1662 (channel 0x5fd) and c the text 0x1661
    as a message box. Returns 1 when done, 0 for another message, a missing object or its own / no owner. */
 
-int amt_ExecuteShareMessage(AICHAR *c, int *m)
+int amt_ExecuteShareMessage(AICHAR *c, G8REQ *m)
 {
     AIBLD *o;
     int loss, cnt, i;
@@ -2444,14 +2444,14 @@ int amt_ExecuteShareMessage(AICHAR *c, int *m)
     int *q;
     char msg[1024];
 
-    if (m[0] == 2) {
-        gm_FindById(&o, 0, 0, m[1]);
+    if (m->kind == 2) {
+        gm_FindById(&o, 0, 0, m->a);
         if (o != 0) {
             if (o->owner != c->id && o->owner != 0xffff) {
                 f = gm_GetSkill(c, 4);
                 f = (util_RandomF() + 1.0f) * f * 15.0f;
                 loss = (int)((f + 5.0) * 2.55f);
-                cm_SendMoveGoodsUnchecked(-1, c->netId, ai_OwnPlayer, m[2]);
+                cm_SendMoveGoodsUnchecked(-1, c->netId, ai_OwnPlayer, m->b);
                 i = 0;
                 cnt = 0;
                 do {
@@ -2462,7 +2462,7 @@ int amt_ExecuteShareMessage(AICHAR *c, int *m)
                     i++;
                 } while (i < 768);
                 if (cnt != 0) {
-                    loss = (int)((float)m[2] / cnt) + 0x20;
+                    loss = (int)((float)m->b / cnt) + 0x20;
                     for (i = 0; i < 768; i++) {
                         if (ai_Chars[i].id != 0xffff && ai_Chars[i].bld == o && o->owner != i)
                             cm_SendMoveGoodsUnchecked(ai_Chars[i].netId, -1, ai_OwnPlayer, loss);
@@ -2507,7 +2507,7 @@ int amt_ExecuteShareMessage(AICHAR *c, int *m)
    whole-function allocation per region: original c=esi / t=ebx / ret=ebp in the 0x1e arm, c=ebp / n=esi in
    the 0x1f arm, c=esi / dmg=ebp / n=edi in the 0x20 arm, m reloaded into ebx for each txt_Format; ours
    c=ebx and m in ebp, so the dmg loops reload c from [esp+0x8f0] and the 0x20 tail does not hoist the
-   common push m[1]+0x1663 / lea msg above the rf test; rf at [esp+0x14] vs [esp+0x10] (f / rf slots
+   common push m->a+0x1663 / lea msg above the rf test; rf at [esp+0x14] vs [esp+0x10] (f / rf slots
    swapped). Tried, = control: float f, rf order, t declared first, t block-scoped in the 0x1e arm, the
    0x1e test as nested ifs, c->secondOffice read in each compare instead of kind, kind via the secondOffice field,
    ret as a ternary; t != c before t->officeKind (worse, other order). Headers sample: insensitive. (tiebreak:
@@ -2515,7 +2515,7 @@ int amt_ExecuteShareMessage(AICHAR *c, int *m)
    register, the tell loops inline, gm_SendMoneyDelta, GetColumnOffices in both rf branches, no n!=1
    guard, duplicated branch tails with their own returns); message / loop / return layout equal; the 14
    extra instructions are the reloads of c and m the other register assignment costs. */
-int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
+int amt_ExecuteMayorPowerMessage(AICHAR *c, G8REQ *m)
 {
     float rf, f;
     int ret, n, dmg, i, j, id;
@@ -2534,7 +2534,7 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
         ret = -1;
     kind = c->secondOffice;
     if (kind == 0x1e) {
-        if (m[0] == 1 && (t = gm_FindChar(m[1])) != 0 && t->officeKind != 0 && t != c && amt_FindOffice(t, &k, &o) != 0) {
+        if (m->kind == 1 && (t = gm_FindChar(m->a)) != 0 && t->officeKind != 0 && t != c && amt_FindOffice(t, &k, &o) != 0) {
             if (rf > 0.3f)
                 amt_SendOfficeMessage((char)o.idx, 0, 0, 4, 0xff);
             gm_SendMoneyDelta(c->netId, -8);
@@ -2577,9 +2577,9 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
             return ret;
         }
     } else if (kind == 0x1f || kind == 0x21) {
-        if (m[0] == 4 && (unsigned int)m[1] >= 1 && (unsigned int)m[1] <= 6) {
+        if (m->kind == 4 && (unsigned int)m->a >= 1 && (unsigned int)m->a <= 6) {
             if (rf > 0.3f) {
-                n = amt_GetColumnOffices(m[1], 6, list);
+                n = amt_GetColumnOffices(m->a, 6, list);
                 f = gm_GetSkill(c, 4);
                 f = (util_RandomF() + 1.0f) * f * 15.0f;
                 dmg = (int)((f + 5.0) * 2.55f);
@@ -2595,13 +2595,13 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
                     }
                 }
             } else {
-                n = amt_GetColumnOffices(m[1], 6, list);
+                n = amt_GetColumnOffices(m->a, 6, list);
             }
             gm_SendMoneyDelta(c->netId, -8);
             cm_SendSetField(c->netId, 0x1c8, 4, 0x10000000, 0);
             if (rf > 0.3f) {
-                txt_Format(msg, 0x1672, m[1] + 0x1663);
-                txt_Format(msg2, 0x1670, m[1] + 0x1663);
+                txt_Format(msg, 0x1672, m->a + 0x1663);
+                txt_Format(msg2, 0x1670, m->a + 0x1663);
                 q = ai_CharInts[0];
                 do {
                     if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != c->netId) {
@@ -2617,13 +2617,13 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
                     q += 0x87;
                 } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
                 if (c->kind == 6) {
-                    txt_Format(msg, 0x166e, m[1] + 0x1663);
+                    txt_Format(msg, 0x166e, m->a + 0x1663);
                     sv_MessageBox((intptr_t)msg, 0);
                 }
                 return ret;
             } else {
-                txt_Format(msg, 0x1673, m[1] + 0x1663);
-                txt_Format(msg2, 0x1671, m[1] + 0x1663);
+                txt_Format(msg, 0x1673, m->a + 0x1663);
+                txt_Format(msg2, 0x1671, m->a + 0x1663);
                 q = ai_CharInts[0];
                 do {
                     if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != c->netId) {
@@ -2639,15 +2639,15 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
                     q += 0x87;
                 } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
                 if (c->kind == 6) {
-                    txt_Format(msg, 0x166f, m[1] + 0x1663);
+                    txt_Format(msg, 0x166f, m->a + 0x1663);
                     sv_MessageBox((intptr_t)msg, 0);
                 }
             }
             return ret;
         }
-    } else if (kind == 0x20 && m[0] == 4 && (unsigned int)m[1] >= 1 && (unsigned int)m[1] <= 6) {
+    } else if (kind == 0x20 && m->kind == 4 && (unsigned int)m->a >= 1 && (unsigned int)m->a <= 6) {
         if (rf > 0.3f) {
-            n = amt_GetColumnOffices(m[1], 6, list);
+            n = amt_GetColumnOffices(m->a, 6, list);
             f = gm_GetSkill(c, 4);
             f = (util_RandomF() + 1.0f) * f * 15.0f;
             dmg = (int)((f + 5.0) * 2.55f);
@@ -2660,7 +2660,7 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
         gm_SendMoneyDelta(c->netId, -8);
         cm_SendSetField(c->netId, 0x1c8, 4, 0x10000000, 0);
         if (rf > 0.3f) {
-            txt_Format(msg, 0x167a, m[1] + 0x1663);
+            txt_Format(msg, 0x167a, m->a + 0x1663);
             q = ai_CharInts[0];
             do {
                 if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != c->netId)
@@ -2668,11 +2668,11 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
                 q += 0x87;
             } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
             if (c->kind == 6) {
-                txt_Format(msg, 0x1678, m[1] + 0x1663);
+                txt_Format(msg, 0x1678, m->a + 0x1663);
                 sv_MessageBox((intptr_t)msg, 0);
             }
         } else {
-            txt_Format(msg, 0x167b, m[1] + 0x1663);
+            txt_Format(msg, 0x167b, m->a + 0x1663);
             q = ai_CharInts[0];
             do {
                 if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != c->netId)
@@ -2680,7 +2680,7 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, int *m)
                 q += 0x87;
             } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
             if (c->kind == 6) {
-                txt_Format(msg, 0x1679, m[1] + 0x1663);
+                txt_Format(msg, 0x1679, m->a + 0x1663);
                 sv_MessageBox((intptr_t)msg, 0);
             }
         }

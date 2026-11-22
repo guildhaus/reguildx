@@ -1889,7 +1889,7 @@ void init_LoadSiteScene(char *name)
             }
             if (i >= ai_NBauplaetze) {
                 d3_MatIdentity(&cam);
-                box = ((D3MESHOPS *)o->info->mesh)->GetBox(o, o->info, &cam);
+                box = o->info->mesh->GetBox(o, o->info, &cam);
                 ai_Bauplaetze = (G15BK *)realloc(ai_Bauplaetze, (ai_NBauplaetze * 3 + 3) * 0x20);
                 strcpy(ai_Bauplaetze[ai_NBauplaetze].name, name);
                 ai_Bauplaetze[ai_NBauplaetze].x0 = box[0].x;
@@ -2835,9 +2835,9 @@ void init_SyncSceneObjects(D3OBJECT *o)
     }
     if (strncmp(o->name, "pfl_", 4) == 0 || strncmp(o->name, "vg_", 3) == 0) {
         if (o->info != 0)
-            d3if_SelectTextureSet(o, (struct D3SURF *)o->info, init_TextureSet, 1);
+            d3if_SelectTextureSet(o, o->info, init_TextureSet, 1);
         else
-            d3if_SelectTextureSet(o, (struct D3SURF *)o->material->animCtl, init_TextureSet, 1);
+            d3if_SelectTextureSet(o, &o->material->surf[0], init_TextureSet, 1);
     }
 }
 /* 0x5124d0, the first building of the type 0xb: 0x511e60 */
@@ -3150,7 +3150,7 @@ void init_PlantTextureSetHook(D3OBJECT *o)
 {
     if (strncmp(o->name, "pfl_", 4) != 0 && strncmp(o->name, "vg_", 3) != 0 && strncmp(o->name, "!vg_", 4) != 0)
         return;
-    d3if_SelectTextureSet(o, (struct D3SURF *)o->info, init_TextureSet, 1);
+    d3if_SelectTextureSet(o, o->info, init_TextureSet, 1);
 }
 /* 0x512e40, the scene object callback: unless the object is of the kind 2 / 4 it switches the textures of the
    object's mesh (D3OBJECT.material, the set list at +0xf4) to the current set (init_TextureSet, 0x446f30) */
@@ -3165,9 +3165,9 @@ char init_TextureSetHook(D3OBJECT *o)
         /* @original: the kind 3 had its own arm, the same call; VC6 merged the two calls and left the
            dead cmp ecx,3 in the argument setup */
         if (s == 3)
-            d3if_SelectTextureSet(o, o->material->animCtl, init_TextureSet, 1);
+            d3if_SelectTextureSet(o, &o->material->surf[0], init_TextureSet, 1);
         else
-            d3if_SelectTextureSet(o, o->material->animCtl, init_TextureSet, 1);
+            d3if_SelectTextureSet(o, &o->material->surf[0], init_TextureSet, 1);
     }
     return 1;
 }
@@ -3190,7 +3190,7 @@ char init_BuildingTextureSetHook(D3OBJECT *o, void *ctx)
         return 1;
     if (strncmp(o->name, "pfl_", 4) != 0 && strncmp(o->name, "vg_", 3) != 0 && strncmp(o->name, "!vg_", 4) != 0) {
         for (i = 0; i <= n; i++)
-            d3if_SelectTextureSet(o, (struct D3SURF *)o->info, i, 1);
+            d3if_SelectTextureSet(o, o->info, i, 1);
     }
     return 1;
 }

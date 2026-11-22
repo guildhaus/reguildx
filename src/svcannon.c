@@ -452,7 +452,7 @@ typedef struct CANNONSCENE { /* 0x104 bytes (0xe4 cleared), the scene struct of 
     D3VECTOR bmin;           /* +0xf4 */
     float pad100;            /* +0x100, bmin's fourth float: the original's frame keeps 4 bytes behind it */
 } CANNONSCENE;
-char * gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
+struct GVEFFECT *gv_FindEffect(int id); int gv_RequestEffectLoad(struct AIBLD *bld);
 struct D2FADE *d2_StartFade(int x, int y, int w, int h, char *name, int dur, unsigned int flags); /* 0x4767d0, d2.h */
 void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); void d3sky_Init(struct D3SKY *s, char build);
 char d3if_ShowTree(struct D3OBJECT *obj, char show);
@@ -503,12 +503,12 @@ void ai_CannonScene(AIBLD *rec)
     mask = sv_FrameMask | 0x80;
     if (!rec->object)
         return;
-    run = (GVEFFECT *)gv_FindEffect(rec->id);
+    run = gv_FindEffect(rec->id);
     if (!run) {
         m = gv_RequestEffectLoad(rec);
         while (m != -1 && cm_GetSlotState(m) == 0)
             sv_RunFrame(0, 0x20007);
-        run = (GVEFFECT *)gv_FindEffect(rec->id);
+        run = gv_FindEffect(rec->id);
         if (!run)
             return;
     }
@@ -1063,7 +1063,7 @@ void ai_CannonShotResults(CANNONSCENE *sc)
 
 void gv_BuildingCannon(struct AIBLD *o, unsigned *a, unsigned *b); float ai_GetDefaultEffectScale();
 int _ftol(); float ai_CannonPitchRatio(CANNONSCENE *sc);
-void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, char p);
+void txt_Format(char *out, intptr_t id0, ...); int gm_CharCurrency(struct AICHAR *c, signed char p);
 
 /* 0x57f890, the cannon control panel: rec = the building record, sc = the scene, run = its effect slot. The two
    sliders (sc->kindSlider, clamped to the cannon kind of gv_BuildingCannon, and sc->speedSlider) give the salvo's
@@ -2020,7 +2020,7 @@ void ai_AlchemistLabContact(AIBLD *rec, AIOBJ *room)
     D3OBJECT *recipeBook;
     int r;
     int a;
-    int b;
+    float b;
 
     contract = 0;
     storage = 0;

@@ -142,7 +142,7 @@ extern D3OBJECT *cm_HoverObject;
 extern int cm_FightPaused;
 extern struct AICHAR *cm_FightDefender;
 extern struct AICHAR *cm_FightAttacker;
-extern char * cm_PickMarker;
+extern struct D3OBJECT *cm_PickMarker;
 extern int cm_FightWinner;
 extern int cm_FightSettled;
 extern int cm_FightLootValue;

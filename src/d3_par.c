@@ -186,7 +186,7 @@ void par_SetDir(D3PARTSYS *ps, D3VECTOR *dir, float roll)
 
     if (ps) {
         d3_MakeBasis(dir, roll, &m);
-        d3_MatToAngles((D3VECTOR4 *)&m, (D3VECTOR4 *)&rot);
+        d3_MatToAngles(&m, &rot);
         d3_SetObjectRot((D3OBJECT *)ps->obj, &rot);
     }
 }

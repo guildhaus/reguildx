@@ -4,8 +4,7 @@
    the object shadows. The start at 0x459d80 follows the mesh code of d3_vtx.c (d3_GetBoxVerts ends at
    0x459d80); the end is proven by d3_sky.c, whose first D3DCHECK is at line 38 of that file.
    Functions are kept in their original order. Names are ours.
-   Open: d3s.h's D3STERR / D3STBLOCK / D3SMESH are local views of D3TERRAIN / D3SMBLOCK (d3_sm.h) and D3MESH
-   (d3_engine.h); D3TERRAIN lacks mip and D3MESH the float at 0x954; a union in D3MESH moves d3_Unk4550e0 by 8 bytes.
+   Open: d3s.h's D3STERR / D3STBLOCK are local views of D3TERRAIN / D3SMBLOCK (d3_sm.h); D3TERRAIN lacks mip.
    unit of rea 8cef7d5b (src/game/d3s.c); boundaries in decl/text.dcl */
 #include <stdio.h>
 #include <stdlib.h>
@@ -803,7 +802,11 @@ typedef struct TSTEXSIZE {          /* the parts of a texture slot (ts_texture.h
     unsigned char bpp;              /* 0x7c */
 } TSTEXSIZE;
 
-void d3s_ShadowPoly(D3SPOLY *poly, int bpp, int size);  /* 0x45a880, reguildx: int bpp as defined (the original: defined above old style with int bpp (it reads the whole slot as its first top index, the low byte for d3s_Byte); d3s_Project calls it through this prototype, pushing the byte unwidened (mov al,[tex+0x7c]; push eax). VC6 takes both without a warning) */
+#ifdef _MSC_VER
+void d3s_ShadowPoly(D3SPOLY *poly, unsigned char bpp, int size);  /* 0x45a880, @original: defined above old style with int bpp (it reads the whole slot as its first top index, the low byte for d3s_Byte); d3s_Project calls it through this prototype, pushing the byte unwidened (mov al,[tex+0x7c]; push eax). VC6 takes both without a warning; not standard C (a prototype must match the definition's promoted types), and no conforming spelling keeps the bytes: an int prototype makes d3s_Project widen the byte (127 -> 146 ins; an argument cast or mask changes nothing), an unsigned char definition reads the slot with movzx (d3s_ShadowPoly shape -> draft, 141 -> 205 ins) */
+#else
+void d3s_ShadowPoly(D3SPOLY *poly, int bpp, int size);
+#endif
 
 void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);                          /* 0x458810 */
 unsigned char d3_ClipBox(void *box, float *zmin, float *zmax);                                           /* 0x439650 */
@@ -969,7 +972,7 @@ char d3s_AddShadow(D3SSLOT *slot, D3STERR *grid)
     char ok = 0;
     struct TSTEXTURE *tex;
 
-    buf = (D3SBUF *)&D3_MESH(d3s_Object)->surf[0].info;
+    buf = (D3SBUF *)&D3_MESH(d3s_Object)->surf[0];
     tex = (slot->tex);
     col.c.r = (unsigned char)D3_L(slot->light)->color.x;
     col.c.g = (unsigned char)D3_L(slot->light)->color.y;
@@ -1076,7 +1079,7 @@ char d3s_AddShadow(D3SSLOT *slot, D3STERR *grid)
 }
 /* 0x45bcd0, height of the ground below obj (a shadow of a parent, or the bottom of its box) */
 
-float d3s_GetGround(D3OBJECT *obj, D3OBJINFO *info, D3OBJECT *light)
+float d3s_GetGround(D3OBJECT *obj, D3SURF *info, D3OBJECT *light)
 {
     float y;
     D3VECTOR4 pos;
@@ -1107,12 +1110,12 @@ float d3s_GetGround(D3OBJECT *obj, D3OBJINFO *info, D3OBJECT *light)
     }
     if (!found && obj->material) {
         if (obj->objectFlags & 0x20)
-            return pos.y - info->mesh->radius + D3S_MESH(obj->material)->groundOffset;
-        box = ((D3MESHOPS *)info->mesh)->GetBox(obj, info, D3_MESH(obj)->worldMatrix);
+            return pos.y - info->mesh->radius + obj->material->groundOffset;
+        box = info->mesh->GetBox(obj, info, &D3_MESH(obj)->worldMatrix);
         y = 1e10f;
         for (i = 8; i; i--, box++)
             y = min(y, box->y);
-        y += D3S_MESH(obj->material)->groundOffset;
+        y += obj->material->groundOffset;
     }
     return y;
 }
@@ -1142,7 +1145,7 @@ float d3s_GetGround(D3OBJECT *obj, D3OBJINFO *info, D3OBJECT *light)
    +0x6d3 load in another order; mh in ebp at +0x3f6 where ours keeps [esp+0x4c]; the head schedule
    (d3s_Count++ before the dir copy). */
 
-void d3s_Project(D3OBJECT *obj, D3OBJINFO *info, D3OBJINFO *mesh, D3TERRAIN *t, D3VECTOR *ldir,
+void d3s_Project(D3OBJECT *obj, D3SURF *info, D3SURF *mesh, D3TERRAIN *t, D3VECTOR *ldir,
                  D3VECTOR *lpos, D3OBJECT *light, D3SSLOT *slot)
 {
     struct TSTEXTURE *tex = slot->tex;
@@ -1170,7 +1173,7 @@ void d3s_Project(D3OBJECT *obj, D3OBJINFO *info, D3OBJINFO *mesh, D3TERRAIN *t, 
         z0 = pos.z - 16.0f;
         z1 = pos.z + 16.0f;
     } else {
-        D3_OPS(mesh)->Transform(obj, mesh, obj->material->meshData);
+        D3_OPS(mesh)->Transform(obj, mesh, &obj->material->worldMatrix);
         obj->state |= 0x10;
         v = (D3SVERT *)mesh->keys;
         if (light->objectFlags & 0x10) {
@@ -1303,7 +1306,7 @@ void d3s_Project(D3OBJECT *obj, D3OBJINFO *info, D3OBJINFO *mesh, D3TERRAIN *t, 
 char d3s_Update(D3OBJECT *obj, D3OBJECT *light, D3TERRAIN *t)
 {
     D3SSLOT *slot = 0;
-    D3OBJINFO *info, *mesh;
+    D3SURF *info, *mesh;
     D3VECTOR4 ldir, lpos, opos;
     D3TEXFLAGS f;
     unsigned int size, n;
@@ -1313,7 +1316,7 @@ char d3s_Update(D3OBJECT *obj, D3OBJECT *light, D3TERRAIN *t)
     unsigned char mh;
 
     if (!d3s_TexSize || obj->type >= 5 || !(obj->objectFlags & 4) || !obj->material || !(light->objectFlags & 4)
-        || D3_MESH(d3s_Object)->surf[0].info.ntris >= d3s_MaxPolys * 2 - 2
+        || D3_MESH(d3s_Object)->surf[0].ntris >= d3s_MaxPolys * 2 - 2
         || light->lightParams.y == 0.0)
         return 0;
     for (k = 0; k < 4; k++) {
@@ -1362,8 +1365,8 @@ found:
         slot->cache->time = d3_FrameCount;
     mesh = obj->info;
     info = mesh;
-    if (D3_MESH(obj)->surf[3].info.ntris > 0 && D3_MESH(obj)->surf[3].info.nkeys > 0)
-        mesh = &D3_MESH(obj)->surf[3].info;
+    if (D3_MESH(obj)->surf[3].ntris > 0 && D3_MESH(obj)->surf[3].nkeys > 0)
+        mesh = &D3_MESH(obj)->surf[3];
     d3_PointToWorld(light, &light->pos, &lpos.v);
     if (light->objectFlags & 0x10) {
         eps = 0.01f;
@@ -1375,7 +1378,7 @@ found:
         ldir.y = opos.y - lpos.y;
         ldir.z = opos.z - lpos.z;
     }
-    redo = !d3_VecEqual(&ldir.v, &slot->dir, eps) || ((D3SURF *)info)->alwaysDraw ? 1 : 0;
+    redo = !d3_VecEqual(&ldir.v, &slot->dir, eps) || info->active ? 1 : 0;
     if (t) {
         if (!redo) {
             j = slot->bz0;
@@ -1430,7 +1433,7 @@ void d3s_UpdateObject(D3OBJECT *obj)
 void d3s_UpdateObjectAt(D3OBJECT *obj)
 {
     D3OBJECT *light;
-    D3OBJINFO *info;
+    D3SURF *info;
     D3BOXVERT *verts, *box;
     D3VECTOR4 d;                        /* the light's ray through a corner, then the point relative to the camera */
     D3VECTOR4 lpos, ldir;
@@ -1450,7 +1453,7 @@ void d3s_UpdateObjectAt(D3OBJECT *obj)
         d3_PointToWorld(light, &light->pos, &lpos.v);
         d3_DirToWorld(light, &d3_ZAxis.v, &ldir.v);
         y = d3s_GetGround(obj, info, light);
-        verts = (D3BOXVERT *)D3_OPS(info)->GetBox(obj, info, obj->material->meshData);
+        verts = (D3BOXVERT *)D3_OPS(info)->GetBox(obj, info, &obj->material->worldMatrix);
         for (k = 8, box = verts; k; k--, box++) {
             if (light->objectFlags & 0x10) {
                 f = -((box->y - y) / ldir.y);

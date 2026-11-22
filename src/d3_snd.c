@@ -519,7 +519,7 @@ void d3sndw_Update(void)
     D3SNDWHIT found[2];
     D3VECTOR4 probe;
     int gy, gy2;
-    char unk[4];
+    float h;                        /* the ground height map_Pick returns, unread */
     int gx2, gx;
     D3VECTOR4 dir;
     D3VECTOR4 rot, rel;
@@ -564,7 +564,7 @@ void d3sndw_Update(void)
     ground = (int)(d3_Camera->pos.y - d3t_GetMeanHeight(&d3_Camera->pos));
     if (ground > 2000)
         ground = 2000;
-    if (!map_Pick(d3_Terrain, &campos.v, 1, &gx, &gy, unk))
+    if (!map_Pick(d3_Terrain, &campos.v, 1, &gx, &gy, &h))
         return;
     nfound = 0;
     dist = 39.37f;
@@ -596,7 +596,7 @@ void d3sndw_Update(void)
         probe.z = dir.z * dist + campos.z;
         for (i = 0; i < d3sndw_N; i++) {
             if (d3sndw_State[i]) {
-                if (map_Pick(d3_Terrain, &probe.v, 0, &gx2, &gy2, unk)) {
+                if (map_Pick(d3_Terrain, &probe.v, 0, &gx2, &gy2, &h)) {
                     idx = map_Region(d3_Terrain, gx2, gy2);
                     if (idx >= 0)
                         d3sndw_Type[i] = ((D3MAP *)d3_Terrain)->regions[idx].water;

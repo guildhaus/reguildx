@@ -66,10 +66,10 @@ D3OBJECT *d3_CreateObject(D3OBJECT *a, const D3VECTOR *pos, const D3VECTOR *rot,
         if (!d3io_FindStock(name))
             d3io_LoadObject(name, name);
         d3_AttachMesh(obj, 0, name);
-        if (D3_MESH(obj) && D3_MESH(obj)->surf[0].info.mesh) {
+        if (D3_MESH(obj) && D3_MESH(obj)->surf[0].mesh) {
             for (i = 0; i < D3_MESH(obj)->nsurf; i++) {
-                if (D3_MESH(obj)->surf[i].info.mesh) {
-                    n = D3_OPS(&D3_MESH(obj)->surf[i].info)->count;
+                if (D3_MESH(obj)->surf[i].mesh) {
+                    n = D3_OPS(&D3_MESH(obj)->surf[i])->count;
                     tex = (struct TSTEXTURE **)D3_MESH(obj)->surf[i].texHandles;
                     for (; n > 0; n--, tex++)
                         if (*tex)
@@ -115,7 +115,7 @@ char d3if_SelectTextureSet(D3OBJECT *obj, D3SURF *surf, unsigned char set, char 
         mem_Free(D3_MESH(obj)->mirrorPolys);
         D3_MESH(obj)->mirrorPolys = 0;
     }
-    ops = D3_OPS(&surf->info);
+    ops = D3_OPS(surf);
     if (set < ops->nsets) {
         for (i = 0; i < ops->count; i++) {
             surf->texSet = set;
@@ -130,8 +130,8 @@ char d3if_SelectTextureSet(D3OBJECT *obj, D3SURF *surf, unsigned char set, char 
                     if (reload)
                         tex_Reload(tex, 0);
                     ((struct TSTEXTURE **)surf->texHandles)[i] = tex;
-                    t = (D3PTRI *)surf->info.tris;
-                    for (j = 0; j < surf->info.ntris; j++, t++)
+                    t = (D3PTRI *)surf->tris;
+                    for (j = 0; j < surf->ntris; j++, t++)
                         if (((D3SRCPOLY *)t->src)->slot == i) {
                             t->tex = (TSTEXTURE *)tex;
                             replaced++;
@@ -254,7 +254,7 @@ char d3if_Reload(D3OBJECT *obj, char *name)
         d3io_LoadObject(name, name);
         d3_AttachMesh(obj, 0, name);
         tex_ReloadAll(0, 0);
-        if (D3_MESH(obj) && D3_MESH(obj)->surf[0].info.mesh) {
+        if (D3_MESH(obj) && D3_MESH(obj)->surf[0].mesh) {
             d3_RelightObject(obj);
             return 1;
         }
@@ -385,7 +385,7 @@ char d3if_InitScene(D3SCENE *s)
 /* 0x447800, d3_ForEachObject2 callback: precaches the textures of the object's mesh */
 void d3if_PrecacheCB(D3OBJECT *obj)
 {
-    D3OBJINFO *info;
+    D3SURF *info;
     TSTEXTURE **tex;
     int i, n;
 
@@ -797,7 +797,7 @@ char d3if_ScreenBox(D3OBJECT *obj, D3RECT *r)
 {
     D3VECTOR4 v;
     D3BOXVERT *b;
-    D3OBJINFO *info;
+    D3SURF *info;
     float f, x, y, s;
     int i;
 
@@ -816,7 +816,7 @@ char d3if_ScreenBox(D3OBJECT *obj, D3RECT *r)
         }
         if (D3_MESH(obj) && !(D3_MESH(obj)->flags & 0x40) && (info = obj->info) && info->mesh) {
             d3_UpdateWorldMatrix(obj, (obj->state & 0x80) ? 0 : d3_Camera, 0);
-            b = D3_OPS(info)->GetBox(obj, info, D3_MESH(obj)->cameraMatrix);
+            b = D3_OPS(info)->GetBox(obj, info, &D3_MESH(obj)->cameraMatrix);
             r->top = 0x10000;
             r->left = 0x10000;
             r->bottom = -0x10000;
@@ -918,11 +918,11 @@ float d3_YawTo(D3OBJECT *obj, const D3VECTOR *p)
 }
 /* 0x448c20, callback of d3_Unk448e60: of all polygons textured with ctx->tex it remembers the vertex nearest
    to each of the four screen corners (by the sum / difference of x and y), with its uv
-@deep deep s46: the triangle walk as a plain index loop (t = &tris[k], with / without the np > 0 guard, bound np or s->info.ntris, a tris local): all worse (84 .. 178 ins, frame 0x10 / 0x14 vs 0xc): the countdown walk is the original's. The 4th compare in the original loads every operand into edx (mov edx,[esi+0x80]; sub ecx,edx), dd_Width once per side: the shape of operands that are register / CSE candidates spilled under pressure, not of a different expression tree. Open as before (what ends x's piece at the 3rd then-block). prior: size queue: 557 vs 573 raw (padded 560 vs 576); the whole 16-byte gap is the 4th compare (pt[3]): the original computes R first with dd_Height in eax (copied to ecx), every operand loaded into edx and subtracted (mov edx,[m]; sub ecx,edx), dd_Width reloaded per side and x, y reloaded from their slots (54 bytes); ours keeps x in eax from the 3rd compare (c2trace: piece x#3 lines 974,975,983 -> eax, the split cut x at the if lines 956/966/974 but not before 983), so no scratch register is left and the operands fold into sub reg,[m] with dd_Width CSE'd (38 bytes). The same cause is the scratch rotation of the 3rd then-block (orig eax,ecx; ours ecx,edx). s3 tried (no size change, all 557): 10 x 10 spellings of the two sides x R>L flip (canonical: only the flip changes code), x/y as a D3CORNERPT local, x/y block-local in the loop body (= control), the 16 x/y store orders of the then-blocks (= control or same distance), climb round 1 (paren only, 69 ins). Next: what ends x's piece at the 3rd then-block in the original (c2trace --split x), e.g. one more reference of x / y elsewhere (the x/y slot order is also swapped: x has more references in the original). */
+@deep deep s46: the triangle walk as a plain index loop (t = &tris[k], with / without the np > 0 guard, bound np or s->ntris, a tris local): all worse (84 .. 178 ins, frame 0x10 / 0x14 vs 0xc): the countdown walk is the original's. The 4th compare in the original loads every operand into edx (mov edx,[esi+0x80]; sub ecx,edx), dd_Width once per side: the shape of operands that are register / CSE candidates spilled under pressure, not of a different expression tree. Open as before (what ends x's piece at the 3rd then-block). prior: size queue: 557 vs 573 raw (padded 560 vs 576); the whole 16-byte gap is the 4th compare (pt[3]): the original computes R first with dd_Height in eax (copied to ecx), every operand loaded into edx and subtracted (mov edx,[m]; sub ecx,edx), dd_Width reloaded per side and x, y reloaded from their slots (54 bytes); ours keeps x in eax from the 3rd compare (c2trace: piece x#3 lines 974,975,983 -> eax, the split cut x at the if lines 956/966/974 but not before 983), so no scratch register is left and the operands fold into sub reg,[m] with dd_Width CSE'd (38 bytes). The same cause is the scratch rotation of the 3rd then-block (orig eax,ecx; ours ecx,edx). s3 tried (no size change, all 557): 10 x 10 spellings of the two sides x R>L flip (canonical: only the flip changes code), x/y as a D3CORNERPT local, x/y block-local in the loop body (= control), the 16 x/y store orders of the then-blocks (= control or same distance), climb round 1 (paren only, 69 ins). Next: what ends x's piece at the 3rd then-block in the original (c2trace --split x), e.g. one more reference of x / y elsewhere (the x/y slot order is also swapped: x has more references in the original). */
 
 char d3_CornerCB(D3OBJECT *obj, D3CORNERCTX *c)
 {
-    D3SURF *s = (D3SURF *)obj->info;
+    D3SURF *s = obj->info;
     D3CORNERTRI *t;
     void **tex;
     void *want;
@@ -930,15 +930,15 @@ char d3_CornerCB(D3OBJECT *obj, D3CORNERCTX *c)
     int i, n, np, x, y;
 
     if (s) {
-        n = D3_OPS(&s->info)->count;
+        n = D3_OPS(s)->count;
         tex = (void **)s->texHandles;
         want = c->tex;
         for (i = 0; i < n; i++)
             if (tex[i] == want)
                 break;
         if (i < n) {
-            np = s->info.ntris;
-            t = (D3CORNERTRI *)s->info.tris;
+            np = s->ntris;
+            t = (D3CORNERTRI *)s->tris;
             if (np > 0) {
                 for (; np > 0; np--, t++) {
                     if ((t->flag24 & 0x80) && !(t->flag26 & 2) && t->tex == want) {
@@ -1237,7 +1237,7 @@ void d3_WorldToParent(D3OBJECT *obj, const D3VECTOR *pos, D3MATRIX *rot, D3VECTO
         outpos->x = pos->x;
         outpos->y = pos->y;
         outpos->z = pos->z;
-        d3_MatToAngles((D3VECTOR4 *)rot, (D3VECTOR4 *)outrot);
+        d3_MatToAngles(rot, outrot);
         return;
     }
     d3_WorldMatrix(parent, 0, 0, &m);
@@ -1248,7 +1248,7 @@ void d3_WorldToParent(D3OBJECT *obj, const D3VECTOR *pos, D3MATRIX *rot, D3VECTO
     d3_WorldMatrix(parent, 0, 1, &m);
     d3_MatTranspose(&m, &w);
     d3_MatMul43(rot, &w, &m);
-    d3_MatToAngles((D3VECTOR4 *)&m, (D3VECTOR4 *)outrot);
+    d3_MatToAngles(&m, outrot);
 }
 /* 0x449920, sets an object's local position and rotation from a world-space position and rotation (converted
    into the space of the object's parent) */
@@ -1482,7 +1482,7 @@ void d3_WriteObject(VFSFILE *f, D3OBJECT *obj)
             if (D3_X(obj)->mesh) {
                 bio_wr_i(f, D3_X(obj)->mesh->nsurf);
                 if (D3_X(obj)->mesh->nsurf > 0) {
-                    strcpy(buf, D3_X(obj)->mesh->surf[0].info.mesh->name);
+                    strcpy(buf, D3_X(obj)->mesh->surf[0].mesh->name);
                     p = strrchr(buf, '_');
                     if (p && strlen(p) == 2 && isdigit(p[1]))
                         *p = 0;

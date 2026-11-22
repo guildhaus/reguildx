@@ -907,25 +907,6 @@ typedef struct HEOFFER {                /* the offer event 0x2c's words over AIJ
     char pad_d3;
     int offer;                          /* 0xd4, the offer handle cm_SendHandOverCrimes gave (cm_GetSlotState asks it) */
 } HEOFFER;
-typedef union HEOBJ1B5VALUE {           /* the 7 byte value cm_SendObject1b5 copies to the new object's +0x1c, as
-                                           he_AllocTavern fills it (byte, byte, int; their meaning is not read yet) */
-    G17B7 block;
-    struct {
-        char c1c;                       /* +0x1c of the object */
-        char c1d;                       /* +0x1d */
-        int v1e;                        /* +0x1e */
-    } f;
-} HEOBJ1B5VALUE;
-typedef struct HETAVERNOBJ {            /* the tavern's object 0x1b5 (he_AllocTavern creates it) as the tavern run handler
-                                           reads it: an AIOBJ, its kind's words at +0x1c over AIOBJ's union */
-    char pad00[2];
-    int objId;                          /* 0x02, AIOBJ.objId */
-    char pad06[0x16];
-    char c1c;                           /* 0x1c, -1 when no helper (the meaning is not read yet) */
-    char c1d;                           /* 0x1d, -1 when no helper */
-    int helperId;                       /* 0x1e, the character hired as the tavern's helper, -1: none */
-    char hired;                         /* 0x22, nonzero while a helper is hired */
-} HETAVERNOBJ;
 typedef struct HEAHMRESEARCH {          /* the alchemist research event 0x96's words over AIJOB's union (he_AllocResearchRecipe
                                            and its run handler he_RunResearchRecipe); ahm.h's AHMRESEARCH names the same words from ahm.c */
     char pad00[0xac];
@@ -3246,11 +3227,11 @@ void he_AllocResearchRecipe(AIJOB *e)
 {
     HEAHMRESEARCH *r = (HEAHMRESEARCH *)e;
     AICHAR *c;
-    char *p;
+    AHMGRID *p;
 
     c = gm_FindChar(r->chr);
     if (c != 0) {
-        p = (char *)ahm_FindRecipe(r->id);
+        p = ahm_FindRecipe(r->id);
         if (p != 0) {
             r->progress = ahm_ResearchProgress(c, p, &r->start);
             if (!(r->progress <= 0.0f)) {
@@ -5256,7 +5237,7 @@ void he_RunGraveTraining(AIJOB *e)
         if ((float)(gain + *skill) > 252.0f)
             gain = (unsigned char)(252.0f - *skill);
         cm_BeginFieldBlock(ch, ch->netId);
-        cm_AddFieldValues(1, 1, (char *)ch->skills + (t->skill - (int)cm_FieldObject), &gain);
+        cm_AddFieldValues(1, 1, (char *)&ch->skills[t->skill] - cm_FieldObject, &gain);
         cm_SendFieldDeltas();
         e->end = ai_Time;
         e->clock60 = ai_Time;
@@ -6148,7 +6129,8 @@ void he_GypsyApproach(AICHAR *pl, AICHAR *per, int a)
    voice "_NACHRICHTEN_ZIGEUNER_02" (pl) or "_NACHRICHTEN_ZIGEUNER_01" (another) */
 void he_GypsyDisease(AICHAR *pl, AICHAR *per)
 {
-    int kind, health;
+    int kind;
+    float health;
     char voice[100];
     char what[0x400];
     char text[0x400];
@@ -6663,13 +6645,13 @@ void he_CircusShowPayout(AIJOB *e)
     AIBLD *bld;
     int st[3];                          /* ai_FindWantedItems: st[0] the inventory's entries */
     int given[4];
-    int want[4][4];                     /* ai_FindWantedItems' records: [0] the object, [3] the inventory entry (AIOBJ) */
+    G9REC want[4];                      /* ai_FindWantedItems' records */
     char text[0x100];
     char text2[0x200];
     AICHAR *per;
     AIOBJ *entry;
     unsigned short *obj;
-    int (*row)[4];
+    G9REC *row;
     int n, i, ngiven;
 
     per = gm_FindChar(e->netId);
@@ -6682,7 +6664,7 @@ void he_CircusShowPayout(AIJOB *e)
     n = 0;
     for (i = 0; i < 4; i++) {
         if (m->objs[i] != 0)
-            want[n++][0] = m->objs[i];
+            want[n++].item = m->objs[i];
     }
     if (n != 0) {
         ai_FindWantedItems(per, n, want, st);
@@ -6692,7 +6674,7 @@ void he_CircusShowPayout(AIJOB *e)
         for (i = 0; i < n; i++, obj++, row++) {
             if (*obj == 0)
                 continue;
-            entry = (AIOBJ *)(*row)[3];
+            entry = row->entry;
             if (entry != 0) {
                 if (entry->count >= 3) {
                     m->income += (int)gm_GoodsPrice(*obj, ai_OwnPlayer);
@@ -6981,23 +6963,23 @@ void he_RunEventGood(AIJOB *e)
 void he_GiveDomizilGood(AICHAR *per)
 {
     int st[3];                          /* ai_FindWantedItems: st[0] the inventory's entries */
-    int want[4];                        /* ai_FindWantedItems' record: [0] the good, [3] the inventory entry (AIOBJ) */
+    G9REC want;                         /* ai_FindWantedItems' record */
     AIOBJ *entry;
 
-    memset(want, 0, sizeof(want));
-    want[0] = ai_DomizilGoodInRange(3, 6) & 0xffff;
-    ai_FindWantedItems(per, 1, want, st);
-    entry = (AIOBJ *)want[3];
+    memset(&want, 0, sizeof(want));
+    want.item = ai_DomizilGoodInRange(3, 6) & 0xffff;
+    ai_FindWantedItems(per, 1, &want, st);
+    entry = want.entry;
     if (entry != 0) {
         if (entry->count >= 3)
             cm_SendMoveGoodsUnchecked(per->netId, -1, ai_OwnPlayer,
-                                      (int)gm_GoodsPrice((unsigned short)want[0], ai_OwnPlayer));
+                                      (int)gm_GoodsPrice((unsigned short)want.item, ai_OwnPlayer));
         else
-            cm_SendExSellObject(per->netId, -1, want[0], 1, ai_OwnPlayer, 0);
+            cm_SendExSellObject(per->netId, -1, want.item, 1, ai_OwnPlayer, 0);
     } else if (st[0] >= 6) {
-        cm_SendMoveGoodsUnchecked(per->netId, -1, ai_OwnPlayer, (int)gm_GoodsPrice(want[0], ai_OwnPlayer));
+        cm_SendMoveGoodsUnchecked(per->netId, -1, ai_OwnPlayer, (int)gm_GoodsPrice(want.item, ai_OwnPlayer));
     } else {
-        cm_SendExSellObject(per->netId, -1, want[0], 1, ai_OwnPlayer, 0);
+        cm_SendExSellObject(per->netId, -1, want.item, 1, ai_OwnPlayer, 0);
     }
 }
 /* 0x575540, the middle outcome of the event 0xa4: the character +4 is credited 3 + random (4) money (gm_SendMoneyDelta) */

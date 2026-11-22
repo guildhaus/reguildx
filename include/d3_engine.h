@@ -102,7 +102,7 @@ __inline D3OBJBITS *d3_ObjBits(D3OBJECT *obj)
 #define D3_OBJBITS(o) (*d3_ObjBits(o))
 
 typedef struct D3OPS D3OPS;
-struct D3OPS {                      /* the "driver" behind D3OBJINFO::unk10: a stock object, the same records as D3BGF (d3_io_t.h; not merged yet) */
+struct D3OPS {                      /* D3SURF.mesh, the mesh driver: D3BGF (d3.h) as this unit reads it (not merged yet) */
     char pad000[0x1d8];
     float diagonal;                 /* 0x1d8, the diagonal of the bounding box (D3BGF.diagonal); picks the shadow size */
     int pad1dc;
@@ -110,78 +110,13 @@ struct D3OPS {                      /* the "driver" behind D3OBJINFO::unk10: a s
     int nsets;                      /* 0x1e4, texture sets in the name table (D3BGF.nsets, d3_io_t.h) */
     void (*Release)(D3OPS *ops);    /* 0x1e8 */
     int unk1ec;
-    void (*Transform)(D3OBJECT *obj, D3OBJINFO *info, void *ctx);       /* 0x1f0 */
-    void *(*GetBox)(D3OBJECT *obj, D3OBJINFO *info, void *unk);         /* 0x1f4 */
+    void (*Transform)(D3OBJECT *obj, D3SURF *info, void *ctx);       /* 0x1f0 */
+    void *(*GetBox)(D3OBJECT *obj, D3SURF *info, void *unk);         /* 0x1f4 */
     char pad1f8[0xc];               /* 0x1f8, the driver's other callbacks and stock list links (D3BGF, d3_io_t.h) */
     char *texnames;                 /* 0x204, nsets * count texture names of 0x40 bytes, set-major (D3BGF.texnames) */
 };
 #define D3_OPS(info) ((D3OPS *)(info)->mesh)
 
-typedef struct D3SURFTEX {     /* 0x7c bytes, one of a surface's three animation slots: the same memory as
-                                       D3ANIMSLOT (d3_anim.h), which d3anim_StartAnim fills through D3ANIMCTL
-                                       (the mesh's surf[0] area) */
-    int frame;                      /* 0x00, D3ANIMSLOT.frame: current key frame */
-    int nextFrame;                  /* 0x04, D3ANIMSLOT.nextFrame: the frame the blend interpolates to */
-    int subFrame;                   /* 0x08, D3ANIMSLOT.subFrame: position inside the frame, in 1/count units */
-    char pad0c[0x5c];
-    void *data;                     /* 0x68, D3ANIMSLOT.data: the D3ANIMDATA; its name string is the first bytes */
-    int flags;                      /* 0x6c, first dword of D3ANIMSLOT.flags (D3ANIMFLAGS) */
-    char pad70[0x4];
-    unsigned char playFlags;        /* 0x74, D3ANIMSLOT flag byte 8: bit 1 = play (CHANIMFLAGS.b8) */
-    char pad75[0x7];
-} D3SURFTEX;
-
-typedef struct D3SURF {             /* 0x198 bytes, a mesh part with its own geometry */
-    D3OBJINFO info;                 /* points, polys, counts, ops */
-    void *texHandles;               /* 0x14, array of the surf's texture handles (struct TSTEXTURE *, ops->count of them) */
-    D3OBJECT *owner;                /* 0x18, the object whose mesh this surf belongs to (set by d3_InitSurf) */
-    D3SURFTEX slots[3];        /* 0x1c, the three animation slots (D3ANIMSLOT) */
-    union {
-        int i;
-        D3TEXFLAGS f;               /* f.b[0] = alpha */
-    } flags;                        /* 0x190 */
-    unsigned char alwaysDraw;       /* 0x194, nonzero: transforms / draws the surf even when nothing changed (D3IOSURF.f194) */
-    unsigned char texSet;           /* 0x195, current texture set: index into the ops' name table (D3IOSURF.texSet) */
-    char pad196[0x2];
-} D3SURF;
-
-typedef struct D3MESHSUB {          /* 0x80 bytes, D3SSLOT (d3s.h): the shadow of one light, 4 per mesh at
-                                       D3S_SLOTS; only cleared here */
-    struct TSTEXTURE *tex;               /* 0x00, D3SSLOT.tex */
-    D3OBJECT *light;                /* 0x04, D3SSLOT.light */
-    char pad08[0x10];
-    D3VECTOR dir;                   /* 0x18, D3SSLOT.dir: light direction the shadow was made for */
-    char pad24[0x5c];
-} D3MESHSUB;
-
-typedef struct D3MESH {             /* 0x970 bytes, what D3OBJECT::material points to ("d3:AddObjectDrawData") */
-    void (*freeCallback)(D3OBJECT *obj);    /* 0x000, optional object callback, called before the mesh is freed
-                                       (d3_DisposeObject); only cleared in the drafted code */
-    D3OBJECT *camera;               /* 0x004, the camera cameraMatrix was transformed for */
-    char worldMatrix[0x40];         /* 0x008, the object's world matrix (D3MATRIX, d3_WorldMatrix writes it) */
-    char cameraMatrix[0x40];        /* 0x048, worldMatrix with the camera transform applied (D3MATRIX);
-                                       GetBox / Transform take it to put the box / the verts in camera space */
-    float zMin;                     /* 0x088, nearest z of the box in camera space (d3_ClipBox writes it) */
-    float zMax;                     /* 0x08c, farthest z of the box in camera space */
-    char pad090[0x20];
-    int frameStamp;                 /* 0x0b0, the frame the mesh was last transformed/clipped in (d3_FrameCount);
-                                       equal to the current frame: already current, only flag 0x40 is set;
-                                       -1 = never (d3_AddObjectDrawData) */
-    char boneName[0x40];            /* 0x0b4, the parent's bone the object is attached to (d3_AttachToBone writes it,
-                                       d3anim_MapBones / d3anim_PoseBones match the children by it); the length is the
-                                       room to surf */
-    D3SURF surf[4];                 /* 0x0f4, surf[3] at 0x5bc */
-    D3MESHSUB sub[4];               /* 0x754 */
-    int groundOffsetRaw;            /* 0x954, the ground offset written as a whole dword (cleared and copied) */
-    float lightScale;               /* 0x958, light brightness scale (ch.c: 1.8 for characters) */
-    unsigned int lightGeneration;   /* 0x95c */
-    D3PVERT *mirrorPoints;          /* 0x960, mirrored point array ("d3_mir:MirroredPoints") */
-    D3PTRI *mirrorPolys;            /* 0x964, mirrored polygon array ("d3_mir:MirroredPolys") */
-    D3SURF *mirrorSource;           /* 0x968, the surf the mirror copy was made from */
-    unsigned char nsurf;            /* 0x96c */
-    unsigned char flags;            /* 0x96d, 0x40 = no vertex animation (D3ANIMMATV.flags in d3_anim.c) */
-    char pad96e[0x2];
-} D3MESH;
 #define D3_MESH(o) ((D3MESH *)(o)->material)
 
 extern const int d3_TriEdge[3][2];        /* 0x5eba80, per triangle vertex: [0] the next one, [1] the previous one */
@@ -212,7 +147,7 @@ void tex_ReloadAll(char keep, void (*cb)(int, int, int));       /* 0x461090, ts_
 void d3fl_FreeTiles(struct D3FLMAP *map);   /* 0x441db0, d3_fl.c */
 
 /* d3_engine.c functions referenced before their definition */
-D3OBJINFO *d3_SelectSurf(D3OBJECT *obj);                                                 /* 0x43a000 */
+D3SURF *d3_SelectSurf(D3OBJECT *obj);                                                 /* 0x43a000 */
 void d3_DrawSortedD3D(void);                                                                /* 0x43a7d0 */
 void d3_DrawSortedSW(void);                                                                /* 0x43b080 */
 void d3_RadixSort(unsigned int n, unsigned char twobytes);                              /* 0x43b300 */
@@ -276,7 +211,7 @@ typedef struct D3LIGHTINFO {        /* 0x1ac bytes, "d3:SpawnObject(lightinfo)",
 
 typedef struct D3OBJX {             /* 0x228 bytes, the whole D3OBJECT as far as known */
     char name[0x40];
-    int time;                       /* 0x40, d3_Time of the object's last animation update (D3ANIMOBJ.time,
+    int time;                       /* 0x40, d3_Time of the object's last animation update (D3OBJECT.animTime,
                                        d3_anim.c 0x434...: dt = now - time): set by d3anim_CreatePath, stored to 0
                                        here, and set by d3_ToggleRLightCB when it switches an "r" light */
     int lightTime;                  /* 0x44, d3_Time of the last lighting (D3LOBJ.time in d3_light.h); d3_anim.c's
@@ -301,7 +236,7 @@ typedef struct D3OBJX {             /* 0x228 bytes, the whole D3OBJECT as far as
     };
     struct { D3VECTOR pos; D3VECTOR dir; } views[10];   /* 0x09c, D3OBJECT.views (d3.h): the preset camera views */
     D3MATRIX matrix;                /* 0x18c */
-    D3OBJINFO *info;                /* 0x1cc */
+    D3SURF *info;                /* 0x1cc */
     void *path;                     /* 0x1d0, the object path animation (d3anim_FreePath) */
     void *events;                   /* 0x1d4, D3E_NEVENTS event handlers (d3e:RegisterEvent(eventtable)) */
     char pad1d8[0x10];
@@ -617,7 +552,7 @@ void d3d_DrawTriangles(void *unk, struct _D3DTLVERTEX *buf, DWORD num);         
     __asm fstp dword ptr [edi+0x8]                                  \
 }
 D3OBJECT *d3_SpawnObject(int type, char *name);                                         /* 0x43c570 */
-void d3_AllocObjectPolys(D3OBJINFO *info);                                              /* 0x43cc10 */
+void d3_AllocObjectPolys(D3SURF *info);                                              /* 0x43cc10 */
 void d3_AddObjectDrawData(D3OBJECT *obj);                                               /* 0x43cfb0 */
 /* Inline-asm copy with both operands named directly in the asm (D3_COPY_AT in d3_d3d.h). */
 #define D3E_COPY_AT(dvar, svar, size) {                             \

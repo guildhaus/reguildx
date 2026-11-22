@@ -458,7 +458,7 @@ int ch_CreateLowPolyBody(CHARACTER *ch)
 void ch_UpdateLowPoly(CHARACTER *ch)
 {
     float dx, dy, dz;
-    D3ANIMCTL *anim;
+    D3SURF *anim;
     D3ANIMSLOT *s;
     CHANIMFLAGS f;
     int lowPoly;
@@ -512,7 +512,7 @@ void ch_UpdateLowPoly(CHARACTER *ch)
                 if (ch->lowPolyBody->type != 1)
                     d3if_Show(ch->lowPolyBody, 0);
             }
-            anim = D3OBJ_ANIM(ch->lowPolyBody);
+            anim = ch->lowPolyBody->info;
             if (!anim || ch->flags.lowPolyAnimFailed)
                 return;
             s = ch->slot;
@@ -531,13 +531,13 @@ void ch_UpdateLowPoly(CHARACTER *ch)
                 f.a = 0;
                 if (!d3_FindAnim(name))
                     d3_LoadAnimStream(path, name, 1);
-                s = (D3ANIMSLOT *)d3anim_StartAnim(ch->lowPolyBody->material->animCtl, name, f.anim);
+                s = d3anim_StartAnim(&ch->lowPolyBody->material->surf[0], name, f.anim);
                 if (!s) {
                     sprintf(msg, "ch_Updatelowpoly(): Could not attach ani: %s", path);
                     ch->flags.lowPolyAnimFailed = 1;
                     return;
                 }
-                D3OBJ_ANIM(ch->lowPolyBody)->slots[0].frame = ch->slot->frame;
+                ch->lowPolyBody->info->slots[0].frame = ch->slot->frame;
                 s->timeout = -1;
                 return;
             }
@@ -792,7 +792,7 @@ D3ANIMSLOT *ch_AttachMotion(CHARACTER *ch, int motion)
         f.a = 1;
         if (!d3_FindAnim(name))
             d3_LoadAnimStream(path, name, 1);
-        s = (D3ANIMSLOT *)d3anim_StartAnim(ch->obj->material->animCtl, name, f.anim);
+        s = d3anim_StartAnim(&ch->obj->material->surf[0], name, f.anim);
         if (!s) {
             sprintf(msg, "ch_AttachMotion(): Could not attach ani: %s", path);
             return 0;
@@ -863,15 +863,15 @@ void ch_StopAnim(CHARACTER *ch)
     if (ch->slot) {
         sprintf(name, "morph_%i", ch);
         if (!d3_FindAnim(name)) {
-            if (obj->info && d3anim_CreateMorphAnim(D3OBJ_ANIM(obj)->mesh, ch->slot->data,
+            if (obj->info && d3anim_CreateMorphAnim(obj->info->mesh, ch->slot->data,
                                                       &ch->slot->data->frames[ch->slot->frame], 0, 0,
-                                                      D3OBJ_ANIM(obj)->mesh, name, 4)) {
+                                                      obj->info->mesh, name, 4)) {
                 f.u.all = 0;
                 f.b8 = 1;
                 f.u.c.b1 = 0x18;
                 f.b = 0;
                 f.a = 0;
-                ch->morph = (D3ANIMSLOT *)d3anim_StartAnim(obj->material->animCtl, name, f.anim);
+                ch->morph = d3anim_StartAnim(&obj->material->surf[0], name, f.anim);
                 if (ch->morph) {
                     if (!d3t_SceneIndex(ch->scene))
                         ch->morph->timeout = -1;
@@ -882,7 +882,7 @@ void ch_StopAnim(CHARACTER *ch)
             s = ch->slot;
             if (!s->data->relative && (s->flags.b[4] & 3))
                 d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
-            d3_ReleaseTexture(obj->material->animCtl, s->data->name);
+            d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
             ch->slot = 0;
         }
     }
@@ -896,7 +896,7 @@ void ch_ReleaseMorph(CHARACTER *ch)
 
     if (ch->morph) {
         sprintf(name, "morph_%i", ch);
-        d3_ReleaseTexture(ch->obj->material->animCtl, name);
+        d3_ReleaseTexture(&ch->obj->material->surf[0], name);
         a = (D3ANIMDATA *)d3_FindAnim(name);
         d3anim_Release(a, 1);
         ch->morph = 0;
@@ -921,14 +921,14 @@ void ch_CheckAniMorph(CHARACTER *ch)
     if (s && (s->flags.b[1] & 0x20) && !(s->flags.b[8] & 8) && !ch->flags.holdAnim) {
         if (!s->data->relative && (s->flags.b[4] & 3))
             d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
-        d3_ReleaseTexture(obj->material->animCtl, s->data->name);
+        d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
         ch->slot = 0;
     }
     if (ch->morph) {
         if (!(ch->morph->flags.b[1] & 0x20))
             return;
         sprintf(name, "morph_%i", ch);
-        d3_ReleaseTexture(obj->material->animCtl, name);
+        d3_ReleaseTexture(&obj->material->surf[0], name);
         a = (D3ANIMDATA *)d3_FindAnim(name);
         d3anim_Release(a, 1);
         ch->morph = 0;
@@ -945,13 +945,13 @@ void ch_CheckAniMorph(CHARACTER *ch)
         n = (n + a->frames[a->nframes - 1].time) / 2;
         n = (int)(n + 0.5f);
         if (obj->info) {
-            if (d3anim_CreateMorphAnim(D3OBJ_ANIM(obj)->mesh, a, &a->frames[ch->slot->frame], ch->next, &ch->next->frames[i], 0, name, n)) {
+            if (d3anim_CreateMorphAnim(obj->info->mesh, a, &a->frames[ch->slot->frame], ch->next, &ch->next->frames[i], 0, name, n)) {
                 f.u.all = 0;
                 f.b8 = 1;
                 f.u.c.b1 = 0x18;
                 f.b = 0;
                 f.a = 0;
-                ch->morph = (D3ANIMSLOT *)d3anim_StartAnim(obj->material->animCtl, name, f.anim);
+                ch->morph = d3anim_StartAnim(&obj->material->surf[0], name, f.anim);
                 if (ch->morph) {
                     if (!d3t_SceneIndex(ch->scene))
                         ch->morph->timeout = -1;
@@ -963,8 +963,8 @@ void ch_CheckAniMorph(CHARACTER *ch)
         }
         if (!s->data->relative && (s->flags.b[4] & 3))
             d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
-        d3_ReleaseTexture(obj->material->animCtl, s->data->name);
-        if (D3OBJ_ANIM(obj) && D3OBJ_ANIM(obj)->slots[0].data && D3OBJ_ANIM(obj)->slots[1].data)
+        d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
+        if (obj->info && obj->info->slots[0].data && obj->info->slots[1].data)
             err_Message("ch_CheckAniMorph(): huston we got a problem...");
         ch->slot = 0;
         return;
@@ -985,7 +985,7 @@ void ch_CheckAniMorph(CHARACTER *ch)
             sprintf(msg, "character/%s/%s.baf", ch->body, ch->next->name, ch->body);
             d3_LoadAnimStream(msg, ch->next->name, 0);
         }
-        ch->slot = (D3ANIMSLOT *)d3anim_StartAnim(obj->material->animCtl, ch->next->name, f.anim);
+        ch->slot = d3anim_StartAnim(&obj->material->surf[0], ch->next->name, f.anim);
         ch->lastActionFrame = -1;
         if (ch->slot) {
             if (!d3t_SceneIndex(ch->scene))
@@ -1033,8 +1033,8 @@ void ch_PreloadAnims(CHARACTER *ch, int n, ...)
                 f.u.c.b0 = 0;
                 f.b = 0;
                 f.a = 1;
-                d3anim_StartAnim(ch->obj->material->animCtl, name, f.anim);
-                d3_ReleaseTexture(ch->obj->material->animCtl, name);
+                d3anim_StartAnim(&ch->obj->material->surf[0], name, f.anim);
+                d3_ReleaseTexture(&ch->obj->material->surf[0], name);
             }
         }
     }
@@ -1073,8 +1073,8 @@ void ch_LoadLowAnims(CHARACTER *ch, int n, ...)
             if (!r)
                 r = (int)d3_LoadAnimStream(file, buf, 1);
             if (r) {
-                d3anim_StartAnim(ch->lowPolyBody->material->animCtl, buf, f.anim);
-                d3_ReleaseTexture(ch->lowPolyBody->material->animCtl, buf);
+                d3anim_StartAnim(&ch->lowPolyBody->material->surf[0], buf, f.anim);
+                d3_ReleaseTexture(&ch->lowPolyBody->material->surf[0], buf);
             }
         }
     }
@@ -1108,7 +1108,7 @@ int ch_AttachAni(CHARACTER *ch, char *name, unsigned char loop)
             else
                 d3_LoadAnimStream(file, buf, 1);
         }
-        s = (D3ANIMSLOT *)d3anim_StartAnim(ch->obj->material->animCtl, buf, f.anim);
+        s = d3anim_StartAnim(&ch->obj->material->surf[0], buf, f.anim);
         if (!s) {
             sprintf(msg, "ch_AttachAni(): Could not attach ani: %s", name);
             return 0;
@@ -1138,7 +1138,7 @@ int ch_ActAnim(CHACTION *a)
         if (!s->data->relative && (s->flags.b[4] & 3))
             d3anim_ApplyRootMotion(ch->obj, s, 0, s->frame, 3);
         if (!(ch->flags.bytes.lo & 2))
-            d3_ReleaseTexture(a->ch->obj->material->animCtl, ch->slot->data->name);
+            d3_ReleaseTexture(&a->ch->obj->material->surf[0], ch->slot->data->name);
         ch->slot = 0;
         return -1;
     }
@@ -1147,7 +1147,7 @@ int ch_ActAnim(CHACTION *a)
         if (!s->data->relative && (s->flags.b[4] & 3))
             d3anim_ApplyRootMotion(ch->obj, s, 0, s->frame, 3);
         if (!(ch->flags.bytes.lo & 2))
-            d3_ReleaseTexture(a->ch->obj->material->animCtl, ch->slot->data->name);
+            d3_ReleaseTexture(&a->ch->obj->material->surf[0], ch->slot->data->name);
         ch->slot = 0;
         return -1;
     }
@@ -1341,10 +1341,10 @@ void ch_PauseAnim(CHARACTER *ch, int pause)
 {
     if (CH_ACTIONS(ch) && ch->slot) {
         if (pause) {
-            d3anim_PauseAnim(ch->obj->material->animCtl, ch->slot->data->name);
+            d3anim_PauseAnim(&ch->obj->material->surf[0], ch->slot->data->name);
             ch->flags.all |= 4;
         } else {
-            d3anim_PlayAnim(ch->obj->material->animCtl, ch->slot->data->name, 1);
+            d3anim_PlayAnim(&ch->obj->material->surf[0], ch->slot->data->name, 1);
             ch->flags.all &= ~4;
         }
     }
@@ -1592,7 +1592,7 @@ int ch_Update(void)
             ch_CheckAniMorph(ch_List[i]);
             if (act) {
                 if ((ch_List[i]->flags.all & 0x2000) && ch_List[i]->slot) {
-                    d3_ReleaseTexture(ch_List[i]->obj->material->animCtl, ch_List[i]->slot->data->name);
+                    d3_ReleaseTexture(&ch_List[i]->obj->material->surf[0], ch_List[i]->slot->data->name);
                     ch_List[i]->slot = 0;
                     ch_List[i]->flags.all &= ~0x2000;
                 }
@@ -1745,7 +1745,7 @@ void ch_ActSitDown(CHACTION *a)
     int cur;
 
     if (!a->count) {
-        if (a->u.name[0] && !D3OBJ_ANIM(ch->obj)->slots[0].data) {
+        if (a->u.name[0] && !ch->obj->info->slots[0].data) {
             ch->flags.all |= 2;
             if (a->scriptAction.flags & 1) {
                 ch->sitSlot = ch->slot = (D3ANIMSLOT *)ch_AttachAni(a->ch, a->u.name, 1);
@@ -1793,7 +1793,7 @@ void ch_ReleaseSit(CHARACTER *ch)
             if (!ch->obj->info)
                 ch_InflateModel(ch);
             if (ch->sitSlot->data)
-                d3_ReleaseTexture(ch->obj->material->animCtl, ch->sitSlot->data->name);
+                d3_ReleaseTexture(&ch->obj->material->surf[0], ch->sitSlot->data->name);
             ch->sitSlot = 0;
         }
         ch->flags.all &= ~0x10;
@@ -1961,8 +1961,8 @@ int ch_TakeObject(CHARACTER *ch, char *name, D3OBJECT *obj, int frame)
         a->args[1] = 0;
         a->args[2] = 2;
         strcpy(a->u.name, name);
-        if (obj && obj->material && obj->material->name) {
-            strcpy(CH_ACTOBJ(a)->name2, obj->material->name);
+        if (obj && obj->material && obj->material->surf[0].mesh) {
+            strcpy(CH_ACTOBJ(a)->name2, obj->material->surf[0].mesh->name);
             return 1;
         }
         ch_RemoveAction(a);
@@ -1986,8 +1986,8 @@ int ch_TakeObject1(CHARACTER *ch, char *name, D3OBJECT *obj, int frame)
         a->args[1] = 0;
         a->args[2] = 1;
         strcpy(a->u.name, name);
-        if (obj && obj->material && obj->material->name) {
-            strcpy(CH_ACTOBJ(a)->name2, obj->material->name);
+        if (obj && obj->material && obj->material->surf[0].mesh) {
+            strcpy(CH_ACTOBJ(a)->name2, obj->material->surf[0].mesh->name);
             return 1;
         }
         ch_RemoveAction(a);
@@ -2202,9 +2202,9 @@ void ch_ActMove2Universe(CHACTION *a)
     cur = d3_CurrentScene;
     d3if_SelectScene(a->args[0], 1);
     if (!a->args[0] && ch_CurrentGroup == ch->group)
-        d3if_SelectTextureSet(ch->obj, ch->obj->material->animCtl, 0, 0);
+        d3if_SelectTextureSet(ch->obj, &ch->obj->material->surf[0], 0, 0);
     else if (ch_CurrentGroup == ch->group)
-        d3if_SelectTextureSet(ch->obj, ch->obj->material->animCtl, ch->texSet, 1);
+        d3if_SelectTextureSet(ch->obj, &ch->obj->material->surf[0], ch->texSet, 1);
     ch_ReleaseSit(ch);
     if (a->move.hasPos)
         ch_SetPos(ch, &a->move.pos, 0);
@@ -2468,7 +2468,7 @@ void ch_ActTurn(CHACTION *a)
         }
     }
     if (ch->slot && ch->slot->flags.b[1] & 0x20) {
-        d3_ReleaseTexture(a->ch->obj->material->animCtl, (char *)ch->slot->data);
+        d3_ReleaseTexture(&a->ch->obj->material->surf[0], (char *)ch->slot->data);
         d3_SetObjectRot(a->ch->obj, &a->rot);
         d3anim_FreePath(a->ch->obj);
         ch->turnAnim = 0;
@@ -3056,7 +3056,7 @@ int ch_InitWalk(CHACTION *a, D3SM *h)
 
     if (ch->morph) {
         sprintf(name, "morph_%i", ch);
-        d3_ReleaseTexture(ch->obj->material->animCtl, name);
+        d3_ReleaseTexture(&ch->obj->material->surf[0], name);
         ad = (D3ANIMDATA *)d3_FindAnim(name);
         d3anim_Release(ad, 1);
         ch->morph = 0;
@@ -3194,7 +3194,7 @@ int ch_StartWalkAnim(CHACTION *a, D3SM *h)
     ch->next = 0;
     if (ch->morph) {
         sprintf(name, "morph_%i", ch);
-        d3_ReleaseTexture(ch->obj->material->animCtl, name);
+        d3_ReleaseTexture(&ch->obj->material->surf[0], name);
         ad = (D3ANIMDATA *)d3_FindAnim(name);
         d3anim_Release(ad, 1);
         ch->morph = 0;
@@ -3494,7 +3494,7 @@ void ch_ActWalk(CHACTION *a)
         sprintf(name, "%s_%s", "bewegung/gehen", ch->body);
         vfs_ToSlashes(name);
         if (ch->slot)
-            d3_ReleaseTexture(a->ch->obj->material->animCtl, (char *)CH_XSLOT(ch)->data);
+            d3_ReleaseTexture(&a->ch->obj->material->surf[0], (char *)CH_XSLOT(ch)->data);
         ch->slot = 0;
         ch_FollowGround(a);
         if (ch_MarkWalkErrors)
@@ -3527,7 +3527,7 @@ void ch_ActWalk(CHACTION *a)
     }
     if (a->u.walk.flags & CH_WALK_STOPANIM) {
         if (ch->slot && CH_XSLOT(ch)->f6d_20) {
-            d3_ReleaseTexture(ch->obj->material->animCtl, (char *)CH_XSLOT(ch)->data);
+            d3_ReleaseTexture(&ch->obj->material->surf[0], (char *)CH_XSLOT(ch)->data);
             d3anim_FreePath(ch->obj);
             ch->turnAnim = 0;
             a->u.walk.flags &= ~CH_WALK_STOPANIM;
@@ -3620,7 +3620,7 @@ void ch_ActWalkCells(CHACTION *a)
     if (!a->count) {
         if (ch->morph) {
             sprintf(name, "morph_%i", ch);
-            d3_ReleaseTexture(ch->obj->material->animCtl, name);
+            d3_ReleaseTexture(&ch->obj->material->surf[0], name);
             ad = (D3ANIMDATA *)d3_FindAnim(name);
             d3anim_Release(ad, 1);
             ch->morph = 0;
@@ -3666,7 +3666,7 @@ void ch_ActWalkCells(CHACTION *a)
             ch->next = 0;
             if (ch->morph) {
                 sprintf(name, "morph_%i", ch);
-                d3_ReleaseTexture(ch->obj->material->animCtl, name);
+                d3_ReleaseTexture(&ch->obj->material->surf[0], name);
                 ad = (D3ANIMDATA *)d3_FindAnim(name);
                 d3anim_Release(ad, 1);
                 ch->morph = 0;
@@ -3712,7 +3712,7 @@ void ch_ActWalkCells(CHACTION *a)
         sprintf(name2, "%s_%s", "bewegung/gehen", a->ch->body);
         vfs_ToSlashes(name2);
         if (ch->slot)
-            d3_ReleaseTexture(a->ch->obj->material->animCtl, (char *)CH_XSLOT(ch)->data);
+            d3_ReleaseTexture(&a->ch->obj->material->surf[0], (char *)CH_XSLOT(ch)->data);
         ch->slot = 0;
         ch_FollowGround(a);
         if (ch_MarkWalkErrors)
@@ -3989,7 +3989,7 @@ void ch_ActWalk2RndDummy(CHACTION *a)
                 w->u.walk.dest.x = pos.x;
                 w->u.walk.dest.y = pos.y;
                 w->u.walk.dest.z = pos.z;
-                strcpy(CHACT_NAME70(w), "Walk2RndDummy");
+                strcpy(w->why, "Walk2RndDummy");
             }
         }
         ch_RemoveAction(a);

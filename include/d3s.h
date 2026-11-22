@@ -93,13 +93,6 @@ typedef struct D3STERR {            /* the parts of a terrain (d3_sm.h: D3TERRAI
     D3STBLOCK blocks[8][8];         /* 0x13c */
 } D3STERR;
 
-typedef struct D3SMESH {            /* the parts of a mesh (d3_engine.h: D3MESH) the shadow code reads through
-                                       D3OBJECT::material */
-    char pad000[0x954];
-    float groundOffset;             /* 0x954, offset added to the mesh's ground height (D3MESH::groundOffsetRaw) */
-} D3SMESH;
-#define D3S_MESH(m) ((D3SMESH *)(m))
-
 /* declared in other units' headers before (moved to the owner) */
 void d3_ExitShadows(void);  /* 0x45aee0 */
 void d3_InitShadows(unsigned int size, unsigned int maxsize, int ncache, int age, char mips, int polys, int mapsize);  /* 0x45ad80 */

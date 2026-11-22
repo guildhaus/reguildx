@@ -13,6 +13,11 @@ typedef struct AITIME {                 /* 14 bytes: the game clock ai_Time, the
 } AITIME;
 #pragma pack(pop)
 
+typedef struct G14MSG {                 /* an AI message, the argument of rmsg.c's callbacks (ai_RunMessage) */
+    int id;                             /* 0x00, a character id */
+    unsigned short type;                /* 0x04, 0..0x44, the table index; text 0x12e7 + type */
+} G14MSG;
+
 typedef struct AISTORE {                /* 24 bytes, a stock list per building, gm_Offers[] */
     struct AIBLD *bld;                  /* 0x00 */
     int market;                         /* 0x04, the market / stall object holding the goods (f3gm.c gm_CollectOffers) */
@@ -107,8 +112,8 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
                 int orderObj;                   /* 0xb0, of an order (event kind 2): the AIOBJ.objId of the workshop it is for */
                 int id2;                        /* 0xb0, a second id: a building (kind 100) or a character (kind 0x89) as
                                                    sv_SpeakPicked looks them up */
-                int effectObj;                  /* 0xb0, of an effect event 0x76 the effect object's handle, 0: none yet (its
-                                                   alloc handler 0x54fb50 clears it) */
+                struct D3PARTSYS *effectObj;    /* 0xb0, of an effect event 0x76 the effect's particle system, 0: none yet
+                                                   (its alloc handler 0x54fb50 clears it; ls.c clears it on load) */
                 int dropSlot;                   /* 0xb0, of a promotion event 0x32 the cm slot handle gm_DropRank leaves, -1: none
                                                    (its alloc handler 0x55dd70 sets -1) */
                 int slotOrder1c;                /* 0xb0, of a kind 0x12 slot order event (the type 0x12 message
@@ -311,6 +316,7 @@ typedef struct AIJOB {                  /* 0x14c bytes, a job / event record (he
             float tributeSkill;         /* 0xd0, the event character's skill 4 (gm_GetSkill), mixed with each visited
                                            character's to the relation change */
         };
+        G14MSG msg;                     /* 0xac, of the random-message event 0x42: the message it runs (he_RunRandomMessage) */
     };
     union {
         unsigned char stormDue;         /* 0xec, of a storm event 0x50: set by its alloc handler 0x5652b0, the run handler
@@ -404,7 +410,9 @@ typedef struct AIRECIPE {               /* 0xb8 bytes, a goods list: filled by g
 
 #pragma pack(push, 1)
 typedef struct AISERMON {               /* 7 bytes, a church's sermon settings: its sermon object's +0x1c (AIOBJ.sermon),
-                                           sent whole as a G17B7 (cm_SendObject1b5, ai_SermonWindow) */
+                                           sent whole as a G17B7 (cm_SendObject1b5, ai_SermonWindow); a tavern's object
+                                           0x1b5 holds its hired helper here (he_AllocTavern / he_RunTavern: priest = the
+                                           helper, enabled = hired) */
     signed char text1;                  /* 0x00, the sermon's first text 0x1990 + it (0 .. 7), -1: none */
     signed char text2;                  /* 0x01, its second text 0x1998 + it (0 .. 7), -1: none */
     int priest;                         /* 0x02, the netId of the priest who preaches, -1: none */

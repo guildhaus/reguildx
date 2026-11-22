@@ -2732,7 +2732,7 @@ int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
 int d2_WinOpenPic(short x, short y, int pic, int win);
 void d2_CloseView(int view); int cm_SendLongMessage(struct AIMSG *msg);
 void txt_Format(char *out, intptr_t id0, ...);
-int gm_CharCurrency(struct AICHAR *c, char p); int gm_BuildingClass(int kind); int gm_MayTakeJob(int k, int c);
+int gm_CharCurrency(struct AICHAR *c, signed char p); int gm_BuildingClass(int kind); int gm_MayTakeJob(int k, int c);
 
 
 /* 0x5909a0, the construction window "BAUEN\GEB_BAUEN" (1988 B): run by ai_RunAllows (0x40) between the campaign
@@ -5191,7 +5191,7 @@ void ai_AquariumSearchWindow(AIBLD *bld, AIOBJ *room)
 {
     int goods[3];
     int searches[3];
-    int store;
+    AIOBJ *store;
     int win;
     int buttons[3];
     AIMSG msg;
@@ -5208,7 +5208,7 @@ void ai_AquariumSearchWindow(AIBLD *bld, AIOBJ *room)
     goods[0] = 0x1c1;
     goods[1] = 0x1c2;
     goods[2] = 0x1c3;
-    store = (int)gm_Query(bld->objList, 2, 6, 0, 0x2a);
+    store = gm_Query(bld->objList, 2, 6, 0, 0x2a);
     if (sv_CheckCharacterFlag(bld) != 0)
         return;
     for (i = 0; i < 3; i++)
@@ -10336,7 +10336,7 @@ void ai_GuildCashPayWindow(AIBLD *bld)
     d2_CloseView(win);
 }
 
-int amt_ExecuteShareMessage(struct AICHAR *c, int *m);
+int amt_ExecuteShareMessage(struct AICHAR *c, struct G8REQ *m);
 
 /* 0x5a0ca0, the ai_MapPick callback of ai_GuildGiftEntry: the guild master's gift window
    "LOCATIONS\ZUNFTHAUS\LEVEL2" for the picked building bld. The fee is a hundredth of the player's worth, at
@@ -10349,7 +10349,7 @@ int amt_ExecuteShareMessage(struct AICHAR *c, int *m);
 int ai_GuildGiftCallback(AIBLD *place, AIBLD *bld)
 {
     int cancelBtn;
-    int req[5];
+    G8REQ req;
     int fee;
     int win;
     int text;
@@ -10381,10 +10381,10 @@ int ai_GuildGiftCallback(AIBLD *place, AIBLD *bld)
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == giveBtn &&
                 sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], fee, ai_OwnPlayer) != 0) {
-                req[0] = 2;
-                req[1] = bld->id;
-                req[2] = fee;
-                amt_ExecuteShareMessage(&ai_Chars[ai_PlayerId], req);
+                req.kind = 2;
+                req.a = bld->id;
+                req.b = fee;
+                amt_ExecuteShareMessage(&ai_Chars[ai_PlayerId], &req);
                 sv_PopRequest = 2;
             } else if (d2_PointerObj == cancelBtn) {
                 sv_PopRequest = 1;
@@ -10422,7 +10422,7 @@ void ai_GuildGiftEntry(AIBLD *building)
     ai_MapPick(1, &pick, txt_Ptrs[TXT_GUILD_POWER_PICK], ai_GuildGiftCallback, 0);
 }
 
-int amt_ExecutePriceMessage(struct AICHAR *c, int *m);
+int amt_ExecutePriceMessage(struct AICHAR *c, struct G8REQ *m);
 
 /* 0x5a1000, the guild master's price power (guild hall level 1, "LOCATIONS\ZUNFTHAUS\LEVEL1"): when
    amt_MayorBonusStep allows it (else TXT_GUILD_POWER_USED, or sv_CheckMoney's message for the 3 the player lacks),
@@ -10436,8 +10436,8 @@ void ai_GuildLevel1Window(AIBLD *building)
     int buttons[3];
     POINT pos[7] = { {0x40, 0x50}, {0xc0, 0x50}, {0x140, 0x50}, {0x1c0, 0x50},
                      {0x80, 0xb8}, {0x100, 0xb8}, {0x180, 0xb8} };
-    int lower[5];
-    int raise[5];
+    G8REQ lower;
+    G8REQ raise;
     int icons[7];
     int r;
     int win;
@@ -10483,16 +10483,16 @@ void ai_GuildLevel1Window(AIBLD *building)
             if (d2_PointerObj == buttons[2]) {
                 sv_PopRequest = 1;
             } else if (d2_PointerObj == buttons[0]) {
-                raise[0] = 3;
-                raise[1] = job + 1;
-                raise[2] = 1;
-                amt_ExecutePriceMessage(&ai_Chars[ai_PlayerId], raise);
+                raise.kind = 3;
+                raise.a = job + 1;
+                raise.b = 1;
+                amt_ExecutePriceMessage(&ai_Chars[ai_PlayerId], &raise);
                 sv_PopRequest = 1;
             } else if (d2_PointerObj == buttons[1]) {
-                lower[0] = 3;
-                lower[1] = job + 1;
-                lower[2] = -1;
-                amt_ExecutePriceMessage(&ai_Chars[ai_PlayerId], lower);
+                lower.kind = 3;
+                lower.a = job + 1;
+                lower.b = -1;
+                amt_ExecutePriceMessage(&ai_Chars[ai_PlayerId], &lower);
                 sv_PopRequest = 1;
             } else {
                 for (i = 0; i < 7; i++) {
@@ -10517,7 +10517,7 @@ void ai_GuildLevel1Window(AIBLD *building)
     sv_CameraFollow();
 }
 
-int amt_ExecuteMayorPowerMessage(struct AICHAR *c, int *m);
+int amt_ExecuteMayorPowerMessage(struct AICHAR *c, struct G8REQ *m);
 
 /* 0x5a13f0, the callback of the guild level 3 request (313 B, Ghidra-missed start: the callback of 0x5a17b0), the
    amount menu's pick callback (the character the list row shows; n unread) and its own frame key:
@@ -10527,7 +10527,7 @@ int amt_ExecuteMayorPowerMessage(struct AICHAR *c, int *m);
    0xf8a668 == 1 only raises 0x6f22a0; 0x4758f0 at the end, returns whether the request went through */
 int ai_GuildLevel3RequestCB(AICHAR *pick, int n)
 {
-    int req[5];                 /* the request record of amt_ExecuteMayorPowerMessage (am.h G8REQ, 20 bytes): kind, id */
+    G8REQ req;                  /* amt_ExecuteMayorPowerMessage's request: kind, id */
     int win;
     int id;
     int ok = 0;
@@ -10550,9 +10550,9 @@ int ai_GuildLevel3RequestCB(AICHAR *pick, int n)
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (d2_ClickedId == 0) {
-            req[0] = 1;
-            req[1] = pick->netId;
-            amt_ExecuteMayorPowerMessage(&ai_Chars[ai_PlayerId], req);
+            req.kind = 1;
+            req.a = pick->netId;
+            amt_ExecuteMayorPowerMessage(&ai_Chars[ai_PlayerId], &req);
             sv_PopRequest = 3;
             ok = 1;
         } else if (d2_ClickedId == 1) {
@@ -10572,7 +10572,7 @@ int ai_GuildLevel3RequestCB(AICHAR *pick, int n)
 
 void ai_GuildLevel2RequestCB(int column)
 {
-    int req[5];                 /* the request record of amt_ExecuteMayorPowerMessage (am.h G8REQ, 20 bytes): kind, id */
+    G8REQ req;                  /* amt_ExecuteMayorPowerMessage's request: kind, id */
     int win;
     int id;
 
@@ -10593,9 +10593,9 @@ void ai_GuildLevel2RequestCB(int column)
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (d2_ClickedId == 0) {
-            req[0] = 4;
-            req[1] = column;
-            amt_ExecuteMayorPowerMessage(&ai_Chars[ai_PlayerId], req);
+            req.kind = 4;
+            req.a = column;
+            amt_ExecuteMayorPowerMessage(&ai_Chars[ai_PlayerId], &req);
             sv_PopRequest = 2;
         } else if (d2_ClickedId == 1) {
             sv_PopRequest = 1;
@@ -10615,7 +10615,7 @@ void ai_GuildLevel2RequestCB(int column)
 
 void ai_GuildLevel3PowerCB(int column)
 {
-    int req[5];                 /* the request record of amt_ExecuteMayorPowerMessage (am.h G8REQ, 20 bytes): kind, id */
+    G8REQ req;                  /* amt_ExecuteMayorPowerMessage's request: kind, id */
     int win;
     int id;
 
@@ -10636,9 +10636,9 @@ void ai_GuildLevel3PowerCB(int column)
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
         if (d2_ClickedId == 0) {
-            req[0] = 4;
-            req[1] = column;
-            amt_ExecuteMayorPowerMessage(&ai_Chars[ai_PlayerId], req);
+            req.kind = 4;
+            req.a = column;
+            amt_ExecuteMayorPowerMessage(&ai_Chars[ai_PlayerId], &req);
             sv_PopRequest = 2;
         } else if (d2_ClickedId == 1) {
             sv_PopRequest = 1;

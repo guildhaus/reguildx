@@ -649,7 +649,7 @@ int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
 int d2_WinOpenPic(short x, short y, int pic, int win);
 void d2_CloseView(int view); int cm_SendLongMessage(struct AIMSG *msg);
 void txt_Format(char *out, intptr_t id0, ...);
-int gm_CharCurrency(struct AICHAR *c, char p); int gm_MayTakeJob(int k, int c);
+int gm_CharCurrency(struct AICHAR *c, signed char p); int gm_MayTakeJob(int k, int c);
 unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c); void init_ShowBuildingScene(struct AIBLD *b, int slot); void init_FinishBuildingScene(struct AIBLD *b, struct AIOBJ *o);
 int d3t_PlaceObjectV(struct D3OBJECT *camera, struct D3VECTOR *pos, struct D3VECTOR *dir, int unk, char flags); void init_AfterTownLoad(void);
 void ai_ChooseCoatOfArms(void); void snd_StartMarketAmbience(void); void snd_StopMarketAmbience(void);
@@ -762,9 +762,9 @@ typedef struct LCSALEROW {          /* a row of ai_BuyBuildingWindow's list: a b
 void ai_OpenAmountKindMenu(void);
 void ai_OpenAgendaMenu(void);
 int amt_GetFirstOffice(unsigned int k, struct AMTREC *out);
-int amt_ExecuteShareMessage(struct AICHAR *c, int *m);
-int amt_ExecutePriceMessage(struct AICHAR *c, int *m);
-int amt_ExecuteMayorPowerMessage(struct AICHAR *c, int *m);
+int amt_ExecuteShareMessage(struct AICHAR *c, struct G8REQ *m);
+int amt_ExecutePriceMessage(struct AICHAR *c, struct G8REQ *m);
+int amt_ExecuteMayorPowerMessage(struct AICHAR *c, struct G8REQ *m);
 struct AIOBJ *gm_Query(void *list, int n, ...); int gm_GetWorth(unsigned short id);
 void d2_SetPointerSprite(int a, int pic); int d2_SetForm(int view, int n);
 int io_PrintText(intptr_t fmt, ...); int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
@@ -9057,7 +9057,7 @@ int ai_UniversityWindow(AICHAR *parent, AICHAR *child)
 {
     int win;
     int ctrl[4];
-    int offers[3][3];
+    AISTUDYOFFER offers[3];
     AIMSG msg;
     char text[0x100];
     int i;
@@ -9075,11 +9075,11 @@ int ai_UniversityWindow(AICHAR *parent, AICHAR *child)
         d2_Objs[ctrl[i]].style = 3;
         txt_Format(text, (intptr_t)"%s", ai_PlayerSlots[i + 1].name);
         d2_CreateWinText(0xbe, i * 0x5a + 10, text, d2_LastWindow);
-        txt_Format(text, (intptr_t)"%s", offers[i][1] + 0x16b7);
+        txt_Format(text, (intptr_t)"%s", offers[i].subject + 0x16b7);
         d2_CreateWinText(0xbe, i * 0x5a + 0x1e, text, d2_LastWindow);
-        txt_Format(text, (intptr_t)"%s", offers[i][2] + 0x16b7);
+        txt_Format(text, (intptr_t)"%s", offers[i].level + 0x16b7);
         d2_CreateWinText(0xbe, i * 0x5a + 0x32, text, d2_LastWindow);
-        txt_Format(text, (intptr_t)"%T", offers[i][0]);
+        txt_Format(text, (intptr_t)"%T", offers[i].price);
         d2_CreateWinText(0xbe, i * 0x5a + 0x46, text, d2_LastWindow);
     }
     d2_SetForm(win, 3);
@@ -9101,9 +9101,9 @@ int ai_UniversityWindow(AICHAR *parent, AICHAR *child)
                         msg.to = child->netId;
                         msg.fromId = -1;
                         msg.study.ch = ai_Chars[ai_PlayerId].netId;
-                        msg.study.subject = offers[i][1];
-                        msg.study.level = offers[i][2];
-                        msg.study.child = offers[i][0];
+                        msg.study.subject = offers[i].subject;
+                        msg.study.level = offers[i].level;
+                        msg.study.child = offers[i].price;
                         cm_SendLongMessage(&msg);
                         cm_SendSetField(child->netId, 0x1c8, 4, 0x10000, 0);
                         ret = 1;

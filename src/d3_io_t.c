@@ -76,7 +76,7 @@ void d3io_AttachStock(D3OBJECT *obj, D3SURF *surf, char *name)
         s->ntris = stock->npolys;
         s->stock = stock;
         s->f194 = 0;
-        d3_AllocObjectPolys((D3OBJINFO *)s);
+        d3_AllocObjectPolys((D3SURF *)s);
         col.all = -1;
         if (s->nkeys > 0)
             for (i = 0; i < s->nkeys + 8; i++) {
@@ -153,9 +153,9 @@ void d3io_AttachStock(D3OBJECT *obj, D3SURF *surf, char *name)
                     do {
                         if (k >= 3)
                             break;
-                        if (D3_MESH(obj)->surf[k].info.ntris > 0 && D3_MESH(obj)->surf[k].info.nkeys > 0 &&
-                            D3_MESH(obj)->surf[k].info.mesh)
-                            obj->info = &D3_MESH(obj)->surf[k].info;
+                        if (D3_MESH(obj)->surf[k].ntris > 0 && D3_MESH(obj)->surf[k].nkeys > 0 &&
+                            D3_MESH(obj)->surf[k].mesh)
+                            obj->info = &D3_MESH(obj)->surf[k];
                         k++;
                     } while (!obj->info);
                 }
@@ -652,7 +652,7 @@ D3BGF *d3iot_LoadBGF(char *path, char *name, char *texnames, int ntexsets, int n
 }
 /* 0x44df20, radius of the mesh behind an object info (the first argument is not used) */
 
-float d3iot_GetRadius(int unused, D3OBJINFO *info)
+float d3iot_GetRadius(int unused, D3SURF *info)
 {
     if (info && info->mesh)
         return ((D3BGF *)info->mesh)->radius;

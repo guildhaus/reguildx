@@ -1855,7 +1855,7 @@ int ls_ReadSceneRecords(VFSFILE *f)
         if (vfs_GetPath(file, vfs_Root, vfs_Root, path) == 0) {
             c = ch->owner;
             c->ownName[0] = 0;
-            strcpy(ch->fullname, (char *)gm_CharNameRecord(c->id) + 4);
+            strcpy(ch->fullname, gm_CharNameRecord(c->id)->name);
             u = strrchr(ch->fullname, '_');
             if (u != 0) {
                 strcpy(ch->body, u + 1);
@@ -1908,7 +1908,7 @@ int ls_ReadSceneRecords(VFSFILE *f)
                     colour = (unsigned char)keeper->ref54 + 'g';
                 else
                     colour = 0;
-                d3if_SelectTextureSet(cart, (struct D3SURF *)cart->info, colour, 1);
+                d3if_SelectTextureSet(cart, cart->info, colour, 1);
                 ch_AttachTransport(ch, cart);
                 cart->mask = 1;
                 init_HookObject(cart, own, 1);

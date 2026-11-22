@@ -163,7 +163,7 @@ D3OBJECT *cm_HoverObject = 0;  /* 0x6f0ce0 */
 int cm_FightPaused = 0;  /* 0x6f0ce4, fight paused */
 AICHAR *cm_FightDefender = 0;  /* 0x6f0ce8, the defending side's leader */
 AICHAR *cm_FightAttacker = 0;  /* 0x6f0cec, the attacking side's leader */
-char * cm_PickMarker = 0;  /* 0x6f0cf0 */
+D3OBJECT *cm_PickMarker = 0;  /* 0x6f0cf0 */
 int cm_FightWinner = 0;  /* 0x6f0cf4 */
 int cm_FightSettled = 0;  /* 0x6f0cf8 */
 int cm_FightLootValue = 0;  /* 0x6f0cfc */
@@ -782,7 +782,7 @@ int cm_ObjectOwner(char *c)
 
 void cm_WaitEventStop(int id)
 {
-    char *e;
+    EVTSCRIPT *e;
 
     if (cm_SkipEvents != 0)
         return;
@@ -794,7 +794,7 @@ void cm_WaitEventStop(int id)
                 return;
         } while (sv_RunFrame(0, 0x7d6c6) != 0);
     }
-    e = (char *)evt_FindById(id);
+    e = evt_FindById(id);
     if (e != 0)
         evt_Stop(e);
     di_ClearButtons();
@@ -1788,7 +1788,7 @@ char cm_CreateDummyFlag(D3OBJECT *obj, void *ctx)
         d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)pos);
         r = d3_CreateObject(0, (D3VECTOR *)pos, (D3VECTOR *)rot, "ub_CONQUER");
         cm_FlagObjects[cm_FlagObjectCount] = r;
-        d3if_SelectTextureSet(r, (D3SURF *)r->info, 1, 1);
+        d3if_SelectTextureSet(r, r->info, 1, 1);
         sprintf(cm_FlagObjects[cm_FlagObjectCount]->name, "sp_CONQUER_%i", cm_FlagObjectCount);
         cm_FlagObjects[cm_FlagObjectCount]->owner = 0;
         cm_FlagObjects[cm_FlagObjectCount]->kind = 4;
@@ -2007,7 +2007,7 @@ void cm_SetupFightScene(G28REC *rec)
             r = cm_AddFighter(rec->fight.attackers[i], "dummy_OFFENSE_ENTRY");
             r->side = cm_FightAttacker;     /* in a fight: the side's leader */
             if (r->scene != 0)
-                d3if_SelectTextureSet(r->scene->obj, (struct D3SURF *)r->scene->obj->info, 5, 1);
+                d3if_SelectTextureSet(r->scene->obj, r->scene->obj->info, 5, 1);
         }
     }
     for (i = 0; i < 16; i++) {
@@ -2016,7 +2016,7 @@ void cm_SetupFightScene(G28REC *rec)
             r->side = cm_FightDefender;
             r->scene->walkSpeed *= 1.2;
             if (r->scene != 0)
-                d3if_SelectTextureSet(r->scene->obj, (struct D3SURF *)r->scene->obj->info, 4, 1);
+                d3if_SelectTextureSet(r->scene->obj, r->scene->obj->info, 4, 1);
         }
     }
     d3_ForEachObject2(d3_DefaultScene, 0, 0xc0, (void (*)(D3OBJECT *))cm_ClearKind3MaskCB);
@@ -2106,7 +2106,7 @@ void cm_EndFightScene(G28REC *rec)
 
     cm_FadeToBlack();
     if (cm_PickMarker != 0) {
-        d3if_Delete((struct D3OBJECT *)cm_PickMarker);
+        d3if_Delete(cm_PickMarker);
         cm_PickMarker = 0;
     }
     sb_UnloadSampleBank(cm_FightSounds);
@@ -4520,7 +4520,7 @@ void cm_PlantEscapeFlag(CMFIGHTSLOT *f)
                 else
                     k = 0;
                 if (k != 0)
-                    d3if_SelectTextureSet(r, (struct D3SURF *)r->info, k, 1);
+                    d3if_SelectTextureSet(r, r->info, k, 1);
                 sprintf(r->name, "CONQUER_FLAG");
                 r->owner = 0;
                 r->kind = 4;

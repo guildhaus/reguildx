@@ -311,7 +311,7 @@ int ocmd_AttachAnim(D3OBJECT **pobj, char **file, int *once)
     obj = *pobj;
     if (evt_CurCall && evt_CurCall->fn == ocmd_AttachAnim) {
         for (i = 0; i < 3; i++) {
-            if (obj->material->tex[i].name) {
+            if (obj->material->surf[0].slots[i].data) {
                 evt_Cur->waitfn = ocmd_AttachAnim;
                 return 0;
             }
@@ -386,7 +386,7 @@ int ocmd_AttachAnimLooped(D3OBJECT **pobj, char **file, int *n)
     obj = *pobj;
     if (evt_CurCall && evt_CurCall->fn == ocmd_AttachAnimLooped) {
         for (i = 0; i < 3; i++) {
-            if (obj->material && obj->material->tex[i].name) {
+            if (obj->material && obj->material->surf[0].slots[i].data) {
                 evt_Cur->waitfn = ocmd_AttachAnimLooped;
                 return 0;
             }

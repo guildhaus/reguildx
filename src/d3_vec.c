@@ -267,18 +267,17 @@ void d3_MatFromAngles(D3VECTOR4 *v, D3MATRIX *m)
 }
 /* 0x454690, matrix rows to angles */
 
-void d3_MatToAngles(D3VECTOR4 *m, D3VECTOR4 *angles)
+void d3_MatToAngles(const D3MATRIX *m, D3VECTOR *angles)
 {
-    float *f = (float *)m;
-    double l = sqrt((double)f[4] * f[4] + (double)f[0] * f[0]);
+    double l = sqrt((double)m->_21 * m->_21 + (double)m->_11 * m->_11);
 
     if (l > 1.9073486328125e-06) {
-        angles->x = (float)atan2(f[9], f[10]);
-        angles->y = (float)atan2(-f[8], l);
-        angles->z = (float)atan2(f[4], f[0]);
+        angles->x = (float)atan2(m->_32, m->_33);
+        angles->y = (float)atan2(-m->_31, l);
+        angles->z = (float)atan2(m->_21, m->_11);
     } else {
-        angles->x = (float)atan2(-f[6], f[5]);
-        angles->y = (float)atan2(-f[8], l);
+        angles->x = (float)atan2(-m->_23, m->_22);
+        angles->y = (float)atan2(-m->_31, l);
         angles->z = 0.0f;
     }
 }

@@ -21,7 +21,7 @@ typedef struct D3MIRFLAGS {
 
 typedef struct D3MIRROR {           /* d3_Mirror (0xfb9900), the mirror of the frame */
     D3OBJECT *obj;                  /* 0x00 */
-    D3OBJINFO *info;                /* 0x04, obj->info when the polygon was looked up */
+    D3SURF *info;                /* 0x04, obj->info when the polygon was looked up */
     D3MIRPLANES *planes;            /* 0x08 */
     struct TSTEXTURE *tex;                 /* 0x0c, the mirror texture */
     D3PTRI *tri;                    /* 0x10, the first polygon with it */
@@ -30,10 +30,6 @@ typedef struct D3MIRROR {           /* d3_Mirror (0xfb9900), the mirror of the f
     D3MIRFLAGS flags;               /* 0x28 */
 } D3MIRROR;
 
-typedef struct D3MIRSURF {          /* D3SURF as the mirror code sees it */
-    D3OBJINFO info;
-    struct TSTEXTURE **tex;                /* 0x14, D3_OPS(info)->count of them */
-} D3MIRSURF;
 
 typedef struct D3MIRBITS {          /* view of D3OBJECT::objectFlags */
     unsigned char b0 : 6;

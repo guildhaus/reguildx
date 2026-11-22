@@ -881,28 +881,28 @@ void gm_ResolveHeadIcons(GMHEAD *rec);
 char d3if_SelectTextureSet(struct D3OBJECT *obj, struct D3SURF *surf, unsigned char set, char reload);                     /* 0x446f30 */
 
 /* 0x4fb330, the record of the table kind (0: 0x612bd8, 1: 0x614518) with the id: prepared by 0x4fb620 (the head numbers); the first free record when the id is not found (0x5f records of 0x44 bytes); 0 for another kind */
-unsigned *gm_NameRecord(int kind, int id)
+GMHEAD *gm_NameRecord(int kind, int id)
 {
-    unsigned *t;
+    GMHEAD *t;
     int i;
 
     i = 0;
     if (kind == 0)
-        t = gm_JobHeadsMale;
+        t = (GMHEAD *)gm_JobHeadsMale;
     else if (kind == 1)
-        t = gm_JobHeadsFemale;
+        t = (GMHEAD *)gm_JobHeadsFemale;
     else
         return 0;
     do {
-        if (t[i * 0x11] == 0)
+        if (t[i].key == 0)
             break;
-        if (t[i * 0x11] == (unsigned)id) {
-            gm_ResolveHeadIcons(t + i * 0x11);
-            return t + i * 0x11;
+        if ((unsigned)t[i].key == (unsigned)id) {
+            gm_ResolveHeadIcons(&t[i]);
+            return &t[i];
         }
         i++;
     } while (i < 0x5f);
-    return t + i * 0x11;
+    return &t[i];
 }
 /* 0x4fb390, the head record of the character id: a child (jobId 0, w00a below f020) gets the boy / girl head; a
    character with its own name and a picture gets a copy in the next record of the ring gm_OwnNameHeads (the four
@@ -929,7 +929,7 @@ unsigned *gm_NameRecord(int kind, int id)
    unsigned char), p = 0 / i = 0 / k orders (one code), the child arm returning both heads directly
    (108-135), the fallback returning the tables d... */
 
-unsigned *gm_CharNameRecord(int id)
+GMHEAD *gm_CharNameRecord(int id)
 {
     GMHEAD *p;
     unsigned char k;
@@ -947,10 +947,10 @@ unsigned *gm_CharNameRecord(int id)
             ((GMHEAD *)gm_OwnNameHeads)[gm_OwnNameHeadLast].heads[1] = v;
             ((GMHEAD *)gm_OwnNameHeads)[gm_OwnNameHeadLast].heads[2] = v;
             ((GMHEAD *)gm_OwnNameHeads)[gm_OwnNameHeadLast].heads[3] = v;
-            return (unsigned *)&((GMHEAD *)gm_OwnNameHeads)[gm_OwnNameHeadLast];
+            return &((GMHEAD *)gm_OwnNameHeads)[gm_OwnNameHeadLast];
         }
         if (ai_Chars[id].kind == 0x11)
-            return (unsigned *)((GMHEAD *)gm_SpyHeads + util_Random(3));
+            return (GMHEAD *)gm_SpyHeads + util_Random(3);
         if (k != 0) {
             if (ai_Chars[id].sex == 0)
                 p = (GMHEAD *)gm_JobHeadsMale;
@@ -961,10 +961,10 @@ unsigned *gm_CharNameRecord(int id)
                     break;
                 if (p[i].key == k) {
                     gm_ResolveHeadIcons(&p[i]);
-                    return (unsigned *)&p[i];
+                    return &p[i];
                 }
             }
-            return (unsigned *)&p[i];
+            return &p[i];
         }
         k = ai_Chars[id].title;
         if (k != 0) {
@@ -977,11 +977,11 @@ unsigned *gm_CharNameRecord(int id)
                     break;
                 if (p[i].key == k) {
                     gm_ResolveHeadIcons(&p[i]);
-                    return (unsigned *)&p[i];
+                    return &p[i];
                 }
             }
             if (i < 0x23)
-                return (unsigned *)&p[i];
+                return &p[i];
         }
         if (ai_Chars[id].sex == 0)
             p = (GMHEAD *)gm_TitleHeadsMale;
@@ -990,9 +990,9 @@ unsigned *gm_CharNameRecord(int id)
     } else {
         p = (GMHEAD *)gm_BoyHead;
         if (ai_Chars[id].sex != 0)
-            return gm_GirlHead;
+            return (GMHEAD *)gm_GirlHead;
     }
-    return (unsigned *)p;
+    return p;
 }
 /* 0x4fb5a0, picks the texture set of the character o's model: its id modulo the set count of the body mesh (or
    id & 3 when there are 5 or more), unless the model is in the first scene (d3_Scenes[0]); when the model belongs to
@@ -1007,8 +1007,8 @@ void gm_SelectModelVariant(AICHAR *o)
 
     v = 0;
     if (o != 0 && (m = o->scene) != 0) {
-        surf = (D3SURF *)m->obj->material->animCtl;
-        ops = (D3OPS *)surf->info.mesh;
+        surf = &m->obj->material->surf[0];
+        ops = (D3OPS *)surf->mesh;
         if (m->scene != d3_Scenes) {
             if ((int)ops->nsets <= 4)
                 v = o->netId % ops->nsets;
@@ -1101,7 +1101,7 @@ extern struct AIBLD *ai_PlayerBuilding;  /* 0x6f2308 */
 extern struct AIBLD *ai_FallbackBuilding;  /* 0x6f230c */
 int gm_IsHomeType(struct AIBLD *b);                     /* 0x502520 */
 void ch_PreloadAnims(struct CHARACTER *ch, int n, ...);                     /* 0x404200 */
-unsigned *gm_CharNameRecord(int id);
+GMHEAD *gm_CharNameRecord(int id);
 
 /* 0x4fb890, chooses the portrait of the character c (its picture = the icon index + 0x639). With a model outside the
    first scene and the icon names loaded: the first texture name of the body's current texture set containing
@@ -1127,8 +1127,8 @@ void gm_ChooseHeadIcon(AICHAR *c)
     if (m != 0 && gm_IconNames != 0) {
         if (m->scene == d3_Scenes)
             return;
-        surf = (D3SURF *)m->obj->material->animCtl;
-        ops = (D3OPS *)surf->info.mesh;
+        surf = &m->obj->material->surf[0];
+        ops = (D3OPS *)surf->mesh;
         set = surf->texSet;
         if (ops->count > 0) {
             do {
@@ -1154,7 +1154,7 @@ void gm_ChooseHeadIcon(AICHAR *c)
                 return;
         }
     } else {
-        rec = (GMHEAD *)gm_CharNameRecord(c->id);
+        rec = gm_CharNameRecord(c->id);
         k = 0;
         if (rec->heads[0] == 0xff) {
             strcpy(name, rec->name);
@@ -1197,12 +1197,12 @@ void gm_ChooseHeadIcon(AICHAR *c)
    the model name to c's own head name and chooses the variant and the head icon. The current scene is selected
    again at the end. Returns the model (0 when scene is negative). */
 
-CHARACTER *gm_CreateCharModel(AICHAR *c, int scene, int *p, int *ori, D3OBJECT *obj, char *dummy)
+CHARACTER *gm_CreateCharModel(AICHAR *c, int scene, D3VECTOR *p, D3VECTOR *ori, D3OBJECT *obj, char *dummy)
 {
     int saved;
     D3VECTOR4 zero;
-    int pos[4];
-    int *o, *src;
+    D3VECTOR4 pos;
+    D3VECTOR *o, *src;
     D3OBJECT *it;
     GMHEAD *rec;
     char *name, *s, *d;
@@ -1213,8 +1213,8 @@ CHARACTER *gm_CreateCharModel(AICHAR *c, int scene, int *p, int *ori, D3OBJECT *
     zero.y = 0.0f;
     zero.z = 0.0f;
     zero.w = 0.0f;
-    src = p != 0 ? p : (int *)&zero;
-    o = ori != 0 ? ori : (int *)&zero;
+    src = p != 0 ? p : &zero.v;
+    o = ori != 0 ? ori : &zero.v;
     if (scene < 0)
         return 0;
     d3if_SelectScene(scene, 1);
@@ -1224,23 +1224,23 @@ CHARACTER *gm_CreateCharModel(AICHAR *c, int scene, int *p, int *ori, D3OBJECT *
     if (it == 0 && src == 0 && o == 0)
         goto done;
     if (it != 0)
-        d3_PointToWorld(it, &it->pos, (D3VECTOR *)pos);
+        d3_PointToWorld(it, &it->pos, &pos.v);
     else {
-        pos[0] = src[0];
-        pos[1] = src[1];
-        pos[2] = src[2];
+        pos.x = src->x;
+        pos.y = src->y;
+        pos.z = src->z;
     }
-    rec = (GMHEAD *)gm_CharNameRecord(c->id);
+    rec = gm_CharNameRecord(c->id);
     if (rec != 0) {
         name = rec->name;
-        m = ch_Create(name, (D3VECTOR *)pos);
+        m = ch_Create(name, &pos.v);
         c->scene = m;
         if (m != 0) {
             sprintf(m->obj->name, "sp_%i", c->netId);
             c->scene->obj->owner = c;
             c->scene->obj->pickId = c->id | 0x3000000;
             if (ori != 0)
-                d3_SetObjectRot(c->scene->obj, (D3VECTOR *)ori);
+                d3_SetObjectRot(c->scene->obj, ori);
             s = name;
             d = c->ownName;
             while ((*d++ = *s++) != 0)
@@ -1261,7 +1261,7 @@ done:
    script group, and is hidden when the shown building (ai_PlayerBuilding / ai_FallbackBuilding) is another.
    Returns the model or 0. */
 
-CHARACTER *gm_PlaceOnStage(int id, int a, int b, int *p, int *ori)
+CHARACTER *gm_PlaceOnStage(int id, int a, int b, D3VECTOR *p, D3VECTOR *ori)
 {
     int saved;
     AICHAR *c;
@@ -2235,11 +2235,11 @@ AIOBJ *gm_HomeObject(AIBLD *bld)
 }
 /* 0x4fdcb0, the home of the character c: its own building bld2 with the object of gm_HomeObject (out3 = its id, -1 without) and out2 = the building id; without one the next building of ai_Blds (round-robin from gm_HomeSearchStart) of kind 3 / 0x16 / 0x0f. Returns the building, 0 when none */
 
-char *gm_CharacterHome(AICHAR *c, int *out2, int *out3)
+AIBLD *gm_CharacterHome(AICHAR *c, int *out2, int *out3)
 {
     AICHAR *ch = c;
     AIOBJ *o;
-    char *type;
+    AIBTYPE *type;
     int i;
     int n;
 
@@ -2251,17 +2251,17 @@ char *gm_CharacterHome(AICHAR *c, int *out2, int *out3)
         else
             *out3 = -1;
         *out2 = ch->bld2->id;
-        return (char *)ch->bld2;
+        return ch->bld2;
     }
     i = gm_HomeSearchStart;
     for (; n != 0; n--) {
-        if (((AIBLD *)ai_Blds)[i].type != 0) {
-            type = (char *)ai_BTypes + ((AIBLD *)ai_Blds)[i].type * 0x24d;
-            if (*type == 3 || *type == 0x16 || *type == 0x0f) {
+        if (ai_Blds[i].type != 0) {
+            type = &ai_BTypes[ai_Blds[i].type];
+            if (type->kind == 3 || type->kind == 0x16 || type->kind == 0x0f) {
                 gm_HomeSearchStart = i + 1;
                 *out3 = -1;
-                *out2 = ((AIBLD *)ai_Blds)[i].id;
-                return (char *)&((AIBLD *)ai_Blds)[i];
+                *out2 = ai_Blds[i].id;
+                return &ai_Blds[i];
             }
         }
         i = (i + 1) % 256;

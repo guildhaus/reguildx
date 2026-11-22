@@ -76,7 +76,7 @@ int ai_MsgOfficeApplicantPayment(G14MSG *m)
     AICHAR *c, *p;
     int i, j, n, v;
     double k;
-    G14REC r[6];
+    AMTREC r[6];
     char buf[0x100];
 
     c = gm_FindChar(m->id);
@@ -1472,7 +1472,7 @@ int ai_MsgWorkerAddSkillType2f(G14MSG *m)
     s = 0xfc - p->sk81;
     if (s <= 0)
         return 0x400;
-    cm_SendAddSkill(p->netId, 1, (char)min(s, util_Random(10) + 5));
+    cm_SendAddSkill(p->netId, 1, (signed char)min(s, util_Random(10) + 5));
     txt_Format(buf, m->type + 0x12e7, 0x16b8, p->id, b);
     he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x603, 0);
     return 0;
@@ -1512,7 +1512,7 @@ int ai_MsgWorkerLoseSkillType30(G14MSG *m)
     s = p->sk81;
     if (s <= 0)
         return 0x400;
-    cm_SendAddSkill(p->netId, 1, -(char)min(s, util_Random(10) + 5));
+    cm_SendAddSkill(p->netId, 1, -(signed char)min(s, util_Random(10) + 5));
     txt_Format(buf, m->type + 0x12e7, p->id, b, p->id, 0x16b8);
     he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x603, 0);
     return 0;
@@ -1753,7 +1753,7 @@ int ai_MsgAddSkill8to24Type3a(G14MSG *m)
     d = 0xfc - c->skills[s];
     if (d <= 0)
         return 0x400;
-    cm_SendAddSkill(c->netId, s, (char)min(d, util_Random(0x11) + 8));
+    cm_SendAddSkill(c->netId, s, (signed char)min(d, util_Random(0x11) + 8));
     txt_Format(buf, m->type + 0x12e7, s + 0x16b7);
     he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x603, 0);
     return 0;
@@ -1775,7 +1775,7 @@ int ai_MsgLoseSkill6to17Type3b(G14MSG *m)
         return 0x400;
     if (d <= 0)
         return 0x400;
-    cm_SendAddSkill(c->netId, s, -(char)min(d, util_Random(0xc) + 6));
+    cm_SendAddSkill(c->netId, s, -(signed char)min(d, util_Random(0xc) + 6));
     txt_Format(buf, m->type + 0x12e7, s + 0x16b7);
     he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x603, 0);
     return 0;

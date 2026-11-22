@@ -147,7 +147,7 @@ int cm_SendSetField(int a, int b, int c, int d, int e);                   /* 0x4
 void cm_SendMoneyDelta(int a, int b);                                               /* 0x4c5f60 */
 int amt_GetOfficeApplicants(int k, int n, struct AICHAR **out);                                   /* 0x4e76b0 */
 struct ORDMSG; int ord_DispatchOrder(int id, struct AICHAR *c, struct ORDMSG *m);                                     /* 0x4f81c0 */
-int gm_CharCurrency(struct AICHAR *c, char p);                                    /* 0x509ee0 */
+int gm_CharCurrency(struct AICHAR *c, signed char p);                                    /* 0x509ee0 */
 int gm_GetWorth(unsigned short id);                                            /* 0x50a640 */
 /* ai.h declares he_FindEvent with five arguments; 0x496b10 calls it with three */
 
@@ -273,7 +273,7 @@ void ai_DuelNextPhase(AGDUEL *d);                                   /* 0x493a40 
 int ai_ChooseObjectTarget(AICHAR *p, AIOBJ *o);                            /* 0x493be0 */
 AICHAR *ai_FindSuccessor(AICHAR *p);                                    /* 0x493ea0 */
 
-int gm_CharCurrency(struct AICHAR *c, char p);                     /* 0x509ee0 */
+int gm_CharCurrency(struct AICHAR *c, signed char p);                     /* 0x509ee0 */
 int gm_GetWorth(unsigned short id);                            /* 0x50a640 */
 int gm_ConvertMoney(int a, unsigned char k);                       /* 0x5085b0 */
 int gm_PlayerFactor(int a, unsigned char k);                       /* 0x5085f0 */
@@ -289,12 +289,6 @@ typedef struct AIGDX {                  /* what 0x5ba620 returns */
     float unk0c;                        /* 0x0c */
 } AIGDX;
 
-typedef struct AIRECX {                  /* 16 bytes, filled by 0x4a5760 */
-    int item;                           /* 0x0, the wanted item */
-    int value;                          /* 0x4, the inventory entry's value when usable, -1 unusable, 0 not found */
-    int id;                             /* 0x8, the inventory entry's id, -1 not found */
-    int entry;                          /* 0xc, the inventory entry */
-} AIRECX;
 
 #pragma pack(pop)
 
@@ -405,7 +399,7 @@ int ai_DecideSentence(AICHAR *ch, AIPLAN *q);                          /* 0x4946
 int ai_WealthRating(AICHAR *a, AICHAR *b);                             /* 0x4947a0 */
 int ai_WealthRatingHalf(AICHAR *a, AICHAR *b);                             /* 0x494830 */
 AIREC10 *ai_FindInstrumentRecord(int key);                                 /* 0x4948c0 */
-void ai_RollStudyOffers(struct AICHAR *ch, int *out);                          /* 0x4948f0 */
+struct AISTUDYOFFER; void ai_RollStudyOffers(struct AICHAR *ch, struct AISTUDYOFFER *out);                          /* 0x4948f0 */
 int ai_MasterExamPassed(AICHAR *a, AICHAR *b);                             /* 0x494a30 */
 int ai_EvalFest(AIGRP *g, int send);                           /* 0x494ac0 */
 int ai_RelationGain(AICHAR *payer, AICHAR *target, int n);                      /* 0x494d40 */
@@ -490,39 +484,33 @@ typedef struct G8OFFER {                /* 12 bytes, filled by 0x50a250 */
     int c;                              /* 0x8 */
 } G8OFFER;
 
+typedef struct AISTUDYOFFER {           /* 12 bytes, a university's study offer (ai_RollStudyOffers) */
+    int price;                          /* 0x0 */
+    int subject;                        /* 0x4, the fixed subject (4, 3, 2 by the offer) */
+    int level;                          /* 0x8, the second subject index */
+} AISTUDYOFFER;
+
 typedef struct G8TABLE {                /* 12 bytes, a regulars' table request (0x4c5d80) */
     unsigned int tag;                   /* 0x0, 'join' / 'leav' */
     unsigned int ch;                    /* 0x4 */
     int bld;                            /* 0x8 */
 } G8TABLE;
 
-typedef struct G8REQ {                  /* 20 bytes, given to 0x4e9660 */
+typedef struct G8REQ {                  /* 20 bytes, the request of amt_ExecutePriceMessage / ShareMessage / MayorPowerMessage */
     int kind;                           /* 0x00 */
-    int a;                              /* 0x04 */
-    int b;                              /* 0x08 */
-    int unk0c;                          /* 0x0c */
-    int unk10;                          /* 0x10 */
+    int a;                              /* 0x04, the job number, building, target or district */
+    int b;                              /* 0x08, raise / lower, the fee */
+    int good1;                          /* 0x0c, out: the goods the price message changed (0 none) */
+    int good2;                          /* 0x10 */
 } G8REQ;
 
-typedef struct G8SEAT {                 /* 24 bytes, filled by 0x4e7040 */
-    int unk00;                          /* 0x00 */
-    int id;                             /* 0x04, a character id or -1 */
-    int unk08[4];                       /* 0x08 */
-} G8SEAT;
 
-typedef struct G8REC {                  /* 16 bytes, filled by 0x4a5760 (unk_48e070.h: AIRECX) */
-    int item;                           /* 0x0 */
-    int unk04;                          /* 0x4 */
-    int unk08;                          /* 0x8 */
-    int unk0c;                          /* 0xc */
-} G8REC;
 
 
 int ai_ExecuteCitizenship(AICHAR *p, AIARG *s1, AIARG *s2);                                                      /* 0x49a0a0 */
 int ai_DecideSaveAps(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49a290 */
 int ai_ExecuteSaveAps(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x49a380 */
 int ai_DecideUseMilitaryObject(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49a390 */
-/* unk_48e070.h declares ai_FindWantedItems with its AICHAR / AIRECX views (unify at the join) */
 void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);                           /* 0x4a5760 */
 int ai_ExecuteUseMilitaryObject(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x49a5b0 */
 /* 0x5ba620 with an int id (the callers here zero-extend; unk_48e070.h: unsigned short) */
@@ -597,16 +585,16 @@ void gm_SendMoneyDelta(int a, int b);                                      /* 0x
 int ai_ExecuteChangeProfession(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x49f7f0 */
 int ai_DecideStammtisch(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x49f850 */
 int ai_ExecuteStammtisch(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x49fb80 */
-int amt_ExecutePriceMessage(struct AICHAR *c, int *m);                                           /* 0x4e9660 */
+int amt_ExecutePriceMessage(struct AICHAR *c, struct G8REQ *m);                                           /* 0x4e9660 */
 int ai_ExecutePriceManipulation(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x4a0040 */
 int amt_CanUseMayorPower2(struct AICHAR *c);                                                      /* 0x4e94e0 */
 int ai_DecideGuildRiot(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x4a0090 */
-int amt_ExecuteShareMessage(struct AICHAR *c, int *m);                                           /* 0x4e9a00 */
+int amt_ExecuteShareMessage(struct AICHAR *c, struct G8REQ *m);                                           /* 0x4e9a00 */
 int ai_ExecuteGuildRiot(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x4a01f0 */
 int ai_PickLikedColumn(AICHAR *p);                                                      /* 0x4a05e0 */
 int amt_CanUseMayorPower3(struct AICHAR *c);                                                      /* 0x4e95a0 */
 int ai_DecideGuildLevel3(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x4a0890 */
-int amt_ExecuteMayorPowerMessage(struct AICHAR *c, int *m);                                           /* 0x4e9ce0 */
+int amt_ExecuteMayorPowerMessage(struct AICHAR *c, struct G8REQ *m);                                           /* 0x4e9ce0 */
 int ai_ExecuteGuildLevel3(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x4a0940 */
 int ai_EvalUpgradeGuild(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG *o2); /* 0x4a0990 */
 int ai_DecideUpgradeGuild(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x4a0a70 */
@@ -614,7 +602,7 @@ int ai_ExecuteUpgradeGuild(AICHAR *p, AIARG *s1, AIARG *s2);                    
 int ai_EvalApprenticeship(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, AIARG *o2); /* 0x4a1000 */
 int ai_DecideApprenticeship(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x4a1170 */
 int ai_ExecuteApprenticeship(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x4a1360 */
-void ai_RollStudyOffers(struct AICHAR *ch, int *out);                                         /* 0x4948f0, unk_494020.h: AICHAR * */
+void ai_RollStudyOffers(struct AICHAR *ch, struct AISTUDYOFFER *out);                                         /* 0x4948f0, unk_494020.h: AICHAR * */
 int ai_DecideStudy(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);                  /* 0x4a13e0 */
 int ai_ExecuteStudy(AICHAR *p, AIARG *s1, AIARG *s2);                                /* 0x4a1640 */
 int ai_SeanceDecide(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2);    /* unlinked: LINK folds it (/OPT:ICF) into sv_ReturnZero */
@@ -664,11 +652,11 @@ int gm_MayTakeJob(int k, int c);                                      /* 0x5020e
 /* 0x4a5140 ai_CanBuildType is declared in am.h */
 extern char ai_DataPath[];                                                      /* 0x75dca0, the data path */
 /* 0x4a5320 ai_ExecBuildBuilding is declared in am.h */
-typedef struct G9REC {                  /* 16 bytes, filled by 0x4a5760 (unk_49a0a0.h G8REC, unk_48e070.h AIRECX) */
+typedef struct G9REC {                  /* 16 bytes, a wanted item, filled by ai_FindWantedItems */
     int item;                           /* 0x0, the wanted item */
-    int value;                          /* 0x4, the inventory entry's value at +0x0e when usable, else -1 */
-    int entryId;                        /* 0x8, the inventory entry's id (+0x02), -1 none */
-    int entry;                          /* 0xc, the inventory entry itself */
+    int value;                          /* 0x4, the inventory entry's count when usable, -1 unusable, 0 not found */
+    int entryId;                        /* 0x8, the inventory entry's objId, -1 none */
+    struct AIOBJ *entry;                /* 0xc, the inventory entry itself, 0 none */
 } G9REC;
 void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);                          /* 0x4a5760, declared int elsewhere */
 /* 0x4a58d0 ai_PickPartnerChain is declared in am.h */
@@ -703,19 +691,16 @@ typedef struct G9BALL {                 /* 12 bytes, the table at 0x5edfe0 (3 ca
     float b;                            /* 0x4, 3000 / 3850 / 5950 */
     float c;                            /* 0x8, 0.06 / 0.065 / 0.075 */
 } G9BALL;
-typedef struct G9CANNON {               /* what 0x4eded0 finds for a building */
-    char pad00[8];
-    float charge[4];                    /* 0x08 */
-} G9CANNON;
-typedef struct G9KIND {                 /* filled by 0x4ef000 */
-    int unk00;                          /* 0x0 */
-    int level;                          /* 0x4 */
-    int unk08[6];
+typedef struct G9KIND {                 /* 0x20 bytes, a cannon kind's stats (gv_CannonKind) */
+    int kind;                           /* 0x00, 0 .. 4 */
+    int level;                          /* 0x04, the level the building needs */
+    int lo[3];                          /* 0x08, the salvos of 1 .. 3 balls: 500 * 32 * balls * (kind / 4 + 1) */
+    int hi[3];                          /* 0x14, 700 * 32 * balls * (kind / 4 + 1) */
 } G9KIND;
 extern G9SHOT ai_CannonShot;                                                      /* 0x6f0698 */
 extern const G9BALL ai_CannonBalls[5];                                                   /* 0x5edfe0 */
 extern const float ai_IronDensity;                                                       /* 0x5eee08, 7874 */
-int ai_SphereVolume(float radius, float size, float *out);                                   /* 0x5dc1a0 */
+struct SPHEREVOLUME; int ai_SphereVolume(float radius, float size, struct SPHEREVOLUME *out);                                   /* 0x5dc1a0 */
 struct SPHEREVOLUME; void ai_PositionShare(float a, float b, struct SPHEREVOLUME *rec, float *out);                        /* 0x5dc210 */
 int ai_SolveCannonAim(const struct D3VECTOR *a, const struct D3VECTOR *b, float *rng, float *x, float *y, float *ang, struct D3VECTOR *vb, struct D3VECTOR *vc, struct D3VECTOR *vd); /* 0x5dd100 */
 int ai_AimCannon(struct AICHAR *p, struct AIBLD *b, struct AIBLD *t);                                  /* 0x4a67a0 */

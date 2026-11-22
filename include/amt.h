@@ -66,15 +66,6 @@ extern const float amt_TabA[];                /* 0x5edc90, 15 rows of 10 floats 
 extern const float amt_TabB[];                /* 0x5edef0, 5 rows of 10 */
 float amt_Rating(struct AICHAR *a, struct AICHAR *b, int mode, int flag);  /* 0x4e5e50 */
 
-#pragma pack(push, 1)
-typedef struct AMTSET {                 /* the office message of 0x4e67a0 (12 bytes) */
-    unsigned char idx;                  /* 0x00, the office (compared with AMTREC.idx as a byte) */
-    int owner;                          /* 0x01, the new owner or -1 */
-    unsigned char state;                /* 0x05, the new state */
-    signed char code;                   /* 0x06, unused here */
-    int x14;                            /* 0x07, the second character or -1 */
-} AMTSET;
-#pragma pack(pop)
 typedef struct AMTRANGE {               /* 0x1c bytes, the ranges of 0x4e78f0 */
     short s0, s1;
     int i2, i3, i4, i5, i6, i7;
@@ -110,7 +101,7 @@ int amt_SendOfficeOwner(char a, struct AICHAR *b, unsigned char c);  /* 0x4e6650
 int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e);  /* 0x4e6680 */
 int amt_CheckOfficeMessage(struct AMTMSG *m);  /* 0x4e6710 */
 
-int amt_ExecuteOfficeMessage(AMTSET *p);           /* 0x4e67a0 */
+int amt_ExecuteOfficeMessage(AMTMSG *p);           /* 0x4e67a0 */
 void amt_SetEventOwner(int id);             /* 0x4e6b40 */
 void amt_SetPersonOwner(int id);             /* 0x4e6b70 */
 int amt_SendOfficeSwap(struct AICHAR *requester, struct AICHAR *b, struct AICHAR *c);  /* 0x4e6ba0 */
@@ -157,10 +148,11 @@ int amt_MayorBonusStep(struct AICHAR *c);             /* 0x4e94a0 */
 int amt_CanUseMayorPower2(struct AICHAR *c);             /* 0x4e94e0 */
 int amt_CanUseMayorPower3(struct AICHAR *c);             /* 0x4e95a0 */
 
-int amt_ExecutePriceMessage(struct AICHAR *c, int *m);     /* 0x4e9660 */
-int amt_ExecuteShareMessage(struct AICHAR *c, int *m);    /* 0x4e9a00 */
+struct G8REQ;                                            /* am.h */
+int amt_ExecutePriceMessage(struct AICHAR *c, struct G8REQ *m);     /* 0x4e9660 */
+int amt_ExecuteShareMessage(struct AICHAR *c, struct G8REQ *m);    /* 0x4e9a00 */
 
-int amt_ExecuteMayorPowerMessage(struct AICHAR *c, int *m);  /* 0x4e9ce0 */
+int amt_ExecuteMayorPowerMessage(struct AICHAR *c, struct G8REQ *m);  /* 0x4e9ce0 */
 
 void amt_ChangeDistrictOpinion(struct AICHAR *c, int d, int v);  /* 0x4ea550 */
 float amt_GetDistrictLiking(struct AICHAR *c, int d);  /* 0x4ea5c0 */

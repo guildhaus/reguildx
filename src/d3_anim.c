@@ -3,8 +3,7 @@
    up to three animation slots per animated object, root motion, bone posing and object path animations.
    Extent in GildeGold.exe: 0x4315c0 (after vfs_Exit) .. 0x4359f0, where d3_d3d.c starts.
    Functions are kept in their original order. Names are ours.
-   Open: D3MATERIAL+0xf4 is the animation control block (read here through the local D3ANIMMATV view); typing it
-   in d3.h moves d3_Unk4550e0 by 8 bytes. D3OBJECT.path (0x1d0) is typed in d3.h and d3anim_CreatePath and d3anim_FreePath use it,
+   The animation slots are the surfaces' (D3MESH.surf[k].slots, d3.h). D3OBJECT.path (0x1d0) is typed in d3.h and d3anim_CreatePath and d3anim_FreePath use it,
    the other path users still go through the D3_OBJPATH raw cast.
    unit of rea 8cef7d5b (src/game/d3_anim.c); boundaries in decl/text.dcl */
 #include <stdio.h>
@@ -121,23 +120,23 @@ void d3anim_ApplyMotionTo(D3OBJECT *obj, D3ANIMSLOT *s, int sub, int frame, int 
 
 char d3anim_MapBones(D3OBJECT *obj)
 {
-    D3BONESLOT *bs;
-    D3BONEANIM *anim;
+    D3ANIMSLOT *bs;
+    D3ANIMDATA *anim;
     D3OBJECT *c;
-    D3MATERIAL *mat;
+    D3MESH *mat;
     /* @original k's initializer emits no code; it is the one zero piece more the original's
        allocation shows: the k-loop latch reloads obj before anim (ours without it: anim first) */
     int i, k = 0, n;
 
     if (obj && (mat = obj->material)) {
         for (i = 0; i < 3; i++) {
-            bs = (D3BONESLOT *)&mat->tex[i];
-            if (anim = bs->anim) {
+            bs = &mat->surf[0].slots[i];
+            if (anim = bs->data) {
                 bs->mapAll = -1;
                 n = 0;
                 for (k = 0; n < 4 && k < anim->nbones; k++) {
                     for (c = obj->child; c; c = c->next)
-                        if (!strcmp(D3_MESH(c)->boneName, anim->names[k]))
+                        if (!strcmp(D3_MESH(c)->boneName, D3ANIM_BONENAME(anim, k)))
                             bs->map[n++] = k;
                 }
             }
@@ -151,7 +150,10 @@ typedef struct D3BONEACC {          /* 0xa4 bytes, a bone blended over the runni
     int n;                          /* 0x40, animations added */
     D3VECTOR4 pos;                  /* 0x44 */
     D3VECTOR4 base;                 /* 0x54, rest position */
-    D3VECTOR4 m[4];                 /* 0x64, rotation matrix (rows) */
+    union {                         /* 0x64, rotation matrix */
+        D3VECTOR4 m[4];             /* its rows */
+        D3MATRIX mat;
+    };
 } D3BONEACC;
 
 /* 0x431ae0, poses the child objects (bones) from the skeleton animations of the object's slots, weighted;
@@ -167,18 +169,18 @@ void d3anim_PoseBones(D3OBJECT *obj)
     D3VECTOR4 m1[4], m0[4];
     D3ANIMSLOT *s;
     D3ANIMDATA *data;
-    D3ANIMMESH *mesh;
+    D3BGF *mesh;
     D3OBJECT *c;
     char *name;
     float t;
     int n, i, k, b, bone, r;
 
-    if (obj && obj->material && obj->material->ops) {
+    if (obj && obj->material && obj->material->surf[0].mesh) {
         n = 0;
-        if (((D3ANIMCTL *)obj->material->animCtl)->active) {
+        if (obj->material->surf[0].active) {
             D3_ZERO(acc, sizeof(acc));
             for (k = 0; k < 3; k++) {
-                s = &((D3ANIMCTL *)obj->material->animCtl)->slots[k];
+                s = &obj->material->surf[0].slots[k];
                 if (data = s->data) {
                     D3VECTOR4 v;
 
@@ -191,14 +193,14 @@ void d3anim_PoseBones(D3OBJECT *obj)
                                     break;
                             if (i >= n) {
                                 if (n < 4) {
-                                    D3ANIMMESH *skel = ((D3ANIMCTL *)obj->material->animCtl)->mesh;
+                                    D3BGF *skel = obj->material->surf[0].mesh;
 
                                     strcpy(acc[n].name, name);
-                                    for (i = 0; i < skel->nbones; i++) {
-                                        if (!strcmp(skel->bones[i].name, name)) {
-                                            acc[n].base.x = skel->bones[i].pos.x;
-                                            acc[n].base.y = skel->bones[i].pos.y;
-                                            acc[n].base.z = skel->bones[i].pos.z;
+                                    for (i = 0; i < skel->nattach; i++) {
+                                        if (!strcmp(skel->attach[i].name, name)) {
+                                            acc[n].base.x = skel->attach[i].pos.x;
+                                            acc[n].base.y = skel->attach[i].pos.y;
+                                            acc[n].base.z = skel->attach[i].pos.z;
                                             break;
                                         }
                                     }
@@ -247,15 +249,15 @@ void d3anim_PoseBones(D3OBJECT *obj)
             }
         }
         if (!n) {
-            mesh = ((D3ANIMCTL *)obj->material->animCtl)->mesh;
+            mesh = obj->material->surf[0].mesh;
             for (c = obj->child; c; c = c->next) {
                 if (c->material && D3_MESH(c)->boneName[0]) {
-                    for (i = 0; i < mesh->nbones; i++)
-                        if (!strcmp(mesh->bones[i].name, D3_MESH(c)->boneName))
+                    for (i = 0; i < mesh->nattach; i++)
+                        if (!strcmp(mesh->attach[i].name, D3_MESH(c)->boneName))
                             break;
-                    if (i < mesh->nbones) {
-                        d3_SetObjectPos(c, &mesh->bones[i].pos);
-                        d3_SetObjectRot(c, &mesh->bones[i].rot);
+                    if (i < mesh->nattach) {
+                        d3_SetObjectPos(c, &mesh->attach[i].pos);
+                        d3_SetObjectRot(c, &mesh->attach[i].rot);
                     }
                 }
             }
@@ -270,7 +272,7 @@ void d3anim_PoseBones(D3OBJECT *obj)
                     acc[i].m[r].y *= s;
                     acc[i].m[r].z *= s;
                 }
-                d3_MatToAngles(acc[i].m, (D3VECTOR4 *)&rot);
+                d3_MatToAngles(&acc[i].mat, &rot);
                 for (c = obj->child; c; c = c->next) {
                     if (c->material && !strcmp(acc[i].name, D3_MESH(c)->boneName)) {
                         d3_SetObjectPos(c, &acc[i].pos.v);
@@ -455,22 +457,13 @@ void d3path_Tangents(D3PATHKEY *k0, D3PATHKEY *k1, D3PATHKEY *k2)
     k0->rotout.z = f * a.z;
 }
 
-/* The material of an animated mesh (D3MATERIAL view): up to five animation controls of 0x198 bytes from 0xf4. */
-typedef struct D3ANIMMATV {
-    char pad000[0xf4];
-    D3ANIMCTL ctl[5];               /* 0xf4..0x8ec */
-    char pad8ec[0x80];
-    unsigned char nctl;             /* 0x96c (the original reads the byte there, not after 0xe0 bytes of pad) */
-    unsigned char flags;            /* 0x96d, 0x40 = no vertex animation */
-} D3ANIMMATV;
-
 #define FRAME_AT(d, i) ((D3ANIMFRAME *)((char *)(d)->frames + (i) * 0xc0))
 
 float d3_Hermite(float p0, float p1, float m0, float m1, float t);                      /* 0x453e20 */
 void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);                                /* 0x458810 */
 char tex_Animate(D3OBJECT *obj, unsigned int time);                                     /* 0x460b90 */
 void d3_RelightObjectFrame(D3OBJECT *obj, D3ANIMFRAME *f);                                       /* 0x4535b0, d3_light.h's canonical prototype; d3_anim.c keeps this local copy, the include is WORSE for d3anim_CreatePath / d3anim_CreateMorphAnim (+2 instructions each) */
-struct D3ANIMSLOT * d3anim_GetMainSlot(struct D3ANIMCTL *ctl);                                         /* 0x435900 */
+struct D3ANIMSLOT * d3anim_GetMainSlot(struct D3SURF *ctl);                                         /* 0x435900 */
 
 /* the shared 1.0f both paths' key fractions are subtracted from (the original loads it from memory) */
 
@@ -501,8 +494,8 @@ char d3anim_StepObject(D3OBJECT *obj, void *ctx)
 {
     unsigned int now = (unsigned int)ctx & 0x7fffffff;
     char second = (unsigned int)ctx >> 31;
-    unsigned int dt = now - ((D3ANIMOBJ *)obj)->time;
-    D3ANIMCTL *c;
+    unsigned int dt = now - obj->animTime;
+    D3SURF *c;
     D3ANIMSLOT *s;
     D3ANIMDATA *data;
     D3ANIMFRAME *shown = 0;
@@ -513,17 +506,17 @@ char d3anim_StepObject(D3OBJECT *obj, void *ctx)
     float acc, t, u;
     unsigned char f1;
 
-    ((D3ANIMOBJ *)obj)->time = now;
+    obj->animTime = now;
     if (dt == 0)
         return 1;
     if (obj->material) {
-        if (!second && obj->info && !(((D3ANIMMATV *)obj->material)->flags & 0x40) && obj->type == 4)
+        if (!second && obj->info && !(obj->material->flags & 0x40) && obj->type == 4)
             tex_Animate(obj, now);
-        for (i = 0; i < ((D3ANIMMATV *)obj->material)->nctl; i++) {
-            if (!((D3ANIMMATV *)obj->material)->ctl[i].active)
+        for (i = 0; i < obj->material->nsurf; i++) {
+            if (!obj->material->surf[i].active)
                 continue;
             for (j = 0; j < 3; j++) {
-                s = &((D3ANIMMATV *)obj->material)->ctl[i].slots[j];
+                s = &obj->material->surf[i].slots[j];
                 data = s->data;
                 if (!data || !(s->flags.b[8] & 2))
                     continue;
@@ -673,7 +666,7 @@ normalize:
                             w.x = FRAME_AT(data, s->attachFirst)->bone[s->attachBone].pos.x - v.x;
                             w.y = FRAME_AT(data, s->attachFirst)->bone[s->attachBone].pos.y - v.y;
                             w.z = FRAME_AT(data, s->attachFirst)->bone[s->attachBone].pos.z - v.z;
-                            d3_DirToWorld(obj, (float *)&w, (float *)&v);
+                            d3_DirToWorld(obj, &w.v, &v.v);
                             out.x = v.z * att->matrix._31 + v.y * att->matrix._21 + v.x * att->matrix._11;
                             out.y = v.z * att->matrix._32 + v.y * att->matrix._22 + v.x * att->matrix._12;
                             out.z = v.z * att->matrix._33 + v.y * att->matrix._23 + v.x * att->matrix._13;
@@ -691,7 +684,7 @@ normalize:
                         released = 1;
                         if (!data->relative)
                             d3anim_ApplyRootMotion(obj, s, s->lastFrame, limit, s->turn);
-                        d3_ReleaseTexture(&((D3ANIMMATV *)obj->material)->ctl[i], (char *)data);
+                        d3_ReleaseTexture(&obj->material->surf[i], (char *)data);
                     } else
                         s->flags.b[1] |= 0x20;
                 }
@@ -901,11 +894,11 @@ stepped:
         }
     }
     if (over2 || over) {
-        if (!second && obj->type == 4 && obj->material && obj->info && !(((D3ANIMMATV *)obj->material)->flags & 0x40)) {
+        if (!second && obj->type == 4 && obj->material && obj->info && !(obj->material->flags & 0x40)) {
             D3ANIMFRAME *f = shown;
 
             if (f) {
-                D3ANIMSLOT *main = d3anim_GetMainSlot((D3ANIMCTL *)obj->info);
+                D3ANIMSLOT *main = d3anim_GetMainSlot(obj->info);
 
                 if (main)
                     f = FRAME_AT(main->data, main->frame);
@@ -1044,7 +1037,7 @@ D3ANIM *d3anim_CreatePath(D3OBJECT *obj, D3ANIMFLAGS f, int nkeys, D3ANIMKEY *ke
         d3path_Init(p);
     }
     obj->path = p;
-    ((D3ANIMOBJ *)obj)->time = d3_Time;
+    obj->animTime = d3_Time;
     return (D3ANIM *)p;
 }
 /* 0x433f40, the cached animation with this name, 0 if not loaded. */
@@ -1085,8 +1078,8 @@ int d3_FindAnim(char *name)
    block-scope placements, struct assignment. Tools: scratch morphanim\\c2x.py (candidate ids, free list,
    edge loads). (tiebreak: sensitive) */
 
-D3ANIMDATA *d3anim_CreateMorphAnim(D3ANIMMESH *mesh, D3ANIMDATA *src, D3ANIMFRAME *frame, D3ANIMDATA *dst,
-                                   D3ANIMFRAME *dframe, D3ANIMMESH *dmesh, char *name, int n)
+D3ANIMDATA *d3anim_CreateMorphAnim(D3BGF *mesh, D3ANIMDATA *src, D3ANIMFRAME *frame, D3ANIMDATA *dst,
+                                   D3ANIMFRAME *dframe, D3BGF *dmesh, char *name, int n)
 {
     D3ANIMDATA *a = 0;
     int i, k, count;
@@ -1139,28 +1132,28 @@ D3ANIMDATA *d3anim_CreateMorphAnim(D3ANIMMESH *mesh, D3ANIMDATA *src, D3ANIMFRAM
         if (dmesh) {
             for (i = 0; i < a->nbones; i++) {
                 for (k = 0; k < 4; k++) {
-                    if (!strcmp(D3ANIM_BONENAME(a, i), dmesh->bones[k].name)) {
-                        a->frames[1].bone[i].pos.x = dmesh->bones[k].pos.x;
-                        a->frames[1].bone[i].pos.y = dmesh->bones[k].pos.y;
-                        a->frames[1].bone[i].pos.z = dmesh->bones[k].pos.z;
-                        a->frames[1].bone[i].rot.x = dmesh->bones[k].rot.x;
-                        a->frames[1].bone[i].rot.y = dmesh->bones[k].rot.y;
-                        a->frames[1].bone[i].rot.z = dmesh->bones[k].rot.z;
+                    if (!strcmp(D3ANIM_BONENAME(a, i), dmesh->attach[k].name)) {
+                        a->frames[1].bone[i].pos.x = dmesh->attach[k].pos.x;
+                        a->frames[1].bone[i].pos.y = dmesh->attach[k].pos.y;
+                        a->frames[1].bone[i].pos.z = dmesh->attach[k].pos.z;
+                        a->frames[1].bone[i].rot.x = dmesh->attach[k].rot.x;
+                        a->frames[1].bone[i].rot.y = dmesh->attach[k].rot.y;
+                        a->frames[1].bone[i].rot.z = dmesh->attach[k].rot.z;
                     }
                 }
             }
-            a->frames[1].move.x = ((D3ANIMMESHX *)dmesh)->pos.x - ((D3ANIMMESHX *)mesh)->pos.x;
-            a->frames[1].move.y = ((D3ANIMMESHX *)dmesh)->pos.y - ((D3ANIMMESHX *)mesh)->pos.y;
-            a->frames[1].move.z = ((D3ANIMMESHX *)dmesh)->pos.z - ((D3ANIMMESHX *)mesh)->pos.z;
+            a->frames[1].move.x = dmesh->pos.x - mesh->pos.x;
+            a->frames[1].move.y = dmesh->pos.y - mesh->pos.y;
+            a->frames[1].move.z = dmesh->pos.z - mesh->pos.z;
             a->frames[1].move.y = 0.0f;
-            a->frames[1].turn.x = ((D3ANIMMESHX *)dmesh)->rot.x - ((D3ANIMMESHX *)mesh)->rot.x;
-            a->frames[1].turn.y = ((D3ANIMMESHX *)dmesh)->rot.y - ((D3ANIMMESHX *)mesh)->rot.y;
-            a->frames[1].turn.z = ((D3ANIMMESHX *)dmesh)->rot.z - ((D3ANIMMESHX *)mesh)->rot.z;
+            a->frames[1].turn.x = dmesh->rot.x - mesh->rot.x;
+            a->frames[1].turn.y = dmesh->rot.y - mesh->rot.y;
+            a->frames[1].turn.z = dmesh->rot.z - mesh->rot.z;
             if (frame->pos) {
                 for (i = 0; i < a->nverts; i++) {
-                    a->frames[1].pos[i].x = dmesh->verts[i].pos.x - mesh->verts[i].pos.x;
-                    a->frames[1].pos[i].y = dmesh->verts[i].pos.y - mesh->verts[i].pos.y;
-                    a->frames[1].pos[i].z = dmesh->verts[i].pos.z - mesh->verts[i].pos.z;
+                    a->frames[1].pos[i].x = dmesh->vtx[i].x - mesh->vtx[i].x;
+                    a->frames[1].pos[i].y = dmesh->vtx[i].y - mesh->vtx[i].y;
+                    a->frames[1].pos[i].z = dmesh->vtx[i].z - mesh->vtx[i].z;
                 }
             }
             if (frame->packed) {
@@ -1172,9 +1165,9 @@ D3ANIMDATA *d3anim_CreateMorphAnim(D3ANIMMESH *mesh, D3ANIMDATA *src, D3ANIMFRAM
                 mx.x = -1e10f;
                 mx.y = -1e10f;
                 for (i = 0; i < a->nverts; i++) {
-                    tmp[i].x = dmesh->verts[i].pos.x - mesh->verts[i].pos.x;
-                    tmp[i].y = dmesh->verts[i].pos.y - mesh->verts[i].pos.y;
-                    tmp[i].z = (z = dmesh->verts[i].pos.z - mesh->verts[i].pos.z);
+                    tmp[i].x = dmesh->vtx[i].x - mesh->vtx[i].x;
+                    tmp[i].y = dmesh->vtx[i].y - mesh->vtx[i].y;
+                    tmp[i].z = (z = dmesh->vtx[i].z - mesh->vtx[i].z);
                     mn.x = min(mn.x, tmp[i].x);
                     mn.y = min(mn.y, tmp[i].y);
                     mn.z = min(mn.z, z);
@@ -1346,7 +1339,7 @@ typedef struct D3ANIMBOX {
 
 /* 0x434d60, per key frame: vertex normals (3 bytes, 0..255), radius and bounding box; the boxes are
    then widened to cover the neighbouring frames. */
-void d3anim_CalculateAnimNormals(D3ANIMDATA *a, D3ANIMMESH *mesh)
+void d3anim_CalculateAnimNormals(D3ANIMDATA *a, D3BGF *mesh)
 {
     D3VECTOR4 *points;
     D3VECTOR4 *normals;
@@ -1357,30 +1350,30 @@ void d3anim_CalculateAnimNormals(D3ANIMDATA *a, D3ANIMMESH *mesh)
     int f, i, k;
 
     points = mem_Alloc(mesh->nverts << 4, "d3_anim:CalculateAnimNormals(points)");
-    normals = mem_Alloc(mesh->nfaces << 4, "d3_anim:CalculateAnimNormals(normals)");
+    normals = mem_Alloc(mesh->npolys << 4, "d3_anim:CalculateAnimNormals(normals)");
     for (f = 0; f < a->nframes; f++) {
         fr = &a->frames[f];
         fr->normals = mem_Alloc(mesh->nverts * 3, "d3_anim:CalculateAnimNormals");
         if (fr->pos) {
             for (i = 0; i < a->nverts; i++) {
-                points[i].x = mesh->verts[i].pos.x + fr->pos[i].x;
-                points[i].y = mesh->verts[i].pos.y + fr->pos[i].y;
-                points[i].z = mesh->verts[i].pos.z + fr->pos[i].z;
+                points[i].x = mesh->vtx[i].x + fr->pos[i].x;
+                points[i].y = mesh->vtx[i].y + fr->pos[i].y;
+                points[i].z = mesh->vtx[i].z + fr->pos[i].z;
             }
         } else {
             for (i = 0; i < a->nverts; i++) {
                 n.x = (float)fr->packed[i * 3] * fr->scale.x + fr->base.x;
                 n.y = (float)fr->packed[i * 3 + 1] * fr->scale.y + fr->base.y;
                 n.z = (float)fr->packed[i * 3 + 2] * fr->scale.z + fr->base.z;
-                points[i].x = n.x + mesh->verts[i].pos.x;
-                points[i].y = n.y + mesh->verts[i].pos.y;
-                points[i].z = n.z + mesh->verts[i].pos.z;
+                points[i].x = n.x + mesh->vtx[i].x;
+                points[i].y = n.y + mesh->vtx[i].y;
+                points[i].z = n.z + mesh->vtx[i].z;
             }
         }
         fr->radius = mesh->radius - d3anim_MaxRadius(points, mesh->nverts);
-        for (i = 0; i < mesh->nfaces; i++)
-            d3_TriNormal(&points[mesh->faces[i].v[0]].v, &points[mesh->faces[i].v[1]].v,
-                         &points[mesh->faces[i].v[2]].v, &normals[i]);
+        for (i = 0; i < mesh->npolys; i++)
+            d3_TriNormal(&points[mesh->polys[i].v[0]].v, &points[mesh->polys[i].v[1]].v,
+                         &points[mesh->polys[i].v[2]].v, &normals[i]);
         mn.z = mn.y = mn.x = 1e10f;
         mx.z = mx.y = mx.x = -1e10f;
         for (i = 0; i < a->nverts; i++) {
@@ -1391,8 +1384,8 @@ void d3anim_CalculateAnimNormals(D3ANIMDATA *a, D3ANIMMESH *mesh)
             mx.y = max(mx.y, points[i].y);
             mx.z = max(mx.z, points[i].z);
             n.z = n.y = n.x = 0.0f;
-            for (k = 0; k < mesh->nfaces; k++) {
-                if (mesh->faces[k].v[0] == i || mesh->faces[k].v[1] == i || mesh->faces[k].v[2] == i) {
+            for (k = 0; k < mesh->npolys; k++) {
+                if (mesh->polys[k].v[0] == i || mesh->polys[k].v[1] == i || mesh->polys[k].v[2] == i) {
                     n.x += normals[k].x;
                     n.y += normals[k].y;
                     n.z += normals[k].z;
@@ -1457,12 +1450,11 @@ void d3anim_CalculateAnimNormals(D3ANIMDATA *a, D3ANIMMESH *mesh)
    timeout and the attach fields of the slot and poses the bones. Returns the slot, 0 when there is no free
    slot, the data is missing or the vertex counts differ. */
 
-int d3anim_StartAnim(void *list, char *name, D3ANIMFLAGS f)
+D3ANIMSLOT *d3anim_StartAnim(D3SURF *ctl, char *name, D3ANIMFLAGS f)
 {
-    D3ANIMCTL *ctl = list;
     D3ANIMDATA *data;
     D3ANIMSLOT *s;
-    D3ANIMOBJ *obj;
+    D3OBJECT *obj;
     int i;
 
     if (ctl) {
@@ -1470,11 +1462,11 @@ int d3anim_StartAnim(void *list, char *name, D3ANIMFLAGS f)
         for (i = 0; i < 3; i++)
             if (!ctl->slots[i].data)
                 break;
-        if (data && data->nverts == ctl->nverts && i < 3) {
+        if (data && data->nverts == ctl->nkeys && i < 3) {
             d3_Busy++;
             s = &ctl->slots[i];
-            obj = ctl->obj;
-            obj->time = d3_Time;
+            obj = ctl->owner;
+            obj->animTime = d3_Time;
             ctl->active = 1;
             s->data = data;
             s->speed = 1.0f;
@@ -1508,24 +1500,23 @@ int d3anim_StartAnim(void *list, char *name, D3ANIMFLAGS f)
                 s->frame = 0;
                 s->nextFrame = 1;
             }
-            d3anim_MapBones((D3OBJECT *)obj);
-            d3anim_PoseBones((D3OBJECT *)obj);
+            d3anim_MapBones(obj);
+            d3anim_PoseBones(obj);
             d3_Busy--;
-            return (int)s;
+            return s;
         }
     }
     return 0;
 }
 /* 0x435740, stops the animation name. */
 
-void d3_ReleaseTexture(void *list, char *name)
+void d3_ReleaseTexture(D3SURF *ctl, char *name)
 {
-    D3ANIMCTL *ctl = list;
-    D3ANIMOBJ *obj;
+    D3OBJECT *obj;
     int i;
 
     if (ctl) {
-        obj = ctl->obj;
+        obj = ctl->owner;
         for (i = 0; i < 3; i++) {
             if (ctl->slots[i].data && !strcmp(name, ctl->slots[i].data->name)) {
                 ctl->slots[i].flags.b[8] &= ~2;
@@ -1538,14 +1529,14 @@ void d3_ReleaseTexture(void *list, char *name)
                 break;
         if (i == 3)
             ctl->active = 0;
-        d3anim_MapBones((D3OBJECT *)obj);
-        d3anim_PoseBones((D3OBJECT *)obj);
+        d3anim_MapBones(obj);
+        d3anim_PoseBones(obj);
     }
 }
 /* 0x435810, pauses the slot that plays the animation name: clears its play flag (the slot and its data
    stay loaded; ch_PauseAnim calls this with pause = 1). */
 
-void d3anim_PauseAnim(D3ANIMCTL *ctl, char *name)
+void d3anim_PauseAnim(D3SURF *ctl, char *name)
 {
     int i;
 
@@ -1558,14 +1549,14 @@ void d3anim_PauseAnim(D3ANIMCTL *ctl, char *name)
 /* 0x435870, starts or stops the slot of the animation name (its play flag = on) and marks the object's
    animation time as current. */
 
-void d3anim_PlayAnim(D3ANIMCTL *ctl, char *name, char on)
+void d3anim_PlayAnim(D3SURF *ctl, char *name, char on)
 {
-    D3ANIMOBJ *obj;
+    D3OBJECT *obj;
     int i;
 
     if (ctl) {
-        obj = ctl->obj;
-        obj->time = d3_Time;
+        obj = ctl->owner;
+        obj->animTime = d3_Time;
         for (i = 0; i < 3; i++)
             if (ctl->slots[i].data && !strcmp(name, ctl->slots[i].data->name))
                 ctl->slots[i].play = on;
@@ -1573,7 +1564,7 @@ void d3anim_PlayAnim(D3ANIMCTL *ctl, char *name, char on)
 }
 /* 0x435900, the running slot with the largest weight. */
 
-D3ANIMSLOT *d3anim_GetMainSlot(D3ANIMCTL *ctl)
+D3ANIMSLOT *d3anim_GetMainSlot(D3SURF *ctl)
 {
     float best = 0.0f;
     D3ANIMSLOT *s = 0;

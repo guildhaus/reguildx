@@ -772,12 +772,12 @@ void ai_FindWantedItems(AICHAR *p, int n, G9REC *rec, int *st)
                 st[2]++;
                 rec[i].value = e->count;
                 rec[i].entryId = e->objId;
-                rec[i].entry = (int)e;
+                rec[i].entry = e;
             } else {
                 rec[i].value = -1;
                 st[1]++;
                 rec[i].entryId = e->objId;
-                rec[i].entry = (int)e;
+                rec[i].entry = e;
             }
             break;
         }
@@ -1187,7 +1187,7 @@ int ai_BuildingAimPoints(AIBLD *x, D3VECTOR *a, AIBLD *y, D3VECTOR *b)
 
 int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
 {
-    G9CANNON *cn;
+    GVEFFECT *cn;
     G9KIND kind;
     D3VECTOR4 pa;
     D3VECTOR4 pb;
@@ -1197,7 +1197,7 @@ int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
     D3VECTOR4 vc;
     D3VECTOR4 vd;
     float x5c, x48;
-    int par[5];
+    SPHEREVOLUME par;
     int r, r2, n, cost, x, k;
     float f, ang;
 
@@ -1215,8 +1215,8 @@ int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
         return 0;
     f = gv_CannonItemFactor(b);
     r2 = util_Random(r2 + 1);
-    ai_SphereVolume(ai_IronDensity, ai_CannonBalls[r].c, par);
-    ai_PositionShare(ai_CannonBalls[r].a, f * ai_CannonBalls[r].b, par, v94);
+    ai_SphereVolume(ai_IronDensity, ai_CannonBalls[r].c, &par);
+    ai_PositionShare(ai_CannonBalls[r].a, f * ai_CannonBalls[r].b, &par, v94);
     rng[0] = v94[0];
     rng[1] = v94[1];
     rng[2] = -0.2617994f;
@@ -1251,7 +1251,7 @@ int ai_AimCannon(AICHAR *p, AIBLD *b, AIBLD *t)
     ai_CannonShot.ang = ang;
     ai_CannonShot.charge = r2 + 1;
     ai_CannonShot.kind = r;
-    memcpy(ai_CannonShot.par, par, sizeof(par));
+    memcpy(ai_CannonShot.par, &par, sizeof(par));
     return 1;
 }
 /* 0x4a6ae0, execute callback of the cannon shot: fires the 1..3 balls ai_AimCannon planned into ai_CannonShot: one

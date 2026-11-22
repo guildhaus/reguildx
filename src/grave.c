@@ -382,7 +382,7 @@ int gv_BuryNewDead(AIBLD *bld, int n)
 {
     AIBTYPE *bt;
     GVENTRY *e;
-    unsigned *rec;
+    GMHEAD *rec;
     int i, k, r;
 
     bt = (AIBTYPE *)((char *)ai_BTypes + bld->type + bld->type * 0x24c);
@@ -410,8 +410,8 @@ int gv_BuryNewDead(AIBLD *bld, int n)
             r = util_Random(4);
             k = 4;
             do {                                    /* one of the record's four words +0x34 that is set, from a random one */
-                if (rec[0xd + r] != 0xff) {
-                    e->grave->icon = rec[0xd + r] + 0x639;
+                if (rec->heads[r] != 0xff) {
+                    e->grave->icon = rec->heads[r] + 0x639;
                     break;
                 }
                 k--;

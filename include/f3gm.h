@@ -24,7 +24,7 @@ int gm_TitleJob(int i, int p);       /* 0x5044b0, the job byte of the character 
 int gm_IsType10(struct AIBLD *b);              /* 0x5024f0, 1 for the town market */
 int gm_IsHomeType(struct AIBLD *b);            /* 0x502520, 1 for a home type */
 struct AICHAR *gm_FindCharacterByMaster(struct AIBLD *m);          /* 0x50a810, the first kind 6 / 7 / 1 / 2 character with a job whose master (+0x16c) is m */
-void gm_ShowSlotObjects(int unused, int scene, int c);  /* 0x502a60, the scene objects of the character's five slots on */
+void gm_ShowSlotObjects(struct AIBLD *unused, struct AIOBJ *scene, int c);  /* 0x502a60, the scene objects of the character's five slots on */
 void gm_ShowBuildingObjects(struct AIBLD *b);  /* 0x502e30, for a building of the type 2: gm_ShowSlotObjects for every object of the kind 2 in its list (up to 32) */
 void gm_AssignBuilding(struct AIBLD *b, unsigned master, unsigned own);  /* 0x502b60 */
 
@@ -77,9 +77,9 @@ void gm_PayAllCharacterWages(void);  /* 0x4fa9b0 */
 void gm_UpdateWorthMood(void);  /* 0x4faa00 */
 float gm_JobWage(struct AICHAR *c, int k, int a, int b);  /* 0x508740, the wage of a job (a) or title (b) of the building kind k for the character c */
 int gm_BuildingBalance(struct AIBLD *b, unsigned id, int *out);  /* 0x508d80, the income / cost summary of the building b for the owner id */
-unsigned *gm_NameRecord(int kind, int id);  /* 0x4fb330, the name record (0x44 bytes, the name at +4) with the id in the table of the sex kind (0 / 1), or the first free one */
-unsigned *gm_CharNameRecord(int id);  /* 0x4fb390 */
-struct CHARACTER *gm_CreateCharModel(struct AICHAR *c, int scene, int *p, int *ori, struct D3OBJECT *obj, char *dummy);  /* 0x4fbb80 */
+struct GMHEAD *gm_NameRecord(int kind, int id);  /* 0x4fb330, the name record (0x44 bytes, the name at +4) with the id in the table of the sex kind (0 / 1), or the first free one */
+struct GMHEAD *gm_CharNameRecord(int id);  /* 0x4fb390 */
+struct CHARACTER *gm_CreateCharModel(struct AICHAR *c, int scene, struct D3VECTOR *p, struct D3VECTOR *ori, struct D3OBJECT *obj, char *dummy);  /* 0x4fbb80 */
 float gm_HealthRatio(struct AICHAR *c);  /* 0x4fc8e0 */
 struct AIBLD; struct AIBLD *gm_FindHome(int unused, struct AIBLD *o);  /* 0x4fd820, a home with room for the building o (the nearest or least full) */
 void gm_MoveIntoHome(struct AICHAR *c, struct AIBLD *b);  /* 0x4fda10 */
@@ -120,7 +120,7 @@ float gm_GoodsValue(int p, unsigned id);  /* 0x4ffbf0 */
 void gm_Shuffled(unsigned char n, int *out);  /* 0x505ca0 */
 int gm_BuildingKindCost(struct AICHAR *c, int kind);  /* 0x509dc0 */
 int gm_SumListAmounts(void *list, unsigned char p);  /* 0x509e30 */
-int gm_CharCurrency(struct AICHAR *c, char p);  /* 0x509ee0 */
+int gm_CharCurrency(struct AICHAR *c, signed char p);  /* 0x509ee0 */
 struct AICHAR *gm_ObjectOwnerChar(struct AIOBJ *o);  /* 0x509ff0 */
 struct ORDCREDIT; int gm_GetCreditOffers(struct AIBLD *b, struct AICHAR *p, unsigned cnt, struct ORDCREDIT *out);  /* 0x50a250 */
 int gm_ExpectedDeathAge(struct AICHAR *c);  /* 0x4fc7a0 */
@@ -186,7 +186,7 @@ extern int ai_CharCount;  /* 0x6f1bc0 */
 extern int ai_NextObjectId;  /* 0x61a654 */
 int gm_AddObjekt(int id, int proto, int n);  /* 0x500970 */
 void gm_ChooseHeadIcon(struct AICHAR *c);  /* 0x4fb890 */
-struct CHARACTER *gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);  /* 0x4fbd10 */
+struct CHARACTER *gm_PlaceOnStage(int id, int a, int b, struct D3VECTOR *p, struct D3VECTOR *ori);  /* 0x4fbd10 */
 struct AIOBJ *gm_Query(void *list, int n, ...);  /* 0x4ffe90 */
 void gm_RefreshGoodsLists(unsigned p);  /* 0x4ff190 */
 JOBTALENTS gm_GetJobTalents(int job);  /* 0x503ee0, the record of the job (0x5f and above: the first) */
@@ -201,10 +201,10 @@ int gm_BuildingValues(struct AIBLD *b, int *out);  /* 0x5091a0 */
 struct AICHAR; float gm_CatchPlague(struct AICHAR *c);  /* 0x505440 */
 void gm_ChangeObjektZustand(int id, int d);  /* 0x50ca50 */
 float gm_CharacterBaseHealth(struct AICHAR *c);  /* 0x4fc890 */
-char *gm_CharacterHome(struct AICHAR *c, int *out2, int *out3);  /* 0x4fdcb0 */
+struct AIBLD *gm_CharacterHome(struct AICHAR *c, int *out2, int *out3);  /* 0x4fdcb0 */
 struct AICHAR; int gm_DropRank(struct AICHAR *c);  /* 0x504840 */
 struct AIBLD *gm_FindPlayerBuilding(int p);  /* 0x501000 */
-int gm_GetDisease(int n, int *out);  /* 0x5051d0 */
+struct GMDISEASE; int gm_GetDisease(int n, struct GMDISEASE *out);  /* 0x5051d0 */
 struct AIBLD; int gm_HandOutMoney(struct AIBLD *b, int *out);  /* 0x4fae50 */
 int gm_JobSlots(int job, int *a, int *b);  /* 0x504100 */
 int gm_LikingChance(int a, int b, int c, int d);  /* 0x50b290 */
@@ -215,7 +215,7 @@ struct AITIME; void gm_ClockToDate(struct AITIME *c, unsigned char *out);  /* 0x
 char *gm_ClassTreasury(struct AIBLD *b);  /* 0x5049e0, the treasury text of a building */
 int gm_CurrencyFactor(int a, int i);  /* 0x508620 */
 int gm_CurrencyDivide(int a, int i);  /* 0x508640 */
-int gm_BuildingCarts(struct AIBLD *b, int *out);  /* 0x509060 */
+int gm_BuildingCarts(struct AIBLD *b, struct AIOBJ **out);  /* 0x509060 */
 int gm_BuildingRankGate(struct AIBLD *b, struct AIBLD *c);  /* 0x509120 */
 int gm_CharMoney(int c);  /* 0x509f20 */
 int gm_GoodPicture(struct AIOBJ *o);  /* 0x502570, the string-table number (0x60e + n) of the good's picture, -1 when none */

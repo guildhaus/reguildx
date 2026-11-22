@@ -21,7 +21,6 @@
 #include "ts_texture.h"
 #include "d3_pose.h"
 
-#define D3M_SURF(o) ((D3MIRSURF *)(o)->info)
 #define D3M_PTS(mesh) ((mesh)->mirrorPoints)                     /* "d3_mir:MirroredPoints" */
 #define D3M_TRIS(mesh) ((mesh)->mirrorPolys)                     /* "d3_mir:MirroredPolys" */
 
@@ -200,7 +199,7 @@ char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PV
 
 D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, TSTEXTURE *tex)
 {
-    D3OBJINFO *info;
+    D3SURF *info;
     D3PTRI *t;
     D3PTRI **polys;
     D3PVERT **pts;
@@ -298,7 +297,7 @@ void d3_MirTransform(D3PVERT *v, int n, int unk)
 
 char d3_MirBoxInPlanes(D3OBJECT *obj, D3MIRROR *m)
 {
-    D3OBJINFO *info;
+    D3SURF *info;
     D3MIRPLANES *pl;
     D3BOXVERT *box;
     D3VECTOR4 pts[8];
@@ -309,7 +308,7 @@ char d3_MirBoxInPlanes(D3OBJECT *obj, D3MIRROR *m)
 
     if (obj && (info = obj->info) && info->mesh && m && (pl = m->planes)) {
         if (obj->state & 0x10)
-            box = D3_OPS(info)->GetBox(obj, info, D3_MESH(obj)->cameraMatrix);
+            box = D3_OPS(info)->GetBox(obj, info, &D3_MESH(obj)->cameraMatrix);
         else
             box = (D3BOXVERT *)&info->keys[info->nkeys];
         for (i = 0; i < 8; i++, box++) {
@@ -337,7 +336,7 @@ char d3_MirBoxInPlanes(D3OBJECT *obj, D3MIRROR *m)
 
 char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
 {
-    D3MIRSURF *s;
+    D3SURF *s;
     D3MESH *mesh;
     D3PTRI *t;
     TSTEXTURE *tex, *tt;
@@ -346,7 +345,7 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
     char redo;
     int i, k, n;
 
-    s = D3M_SURF(obj);
+    s = obj->info;
     if (!s)
         return 1;
     if (obj == d3s_Object)
@@ -358,18 +357,18 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
             redo = 1;
         else
             redo = 0;
-        if (s != (D3MIRSURF *)D3_MESH(obj)->mirrorSource) {
+        if (s != D3_MESH(obj)->mirrorSource) {
             if (D3_MESH(obj)->mirrorSource) {
                 mem_Free(D3M_PTS(D3_MESH(obj)));
                 D3M_PTS(D3_MESH(obj)) = 0;
                 mem_Free(D3M_TRIS(D3_MESH(obj)));
                 D3M_TRIS(D3_MESH(obj)) = 0;
             }
-            D3_MESH(obj)->mirrorSource = (D3SURF *)s;
-            D3M_PTS(D3_MESH(obj)) = mem_Alloc(s->info.nkeys * 0x50, "d3_mir:MirroredPoints");
-            D3M_TRIS(D3_MESH(obj)) = mem_Alloc(s->info.ntris * 0x28, "d3_mir:MirroredPolys");
-            D3M_COPY(D3M_TRIS(D3_MESH(obj)), s->info.tris, s->info.ntris * 0x28);
-            for (i = 0, t = D3M_TRIS(D3_MESH(obj)); i < s->info.ntris; i++, t++) {
+            D3_MESH(obj)->mirrorSource = s;
+            D3M_PTS(D3_MESH(obj)) = mem_Alloc(s->nkeys * 0x50, "d3_mir:MirroredPoints");
+            D3M_TRIS(D3_MESH(obj)) = mem_Alloc(s->ntris * 0x28, "d3_mir:MirroredPolys");
+            D3M_COPY(D3M_TRIS(D3_MESH(obj)), s->tris, s->ntris * 0x28);
+            for (i = 0, t = D3M_TRIS(D3_MESH(obj)); i < s->ntris; i++, t++) {
                 k = 0;
                 /* do-while: the original's loop is the bottom-tested pointer walk (`dec edi / jne`) */
                 do {
@@ -379,23 +378,23 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
             redo = 1;
         }
         if ((obj->state & 0x10) || (D3_MESH(obj)->flags & 0x40)) {
-            D3_OPS(&s->info)->Transform(obj, &s->info, D3_MESH(obj)->cameraMatrix);
+            D3_OPS(s)->Transform(obj, s, &D3_MESH(obj)->cameraMatrix);
             obj->state &= 0xef;
             redo = 1;
         }
         if (redo) {
-            D3M_COPY(D3M_PTS(D3_MESH(obj)), s->info.keys, s->info.nkeys * 0x50);
-            m->Transform(D3M_PTS(D3_MESH(obj)), s->info.nkeys, 0);
+            D3M_COPY(D3M_PTS(D3_MESH(obj)), s->keys, s->nkeys * 0x50);
+            m->Transform(D3M_PTS(D3_MESH(obj)), s->nkeys, 0);
         } else {
-            n = s->info.nkeys;
-            b = (D3PVERT *)s->info.keys;
+            n = s->nkeys;
+            b = (D3PVERT *)s->keys;
             a = D3M_PTS(D3_MESH(obj));
             for (i = 0; i < n; i++, b++, a++) {
                 a->color = b->color;
                 d3_MaxZ = max(d3_MaxZ, a->z);
             }
         }
-        n = min(s->info.ntris, d3_Cfg.maxpolys - (int)d3_SortCount);
+        n = min(s->ntris, d3_Cfg.maxpolys - (int)d3_SortCount);
         tex = m->tex;
         for (t = D3M_TRIS(D3_MESH(obj)); n > 0; n--, t++) {
             tt = t->tex;
@@ -423,17 +422,17 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
 
 void d3_MirBeginFrame(D3OBJECT *obj, D3MIRROR *m)
 {
-    D3MIRSURF *s;
+    D3SURF *s;
     TSTEXTURE **tp;
     TSTEXTURE *tex;
     D3PTRI *t;
     unsigned int i, n;
     int k, ntris;
 
-    s = D3M_SURF(obj);
-    if (s && s->info.mesh && !d3_MirrorObject) {
-        n = D3_OPS(&s->info)->count;
-        tp = s->tex;
+    s = obj->info;
+    if (s && s->mesh && !d3_MirrorObject) {
+        n = D3_OPS(s)->count;
+        tp = s->texHandles;
         for (i = 0; i < n; i++) {
             tex = *tp++;
             if (tex && (tex->bits & 0x20))
@@ -441,14 +440,14 @@ void d3_MirBeginFrame(D3OBJECT *obj, D3MIRROR *m)
         }
         return;
 found:
-        ntris = s->info.ntris;
+        ntris = s->ntris;
         if (m->flags.on)
             m->flags.on = 0;
         m->tex = tex;
-        if (m->info != &s->info) {
-            for (k = 0, t = (D3PTRI *)s->info.tris; k < ntris; k++, t++) {
+        if (m->info != s) {
+            for (k = 0, t = (D3PTRI *)s->tris; k < ntris; k++, t++) {
                 if (t->tex == tex) {
-                    m->info = &s->info;
+                    m->info = s;
                     m->obj = obj;
                     m->tri = t;
                     m->Transform = d3_MirTransform;
@@ -458,10 +457,10 @@ found:
         }
         m->flags.on = obj->state >> 3;
         if (m->flags.on) {
-            for (k = 0, t = (D3PTRI *)s->info.tris; k < ntris; k++, t++)
+            for (k = 0, t = (D3PTRI *)s->tris; k < ntris; k++, t++)
                 if ((t->flags & 0x80) && t->tex == tex)
                     break;
-            m->flags.visible = k < s->info.ntris;
+            m->flags.visible = k < s->ntris;
             if (m->planes) {
                 mem_Free(m->planes);
                 m->planes = 0;

@@ -76,7 +76,7 @@ char d3q_GetBounds(D3OBJECT *obj, float *min, float *max)
 
     if (!(obj->stateFlags & 0x80))
         d3_UpdateWorldMatrix(obj, d3_Camera, 0);
-    v = d3_GetBoxVerts(obj, (struct D3OBJINFO *)D3Q_MAT(obj)->list, D3Q_MAT(obj)->box);
+    v = d3_GetBoxVerts(obj, (struct D3SURF *)D3Q_MAT(obj)->list, D3Q_MAT(obj)->box);
     if (v) {
         min[0] = 1e10f;
         min[1] = 1e10f;

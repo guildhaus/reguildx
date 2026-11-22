@@ -28,12 +28,12 @@ void d3_DirToWorld(D3OBJECT *obj, const D3VECTOR *in, D3VECTOR *out)
 }
 /* 0x458910, angles of the object's world matrix */
 
-void d3_WorldAngles(D3OBJECT *obj, D3VECTOR4 *angles)
+void d3_WorldAngles(D3OBJECT *obj, D3VECTOR *angles)
 {
     D3MATRIX m;
 
     d3_WorldMatrix(obj, (obj->state & 0x80) ? 0 : d3_Camera, 1, &m);
-    d3_MatToAngles((D3VECTOR4 *)&m, angles);
+    d3_MatToAngles(&m, angles);
 }
 /* 0x458950, a direction in the object's space, relative to ref unless the object is in world space */
 

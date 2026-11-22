@@ -310,7 +310,7 @@ void anm_UpdateCat(ANMREC *a)
     int n;
     D3VECTOR4 pts[8];
     D3VECTOR4 *p;
-    char *act;
+    CHACTION *act;
 
     if (((CHARACTER *)a->obj)->anim != 0)
         return;
@@ -331,7 +331,7 @@ void anm_UpdateCat(ANMREC *a)
         for (p = pts; n != 0; n--, p++) {
             if (d3_GetHeightAt(h, &p->v, &px, &pz, &py)) {
                 act = ch_AddAction(a->obj, 0x2d, px, pz, 0);
-                strcpy(act + 0x70, "anm_UpdateCat");
+                strcpy(act->why, "anm_UpdateCat");
             }
         }
     }
@@ -348,7 +348,7 @@ void anm_UpdateSheep(ANMREC *a)
     int n;
     D3VECTOR4 pts[8];
     D3VECTOR4 *p;
-    char *act;
+    CHACTION *act;
 
     if (((CHARACTER *)a->obj)->anim != 0)
         return;
@@ -366,7 +366,7 @@ void anm_UpdateSheep(ANMREC *a)
         for (p = pts; n != 0; n--, p++) {
             if (d3_GetHeightAt(h, &p->v, &px, &pz, &py)) {
                 act = ch_AddAction(a->obj, 0x2d, px, pz, 0);
-                strcpy(act + 0x70, "anm_UpdateSheep");
+                strcpy(act->why, "anm_UpdateSheep");
             }
         }
     }
@@ -417,10 +417,10 @@ int rd_PointsNear(D3VECTOR *pos, int n, D3VECTOR4 *pts)
             z = h->size - 2;
         if (z < 2)
             z = 2;
-        if (ch_FindFreeCell((char *)h, pos, pos, x, z, &x, &z, 600, 0))
-            d3sm_GetVertex((char *)h, x, z, &pts[i].v);
+        if (ch_FindFreeCell(h, pos, pos, x, z, &x, &z, 600, 0))
+            d3sm_GetVertex(h, x, z, &pts[i].v);
         else
-            d3sm_GetVertex((char *)h, px, pz, &pts[i].v);
+            d3sm_GetVertex(h, px, pz, &pts[i].v);
     }
     return n;
 }

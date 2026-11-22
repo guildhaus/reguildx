@@ -72,7 +72,7 @@ typedef struct TSTEXTURE {          /* 0x80 bytes, d3_TexCount of them at d3_Tex
     char pad7e[0x2];
 } TSTEXTURE;
 
-/* Mesh data as far as used here (D3OBJECT.info; d3.h: D3OBJINFO). */
+/* Mesh data as far as used here (D3OBJECT.info; d3.h: D3SURF). */
 typedef struct TSTRI {              /* 0x28 bytes */
     char pad00[0x14];
     TSTEXTURE *tex;                 /* 0x14 */

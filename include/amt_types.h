@@ -42,10 +42,11 @@ typedef struct AMTAPP {                 /* an application: the person, the offic
 } AMTAPP;
 typedef struct AMTMSG {                 /* the office message of amt_SendOfficeMessage (0x4e6680): 15 bytes, the data
                                            of message 0x45 (cm_SendOfficeRecord) */
-    unsigned char office;               /* 0x00, the office */
-    int a;                              /* 0x01, the first character's netId or -1 */
-    unsigned char d, e;                 /* 0x05, the kind and the code */
-    int b;                              /* 0x07, the second character's netId or -1 */
+    unsigned char office;               /* 0x00, the office (compared with AMTREC.idx as a byte) */
+    int owner;                          /* 0x01, the new owner's netId or -1 */
+    unsigned char state;                /* 0x05, the office's new state */
+    unsigned char code;                 /* 0x06, the code (0xff: none; amt_CheckOfficeMessage) */
+    int second;                         /* 0x07, the second character's netId or -1 (announced to the new owner) */
     char pad[4];                        /* 0x0b */
 } AMTMSG;
 typedef struct AMTTRADE {               /* the swap message (10 bytes), the data of message 0x5c (cm_SendTradeMessage,

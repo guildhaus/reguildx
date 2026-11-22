@@ -8,7 +8,6 @@ struct VFSFILE;
 #include "d3_io_t.h"                  /* D3BGF / D3BGFMAT */
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 
-typedef struct D3BGFVERT { float x, y, z, nx, ny, nz; } D3BGFVERT;
 
 struct VFSFILE * d3_OpenFastChunk(char *path);                                                 /* 0x4507a0, opens the fast chunk file */
 void d3_CalcBounds(D3BGF *m);                                                    /* 0x450ec0 */

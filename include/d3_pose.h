@@ -2,7 +2,7 @@
 #ifndef D3_POSE_H
 #define D3_POSE_H
 #include "d3.h"                       /* the D3 records and typedefs this header names */
-struct D3ANIMCTL;
+struct D3SURF;
 
 typedef struct XSRC {               /* source point of a vertex */
     char pad00[0xc];
@@ -19,7 +19,7 @@ typedef struct XVERT {              /* 0x50 bytes */
     char pad4e[0x2];
 } XVERT;
 
-typedef struct XPART {              /* a mesh part, what D3OBJINFO has before its ops */
+typedef struct XPART {              /* a mesh part, what D3SURF has before its ops */
     struct XVERT *keys;             /* 0x00, stride 0x50 */
     void *tris;
     int nkeys;                      /* 0x08 */
@@ -36,12 +36,12 @@ typedef struct XTEX {
     unsigned char flags;            /* 0x68 */
 } XTEX;
 
-struct D3ANIMSLOT * d3anim_GetMainSlot(struct D3ANIMCTL *ctl);                                         /* 0x435900 */
+struct D3ANIMSLOT * d3anim_GetMainSlot(struct D3SURF *ctl);                                         /* 0x435900 */
 void d3_MatMul43(D3MATRIX *a, D3MATRIX *b, D3MATRIX *out);                  /* 0x453ee0 */
-void d3_MatToAngles(D3VECTOR4 *m, D3VECTOR4 *angles);                         /* 0x454690 */
+void d3_MatToAngles(const D3MATRIX *m, D3VECTOR *angles);                         /* 0x454690 */
 
 void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);                        /* 0x458810 */
-void d3_WorldAngles(struct D3OBJECT *obj, D3VECTOR4 *angles);                            /* 0x458910 */
+void d3_WorldAngles(struct D3OBJECT *obj, D3VECTOR *angles);                            /* 0x458910 */
 void d3_DirToRef(struct D3OBJECT *obj, struct D3OBJECT *ref, const struct D3VECTOR *in, struct D3VECTOR *out);             /* 0x458950 */
 /* d3_PointToWorld is declared in d3.h: (D3OBJECT *obj, D3VECTOR *v, D3VECTOR *out) */
 void d3_PointToRef(struct D3OBJECT *obj, struct D3OBJECT *ref, struct D3VECTOR *in, struct D3VECTOR *out);             /* 0x458b20 */

@@ -479,8 +479,8 @@ void d3_SetVertexColors(D3OBJECT *obj, D3SURF *s, char on, D3TEXFLAGS fl)
     char pos = !(obj->objectFlags & 0x80);
 
     if (!(fl212 & 2)) {
-        tri = (D3PTRI *)s->info.tris;
-        for (i = 0; i < s->info.ntris; i++, tri++) {
+        tri = (D3PTRI *)s->tris;
+        for (i = 0; i < s->ntris; i++, tri++) {
             tex = tri->tex;
             if (tex) {
                 if (keep)
@@ -663,7 +663,7 @@ void d3_RelightObjectFrame(D3OBJECT *obj, struct D3ANIMFRAME *frame)
             d3_LightRadiusMargin = 0.0f;
         s = d3_LightRadiusMargin + info->ops->radius;
         D3_L(obj)->radius2 = s * s;
-        d3_FrameNormals(obj, (D3OBJINFO *)info, frame);
+        d3_FrameNormals(obj, (D3SURF *)info, frame);
         k = info->keys;
         for (i = 0; i < info->nkeys; i++) {
             k[i].light.x = d3_AmbientColor.x;

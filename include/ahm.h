@@ -117,7 +117,7 @@ extern void *main_Instance;              /* 0x75e140, the module handle */
 extern struct VFSDIR *vfs_Root;         /* 0x6333fc, the VFS directory tree (vfs.h) */
 struct AIOBJ *gm_Query(void *list, int n, ...);                   /* 0x4ffe90 */
 int gm_RemoveObject(struct AIOBJ **list, unsigned item);                     /* 0x4ffff0 */
-struct CHARACTER *gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);                     /* 0x4fbd10 */
+struct CHARACTER *gm_PlaceOnStage(int id, int a, int b, struct D3VECTOR *p, struct D3VECTOR *ori);                     /* 0x4fbd10 */
 struct AICHAR;
 void gm_ChooseHeadIcon(struct AICHAR *c);                     /* 0x4fb890 */
 void gm_RefreshGoodsLists(unsigned p);                     /* 0x4ff190 */

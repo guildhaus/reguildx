@@ -459,7 +459,7 @@ void gv_FreeEffectObjects(void)
 }
 /* 0x4eded0, the effect slot (gv_Effects) whose id (+0) is id, 0 when none; -1 never matches */
 
-char *gv_FindEffect(int id)
+GVEFFECT *gv_FindEffect(int id)
 {
     int *p;
     int i;
@@ -469,7 +469,7 @@ char *gv_FindEffect(int id)
         p = (int *)gv_Effects;
         do {
             if (*p == id)
-                return (char *)&gv_Effects[i];
+                return &gv_Effects[i];
             p += 0x5c;
             i++;
         } while ((intptr_t)p < (intptr_t)&gv_Effects[8]);
@@ -1014,24 +1014,24 @@ float gv_SalvoCharge(int a, int b, int c)
     }
     return sum;
 }
-/* 0x4ef000, the stats of the cannon kind n (clamped 0 .. 4) into out (am.c G9KIND): out[0] = n, out[1] = n + 2 (the level the
-   building needs, am.c 0x4a67a0), and for the salvos of i = 1 .. 3 balls out[1 + i] = 500 * 32 * i * t and out[4 + i] =
+/* 0x4ef000, the stats of the cannon kind n (clamped 0 .. 4) into out (am.h G9KIND): the kind, the level the building
+   needs (kind + 2, ai_AimCannon), and for the salvos of i = 1 .. 3 balls lo[i - 1] = 500 * 32 * i * t and hi[i - 1] =
    700 * 32 * i * t as ints, t = n * 0.25 + 1 (the products go through v: in one expression VC6 folds 500 * 32) */
 
-void gv_CannonKind(int n, int *out)
+void gv_CannonKind(int n, G9KIND *out)
 {
     float a, v;
     int kind, i;
 
     kind = max(min(n, 4), 0);
-    out[0] = kind;
-    out[1] = kind + 2;
+    out->kind = kind;
+    out->level = kind + 2;
     for (i = 1; i <= 3; i++) {
         a = (float)i * ((float)kind * 0.25f + 1.0f);
         v = 500.0f * a;
-        out[1 + i] = (int)(v * 32.0f);
+        out->lo[i - 1] = (int)(v * 32.0f);
         v = a * 700.0f;
-        out[4 + i] = (int)(v * 32.0f);
+        out->hi[i - 1] = (int)(v * 32.0f);
     }
 }
 /* 0x4ef090, prices a cannon salvo for the character o: the cannon kind a (clamped 0 .. 4) gives the level *n = a + 2 it needs,

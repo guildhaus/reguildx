@@ -52,15 +52,6 @@ typedef struct GVORDER {                /* 0x1f bytes, a graveyard order: the da
     int objId;                          /* 0x17, ai_NextObjectId, filled by the handler when the game is networked */
     int seed;                           /* 0x1b, a rand() the handler fills otherwise */
 } GVORDER;
-typedef struct GVMOVE {                 /* 0x19 bytes, a grave move: the data of message 0x61 (cm_SendGraveMove), run by gv_MoveGrave */
-    int chr;                            /* 0x00, the paying character's netId (AICHAR.netId) */
-    int bld;                            /* 0x04, the graveyard building's id (AIBLD.id) */
-    int from;                           /* 0x08, the source grave size (GVYARD.lists index) */
-    unsigned char entry;                /* 0x0c, the entry of that list */
-    int to;                             /* 0x0d, the target grave size */
-    int price;                          /* 0x11, > 0: the character pays it */
-    int objId;                          /* 0x15, ai_NextObjectId when the game is networked */
-} GVMOVE;
 typedef struct GVRAISE {                /* 0x19 bytes, a raising of a dead person: the data of message 0x62 (cm_SendRaiseDead), run by gv_RaiseDead */
     int seed;                           /* 0x00, a rand() the handler 0x4ccf10 fills (util_Seed) */
     int objId;                          /* 0x04, ai_NextObjectId when the game is networked */
@@ -177,7 +168,7 @@ int gv_WriteEffects(void *f);             /* 0x4ed480 */
 int gv_ReadEffects(void *f, int v);      /* 0x4ed910 */
 void unk_ResetEffectSlots(void);               /* 0x4eddf0 */
 void gv_FreeEffectObjects(void);               /* 0x4ede70 */
-char *gv_FindEffect(int id);            /* 0x4eded0 */
+GVEFFECT *gv_FindEffect(int id);        /* 0x4eded0 */
 void gv_ReleaseEffect(int id);             /* 0x4edf10 */
 void gv_ExplodeShot(int damage, int effectId, struct SHOTREC *shot, GVEFFARG *out);  /* 0x4ee360 */
 void gv_UpdateEffects(void);               /* 0x4edf80 */
@@ -189,7 +180,7 @@ char *gv_GetEffect(int id);            /* 0x4eedd0 */
 int gv_StartShot(struct GVSHOTMSG *m, int w);       /* 0x4eee00 */
 void gv_SetEffectCallback(int id, void *cb, void *arg);  /* 0x4eeee0 */
 float gv_SalvoCharge(int a, int b, int c);  /* 0x4eef50 */
-void gv_CannonKind(int n, int *out);    /* 0x4ef000 */
+struct G9KIND; void gv_CannonKind(int n, struct G9KIND *out);  /* 0x4ef000, am.h's record */
 void cm_SendMoneyDelta(int a, int b);                     /* 0x4c5f60 */
 extern unsigned char ai_OwnPlayer;      /* 0x6f1bc5 */
 void gv_BuildingCannon(struct AIBLD *o, unsigned *balls, unsigned *kind);  /* 0x4ef170 */
@@ -256,7 +247,7 @@ unsigned gv_RaiseDead(GVRAISE *m);     /* 0x4f1200 */
 int gv_ReadGraveyard(void *f, struct AIBLD *o);  /* 0x4f1aa0, reads the graveyard record of o from the file f (allocated by 0x4efc10) */
 float util_RandomF(void);               /* 0x42ec20 */
 extern int ai_CharCount;                /* 0x6f1bc0, the number of characters in use (of ai_Chars[0x300]) */
-struct CHARACTER *gm_PlaceOnStage(int id, int a, int b, int *p4, int *p5);                     /* 0x4fbd10 */
+struct CHARACTER *gm_PlaceOnStage(int id, int a, int b, struct D3VECTOR *p, struct D3VECTOR *ori);                     /* 0x4fbd10 */
 void gm_ChooseHeadIcon(struct AICHAR *c);                     /* 0x4fb890 */
 GVENTRY *gv_FindWornEntry(struct AIBLD *bld, unsigned char m);  /* 0x4f22a0 */
 
@@ -346,7 +337,7 @@ float util_RandomF(void);               /* 0x42ec20 */
 void gv_GraveyardTurn(struct AIBLD *o);            /* 0x4f1de0 */
 int gv_LeasePrice(struct AICHAR *c, unsigned char care, int kind, int flag, int *out);  /* 0x4f2330 */
 int cm_SendRelations(int a, int b, int c, int d);                     /* 0x4c4b00 */
-int gm_CharCurrency(struct AICHAR *c, char p);                   /* 0x509ee0 */
+int gm_CharCurrency(struct AICHAR *c, signed char p);                   /* 0x509ee0 */
 
 int ord_MedicusOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5070 */
 

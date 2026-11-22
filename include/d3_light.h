@@ -8,7 +8,7 @@ struct D3SURF;
 #define UNK_451E80_H
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 
-typedef struct D3LVERT {            /* 0x50 bytes, a mesh vertex (D3PVERT, D3OBJINFO::keys) as the light code sees it */
+typedef struct D3LVERT {            /* 0x50 bytes, a mesh vertex (D3PVERT, D3SURF::keys) as the light code sees it */
     union {
         struct {
             float x, y, z;          /* 0x00, camera space */
@@ -43,18 +43,18 @@ typedef struct D3LTRI {             /* 0x28 bytes (D3TRI) */
     char pad0c[0x1c];
 } D3LTRI;
 
-typedef struct D3LOPS {             /* the mesh driver (D3OBJINFO::unk10) as the light code uses it */
+typedef struct D3LOPS {             /* the mesh driver (D3SURF::unk10) as the light code uses it */
     char pad000[0x6c];
     float originY;                  /* 0x06c, y of the mesh origin in its vertex data (d3_LightApply subtracts it before the directional-light normals) */
     char pad070[0x164];
     float radius;                   /* 0x1d4 */
     char pad1d8[0x14];
-    void (*fn1ec)(D3OBJECT *obj, D3OBJINFO *info);          /* 0x1ec, transforms the normals of a mesh without key frames */
+    void (*fn1ec)(D3OBJECT *obj, D3SURF *info);          /* 0x1ec, transforms the normals of a mesh without key frames */
     char pad1f0[0x8];
-    float (*Radius)(D3OBJECT *obj, D3OBJINFO *info);        /* 0x1f8 */
+    float (*Radius)(D3OBJECT *obj, D3SURF *info);        /* 0x1f8 */
 } D3LOPS;
 
-typedef struct D3LINFO {            /* D3OBJINFO */
+typedef struct D3LINFO {            /* D3SURF */
     D3LVERT *keys;                  /* 0x00 */
     D3LTRI *tris;                   /* 0x04 */
     int nkeys;                      /* 0x08 */

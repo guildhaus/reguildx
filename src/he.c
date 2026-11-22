@@ -55,7 +55,7 @@
    HEPLUNDER (0x8a), HEPLUNDERDEAL (0x8b), HEMASTERWORK (0x8c), HEGRAVECARE (0x8d), HEDEATHDUE (0x8e),
    HEGRAVETRAINING (0x8f) and HEMEETING (0x90), HEMEETSCENE / HEMEETNAME (the meeting scene object 0x91), HEGRAVELEASE (the grave
     lease answer 0x92), HEGYPSY (the gypsy approach 0x9d), HEGYPSYCURSE (the curse 0x9e), HETRIALCASE (the trial 0xa0) and HEMEET4 (the circus show 0xa1), and over AIOBJ
-   HETAVERNOBJ / HEOBJ1B5VALUE (the tavern's object 0x1b5); the hint table he_Hints (0x6fa260, HEHINT), the tip
+   the tavern's object 0x1b5 (AIOBJ.sermon: text1 / text2 / priest / enabled hold its hired helper); the hint table he_Hints (0x6fa260, HEHINT), the tip
    order he_TipOrder (0x6fa1e0) and the tip texts TXT_TIP_TEXTS (0x1442430) are typed (the scene, voice and activity
    names are string literals of he / he_b, not objects). AIJOB's fields between
    0x14 and 0xac are named only as the message's words; a member added to AIJOB / AIMSG / G28REC can flip other
@@ -175,8 +175,8 @@ typedef struct HEWALKSLOT {
     unsigned char state;                /* 0x9, flags: 1 counted, 4 done, 0x10 played, 0x20 a character with +0x1f0, 0x40 held */
     unsigned char step;                 /* 0xa, the step through ai_Blds (a random ai_RandomStrides entry) */
     unsigned char bldIndex;             /* 0xb, the ai_Blds index of the building */
-    char holdHour;                      /* 0xc, the hour the character was held at, 0xff none (a char: he_StepWalk's test
-                                           for 0xff never holds) */
+    signed char holdHour;               /* 0xc, the hour the character was held at, 0xff none (@original: signed, so
+                                           he_StepWalk's test of the sign-extended byte for 0xff never holds) */
     unsigned char pad[3];
 } HEWALKSLOT;
 typedef struct HEWALKS {                /* the walk event 0x7a's ten slots over AIJOB's union (its alloc handler
@@ -990,25 +990,6 @@ typedef struct HEOFFER {                /* the offer event 0x2c's words over AIJ
     char pad_d3;
     int offer;                          /* 0xd4, the offer handle cm_SendHandOverCrimes gave (cm_GetSlotState asks it) */
 } HEOFFER;
-typedef union HEOBJ1B5VALUE {           /* the 7 byte value cm_SendObject1b5 copies to the new object's +0x1c, as
-                                           he_AllocTavern fills it (byte, byte, int; their meaning is not read yet) */
-    G17B7 block;
-    struct {
-        char c1c;                       /* +0x1c of the object */
-        char c1d;                       /* +0x1d */
-        int v1e;                        /* +0x1e */
-    } f;
-} HEOBJ1B5VALUE;
-typedef struct HETAVERNOBJ {            /* the tavern's object 0x1b5 (he_AllocTavern creates it) as the tavern run handler
-                                           reads it: an AIOBJ, its kind's words at +0x1c over AIOBJ's union */
-    char pad00[2];
-    int objId;                          /* 0x02, AIOBJ.objId */
-    char pad06[0x16];
-    char c1c;                           /* 0x1c, -1 when no helper (the meaning is not read yet) */
-    char c1d;                           /* 0x1d, -1 when no helper */
-    int helperId;                       /* 0x1e, the character hired as the tavern's helper, -1: none */
-    char hired;                         /* 0x22, nonzero while a helper is hired */
-} HETAVERNOBJ;
 typedef struct HEAHMRESEARCH {          /* the alchemist research event 0x96's words over AIJOB's union (he_AllocResearchRecipe
                                            and its run handler he_RunResearchRecipe); ahm.h's AHMRESEARCH names the same words from ahm.c */
     char pad00[0xac];
@@ -1189,18 +1170,18 @@ int he_InitEvents(void)
 
 void he_FreeEvents(void)
 {
-    char *p;
+    AIJOB *p;
     int i = 0;
 
     if (he_EventTop >= 0) {
-        p = (char *)(uintptr_t)&he_Events;
+        p = he_Events;
         do {
-            if ((intptr_t)p >= (intptr_t)((uintptr_t)&he_Events + 0x53000))
+            if ((intptr_t)p >= (intptr_t)&he_Events[0x400])
                 return;
-            if (*p != 0)
+            if (p->kind != 0)
                 he_FreeEvent(p);
             i++;
-            p += 0x14c;
+            p++;
         } while (i <= he_EventTop);
     }
 }
@@ -3497,7 +3478,7 @@ void he_RunStammtisch(AIJOB *e)
 void he_AllocTavern(AIJOB *e)
 {
     AIBLD *bld = 0;
-    HEOBJ1B5VALUE v;
+    G17B7 v;
 
     if ((e->opts & 4) != 0)
         return;
@@ -3511,10 +3492,10 @@ void he_AllocTavern(AIJOB *e)
         return;
     }
     if (gm_Query(bld->objList, 1, 0, 0x1b5) == 0) {
-        v.f.c1c = -1;
-        v.f.c1d = -1;
-        v.f.v1e = -1;
-        cm_SendObject1b5(bld->id, v.block);
+        v.sermon.text1 = -1;
+        v.sermon.text2 = -1;
+        v.sermon.priest = -1;
+        cm_SendObject1b5(bld->id, v);
     }
     e->exSlot = -1;
     cm_SendExSetHE(0, e);
@@ -3531,7 +3512,7 @@ void ai_ShowTavernHelperNews(struct AICHAR *param_1, struct AICHAR *param_2, int
 void he_RunTavern(AIJOB *e)
 {
     AIBLD *bld = 0;
-    HETAVERNOBJ *t;
+    AIOBJ *t;
     AICHAR *helper;
     char buf[0x100];
 
@@ -3555,11 +3536,11 @@ void he_RunTavern(AIJOB *e)
         cm_SendExSetHE(0, e);
         return;
     }
-    t = (HETAVERNOBJ *)gm_Query(bld->objList, 1, 0, 0x1b5);
+    t = gm_Query(bld->objList, 1, 0, 0x1b5);
     switch (e->stage) {
     case 0:
         if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
-            if (t != 0 && t->hired != 0) {
+            if (t != 0 && t->sermon.enabled != 0) {
                 gm_AddTime(&e->end, 1, 0, 0);
                 e->exSlot = cm_SendExSetHE(1, e);
             } else {
@@ -3589,7 +3570,7 @@ void he_RunTavern(AIJOB *e)
         e->exSlot = cm_SendExSetHE(2, e);
         return;
     case 2:
-        if (t != 0 && t->hired != 0) {
+        if (t != 0 && t->sermon.enabled != 0) {
             int out[3];
             unsigned char no, none;
             int noId;
@@ -3598,7 +3579,7 @@ void he_RunTavern(AIJOB *e)
             none = 0xff;
             noId = -1;
             out[2] = 0;
-            helper = gm_FindChar(t->helperId);
+            helper = gm_FindChar(t->sermon.priest);
             if (helper != 0) {
                 out[2] = (int)helper;
                 ai_ShowTavernHelperNews(&ai_Chars[bld->owner], helper, (int)bld);
@@ -4653,7 +4634,7 @@ void he_RunRandomMessage(AIJOB *e)
 {
 
     if (e->stage != -2)
-        ai_RunMessage(&e->u.id);
+        ai_RunMessage(&e->msg);
     he_FreeEvent(e);
 }
 /* 0x545670, a Ghidra miss (disassembled): the alloc handler of the patrol event 0x43, once it is started (opts bit
@@ -7311,9 +7292,9 @@ void he_RunAudit(AIJOB *e)
         }
         if (!(shortfall > 0.2) && found == 0) {
             txt_Format(text, 0x1a76, b->owner, b);
-            he_ShowNews(ai_Chars[e->chr].netId, ai_Chars[e->chr].netId, text, found, 0x5f0, "_NACHRICHTEN_HS_88");
+            he_ShowNews(ai_Chars[e->chr].netId, ai_Chars[e->chr].netId, text, 0, 0x5f0, "_NACHRICHTEN_HS_88");
             txt_Format(text, 0x1a78, e->chr, b);
-            he_MessageBoxQuickjump(ai_Chars[b->owner].netId, ai_Chars[b->owner].netId, text, found, 0x5f0, b->id, -1, found, "_NACHRICHTEN_HS_86");
+            he_MessageBoxQuickjump(ai_Chars[b->owner].netId, ai_Chars[b->owner].netId, text, 0, 0x5f0, b->id, -1, 0, "_NACHRICHTEN_HS_86");
             e->stage = 2;
             return;
         }
@@ -8974,7 +8955,7 @@ void he_StartEffectEvent(AIJOB *e)
 /* 0x54fc00, the smoke emitter of the effect event: creates the effect 0x177 ("Rauch", the colour 0x64ffa0, a
    30 / 2 / 7.5 / 0.4 / 1 emitter) on the scene record (AIBLD.object) of the building o and returns its handle */
 
-int he_CreateSmokeEffect(AIBLD *o)
+D3PARTSYS *he_CreateSmokeEffect(AIBLD *o)
 {
     AIBLD *bld = o;
     unsigned char col[4];
@@ -8993,7 +8974,7 @@ int he_CreateSmokeEffect(AIBLD *o)
    size): creates the effect 0x178 ("punkte_nm_2", a 50 / 1 / 2 / 0.5 / 0.5 emitter) on the scene record
    (AIBLD.object) of the building o and returns its handle */
 
-int he_CreatePointsEffect(AIBLD *o)
+D3PARTSYS *he_CreatePointsEffect(AIBLD *o)
 {
     AIBLD *bld = o;
     unsigned char col[4];
@@ -9037,7 +9018,7 @@ void he_RunEffectEvent(AIJOB *e)
     case 1:
         if (gm_CompareTime(&ai_Time, &e->end6c) == 1) {
             if (e->effectObj != 0 && mem_IsValid(e->effectObj) != 0)
-                ((D3PARTSYS *)e->effectObj)->spawnCount = 0;
+                e->effectObj->spawnCount = 0;
             e->stage = 2;
             return;
         }
@@ -9045,7 +9026,7 @@ void he_RunEffectEvent(AIJOB *e)
             e->stage = 0;
         return;
     case 2:
-        if (e->effectObj == 0 || (((D3PARTSYS *)e->effectObj)->flags & 2) != 0)
+        if (e->effectObj == 0 || (e->effectObj->flags & 2) != 0)
             e->stage = -1;
         return;
     case -2:
@@ -9837,7 +9818,7 @@ void he_StepWalk(HEWALKSLOT *s)
             s->state |= 0x40;
             held = 1;
             if (hour == 0xff) {
-                s->holdHour = (char)ai_Time.hour;
+                s->holdHour = (signed char)ai_Time.hour;
                 cm_SendSetField(c->netId, 0x1c8, 4, 0, 0x1000);
                 return;
             }
@@ -11648,7 +11629,7 @@ void he_TransportToHome(AIJOB *e)
         if (gm_IsType10(from) == 0)
             t->route = cm_SendCartRoute(guards->id, from->id, tr->objId);
         t->started = 1;
-    } else if (sv_IsCartAtDoor((char *)tr, to) != 0) {
+    } else if (sv_IsCartAtDoor(tr, to) != 0) {
         t->route = cm_SendCartRoute(to->id, guards->id, tr->objId);
         if (to->type == 0x47) {
             txt_Format(text, 0x1c3b, 1, 0x1c39, ai_PlayerSlots[to->playerSlot].name);
@@ -11866,7 +11847,7 @@ void he_TransportHomeHome(AIJOB *e)
         cm_SendChrGotoBuilding(tr->objId, to->id, -1, 0, 1, "Trans");
         t->route = cm_SendCartRoute(guards->id, from->id, tr->objId);
         t->started = 1;
-    } else if (sv_IsCartAtDoor((char *)tr, to) != 0) {
+    } else if (sv_IsCartAtDoor(tr, to) != 0) {
         t->route = cm_SendCartRoute(to->id, guards->id, tr->objId);
         cm_RequestChrMoveToUniverse(tr->objId, to->id, -1, "dummy_TRANSPORTER_ENTRY");
         u = init_BuildingSceneUniverse(to);
@@ -15068,8 +15049,8 @@ void he_RunPromotion(AIJOB *e)
     EVTSCRIPT *sc;
     char *s, *d;
     int group, scriptGroup;
-    float pos[4];
-    float rot[4];
+    D3VECTOR4 pos;
+    D3VECTOR4 rot;
 
     if (e->exSlot != -1 && cm_GetSlotState(e->exSlot) == 0)
         return;
@@ -15115,12 +15096,12 @@ void he_RunPromotion(AIJOB *e)
 
             d3if_SelectScene(scene, 1);
             ch = c->scene;
-            pos[0] = ch->obj->pos.x;
-            pos[1] = ch->obj->pos.y;
-            pos[2] = ch->obj->pos.z;
-            rot[0] = ch->obj->rotation.x;
-            rot[1] = ch->obj->rotation.y;
-            rot[2] = ch->obj->rotation.z;
+            pos.x = ch->obj->pos.x;
+            pos.y = ch->obj->pos.y;
+            pos.z = ch->obj->pos.z;
+            rot.x = ch->obj->rotation.x;
+            rot.y = ch->obj->rotation.y;
+            rot.z = ch->obj->rotation.z;
             group = ch->group;
             scriptGroup = ch->scriptGroup;
             s = ch->handObject;
@@ -15130,7 +15111,7 @@ void he_RunPromotion(AIJOB *e)
             ch_Delete(ch);
             c->scene = 0;
             c->ownName[0] = 0;
-            c->scene = gm_CreateCharModel(c, scene, pos, rot, 0, 0);
+            c->scene = gm_CreateCharModel(c, scene, &pos.v, &rot.v, 0, 0);
             if (c->scene != 0) {
                 c->scene->group = group;
                 c->scene->scriptGroup = scriptGroup;
@@ -15138,7 +15119,7 @@ void he_RunPromotion(AIJOB *e)
                     ch_SetHandObject(c->scene, 2, hand);
                 sc = evt_Load("Effekte/befoerdern.esc");
                 if (sc != 0) {
-                    evt_RunScriptArgs(sc, 5, (int)pos[0], (int)pos[1], (int)pos[2], 0x28, 0xb4);
+                    evt_RunScriptArgs(sc, 5, (int)pos.x, (int)pos.y, (int)pos.z, 0x28, 0xb4);
                     if (scriptGroup != -1)
                         sc->group = scriptGroup;
                     else
@@ -15451,7 +15432,7 @@ int he_FindFigurePlace(AICHAR *p, int *bldId, int *objId, int *scene)
     AIBLD *b = 0;
     int id = -1;
     unsigned char k;
-    unsigned char *home;
+    AIBLD *home;
     AIBTYPE *bt;
 
     if (p->kind == 0xd || p->kind == 0xe)
@@ -15468,13 +15449,13 @@ int he_FindFigurePlace(AICHAR *p, int *bldId, int *objId, int *scene)
             return 0;
     }
     if (p->bld2 == 0) {
-        home = (unsigned char *)gm_CharacterHome(p, bldId, objId);
+        home = gm_CharacterHome(p, bldId, objId);
         if (home == 0)
             return 0;
         if (scene != 0) {
             o = gm_FindObjectInst(*objId);
             if (gm_IsHomeType(home) != 0) {
-                *scene = init_BuildingSceneUniverse((AIBLD *)home);
+                *scene = init_BuildingSceneUniverse(home);
                 return 1;
             }
             if (o != 0) {

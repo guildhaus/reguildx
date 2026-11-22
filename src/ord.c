@@ -1672,20 +1672,19 @@ void ord_ResetStatistics(void)
     ord_MessageRecord.enabled = -1;
     ai_RatingBase = 0;
 }
-/* 0x4f8300, the 8 x 8 grid cell of a position: d3_GetHeightAt gives the cell on scene 0's height map (d3_Scenes[0].hmap) and x / y are divided by the map's cell count per side (D3SM.size, +0x20) over 8; 0 when the call fails */
+/* 0x4f8300, the 8 x 8 grid cell of a position: d3_GetHeightAt gives the cell on scene 0's height map (d3_Scenes[0].hmap) and x / y are divided by the map's cell count per side (D3SM.size, +0x20) over 8; 0 when the call fails. The height is unread: VC6 keeps h in y's dead parameter slot (the original passes &y as the float out) */
 
 int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y)
 {
     D3SM *hmap;
     int n;
-    int *py;
+    float h;
 
-    py = y;
     hmap = (D3SM *)d3_Scenes[0].hmap;
     n = hmap->size / 8;
-    if (d3_GetHeightAt(hmap, p, x, y, &y) != 0) {
+    if (d3_GetHeightAt(hmap, p, x, y, &h) != 0) {
         *x = *x / n;
-        *py = *py / n;
+        *y = *y / n;
         return 1;
     }
     return 0;

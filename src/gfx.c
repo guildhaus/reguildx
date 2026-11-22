@@ -946,13 +946,13 @@ int d2_CompareColour(char *a, char *b)
         return 0;
     return 1;
 }
-/* 0x478960, sets a colour */
+/* 0x478960, sets a 24-bit pixel (the byte order d2_CompareColour compares) */
 
-void d2_SetColour(D2RGB *c, unsigned char r, unsigned char g, unsigned char b)
+void d2_SetColour(unsigned char *c, unsigned char r, unsigned char g, unsigned char b)
 {
-    c->r = r;
-    c->g = g;
-    c->b = b;
+    c[0] = r;
+    c[1] = g;
+    c[2] = b;
 }
 /* 0x478980, width | height << 16 of a 24 bit bmp, -1 if it can not be opened, -2 if it is not 24 bit */
 

@@ -654,7 +654,7 @@ void sv_BuildScreenLayout(int s)
 {
     void *t;
     int i;
-    int tab[16];
+    D2SURF desc;
     int *q;
 
     d2_SetClipRect(0, 0, (int)d2_ScreenW, (int)d2_ScreenH);
@@ -682,14 +682,12 @@ void sv_BuildScreenLayout(int s)
     d2_DirtyRect.right = sv_ViewRectRight;
     d2_DirtyRect.left = sv_ViewRectLeft;
     d2_DirtyRect.top = sv_ViewRectTop;
-    q = tab;
-    for (i = 0x10; i != 0; i--)
-        *q++ = 0;
+    memset(&desc, 0, sizeof(desc));
     sv_PanelPic = s;
     d2_DirtyRect.bottom = sv_ViewRectBottom;
-    tab[1] = 0x68;
-    tab[2] = 0x6e;
-    sv_GroundplanView = d2_MakeSurface(tab, 3);
+    desc.w = 0x68;
+    desc.h = 0x6e;
+    sv_GroundplanView = d2_MakeSurface(&desc, 3);
     d2_ClearSurface(sv_GroundplanView);
     sv_BarToggle = d2_CreatePicObj(0x286, 0x23c, 0x544);
     ((D2OBJ *)d2_Objs)[sv_BarToggle].interactive = 1;
@@ -1680,7 +1678,7 @@ int sv_IsAtDoor(AICHAR *g, AIBLD *o)
    first scene: within 650.0 of the building o's door (1950.0 for a building type of kind 10, 3250.0 from the
    building's object when it has no "dummy_TUER"); or when the character's group is the building's id */
 
-int sv_IsCartAtDoor(char *g, AIBLD *o)
+int sv_IsCartAtDoor(AIOBJ *g, AIBLD *o)
 {
     float r;
     CHARACTER *dst;
@@ -1690,7 +1688,7 @@ int sv_IsCartAtDoor(char *g, AIBLD *o)
     r = 650.0f;
     if (ai_BTypes[o->type].kind == 10)
         r = 1950.0f;
-    dst = (CHARACTER *)((AIOBJ *)g)->sceneObj;
+    dst = g->sceneObj;
     if (o->object != 0) {
         if (dst == 0)
             return 0;
@@ -2218,13 +2216,13 @@ void sv_UpdateSkyColors(void)
 void sv_FillDayPhases(struct AITIME *t)
 {
     int season, i;
-    char h, m;
+    signed char h, m;
 
     season = gm_ClockSeason(t);
     for (i = 0; i < 6; i++) {
-        h = (char)(sv_PhaseMinutes[season * 6 + i] / 60);
+        h = (signed char)(sv_PhaseMinutes[season * 6 + i] / 60);
         sv_DayPhases[i].hour = h;
-        m = (char)sv_PhaseMinutes[season * 6 + i] - sv_DayPhases[i].hour * 60;
+        m = (signed char)sv_PhaseMinutes[season * 6 + i] - sv_DayPhases[i].hour * 60;
         sv_DayPhases[i].min = m;
         sv_DayPhases[i].sec = (m + sv_DayPhases[i].hour * 60) * 60;
     }
@@ -3203,7 +3201,7 @@ char sv_CreateBannerCB(D3OBJECT *part, AIBLD *b)
         d3_MatFromAngles((D3VECTOR4 *)&rot, &m);
         d3_SetWorldPosRot(o, &pos.v, &m);
         if (b->owner != 0xffff) {
-            d3if_SelectTextureSet(o, (struct D3SURF *)o->info, (unsigned char)((char)ai_Chars[b->owner].ref54 + 'f'), 1);
+            d3if_SelectTextureSet(o, o->info, (unsigned char)((char)ai_Chars[b->owner].ref54 + 'f'), 1);
             o->kind = 4;
         }
         d3t_PlayAnim(o, "sonstiges\\sp_WIMPEL.baf", 1);
@@ -3220,7 +3218,7 @@ char sv_ColourBannerCB(D3OBJECT *o, AIBLD *b)
 {
     if (stricmp(o->name, "sp_WIMPEL") == 0) {
         if (b->owner != 0xffff)
-            d3if_SelectTextureSet(o, (struct D3SURF *)o->info, (unsigned char)((char)ai_Chars[b->owner].ref54 + 'f'), 1);
+            d3if_SelectTextureSet(o, o->info, (unsigned char)((char)ai_Chars[b->owner].ref54 + 'f'), 1);
     }
     return 1;
 }
@@ -3277,7 +3275,7 @@ void sv_ColourBanners(int c)
             if (ch != 0 && ch->ref54 != 0 && (ch->kind == 5 || ch->kind == 6 || ch->kind == 7)) {
                 set = ch->ref54 - 0x599;
                 if (set != 0)
-                    d3if_SelectTextureSet(*m->transport, (struct D3SURF *)(*m->transport)->info, set, 1);
+                    d3if_SelectTextureSet(*m->transport, (*m->transport)->info, set, 1);
             }
         }
     }
@@ -6212,7 +6210,7 @@ void sv_UpdateBand(void)
     D3VECTOR4 p;
     AICHAR *c;
     D3PVERT *v;
-    D3OBJINFO *info;
+    D3SURF *info;
 
     if (sv_BandActive == 0)
         return;
@@ -6265,7 +6263,7 @@ void sv_UpdateBandLed(void)
     D3VECTOR4 p;
     AICHAR *c;
     D3PVERT *v;
-    D3OBJINFO *info;
+    D3SURF *info;
 
     if (sv_BandActive == 0)
         return;
@@ -6311,7 +6309,6 @@ void d2_RedrawView(int view);                     /* 0x474e80 */
 int d2_SetViewTextures(int view, char *tex1, char *tex2);  /* 0x474ca0 */
 void d2_ClearViewTextures(int view);                      /* 0x474d10 */
 void d3d_SetWBuffer(char w);                     /* 0x437060 */
-#define SV_ANIMCTL(o) ((D3ANIMCTL *)(o)->material->animCtl)  /* the animation control of an object's material (D3MATERIAL.animCtl at 0xf4) */
 
 /* 0x52f2c0, draws the rubber band rectangle (four dd_Line in colour -1) between the corners of sv_Band while
    sv_BandActive is set */
@@ -6341,7 +6338,7 @@ void sv_BookKeys(SVBOOK *bk)
    first pair disabled; the w-buffer is switched off while the book is open; plays "Aufklappen_s". Returns the
    record, 0 when the model or a view is missing. */
 
-SVBOOK *sv_OpenBook(char *model, char *at, char n, ...)
+SVBOOK *sv_OpenBook(char *model, char *at, signed char n, ...)
 {
     SVBOOK *bk;
     int i, count;
@@ -6452,12 +6449,12 @@ void sv_UpdateBook(SVBOOK *bk)
     sv_BookPhase ^= 1;
 }
 /* 0x52f710, turns the book bk by dir pages (2 forward / -2 backward): within the pages, and only when the page
-   animations of the book model (the three slots of its material's D3ANIMCTL) have finished (a finished turn
+   animations of the book model (the three slots of its material's D3SURF) have finished (a finished turn
    animation is released); sets the page textures of the views around the new pair ("Buch_Seite<n>_oben_ns_nm" /
    "_unten_ns_nm", n = page % 4 + 1, the others emptied and disabled), plays the turn animation, moves the page,
    runs sv_BookKeys and plays "Umblaettern_s". Returns 1 when turned. */
 
-int sv_TurnBook(SVBOOK *bk, char dir)
+int sv_TurnBook(SVBOOK *bk, signed char dir)
 {
     char top[0x40], bottom[0x40], path[0x200];
     char *name;
@@ -6475,22 +6472,22 @@ int sv_TurnBook(SVBOOK *bk, char dir)
     for (i = 0; i < 3; i++) {
         strcpy(path, "buch\\Buch_vorblaettern.baf");
         name = util_BaseName(path);
-        slot = &SV_ANIMCTL(bk->obj)->slots[i];
+        slot = &bk->obj->material->surf[0].slots[i];
         if (slot->data != 0 && strcmpi(slot->data->name, name) == 0 && dir > 0) {
             if ((slot->flags.b[1] & 0x20) == 0)
                 return 0;
-            d3_ReleaseTexture(SV_ANIMCTL(bk->obj), SV_ANIMCTL(bk->obj)->slots[i].data->name);
+            d3_ReleaseTexture(&bk->obj->material->surf[0], bk->obj->material->surf[0].slots[i].data->name);
         }
         strcpy(path, "buch\\Buch_zurueckblaettern.baf");
         name = util_BaseName(path);
         if (slot->data != 0 && strcmpi(slot->data->name, name) == 0) {
             if ((slot->flags.b[1] & 0x20) == 0 && dir > 0)
                 return 0;
-            d3_ReleaseTexture(SV_ANIMCTL(bk->obj), SV_ANIMCTL(bk->obj)->slots[i].data->name);
+            d3_ReleaseTexture(&bk->obj->material->surf[0], bk->obj->material->surf[0].slots[i].data->name);
         }
     }
     for (i = 0; i < 3; i++) {
-        slot = &SV_ANIMCTL(bk->obj)->slots[i];
+        slot = &bk->obj->material->surf[0].slots[i];
         if (slot->data != 0 && (slot->flags.b[1] & 0x20) == 0)
             return 0;
     }

@@ -5,23 +5,8 @@
 
 #include "am.h"
 
-typedef struct G14MSG {                 /* the argument of the callbacks */
-    int id;                             /* 0x00, a character id */
-    unsigned short type;                /* 0x04, 0..0x44, the table index; text 0x12e7 + type */
-} G14MSG;
+/* G14MSG, the argument of the callbacks: ai_types.h (the random-message event 0x42 holds one, AIJOB.msg) */
 
-struct AMTREC;                          /* amt.c's office record (amt.h, which does not compile with am.h); the
-                                           callbacks read this 0x18-byte view of it */
-typedef struct G14REC {
-    char pad00[8];
-    unsigned char kind;                 /* 0x08, the office kind (AMTREC.kind) */
-    char pad09[3];
-    int cnt;                            /* 0x0c, applicants taken (AMTREC.cnt) */
-    unsigned char state;                /* 0x10, 3 = open for applications (AMTREC.state) */
-    char pad11[3];
-    unsigned char x14;                  /* 0x14, text 0x253 + x14 (the low byte of AMTREC.x14) */
-    char pad15[3];
-} G14REC;
 
 
 void gm_ClockToDate(struct AITIME *c, unsigned char *out);                                            /* 0x4fe2c0 */
