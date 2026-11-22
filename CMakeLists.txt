@@ -75,16 +75,6 @@ add_custom_command(
 add_custom_target(mss32_implib DEPENDS "${MSS32_LIB}")
 add_dependencies(reguildx mss32_implib)
 
-# Names that different units still use for one object (left over from the decompilation). The linker
-# resolves each first name to the second; unifying them in the sources removes an entry.
-include(cmake/symbol-aliases.cmake)
-foreach(_pair IN LISTS REGUILDX_SYMBOL_ALIASES)
-  string(REPLACE "=" ";" _ab "${_pair}")
-  list(GET _ab 0 _from)
-  list(GET _ab 1 _to)
-  target_link_options(reguildx PRIVATE "LINKER:-Xlink=-alternatename:_${_from}=_${_to}")
-endforeach()
-
 # Fixed base like the original (stable addresses for debugging; the code has not been audited for ASLR yet).
 target_link_options(reguildx PRIVATE "LINKER:--disable-dynamicbase")
 
