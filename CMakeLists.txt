@@ -50,7 +50,7 @@ endif()
 # The game was written against the DirectX 6/7 SDK: DirectInputCreate is gone from the default (8) dinput.h.
 target_compile_definitions(reguildx PRIVATE DIRECTINPUT_VERSION=0x0700)
 
-# Build options the original's units used (see decompanion.toml [[variant]] for where they applied).
+# Build options the original's units used.
 option(REGUILDX_FIX_16BPP "16-bit back buffer in a window (dd_vesa)" OFF)
 option(REGUILDX_FRAME_DUMP "frame dumps (dd_vesa, d3_d3d, shp, gfx, d2)" OFF)
 foreach(_opt FIX_16BPP FRAME_DUMP)
