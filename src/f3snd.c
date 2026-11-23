@@ -17,6 +17,7 @@
    this order), the destination named directly in the asm. */
 #define F3SND_CAT(a, b) a##b
 #define F3SND_LABEL(n) F3SND_CAT(f3snd_fill_tail, n)
+/* clang-format off */
 #define F3SND_FILL(dvar, val, size) {                               \
     int _fn = (size); int _fv = (val);                              \
     __asm mov edi, dvar                                             \
@@ -39,6 +40,7 @@
     __asm F3SND_LABEL(__LINE__): add ecx, ebx                       \
     __asm rep stosb                                                 \
 }
+/* clang-format on */
 /* stdlib min / max (the body ai.h defines too) */
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
@@ -58,116 +60,122 @@
 #include "tr.h"
 #include "d3_pose.h"
 #include "ch.h"
-#include "txt.h"                      /* txt_Language */
+#include "txt.h" /* txt_Language */
 #include "bio.h"
 #include "cm.h"
+/* clang-format off */
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
+/* clang-format on */
 /* 0x4c01b0, stops the queue: restores the music after a fanfare (fade back to 1.0), frees every queued sound */
-void snd_ClearQueue(void)
-{
-    G16SND *n;
+void snd_ClearQueue(void) {
+  G16SND *n;
 
-    if (snd_FanfareFade != 0) {
-        snd_FanfareFade = 0;
-        snd_FadeMusic(1.0f, 2000);
-    }
-    if (snd_Queue != 0) {
-        do {
-            n = snd_Queue->next;
-            sb_SetRestart(snd_Queue->smp, 0);
-            mem_Free(snd_Queue);
-            snd_Queue = n;
-        } while (n != 0);
-    }
+  if (snd_FanfareFade != 0) {
+    snd_FanfareFade = 0;
+    snd_FadeMusic(1.0f, 2000);
+  }
+  if (snd_Queue != 0) {
+    do {
+      n = snd_Queue->next;
+      sb_SetRestart(snd_Queue->smp, 0);
+      mem_Free(snd_Queue);
+      snd_Queue = n;
+    } while (n != 0);
+  }
 }
 /* 0x4c0210, the tail of the queue (the sound queued last), 0 when the queue is empty */
 
-G16SND *snd_QueueTail(void)
-{
-    G16SND *p;
+G16SND *snd_QueueTail(void) {
+  G16SND *p;
 
-    if (snd_Queue != 0) {
-        p = snd_Queue;
-        while (p->next != 0)
-            p = p->next;
-        return p;
-    }
-    return 0;
+  if (snd_Queue != 0) {
+    p = snd_Queue;
+    while (p->next != 0)
+      p = p->next;
+    return p;
+  }
+  return 0;
 }
 /* 0x4c0230, appends smp to the queue, played delay after the previous one */
 
-int snd_AddToQueue(struct SBSAMPLE *smp, unsigned int delay)
-{
-    G16SND *s;
-    G16SND *l;
+int snd_AddToQueue(struct SBSAMPLE *smp, unsigned int delay) {
+  G16SND *s;
+  G16SND *l;
 
-    if (smp != 0) {
-        s = mem_Alloc(0x10, "f3snd: snd_AddToQueue");
-        if (s != 0) {
-            F3SND_FILL(s, 0, 0x10);
-            sb_SetRestart(smp, 1);
-            s->smp = smp;
-            s->delay = delay;
-            l = snd_QueueTail();
-            if (l != 0)
-                l->next = s;
-            else
-                snd_Queue = s;
-            return 1;
-        }
+  if (smp != 0) {
+    s = mem_Alloc(0x10, "f3snd: snd_AddToQueue");
+    if (s != 0) {
+      F3SND_FILL(s, 0, 0x10);
+      sb_SetRestart(smp, 1);
+      s->smp = smp;
+      s->delay = delay;
+      l = snd_QueueTail();
+      if (l != 0)
+        l->next = s;
+      else
+        snd_Queue = s;
+      return 1;
     }
-    return 0;
+  }
+  return 0;
 }
 /* 0x4c02e0, the queue step: starts the first sound once its delay is over (a "Fanfare" fades the ambience out),
    drops it when it has ended ("MausclickLinks" after a fanfare fades the ambience back in) */
 
-void snd_UpdateQueue(void)
-{
-    G16SND *n;
-    unsigned int t;
+void snd_UpdateQueue(void) {
+  G16SND *n;
+  unsigned int t;
 
-    if (snd_QueuePaused != 0)
-        return;
-    t = F3SND_TIME;
-    if (snd_Queue == 0)
-        return;
-    if (snd_Queue->playing == 0 && snd_Queue->delay < t - snd_QueueTime) {
-        if (snd_Queue->smp != 0 && snd_Queue->smp->info != 0) {
-            if (strstr(snd_Queue->smp->info->name, "Fanfare") && snd_FanfareFade == 0) {
-                snd_FadeMusic(0.0f, 2000);
-                snd_FanfareFade = 1;
-            }
-            sb_Play(snd_Queue->smp, 0, 0);
-            snd_Queue->playing = 1;
-        } else
-            snd_Queue->playing = 1;
-        snd_QueueTime = t;
-        return;
+  if (snd_QueuePaused != 0)
+    return;
+  t = F3SND_TIME;
+  if (snd_Queue == 0)
+    return;
+  if (snd_Queue->playing == 0 && snd_Queue->delay < t - snd_QueueTime) {
+    if (snd_Queue->smp != 0 && snd_Queue->smp->info != 0) {
+      if (strstr(snd_Queue->smp->info->name, "Fanfare") &&
+          snd_FanfareFade == 0) {
+        snd_FadeMusic(0.0f, 2000);
+        snd_FanfareFade = 1;
+      }
+      sb_Play(snd_Queue->smp, 0, 0);
+      snd_Queue->playing = 1;
+    } else
+      snd_Queue->playing = 1;
+    snd_QueueTime = t;
+    return;
+  }
+  if (snd_Queue->playing != 0 && !sb_IsPlaying(snd_Queue->smp)) {
+    n = snd_Queue->next;
+    sb_SetRestart(snd_Queue->smp, 0);
+    mem_Free(snd_Queue);
+    snd_Queue = n;
+    snd_QueueTime = t;
+    if (n != 0 && n->smp != 0 && n->smp->info != 0 && snd_FanfareFade != 0 &&
+        strstr(n->smp->info->name, "MausclickLinks")) {
+      n = snd_Queue->next;
+      sb_SetRestart(snd_Queue->smp, 0);
+      mem_Free(snd_Queue);
+      snd_Queue = n;
+      snd_FadeMusic(1.0f, 2000);
+      snd_FanfareFade = 0;
     }
-    if (snd_Queue->playing != 0 && !sb_IsPlaying(snd_Queue->smp)) {
-        n = snd_Queue->next;
-        sb_SetRestart(snd_Queue->smp, 0);
-        mem_Free(snd_Queue);
-        snd_Queue = n;
-        snd_QueueTime = t;
-        if (n != 0 && n->smp != 0 && n->smp->info != 0 && snd_FanfareFade != 0
-            && strstr(n->smp->info->name, "MausclickLinks")) {
-            n = snd_Queue->next;
-            sb_SetRestart(snd_Queue->smp, 0);
-            mem_Free(snd_Queue);
-            snd_Queue = n;
-            snd_FadeMusic(1.0f, 2000);
-            snd_FanfareFade = 0;
-        }
-    }
+  }
 }
 
 /* stops ambient sound s (a macro: the original repeats this block for each one) */
-#define SND_STOP(s) if ((s) != 0) { sb_Stop((s), 0); (s) = 0; }
+#define SND_STOP(s)                                                            \
+  if ((s) != 0) {                                                              \
+    sb_Stop((s), 0);                                                           \
+    (s) = 0;                                                                   \
+  }
 
 /* plays ambient sound s (name n, volume v; a, b the last two arguments) or sets its volume */
-#define SND_SET(s, n, v, a, b) if ((s) == 0) (s) = sb_PlaySample(snd_Bank, (n), 0, 0x3f, (v), (a), (b)); \
-    else sb_SetVolume((s), (v))
+#define SND_SET(s, n, v, a, b)                                                 \
+  if ((s) == 0)                                                                \
+    (s) = sb_PlaySample(snd_Bank, (n), 0, 0x3f, (v), (a), (b));                \
+  else                                                                         \
+    sb_SetVolume((s), (v))
 
 /* the volume of a rain loop: x scaled to 0..88.9 (0.7 of the full 127) by the divisor d; the float cast keeps
    the two factors apart, as the original multiplies by 88.9 and by 1 / d separately (a reasoned guess at the
@@ -177,947 +185,1025 @@ void snd_UpdateQueue(void)
 /* 0x4c0470, the rain sounds by the rain level d3t_Rain->count (near / far loops louder the lower / higher the camera
    is above the ground, drops "Tropfen_s"), then now and then a gust ("Boehe_*", chance and interval by season from
    the table 0x602ba8); everything stops without a scene, with sound off or when the season changed */
-void snd_UpdateRain(void)
-{
-    float f;
-    float t;
-    float tm;                           /* the medium branch's own fraction and depth (t / depth elsewhere) */
-    float dm;
-    float depth;                        /* 2600 - the camera height above the ground */
-    int n;
-    int w;
-    int v;
-    int k;
+void snd_UpdateRain(void) {
+  float f;
+  float t;
+  float
+      tm; /* the medium branch's own fraction and depth (t / depth elsewhere) */
+  float dm;
+  float depth; /* 2600 - the camera height above the ground */
+  int n;
+  int w;
+  int v;
+  int k;
 
-    if (d3_Terrain == 0 || snd_AmbientOn == 0 || snd_Season != gm_ClockSeason(&ai_Time)) {
-        snd_Season = gm_ClockSeason(&ai_Time);
-        SND_STOP(snd_RainHeavyFar);
-        SND_STOP(snd_RainHeavyNear);
-        SND_STOP(snd_RainMediumFar);
-        SND_STOP(snd_RainMediumNear);
-        SND_STOP(snd_RainLightFar);
-        SND_STOP(snd_RainLightNear);
-        SND_STOP(snd_RainDrops);
-        return;
-    }
-    w = 0;
-    f = d3_Camera->pos.y - d3t_GetMeanHeight(&d3_Camera->pos);
-    memcpy(&snd_TimeCopy, &ai_Time, 14);
-    if (d3t_Rain == 0 || (n = d3t_Rain->count) == 0) {
-        SND_STOP(snd_RainHeavyFar);
-        SND_STOP(snd_RainHeavyNear);
-        SND_STOP(snd_RainMediumFar);
-        SND_STOP(snd_RainMediumNear);
-        SND_STOP(snd_RainLightFar);
-        SND_STOP(snd_RainLightNear);
-        SND_STOP(snd_RainDrops);
+  if (d3_Terrain == 0 || snd_AmbientOn == 0 ||
+      snd_Season != gm_ClockSeason(&ai_Time)) {
+    snd_Season = gm_ClockSeason(&ai_Time);
+    SND_STOP(snd_RainHeavyFar);
+    SND_STOP(snd_RainHeavyNear);
+    SND_STOP(snd_RainMediumFar);
+    SND_STOP(snd_RainMediumNear);
+    SND_STOP(snd_RainLightFar);
+    SND_STOP(snd_RainLightNear);
+    SND_STOP(snd_RainDrops);
+    return;
+  }
+  w = 0;
+  f = d3_Camera->pos.y - d3t_GetMeanHeight(&d3_Camera->pos);
+  memcpy(&snd_TimeCopy, &ai_Time, 14);
+  if (d3t_Rain == 0 || (n = d3t_Rain->count) == 0) {
+    SND_STOP(snd_RainHeavyFar);
+    SND_STOP(snd_RainHeavyNear);
+    SND_STOP(snd_RainMediumFar);
+    SND_STOP(snd_RainMediumNear);
+    SND_STOP(snd_RainLightFar);
+    SND_STOP(snd_RainLightNear);
+    SND_STOP(snd_RainDrops);
+  } else {
+    w = n * 8;
+    if (n >= 999) {
+      /* heavy only */
+      SND_SET(snd_RainHeavyNear, "StarkNah_l_01",
+              v = SND_RAINVOL(2600.0f - f, 2600.0f), 0, 0);
+      SND_SET(snd_RainHeavyFar, "StarkFern_l_01", SND_RAINVOL(f, 2600.0f), 0,
+              0);
+      if (snd_RainDrops == 0)
+        snd_RainDrops =
+            sb_PlaySample(snd_Bank, "Tropfen_s", 0, 0x3f, v, 0, 1000);
+      else
+        sb_SetVolume(snd_RainDrops, v);
+      SND_STOP(snd_RainMediumNear);
+      SND_STOP(snd_RainLightNear);
+      SND_STOP(snd_RainMediumFar);
+      SND_STOP(snd_RainLightFar);
+    } else if (n >= 499) {
+      /* heavy fading in over medium: t of 500 */
+      t = (float)(n - 499);
+      SND_SET(snd_RainHeavyNear, "StarkNah_l_01",
+              v = SND_RAINVOL((depth = 2600.0f - f) * t, 1300000.0f), 0, 0);
+      SND_SET(snd_RainHeavyFar, "StarkFern_l_01",
+              SND_RAINVOL(t * f, 1300000.0f), 0, 0);
+      t = 500.0f - t;
+      SND_SET(snd_RainMediumNear, "MittelNah_l_01",
+              SND_RAINVOL(depth * t, 1300000.0f), 0, 0);
+      SND_SET(snd_RainMediumFar, "MittelFern_l_01",
+              SND_RAINVOL(t * f, 1300000.0f), 0, 0);
+      if (snd_RainDrops == 0)
+        snd_RainDrops =
+            sb_PlaySample(snd_Bank, "Tropfen_s", 0, 0x3f, v, 0, 0xa28);
+      else {
+        snd_RainDrops->delay = 2000;
+        sb_SetVolume(snd_RainDrops, v);
+      }
+      SND_STOP(snd_RainLightFar);
+      SND_STOP(snd_RainLightNear);
+    } else if (n >= 0x95) {
+      /* medium fading in over light: tm of 350 */
+      tm = (float)(n - 0x95);
+      SND_SET(snd_RainMediumNear, "MittelNah_l_01",
+              v = SND_RAINVOL((dm = 2600.0f - f) * tm, 910000.0f), 0, 0);
+      SND_SET(snd_RainMediumFar, "MittelFern_l_01",
+              SND_RAINVOL(tm * f, 910000.0f), 0, 0);
+      tm = 350.0f - tm;
+      SND_SET(snd_RainLightNear, "LeichtNah_l_01",
+              SND_RAINVOL(dm * tm, 910000.0f), 0, 0);
+      SND_SET(snd_RainLightFar, "LeichtFern_l_01",
+              SND_RAINVOL(tm * f, 910000.0f), 0, 0);
+      if (snd_RainDrops == 0)
+        snd_RainDrops = sb_PlaySample(snd_Bank, "Tropfen_s", 1, 0x3f,
+                                      SND_RAINVOL(dm, 2600.0f), 0, 3000);
+      else {
+        snd_RainDrops->delay = 3000;
+        sb_SetVolume(snd_RainDrops, v);
+      }
+      SND_STOP(snd_RainHeavyFar);
+      SND_STOP(snd_RainHeavyNear);
     } else {
-        w = n * 8;
-        if (n >= 999) {
-            /* heavy only */
-            SND_SET(snd_RainHeavyNear, "StarkNah_l_01", v = SND_RAINVOL(2600.0f - f, 2600.0f), 0, 0);
-            SND_SET(snd_RainHeavyFar, "StarkFern_l_01", SND_RAINVOL(f, 2600.0f), 0, 0);
-            if (snd_RainDrops == 0)
-                snd_RainDrops = sb_PlaySample(snd_Bank, "Tropfen_s", 0, 0x3f, v, 0, 1000);
-            else
-                sb_SetVolume(snd_RainDrops, v);
-            SND_STOP(snd_RainMediumNear);
-            SND_STOP(snd_RainLightNear);
-            SND_STOP(snd_RainMediumFar);
-            SND_STOP(snd_RainLightFar);
-        } else if (n >= 499) {
-            /* heavy fading in over medium: t of 500 */
-            t = (float)(n - 499);
-            SND_SET(snd_RainHeavyNear, "StarkNah_l_01", v = SND_RAINVOL((depth = 2600.0f - f) * t, 1300000.0f), 0, 0);
-            SND_SET(snd_RainHeavyFar, "StarkFern_l_01", SND_RAINVOL(t * f, 1300000.0f), 0, 0);
-            t = 500.0f - t;
-            SND_SET(snd_RainMediumNear, "MittelNah_l_01", SND_RAINVOL(depth * t, 1300000.0f), 0, 0);
-            SND_SET(snd_RainMediumFar, "MittelFern_l_01", SND_RAINVOL(t * f, 1300000.0f), 0, 0);
-            if (snd_RainDrops == 0)
-                snd_RainDrops = sb_PlaySample(snd_Bank, "Tropfen_s", 0, 0x3f, v, 0, 0xa28);
-            else {
-                snd_RainDrops->delay = 2000;
-                sb_SetVolume(snd_RainDrops, v);
-            }
-            SND_STOP(snd_RainLightFar);
-            SND_STOP(snd_RainLightNear);
-        } else if (n >= 0x95) {
-            /* medium fading in over light: tm of 350 */
-            tm = (float)(n - 0x95);
-            SND_SET(snd_RainMediumNear, "MittelNah_l_01", v = SND_RAINVOL((dm = 2600.0f - f) * tm, 910000.0f), 0, 0);
-            SND_SET(snd_RainMediumFar, "MittelFern_l_01", SND_RAINVOL(tm * f, 910000.0f), 0, 0);
-            tm = 350.0f - tm;
-            SND_SET(snd_RainLightNear, "LeichtNah_l_01", SND_RAINVOL(dm * tm, 910000.0f), 0, 0);
-            SND_SET(snd_RainLightFar, "LeichtFern_l_01", SND_RAINVOL(tm * f, 910000.0f), 0, 0);
-            if (snd_RainDrops == 0)
-                snd_RainDrops = sb_PlaySample(snd_Bank, "Tropfen_s", 1, 0x3f, SND_RAINVOL(dm, 2600.0f), 0, 3000);
-            else {
-                snd_RainDrops->delay = 3000;
-                sb_SetVolume(snd_RainDrops, v);
-            }
-            SND_STOP(snd_RainHeavyFar);
-            SND_STOP(snd_RainHeavyNear);
-        } else {
-            /* light only: t of 149 */
-            t = (float)n;
-            SND_SET(snd_RainLightNear, "LeichtNah_l_01", v = SND_RAINVOL((2600.0f - f) * t, 387400.0f), 0, 0);
-            SND_SET(snd_RainLightFar, "LeichtFern_l_01", SND_RAINVOL(t * f, 387400.0f), 0, 0);
-            if (snd_RainDrops == 0)
-                snd_RainDrops = sb_PlaySample(snd_Bank, "Tropfen_s", 0, 0x3f, v, 0, 4000);
-            else {
-                snd_RainDrops->delay = 4000;
-                sb_SetVolume(snd_RainDrops, v);
-            }
-            SND_STOP(snd_RainHeavyFar);
-            SND_STOP(snd_RainHeavyNear);
-            SND_STOP(snd_RainMediumFar);
-            SND_STOP(snd_RainMediumNear);
-        }
+      /* light only: t of 149 */
+      t = (float)n;
+      SND_SET(snd_RainLightNear, "LeichtNah_l_01",
+              v = SND_RAINVOL((2600.0f - f) * t, 387400.0f), 0, 0);
+      SND_SET(snd_RainLightFar, "LeichtFern_l_01",
+              SND_RAINVOL(t * f, 387400.0f), 0, 0);
+      if (snd_RainDrops == 0)
+        snd_RainDrops =
+            sb_PlaySample(snd_Bank, "Tropfen_s", 0, 0x3f, v, 0, 4000);
+      else {
+        snd_RainDrops->delay = 4000;
+        sb_SetVolume(snd_RainDrops, v);
+      }
+      SND_STOP(snd_RainHeavyFar);
+      SND_STOP(snd_RainHeavyNear);
+      SND_STOP(snd_RainMediumFar);
+      SND_STOP(snd_RainMediumNear);
     }
-    if (d3_Terrain != 0 && snd_AmbientOn != 0
-        && (unsigned int)(w + (F3SND_TIME - snd_LastGust)) >= snd_Gusts[snd_Season].interval) {
-        snd_LastGust = F3SND_TIME;
-        if (rand() * 3.0518509e-05f + snd_Gusts[snd_Season].chance > 1.0f) {
-            k = 0;
-            if (w > 0x28a)
-                k = rand() % 3;
-            else if (w > 0xfa)
-                k = rand() % 2;
-            sb_PlaySample(0, snd_GustNames[k], 1, 0x3f, (int)(snd_Gusts[snd_Season].vol * 127.0f), 0, 0);
-        }
+  }
+  if (d3_Terrain != 0 && snd_AmbientOn != 0 &&
+      (unsigned int)(w + (F3SND_TIME - snd_LastGust)) >=
+          snd_Gusts[snd_Season].interval) {
+    snd_LastGust = F3SND_TIME;
+    if (rand() * 3.0518509e-05f + snd_Gusts[snd_Season].chance > 1.0f) {
+      k = 0;
+      if (w > 0x28a)
+        k = rand() % 3;
+      else if (w > 0xfa)
+        k = rand() % 2;
+      sb_PlaySample(0, snd_GustNames[k], 1, 0x3f,
+                    (int)(snd_Gusts[snd_Season].vol * 127.0f), 0, 0);
     }
+  }
 }
 
 /* stops locust sound s with log text t */
-#define SND_STOPLOG(s, t) if ((s) != 0) { sprintf(snd_LocustLog, (t), (s)); sb_Stop((s), 0); \
-    (s)->delay = 0; (s) = 0; }
+#define SND_STOPLOG(s, t)                                                      \
+  if ((s) != 0) {                                                              \
+    sprintf(snd_LocustLog, (t), (s));                                          \
+    sb_Stop((s), 0);                                                           \
+    (s)->delay = 0;                                                            \
+    (s) = 0;                                                                   \
+  }
 
 /* 0x4c0e60, the animal ambience by season (snd_Animals[season]: birds "Voegel_s", crickets "Grillen_l"
    (snd_Locusts / snd_LocustsPerm, with a debug log in snd_LocustLog), dogs "Bellt_s", horses "Wiehern_s" /
    "Schnauben_s", chickens "Gackern_s"), quieter with the camera height and silent in rain; the market track
    snd_AmbientTrack by the people around the market; then the atmosphere mp3 of the building the player is in
    ("Athmos\..") */
-void snd_UpdateAnimals(void)
-{
-    unsigned int t;
-    int n;
-    float h;
-    float vol;
-    D3VECTOR4 v;
-    char *name;
-    int k;
-    AIBTYPE *bt;
-    AIOBJ *panel;
+void snd_UpdateAnimals(void) {
+  unsigned int t;
+  int n;
+  float h;
+  float vol;
+  D3VECTOR4 v;
+  char *name;
+  int k;
+  AIBTYPE *bt;
+  AIOBJ *panel;
 
-    if (d3_Terrain != 0 && snd_AmbientOn != 0) {
-        n = 0;
-        t = F3SND_TIME;
-        if (snd_AnimalSeason != gm_ClockSeason(&ai_Time)) {
-            snd_AnimalSeason = gm_ClockSeason(&ai_Time);
-            if (snd_Locusts != 0) {
-                sb_Stop(snd_Locusts, 0);
-                snd_Locusts->delay = 0;
-                snd_Locusts = 0;
-            }
-            if (snd_LocustsPerm != 0) {
-                sb_Stop(snd_LocustsPerm, 0);
-                snd_LocustsPerm->delay = 0;
-                snd_LocustsPerm = 0;
-            }
-        }
-        h = (2000.0f - d3_Camera->pos.y - d3t_GetMeanHeight(&d3_Camera->pos)) * 0.0005f;
-        if (d3t_Rain != 0)
-            n = d3t_Rain->count;
-        if (t - snd_Animals[snd_AnimalSeason][0].last > rand() % 2000 + snd_Animals[snd_AnimalSeason][0].interval && n < 0x15e) {
-            snd_Animals[snd_AnimalSeason][0].last = t;
-            if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][0].chance > 1.0f)
-                sb_PlaySample(0, "Voegel_s", rand() % snd_Animals[snd_AnimalSeason][0].count + 1, 0x3f,
-                    (int)(snd_Animals[snd_AnimalSeason][0].vol * 127.0f), 0, 0);
-            if (rand() % 10 > 6)
-                sb_PlaySample(0, "Voegel_s", rand() % snd_Animals[snd_AnimalSeason][0].count + 1, 0x3f,
-                    (int)(snd_Animals[snd_AnimalSeason][0].vol * 127.0f), 0, 0);
-        }
-        if (t - snd_Animals[snd_AnimalSeason][1].last > rand() % 2000 + snd_Animals[snd_AnimalSeason][1].interval && n < 100) {
-            snd_Animals[snd_AnimalSeason][1].last = t;
-            if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][1].chance > 1.0f &&
-                (snd_Locusts == 0 || snd_Locusts->loops <= 2)) {
-                sprintf(snd_LocustLog, "About to trigger hpLocusts ! Handlevalue before triggering is %x, loopCount is %d.",
-                    snd_Locusts, snd_Locusts != 0 ? snd_Locusts->loops : 0);
-                snd_Locusts = sb_PlaySample(0, "Grillen_l", rand() % snd_Animals[snd_AnimalSeason][1].count + 2,
-                    0x3f, (int)(h * snd_Animals[snd_AnimalSeason][1].vol * 127.0f), 0, 0);
-                sprintf(snd_LocustLog, "hpLocusts triggered ! Handlevalue is %x", snd_Locusts);
-            }
-            if (snd_AnimalSeason == 1) {
-                if (snd_LocustsPerm == 0) {
-                    snd_LocustsPerm = sb_PlaySample(0, "Grillen_l", 0, 0x3f,
-                        (int)(snd_Animals[1][1].vol * h * 127.0f) >> 1, 0, 0);
-                    sprintf(snd_LocustLog, "hpLocustsPerm triggered ! Handlevalue is %x", snd_LocustsPerm);
-                } else {
-                    sb_SetVolume(snd_LocustsPerm, (int)(snd_Animals[1][1].vol * h * 127.0f) >> 1);
-                    sprintf(snd_LocustLog, "hpLocustsPerm volume adjusted ! Handlevalue is %x", snd_LocustsPerm);
-                }
-            } else if (snd_LocustsPerm != 0) {
-                sprintf(snd_LocustLog, "hpLocustsPerm stopped, reason: s_season != GM_SUMMER ! Handlevalue is %x", snd_LocustsPerm);
-                sb_Stop(snd_LocustsPerm, 0);
-                snd_LocustsPerm = 0;
-                snd_LocustsPerm->delay = 0;  /* the original clears the field through the null pointer it just stored */
-            }
-        } else if (n <= 100 && snd_AnimalSeason != 3) {
-            sprintf(snd_LocustLog, "Adjusting Volume for hpLocusts (%x) and hpLocustsPerm (%x) !", snd_Locusts, snd_LocustsPerm);
-            if (snd_LocustsPerm != 0)
-                sb_SetVolume(snd_LocustsPerm, (int)(h * snd_Animals[snd_AnimalSeason][1].vol * 127.0f) >> 1);
-            if (snd_Locusts != 0)
-                sb_SetVolume(snd_Locusts, (int)(h * snd_Animals[snd_AnimalSeason][1].vol * 127.0f) >> 1);
+  if (d3_Terrain != 0 && snd_AmbientOn != 0) {
+    n = 0;
+    t = F3SND_TIME;
+    if (snd_AnimalSeason != gm_ClockSeason(&ai_Time)) {
+      snd_AnimalSeason = gm_ClockSeason(&ai_Time);
+      if (snd_Locusts != 0) {
+        sb_Stop(snd_Locusts, 0);
+        snd_Locusts->delay = 0;
+        snd_Locusts = 0;
+      }
+      if (snd_LocustsPerm != 0) {
+        sb_Stop(snd_LocustsPerm, 0);
+        snd_LocustsPerm->delay = 0;
+        snd_LocustsPerm = 0;
+      }
+    }
+    h = (2000.0f - d3_Camera->pos.y - d3t_GetMeanHeight(&d3_Camera->pos)) *
+        0.0005f;
+    if (d3t_Rain != 0)
+      n = d3t_Rain->count;
+    if (t - snd_Animals[snd_AnimalSeason][0].last >
+            rand() % 2000 + snd_Animals[snd_AnimalSeason][0].interval &&
+        n < 0x15e) {
+      snd_Animals[snd_AnimalSeason][0].last = t;
+      if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][0].chance >
+          1.0f)
+        sb_PlaySample(
+            0, "Voegel_s", rand() % snd_Animals[snd_AnimalSeason][0].count + 1,
+            0x3f, (int)(snd_Animals[snd_AnimalSeason][0].vol * 127.0f), 0, 0);
+      if (rand() % 10 > 6)
+        sb_PlaySample(
+            0, "Voegel_s", rand() % snd_Animals[snd_AnimalSeason][0].count + 1,
+            0x3f, (int)(snd_Animals[snd_AnimalSeason][0].vol * 127.0f), 0, 0);
+    }
+    if (t - snd_Animals[snd_AnimalSeason][1].last >
+            rand() % 2000 + snd_Animals[snd_AnimalSeason][1].interval &&
+        n < 100) {
+      snd_Animals[snd_AnimalSeason][1].last = t;
+      if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][1].chance >
+              1.0f &&
+          (snd_Locusts == 0 || snd_Locusts->loops <= 2)) {
+        sprintf(snd_LocustLog,
+                "About to trigger hpLocusts ! Handlevalue before triggering is "
+                "%x, loopCount is %d.",
+                snd_Locusts, snd_Locusts != 0 ? snd_Locusts->loops : 0);
+        snd_Locusts = sb_PlaySample(
+            0, "Grillen_l", rand() % snd_Animals[snd_AnimalSeason][1].count + 2,
+            0x3f, (int)(h * snd_Animals[snd_AnimalSeason][1].vol * 127.0f), 0,
+            0);
+        sprintf(snd_LocustLog, "hpLocusts triggered ! Handlevalue is %x",
+                snd_Locusts);
+      }
+      if (snd_AnimalSeason == 1) {
+        if (snd_LocustsPerm == 0) {
+          snd_LocustsPerm = sb_PlaySample(
+              0, "Grillen_l", 0, 0x3f,
+              (int)(snd_Animals[1][1].vol * h * 127.0f) >> 1, 0, 0);
+          sprintf(snd_LocustLog, "hpLocustsPerm triggered ! Handlevalue is %x",
+                  snd_LocustsPerm);
         } else {
-            SND_STOPLOG(snd_LocustsPerm, "hpLocustsPerm stopped, reason: numDropsModifier > 100 || s_season == GM_WINTER ! Handlevalue is %x");
-            SND_STOPLOG(snd_Locusts, "hpLocusts stopped, reason: numDropsModifier > 100 || s_season == GM_WINTER ! Handlevalue is %x");
+          sb_SetVolume(snd_LocustsPerm,
+                       (int)(snd_Animals[1][1].vol * h * 127.0f) >> 1);
+          sprintf(snd_LocustLog,
+                  "hpLocustsPerm volume adjusted ! Handlevalue is %x",
+                  snd_LocustsPerm);
         }
-        if (t - snd_Animals[snd_AnimalSeason][4].last > rand() % 2000 + snd_Animals[snd_AnimalSeason][4].interval) {
-            snd_Animals[snd_AnimalSeason][4].last = t;
-            if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][0].chance > 1.0f)
-                sb_PlaySample(0, "Bellt_s", 1, 0x3f, (int)(h * snd_Animals[snd_AnimalSeason][4].vol * 127.0f), 0, 0);
-        }
-        if (t - snd_Animals[snd_AnimalSeason][3].last > rand() % 2000 + snd_Animals[snd_AnimalSeason][3].interval) {
-            snd_Animals[snd_AnimalSeason][3].last = t;
-            if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][3].chance > 1.0f) {
-                if (rand() % 10 < 5)
-                    name = "Wiehern_s";
-                else
-                    name = "Schnauben_s";
-                sb_PlaySample(0, name, 1, 0x3f, (int)(h * snd_Animals[snd_AnimalSeason][3].vol * 127.0f), 0, 0);
-            }
-        }
-        if (t - snd_Animals[snd_AnimalSeason][2].last > rand() % 2000 + snd_Animals[snd_AnimalSeason][2].interval) {
-            snd_Animals[snd_AnimalSeason][2].last = t;
-            if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][2].chance > 1.0f)
-                sb_PlaySample(0, "Gackern_s", rand() % snd_Animals[snd_AnimalSeason][2].count + 1, 0x3f,
-                    (int)(h * snd_Animals[snd_AnimalSeason][2].vol * 127.0f), 0, 0);
-        }
-        if (snd_AmbientTrack != 0 && ai_MarketBuilding != 0) {
-            d3_PointToWorld(ai_MarketBuilding->object, &ai_MarketBuilding->object->pos, &v.v);
-            k = ch_CountAt(0, 0, &v.v, 900.0f) * 0x14;
-            if (k >= 0x7f)
-                k = 0x7f;
-            d3snd_SetVolume(snd_AmbientTrack, k);
-        }
+      } else if (snd_LocustsPerm != 0) {
+        sprintf(snd_LocustLog,
+                "hpLocustsPerm stopped, reason: s_season != GM_SUMMER ! "
+                "Handlevalue is %x",
+                snd_LocustsPerm);
+        sb_Stop(snd_LocustsPerm, 0);
+        snd_LocustsPerm = 0;
+        snd_LocustsPerm->delay =
+            0; /* the original clears the field through the null pointer it just stored */
+      }
+    } else if (n <= 100 && snd_AnimalSeason != 3) {
+      sprintf(snd_LocustLog,
+              "Adjusting Volume for hpLocusts (%x) and hpLocustsPerm (%x) !",
+              snd_Locusts, snd_LocustsPerm);
+      if (snd_LocustsPerm != 0)
+        sb_SetVolume(snd_LocustsPerm,
+                     (int)(h * snd_Animals[snd_AnimalSeason][1].vol * 127.0f) >>
+                         1);
+      if (snd_Locusts != 0)
+        sb_SetVolume(snd_Locusts,
+                     (int)(h * snd_Animals[snd_AnimalSeason][1].vol * 127.0f) >>
+                         1);
     } else {
-        t = F3SND_TIME;
-        if (snd_AnimalSeason != gm_ClockSeason(&ai_Time))
-            snd_AnimalSeason = gm_ClockSeason(&ai_Time);
-        SND_STOPLOG(snd_LocustsPerm, "hpLocustsPerm stopped, reason: !(boden && snd_AmbientActive) ! Handlevalue is %x");
-        SND_STOPLOG(snd_Locusts, "hpLocusts stopped, reason: !(boden && snd_AmbientActive) ! Handlevalue is %x");
-        snd_Animals[snd_AnimalSeason][0].last = t;
-        snd_Animals[snd_AnimalSeason][1].last = t;
-        snd_Animals[snd_AnimalSeason][3].last = t;
-        snd_Animals[snd_AnimalSeason][2].last = t;
-        snd_Animals[snd_AnimalSeason][4].last = t;
+      SND_STOPLOG(snd_LocustsPerm,
+                  "hpLocustsPerm stopped, reason: numDropsModifier > 100 || "
+                  "s_season == GM_WINTER ! Handlevalue is %x");
+      SND_STOPLOG(snd_Locusts,
+                  "hpLocusts stopped, reason: numDropsModifier > 100 || "
+                  "s_season == GM_WINTER ! Handlevalue is %x");
     }
-    if (ai_PlayerBuilding != 0 && snd_AmbientOn != 0) {
-        bt = &ai_BTypes[ai_PlayerBuilding->type];
-        panel = sv_PanelShown;
-        if (bt->kind == 0x16 && panel != 0 && panel->type == 0x120) {
-            int c;
-
-            if (snd_AtmoTrack == 0) {
-                snd_AtmoTrack = msx_PlayAmbient("Athmos\\Athmo_Witshaus.mp3", 5);
-                return;
-            }
-            c = ch_Count(d3_CurrentScene, 0) * 9;
-            vol = 64.0f < c ? 64.0f : c;
-            msx_SetTrackVolume(snd_AtmoTrack, (int)vol);
-            return;
-        }
-        if (bt->kind == 0x12 || bt->kind == 0x14 || bt->kind == 8 || bt->kind == 0x15 || bt->kind == 0xe) {
-            int c;
-
-            c = ch_Count(d3_CurrentScene, 0) * 6;
-            vol = 64.0f < c ? 64.0f : c;
-            if (snd_AtmoTrack == 0) {
-                if (ai_PlayerBuilding->smokeEffect == -1)
-                    return;
-                snd_AtmoTrack = msx_PlayAmbient("Athmos\\Athmo_Handwerk.mp3", (int)vol);
-                return;
-            }
-            if (ai_PlayerBuilding->smokeEffect == -1) {
-                msx_StopAmbient(snd_AtmoTrack);
-                snd_AtmoTrack = 0;
-                return;
-            }
-            msx_SetTrackVolume(snd_AtmoTrack, (int)vol);
-            return;
-        }
-        if (bt->kind == 7 && panel != 0 && panel->type == 0xf7) {
-            int c;
-
-            c = ch_Count(d3_CurrentScene, 0) * 6;
-            vol = 64.0f < c ? 64.0f : c;
-            if (snd_AtmoTrack == 0) {
-                snd_AtmoTrack = msx_PlayAmbient("Athmos\\Athmo_Schreibstube.mp3", (int)vol);
-                return;
-            }
-            msx_SetTrackVolume(snd_AtmoTrack, (int)vol);
-            return;
-        }
+    if (t - snd_Animals[snd_AnimalSeason][4].last >
+        rand() % 2000 + snd_Animals[snd_AnimalSeason][4].interval) {
+      snd_Animals[snd_AnimalSeason][4].last = t;
+      if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][0].chance >
+          1.0f)
+        sb_PlaySample(0, "Bellt_s", 1, 0x3f,
+                      (int)(h * snd_Animals[snd_AnimalSeason][4].vol * 127.0f),
+                      0, 0);
     }
-    if (snd_AtmoTrack == 0)
+    if (t - snd_Animals[snd_AnimalSeason][3].last >
+        rand() % 2000 + snd_Animals[snd_AnimalSeason][3].interval) {
+      snd_Animals[snd_AnimalSeason][3].last = t;
+      if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][3].chance >
+          1.0f) {
+        if (rand() % 10 < 5)
+          name = "Wiehern_s";
+        else
+          name = "Schnauben_s";
+        sb_PlaySample(0, name, 1, 0x3f,
+                      (int)(h * snd_Animals[snd_AnimalSeason][3].vol * 127.0f),
+                      0, 0);
+      }
+    }
+    if (t - snd_Animals[snd_AnimalSeason][2].last >
+        rand() % 2000 + snd_Animals[snd_AnimalSeason][2].interval) {
+      snd_Animals[snd_AnimalSeason][2].last = t;
+      if (rand() * 3.0518509e-05f + snd_Animals[snd_AnimalSeason][2].chance >
+          1.0f)
+        sb_PlaySample(0, "Gackern_s",
+                      rand() % snd_Animals[snd_AnimalSeason][2].count + 1, 0x3f,
+                      (int)(h * snd_Animals[snd_AnimalSeason][2].vol * 127.0f),
+                      0, 0);
+    }
+    if (snd_AmbientTrack != 0 && ai_MarketBuilding != 0) {
+      d3_PointToWorld(ai_MarketBuilding->object,
+                      &ai_MarketBuilding->object->pos, &v.v);
+      k = ch_CountAt(0, 0, &v.v, 900.0f) * 0x14;
+      if (k >= 0x7f)
+        k = 0x7f;
+      d3snd_SetVolume(snd_AmbientTrack, k);
+    }
+  } else {
+    t = F3SND_TIME;
+    if (snd_AnimalSeason != gm_ClockSeason(&ai_Time))
+      snd_AnimalSeason = gm_ClockSeason(&ai_Time);
+    SND_STOPLOG(snd_LocustsPerm, "hpLocustsPerm stopped, reason: !(boden && "
+                                 "snd_AmbientActive) ! Handlevalue is %x");
+    SND_STOPLOG(snd_Locusts, "hpLocusts stopped, reason: !(boden && "
+                             "snd_AmbientActive) ! Handlevalue is %x");
+    snd_Animals[snd_AnimalSeason][0].last = t;
+    snd_Animals[snd_AnimalSeason][1].last = t;
+    snd_Animals[snd_AnimalSeason][3].last = t;
+    snd_Animals[snd_AnimalSeason][2].last = t;
+    snd_Animals[snd_AnimalSeason][4].last = t;
+  }
+  if (ai_PlayerBuilding != 0 && snd_AmbientOn != 0) {
+    bt = &ai_BTypes[ai_PlayerBuilding->type];
+    panel = sv_PanelShown;
+    if (bt->kind == 0x16 && panel != 0 && panel->type == 0x120) {
+      int c;
+
+      if (snd_AtmoTrack == 0) {
+        snd_AtmoTrack = msx_PlayAmbient("Athmos\\Athmo_Witshaus.mp3", 5);
         return;
-    msx_StopAmbient(snd_AtmoTrack);
-    snd_AtmoTrack = 0;
+      }
+      c = ch_Count(d3_CurrentScene, 0) * 9;
+      vol = 64.0f < c ? 64.0f : c;
+      msx_SetTrackVolume(snd_AtmoTrack, (int)vol);
+      return;
+    }
+    if (bt->kind == 0x12 || bt->kind == 0x14 || bt->kind == 8 ||
+        bt->kind == 0x15 || bt->kind == 0xe) {
+      int c;
+
+      c = ch_Count(d3_CurrentScene, 0) * 6;
+      vol = 64.0f < c ? 64.0f : c;
+      if (snd_AtmoTrack == 0) {
+        if (ai_PlayerBuilding->smokeEffect == -1)
+          return;
+        snd_AtmoTrack = msx_PlayAmbient("Athmos\\Athmo_Handwerk.mp3", (int)vol);
+        return;
+      }
+      if (ai_PlayerBuilding->smokeEffect == -1) {
+        msx_StopAmbient(snd_AtmoTrack);
+        snd_AtmoTrack = 0;
+        return;
+      }
+      msx_SetTrackVolume(snd_AtmoTrack, (int)vol);
+      return;
+    }
+    if (bt->kind == 7 && panel != 0 && panel->type == 0xf7) {
+      int c;
+
+      c = ch_Count(d3_CurrentScene, 0) * 6;
+      vol = 64.0f < c ? 64.0f : c;
+      if (snd_AtmoTrack == 0) {
+        snd_AtmoTrack =
+            msx_PlayAmbient("Athmos\\Athmo_Schreibstube.mp3", (int)vol);
+        return;
+      }
+      msx_SetTrackVolume(snd_AtmoTrack, (int)vol);
+      return;
+    }
+  }
+  if (snd_AtmoTrack == 0)
+    return;
+  msx_StopAmbient(snd_AtmoTrack);
+  snd_AtmoTrack = 0;
 }
 /* 0x4c18a0, the music when the player enters a building: the current track loses 30 (20 without a building of
    its kinds); the building's kind gets its track (resumed, or a random one of the matching snd_BuildingTracks
    entry: kind, room (0: any), season (-1: any), up to six names) and gains 30 (20), started with msx_Play */
 
-void snd_EnterBuilding(void)
-{
-    AIBLD *b;
-    unsigned int kind;
-    int season;
-    int i, k, j, n;
-    G16TRACKS *e;
+void snd_EnterBuilding(void) {
+  AIBLD *b;
+  unsigned int kind;
+  int season;
+  int i, k, j, n;
+  G16TRACKS *e;
 
-    b = ai_PlayerBuilding;
-    if (b == 0 && (b = ai_FallbackBuilding) == 0)
-        return;
-    k = 0;
-    kind = ai_BTypes[b->type].kind;
-    season = gm_ClockSeason(&ai_Time);
-    i = snd_FindActiveTrack();
-    if (i >= 0) {
-        snd_LocationTracks[i].active = 0;
-        if (snd_LocationTracks[i].kinds[0] != 0x2694) {
-            for (; snd_LocationTracks[i].kinds[k] != 0; k++) {
-                if (gm_BuildQuery(2, 4, ai_PlayerId, 5, snd_LocationTracks[i].kinds[k]) != 0) {
-                    snd_LocationTracks[i].prio -= 0x1e;
-                    break;
-                }
-            }
-            if (snd_LocationTracks[i].kinds[k] == 0)
-                snd_LocationTracks[i].prio -= 0x14;
-        } else
-            snd_LocationTracks[i].prio -= 0x1e;
-    }
-    i = snd_FindTrackKind(kind);
-    if (i < 0)
-        return;
-    if (strlen(snd_LocationTracks[i].track) != 0) {
-        snd_LocationTracks[i].active = 1;
-        for (k = 0; snd_LocationTracks[i].kinds[k] != 0; k++) {
-            if (gm_BuildQuery(2, 4, ai_PlayerId, 5, snd_LocationTracks[i].kinds[k]) != 0) {
-                snd_LocationTracks[i].prio += 0x1e;
-                break;
-            }
-        }
-        if (snd_LocationTracks[i].kinds[k] == 0)
-            snd_LocationTracks[i].prio += 0x14;
-        snd_TrackHandles.current = msx_Play(snd_LocationTracks[i].track, 0);
-        snd_TrackHandles.copy = snd_TrackHandles.current;
-        sprintf(snd_DebugText, "Resuming location-track %s", snd_LocationTracks[i].track);
-        return;
-    }
-    for (n = 0; snd_BuildingTracks[n].kind != 0; n++) {
-        e = &snd_BuildingTracks[n];
-        if (e->kind == kind && (e->room == 0 || e->room == (unsigned int)sv_PanelShown->type)
-            && (season == e->season || e->season == -1))
-            goto found;
-    }
+  b = ai_PlayerBuilding;
+  if (b == 0 && (b = ai_FallbackBuilding) == 0)
     return;
-found:
-    for (j = 0; j < 6 && e->names[j][0] != 0; j++)
-        ;
-    j = util_Random(j);
-    if (strlen(e->names[j]) == 0)
-        return;
-    strcpy(snd_LocationTracks[i].track, e->names[j]);
+  k = 0;
+  kind = ai_BTypes[b->type].kind;
+  season = gm_ClockSeason(&ai_Time);
+  i = snd_FindActiveTrack();
+  if (i >= 0) {
+    snd_LocationTracks[i].active = 0;
+    if (snd_LocationTracks[i].kinds[0] != 0x2694) {
+      for (; snd_LocationTracks[i].kinds[k] != 0; k++) {
+        if (gm_BuildQuery(2, 4, ai_PlayerId, 5,
+                          snd_LocationTracks[i].kinds[k]) != 0) {
+          snd_LocationTracks[i].prio -= 0x1e;
+          break;
+        }
+      }
+      if (snd_LocationTracks[i].kinds[k] == 0)
+        snd_LocationTracks[i].prio -= 0x14;
+    } else
+      snd_LocationTracks[i].prio -= 0x1e;
+  }
+  i = snd_FindTrackKind(kind);
+  if (i < 0)
+    return;
+  if (strlen(snd_LocationTracks[i].track) != 0) {
     snd_LocationTracks[i].active = 1;
     for (k = 0; snd_LocationTracks[i].kinds[k] != 0; k++) {
-        if (gm_BuildQuery(2, 4, ai_PlayerId, 5, snd_LocationTracks[i].kinds[k]) != 0) {
-            snd_LocationTracks[i].prio += 0x1e;
-            break;
-        }
+      if (gm_BuildQuery(2, 4, ai_PlayerId, 5, snd_LocationTracks[i].kinds[k]) !=
+          0) {
+        snd_LocationTracks[i].prio += 0x1e;
+        break;
+      }
     }
     if (snd_LocationTracks[i].kinds[k] == 0)
-        snd_LocationTracks[i].prio += 0x14;
-    snd_TrackHandles.copy = msx_Play(snd_LocationTracks[i].track, 0);
-    snd_TrackHandles.current = snd_TrackHandles.copy;
-    sprintf(snd_DebugText, "Starting location-track %s", snd_LocationTracks[i].track);
+      snd_LocationTracks[i].prio += 0x14;
+    snd_TrackHandles.current = msx_Play(snd_LocationTracks[i].track, 0);
+    snd_TrackHandles.copy = snd_TrackHandles.current;
+    sprintf(snd_DebugText, "Resuming location-track %s",
+            snd_LocationTracks[i].track);
+    return;
+  }
+  for (n = 0; snd_BuildingTracks[n].kind != 0; n++) {
+    e = &snd_BuildingTracks[n];
+    if (e->kind == kind &&
+        (e->room == 0 || e->room == (unsigned int)sv_PanelShown->type) &&
+        (season == e->season || e->season == -1))
+      goto found;
+  }
+  return;
+found:
+  for (j = 0; j < 6 && e->names[j][0] != 0; j++)
+    ;
+  j = util_Random(j);
+  if (strlen(e->names[j]) == 0)
+    return;
+  strcpy(snd_LocationTracks[i].track, e->names[j]);
+  snd_LocationTracks[i].active = 1;
+  for (k = 0; snd_LocationTracks[i].kinds[k] != 0; k++) {
+    if (gm_BuildQuery(2, 4, ai_PlayerId, 5, snd_LocationTracks[i].kinds[k]) !=
+        0) {
+      snd_LocationTracks[i].prio += 0x1e;
+      break;
+    }
+  }
+  if (snd_LocationTracks[i].kinds[k] == 0)
+    snd_LocationTracks[i].prio += 0x14;
+  snd_TrackHandles.copy = msx_Play(snd_LocationTracks[i].track, 0);
+  snd_TrackHandles.current = snd_TrackHandles.copy;
+  sprintf(snd_DebugText, "Starting location-track %s",
+          snd_LocationTracks[i].track);
 }
 /* 0x4c1bd0, the music when the player leaves a building: the outdoor track (kind 0x2694), resumed or a new random
    one by season, not the one played last (snd_LastTrack) */
 
-void snd_PlayOutdoorTrack(void)
-{
-    int season;
-    int i;
-    int r;
-    char *t;
+void snd_PlayOutdoorTrack(void) {
+  int season;
+  int i;
+  int r;
+  char *t;
 
-    season = gm_ClockSeason(&ai_Time);
-    i = snd_FindActiveTrack();
-    if (i >= 0) {
-        snd_LocationTracks[i].prio -= 0x1e;
-        snd_LocationTracks[i].active = 0;
-    }
-    i = snd_FindTrackKind(0x2694);
-    if (i < 0)
-        return;
-    t = snd_LocationTracks[i].track;
-    if (strlen(t) != 0) {
-        sprintf(snd_TrackText, "Resuming Outdoor-Track %s !", t);
-        snd_LocationTracks[i].prio += 0x1e;
-        snd_LocationTracks[i].active = 1;
-        snd_TrackHandles.copy = msx_Play(t, 0);
-        snd_TrackHandles.current = snd_TrackHandles.copy;
-        return;
-    }
-    do {
-        r = util_Random(0x75) % 4;
-        switch (season) {
-        case 0:
-            if (util_Random(0xb) < 4)
-                strcpy(t, "CD2\\KraeuterUndPhiolen.mp3");
-            else if (r == 0)
-                strcpy(t, "cd1\\Burgfraeulein.mp3");
-            else if (r == 1)
-                strcpy(t, "cd1\\ImFruehling.mp3");
-            else
-                strcpy(t, "CD3\\Crescendo.mp3");
-            sprintf(snd_TrackText, "Outdoor-Track for GM_SPRING selected: %s.", t);
-            break;
-        case 1:
-            if (util_Random(0xb) < 3)
-                strcpy(t, "CD3\\Heldenglanz.mp3");
-            else if (r == 0)
-                strcpy(t, "cd1\\Burgfraeulein.mp3");
-            else if (r == 1)
-                strcpy(t, "cd1\\ZurSommerzeit.mp3");
-            else
-                strcpy(t, "CD3\\MitFlinkemStich.mp3");
-            sprintf(snd_TrackText, "Outdoor-Track for GM_SUMMER selected: %s.", t);
-            break;
-        case 2:
-            if (util_Random(0xb) < 3)
-                strcpy(t, "CD3\\DerStolzenTraum.mp3");
-            else if (r == 0)
-                strcpy(t, "cd1\\AufDenStrassen.mp3");
-            else if (r == 1)
-                strcpy(t, "cd1\\ImHerbst.mp3");
-            else
-                strcpy(t, "CD3\\BurgUndFeste.mp3");
-            sprintf(snd_TrackText, "Outdoor-Track for GM_AUTUMN selected: %s.", t);
-            break;
-        case 3:
-            if (util_Random(0xb) < 4)
-                strcpy(t, "CD3\\SchmerzlichErinnerung.mp3");
-            else if (r == 0)
-                strcpy(t, "cd1\\AufDenStrassen.mp3");
-            else if (r == 1)
-                strcpy(t, "cd1\\InkalterNovembernacht.mp3");
-            else
-                strcpy(t, "cd1\\ImmerKalt.mp3");
-            sprintf(snd_TrackText, "Outdoor-Track for GM_WINTER selected: %s.", t);
-            break;
-        default:
-            goto skip;
-        }
-skip:
-        if (strlen(snd_LastTrack) == 0)
-            break;
-    } while (strcmp(snd_LastTrack, t) == 0);
+  season = gm_ClockSeason(&ai_Time);
+  i = snd_FindActiveTrack();
+  if (i >= 0) {
+    snd_LocationTracks[i].prio -= 0x1e;
+    snd_LocationTracks[i].active = 0;
+  }
+  i = snd_FindTrackKind(0x2694);
+  if (i < 0)
+    return;
+  t = snd_LocationTracks[i].track;
+  if (strlen(t) != 0) {
+    sprintf(snd_TrackText, "Resuming Outdoor-Track %s !", t);
     snd_LocationTracks[i].prio += 0x1e;
-    snd_LastTrack[0] = 0;
     snd_LocationTracks[i].active = 1;
     snd_TrackHandles.copy = msx_Play(t, 0);
     snd_TrackHandles.current = snd_TrackHandles.copy;
+    return;
+  }
+  do {
+    r = util_Random(0x75) % 4;
+    switch (season) {
+    case 0:
+      if (util_Random(0xb) < 4)
+        strcpy(t, "CD2\\KraeuterUndPhiolen.mp3");
+      else if (r == 0)
+        strcpy(t, "cd1\\Burgfraeulein.mp3");
+      else if (r == 1)
+        strcpy(t, "cd1\\ImFruehling.mp3");
+      else
+        strcpy(t, "CD3\\Crescendo.mp3");
+      sprintf(snd_TrackText, "Outdoor-Track for GM_SPRING selected: %s.", t);
+      break;
+    case 1:
+      if (util_Random(0xb) < 3)
+        strcpy(t, "CD3\\Heldenglanz.mp3");
+      else if (r == 0)
+        strcpy(t, "cd1\\Burgfraeulein.mp3");
+      else if (r == 1)
+        strcpy(t, "cd1\\ZurSommerzeit.mp3");
+      else
+        strcpy(t, "CD3\\MitFlinkemStich.mp3");
+      sprintf(snd_TrackText, "Outdoor-Track for GM_SUMMER selected: %s.", t);
+      break;
+    case 2:
+      if (util_Random(0xb) < 3)
+        strcpy(t, "CD3\\DerStolzenTraum.mp3");
+      else if (r == 0)
+        strcpy(t, "cd1\\AufDenStrassen.mp3");
+      else if (r == 1)
+        strcpy(t, "cd1\\ImHerbst.mp3");
+      else
+        strcpy(t, "CD3\\BurgUndFeste.mp3");
+      sprintf(snd_TrackText, "Outdoor-Track for GM_AUTUMN selected: %s.", t);
+      break;
+    case 3:
+      if (util_Random(0xb) < 4)
+        strcpy(t, "CD3\\SchmerzlichErinnerung.mp3");
+      else if (r == 0)
+        strcpy(t, "cd1\\AufDenStrassen.mp3");
+      else if (r == 1)
+        strcpy(t, "cd1\\InkalterNovembernacht.mp3");
+      else
+        strcpy(t, "cd1\\ImmerKalt.mp3");
+      sprintf(snd_TrackText, "Outdoor-Track for GM_WINTER selected: %s.", t);
+      break;
+    default:
+      goto skip;
+    }
+  skip:
+    if (strlen(snd_LastTrack) == 0)
+      break;
+  } while (strcmp(snd_LastTrack, t) == 0);
+  snd_LocationTracks[i].prio += 0x1e;
+  snd_LastTrack[0] = 0;
+  snd_LocationTracks[i].active = 1;
+  snd_TrackHandles.copy = msx_Play(t, 0);
+  snd_TrackHandles.current = snd_TrackHandles.copy;
 }
 /* 0x4c1f90, the location track playing, -1 if none */
 
-int snd_FindActiveTrack(void)
-{
-    int i;
-    G16LOC *l;
+int snd_FindActiveTrack(void) {
+  int i;
+  G16LOC *l;
 
-    i = 0;
-    l = snd_LocationTracks;
-    do {
-        if (l->active != 0)
-            return i;
-        i++;
-    } while ((l++)->kinds[0] != 0);
-    return -1;
+  i = 0;
+  l = snd_LocationTracks;
+  do {
+    if (l->active != 0)
+      return i;
+    i++;
+  } while ((l++)->kinds[0] != 0);
+  return -1;
 }
 /* 0x4c1fc0, the location track of building kind kind, -1 if none */
-int snd_FindTrackKind(int kind)
-{
-    int i, j;
+int snd_FindTrackKind(int kind) {
+  int i, j;
 
-    i = 0;
-    do {
-        for (j = 0; snd_LocationTracks[i].kinds[j] != 0; j++) {
-            if (snd_LocationTracks[i].kinds[j] == kind)
-                return i;
-        }
-    } while (snd_LocationTracks[i++].kinds[0] != 0);
-    return -1;
+  i = 0;
+  do {
+    for (j = 0; snd_LocationTracks[i].kinds[j] != 0; j++) {
+      if (snd_LocationTracks[i].kinds[j] == kind)
+        return i;
+    }
+  } while (snd_LocationTracks[i++].kinds[0] != 0);
+  return -1;
 }
 /* 0x4c2000, the music step: a new season stops the outdoor track; a finished track starts a pause (its name kept
    in snd_LastTrack); after the pause, or when the player moved to another building / room (and the current track
    loses a random draw against its priority), the track of the place starts (snd_EnterBuilding /
 snd_PlayOutdoorTrack) */
 
-void snd_UpdateMusic(void)
-{
-    unsigned int t;
-    int i;
-    AIOBJ *room;
-    AIBLD *b;
-    AIBLD *b2;
-    MSXTRACK *trk;
-    short prio;
-    unsigned int kind;
-    int k;
+void snd_UpdateMusic(void) {
+  unsigned int t;
+  int i;
+  AIOBJ *room;
+  AIBLD *b;
+  AIBLD *b2;
+  MSXTRACK *trk;
+  short prio;
+  unsigned int kind;
+  int k;
 
-    t = F3SND_TIME;
-    if (ai_GameState == 0 || !(snd_MusicVolume > 0.0f))
-        return;
-    if (snd_MusicSeason != gm_ClockSeason(&ai_Time)) {
-        if (snd_MusicSeason != 0) {
-            i = snd_FindTrackKind(0x2694);
-            snd_MusicSeason = gm_ClockSeason(&ai_Time);
-            if (i >= 0) {
-                if (snd_LocationTracks[i].active != 0) {
-                    sprintf(snd_MusicLog, "Outdoortrack %s stopped because of seasonchange !", snd_LocationTracks[i].track);
-                    snd_LocationTracks[i].prio -= 0x1e;
-                    snd_LocationTracks[i].active = 0;
-                    if (snd_TrackHandles.current != 0) {
-                        msx_Stop(snd_TrackHandles.current, 1);
-                        strcpy(snd_LastTrack, snd_TrackHandles.current->name);
-                        snd_PauseStart = 1;
-                        snd_TrackHandles.current = 0;
-                    }
-                }
-                snd_LocationTracks[i].track[0] = 0;
-                if (snd_TrackHandles.current != 0)
-                    sprintf(snd_MusicLog, "Track still running after seasonchange is %s", snd_TrackHandles.current->name);
-            }
-        } else {
-            snd_MusicSeason = gm_ClockSeason(&ai_Time);
-        }
-        return;
-    }
-    trk = snd_TrackHandles.current;
-    if (trk != 0) {
-        if (trk->playing == 0 && trk->queued == 0) {
-            i = snd_FindActiveTrack();
-            if (i >= 0) {
-                snd_LocationTracks[i].active = 0;
-                if (trk->length - trk->pos < 20000)
-                    snd_LocationTracks[i].track[0] = 0;
-                sprintf(snd_MusicLog, "track %s has reached its end!", snd_LocationTracks[i].track);
-                trk = snd_TrackHandles.current;
-            }
-            strcpy(snd_LastTrack, trk->name);
+  t = F3SND_TIME;
+  if (ai_GameState == 0 || !(snd_MusicVolume > 0.0f))
+    return;
+  if (snd_MusicSeason != gm_ClockSeason(&ai_Time)) {
+    if (snd_MusicSeason != 0) {
+      i = snd_FindTrackKind(0x2694);
+      snd_MusicSeason = gm_ClockSeason(&ai_Time);
+      if (i >= 0) {
+        if (snd_LocationTracks[i].active != 0) {
+          sprintf(snd_MusicLog,
+                  "Outdoortrack %s stopped because of seasonchange !",
+                  snd_LocationTracks[i].track);
+          snd_LocationTracks[i].prio -= 0x1e;
+          snd_LocationTracks[i].active = 0;
+          if (snd_TrackHandles.current != 0) {
+            msx_Stop(snd_TrackHandles.current, 1);
+            strcpy(snd_LastTrack, snd_TrackHandles.current->name);
+            snd_PauseStart = 1;
             snd_TrackHandles.current = 0;
-            snd_PauseStart = t;
-            snd_PauseLength = (int)((1.0f - snd_MusicVolume) * 240000.0f);
-            sprintf(snd_MusicLog, "Pause starting at %d, pauseLength is %d ", t, snd_PauseLength);
-            return;
+          }
         }
-        b2 = ai_FallbackBuilding;
-        room = sv_PanelShown;
-        if (!(t - snd_LastDecision > 40000 && trk != snd_SpecialTrack
-              && (ai_PlayerBuilding != 0 && snd_TrackBuilding != ai_PlayerBuilding || b2 != 0 && snd_TrackBuilding != b2
-                  || ai_PlayerBuilding == 0 && b2 == 0 && snd_TrackBuilding != 0))
-            && (snd_TrackRoom == room || snd_TrackBuilding == 0 || ai_BTypes[snd_TrackBuilding->type].kind != 2))
-            return;
-        i = snd_FindActiveTrack();
-        snd_TrackBuilding = ai_PlayerBuilding;
-        if (ai_PlayerBuilding == 0)
-            snd_TrackBuilding = b2;
-        snd_TrackRoom = room;
-        prio = snd_LocationTracks[i].prio;
-        if (util_Random(0x80) < prio) {
-            k = 0;
-            if (snd_TrackBuilding != 0)
-                kind = ai_BTypes[snd_TrackBuilding->type].kind;
-            else
-                kind = 0x2694;
-            while (snd_LocationTracks[i].kinds[k] != 0 && snd_LocationTracks[i].kinds[k] != kind)
-                k++;
-            if (snd_LocationTracks[i].kinds[k] != 0)
-                return;
-            sprintf(snd_MusicLog, "Random decision: interrupt running track %s, propability was %d.", snd_LocationTracks[i].track, prio);
-            snd_LastDecision = t;
-            if (snd_TrackBuilding != 0)
-                snd_EnterBuilding();
-            else
-                snd_PlayOutdoorTrack();
-        } else {
-            snd_LastDecision = t - 15000;
-            return;
-        }
+        snd_LocationTracks[i].track[0] = 0;
+        if (snd_TrackHandles.current != 0)
+          sprintf(snd_MusicLog, "Track still running after seasonchange is %s",
+                  snd_TrackHandles.current->name);
+      }
     } else {
-        if (snd_PauseStart != 0 && snd_PauseLength + snd_PauseStart >= t)
-            return;
-        snd_PauseStart = 0;
-        b = ai_PlayerBuilding;
-        if (b == 0)
-            b = ai_FallbackBuilding;
-        snd_TrackBuilding = b;
-        snd_LastDecision = t;
-        if (snd_TrackBuilding != 0)
-            snd_EnterBuilding();
-        else
-            snd_PlayOutdoorTrack();
+      snd_MusicSeason = gm_ClockSeason(&ai_Time);
     }
+    return;
+  }
+  trk = snd_TrackHandles.current;
+  if (trk != 0) {
+    if (trk->playing == 0 && trk->queued == 0) {
+      i = snd_FindActiveTrack();
+      if (i >= 0) {
+        snd_LocationTracks[i].active = 0;
+        if (trk->length - trk->pos < 20000)
+          snd_LocationTracks[i].track[0] = 0;
+        sprintf(snd_MusicLog, "track %s has reached its end!",
+                snd_LocationTracks[i].track);
+        trk = snd_TrackHandles.current;
+      }
+      strcpy(snd_LastTrack, trk->name);
+      snd_TrackHandles.current = 0;
+      snd_PauseStart = t;
+      snd_PauseLength = (int)((1.0f - snd_MusicVolume) * 240000.0f);
+      sprintf(snd_MusicLog, "Pause starting at %d, pauseLength is %d ", t,
+              snd_PauseLength);
+      return;
+    }
+    b2 = ai_FallbackBuilding;
+    room = sv_PanelShown;
+    if (!(t - snd_LastDecision > 40000 && trk != snd_SpecialTrack &&
+          (ai_PlayerBuilding != 0 && snd_TrackBuilding != ai_PlayerBuilding ||
+           b2 != 0 && snd_TrackBuilding != b2 ||
+           ai_PlayerBuilding == 0 && b2 == 0 && snd_TrackBuilding != 0)) &&
+        (snd_TrackRoom == room || snd_TrackBuilding == 0 ||
+         ai_BTypes[snd_TrackBuilding->type].kind != 2))
+      return;
+    i = snd_FindActiveTrack();
+    snd_TrackBuilding = ai_PlayerBuilding;
+    if (ai_PlayerBuilding == 0)
+      snd_TrackBuilding = b2;
+    snd_TrackRoom = room;
+    prio = snd_LocationTracks[i].prio;
+    if (util_Random(0x80) < prio) {
+      k = 0;
+      if (snd_TrackBuilding != 0)
+        kind = ai_BTypes[snd_TrackBuilding->type].kind;
+      else
+        kind = 0x2694;
+      while (snd_LocationTracks[i].kinds[k] != 0 &&
+             snd_LocationTracks[i].kinds[k] != kind)
+        k++;
+      if (snd_LocationTracks[i].kinds[k] != 0)
+        return;
+      sprintf(
+          snd_MusicLog,
+          "Random decision: interrupt running track %s, propability was %d.",
+          snd_LocationTracks[i].track, prio);
+      snd_LastDecision = t;
+      if (snd_TrackBuilding != 0)
+        snd_EnterBuilding();
+      else
+        snd_PlayOutdoorTrack();
+    } else {
+      snd_LastDecision = t - 15000;
+      return;
+    }
+  } else {
+    if (snd_PauseStart != 0 && snd_PauseLength + snd_PauseStart >= t)
+      return;
+    snd_PauseStart = 0;
+    b = ai_PlayerBuilding;
+    if (b == 0)
+      b = ai_FallbackBuilding;
+    snd_TrackBuilding = b;
+    snd_LastDecision = t;
+    if (snd_TrackBuilding != 0)
+      snd_EnterBuilding();
+    else
+      snd_PlayOutdoorTrack();
+  }
 }
 /* 0x4c23f0, starts the special track of an event (fight, cutscene, ...): the first call saves the ambient flag
    and turns the ambient sounds off, then plays name (with name 0 only the music gets quieter, 0.4 over 2000 ms);
    snd_EndSpecialTrack ends it */
 
-void snd_PlaySpecialTrack(char *name)
-{
-    unsigned int on;
+void snd_PlaySpecialTrack(char *name) {
+  unsigned int on;
 
-    if (snd_AmbientSaved == 0) {
-        on = snd_AmbientOn;
-        snd_AmbientOn = 0;
-        snd_AmbientSaved = 1;
-        snd_AmbientOnSaved = on;
-    }
-    if (snd_MusicEnabled == 0 || snd_MusicVolume == 0.0f)
-        return;
-    if (name != 0) {
-        if (snd_TrackHandles.current != 0)
-            msx_Stop(snd_TrackHandles.current, 1);
-        snd_SpecialTrack = msx_Play(name, 0);
-        snd_TrackHandles.current = snd_SpecialTrack;
-        return;
-    }
-    snd_FadeMusic(0.4f, 2000);
+  if (snd_AmbientSaved == 0) {
+    on = snd_AmbientOn;
+    snd_AmbientOn = 0;
+    snd_AmbientSaved = 1;
+    snd_AmbientOnSaved = on;
+  }
+  if (snd_MusicEnabled == 0 || snd_MusicVolume == 0.0f)
+    return;
+  if (name != 0) {
+    if (snd_TrackHandles.current != 0)
+      msx_Stop(snd_TrackHandles.current, 1);
+    snd_SpecialTrack = msx_Play(name, 0);
+    snd_TrackHandles.current = snd_SpecialTrack;
+    return;
+  }
+  snd_FadeMusic(0.4f, 2000);
 }
 /* 0x4c2480, ends the special track (snd_PlaySpecialTrack): the ambient sounds back on, and the music back to
    full volume (unless the special track still plays) */
 
-void snd_EndSpecialTrack(void)
-{
-    snd_AmbientSaved = 0;
-    snd_AmbientOn = (unsigned char)snd_AmbientOnSaved;
-    if (snd_MusicEnabled != 0 && snd_TrackHandles.current != snd_SpecialTrack)
-        snd_FadeMusic(1.0f, 3000);
+void snd_EndSpecialTrack(void) {
+  snd_AmbientSaved = 0;
+  snd_AmbientOn = (unsigned char)snd_AmbientOnSaved;
+  if (snd_MusicEnabled != 0 && snd_TrackHandles.current != snd_SpecialTrack)
+    snd_FadeMusic(1.0f, 3000);
 }
 /* 0x4c24c0, fades the music to v in ms */
 
-void snd_FadeMusic(float v, int ms)
-{
-    if (snd_TrackHandles.current != 0)
-        msx_FadeMaster(v, ms);
+void snd_FadeMusic(float v, int ms) {
+  if (snd_TrackHandles.current != 0)
+    msx_FadeMaster(v, ms);
 }
 /* 0x4c24e0, the voice variant of a speaker (voice number, woman): -2 / -1 for women (voice & 1), -5..-3 for
    men (voice % 3) - the negative ids 0x4c2510 turns into "_W1" / "_W2" / "_M1".."_M3" */
 
-int snd_VoiceVariant(unsigned int voice, int woman)
-{
-    if (woman == 1)
-        return (voice & 1) - 2;
-    return voice % 3 - 5;
+int snd_VoiceVariant(unsigned int voice, int woman) {
+  if (woman == 1)
+    return (voice & 1) - 2;
+  return voice % 3 - 5;
 }
 /* 0x4c2510, the voice sample text of speaker id (a character: "_M%i" / "_W%i" by sex, -1.. -6: "_W2", "_W1", "_M1",
    "_M2", "_M3", "_HS"; -7: text itself, -8: none) in bank, variation var if >= 0 ("%02i" appended) */
 
-struct SBSAMPLE *snd_FindVoiceSample(int id, struct SBBANK *bank, char *text, int var)
-{
-    char sfx[0x10];
-    char num[0x10];
-    char buf[0x104];
-    struct SBSAMPLE *s;
-    int isvar;
-    AICHAR *c;
+struct SBSAMPLE *snd_FindVoiceSample(int id, struct SBBANK *bank, char *text,
+                                     int var) {
+  char sfx[0x10];
+  char num[0x10];
+  char buf[0x104];
+  struct SBSAMPLE *s;
+  int isvar;
+  AICHAR *c;
 
-    if (snd_SfxEnabled == 0)
-        return 0;
-    isvar = 0;
-    if (id != -7) {
-        if (id < 0x300 && id >= 0) {
-            c = &ai_Chars[id];
-            if (c->sex == 1)
-                sprintf(sfx, "_W%i", (c->netId & 1) + 1);
-            else if (c->sex == 0)
-                sprintf(sfx, "_M%i", c->netId % 3 + 1);
-        } else if (id == -2)
-            strcpy(sfx, "_W1");
-        else if (id == -1)
-            strcpy(sfx, "_W2");
-        else if (id == -5)
-            strcpy(sfx, "_M1");
-        else if (id == -4)
-            strcpy(sfx, "_M2");
-        else if (id == -3)
-            strcpy(sfx, "_M3");
-        else if (id == -6)
-            strcpy(sfx, "_HS");
-        else if (id == -8)
-            sfx[0] = ch_EmptyName[0];
-        sprintf(buf, "%s%s", text, sfx);
-        isvar = sb_IsVariation(bank, buf);
-        if (var >= 0 && isvar == 0) {
-            sprintf(num, "%02i", var);
-            strcat(sfx, num);
-        }
-        sprintf(buf, "%s%s", text, sfx);
-    } else {
-        sprintf(buf, text);
+  if (snd_SfxEnabled == 0)
+    return 0;
+  isvar = 0;
+  if (id != -7) {
+    if (id < 0x300 && id >= 0) {
+      c = &ai_Chars[id];
+      if (c->sex == 1)
+        sprintf(sfx, "_W%i", (c->netId & 1) + 1);
+      else if (c->sex == 0)
+        sprintf(sfx, "_M%i", c->netId % 3 + 1);
+    } else if (id == -2)
+      strcpy(sfx, "_W1");
+    else if (id == -1)
+      strcpy(sfx, "_W2");
+    else if (id == -5)
+      strcpy(sfx, "_M1");
+    else if (id == -4)
+      strcpy(sfx, "_M2");
+    else if (id == -3)
+      strcpy(sfx, "_M3");
+    else if (id == -6)
+      strcpy(sfx, "_HS");
+    else if (id == -8)
+      sfx[0] = ch_EmptyName[0];
+    sprintf(buf, "%s%s", text, sfx);
+    isvar = sb_IsVariation(bank, buf);
+    if (var >= 0 && isvar == 0) {
+      sprintf(num, "%02i", var);
+      strcat(sfx, num);
     }
-    if (isvar != 0 && var >= 0) {
-        s = sb_GetVariation(bank, buf, var);
-        if (s == 0)
-            sprintf(buf, "Voicesample not found in variation:\n%s %i", text, var);
-    } else {
-        s = sb_GetSample(bank, buf);
-        if (s == 0)
-            sprintf(buf, "Voicesample not found:\n%s", text);
-    }
-    return s;
+    sprintf(buf, "%s%s", text, sfx);
+  } else {
+    sprintf(buf, text);
+  }
+  if (isvar != 0 && var >= 0) {
+    s = sb_GetVariation(bank, buf, var);
+    if (s == 0)
+      sprintf(buf, "Voicesample not found in variation:\n%s %i", text, var);
+  } else {
+    s = sb_GetSample(bank, buf);
+    if (s == 0)
+      sprintf(buf, "Voicesample not found:\n%s", text);
+  }
+  return s;
 }
 /* 0x4c2760, plays the voice sample of speaker id in bank now (snd_FindVoiceSample) at the voice volume,
    unless a queued sound is playing; returns the sample handle or 0 */
 
-struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var)
-{
-    struct SBSAMPLE *s;
+struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text,
+                               int var) {
+  struct SBSAMPLE *s;
 
-    if (snd_SfxEnabled == 0)
-        return 0;
-    if (snd_Queue != 0 && snd_Queue->playing != 0)
-        return 0;
-    s = snd_FindVoiceSample(id, bank, text, var);
-    if (s != 0) {
-        sb_Play(s, 0, 0);
-        sb_SetVolume(s, (int)(snd_VoiceVolume * 127.0f));
-    }
-    return s;
+  if (snd_SfxEnabled == 0)
+    return 0;
+  if (snd_Queue != 0 && snd_Queue->playing != 0)
+    return 0;
+  s = snd_FindVoiceSample(id, bank, text, var);
+  if (s != 0) {
+    sb_Play(s, 0, 0);
+    sb_SetVolume(s, (int)(snd_VoiceVolume * 127.0f));
+  }
+  return s;
 }
 /* 0x4c27d0, queues a voice sample (snd_FindVoiceSample) with delay */
 
-struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay)
-{
-    struct SBSAMPLE *s;
+struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text,
+                                int var, unsigned int delay) {
+  struct SBSAMPLE *s;
 
-    if (snd_SfxEnabled == 0)
-        return 0;
-    s = snd_FindVoiceSample(id, bank, text, var);
-    if (s != 0) {
-        sb_SetVolume(s, (int)(snd_VoiceVolume * 127.0f));
-        snd_AddToQueue(s, delay);
-    }
-    return s;
+  if (snd_SfxEnabled == 0)
+    return 0;
+  s = snd_FindVoiceSample(id, bank, text, var);
+  if (s != 0) {
+    sb_SetVolume(s, (int)(snd_VoiceVolume * 127.0f));
+    snd_AddToQueue(s, delay);
+  }
+  return s;
 }
 /* 0x4c2830, loads the voice sample bank name: "sprache_<language>\<name>" ("german"), or the plain
    "sprache\<name>" when that fails; returns the bank handle or 0 */
 
-struct SBBANK *snd_LoadVoiceBank(char *name, int a)
-{
-    char buf[0x104];
-    struct SBBANK *b;
+struct SBBANK *snd_LoadVoiceBank(char *name, int a) {
+  char buf[0x104];
+  struct SBBANK *b;
 
-    sprintf(buf, "sprache_%s\\%s", txt_Language, name);
+  sprintf(buf, "sprache_%s\\%s", txt_Language, name);
+  b = sb_LoadSampleBank(buf, a);
+  if (b == 0) {
+    sprintf(buf, "sprache\\%s", name);
     b = sb_LoadSampleBank(buf, a);
-    if (b == 0) {
-        sprintf(buf, "sprache\\%s", name);
-        b = sb_LoadSampleBank(buf, a);
-    }
-    return b;
+  }
+  return b;
 }
 /* 0x4c28a0, loads the voice banks for building b: the workers' orders / click comments by kind (thieves 4,
    robbers 0x10, mercenaries 0x13, addon kinds 0x1d / 0x20 / 0x1f / 0x1e, else craftsmen) and the greeting of
    its kind */
 
-void snd_LoadBuildingVoices(AIBLD *b)
-{
-    char greet[0x100];
-    char order[0x100];
-    char click[0x100];
-    char *t;
+void snd_LoadBuildingVoices(AIBLD *b) {
+  char greet[0x100];
+  char order[0x100];
+  char click[0x100];
+  char *t;
 
-    greet[0] = ch_EmptyName[0];
-    memset(greet + 1, 0, sizeof(greet) - 1);
-    t = (char *)ai_BTypes + b->type * 0x24d;
-    if (*t == 4) {
-        strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_DIEBE.sbf");
-        strcpy(click, "ARBEITER_KOMMENTARE_KLICK_DIEBE.sbf");
-    } else if (*t == 0x10) {
-        strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_RAEUBER.sbf");
-        strcpy(click, "ARBEITER_KOMMENTARE_KLICK_RAEUBER.sbf");
-    } else if (*t == 0x13) {
-        strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_SOELDNER.sbf");
-        strcpy(click, "ARBEITER_KOMMENTARE_KLICK_SOELDNER.sbf");
-    } else if (*t == 0x1d) {
-        strcpy(order, "ADDON\\ARBEITERKOMMENTARE_BEFEHL_GEHILFEN.sbf");
-        strcpy(click, "ADDON\\ARBEITERKOMMENTARE_KLICK_GEHILFEN.sbf");
-        strcpy(greet, "ADDON\\BEGRUESSUNG_FRIEDHOF.sbf");
-    } else if (*t == 0x20) {
-        strcpy(order, "ADDON\\ARBEITERKOMMENTARE_BEFEHL_SCHNEIDER.sbf");
-        strcpy(click, "ADDON\\ARBEITERKOMMENTARE_KLICK_SCHNEIDER.sbf");
-        strcpy(greet, "ADDON\\BEGRUESSUNG_SCHNEIDER.sbf");
-    } else if (*t == 0x1f) {
-        strcpy(order, "ADDON\\ARBEITERKOMMENTARE_BEFEHL_ZIGEUNER.sbf");
-        strcpy(click, "ADDON\\ARBEITERKOMMENTARE_KLICK_ZIGEUNER.sbf");
-        strcpy(greet, "ADDON\\BEGRUESSUNG_ZIGEUNER.sbf");
-    } else if (*t == 0x1e) {
-        click[0] = 0;
-        strcpy(order, "ADDON\\ARBEITER_KOMMENTARE_BEFEHL_ALCHIMIST.sbf");
-        greet[0] = 0;
-    } else {
-        strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_HANDWERK.sbf");
-        strcpy(click, "ARBEITER_KOMMENTARE_KLICK_HANDWERK.sbf");
-        if (*t == 7)
-            strcpy(greet, "BEGRUESSUNG_KIRCHE.sbf");
-        else if (*t == 5)
-            strcpy(greet, "BEGRUESSUNG_GELDLEIHE.sbf");
-        else if (*t == 8 || *t == 0xe)
-            strcpy(greet, "BEGRUESSUNG_KRAEUTERLADEN_PARFUEMERIE.sbf");
-        else if (*t == 9)
-            strcpy(greet, "BEGRUESSUNG_LAGERHAUS.sbf");
-        else if (*t == 0x15 || *t == 0x14 || *t == 0x12)
-            strcpy(greet, "BEGRUESSUNG_SCHMIEDE_STEIMETZ_TISCHLER.sbf");
-        else if (*t == 0xb || *t == 0xc || *t == 0xd)
-            strcpy(greet, "BEGRUESSUNG_WALDSTUECK_STEINBRUCH_MINE.sbf");
-        else if (*t == 0x16)
-            strcpy(greet, "BEGRUESSUNG_WIRTSHAUS.sbf");
-        else if (*t == 0x1e)
-            strcpy(greet, "ADDON\\BEGRUESSUNG_DOMIZIL.sbf");
-    }
-    if (order[0] != 0)
-        snd_VoiceBankOrders = snd_LoadVoiceBank(order, 0);
-    if (click[0] != 0)
-        snd_VoiceBankClick = snd_LoadVoiceBank(click, 0);
-    if (*t == 0x1d || *t == 0x1e)
-        snd_VoiceBankNoise = 0;
-    else
-        snd_VoiceBankNoise = snd_LoadVoiceBank("ARBEITER_KOMMENTARE_KLICK_GERAEUSCHE.sbf", 0);
-    if (greet[0] != 0)
-        snd_VoiceBankGreeting = snd_LoadVoiceBank(greet, 0);
+  greet[0] = ch_EmptyName[0];
+  memset(greet + 1, 0, sizeof(greet) - 1);
+  t = (char *)ai_BTypes + b->type * 0x24d;
+  if (*t == 4) {
+    strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_DIEBE.sbf");
+    strcpy(click, "ARBEITER_KOMMENTARE_KLICK_DIEBE.sbf");
+  } else if (*t == 0x10) {
+    strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_RAEUBER.sbf");
+    strcpy(click, "ARBEITER_KOMMENTARE_KLICK_RAEUBER.sbf");
+  } else if (*t == 0x13) {
+    strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_SOELDNER.sbf");
+    strcpy(click, "ARBEITER_KOMMENTARE_KLICK_SOELDNER.sbf");
+  } else if (*t == 0x1d) {
+    strcpy(order, "ADDON\\ARBEITERKOMMENTARE_BEFEHL_GEHILFEN.sbf");
+    strcpy(click, "ADDON\\ARBEITERKOMMENTARE_KLICK_GEHILFEN.sbf");
+    strcpy(greet, "ADDON\\BEGRUESSUNG_FRIEDHOF.sbf");
+  } else if (*t == 0x20) {
+    strcpy(order, "ADDON\\ARBEITERKOMMENTARE_BEFEHL_SCHNEIDER.sbf");
+    strcpy(click, "ADDON\\ARBEITERKOMMENTARE_KLICK_SCHNEIDER.sbf");
+    strcpy(greet, "ADDON\\BEGRUESSUNG_SCHNEIDER.sbf");
+  } else if (*t == 0x1f) {
+    strcpy(order, "ADDON\\ARBEITERKOMMENTARE_BEFEHL_ZIGEUNER.sbf");
+    strcpy(click, "ADDON\\ARBEITERKOMMENTARE_KLICK_ZIGEUNER.sbf");
+    strcpy(greet, "ADDON\\BEGRUESSUNG_ZIGEUNER.sbf");
+  } else if (*t == 0x1e) {
+    click[0] = 0;
+    strcpy(order, "ADDON\\ARBEITER_KOMMENTARE_BEFEHL_ALCHIMIST.sbf");
+    greet[0] = 0;
+  } else {
+    strcpy(order, "ARBEITER_KOMMENTARE_BEFEHL_HANDWERK.sbf");
+    strcpy(click, "ARBEITER_KOMMENTARE_KLICK_HANDWERK.sbf");
+    if (*t == 7)
+      strcpy(greet, "BEGRUESSUNG_KIRCHE.sbf");
+    else if (*t == 5)
+      strcpy(greet, "BEGRUESSUNG_GELDLEIHE.sbf");
+    else if (*t == 8 || *t == 0xe)
+      strcpy(greet, "BEGRUESSUNG_KRAEUTERLADEN_PARFUEMERIE.sbf");
+    else if (*t == 9)
+      strcpy(greet, "BEGRUESSUNG_LAGERHAUS.sbf");
+    else if (*t == 0x15 || *t == 0x14 || *t == 0x12)
+      strcpy(greet, "BEGRUESSUNG_SCHMIEDE_STEIMETZ_TISCHLER.sbf");
+    else if (*t == 0xb || *t == 0xc || *t == 0xd)
+      strcpy(greet, "BEGRUESSUNG_WALDSTUECK_STEINBRUCH_MINE.sbf");
+    else if (*t == 0x16)
+      strcpy(greet, "BEGRUESSUNG_WIRTSHAUS.sbf");
+    else if (*t == 0x1e)
+      strcpy(greet, "ADDON\\BEGRUESSUNG_DOMIZIL.sbf");
+  }
+  if (order[0] != 0)
+    snd_VoiceBankOrders = snd_LoadVoiceBank(order, 0);
+  if (click[0] != 0)
+    snd_VoiceBankClick = snd_LoadVoiceBank(click, 0);
+  if (*t == 0x1d || *t == 0x1e)
+    snd_VoiceBankNoise = 0;
+  else
+    snd_VoiceBankNoise =
+        snd_LoadVoiceBank("ARBEITER_KOMMENTARE_KLICK_GERAEUSCHE.sbf", 0);
+  if (greet[0] != 0)
+    snd_VoiceBankGreeting = snd_LoadVoiceBank(greet, 0);
 }
 /* 0x4c2c00, unloads the voice banks of snd_LoadBuildingVoices */
 
-void snd_UnloadBuildingVoices(void)
-{
-    if (snd_VoiceBankOrders != 0) {
-        sb_UnloadSampleBank(snd_VoiceBankOrders);
-        snd_VoiceBankOrders = 0;
-    }
-    if (snd_VoiceBankClick != 0) {
-        sb_UnloadSampleBank(snd_VoiceBankClick);
-        snd_VoiceBankClick = 0;
-    }
-    if (snd_VoiceBankNoise != 0) {
-        sb_UnloadSampleBank(snd_VoiceBankNoise);
-        snd_VoiceBankNoise = 0;
-    }
-    if (snd_VoiceBankGreeting != 0) {
-        sb_UnloadSampleBank(snd_VoiceBankGreeting);
-        snd_VoiceBankGreeting = 0;
-    }
+void snd_UnloadBuildingVoices(void) {
+  if (snd_VoiceBankOrders != 0) {
+    sb_UnloadSampleBank(snd_VoiceBankOrders);
+    snd_VoiceBankOrders = 0;
+  }
+  if (snd_VoiceBankClick != 0) {
+    sb_UnloadSampleBank(snd_VoiceBankClick);
+    snd_VoiceBankClick = 0;
+  }
+  if (snd_VoiceBankNoise != 0) {
+    sb_UnloadSampleBank(snd_VoiceBankNoise);
+    snd_VoiceBankNoise = 0;
+  }
+  if (snd_VoiceBankGreeting != 0) {
+    sb_UnloadSampleBank(snd_VoiceBankGreeting);
+    snd_VoiceBankGreeting = 0;
+  }
 }
 /* 0x4c2c70, a click comment of the character c (half the time a click noise; never for the building kind
    0x14): plays one of the worker banks loaded by snd_LoadBuildingVoices */
 
-void snd_PlayWorkerClick(AICHAR *c)
-{
-    int r;
+void snd_PlayWorkerClick(AICHAR *c) {
+  int r;
 
-    r = util_Random(2);
-    if (c->kind == 0x14)
-        r = 0;
-    if (snd_VoiceBankClick != 0 && r == 0) {
-        snd_PlayVoice(c->id, snd_VoiceBankClick, "_ARBEITER_KOMMENTARE_KLICK", -1);
-        return;
-    }
-    if (snd_VoiceBankNoise != 0 && r == 1)
-        snd_PlayVoice(c->id, snd_VoiceBankNoise, "_ARBEITER_KOMMENTARE_KLICK", -1);
+  r = util_Random(2);
+  if (c->kind == 0x14)
+    r = 0;
+  if (snd_VoiceBankClick != 0 && r == 0) {
+    snd_PlayVoice(c->id, snd_VoiceBankClick, "_ARBEITER_KOMMENTARE_KLICK", -1);
+    return;
+  }
+  if (snd_VoiceBankNoise != 0 && r == 1)
+    snd_PlayVoice(c->id, snd_VoiceBankNoise, "_ARBEITER_KOMMENTARE_KLICK", -1);
 }
 /* 0x4c2ce0, plays the click comment of the first selected character (walks the selected flag +0x188 of the
    ai_Chars records, the same click snd_PlayWorkerClick plays on a click of that character) */
 
-void snd_PlaySelectedClick(void)
-{
-    int i;
-    unsigned char *p;
+void snd_PlaySelectedClick(void) {
+  int i;
+  unsigned char *p;
 
-    for (i = 0, p = &ai_Chars[0].selected; (intptr_t)p < (intptr_t)&ai_Chars[0x300].selected; p += 0x21c, i++) {
-        if (*p != 0) {
-            snd_PlayWorkerClick(&ai_Chars[i]);
-            return;
-        }
+  for (i = 0, p = &ai_Chars[0].selected;
+       (intptr_t)p < (intptr_t)&ai_Chars[0x300].selected; p += 0x21c, i++) {
+    if (*p != 0) {
+      snd_PlayWorkerClick(&ai_Chars[i]);
+      return;
     }
+  }
 }
 /* 0x4c2d20, now and then (40% of the calls) a comment of the selected workers (ai_SceneChars[0x20]) about
    their favour with the player: the average gm_Liking favour over the selected workers selects the text
    ("SCHLECHTE_GUNST" < 0x32, "MITTLERE_GUNST" < 0x4b, "GUTE_GUNST" above), spoken by the more numerous
    sex (w / m, the last selected woman / man), -5 (a neutral voice) when the preferred one is missing */
 
-void snd_PlayFavourComment(void)
-{
-    AICHAR *c;
-    int w;
-    int m;
-    int f;
-    int men;
-    int women;
-    int i;
+void snd_PlayFavourComment(void) {
+  AICHAR *c;
+  int w;
+  int m;
+  int f;
+  int men;
+  int women;
+  int i;
 
-    women = 0;
-    men = 0;
-    w = 0xffff;
-    m = 0xffff;
+  women = 0;
+  men = 0;
+  w = 0xffff;
+  m = 0xffff;
+  f = 0;
+  if (util_RandomF() > 0.4)
+    return;
+  if (snd_VoiceBankOrders == 0)
+    snd_VoiceBankOrders =
+        snd_LoadVoiceBank("ARBEITER_KOMMENTARE_BEFEHL_HANDWERK.sbf", 0);
+  for (i = 0; i < 0x20; i++) {
+    c = ai_SceneChars[i];
+    if (c != 0 && c->selected != 0) {
+      if (c->sex == 0) {
+        men++;
+        m = c->id;
+        f += gm_Liking(ai_PlayerId, m, 1);
+      } else {
+        women++;
+        w = c->id;
+        f += gm_Liking(ai_PlayerId, w, 1);
+      }
+    }
+  }
+  if (men + women != 0)
+    f /= men + women;
+  if (f < 0x32)
     f = 0;
-    if (util_RandomF() > 0.4)
-        return;
-    if (snd_VoiceBankOrders == 0)
-        snd_VoiceBankOrders = snd_LoadVoiceBank("ARBEITER_KOMMENTARE_BEFEHL_HANDWERK.sbf", 0);
-    for (i = 0; i < 0x20; i++) {
-        c = ai_SceneChars[i];
-        if (c != 0 && c->selected != 0) {
-            if (c->sex == 0) {
-                men++;
-                m = c->id;
-                f += gm_Liking(ai_PlayerId, m, 1);
-            } else {
-                women++;
-                w = c->id;
-                f += gm_Liking(ai_PlayerId, w, 1);
-            }
-        }
-    }
-    if (men + women != 0)
-        f /= men + women;
-    if (f < 0x32)
-        f = 0;
-    else if (f < 0x4b)
-        f = 1;
-    else if (f > 0x4b)
-        f = 2;
-    if (men < women && (w != 0xffff || m != 0xffff)) {
-        if (w == 0xffff)
-            return;
-        if (f == 0)
-            snd_PlayVoice(w, snd_VoiceBankOrders, "SCHLECHTE_GUNST", -1);
-        else if (f == 1)
-            snd_PlayVoice(w, snd_VoiceBankOrders, "MITTLERE_GUNST", -1);
-        else if (f >= 2)
-            snd_PlayVoice(w, snd_VoiceBankOrders, "GUTE_GUNST", -1);
-        return;
-    }
-    if (m == 0xffff) {
-        m = -5;
-        f = 1;
-    }
+  else if (f < 0x4b)
+    f = 1;
+  else if (f > 0x4b)
+    f = 2;
+  if (men < women && (w != 0xffff || m != 0xffff)) {
+    if (w == 0xffff)
+      return;
     if (f == 0)
-        snd_PlayVoice(m, snd_VoiceBankOrders, "SCHLECHTE_GUNST", -1);
+      snd_PlayVoice(w, snd_VoiceBankOrders, "SCHLECHTE_GUNST", -1);
     else if (f == 1)
-        snd_PlayVoice(m, snd_VoiceBankOrders, "MITTLERE_GUNST", -1);
+      snd_PlayVoice(w, snd_VoiceBankOrders, "MITTLERE_GUNST", -1);
     else if (f >= 2)
-        snd_PlayVoice(m, snd_VoiceBankOrders, "GUTE_GUNST", -1);
+      snd_PlayVoice(w, snd_VoiceBankOrders, "GUTE_GUNST", -1);
+    return;
+  }
+  if (m == 0xffff) {
+    m = -5;
+    f = 1;
+  }
+  if (f == 0)
+    snd_PlayVoice(m, snd_VoiceBankOrders, "SCHLECHTE_GUNST", -1);
+  else if (f == 1)
+    snd_PlayVoice(m, snd_VoiceBankOrders, "MITTLERE_GUNST", -1);
+  else if (f >= 2)
+    snd_PlayVoice(m, snd_VoiceBankOrders, "GUTE_GUNST", -1);
 }
 /* 0x4c2f30, plays the greeting of the character a's building: the player's favour for the building's owner
    (gm_Liking / 33) picks "_SCHLECHTE_GUNST" (0), "_MITTLERE_GUNST" (1) or "_GUTE_GUNST" (2 and up); with the
@@ -1125,120 +1211,344 @@ void snd_PlayFavourComment(void)
    scene record (CHARACTER). x is volatile because the original reloads it from its slot before every use
 (matching trick, do not clean). @deep deep s43: without volatile (int x, int x[1], an ok flag from an if / else of the two list calls: all one code, 12 ins) VC6 threads the decided x test: on the count == 0 path x is known 1, so it keeps x in eax (mov eax,1 before the je) and drops the arm-0 reload; the original stores 1 to the slot, joins, and reloads x in each of the three level arms, i.e. nothing in the original let VC6 know x at the join. With volatile only the pop esi placement is left (ours before the je, the original between test ebx and jne). Also tried: x = 0 after util_Random (14), the three arms as one call with x ? 3 : r each (91). Open: the ordinary construct that blocks the jump threading (x's address escaping, x set through a pointer / another variable, a different flag form). prior: near-byte sweep s22: left the pop esi placed before je (ours) vs after the test ebx (original) around the goods-list call; not worked (the volatile x is the open question: an ordinary form that spills x is the first lever). */
 
-void ai_FavourComment(CHARACTER *a)
-{
-    volatile int x;
-    AIRECIPE out;
-    unsigned int r;
-    AICHAR *c;
-    AIBLD *g;
-    int level;
+void ai_FavourComment(CHARACTER *a) {
+  volatile int x;
+  AIRECIPE out;
+  unsigned int r;
+  AICHAR *c;
+  AIBLD *g;
+  int level;
 
-    x = 0;
-    r = util_Random(3);
-    c = (AICHAR *)a->obj->owner;
-    if (c == 0)
-        return;
-    g = c->bld;
-    level = (int)gm_Liking((unsigned short)ai_PlayerId, g->owner, 1) / 33;
-    /* the three building kinds with their own goods list, all others the generic one */
-    if ((g->type == 0x20 || g->type == 0x1f || g->type == 0x1e) ? gm_BuildingGoodsList17(g, &out, 0) : gm_BuildingGoodsList(g, &out, 0)) {
-        if (out.count == 0)
-            x = 1;
-    }
-    if (level == 0) {
-        if (x)
-            snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_SCHLECHTE_GUNST", 3);
-        else
-            snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_SCHLECHTE_GUNST", r);
-    } else if (level == 1) {
-        if (x)
-            snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_MITTLERE_GUNST", 3);
-        else
-            snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_MITTLERE_GUNST", r);
-    } else if (level >= 2) {
-        if (x)
-            snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_GUTE_GUNST", 3);
-        else
-            snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_GUTE_GUNST", r);
-    }
+  x = 0;
+  r = util_Random(3);
+  c = (AICHAR *)a->obj->owner;
+  if (c == 0)
+    return;
+  g = c->bld;
+  level = (int)gm_Liking((unsigned short)ai_PlayerId, g->owner, 1) / 33;
+  /* the three building kinds with their own goods list, all others the generic one */
+  if ((g->type == 0x20 || g->type == 0x1f || g->type == 0x1e)
+          ? gm_BuildingGoodsList17(g, &out, 0)
+          : gm_BuildingGoodsList(g, &out, 0)) {
+    if (out.count == 0)
+      x = 1;
+  }
+  if (level == 0) {
+    if (x)
+      snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_SCHLECHTE_GUNST", 3);
+    else
+      snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_SCHLECHTE_GUNST", r);
+  } else if (level == 1) {
+    if (x)
+      snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_MITTLERE_GUNST", 3);
+    else
+      snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_MITTLERE_GUNST", r);
+  } else if (level >= 2) {
+    if (x)
+      snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_GUTE_GUNST", 3);
+    else
+      snd_PlayVoice(c->id, snd_VoiceBankGreeting, "_GUTE_GUNST", r);
+  }
 }
 /* 0x4c30e0, starts the market ambience ("Athmo_Marktplatz_Mono_4Bit") at the market building's object:
    attaches it as the ambient track (volume 0x7f, range 2200.0), holds and plays it; does nothing when a
    track is already playing or the building has no object */
 
-void snd_StartMarketAmbience(void)
-{
-    struct D3OBJECT *o;
-    struct SBSAMPLE *smp;
+void snd_StartMarketAmbience(void) {
+  struct D3OBJECT *o;
+  struct SBSAMPLE *smp;
 
-    if (snd_AmbientTrack == 0) {
-        o = ai_MarketBuilding->object;
-        if (o != 0) {
-            smp = sb_GetSample(0, "Athmo_Marktplatz_Mono_4Bit");
-            snd_AmbientTrack = d3snd_Attach(smp, o, 0x7f, 2200.0f);
-            if (snd_AmbientTrack != 0) {
-                d3snd_SetHold(snd_AmbientTrack, 1);
-                d3snd_Play(snd_AmbientTrack, 0, 0, 0);
-            }
-        }
+  if (snd_AmbientTrack == 0) {
+    o = ai_MarketBuilding->object;
+    if (o != 0) {
+      smp = sb_GetSample(0, "Athmo_Marktplatz_Mono_4Bit");
+      snd_AmbientTrack = d3snd_Attach(smp, o, 0x7f, 2200.0f);
+      if (snd_AmbientTrack != 0) {
+        d3snd_SetHold(snd_AmbientTrack, 1);
+        d3snd_Play(snd_AmbientTrack, 0, 0, 0);
+      }
     }
+  }
 }
 /* 0x4c3140, stops the market ambience: releases the hold, stops and detaches the ambient track, clears the
    handle */
 
-void snd_StopMarketAmbience(void)
-{
-    if (snd_AmbientTrack != 0) {
-        d3snd_SetHold(snd_AmbientTrack, 0);
-        d3snd_Stop(snd_AmbientTrack, 1);
-        d3snd_Detach(snd_AmbientTrack);
-        snd_AmbientTrack = 0;
-    }
+void snd_StopMarketAmbience(void) {
+  if (snd_AmbientTrack != 0) {
+    d3snd_SetHold(snd_AmbientTrack, 0);
+    d3snd_Stop(snd_AmbientTrack, 1);
+    d3snd_Detach(snd_AmbientTrack);
+    snd_AmbientTrack = 0;
+  }
 }
 
 extern struct D3TRAIN *d3t_Rain;
-float snd_VoiceVolume = 1.0f;  /* 0x602b08, voice volume (1.0, scaled by 127) */
-char snd_GustNames[3][0x32] = { "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" };  /* 0x602b10, "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" */
-G16SEASON snd_Gusts[] = { { 0.699999988f, 0.5f, 16000 }, { 0.300000012f, 0.200000003f, 27000 }, { 0.899999976f, 0.600000024f, 12000 }, { 0.5f, 0.400000006f, 20000 } };  /* 0x602ba8, by season */
-G16AMB snd_Animals[][5] = { { { 0.899999976f, 0.699999988f, 2, 4000, 0 }, { 0.449999988f, 0.300000012f, 2, 7000, 0 }, { 0.400000006f, 0.5f, 2, 30000, 0 }, { 0.5f, 0.600000024f, 0, 27000, 0 }, { 0.600000024f, 0.600000024f, 0, 20000, 0 } }, { { 0.699999988f, 0.699999988f, 2, 5000, 0 }, { 0.899999976f, 0.699999988f, 4, 5000, 0 }, { 0.699999988f, 0.5f, 2, 20000, 0 }, { 0.600000024f, 0.600000024f, 0, 25000, 0 }, { 0.899999976f, 0.600000024f, 0, 17000, 0 } }, { { 0.300000012f, 0.25f, 1, 17000, 0 }, { 0.200000003f, 0.200000003f, 1, 18000, 0 }, { 0.800000012f, 0.5f, 2, 12000, 0 }, { 0.300000012f, 0.600000024f, 0, 20000, 0 }, { 0.600000024f, 0.600000024f, 0, 20000, 0 } }, { { 0.150000006f, 0.200000003f, 1, 30000, 0 }, { 0.0f, 0.0f, 1, 500000, 0 }, { 0.200000003f, 0.400000006f, 2, 23000, 0 }, { 0.200000003f, 0.5f, 0, 22000, 0 }, { 0.400000006f, 0.5f, 0, 20000, 0 } } };  /* 0x602bd8, per season: birds, crickets, chickens, horses, dogs */
-float snd_MusicVolume = 0.5f;  /* 0x602d68, music volume 0..1: 0 = no music ( */
-G16TRACKS snd_BuildingTracks[] = { { 7, 0, -1, { "cd1\\LichtUndGnade.mp3", "cd1\\Moenchsgesang.mp3", "cd1\\Sakral.mp3", "cd2\\AmKuehlenGrabe.mp3", "", "" } }, { 2, 23, -1, { "cd1\\AufDemBall.mp3", "", "", "", "", "" } }, { 2, 20, -1, { "cd1\\FinsterePlaene.mp3", "cd1\\RuestetEuch.mp3", "cd1\\FinstererPriester.mp3", "", "", "" } }, { 2, 19, -1, { "cd1\\Rittersleut.mp3", "cd1\\Burgfraeulein.mp3", "", "", "", "" } }, { 2, 21, -1, { "cd2\\DerSeuchenzug.mp3", "cd1\\ImDunklenTann.mp3", "", "", "", "" } }, { 2, 24, -1, { "cd1\\AufDemBall.mp3", "", "", "", "", "" } }, { 2, 22, -1, { "cd1\\finsterePlaene.mp3", "", "", "", "", "" } }, { 22, 0, -1, { "cd1\\AufspielZumTanz.mp3", "cd1\\ZurSommerzeit.mp3", "cd2\\KraeuterUndPhiolen.mp3", "", "", "" } }, { 19, 0, -1, { "cd1\\RuestetEuch.mp3", "cd1\\ImDunklenTann.mp3", "cd1\\Flucht.mp3", "cd1\\Rittersleut.mp3", "", "" } }, { 4, 0, -1, { "cd1\\FinsterePlaene.mp3", "cd1\\Flucht.mp3", "cd2\\ImKerker.mp3", "cd1\\Hungerlohn.mp3", "", "" } }, { 16, 0, -1, { "cd1\\FinsterePlaene.mp3", "cd1\\flucht.mp3", "cd1\\Hungerlohn.mp3", "cd1\\ImDunklenTann.mp3", "", "" } }, { 11, 0, -1, { "cd1\\BeiDerQuelle.mp3", "cd1\\ImDunklenTann.mp3", "", "", "", "" } }, { 13, 0, 2, { "cd1\\Immerkalt.mp3", "", "", "", "", "" } }, { 13, 0, 3, { "cd1\\Immerkalt.mp3", "", "", "", "", "" } }, { 13, 0, -1, { "cd1\\Hungerlohn.mp3", "", "", "", "", "" } }, { 12, 0, 2, { "cd1\\Immerkalt.mp3", "", "", "", "", "" } }, { 12, 0, 3, { "cd1\\Immerkalt.mp3", "", "", "", "", "" } }, { 12, 0, -1, { "cd1\\Hungerlohn.mp3", "", "", "", "", "" } }, { 28, 0, -1, { "", "", "", "", "", "" } }, { 14, 0, -1, { "cd2\\DasParfuem.mp3", "cd2\\DerFernhaendler.mp3", "cd2\\KraeuterUndPhiolen.mp3", "", "", "" } }, { 8, 0, -1, { "cd2\\KraeuterUndPhiolen.mp3", "cd2\\DasParfuem.mp3", "cd2\\DerFernhaendler.mp3", "", "", "" } }, { 6, 0, -1, { "cd2\\ArmerDelinquent.mp3", "cd2\\ImKerker.mp3", "", "", "", "" } }, { 18, 0, -1, { "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "", "" } }, { 18, 0, 2, { "cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "" } }, { 18, 0, 3, { "cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "" } }, { 20, 0, -1, { "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "", "" } }, { 20, 0, 2, { "cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "" } }, { 20, 0, 3, { "cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "" } }, { 21, 0, -1, { "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "", "" } }, { 21, 0, 2, { "cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "" } }, { 21, 0, 3, { "cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3", "", "" } }, { 5, 0, -1, { "cd2\\DerFernhaendler.mp3", "cd2\\ZumGutenEnd.mp3", "cd1\\mauerundtor.mp3", "", "", "" } }, { 9, 0, -1, { "cd2\\DerFernhaendler.mp3", "cd2\\ZumGutenEnd.mp3", "cd1\\mauerundtor.mp3", "", "", "" } }, { 15, 0, -1, { "cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "cd1\\mauerundtor.mp3", "", "", "" } }, { 23, 0, -1, { "cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "", "", "", "" } }, { 24, 0, -1, { "cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "", "", "", "" } }, { 25, 0, -1, { "cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "", "", "", "" } }, { 26, 0, -1, { "cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "", "", "", "" } }, { 29, 0, -1, { "CD3\\DuestresGemaeuer.mp3", "CD3\\DunkleMondesnacht.mp3", "CD2\\AmKuehlenGrabe.mp3", "CD1\\FinstrerPriester.mp3", "CD3\\Grabesklang.mp3", "CD2\\DerSeuchenzug.mp3" } }, { 31, 0, -1, { "CD3\\DerStolzenTraum.mp3", "CD3\\Vagabundentanz.mp3", "CD3\\SchmerzlichErinnerung.mp3", "CD1\\ImDunklenTann.mp3", "CD1\\BeiDerQuelle.mp3", "CD1\\AufspielZumTanz.mp3" } }, { 32, 0, -1, { "CD3\\MitFlinkemStich.mp3", "CD3\\Medley.mp3", "CD2\\DasParfum.mp3", "CD2\\DerFernhaendler.mp3", "CD2\\Hochzeit.mp3", "CD1\\AufDemBall.mp3" } }, { 30, 587, -1, { "CD2\\ZumGutenEnd.mp3", "cd2\\DasParfuem.mp3", "cd2\\KraeuterUndPhiolen.mp3", "CD2\\DerFernhaendler.mp3", "", "" } }, { 30, 598, -1, { "CD3\\BurgUndFeste.mp3", "CD3\\Heldenglanz.mp3", "CD2\\Krieg.mp3", "CD2\\Satisfaktion.mp3", "CD1\\AufDenStrassen.mp3", "CD1\\FinsterePlaene.mp3" } }, { 30, 614, -1, { "CD2\\ArmerDelinquent.mp3", "CD2\\DerSeuchenzug.mp3", "CD1\\FinstererPriester.mp3", "CD1\\FinsterePlaene.mp3", "CD1\\AufDemBall.mp3", "CD3\\Heldenglanz.mp3" } }, { 0, 0, -1, { "", "", "", "", "", "" } } };  /* 0x602d70 */
-G16LOC snd_LocationTracks[] = { { { 7, 0, 0, 0 }, "", -20, 0, 0 }, { { 2, 0, 0, 0 }, "", -20, 0, 0 }, { { 22, 0, 0, 0 }, "", -20, 0, 0 }, { { 19, 0, 0, 0 }, "", -20, 0, 0 }, { { 4, 0, 0, 0 }, "", -20, 0, 0 }, { { 16, 0, 0, 0 }, "", -20, 0, 0 }, { { 11, 0, 0, 0 }, "", -20, 0, 0 }, { { 13, 0, 0, 0 }, "", -20, 0, 0 }, { { 12, 0, 0, 0 }, "", -20, 0, 0 }, { { 28, 0, 0, 0 }, "", -20, 0, 0 }, { { 14, 8, 0, 0 }, "", -20, 0, 0 }, { { 6, 0, 0, 0 }, "", -20, 0, 0 }, { { 18, 20, 21, 0 }, "", -20, 0, 0 }, { { 5, 0, 0, 0 }, "", -20, 0, 0 }, { { 9, 0, 0, 0 }, "", -20, 0, 0 }, { { 15, 0, 0, 0 }, "", -20, 0, 0 }, { { 23, 0, 0, 0 }, "", -20, 0, 0 }, { { 24, 0, 0, 0 }, "", -20, 0, 0 }, { { 25, 0, 0, 0 }, "", -20, 0, 0 }, { { 26, 0, 0, 0 }, "", -20, 0, 0 }, { { 29, 0, 0, 0 }, "", -20, 0, 0 }, { { 31, 0, 0, 0 }, "", -20, 0, 0 }, { { 32, 0, 0, 0 }, "", -20, 0, 0 }, { { 30, 0, 0, 0 }, "", -20, 0, 0 }, { { 9876, 0, 0, 0 }, "", -20, 0, 0 }, { { 0, 0, 0, 0 }, "", 0, 0, 0 } };  /* 0x6094d0 */
-unsigned int snd_PauseStart = 1;  /* 0x60b0d8, start of the music pause */
-char snd_TrackText[256] = {0};  /* 0x6f0760, a debug text */
-char snd_MusicLog[256] = {0};  /* 0x6f0860, a debug text */
-char snd_LocustLog[256] = {0};  /* 0x6f0960, a debug text */
-char snd_DebugText[256] = {0};  /* 0x6f0a60, a debug text */
-unsigned char snd_AmbientOn = 0;  /* 0x6f0b60, 1: ambient sounds on */
-unsigned int snd_AmbientOnSaved = 0;  /* 0x6f0b64, the saved snd_AmbientOn */
-int snd_QueuePaused = 0;  /* 0x6f0b68, nonzero: the queue does not advance */
-G16TRACKHANDLES snd_TrackHandles = {0};  /* 0x6f0b6c, the music track and its copy */
-struct MSXTRACK *snd_SpecialTrack = 0;  /* 0x6f0b74, the special track of */
-int snd_AmbientSaved = 0;  /* 0x6f0b78, 1 while the ambient flag is off and saved ( */
-int snd_FanfareFade = 0;  /* 0x6f0b7c, 1 while a "Fanfare" has faded the music out */
-struct D3SOUND *snd_AmbientTrack = 0;  /* 0x6f0b80, the d3snd handle of the ambient track (bird song, market ambience) */
-G16SND * snd_Queue = 0;  /* 0x6f0b84, the queue (the first queued sound) */
-int snd_QueueTime = 0;  /* 0x6f0b88, time of the last queue change */
-int snd_Season = 0;  /* 0x6f0b8c, the season */
-unsigned int snd_LastGust = 0;  /* 0x6f0b90, time of the last gust */
-struct SBSAMPLE *snd_LocustsPerm = 0;  /* 0x6f0b94, hpLocustsPerm */
-struct SBSAMPLE *snd_Locusts = 0;  /* 0x6f0b98, hpLocusts */
-int snd_AnimalSeason = 0;  /* 0x6f0b9c, the season */
-void * snd_AtmoTrack = 0;  /* 0x6f0ba0, the atmosphere mp3 (MSXTRACK *) */
-char snd_LastTrack[256] = {0};  /* 0x6f0ba8, the outdoor track played last */
-struct AIBLD *snd_TrackBuilding = 0;  /* 0x6f0ca8, the building of the track */
-struct AIOBJ *snd_TrackRoom = 0;  /* 0x6f0cac, the room of the track */
-unsigned int snd_PauseLength = 0;  /* 0x6f0cb0, the pause length */
-int snd_MusicSeason = 0;  /* 0x6f0cb4, the season of the music */
-unsigned int snd_LastDecision = 0;  /* 0x6f0cb8, time of the last track decision */
-struct SBBANK *snd_VoiceBankOrders = 0;  /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
-struct SBBANK *snd_VoiceBankClick = 0;  /* 0x6f0cc0, voice bank: click comments */
-struct SBBANK *snd_VoiceBankNoise = 0;  /* 0x6f0cc4, voice bank: click noises */
-int snd_UnreadBss = 0;  /* 0x6f0cc8, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
-struct SBBANK *snd_VoiceBankGreeting = 0;  /* 0x6f0ccc, voice bank: greeting */
+float snd_VoiceVolume = 1.0f; /* 0x602b08, voice volume (1.0, scaled by 127) */
+char snd_GustNames[3][0x32] = {
+    "Boehe_Leicht_s", "Boehe_Mittel_s",
+    "Boehe_Stark_s"}; /* 0x602b10, "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" */
+G16SEASON snd_Gusts[] = {{0.699999988f, 0.5f, 16000},
+                         {0.300000012f, 0.200000003f, 27000},
+                         {0.899999976f, 0.600000024f, 12000},
+                         {0.5f, 0.400000006f, 20000}}; /* 0x602ba8, by season */
+G16AMB snd_Animals[][5] = {
+    {{0.899999976f, 0.699999988f, 2, 4000, 0},
+     {0.449999988f, 0.300000012f, 2, 7000, 0},
+     {0.400000006f, 0.5f, 2, 30000, 0},
+     {0.5f, 0.600000024f, 0, 27000, 0},
+     {0.600000024f, 0.600000024f, 0, 20000, 0}},
+    {{0.699999988f, 0.699999988f, 2, 5000, 0},
+     {0.899999976f, 0.699999988f, 4, 5000, 0},
+     {0.699999988f, 0.5f, 2, 20000, 0},
+     {0.600000024f, 0.600000024f, 0, 25000, 0},
+     {0.899999976f, 0.600000024f, 0, 17000, 0}},
+    {{0.300000012f, 0.25f, 1, 17000, 0},
+     {0.200000003f, 0.200000003f, 1, 18000, 0},
+     {0.800000012f, 0.5f, 2, 12000, 0},
+     {0.300000012f, 0.600000024f, 0, 20000, 0},
+     {0.600000024f, 0.600000024f, 0, 20000, 0}},
+    {{0.150000006f, 0.200000003f, 1, 30000, 0},
+     {0.0f, 0.0f, 1, 500000, 0},
+     {0.200000003f, 0.400000006f, 2, 23000, 0},
+     {0.200000003f, 0.5f, 0, 22000, 0},
+     {0.400000006f, 0.5f, 0, 20000,
+      0}}}; /* 0x602bd8, per season: birds, crickets, chickens, horses, dogs */
+float snd_MusicVolume = 0.5f; /* 0x602d68, music volume 0..1: 0 = no music ( */
+G16TRACKS snd_BuildingTracks[] = {
+    {7,
+     0,
+     -1,
+     {"cd1\\LichtUndGnade.mp3", "cd1\\Moenchsgesang.mp3", "cd1\\Sakral.mp3",
+      "cd2\\AmKuehlenGrabe.mp3", "", ""}},
+    {2, 23, -1, {"cd1\\AufDemBall.mp3", "", "", "", "", ""}},
+    {2,
+     20,
+     -1,
+     {"cd1\\FinsterePlaene.mp3", "cd1\\RuestetEuch.mp3",
+      "cd1\\FinstererPriester.mp3", "", "", ""}},
+    {2,
+     19,
+     -1,
+     {"cd1\\Rittersleut.mp3", "cd1\\Burgfraeulein.mp3", "", "", "", ""}},
+    {2,
+     21,
+     -1,
+     {"cd2\\DerSeuchenzug.mp3", "cd1\\ImDunklenTann.mp3", "", "", "", ""}},
+    {2, 24, -1, {"cd1\\AufDemBall.mp3", "", "", "", "", ""}},
+    {2, 22, -1, {"cd1\\finsterePlaene.mp3", "", "", "", "", ""}},
+    {22,
+     0,
+     -1,
+     {"cd1\\AufspielZumTanz.mp3", "cd1\\ZurSommerzeit.mp3",
+      "cd2\\KraeuterUndPhiolen.mp3", "", "", ""}},
+    {19,
+     0,
+     -1,
+     {"cd1\\RuestetEuch.mp3", "cd1\\ImDunklenTann.mp3", "cd1\\Flucht.mp3",
+      "cd1\\Rittersleut.mp3", "", ""}},
+    {4,
+     0,
+     -1,
+     {"cd1\\FinsterePlaene.mp3", "cd1\\Flucht.mp3", "cd2\\ImKerker.mp3",
+      "cd1\\Hungerlohn.mp3", "", ""}},
+    {16,
+     0,
+     -1,
+     {"cd1\\FinsterePlaene.mp3", "cd1\\flucht.mp3", "cd1\\Hungerlohn.mp3",
+      "cd1\\ImDunklenTann.mp3", "", ""}},
+    {11,
+     0,
+     -1,
+     {"cd1\\BeiDerQuelle.mp3", "cd1\\ImDunklenTann.mp3", "", "", "", ""}},
+    {13, 0, 2, {"cd1\\Immerkalt.mp3", "", "", "", "", ""}},
+    {13, 0, 3, {"cd1\\Immerkalt.mp3", "", "", "", "", ""}},
+    {13, 0, -1, {"cd1\\Hungerlohn.mp3", "", "", "", "", ""}},
+    {12, 0, 2, {"cd1\\Immerkalt.mp3", "", "", "", "", ""}},
+    {12, 0, 3, {"cd1\\Immerkalt.mp3", "", "", "", "", ""}},
+    {12, 0, -1, {"cd1\\Hungerlohn.mp3", "", "", "", "", ""}},
+    {28, 0, -1, {"", "", "", "", "", ""}},
+    {14,
+     0,
+     -1,
+     {"cd2\\DasParfuem.mp3", "cd2\\DerFernhaendler.mp3",
+      "cd2\\KraeuterUndPhiolen.mp3", "", "", ""}},
+    {8,
+     0,
+     -1,
+     {"cd2\\KraeuterUndPhiolen.mp3", "cd2\\DasParfuem.mp3",
+      "cd2\\DerFernhaendler.mp3", "", "", ""}},
+    {6,
+     0,
+     -1,
+     {"cd2\\ArmerDelinquent.mp3", "cd2\\ImKerker.mp3", "", "", "", ""}},
+    {18,
+     0,
+     -1,
+     {"cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3",
+      "", "", ""}},
+    {18,
+     0,
+     2,
+     {"cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3",
+      "cd2\\AufDemMarkt.mp3", "", ""}},
+    {18,
+     0,
+     3,
+     {"cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3",
+      "cd2\\AufDemMarkt.mp3", "", ""}},
+    {20,
+     0,
+     -1,
+     {"cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3",
+      "", "", ""}},
+    {20,
+     0,
+     2,
+     {"cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3",
+      "cd2\\AufDemMarkt.mp3", "", ""}},
+    {20,
+     0,
+     3,
+     {"cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3",
+      "cd2\\AufDemMarkt.mp3", "", ""}},
+    {21,
+     0,
+     -1,
+     {"cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3", "cd2\\AufDemMarkt.mp3",
+      "", "", ""}},
+    {21,
+     0,
+     2,
+     {"cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3",
+      "cd2\\AufDemMarkt.mp3", "", ""}},
+    {21,
+     0,
+     3,
+     {"cd1\\ImmerKalt.mp3", "cd1\\DieTaeglichMueh.mp3", "cd1\\Hungerlohn.mp3",
+      "cd2\\AufDemMarkt.mp3", "", ""}},
+    {5,
+     0,
+     -1,
+     {"cd2\\DerFernhaendler.mp3", "cd2\\ZumGutenEnd.mp3",
+      "cd1\\mauerundtor.mp3", "", "", ""}},
+    {9,
+     0,
+     -1,
+     {"cd2\\DerFernhaendler.mp3", "cd2\\ZumGutenEnd.mp3",
+      "cd1\\mauerundtor.mp3", "", "", ""}},
+    {15,
+     0,
+     -1,
+     {"cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "cd1\\mauerundtor.mp3", "",
+      "", ""}},
+    {23, 0, -1, {"cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "", "", "", ""}},
+    {24, 0, -1, {"cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "", "", "", ""}},
+    {25, 0, -1, {"cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "", "", "", ""}},
+    {26, 0, -1, {"cd1\\AufDemBall.mp3", "cd2\\Hochzeit.mp3", "", "", "", ""}},
+    {29,
+     0,
+     -1,
+     {"CD3\\DuestresGemaeuer.mp3", "CD3\\DunkleMondesnacht.mp3",
+      "CD2\\AmKuehlenGrabe.mp3", "CD1\\FinstrerPriester.mp3",
+      "CD3\\Grabesklang.mp3", "CD2\\DerSeuchenzug.mp3"}},
+    {31,
+     0,
+     -1,
+     {"CD3\\DerStolzenTraum.mp3", "CD3\\Vagabundentanz.mp3",
+      "CD3\\SchmerzlichErinnerung.mp3", "CD1\\ImDunklenTann.mp3",
+      "CD1\\BeiDerQuelle.mp3", "CD1\\AufspielZumTanz.mp3"}},
+    {32,
+     0,
+     -1,
+     {"CD3\\MitFlinkemStich.mp3", "CD3\\Medley.mp3", "CD2\\DasParfum.mp3",
+      "CD2\\DerFernhaendler.mp3", "CD2\\Hochzeit.mp3", "CD1\\AufDemBall.mp3"}},
+    {30,
+     587,
+     -1,
+     {"CD2\\ZumGutenEnd.mp3", "cd2\\DasParfuem.mp3",
+      "cd2\\KraeuterUndPhiolen.mp3", "CD2\\DerFernhaendler.mp3", "", ""}},
+    {30,
+     598,
+     -1,
+     {"CD3\\BurgUndFeste.mp3", "CD3\\Heldenglanz.mp3", "CD2\\Krieg.mp3",
+      "CD2\\Satisfaktion.mp3", "CD1\\AufDenStrassen.mp3",
+      "CD1\\FinsterePlaene.mp3"}},
+    {30,
+     614,
+     -1,
+     {"CD2\\ArmerDelinquent.mp3", "CD2\\DerSeuchenzug.mp3",
+      "CD1\\FinstererPriester.mp3", "CD1\\FinsterePlaene.mp3",
+      "CD1\\AufDemBall.mp3", "CD3\\Heldenglanz.mp3"}},
+    {0, 0, -1, {"", "", "", "", "", ""}}}; /* 0x602d70 */
+G16LOC snd_LocationTracks[] = {{{7, 0, 0, 0}, "", -20, 0, 0},
+                               {{2, 0, 0, 0}, "", -20, 0, 0},
+                               {{22, 0, 0, 0}, "", -20, 0, 0},
+                               {{19, 0, 0, 0}, "", -20, 0, 0},
+                               {{4, 0, 0, 0}, "", -20, 0, 0},
+                               {{16, 0, 0, 0}, "", -20, 0, 0},
+                               {{11, 0, 0, 0}, "", -20, 0, 0},
+                               {{13, 0, 0, 0}, "", -20, 0, 0},
+                               {{12, 0, 0, 0}, "", -20, 0, 0},
+                               {{28, 0, 0, 0}, "", -20, 0, 0},
+                               {{14, 8, 0, 0}, "", -20, 0, 0},
+                               {{6, 0, 0, 0}, "", -20, 0, 0},
+                               {{18, 20, 21, 0}, "", -20, 0, 0},
+                               {{5, 0, 0, 0}, "", -20, 0, 0},
+                               {{9, 0, 0, 0}, "", -20, 0, 0},
+                               {{15, 0, 0, 0}, "", -20, 0, 0},
+                               {{23, 0, 0, 0}, "", -20, 0, 0},
+                               {{24, 0, 0, 0}, "", -20, 0, 0},
+                               {{25, 0, 0, 0}, "", -20, 0, 0},
+                               {{26, 0, 0, 0}, "", -20, 0, 0},
+                               {{29, 0, 0, 0}, "", -20, 0, 0},
+                               {{31, 0, 0, 0}, "", -20, 0, 0},
+                               {{32, 0, 0, 0}, "", -20, 0, 0},
+                               {{30, 0, 0, 0}, "", -20, 0, 0},
+                               {{9876, 0, 0, 0}, "", -20, 0, 0},
+                               {{0, 0, 0, 0}, "", 0, 0, 0}}; /* 0x6094d0 */
+unsigned int snd_PauseStart = 1;     /* 0x60b0d8, start of the music pause */
+char snd_TrackText[256] = {0};       /* 0x6f0760, a debug text */
+char snd_MusicLog[256] = {0};        /* 0x6f0860, a debug text */
+char snd_LocustLog[256] = {0};       /* 0x6f0960, a debug text */
+char snd_DebugText[256] = {0};       /* 0x6f0a60, a debug text */
+unsigned char snd_AmbientOn = 0;     /* 0x6f0b60, 1: ambient sounds on */
+unsigned int snd_AmbientOnSaved = 0; /* 0x6f0b64, the saved snd_AmbientOn */
+int snd_QueuePaused = 0; /* 0x6f0b68, nonzero: the queue does not advance */
+G16TRACKHANDLES snd_TrackHandles = {
+    0}; /* 0x6f0b6c, the music track and its copy */
+struct MSXTRACK *snd_SpecialTrack = 0; /* 0x6f0b74, the special track of */
+int snd_AmbientSaved =
+    0; /* 0x6f0b78, 1 while the ambient flag is off and saved ( */
+int snd_FanfareFade =
+    0; /* 0x6f0b7c, 1 while a "Fanfare" has faded the music out */
+struct D3SOUND *snd_AmbientTrack =
+    0; /* 0x6f0b80, the d3snd handle of the ambient track (bird song, market ambience) */
+G16SND *snd_Queue = 0; /* 0x6f0b84, the queue (the first queued sound) */
+int snd_QueueTime = 0; /* 0x6f0b88, time of the last queue change */
+int snd_Season = 0;    /* 0x6f0b8c, the season */
+unsigned int snd_LastGust = 0;        /* 0x6f0b90, time of the last gust */
+struct SBSAMPLE *snd_LocustsPerm = 0; /* 0x6f0b94, hpLocustsPerm */
+struct SBSAMPLE *snd_Locusts = 0;     /* 0x6f0b98, hpLocusts */
+int snd_AnimalSeason = 0;             /* 0x6f0b9c, the season */
+void *snd_AtmoTrack = 0;       /* 0x6f0ba0, the atmosphere mp3 (MSXTRACK *) */
+char snd_LastTrack[256] = {0}; /* 0x6f0ba8, the outdoor track played last */
+struct AIBLD *snd_TrackBuilding = 0; /* 0x6f0ca8, the building of the track */
+struct AIOBJ *snd_TrackRoom = 0;     /* 0x6f0cac, the room of the track */
+unsigned int snd_PauseLength = 0;    /* 0x6f0cb0, the pause length */
+int snd_MusicSeason = 0;             /* 0x6f0cb4, the season of the music */
+unsigned int snd_LastDecision =
+    0; /* 0x6f0cb8, time of the last track decision */
+struct SBBANK *snd_VoiceBankOrders =
+    0; /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
+struct SBBANK *snd_VoiceBankClick =
+    0; /* 0x6f0cc0, voice bank: click comments */
+struct SBBANK *snd_VoiceBankNoise = 0; /* 0x6f0cc4, voice bank: click noises */
+int snd_UnreadBss =
+    0; /* 0x6f0cc8, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
+struct SBBANK *snd_VoiceBankGreeting = 0; /* 0x6f0ccc, voice bank: greeting */
 extern struct D3TRAIN *d3t_Rain;
 /* ai_Selected (0x770d08): ai_Chars[0].selected, read as the AICHAR field (data_views.h has no view of it) */
-SNDRAIN snd_Rain;  /* 0xf81240, the rain sounds' state: one common of 72 bytes (tools/exe/commongaps.py: the copy of
-                      ai_Time, 14 bytes, starts the f3snd group 32-aligned at 0xf81240 and each loop handle lies 8 after
-                      the previous one, with no reader between them; 4-byte commons would be packed) */
+SNDRAIN
+snd_Rain; /* 0xf81240, the rain sounds' state: one common of 72 bytes (tools/exe/commongaps.py: the copy of
+             ai_Time, 14 bytes, starts the f3snd group 32-aligned at 0xf81240 and each loop handle lies 8 after
+             the previous one, with no reader between them; 4-byte commons would be packed) */

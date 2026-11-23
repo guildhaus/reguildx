@@ -22,7 +22,7 @@
 #include "gfx.h"
 #include "shp_bank.h"
 #ifdef REA_FRAME_DUMP
-#include "rea_dump.h"           /* debug build: REA_DUMP_TRACE */
+#include "rea_dump.h" /* debug build: REA_DUMP_TRACE */
 #endif
 #include "data_views.h"
 #include "d3_io_a.h"
@@ -31,482 +31,487 @@
 #include "sblib.h"
 #include "sv.h"
 #include "d2.h"
-void d2_ScrolledNotify(int win);  /* unlinked, defined at the end of the unit (an empty body above its caller would let VC6 drop the call) */
+void d2_ScrolledNotify(
+    int win); /* unlinked, defined at the end of the unit (an empty body above its caller would let VC6 drop the call) */
+/* clang-format off */
 void d2_MoveObj(int x, int y, int obj);  /* 0x46cda0, @original: d2.c defines it with short x, y (d2.h does not declare it, cm.h is not included); this unit pushes int coordinates (movsx) */
+/* clang-format on */
 
 /* 0x476b90, adds amount to the item list drawn next to the pointer: the entry of picture id (first match, else
    the first free one); no effect when amount is 0 or the list is full (6 entries) */
-void d2_AddPointerItem(int id, int amount)
-{
-    int i;
+void d2_AddPointerItem(int id, int amount) {
+  int i;
 
-    if (amount != 0) {
-        for (i = 0; i < 6; i++)
-            if (d2_PointerItems[i].id == id)
-                break;
-        if (i == 6) {
-            for (i = 0; i < 6; i++)
-                if (d2_PointerItems[i].id == -1)
-                    break;
-            if (i == 6)
-                return;
-        }
-        d2_PointerItems[i].id = id;
-        d2_PointerItems[i].amount += amount;
+  if (amount != 0) {
+    for (i = 0; i < 6; i++)
+      if (d2_PointerItems[i].id == id)
+        break;
+    if (i == 6) {
+      for (i = 0; i < 6; i++)
+        if (d2_PointerItems[i].id == -1)
+          break;
+      if (i == 6)
+        return;
     }
+    d2_PointerItems[i].id = id;
+    d2_PointerItems[i].amount += amount;
+  }
 }
 /* 0x476c00, sets the entry of picture id in the item list drawn next to the pointer (first match, else the
    first free one); amount 0 frees the entry, a full list is no effect */
 
-void d2_SetPointerItem(int id, int amount)
-{
-    int i;
+void d2_SetPointerItem(int id, int amount) {
+  int i;
 
+  for (i = 0; i < 6; i++)
+    if (d2_PointerItems[i].id == id)
+      break;
+  if (i == 6) {
     for (i = 0; i < 6; i++)
-        if (d2_PointerItems[i].id == id)
-            break;
-    if (i == 6) {
-        for (i = 0; i < 6; i++)
-            if (d2_PointerItems[i].id == -1)
-                break;
-        if (i == 6)
-            return;
-    }
-    d2_PointerItems[i].id = id;
-    d2_PointerItems[i].amount = amount;
-    if (amount == 0) {
-        d2_PointerItems[i].amount = 0;
-        d2_PointerItems[i].id = -1;
-    }
+      if (d2_PointerItems[i].id == -1)
+        break;
+    if (i == 6)
+      return;
+  }
+  d2_PointerItems[i].id = id;
+  d2_PointerItems[i].amount = amount;
+  if (amount == 0) {
+    d2_PointerItems[i].amount = 0;
+    d2_PointerItems[i].id = -1;
+  }
 }
 /* 0x476c70, empties the item list drawn next to the pointer (all 6 entries free) */
 
-void d2_ClearPointerItems(void)
-{
-    int i;
+void d2_ClearPointerItems(void) {
+  int i;
 
-    for (i = 0; i < 6; i++) {
-        d2_PointerItems[i].amount = 0;
-        d2_PointerItems[i].id = -1;
-    }
+  for (i = 0; i < 6; i++) {
+    d2_PointerItems[i].amount = 0;
+    d2_PointerItems[i].id = -1;
+  }
 }
 /* 0x476c90, number of entries in use (id != -1) of the item list drawn next to the pointer */
 
-int d2_CountPointerItems(void)
-{
-    int i, n = 0;
+int d2_CountPointerItems(void) {
+  int i, n = 0;
 
-    for (i = 0; i < 6; i++)
-        if (d2_PointerItems[i].id != -1)
-            n++;
-    return n;
+  for (i = 0; i < 6; i++)
+    if (d2_PointerItems[i].id != -1)
+      n++;
+  return n;
 }
 /* 0x476cb0, draws the pointer at x, y on surf: the pointer picture (or the pointer sprite d2_PointerSprite when
    one is set, moved to x, y) and the item list drawn next to it, amounts under the pictures; locks the surface
    while it draws and unlocks it again unless the caller held it locked; no effect during a cutscene */
 
-void d2_DrawPointer(D2SURF *surf, int x, int y, int a, int b)
-{
-    int n, px, py, saved, hold, i;
-    int c0, c1, c2, c3;
-    void *pic;
-    int amt, id;
-    D2FRCT *f;
-    char buf[0x40];
-    char *s, *d;
+void d2_DrawPointer(D2SURF *surf, int x, int y, int a, int b) {
+  int n, px, py, saved, hold, i;
+  int c0, c1, c2, c3;
+  void *pic;
+  int amt, id;
+  D2FRCT *f;
+  char buf[0x40];
+  char *s, *d;
 
-    if (d2_CutsceneActive == 0 && ((hold = surf->locked) != 0 || d2_LockSurface(surf) != 0)) {
-        c0 = d2_ClipLeft;
-        c1 = d2_ClipTop;
-        c2 = d2_ClipRight;
-        c3 = d2_ClipBottom;
-        d2_SetClipRect(0, 0, surf->w, surf->h);
-        if (d2_PointerSprite == -1) {
-            d2_DrawShape(x, y, surf, d2_PointerPic, (unsigned char)d2_PointerLook);
-        } else {
-            d2_Anims[d2_PointerSprite].x = (short)x;
-            d2_Anims[d2_PointerSprite].y = (short)y;
-            d2_DrawAnim(d2_PointerSprite, surf);
-        }
-        saved = d2_CurrentFont;
-        d2_SetFont(d2_DefaultFont + 1);
-        n = 0;
-        for (i = 0; i < 6; i++) {
-            f = &d2_PointerItems[i];
-            if (f->id != -1) {
-                px = x + d2_Pics[d2_PointerPicIndex].w + (n % 3) * 0x1a;
-                py = (d2_FontHeight + 0x1a) * (n / 3) + y;
-                pic = d2_GetPic(f->id);
-                if (d2_DrawShapeScaled(px, py, surf, pic, d2_PicShift, -2, 0)) {
-                    amt = f->amount;
-                    id = f->id;
-                    if (id >= 0xdf && id < 0x3bb) {
-                        if (amt != -1) {
-                            sprintf(buf, "%i", amt);
-                        } else {
-                            s = txt_Ptrs[0xd7];
-                            d = buf;
-                            while ((*d++ = *s++) != 0)
-                                ;
-                        }
-                    } else {
-                        sprintf(buf, "%i", amt);
-                    }
-                    d2_DrawTextBox(px - 8, py + 0x18, 0x28, d2_FontHeight, surf, buf, 8);
-                }
-                n++;
-            }
-        }
-        d2_AddDirty(x, y, 0x80, 0x80);
-        d2_SetFont(saved);
-        d2_SetClipRect(c0, c1, c2, c3);
-        if (hold == 0)
-            d2_UnlockSurface(surf);
+  if (d2_CutsceneActive == 0 &&
+      ((hold = surf->locked) != 0 || d2_LockSurface(surf) != 0)) {
+    c0 = d2_ClipLeft;
+    c1 = d2_ClipTop;
+    c2 = d2_ClipRight;
+    c3 = d2_ClipBottom;
+    d2_SetClipRect(0, 0, surf->w, surf->h);
+    if (d2_PointerSprite == -1) {
+      d2_DrawShape(x, y, surf, d2_PointerPic, (unsigned char)d2_PointerLook);
+    } else {
+      d2_Anims[d2_PointerSprite].x = (short)x;
+      d2_Anims[d2_PointerSprite].y = (short)y;
+      d2_DrawAnim(d2_PointerSprite, surf);
     }
+    saved = d2_CurrentFont;
+    d2_SetFont(d2_DefaultFont + 1);
+    n = 0;
+    for (i = 0; i < 6; i++) {
+      f = &d2_PointerItems[i];
+      if (f->id != -1) {
+        px = x + d2_Pics[d2_PointerPicIndex].w + (n % 3) * 0x1a;
+        py = (d2_FontHeight + 0x1a) * (n / 3) + y;
+        pic = d2_GetPic(f->id);
+        if (d2_DrawShapeScaled(px, py, surf, pic, d2_PicShift, -2, 0)) {
+          amt = f->amount;
+          id = f->id;
+          if (id >= 0xdf && id < 0x3bb) {
+            if (amt != -1) {
+              sprintf(buf, "%i", amt);
+            } else {
+              s = txt_Ptrs[0xd7];
+              d = buf;
+              while ((*d++ = *s++) != 0)
+                ;
+            }
+          } else {
+            sprintf(buf, "%i", amt);
+          }
+          d2_DrawTextBox(px - 8, py + 0x18, 0x28, d2_FontHeight, surf, buf, 8);
+        }
+        n++;
+      }
+    }
+    d2_AddDirty(x, y, 0x80, 0x80);
+    d2_SetFont(saved);
+    d2_SetClipRect(c0, c1, c2, c3);
+    if (hold == 0)
+      d2_UnlockSurface(surf);
+  }
 }
 /* 0x476f00, draws the pointer at the mouse position plus x, y */
 
-int d2_DrawMousePointer(int x, int y)
-{
-    int a = 6, b = 6;
-    int px = d2_MouseX + x;
-    int py = d2_MouseY + y;
-    if (d2_PointerPic == 0)
-        d2_PointerPic = d2_GetPic(d2_FindPic("_MOUSE_CURSOR"));
-    if (dm_L.ldown != 0) {
-        px--;
-        py++;
-        a = 7;
-        b = 5;
-    }
-    d2_DrawPointer(d2_ScreenSurf, px, py, a, b);
-    return 1;
+int d2_DrawMousePointer(int x, int y) {
+  int a = 6, b = 6;
+  int px = d2_MouseX + x;
+  int py = d2_MouseY + y;
+  if (d2_PointerPic == 0)
+    d2_PointerPic = d2_GetPic(d2_FindPic("_MOUSE_CURSOR"));
+  if (dm_L.ldown != 0) {
+    px--;
+    py++;
+    a = 7;
+    b = 5;
+  }
+  d2_DrawPointer(d2_ScreenSurf, px, py, a, b);
+  return 1;
 }
 /* 0x476f80, sets (pic != 0) or removes the sprite of the pointer */
 
-void d2_SetPointerSprite(int a, int pic)
-{
-    if (pic != 0) {
-        if (d2_PointerSprite != -1) {
-            d2_FreeAnim(d2_PointerSprite);
-            d2_PointerSprite = -1;
-        }
-        d2_PointerSprite = d2_StartAnim(d2_MouseX, d2_MouseY, d2_GetPic(pic), 0);
-        return;
-    }
+void d2_SetPointerSprite(int a, int pic) {
+  if (pic != 0) {
     if (d2_PointerSprite != -1) {
-        d2_FreeAnim(d2_PointerSprite);
-        d2_PointerSprite = -1;
+      d2_FreeAnim(d2_PointerSprite);
+      d2_PointerSprite = -1;
     }
-    d2_PointerLook = 0;
+    d2_PointerSprite = d2_StartAnim(d2_MouseX, d2_MouseY, d2_GetPic(pic), 0);
+    return;
+  }
+  if (d2_PointerSprite != -1) {
+    d2_FreeAnim(d2_PointerSprite);
+    d2_PointerSprite = -1;
+  }
+  d2_PointerLook = 0;
 }
 /* 0x477000, hover time and the scroll wheel / scroll buttons of windows */
 
-void d2_UpdateHoverScroll(void)
-{
-    int saved = -1;
-    D2WIN *w, *tw;
-    int i, step, bd, bu;
+void d2_UpdateHoverScroll(void) {
+  int saved = -1;
+  D2WIN *w, *tw;
+  int i, step, bd, bu;
 
-    if (d2_HoverObj != d2_PrevHoverObj || d2_MouseX < d2_HoverX - 5 || d2_MouseY < d2_HoverY - 5 ||
-        d2_MouseX > d2_HoverX + 5 || d2_MouseY > d2_HoverY + 5 || dm_L.ldown != 0) {
-        d2_RightHeldObj = -1;
-        d2_HoverTick = tb_AnimTick;
-        d2_RightHolding = 0;
-        d2_HoverX = d2_MouseX;
-        d2_HoverY = d2_MouseY;
+  if (d2_HoverObj != d2_PrevHoverObj || d2_MouseX < d2_HoverX - 5 ||
+      d2_MouseY < d2_HoverY - 5 || d2_MouseX > d2_HoverX + 5 ||
+      d2_MouseY > d2_HoverY + 5 || dm_L.ldown != 0) {
+    d2_RightHeldObj = -1;
+    d2_HoverTick = tb_AnimTick;
+    d2_RightHolding = 0;
+    d2_HoverX = d2_MouseX;
+    d2_HoverY = d2_MouseY;
+  }
+  if (d2_RightHeldObj == -1) {
+    if (d2_HoverObj != -1 && dm_L.rhold != 0) {
+      d2_RightHeldObj = d2_HoverObj;
+      d2_HoverX = d2_MouseX;
+      d2_HoverY = d2_MouseY;
+      d2_RightHolding = 1;
+      goto held;
     }
-    if (d2_RightHeldObj == -1) {
-        if (d2_HoverObj != -1 && dm_L.rhold != 0) {
-            d2_RightHeldObj = d2_HoverObj;
-            d2_HoverX = d2_MouseX;
-            d2_HoverY = d2_MouseY;
-            d2_RightHolding = 1;
-            goto held;
-        }
-    } else if (d2_RightHolding != 0) {
-held:
-        if (dm_L.rhold == 0) {
-            d2_RightHeldObj = -1;
-            d2_HoverTick = tb_AnimTick;
-            d2_HoverX = d2_MouseX;
-            d2_HoverY = d2_MouseY;
-            d2_RightHolding = 0;
-            di_ClearEvents(0x10);
-        }
+  } else if (d2_RightHolding != 0) {
+  held:
+    if (dm_L.rhold == 0) {
+      d2_RightHeldObj = -1;
+      d2_HoverTick = tb_AnimTick;
+      d2_HoverX = d2_MouseX;
+      d2_HoverY = d2_MouseY;
+      d2_RightHolding = 0;
+      di_ClearEvents(0x10);
     }
-    d2_PrevHoverObj = d2_HoverObj;
-    d2_LastMouseX = d2_MouseX;
-    d2_LastMouseY = d2_MouseY;
-    if (d2_CurrentFont != -1)
-        saved = d2_CurrentFont;
-    for (i = 0; i < 0x60; i++) {
-        w = &d2_Wins[i];
-        if ((w->flags & 0x200) && w->active == 1 && w->font != 0)
-            d2_SetFont(w->font);
+  }
+  d2_PrevHoverObj = d2_HoverObj;
+  d2_LastMouseX = d2_MouseX;
+  d2_LastMouseY = d2_MouseY;
+  if (d2_CurrentFont != -1)
+    saved = d2_CurrentFont;
+  for (i = 0; i < 0x60; i++) {
+    w = &d2_Wins[i];
+    if ((w->flags & 0x200) && w->active == 1 && w->font != 0)
+      d2_SetFont(w->font);
+  }
+  if (d2_HitWindow != -1 && (w = &d2_Wins[d2_HitWindow]) != 0 &&
+      dm_L.ldown != 0 && (bd = w->btndown) != -1 && (bu = w->btnup) != -1 &&
+      d2_FocusedInput == 0) {
+    if (d2_PointerObj == bd) {
+      tw = &d2_Wins[d2_Objs[bd].winIndex];
+      if (tw->scrollRemY == tw->scrollStep || tw->scrollRemY == 0)
+        d2_ScrollWindowBy(0, tw->visible, tw->id);
+    } else if (d2_PointerObj == bu) {
+      tw = &d2_Wins[d2_Objs[bu].winIndex];
+      if (tw->scrollRemY == tw->scrollStep || tw->scrollRemY == 0)
+        d2_ScrollWindowBy(0, -tw->visible, tw->id);
     }
-    if (d2_HitWindow != -1 && (w = &d2_Wins[d2_HitWindow]) != 0 && dm_L.ldown != 0 && (bd = w->btndown) != -1 &&
-        (bu = w->btnup) != -1 && d2_FocusedInput == 0) {
-        if (d2_PointerObj == bd) {
-            tw = &d2_Wins[d2_Objs[bd].winIndex];
-            if (tw->scrollRemY == tw->scrollStep || tw->scrollRemY == 0)
-                d2_ScrollWindowBy(0, tw->visible, tw->id);
-        } else if (d2_PointerObj == bu) {
-            tw = &d2_Wins[d2_Objs[bu].winIndex];
-            if (tw->scrollRemY == tw->scrollStep || tw->scrollRemY == 0)
-                d2_ScrollWindowBy(0, -tw->visible, tw->id);
-        }
+  }
+  if (d2_PointerWinVisible != -1) {
+    w = &d2_Wins[d2_PointerWinVisible];
+    if (w != 0) {
+      if (dm_L.wup - dm_L.wdown != 0 && (step = w->visible) != 0 &&
+          d2_FocusedInput == 0) {
+        if (dm_L.wup != 0)
+          d2_ScrollWindowBy(0, -step, w->id);
+        else if (dm_L.wdown != 0)
+          d2_ScrollWindowBy(0, step, w->id);
+      }
     }
-    if (d2_PointerWinVisible != -1) {
-        w = &d2_Wins[d2_PointerWinVisible];
-        if (w != 0) {
-            if (dm_L.wup - dm_L.wdown != 0 && (step = w->visible) != 0 && d2_FocusedInput == 0) {
-                if (dm_L.wup != 0)
-                    d2_ScrollWindowBy(0, -step, w->id);
-                else if (dm_L.wdown != 0)
-                    d2_ScrollWindowBy(0, step, w->id);
-            }
-        }
-    }
-    if (saved != -1)
-        d2_SetFont(saved);
+  }
+  if (saved != -1)
+    d2_SetFont(saved);
 }
 /* 0x477320, creates the surfaces of the item list: one 64x64 (d2_ItemListSurf64), three 128x128 and one 256x256
    slot (keys -1, empty); resets the pointer picture, the text cursor offset (-7 when the cursor picture is the
    extra symbols') and the six held pointer items */
 
-void d2_CreateItemListSurfaces(void)
-{
-    D2SURF desc;
-    int i;
+void d2_CreateItemListSurfaces(void) {
+  D2SURF desc;
+  int i;
 
-    d2_PointerPic = 0;
-    d2_PointerLook = 0;
-    d2_TextCursorOffset = (d2_TextCursorPic != d2_ExtraSymbolsPic) ? 0 : -7;
+  d2_PointerPic = 0;
+  d2_PointerLook = 0;
+  d2_TextCursorOffset = (d2_TextCursorPic != d2_ExtraSymbolsPic) ? 0 : -7;
+  memset(&desc, 0, sizeof desc);
+  desc.w = 0x40;
+  desc.h = 0x40;
+  d2_ItemListSurf64 = d2_MakeSurface(&desc, 1);
+  for (i = 0; i < 3; i++) {
     memset(&desc, 0, sizeof desc);
-    desc.w = 0x40;
-    desc.h = 0x40;
-    d2_ItemListSurf64 = d2_MakeSurface(&desc, 1);
-    for (i = 0; i < 3; i++) {
-        memset(&desc, 0, sizeof desc);
-        d2_ItemListSurf128[i].key0 = -1;
-        d2_ItemListSurf128[i].key1 = -1;
-        desc.w = 0x80;
-        desc.h = 0x80;
-        d2_ItemListSurf128[i].surf = d2_MakeSurface(&desc, 3);
-    }
-    memset(&desc, 0, sizeof desc);
-    d2_ItemListSurf256.key0 = -1;
-    d2_ItemListSurf256.key1 = -1;
-    desc.w = 0x100;
-    desc.h = 0x100;
-    d2_ItemListSurf256.surf = d2_MakeSurface(&desc, 3);
-    for (i = 0; i < 6; i++) {
-        d2_PointerItems[i].id = -1;
-        d2_PointerItems[i].amount = 0;
-    }
+    d2_ItemListSurf128[i].key0 = -1;
+    d2_ItemListSurf128[i].key1 = -1;
+    desc.w = 0x80;
+    desc.h = 0x80;
+    d2_ItemListSurf128[i].surf = d2_MakeSurface(&desc, 3);
+  }
+  memset(&desc, 0, sizeof desc);
+  d2_ItemListSurf256.key0 = -1;
+  d2_ItemListSurf256.key1 = -1;
+  desc.w = 0x100;
+  desc.h = 0x100;
+  d2_ItemListSurf256.surf = d2_MakeSurface(&desc, 3);
+  for (i = 0; i < 6; i++) {
+    d2_PointerItems[i].id = -1;
+    d2_PointerItems[i].amount = 0;
+  }
 }
 /* 0x477420, frees the surfaces of the item list, the slots' keys set back to -1 (empty) */
 
-void d2_FreeItemListSurfaces(void)
-{
-    int i;
+void d2_FreeItemListSurfaces(void) {
+  int i;
 
-    if (d2_ItemListSurf64 != 0) {
-        d2_FreeSurface(d2_ItemListSurf64);
-        d2_ItemListSurf64 = 0;
+  if (d2_ItemListSurf64 != 0) {
+    d2_FreeSurface(d2_ItemListSurf64);
+    d2_ItemListSurf64 = 0;
+  }
+  for (i = 0; i < 3; i++) {
+    if (d2_ItemListSurf128[i].surf != 0) {
+      d2_FreeSurface(d2_ItemListSurf128[i].surf);
+      d2_ItemListSurf128[i].surf = 0;
+      d2_ItemListSurf128[i].key0 = -1;
+      d2_ItemListSurf128[i].key1 = -1;
     }
-    for (i = 0; i < 3; i++) {
-        if (d2_ItemListSurf128[i].surf != 0) {
-            d2_FreeSurface(d2_ItemListSurf128[i].surf);
-            d2_ItemListSurf128[i].surf = 0;
-            d2_ItemListSurf128[i].key0 = -1;
-            d2_ItemListSurf128[i].key1 = -1;
-        }
-    }
-    d2_FreeSurface(d2_ItemListSurf256.surf);
-    d2_ItemListSurf256.key0 = -1;
-    d2_ItemListSurf256.key1 = -1;
-    d2_ItemListSurf256.surf = 0;
+  }
+  d2_FreeSurface(d2_ItemListSurf256.surf);
+  d2_ItemListSurf256.key0 = -1;
+  d2_ItemListSurf256.key1 = -1;
+  d2_ItemListSurf256.surf = 0;
 }
 /* 0x4774a0, sets the value of a number input from the mouse drag (val at y0, now at y1) */
 
-void d2_DragInputValue(D2INPUT *in, int val, int y0, int y1)
-{
-    int step, max, min;
+void d2_DragInputValue(D2INPUT *in, int val, int y0, int y1) {
+  int step, max, min;
 
-    step = d2_InputStep(in);
-    in->value = val - step * ((y1 - y0) / 4);
-    val = in->value;
-    max = in->maxval;
-    if (val > max) {
-        in->value = max;
-    } else {
-        min = in->minval;
-        if (val < min) {
-            if (((char)in->flags & 0x40) == 0 || val != -1 || min != 0 || max != 0)
-                in->value = min;
-            else
-                in->value = -1;
-        }
+  step = d2_InputStep(in);
+  in->value = val - step * ((y1 - y0) / 4);
+  val = in->value;
+  max = in->maxval;
+  if (val > max) {
+    in->value = max;
+  } else {
+    min = in->minval;
+    if (val < min) {
+      if (((char)in->flags & 0x40) == 0 || val != -1 || min != 0 || max != 0)
+        in->value = min;
+      else
+        in->value = -1;
     }
-    itoa(in->value, in->text, 10);
+  }
+  itoa(in->value, in->text, 10);
 }
 /* 0x477530, ends the editing of the input field */
 
-void d2_EndInputEdit(void)
-{
-    if (d2_FocusedInput != 0) {
-        d2_Objs[D2CUR->obj].highlighted = 0;
-        d2_FocusedInput = 0;
-        if (d2_LimitsChanged != -1) {
-            d2_LimitsChanged = -1;
-            di_MaxY = d2_SavedMaxY;
-            di_MinY = d2_SavedMinY;
-        }
+void d2_EndInputEdit(void) {
+  if (d2_FocusedInput != 0) {
+    d2_Objs[D2CUR->obj].highlighted = 0;
+    d2_FocusedInput = 0;
+    if (d2_LimitsChanged != -1) {
+      d2_LimitsChanged = -1;
+      di_MaxY = d2_SavedMaxY;
+      di_MinY = d2_SavedMinY;
     }
+  }
 }
 
-#define FOCUS_SET     d2_Objs[D2CUR->obj].highlighted = 1;     d2_InputDragOffsetY = di_MaxY - y;     d2_InputDragValue = D2CUR->value;     d2_InputDragReleased = 0;
+#define FOCUS_SET                                                              \
+  d2_Objs[D2CUR->obj].highlighted = 1;                                         \
+  d2_InputDragOffsetY = di_MaxY - y;                                           \
+  d2_InputDragValue = D2CUR->value;                                            \
+  d2_InputDragReleased = 0;
 
 /* 0x477590, keyboard input of the input field being edited */
-void d2_InputKey(void)
-{
-    int y = dm_L.y;
-    int len, max, i;
-    D2WIN *w;
+void d2_InputKey(void) {
+  int y = dm_L.y;
+  int len, max, i;
+  D2WIN *w;
 
-    if (kb_Last == 0)
-        return;
-    switch (kb_Last) {
-    case 0xe:
-        len = strlen(D2CUR->text);
-        if (len > 0)
-            D2CUR->text[len - 1] = 0;
-        kb_Last = 0;
-        break;
-    case 0x1c:
-        d2_Objs[D2CUR->obj].highlighted = 0;
-        d2_FocusedInput = 0;
-        d2_ClickUsed = 0;
-        if (d2_TextCursorSprite != -1) {
-            d2_RemoveObj(d2_TextCursorSprite);
-            d2_TextCursorSprite = -1;
-        }
-        break;
-    case 1:
-    case 0x3b:
-    case 0x3c:
-    case 0x3d:
-    case 0x3e:
-    case 0x3f:
-    case 0x40:
-    case 0x41:
-    case 0x42:
-    case 0x43:
-    case 0x44:
-    case 0x57:
-    case 0x58:
-        break;
-    case 0xf:
-        w = d2_Objs[D2CUR->obj].win;
-        if (kb_Down[0x36] == 0 && kb_Down[0x2a] == 0) {
-            if (d2_FocusObjIndex >= w->nobjs - 1)
-                d2_FocusObjIndex = -1;
-            for (i = d2_FocusObjIndex + 1; i < w->nobjs; i++) {
-                if (d2_Objs[w->objs[i]].type == 0x41 && d2_Objs[w->objs[i]].disabled == 0) {
-                    d2_FocusObjIndex = i;
-                    d2_Objs[D2CUR->obj].highlighted = 0;
-                    d2_FocusedInput = (D2INPUT *)d2_Objs[w->objs[i]].data;
-                    FOCUS_SET
-                    break;
-                }
-            }
-        } else {
-            if (d2_FocusObjIndex == 0)
-                d2_FocusObjIndex = w->nobjs;
-            for (i = d2_FocusObjIndex - 1; i >= 0; i--) {
-                if (d2_Objs[w->objs[i]].type == 0x41 && d2_Objs[w->objs[i]].disabled == 0) {
-                    d2_FocusObjIndex = i;
-                    d2_Objs[D2CUR->obj].highlighted = 0;
-                    d2_FocusedInput = (D2INPUT *)d2_Objs[w->objs[i]].data;
-                    FOCUS_SET
-                    break;
-                }
-            }
-        }
-        if (d2_TextCursorSprite != -1) {
-            d2_RemoveObj(d2_TextCursorSprite);
-            d2_TextCursorSprite = -1;
-        }
-        if ((D2CUR->flags & 1) != 0) {
-            d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
-            d2_TextCursorY = D2CUR->y;
-            if (d2_TextCursorSprite == -1)
-                d2_TextCursorSprite = d2_CreatePicObj(d2_TextCursorX, d2_TextCursorY - 7, d2_ExtraSymbolsPic + 8);
-            else
-                d2_MoveObj(d2_TextCursorX, d2_TextCursorY - 7, d2_TextCursorSprite);
-        }
-        kb_Last = 0;
-        break;
-    default:
-        if (D2CUR->flags & 2) {
-            if (kb_Last < 2 || kb_Last > 0xb || kb_Down[0x36] != 0 || kb_Down[0x2a] != 0)
-                break;
-            itoa(D2CUR->value, D2CUR->text, 10);
-        }
-        len = strlen(D2CUR->text);
-        if (D2CUR->flags & 1)
-            max = D2CUR->maxval;
-        else
-            max = D2CUR->ndigits;
-        if (len < max && (D2CUR->maxw == 0 || d2_TextCursorX <= D2CUR->x + D2CUR->maxw)) {
-            if (kb_Down[0x36] == 0 && kb_Down[0x2a] == 0)
-                D2CUR->text[len] = kb_FindKey(0, 0, 0, kb_Last);
-            else
-                D2CUR->text[len] = kb_FindKey(1, 0, 0, kb_Last);
-            D2CUR->text[len + 1] = 0;
-        }
-        kb_Last = 0;
-        break;
+  if (kb_Last == 0)
+    return;
+  switch (kb_Last) {
+  case 0xe:
+    len = strlen(D2CUR->text);
+    if (len > 0)
+      D2CUR->text[len - 1] = 0;
+    kb_Last = 0;
+    break;
+  case 0x1c:
+    d2_Objs[D2CUR->obj].highlighted = 0;
+    d2_FocusedInput = 0;
+    d2_ClickUsed = 0;
+    if (d2_TextCursorSprite != -1) {
+      d2_RemoveObj(d2_TextCursorSprite);
+      d2_TextCursorSprite = -1;
     }
-    if (d2_FocusedInput != 0) {
-        if (D2CUR->flags & 2)
-            D2CUR->value = atoi(D2CUR->text);
-        d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
-        if (d2_TextCursorSprite != -1)
-            d2_MoveObj(d2_TextCursorX, d2_TextCursorY - 7, d2_TextCursorSprite);
+    break;
+  case 1:
+  case 0x3b:
+  case 0x3c:
+  case 0x3d:
+  case 0x3e:
+  case 0x3f:
+  case 0x40:
+  case 0x41:
+  case 0x42:
+  case 0x43:
+  case 0x44:
+  case 0x57:
+  case 0x58:
+    break;
+  case 0xf:
+    w = d2_Objs[D2CUR->obj].win;
+    if (kb_Down[0x36] == 0 && kb_Down[0x2a] == 0) {
+      if (d2_FocusObjIndex >= w->nobjs - 1)
+        d2_FocusObjIndex = -1;
+      for (i = d2_FocusObjIndex + 1; i < w->nobjs; i++) {
+        if (d2_Objs[w->objs[i]].type == 0x41 &&
+            d2_Objs[w->objs[i]].disabled == 0) {
+          d2_FocusObjIndex = i;
+          d2_Objs[D2CUR->obj].highlighted = 0;
+          d2_FocusedInput = (D2INPUT *)d2_Objs[w->objs[i]].data;
+          FOCUS_SET
+          break;
+        }
+      }
+    } else {
+      if (d2_FocusObjIndex == 0)
+        d2_FocusObjIndex = w->nobjs;
+      for (i = d2_FocusObjIndex - 1; i >= 0; i--) {
+        if (d2_Objs[w->objs[i]].type == 0x41 &&
+            d2_Objs[w->objs[i]].disabled == 0) {
+          d2_FocusObjIndex = i;
+          d2_Objs[D2CUR->obj].highlighted = 0;
+          d2_FocusedInput = (D2INPUT *)d2_Objs[w->objs[i]].data;
+          FOCUS_SET
+          break;
+        }
+      }
     }
+    if (d2_TextCursorSprite != -1) {
+      d2_RemoveObj(d2_TextCursorSprite);
+      d2_TextCursorSprite = -1;
+    }
+    if ((D2CUR->flags & 1) != 0) {
+      d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
+      d2_TextCursorY = D2CUR->y;
+      if (d2_TextCursorSprite == -1)
+        d2_TextCursorSprite = d2_CreatePicObj(
+            d2_TextCursorX, d2_TextCursorY - 7, d2_ExtraSymbolsPic + 8);
+      else
+        d2_MoveObj(d2_TextCursorX, d2_TextCursorY - 7, d2_TextCursorSprite);
+    }
+    kb_Last = 0;
+    break;
+  default:
+    if (D2CUR->flags & 2) {
+      if (kb_Last < 2 || kb_Last > 0xb || kb_Down[0x36] != 0 ||
+          kb_Down[0x2a] != 0)
+        break;
+      itoa(D2CUR->value, D2CUR->text, 10);
+    }
+    len = strlen(D2CUR->text);
+    if (D2CUR->flags & 1)
+      max = D2CUR->maxval;
+    else
+      max = D2CUR->ndigits;
+    if (len < max &&
+        (D2CUR->maxw == 0 || d2_TextCursorX <= D2CUR->x + D2CUR->maxw)) {
+      if (kb_Down[0x36] == 0 && kb_Down[0x2a] == 0)
+        D2CUR->text[len] = kb_FindKey(0, 0, 0, kb_Last);
+      else
+        D2CUR->text[len] = kb_FindKey(1, 0, 0, kb_Last);
+      D2CUR->text[len + 1] = 0;
+    }
+    kb_Last = 0;
+    break;
+  }
+  if (d2_FocusedInput != 0) {
+    if (D2CUR->flags & 2)
+      D2CUR->value = atoi(D2CUR->text);
+    d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
+    if (d2_TextCursorSprite != -1)
+      d2_MoveObj(d2_TextCursorX, d2_TextCursorY - 7, d2_TextCursorSprite);
+  }
 }
 /* 0x477a70, mouse drag on a number input */
 
-void d2_DragInput(void)
-{
-    int step;
-    char fl;
+void d2_DragInput(void) {
+  int step;
+  char fl;
 
-    if (d2_FocusedInput != 0 && (D2CUR->flags & 2) != 0) {
-        if (dm_L.lextra != 0 && D2CUR->value < D2CUR->maxval)
-            D2CUR->value = D2CUR->maxval;
-        if (dm_L.ldown != 0 && D2CUR->value != -1) {
-            if (d2_DragActive == 0) {
-                step = d2_InputStep(D2CUR);
-                d2_DragActive = 1;
-                d2_SavedMaxY = di_MaxY;
-                d2_SavedMinY = di_MinY;
-                d2_DragStartValue = D2CUR->value;
-                d2_DragStartX = dm_L.x;
-                d2_DragStartY = dm_L.y;
-                fl = (char)D2CUR->flags;
-                if (fl & 0x80) {
-                    di_MaxY = ((d2_DragStartValue - D2CUR->minval) * 4) / step + d2_DragStartY;
-                    di_MinY = ((d2_DragStartValue - D2CUR->maxval) * 4) / step + d2_DragStartY;
-                }
-                D2CUR->frameY = ((d2_DragStartValue - D2CUR->minval) * 4) / step + d2_DragStartY;
-            }
-            d2_DragInputValue(D2CUR, d2_DragStartValue, d2_DragStartY, dm_L.y);
+  if (d2_FocusedInput != 0 && (D2CUR->flags & 2) != 0) {
+    if (dm_L.lextra != 0 && D2CUR->value < D2CUR->maxval)
+      D2CUR->value = D2CUR->maxval;
+    if (dm_L.ldown != 0 && D2CUR->value != -1) {
+      if (d2_DragActive == 0) {
+        step = d2_InputStep(D2CUR);
+        d2_DragActive = 1;
+        d2_SavedMaxY = di_MaxY;
+        d2_SavedMinY = di_MinY;
+        d2_DragStartValue = D2CUR->value;
+        d2_DragStartX = dm_L.x;
+        d2_DragStartY = dm_L.y;
+        fl = (char)D2CUR->flags;
+        if (fl & 0x80) {
+          di_MaxY =
+              ((d2_DragStartValue - D2CUR->minval) * 4) / step + d2_DragStartY;
+          di_MinY =
+              ((d2_DragStartValue - D2CUR->maxval) * 4) / step + d2_DragStartY;
         }
+        D2CUR->frameY =
+            ((d2_DragStartValue - D2CUR->minval) * 4) / step + d2_DragStartY;
+      }
+      d2_DragInputValue(D2CUR, d2_DragStartValue, d2_DragStartY, dm_L.y);
     }
+  }
 }
 /* 0x477ba0, mouse and keys on the focused slider object
    @deep deep s48: goto wheel replaced by a drag flag (drag = 1; .. else drag = 0; if (drag) { clamp; store
@@ -530,448 +535,459 @@ void d2_DragInput(void)
 
    */
 
-void d2_SliderInput(void)
-{
-    D2OBJ *o;
-    /* @original f6's initializer emits no code; it moves f6's first reference, after which VC6 computes
-       the vertical drag test as the original (f6->h + o->y in eax, the code 10 hunk of the plain form) */
-    struct D2SHP *f0, *f6 = 0;
-    void *h;
-    int px, py, v, mn, mx, len, v2, d, a, bottom;
-    unsigned int fl;
-    int drag;
+void d2_SliderInput(void) {
+  D2OBJ *o;
+  /* @original f6's initializer emits no code; it moves f6's first reference, after which VC6 computes
+     the vertical drag test as the original (f6->h + o->y in eax, the code 10 hunk of the plain form) */
+  struct D2SHP *f0, *f6 = 0;
+  void *h;
+  int px, py, v, mn, mx, len, v2, d, a, bottom;
+  unsigned int fl;
+  int drag;
 
-    if (dm_L.ldown == 0 || d2_DragSlider == -1)
-        d2_DragSlider = -1;
-    else
-        d2_PointerObj = d2_DragSlider;
-    if (d2_PointerObj == -1)
-        return;
+  if (dm_L.ldown == 0 || d2_DragSlider == -1)
+    d2_DragSlider = -1;
+  else
+    d2_PointerObj = d2_DragSlider;
+  if (d2_PointerObj == -1)
+    return;
+  o = &d2_Objs[d2_PointerObj];
+  if (o->type != 0x45)
+    return;
+  if (o->u.s.flags & 0x40)
+    return;
+  if (o->buf == 0 || o->buf->loaded == 0) {
+    px = dm_L.x;
+    py = dm_L.y;
+  } else {
+    px = d2_PointerX;
+    py = d2_PointerY;
+  }
+  if (dm_L.ldown != 0) {
+    h = o->data;
+    f0 = d2_GetFrame(h, 0);
+    d2_GetFrame(h, 1);
+    d2_GetFrame(h, 3);
+    f6 = d2_GetFrame(h, 6);
     o = &d2_Objs[d2_PointerObj];
-    if (o->type != 0x45)
-        return;
-    if (o->u.s.flags & 0x40)
-        return;
-    if (o->buf == 0 || o->buf->loaded == 0) {
-        px = dm_L.x;
-        py = dm_L.y;
-    } else {
-        px = d2_PointerX;
-        py = d2_PointerY;
+    fl = o->u.s.flags;
+    mx = o->u.s.max;
+    mn = o->u.s.min;
+    len = o->u.s.len;
+    v2 = o->u.s.value2;
+    d = mx - mn;
+    d2_DragSlider = d2_PointerObj;
+    drag = 1;
+    if ((fl & 0x48) == 0) {
+      if ((fl & 2) && px > f6->w + o->x && px < o->w - f6->w + o->x) {
+        a = px - f0->w - o->x;
+        v = (int)(a * ((double)d / len) + mn + 0.5);
+      } else if (
+          (fl & 1) &&
+          py > f6->h + o->y
+          /* @original: the bottom edge o->y + o->h is summed once inside the test and reused for a
+             (written out at both uses VC6 reassociates the test to o->h - f6->h + o->y) */
+          && py < (bottom = o->y + o->h) - f6->h) {
+        a = bottom - f0->h - py;
+        v = (int)(a * ((double)d / len) + mn + 0.5);
+      } else {
+        drag = 0;
+      }
+      if (drag) {
+        if (v < mn)
+          v = mn;
+        else if ((fl & 0x10) && v > v2)
+          v = v2;
+        else if (v > mx)
+          v = mx;
+        o->dirty = 1;
+        d2_Objs[d2_PointerObj].u.s.value = v;
+      }
     }
-    if (dm_L.ldown != 0) {
-        h = o->data;
-        f0 = d2_GetFrame(h, 0);
-        d2_GetFrame(h, 1);
-        d2_GetFrame(h, 3);
-        f6 = d2_GetFrame(h, 6);
-        o = &d2_Objs[d2_PointerObj];
-        fl = o->u.s.flags;
-        mx = o->u.s.max;
-        mn = o->u.s.min;
-        len = o->u.s.len;
-        v2 = o->u.s.value2;
-        d = mx - mn;
-        d2_DragSlider = d2_PointerObj;
-        drag = 1;
-        if ((fl & 0x48) == 0) {
-            if ((fl & 2) && px > f6->w + o->x && px < o->w - f6->w + o->x) {
-                a = px - f0->w - o->x;
-                v = (int)(a * ((double)d / len) + mn + 0.5);
-            } else if ((fl & 1) && py > f6->h + o->y
-                       /* @original: the bottom edge o->y + o->h is summed once inside the test and reused for a
-                          (written out at both uses VC6 reassociates the test to o->h - f6->h + o->y) */
-                       && py < (bottom = o->y + o->h) - f6->h) {
-                a = bottom - f0->h - py;
-                v = (int)(a * ((double)d / len) + mn + 0.5);
-            } else {
-                drag = 0;
-            }
-            if (drag) {
-                if (v < mn)
-                    v = mn;
-                else if ((fl & 0x10) && v > v2)
-                    v = v2;
-                else if (v > mx)
-                    v = mx;
-                o->dirty = 1;
-                d2_Objs[d2_PointerObj].u.s.value = v;
-            }
-        }
-    }
-    if (dm_L.lclick == 0) {
-        if (dm_L.lhold == 0)
-            return;
-        if (d2_Objs[d2_PointerObj].u.s.max < 100)
-            return;
-    }
-    mx = d2_Objs[d2_PointerObj].u.s.max;
-    mn = d2_Objs[d2_PointerObj].u.s.min;
-    o = &d2_Objs[d2_PointerObj];
-    v = o->u.s.value;
-    if (fl & 2) {
-        if (o->hilo != 0)
-            v--;
-        else if (o->hihi != 0)
-            v++;
-    } else {
-        if (o->hilo != 0)
-            v++;
-        else if (o->hihi != 0)
-            v--;
-    }
-    if (v < mn)
-        v = mn;
-    else if ((fl & 0x10) && v > v2)
-        v = v2;
-    else if (v > mx)
-        v = mx;
-    o->dirty = 1;
-    d2_Objs[d2_PointerObj].u.s.value = v;
+  }
+  if (dm_L.lclick == 0) {
+    if (dm_L.lhold == 0)
+      return;
+    if (d2_Objs[d2_PointerObj].u.s.max < 100)
+      return;
+  }
+  mx = d2_Objs[d2_PointerObj].u.s.max;
+  mn = d2_Objs[d2_PointerObj].u.s.min;
+  o = &d2_Objs[d2_PointerObj];
+  v = o->u.s.value;
+  if (fl & 2) {
+    if (o->hilo != 0)
+      v--;
+    else if (o->hihi != 0)
+      v++;
+  } else {
+    if (o->hilo != 0)
+      v++;
+    else if (o->hihi != 0)
+      v--;
+  }
+  if (v < mn)
+    v = mn;
+  else if ((fl & 0x10) && v > v2)
+    v = v2;
+  else if (v > mx)
+    v = mx;
+  o->dirty = 1;
+  d2_Objs[d2_PointerObj].u.s.value = v;
 }
 /* 0x477ed0, per frame handling of the input fields and sliders */
 
-int d2_UpdateInput(void)
-{
-    D2OBJ *o;
-    D2INPUT *p;
-    D2WIN *w;
-    int y, i;
+int d2_UpdateInput(void) {
+  D2OBJ *o;
+  D2INPUT *p;
+  D2WIN *w;
+  int y, i;
 
-    if (d2_DragActive != 0 && dm_L.lextra == 0 && (dm_L.ldown == 0 || d2_FocusedInput == 0 || (D2CUR->flags & 2) == 0)) {
-        d2_DragActive = 0;
-        di_MaxY = d2_SavedMaxY;
-        di_MinY = d2_SavedMinY;
-        d2_EndInputEdit();
-    }
-    y = dm_L.y;
+  if (d2_DragActive != 0 && dm_L.lextra == 0 &&
+      (dm_L.ldown == 0 || d2_FocusedInput == 0 || (D2CUR->flags & 2) == 0)) {
+    d2_DragActive = 0;
+    di_MaxY = d2_SavedMaxY;
+    di_MinY = d2_SavedMinY;
+    d2_EndInputEdit();
+  }
+  y = dm_L.y;
+  if (dm_L.ldown == 0)
+    d2_ClickUsed = 0;
+  if (d2_FocusedInput == 0 && d2_TextCursorSprite != -1) {
+    d2_RemoveObj(d2_TextCursorSprite);
+    d2_TextCursorSprite = -1;
+  }
+  if (d2_PointerObj == -1 || (o = &d2_Objs[d2_PointerObj])->type != 0x41 ||
+      d2_PointerObj != (p = (D2INPUT *)o->data)->obj) {
+  focus:
     if (dm_L.ldown == 0)
-        d2_ClickUsed = 0;
-    if (d2_FocusedInput == 0 && d2_TextCursorSprite != -1) {
-        d2_RemoveObj(d2_TextCursorSprite);
-        d2_TextCursorSprite = -1;
-    }
-    if (d2_PointerObj == -1 || (o = &d2_Objs[d2_PointerObj])->type != 0x41 ||
-        d2_PointerObj != (p = (D2INPUT *)o->data)->obj) {
-focus:
-        if (dm_L.ldown == 0)
-            goto click;
-        if (d2_FocusedInput != 0) {
-            d2_ClickUsed = 1;
-            goto click;
-        }
-    } else {
-        if (dm_L.ldown != 0) {
-            if (D2CUR != p && d2_ClickUsed == 0) {
-                if (D2CUR != 0)
-                    d2_Objs[D2CUR->obj].highlighted = 0;
-                d2_FocusedInput = p;
-                d2_Objs[p->obj].highlighted = 1;
-                d2_InputDragOffsetY = di_MaxY - y;
-                d2_InputDragValue = p->value;
-                d2_InputDragReleased = 0;
-                w = d2_Objs[D2CUR->obj].win;
-                i = 0;
-                if (w != 0) {
-                    while (1) {
-                        if (i >= w->nobjs)
-                            break;
-                        if (w->objs[i] == p->obj)
-                            d2_FocusObjIndex = i;
-                        i++;
-                    }
-                }
-                if ((D2CUR->flags & 0x40) != 0 && D2CUR->maxval == 0 && D2CUR->minval == 0) {
-                    if (d2_CountPointerItems() == 0 && D2CUR->value == 0) {
-                        D2CUR->value = -1;
-                    }
-                }
-                if (D2CUR->flags & 1) {
-                    d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
-                    d2_TextCursorY = D2CUR->y;
-                    if (d2_TextCursorSprite == -1) {
-                        d2_TextCursorSprite = d2_CreatePicObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorPic);
-                    } else {
-                        d2_MoveObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorSprite);
-                    }
-                } else {
-                    if (d2_TextCursorSprite != -1) {
-                        d2_RemoveObj(d2_TextCursorSprite);
-                        d2_TextCursorSprite = -1;
-                    }
-                }
-            }
-            goto focus;
-        }
-click:
-        if (d2_FocusedInput != 0 && d2_PointerObj == D2CUR->obj && (D2CUR->flags & 2) != 0 && dm_L.lclick != 0) {
-            if (D2CUR->maxval > D2CUR->value && D2CUR->value != -1 && D2CUR->icon != -1) {
-                D2CUR->value += d2_InputStep(D2CUR);
-            }
-            if (D2CUR->maxval == 0 && D2CUR->minval == 0) {
-                if (d2_CountPointerItems() == 0 && D2CUR->value == 0 && (D2CUR->flags & 0x40) != 0) {
-                    D2CUR->value = -1;
-                }
-            }
-        }
-    }
-    if (dm_L.rup != 0) {
-        if (d2_FocusedInput == 0)
-            goto last;
-        if ((D2CUR->flags & 1) != 0) {
-            di_ClearEvents(0x10);
-        }
-        d2_Objs[D2CUR->obj].highlighted = 0;
-        d2_FocusedInput = 0;
-        d2_ClickUsed = 0;
-        if (d2_TextCursorSprite == -1)
-            goto last;
-        d2_RemoveObj(d2_TextCursorSprite);
-        d2_TextCursorSprite = -1;
-    }
+      goto click;
     if (d2_FocusedInput != 0) {
-        if (dm_L.ldown == 0) {
-            d2_InputDragReleased = 1;
-            dm_L.lclick = 0;
-        }
-        d2_InputKey();
-        d2_DragInput();
-        if (d2_FocusedInput != 0 && (D2CUR->flags & 0x10) != 0 && d2_PointerObj == D2CUR->obj && dm_L.lclick != 0) {
-            D2CUR->currentTextId = D2CUR->currentTextId + 1;
-            if (D2CUR->currentTextId > D2CUR->textCount - 1 + D2CUR->firstTextId)
-                D2CUR->currentTextId = D2CUR->firstTextId;
-            d2_InputSetString(D2CUR->id, D2CUR->currentTextId);
-        }
+      d2_ClickUsed = 1;
+      goto click;
     }
-last:
-    d2_SliderInput();
-    if (d2_PointerObj != -1 && (d2_Objs[d2_PointerObj].style & 0x40) != 0)
-        d2_CopyCaption(d2_Objs[d2_PointerObj].caption);
-    return 0;
-}
-/* 0x478320, gives the input object obj the focus */
-
-void d2_FocusInput(int obj)
-{
-    D2INPUT *in;
-    D2WIN *w;
-    int i;
-
-    in = (D2INPUT *)d2_Objs[obj].data;
-    if (d2_FocusedInput != in) {
-        if (d2_FocusedInput != 0)
-            d2_Objs[D2CUR->obj].highlighted = 0;
-        d2_FocusedInput = in;
-        d2_Objs[in->obj].highlighted = 1;
+  } else {
+    if (dm_L.ldown != 0) {
+      if (D2CUR != p && d2_ClickUsed == 0) {
+        if (D2CUR != 0)
+          d2_Objs[D2CUR->obj].highlighted = 0;
+        d2_FocusedInput = p;
+        d2_Objs[p->obj].highlighted = 1;
+        d2_InputDragOffsetY = di_MaxY - y;
+        d2_InputDragValue = p->value;
+        d2_InputDragReleased = 0;
         w = d2_Objs[D2CUR->obj].win;
         i = 0;
         if (w != 0) {
-            while (1) {
-                if (i >= w->nobjs)
-                    break;
-                if (w->objs[i] == in->obj)
-                    d2_FocusObjIndex = i;
-                i++;
-            }
+          while (1) {
+            if (i >= w->nobjs)
+              break;
+            if (w->objs[i] == p->obj)
+              d2_FocusObjIndex = i;
+            i++;
+          }
         }
-        if ((D2CUR->flags & 0x40) != 0 && D2CUR->maxval == 0 && D2CUR->minval == 0) {
-            if (d2_CountPointerItems() == 0 && D2CUR->value == 0)
-                D2CUR->value = -1;
+        if ((D2CUR->flags & 0x40) != 0 && D2CUR->maxval == 0 &&
+            D2CUR->minval == 0) {
+          if (d2_CountPointerItems() == 0 && D2CUR->value == 0) {
+            D2CUR->value = -1;
+          }
         }
-        if ((D2CUR->flags & 2) != 0 && D2CUR->maxval != 0)
-            D2CUR->value = 1;
-        if ((D2CUR->flags & 1) != 0) {
-            d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
-            d2_TextCursorY = D2CUR->y;
-            if (d2_TextCursorSprite == -1)
-                d2_TextCursorSprite = d2_CreatePicObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorPic);
-            else
-                d2_MoveObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset, d2_TextCursorSprite);
-        } else if (d2_TextCursorSprite != -1) {
+        if (D2CUR->flags & 1) {
+          d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
+          d2_TextCursorY = D2CUR->y;
+          if (d2_TextCursorSprite == -1) {
+            d2_TextCursorSprite = d2_CreatePicObj(
+                d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset,
+                d2_TextCursorPic);
+          } else {
+            d2_MoveObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset,
+                       d2_TextCursorSprite);
+          }
+        } else {
+          if (d2_TextCursorSprite != -1) {
             d2_RemoveObj(d2_TextCursorSprite);
             d2_TextCursorSprite = -1;
+          }
         }
+      }
+      goto focus;
     }
+  click:
+    if (d2_FocusedInput != 0 && d2_PointerObj == D2CUR->obj &&
+        (D2CUR->flags & 2) != 0 && dm_L.lclick != 0) {
+      if (D2CUR->maxval > D2CUR->value && D2CUR->value != -1 &&
+          D2CUR->icon != -1) {
+        D2CUR->value += d2_InputStep(D2CUR);
+      }
+      if (D2CUR->maxval == 0 && D2CUR->minval == 0) {
+        if (d2_CountPointerItems() == 0 && D2CUR->value == 0 &&
+            (D2CUR->flags & 0x40) != 0) {
+          D2CUR->value = -1;
+        }
+      }
+    }
+  }
+  if (dm_L.rup != 0) {
+    if (d2_FocusedInput == 0)
+      goto last;
+    if ((D2CUR->flags & 1) != 0) {
+      di_ClearEvents(0x10);
+    }
+    d2_Objs[D2CUR->obj].highlighted = 0;
+    d2_FocusedInput = 0;
+    d2_ClickUsed = 0;
+    if (d2_TextCursorSprite == -1)
+      goto last;
+    d2_RemoveObj(d2_TextCursorSprite);
+    d2_TextCursorSprite = -1;
+  }
+  if (d2_FocusedInput != 0) {
+    if (dm_L.ldown == 0) {
+      d2_InputDragReleased = 1;
+      dm_L.lclick = 0;
+    }
+    d2_InputKey();
+    d2_DragInput();
+    if (d2_FocusedInput != 0 && (D2CUR->flags & 0x10) != 0 &&
+        d2_PointerObj == D2CUR->obj && dm_L.lclick != 0) {
+      D2CUR->currentTextId = D2CUR->currentTextId + 1;
+      if (D2CUR->currentTextId > D2CUR->textCount - 1 + D2CUR->firstTextId)
+        D2CUR->currentTextId = D2CUR->firstTextId;
+      d2_InputSetString(D2CUR->id, D2CUR->currentTextId);
+    }
+  }
+last:
+  d2_SliderInput();
+  if (d2_PointerObj != -1 && (d2_Objs[d2_PointerObj].style & 0x40) != 0)
+    d2_CopyCaption(d2_Objs[d2_PointerObj].caption);
+  return 0;
+}
+/* 0x478320, gives the input object obj the focus */
+
+void d2_FocusInput(int obj) {
+  D2INPUT *in;
+  D2WIN *w;
+  int i;
+
+  in = (D2INPUT *)d2_Objs[obj].data;
+  if (d2_FocusedInput != in) {
+    if (d2_FocusedInput != 0)
+      d2_Objs[D2CUR->obj].highlighted = 0;
+    d2_FocusedInput = in;
+    d2_Objs[in->obj].highlighted = 1;
+    w = d2_Objs[D2CUR->obj].win;
+    i = 0;
+    if (w != 0) {
+      while (1) {
+        if (i >= w->nobjs)
+          break;
+        if (w->objs[i] == in->obj)
+          d2_FocusObjIndex = i;
+        i++;
+      }
+    }
+    if ((D2CUR->flags & 0x40) != 0 && D2CUR->maxval == 0 &&
+        D2CUR->minval == 0) {
+      if (d2_CountPointerItems() == 0 && D2CUR->value == 0)
+        D2CUR->value = -1;
+    }
+    if ((D2CUR->flags & 2) != 0 && D2CUR->maxval != 0)
+      D2CUR->value = 1;
+    if ((D2CUR->flags & 1) != 0) {
+      d2_TextCursorX = d2_TextWidth(D2CUR->text, D2CUR->font) + D2CUR->x;
+      d2_TextCursorY = D2CUR->y;
+      if (d2_TextCursorSprite == -1)
+        d2_TextCursorSprite = d2_CreatePicObj(
+            d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset,
+            d2_TextCursorPic);
+      else
+        d2_MoveObj(d2_TextCursorX, d2_TextCursorY - d2_TextCursorOffset,
+                   d2_TextCursorSprite);
+    } else if (d2_TextCursorSprite != -1) {
+      d2_RemoveObj(d2_TextCursorSprite);
+      d2_TextCursorSprite = -1;
+    }
+  }
 }
 
 /* 0x4784c0, mouse handling: object and window under the pointer, clicks (sound, radio groups, toggles), the hit
    rectangles, dragging the scroll bar of a window */
-void d2_MouseUpdate(void)
-{
-    D2OBJ *o;
-    D2VIEW *c;
-    D2HIT *h;
-    D2WIN *w;
-    int i, j, m, found, win, line;
-    short mx, my;
+void d2_MouseUpdate(void) {
+  D2OBJ *o;
+  D2VIEW *c;
+  D2HIT *h;
+  D2WIN *w;
+  int i, j, m, found, win, line;
+  short mx, my;
 
-    d2_HoverObj = d2_HitTest(d2_MouseX, d2_MouseY);
-    d2_UpdateInput();
-    if (d2_PointerWin != -1) {
-        d2_HitWindow = d2_PointerWin;
-        d2_PointerObjSlot = -1;
-        w = &d2_Wins[d2_PointerWin];
-        for (i = 0; i < w->nobjs; i++) {
-            if (w->objs[i] == d2_PointerObj) {
-                d2_PointerObjSlot = i;
-                break;
-            }
-        }
-    } else {
-        d2_HitWindow = -1;
+  d2_HoverObj = d2_HitTest(d2_MouseX, d2_MouseY);
+  d2_UpdateInput();
+  if (d2_PointerWin != -1) {
+    d2_HitWindow = d2_PointerWin;
+    d2_PointerObjSlot = -1;
+    w = &d2_Wins[d2_PointerWin];
+    for (i = 0; i < w->nobjs; i++) {
+      if (w->objs[i] == d2_PointerObj) {
+        d2_PointerObjSlot = i;
+        break;
+      }
     }
-    d2_UpdateHoverScroll();
-    if (dm_L.lclick != 0) {
-        if (d2_HoverObj != -1 && ((o = &d2_Objs[d2_PointerObj])->checkable != 0 || o->interactive != 0) && o->type != 0x45) {
-            d2_ClickedId = d2_HoverObj;
-            di_GuiClick = 1;
-            c = o->buf;
-            if (c != 0) {
-                if (c->shown != 0 && c->loaded == 0)
-                    d2_ClickedForm = c->id;
-            } else {
-                d2_ClickedForm = -1;
+  } else {
+    d2_HitWindow = -1;
+  }
+  d2_UpdateHoverScroll();
+  if (dm_L.lclick != 0) {
+    if (d2_HoverObj != -1 &&
+        ((o = &d2_Objs[d2_PointerObj])->checkable != 0 ||
+         o->interactive != 0) &&
+        o->type != 0x45) {
+      d2_ClickedId = d2_HoverObj;
+      di_GuiClick = 1;
+      c = o->buf;
+      if (c != 0) {
+        if (c->shown != 0 && c->loaded == 0)
+          d2_ClickedForm = c->id;
+      } else {
+        d2_ClickedForm = -1;
+      }
+      if (o->checkable != 0) {
+        o->checked ^= 1;
+        d2_Objs[d2_PointerObj].highlighted = d2_Objs[d2_PointerObj].checked;
+        sb_PlaySample(d2_ClickBank, "MausclickLinks_s_01", 1, 0x3f, 0x7f, 0, 0);
+      } else if (d2_HoverObj == 1) {
+        sb_PlaySample(d2_ClickBank, "MausclickRechts_s_01", 1, 0x3f, 0x7f, 0,
+                      0);
+      } else {
+        sb_PlaySample(d2_ClickBank, "MausclickLinks_s_01", 1, 0x3f, 0x7f, 0, 0);
+      }
+      found = 0;
+      for (i = 0; i < 8; i++) {
+        if (found)
+          break;
+        for (j = 0; j < d2_Radios[i].n; j++) {
+          if (d2_Radios[i].objs[j] == d2_PointerObj) {
+            for (m = 0; m < d2_Radios[i].n; m++) {
+              if (d2_Radios[i].objs[m] != d2_PointerObj) {
+                d2_SetObjValue(d2_Radios[i].objs[m], 0);
+              } else {
+                d2_SetObjValue(d2_Radios[i].objs[m], 1);
+                d2_Radios[i].sel = m;
+              }
             }
-            if (o->checkable != 0) {
-                o->checked ^= 1;
-                d2_Objs[d2_PointerObj].highlighted = d2_Objs[d2_PointerObj].checked;
-                sb_PlaySample(d2_ClickBank, "MausclickLinks_s_01", 1, 0x3f, 0x7f, 0, 0);
-            } else if (d2_HoverObj == 1) {
-                sb_PlaySample(d2_ClickBank, "MausclickRechts_s_01", 1, 0x3f, 0x7f, 0, 0);
-            } else {
-                sb_PlaySample(d2_ClickBank, "MausclickLinks_s_01", 1, 0x3f, 0x7f, 0, 0);
-            }
-            found = 0;
-            for (i = 0; i < 8; i++) {
-                if (found)
-                    break;
-                for (j = 0; j < d2_Radios[i].n; j++) {
-                    if (d2_Radios[i].objs[j] == d2_PointerObj) {
-                        for (m = 0; m < d2_Radios[i].n; m++) {
-                            if (d2_Radios[i].objs[m] != d2_PointerObj) {
-                                d2_SetObjValue(d2_Radios[i].objs[m], 0);
-                            } else {
-                                d2_SetObjValue(d2_Radios[i].objs[m], 1);
-                                d2_Radios[i].sel = m;
-                            }
-                        }
-                        found = 1;
-                    }
-                }
-            }
-            if (d2_ClickedId != d2_LastClickedId)
-                d2_LastClickedId = d2_ClickedId;
-            d2_ClickedSlot = d2_PointerObjSlot;
+            found = 1;
+          }
         }
-        if (d2_PointerObj != -1)
-            d2_ClickedObj = &d2_Objs[d2_PointerObj];
-    } else {
-        d2_ClickedId = -1;
-        d2_ClickedObj = 0;
-        d2_ClickedSlot = -1;
+      }
+      if (d2_ClickedId != d2_LastClickedId)
+        d2_LastClickedId = d2_ClickedId;
+      d2_ClickedSlot = d2_PointerObjSlot;
     }
-    my = d2_MouseY;
-    mx = d2_MouseX;
-    d2_HitClicked = -1;
-    d2_HitUnderPointer = -1;
-    for (i = 0; i < 0x20; i++) {
-        h = &d2_HitRects[i];
-        if (!(mx < h->x || mx > h->x + h->w || my < h->y || my > h->y + h->h || h->used == 0)) {
-            d2_HitUnderPointer = i;
-            if (dm_L.lclick != 0)
-                d2_HitClicked = i;
-            break;
-        }
+    if (d2_PointerObj != -1)
+      d2_ClickedObj = &d2_Objs[d2_PointerObj];
+  } else {
+    d2_ClickedId = -1;
+    d2_ClickedObj = 0;
+    d2_ClickedSlot = -1;
+  }
+  my = d2_MouseY;
+  mx = d2_MouseX;
+  d2_HitClicked = -1;
+  d2_HitUnderPointer = -1;
+  for (i = 0; i < 0x20; i++) {
+    h = &d2_HitRects[i];
+    if (!(mx < h->x || mx > h->x + h->w || my < h->y || my > h->y + h->h ||
+          h->used == 0)) {
+      d2_HitUnderPointer = i;
+      if (dm_L.lclick != 0)
+        d2_HitClicked = i;
+      break;
     }
-    win = d2_HitWindow;
-    if (win != -1) {
-        w = &d2_Wins[win];
-        if (dm_L.ldown != 0 && (w->flags & 0x20) != 0 && mx > w->w + w->x - 0xc &&
-            my > w->y + 10 && my < w->h + w->y - 10) {
-            w->scrollY = ((my - w->y - 0xc) * w->contentHeight) / (w->h - 0x18) + 4;
-            line = w->scrollY / d2_FontHeight;
-            w->firstline = line;
-            w->textPos = w->linePos[line];
-            if (w->scrollY != w->appliedScrollY)
-                d2_ScrolledNotify(win);
-        }
+  }
+  win = d2_HitWindow;
+  if (win != -1) {
+    w = &d2_Wins[win];
+    if (dm_L.ldown != 0 && (w->flags & 0x20) != 0 && mx > w->w + w->x - 0xc &&
+        my > w->y + 10 && my < w->h + w->y - 10) {
+      w->scrollY = ((my - w->y - 0xc) * w->contentHeight) / (w->h - 0x18) + 4;
+      line = w->scrollY / d2_FontHeight;
+      w->firstline = line;
+      w->textPos = w->linePos[line];
+      if (w->scrollY != w->appliedScrollY)
+        d2_ScrolledNotify(win);
     }
+  }
 }
 /* 0x478870, copies a string to d2_CaptionCopy */
 
-void d2_CopyCaption(char *s)
-{
-    char c;
-    int off = (int)d2_CaptionCopy - (int)s;
+void d2_CopyCaption(char *s) {
+  char c;
+  int off = (int)d2_CaptionCopy - (int)s;
 
-    do {
-        c = *s;
-        s[off] = c;
-        s++;
-    } while (c != 0);
+  do {
+    c = *s;
+    s[off] = c;
+    s++;
+  } while (c != 0);
 }
 /* 0x478890, adds a hit rectangle, returns its number or 0 if the table is full */
 
-int d2_AddHitRect(int x, int y, int w, int h, int user)
-{
-    D2HIT *p;
-    int i = d2_HitCount + 1;
+int d2_AddHitRect(int x, int y, int w, int h, int user) {
+  D2HIT *p;
+  int i = d2_HitCount + 1;
 
-    d2_HitCount = i;
-    d2_HitUnderPointer = i;
-    if (i > 0x40)
-        return 0;
-    p = &d2_HitRects[i];
-    p->x = x;
-    p->y = y;
-    p->w = w;
-    p->h = h;
-    p->user = user;
-    p->used = 1;
-    return i;
+  d2_HitCount = i;
+  d2_HitUnderPointer = i;
+  if (i > 0x40)
+    return 0;
+  p = &d2_HitRects[i];
+  p->x = x;
+  p->y = y;
+  p->w = w;
+  p->h = h;
+  p->user = user;
+  p->used = 1;
+  return i;
 }
 /* 0x4788f0, removes hit rectangle i */
 
-void d2_RemoveHitRect(int i)
-{
-    if (d2_HitCount >= 1 && i >= 0) {
-        memset(&d2_HitRects[i], 0, sizeof(D2HIT));
-        d2_HitCount--;
-    }
+void d2_RemoveHitRect(int i) {
+  if (d2_HitCount >= 1 && i >= 0) {
+    memset(&d2_HitRects[i], 0, sizeof(D2HIT));
+    d2_HitCount--;
+  }
 }
 /* 0x478930, 0 if the two colours are equal, else 1 */
 
-int d2_CompareColour(char *a, char *b)
-{
-    if (a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
-        return 0;
-    return 1;
+int d2_CompareColour(char *a, char *b) {
+  if (a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
+    return 0;
+  return 1;
 }
 /* 0x478960, sets a 24-bit pixel (the byte order d2_CompareColour compares) */
 
-void d2_SetColour(unsigned char *c, unsigned char r, unsigned char g, unsigned char b)
-{
-    c[0] = r;
-    c[1] = g;
-    c[2] = b;
+void d2_SetColour(unsigned char *c, unsigned char r, unsigned char g,
+                  unsigned char b) {
+  c[0] = r;
+  c[1] = g;
+  c[2] = b;
 }
 /* 0x478980, width | height << 16 of a 24 bit bmp, -1 if it can not be opened, -2 if it is not 24 bit */
 
-unsigned int d2_GetBmpSize(char *name)
-{
-    FILE *f;
-    BITMAPINFOHEADER bi;
+unsigned int d2_GetBmpSize(char *name) {
+  FILE *f;
+  BITMAPINFOHEADER bi;
 
-    f = fopen(name, "rb");
-    if (f != 0) {
-        fseek(f, 0xe, 0);
-        fread(&bi, 1, 0x28, f);
-        fclose(f);
-        if (bi.biPlanes == 1 && bi.biBitCount == 0x18 && bi.biCompression == 0)
-            return bi.biHeight << 16 | bi.biWidth;
-        return 0xfffffffe;
-    }
-    return 0xffffffff;
+  f = fopen(name, "rb");
+  if (f != 0) {
+    fseek(f, 0xe, 0);
+    fread(&bi, 1, 0x28, f);
+    fclose(f);
+    if (bi.biPlanes == 1 && bi.biBitCount == 0x18 && bi.biCompression == 0)
+      return bi.biHeight << 16 | bi.biWidth;
+    return 0xfffffffe;
+  }
+  return 0xffffffff;
 }
 /* 0x478a00, reads the pixels of a 24 bit bmp (bottom-up files flipped, bgr turned to rgb) to dst
 
@@ -999,267 +1015,271 @@ unsigned int d2_GetBmpSize(char *name)
 
    */
 
-int d2_ReadBmpPixels(char *name, unsigned char *dst)
-{
-    FILE *f;
-    BITMAPINFOHEADER bi;
-    int i, flip, n;
-    int w3;
-    unsigned char *p, t;
+int d2_ReadBmpPixels(char *name, unsigned char *dst) {
+  FILE *f;
+  BITMAPINFOHEADER bi;
+  int i, flip, n;
+  int w3;
+  unsigned char *p, t;
 
-    f = fopen(name, "rb");
-    if (f != 0) {
-        fseek(f, 0xe, 0);
-        fread(&bi, 1, 0x28, f);
-        fseek(f, bi.biClrUsed * 4 + 0x36, 0);
-        if (bi.biCompression == 0 && bi.biPlanes == 1 && bi.biBitCount == 0x18) {
-            flip = bi.biHeight >= 0;
-            bi.biHeight = abs(bi.biHeight);
-            w3 = bi.biWidth * 3;
-            for (i = 0; i < bi.biHeight; i++) {
-                if (flip == 0)
-                    fread(dst + i * bi.biWidth * 3, 1, bi.biWidth * 3, f);
-                else
-                    fread(dst + (bi.biHeight - i - 1) * bi.biWidth * 3, 1, bi.biWidth * 3, f);
-                if ((w3 & 3) != 0)
-                    fseek(f, 4 - (w3 & 3), 1);
-            }
-            fclose(f);
-            n = bi.biWidth * bi.biHeight;
-            if (n > 0) {
-                p = dst + 2;
-                for (; n != 0; n--) {
-                    t = p[-2];
-                    p[-2] = *p;
-                    *p = t;
-                    p += 3;
-                }
-            }
-        } else {
-            fclose(f);
+  f = fopen(name, "rb");
+  if (f != 0) {
+    fseek(f, 0xe, 0);
+    fread(&bi, 1, 0x28, f);
+    fseek(f, bi.biClrUsed * 4 + 0x36, 0);
+    if (bi.biCompression == 0 && bi.biPlanes == 1 && bi.biBitCount == 0x18) {
+      flip = bi.biHeight >= 0;
+      bi.biHeight = abs(bi.biHeight);
+      w3 = bi.biWidth * 3;
+      for (i = 0; i < bi.biHeight; i++) {
+        if (flip == 0)
+          fread(dst + i * bi.biWidth * 3, 1, bi.biWidth * 3, f);
+        else
+          fread(dst + (bi.biHeight - i - 1) * bi.biWidth * 3, 1, bi.biWidth * 3,
+                f);
+        if ((w3 & 3) != 0)
+          fseek(f, 4 - (w3 & 3), 1);
+      }
+      fclose(f);
+      n = bi.biWidth * bi.biHeight;
+      if (n > 0) {
+        p = dst + 2;
+        for (; n != 0; n--) {
+          t = p[-2];
+          p[-2] = *p;
+          *p = t;
+          p += 3;
         }
-        return 1;
+      }
+    } else {
+      fclose(f);
     }
-    return 0;
+    return 1;
+  }
+  return 0;
 }
 /* 0x478b50, makes a 24 bit surface of a bmp, 0 on failure */
 
-D2SURF *d2_LoadBmpSurface(char *name)
-{
-    D2SURF d;
-    D2SURF *s;
-    unsigned int v;
-    int w, h;
+D2SURF *d2_LoadBmpSurface(char *name) {
+  D2SURF d;
+  D2SURF *s;
+  unsigned int v;
+  int w, h;
 
-    memset(&d, 0, sizeof(d));
-    v = d2_GetBmpSize(name);
-    if ((int)v < 0)
-        return 0;
-    w = v & 0xffff;
-    h = (int)v >> 16;
-    if (h < 0)
-        h = abs(h);
-    d.h = h;
-    d.w = w;
-    d.bpp = 0x18;
-    s = d2_MakeSurface(&d, 0);
-    if (s == 0)
-        return 0;
-    d2_ReadBmpPixels(name, s->bytes);
-    return s;
+  memset(&d, 0, sizeof(d));
+  v = d2_GetBmpSize(name);
+  if ((int)v < 0)
+    return 0;
+  w = v & 0xffff;
+  h = (int)v >> 16;
+  if (h < 0)
+    h = abs(h);
+  d.h = h;
+  d.w = w;
+  d.bpp = 0x18;
+  s = d2_MakeSurface(&d, 0);
+  if (s == 0)
+    return 0;
+  d2_ReadBmpPixels(name, s->bytes);
+  return s;
 }
 /* 0x478bd0, rgb bytes (w x h) to the 16 bit pixels of surface s */
 
-void d2_ConvertRgbTo16(int a, int b, unsigned int w, unsigned int h, unsigned char *src, int c, int d, D2SURF *s)
-{
-    unsigned int x, y;
+void d2_ConvertRgbTo16(int a, int b, unsigned int w, unsigned int h,
+                       unsigned char *src, int c, int d, D2SURF *s) {
+  unsigned int x, y;
 
-    for (y = 0; y < h; y++) {
-        for (x = 0; x < w; x++)
-            s->bits[s->pitch * y + x] = (unsigned short)dd_RGB(src[(y * w + x) * 3], src[(y * w + x) * 3 + 1], src[(y * w + x) * 3 + 2]);
-    }
+  for (y = 0; y < h; y++) {
+    for (x = 0; x < w; x++)
+      s->bits[s->pitch * y + x] =
+          (unsigned short)dd_RGB(src[(y * w + x) * 3], src[(y * w + x) * 3 + 1],
+                                 src[(y * w + x) * 3 + 2]);
+  }
 }
 /* 0x478c50, 16 bit pixels of src (w x h) to rgb bytes */
 
-void d2_Convert16ToRgb(int a, int b, unsigned int w, unsigned int h, unsigned short *src, int c, int d, unsigned char *dst)
-{
-    unsigned int x, y;
+void d2_Convert16ToRgb(int a, int b, unsigned int w, unsigned int h,
+                       unsigned short *src, int c, int d, unsigned char *dst) {
+  unsigned int x, y;
 
-    for (y = 0; y < h; y++) {
-        for (x = 0; x < w; x++)
-            dd_SplitRGB(src[dd_PitchPixels * y + x], &dst[(y * w + x) * 3], &dst[(y * w + x) * 3 + 1], &dst[(y * w + x) * 3 + 2]);
-    }
+  for (y = 0; y < h; y++) {
+    for (x = 0; x < w; x++)
+      dd_SplitRGB(src[dd_PitchPixels * y + x], &dst[(y * w + x) * 3],
+                  &dst[(y * w + x) * 3 + 1], &dst[(y * w + x) * 3 + 2]);
+  }
 }
 
 #line 1 "D:\\develop\\Units\\d2.v1\\GFX.C"
 
 /* 0x478cc0, creates a surface of the description desc (0x40 bytes); flags 1: depth of the screen, 2: a DirectDraw
    surface, 4: wraps an existing one, 8: system memory */
-D2SURF *d2_MakeSurface(D2SURF *desc, int flags)
-{
-    LPDIRECTDRAWSURFACE4 dd_DDSOne;
-    DDCOLORKEY ck;
-    DDSURFACEDESC2 ddsd;
-    DDSURFACEDESC2 sd;
-    D2SURF *s;
+D2SURF *d2_MakeSurface(D2SURF *desc, int flags) {
+  LPDIRECTDRAWSURFACE4 dd_DDSOne;
+  DDCOLORKEY ck;
+  DDSURFACEDESC2 ddsd;
+  DDSURFACEDESC2 sd;
+  D2SURF *s;
 
-    ck.dwColorSpaceLowValue = 0;
-    ck.dwColorSpaceHighValue = 0;
-    s = (D2SURF *)mem_Alloc(0x40, "gfx:gfx_CreateSurface:s");
-    if (s == 0)
-        return 0;
-    *s = *desc;
-    if (flags & 4)
-        s->external = 1;
-    if (flags & 1)
-        s->bpp = dd_BitPlanes;
-    if (s->DDSurface == 0) {
-        if (s->external == 0) {
-            if (!(flags & 2)) {
-                s->rowbytes = (s->bpp >> 3) * s->w;
-                s->bits = (unsigned short *)mem_Alloc(s->h * s->rowbytes, "gfx:gfx_CreateSurface:s->data");
-            }
-        }
+  ck.dwColorSpaceLowValue = 0;
+  ck.dwColorSpaceHighValue = 0;
+  s = (D2SURF *)mem_Alloc(0x40, "gfx:gfx_CreateSurface:s");
+  if (s == 0)
+    return 0;
+  *s = *desc;
+  if (flags & 4)
+    s->external = 1;
+  if (flags & 1)
+    s->bpp = dd_BitPlanes;
+  if (s->DDSurface == 0) {
+    if (s->external == 0) {
+      if (!(flags & 2)) {
+        s->rowbytes = (s->bpp >> 3) * s->w;
+        s->bits = (unsigned short *)mem_Alloc(s->h * s->rowbytes,
+                                              "gfx:gfx_CreateSurface:s->data");
+      }
     }
-    if (s->external != 0 && s->DDSurface != 0) {
-        sd.dwSize = 0x7c;
-        s->DDSurface->lpVtbl->GetSurfaceDesc(s->DDSurface, &sd);
-        s->h = sd.dwHeight;
-        s->w = sd.dwWidth;
-        s->bpp = (unsigned char)sd.ddpfPixelFormat.dwRGBBitCount;
-        s->rowbytes = sd.lPitch;
-        s->bits = 0;
+  }
+  if (s->external != 0 && s->DDSurface != 0) {
+    sd.dwSize = 0x7c;
+    s->DDSurface->lpVtbl->GetSurfaceDesc(s->DDSurface, &sd);
+    s->h = sd.dwHeight;
+    s->w = sd.dwWidth;
+    s->bpp = (unsigned char)sd.ddpfPixelFormat.dwRGBBitCount;
+    s->rowbytes = sd.lPitch;
+    s->bits = 0;
+  }
+  if ((flags & 2) && s->external == 0) {
+    memset(&ddsd, 0, sizeof(ddsd));
+    ddsd.dwSize = 0x7c;
+    if (flags & 1) {
+      dd_BackBuffer->lpVtbl->GetSurfaceDesc(dd_BackBuffer, &ddsd);
+      ddsd.dwFlags = 0x1007;
+      if ((signed char)flags & 8)
+        ddsd.ddsCaps.dwCaps = 0x840;
+      else
+        ddsd.ddsCaps.dwCaps = 0x40;
+      ddsd.dwHeight = s->h;
+      ddsd.dwWidth = s->w;
+    } else {
+      ddsd.dwFlags = 0x1007;
+      if ((signed char)flags & 8)
+        ddsd.ddsCaps.dwCaps = 0x840;
+      else
+        ddsd.ddsCaps.dwCaps = 0x40;
+      ddsd.dwHeight = s->h;
+      ddsd.dwWidth = s->w;
+      ddsd.ddpfPixelFormat.dwSize = 0x20;
+      switch (s->bpp) {
+      case 8:
+        ddsd.ddpfPixelFormat.dwFlags = 0x60;
+        break;
+      case 0xf:
+        ddsd.ddpfPixelFormat.dwFlags = 0x40;
+        ddsd.ddpfPixelFormat.dwRBitMask = 0x7c00;
+        ddsd.ddpfPixelFormat.dwGBitMask = 0x3e0;
+        ddsd.ddpfPixelFormat.dwBBitMask = 0x1f;
+        ddsd.ddpfPixelFormat.dwRGBAlphaBitMask = 0;
+        break;
+      case 0x10:
+        ddsd.ddpfPixelFormat.dwFlags = 0x40;
+        ddsd.ddpfPixelFormat.dwRBitMask = 0xf800;
+        ddsd.ddpfPixelFormat.dwGBitMask = 0x7e0;
+        ddsd.ddpfPixelFormat.dwBBitMask = 0x1f;
+        ddsd.ddpfPixelFormat.dwRGBAlphaBitMask = 0;
+        break;
+      }
+      ddsd.ddpfPixelFormat.dwRGBBitCount = s->bpp;
     }
-    if ((flags & 2) && s->external == 0) {
-        memset(&ddsd, 0, sizeof(ddsd));
-        ddsd.dwSize = 0x7c;
-        if (flags & 1) {
-            dd_BackBuffer->lpVtbl->GetSurfaceDesc(dd_BackBuffer, &ddsd);
-            ddsd.dwFlags = 0x1007;
-            if ((signed char)flags & 8)
-                ddsd.ddsCaps.dwCaps = 0x840;
-            else
-                ddsd.ddsCaps.dwCaps = 0x40;
-            ddsd.dwHeight = s->h;
-            ddsd.dwWidth = s->w;
-        } else {
-            ddsd.dwFlags = 0x1007;
-            if ((signed char)flags & 8)
-                ddsd.ddsCaps.dwCaps = 0x840;
-            else
-                ddsd.ddsCaps.dwCaps = 0x40;
-            ddsd.dwHeight = s->h;
-            ddsd.dwWidth = s->w;
-            ddsd.ddpfPixelFormat.dwSize = 0x20;
-            switch (s->bpp) {
-            case 8:
-                ddsd.ddpfPixelFormat.dwFlags = 0x60;
-                break;
-            case 0xf:
-                ddsd.ddpfPixelFormat.dwFlags = 0x40;
-                ddsd.ddpfPixelFormat.dwRBitMask = 0x7c00;
-                ddsd.ddpfPixelFormat.dwGBitMask = 0x3e0;
-                ddsd.ddpfPixelFormat.dwBBitMask = 0x1f;
-                ddsd.ddpfPixelFormat.dwRGBAlphaBitMask = 0;
-                break;
-            case 0x10:
-                ddsd.ddpfPixelFormat.dwFlags = 0x40;
-                ddsd.ddpfPixelFormat.dwRBitMask = 0xf800;
-                ddsd.ddpfPixelFormat.dwGBitMask = 0x7e0;
-                ddsd.ddpfPixelFormat.dwBBitMask = 0x1f;
-                ddsd.ddpfPixelFormat.dwRGBAlphaBitMask = 0;
-                break;
-            }
-            ddsd.ddpfPixelFormat.dwRGBBitCount = s->bpp;
-        }
+    /* clang-format off */
 #line 1087
-        D3DCHECK(dd_DD->lpVtbl->CreateSurface( dd_DD, &ddsd, &dd_DDSOne, NULL ));
-        dd_SetSurfaceName(dd_DDSOne, "gfx_CreateSurface", 0);
-        s->DDSurface = dd_DDSOne;
-        dd_DDSOne->lpVtbl->SetColorKey(dd_DDSOne, 8, &ck);
-        if (dd_DDSOne == 0) {
-            mem_Free(s);
-            return 0;
-        }
-        sd.dwSize = 0x7c;
-        s->DDSurface->lpVtbl->GetSurfaceDesc(s->DDSurface, &sd);
-        s->h = sd.dwHeight;
-        s->w = sd.dwWidth;
-        s->bpp = (unsigned char)sd.ddpfPixelFormat.dwRGBBitCount;
-        s->rowbytes = sd.lPitch;
+    D3DCHECK(dd_DD->lpVtbl->CreateSurface( dd_DD, &ddsd, &dd_DDSOne, NULL ));
+    /* clang-format on */
+    dd_SetSurfaceName(dd_DDSOne, "gfx_CreateSurface", 0);
+    s->DDSurface = dd_DDSOne;
+    dd_DDSOne->lpVtbl->SetColorKey(dd_DDSOne, 8, &ck);
+    if (dd_DDSOne == 0) {
+      mem_Free(s);
+      return 0;
     }
-    s->left = 0;
-    s->pitch = s->rowbytes / (s->bpp >> 3);
-    s->right = desc->w;
-    s->top = 0;
-    s->bottom = desc->h;
-    return s;
+    sd.dwSize = 0x7c;
+    s->DDSurface->lpVtbl->GetSurfaceDesc(s->DDSurface, &sd);
+    s->h = sd.dwHeight;
+    s->w = sd.dwWidth;
+    s->bpp = (unsigned char)sd.ddpfPixelFormat.dwRGBBitCount;
+    s->rowbytes = sd.lPitch;
+  }
+  s->left = 0;
+  s->pitch = s->rowbytes / (s->bpp >> 3);
+  s->right = desc->w;
+  s->top = 0;
+  s->bottom = desc->h;
+  return s;
 }
 /* 0x478fc0, frees a surface */
 
-int d2_FreeSurface(D2SURF *s)
-{
-    if (s == 0)
-        return 0;
-    if (s->locked != 0)
-        d2_UnlockSurface(s);
-    if (s->external == 0) {
-        if (s->bits != 0) {
-            mem_Free(s->bits);
-            s->bits = 0;
-        }
-        if (s->DDSurface != 0)
-            dd_ReleaseSurface(s->DDSurface);
+int d2_FreeSurface(D2SURF *s) {
+  if (s == 0)
+    return 0;
+  if (s->locked != 0)
+    d2_UnlockSurface(s);
+  if (s->external == 0) {
+    if (s->bits != 0) {
+      mem_Free(s->bits);
+      s->bits = 0;
     }
-    mem_Free(s);
-    return 1;
+    if (s->DDSurface != 0)
+      dd_ReleaseSurface(s->DDSurface);
+  }
+  mem_Free(s);
+  return 1;
 }
 /* 0x479020, locks a surface: its pixels are at bits */
 
-int d2_LockSurface(D2SURF *s)
-{
-    DDSURFACEDESC2 ddsd;
+int d2_LockSurface(D2SURF *s) {
+  DDSURFACEDESC2 ddsd;
 
-    if (s == 0)
-        return 0;
-    if (s->locked != 0)
-        return 1;
-    if (s->DDSurface != 0) {
-        memset(&ddsd, 0, sizeof(ddsd));
-        ddsd.dwSize = 0x7c;
-        if (dd_Mode == 3) {
-#line 1178
-            D3DCHECK(s->DDSurface->lpVtbl->Lock( s->DDSurface, NULL, &ddsd, DDLOCK_WAIT, NULL ));
-        } else {
-#line 1180
-            D3DCHECK(s->DDSurface->lpVtbl->Lock( s->DDSurface, NULL, &ddsd, DDLOCK_WAIT | DDLOCK_NOSYSLOCK, NULL ));
-        }
-        s->bits = (unsigned short *)ddsd.lpSurface;
-    }
-    s->locked = 1;
+  if (s == 0)
+    return 0;
+  if (s->locked != 0)
     return 1;
+  if (s->DDSurface != 0) {
+    memset(&ddsd, 0, sizeof(ddsd));
+    ddsd.dwSize = 0x7c;
+    if (dd_Mode == 3) {
+      /* clang-format off */
+#line 1178
+      D3DCHECK(s->DDSurface->lpVtbl->Lock( s->DDSurface, NULL, &ddsd, DDLOCK_WAIT, NULL ));
+      /* clang-format on */
+    } else {
+      /* clang-format off */
+#line 1180
+      D3DCHECK(s->DDSurface->lpVtbl->Lock( s->DDSurface, NULL, &ddsd, DDLOCK_WAIT | DDLOCK_NOSYSLOCK, NULL ));
+      /* clang-format on */
+    }
+    s->bits = (unsigned short *)ddsd.lpSurface;
+  }
+  s->locked = 1;
+  return 1;
 }
 /* 0x4790e0, unlocks a surface */
 
-int d2_UnlockSurface(D2SURF *s)
-{
-    if (s->locked == 0)
-        return 0;
-    if (s->DDSurface != 0) {
-        dd_UnlockSurface(s->DDSurface);
-        s->bits = 0;
-    }
-    s->locked = 0;
-    return 1;
+int d2_UnlockSurface(D2SURF *s) {
+  if (s->locked == 0)
+    return 0;
+  if (s->DDSurface != 0) {
+    dd_UnlockSurface(s->DDSurface);
+    s->bits = 0;
+  }
+  s->locked = 0;
+  return 1;
 }
 /* 0x479120, fills desc with the description of the DirectDraw surface of s */
 
-int d2_GetSurfaceDesc(D2SURF *s, DDSURFACEDESC2 *desc)
-{
-    if (s->DDSurface == 0)
-        return 0;
-    desc->dwSize = 0x7c;
-    return s->DDSurface->lpVtbl->GetSurfaceDesc(s->DDSurface, desc) == 0;
+int d2_GetSurfaceDesc(D2SURF *s, DDSURFACEDESC2 *desc) {
+  if (s->DDSurface == 0)
+    return 0;
+  desc->dwSize = 0x7c;
+  return s->DDSurface->lpVtbl->GetSurfaceDesc(s->DDSurface, desc) == 0;
 }
 /* 0x479150, copies the part (sx, sy, w, h) of src to (x, y) of dst, clipped to both; mode 1: with the colour key
    @deep deep s33: the two copy loops' bs is (rowbytes * i + bits) + so in the original (bits loaded into
@@ -1281,456 +1301,460 @@ int d2_GetSurfaceDesc(D2SURF *s, DDSURFACEDESC2 *desc)
 
    */
 
-int d2_BlitPartMode(int sx, int sy, int w, int h, D2SURF *src, int x, int y, D2SURF *dst, unsigned char mode)
-{
-    RECT rs, rd;
-    int so, d, i, srcLocked, dstLocked, n, bf;
-    unsigned int len;
-    unsigned int *ps, *pd;
-    unsigned char *bs, *bd;
+int d2_BlitPartMode(int sx, int sy, int w, int h, D2SURF *src, int x, int y,
+                    D2SURF *dst, unsigned char mode) {
+  RECT rs, rd;
+  int so, d, i, srcLocked, dstLocked, n, bf;
+  unsigned int len;
+  unsigned int *ps, *pd;
+  unsigned char *bs, *bd;
 
-    if (y < dst->top) {
-        sy = sy + (dst->top - y);
-        h = h + (y - dst->top);
-        y = dst->top;
-    }
-    if (x < dst->left) {
-        sx = sx + (dst->left - x);
-        w = w + (x - dst->left);
-        x = dst->left;
-    }
-    if (sy < src->top) {
-        h = h + (sy - src->top);
-        sy = src->top;
-    }
-    if (sx < src->left) {
-        w = w + (sx - src->left);
-        sx = src->left;
-    }
-    if (h + y > dst->bottom)
-        h = dst->bottom - y;
-    if (h + sy > src->bottom)
-        h = src->bottom - sy;
-    if (w + x > dst->right)
-        w = dst->right - x;
-    if (w + sx > src->right)
-        w = src->right - sx;
-    if (h <= 0 || w <= 0)
-        return 0;
-    so = (src->bpp >> 3) * sx + src->rowbytes * sy;
-    d = (dst->bpp >> 3) * x + dst->rowbytes * y;
-    dstLocked = dst->locked;
-    srcLocked = src->locked;
+  if (y < dst->top) {
+    sy = sy + (dst->top - y);
+    h = h + (y - dst->top);
+    y = dst->top;
+  }
+  if (x < dst->left) {
+    sx = sx + (dst->left - x);
+    w = w + (x - dst->left);
+    x = dst->left;
+  }
+  if (sy < src->top) {
+    h = h + (sy - src->top);
+    sy = src->top;
+  }
+  if (sx < src->left) {
+    w = w + (sx - src->left);
+    sx = src->left;
+  }
+  if (h + y > dst->bottom)
+    h = dst->bottom - y;
+  if (h + sy > src->bottom)
+    h = src->bottom - sy;
+  if (w + x > dst->right)
+    w = dst->right - x;
+  if (w + sx > src->right)
+    w = src->right - sx;
+  if (h <= 0 || w <= 0)
+    return 0;
+  so = (src->bpp >> 3) * sx + src->rowbytes * sy;
+  d = (dst->bpp >> 3) * x + dst->rowbytes * y;
+  dstLocked = dst->locked;
+  srcLocked = src->locked;
 #ifdef REA_FRAME_DUMP
-    if (w > 300)
-        REA_DUMP_TRACE((rd_f, "%u BlitPart %dx%d from %d,%d to %d,%d srcbpp=%d dstbpp=%d dd=%d,%d manual=%d,%d mode=%d\n",
-                        GetTickCount(), w, h, sx, sy, x, y, src->bpp, dst->bpp, src->DDSurface != 0, dst->DDSurface != 0,
-                        src->manualBlit, dst->manualBlit, mode));
+  if (w > 300)
+    REA_DUMP_TRACE((rd_f,
+                    "%u BlitPart %dx%d from %d,%d to %d,%d srcbpp=%d dstbpp=%d "
+                    "dd=%d,%d manual=%d,%d mode=%d\n",
+                    GetTickCount(), w, h, sx, sy, x, y, src->bpp, dst->bpp,
+                    src->DDSurface != 0, dst->DDSurface != 0, src->manualBlit,
+                    dst->manualBlit, mode));
 #endif
-    if (dst->DDSurface == 0 || src->DDSurface == 0 || dst->manualBlit != 0 || src->manualBlit != 0) {
-        d2_LockSurface(dst);
-        d2_LockSurface(src);
-        {
-            for (i = 0; i < h; i++) {
-                len = (src->bpp >> 3) * w;
-                bs = src->bytes + src->rowbytes * i + so;
-                bd = dst->bytes + dst->rowbytes * i + d;
-                memcpy(bd, bs, len);
-            }
-        }
-    } else {
-        if (dstLocked != 0)
-            d2_UnlockSurface(dst);
-        if (src->locked != 0)
-            d2_UnlockSurface(src);
-        rs.top = sy;
-        rs.bottom = sy + h;
-        rs.left = sx;
-        rs.right = sx + w;
-        rd.right = w + x;
-        rd.bottom = h + y;
-        rd.left = x;
-        rd.top = y;
-        bf = DDBLT_WAIT;
-        if (mode & 1)
-            bf = DDBLT_WAIT | DDBLT_KEYSRC;
-        if (dst->DDSurface->lpVtbl->Blt(dst->DDSurface, &rd, src->DDSurface, &rs, bf, 0) != 0)
-            return 0;
-        if (d3d_hr == 0x80004001) {
-            dst->manualBlit = 1;
-            src->manualBlit = 1;
-            d2_LockSurface(dst);
-            d2_LockSurface(src);
-            {
-                for (i = 0; i < h; i++) {
-                    len = (src->bpp >> 3) * w;
-                    bs = src->bytes + src->rowbytes * i + so;
-                    bd = dst->bytes + dst->rowbytes * i + d;
-                    memcpy(bd, bs, len);
-                }
-            }
-        }
+  if (dst->DDSurface == 0 || src->DDSurface == 0 || dst->manualBlit != 0 ||
+      src->manualBlit != 0) {
+    d2_LockSurface(dst);
+    d2_LockSurface(src);
+    {
+      for (i = 0; i < h; i++) {
+        len = (src->bpp >> 3) * w;
+        bs = src->bytes + src->rowbytes * i + so;
+        bd = dst->bytes + dst->rowbytes * i + d;
+        memcpy(bd, bs, len);
+      }
     }
+  } else {
     if (dstLocked != 0)
-        d2_LockSurface(dst);
-    else
-        d2_UnlockSurface(dst);
-    if (srcLocked != 0) {
-        d2_LockSurface(src);
-        return 1;
+      d2_UnlockSurface(dst);
+    if (src->locked != 0)
+      d2_UnlockSurface(src);
+    rs.top = sy;
+    rs.bottom = sy + h;
+    rs.left = sx;
+    rs.right = sx + w;
+    rd.right = w + x;
+    rd.bottom = h + y;
+    rd.left = x;
+    rd.top = y;
+    bf = DDBLT_WAIT;
+    if (mode & 1)
+      bf = DDBLT_WAIT | DDBLT_KEYSRC;
+    if (dst->DDSurface->lpVtbl->Blt(dst->DDSurface, &rd, src->DDSurface, &rs,
+                                    bf, 0) != 0)
+      return 0;
+    if (d3d_hr == 0x80004001) {
+      dst->manualBlit = 1;
+      src->manualBlit = 1;
+      d2_LockSurface(dst);
+      d2_LockSurface(src);
+      {
+        for (i = 0; i < h; i++) {
+          len = (src->bpp >> 3) * w;
+          bs = src->bytes + src->rowbytes * i + so;
+          bd = dst->bytes + dst->rowbytes * i + d;
+          memcpy(bd, bs, len);
+        }
+      }
     }
-    d2_UnlockSurface(src);
+  }
+  if (dstLocked != 0)
+    d2_LockSurface(dst);
+  else
+    d2_UnlockSurface(dst);
+  if (srcLocked != 0) {
+    d2_LockSurface(src);
     return 1;
+  }
+  d2_UnlockSurface(src);
+  return 1;
 }
 /* 0x479480, d2_BlitPartMode without the colour key */
 
-void d2_BlitPart(int sx, int sy, int w, int h, D2SURF *src, int x, int y, D2SURF *dst)
-{
-    d2_BlitPartMode(sx, sy, w, h, src, x, y, dst, 0);
+void d2_BlitPart(int sx, int sy, int w, int h, D2SURF *src, int x, int y,
+                 D2SURF *dst) {
+  d2_BlitPartMode(sx, sy, w, h, src, x, y, dst, 0);
 }
 /* 0x4794c0, blits the part (sx, sy, w, h) of the surface src to (x, y) of the DirectDraw surface dst */
 
-int d2_BlitPartToDD(int sx, int sy, int w, int h, D2SURF *src, int x, int y, LPDIRECTDRAWSURFACE4 dst)
-{
-    RECT rs, rd;
-    int locked;
+int d2_BlitPartToDD(int sx, int sy, int w, int h, D2SURF *src, int x, int y,
+                    LPDIRECTDRAWSURFACE4 dst) {
+  RECT rs, rd;
+  int locked;
 
-    if (sy < 0) {
-        h = h + sy;
-        sy = 0;
-    }
-    if (sx < 0) {
-        w = w + sx;
-        sx = 0;
-    }
-    if (x < 0) {
-        sx = sx - x;
-        w = w + x;
-        x = 0;
-    }
-    if (y < 0) {
-        sy = sy - y;
-        h = h + y;
-        y = 0;
-    }
-    if (h + sy > src->bottom)
-        h = src->bottom - sy;
-    if (sx + w > src->right)
-        w = src->right - sx;
-    if (h != 0 && w != 0) {
-        locked = src->locked;
-        if (src->DDSurface != 0 && src->manualBlit == 0) {
-            if (locked != 0)
-                d2_UnlockSurface(src);
-            rs.left = sx;
-            rs.top = sy;
-            rs.bottom = sy + h;
-            rs.right = sx + w;
-            rd.left = x;
-            rd.top = y;
-            rd.right = x + w;
-            rd.bottom = y + h;
-            if (dst->lpVtbl->Blt(dst, &rd, src->DDSurface, &rs, DDBLT_WAIT, 0) != 0)
-                return 0;
-        }
-        if (locked != 0) {
-            d2_LockSurface(src);
-            return 1;
-        }
+  if (sy < 0) {
+    h = h + sy;
+    sy = 0;
+  }
+  if (sx < 0) {
+    w = w + sx;
+    sx = 0;
+  }
+  if (x < 0) {
+    sx = sx - x;
+    w = w + x;
+    x = 0;
+  }
+  if (y < 0) {
+    sy = sy - y;
+    h = h + y;
+    y = 0;
+  }
+  if (h + sy > src->bottom)
+    h = src->bottom - sy;
+  if (sx + w > src->right)
+    w = src->right - sx;
+  if (h != 0 && w != 0) {
+    locked = src->locked;
+    if (src->DDSurface != 0 && src->manualBlit == 0) {
+      if (locked != 0)
         d2_UnlockSurface(src);
-        return 1;
+      rs.left = sx;
+      rs.top = sy;
+      rs.bottom = sy + h;
+      rs.right = sx + w;
+      rd.left = x;
+      rd.top = y;
+      rd.right = x + w;
+      rd.bottom = y + h;
+      if (dst->lpVtbl->Blt(dst, &rd, src->DDSurface, &rs, DDBLT_WAIT, 0) != 0)
+        return 0;
     }
-    return 0;
+    if (locked != 0) {
+      d2_LockSurface(src);
+      return 1;
+    }
+    d2_UnlockSurface(src);
+    return 1;
+  }
+  return 0;
 }
 /* 0x479610, blits the part (sx, sy, w, h) of the DirectDraw surface img to (x, y) of the surface surf, clipped to
    the surface edges; 1 on success, 0 when the clip leaves nothing or img is NULL (the reverse of
    d2_BlitPartToDD, the d2.c texture upload calls it) */
 
-int d2_BlitPartFromDD(int sx, int sy, int w, int h, LPDIRECTDRAWSURFACE4 img, int x, int y, D2SURF *surf)
-{
-    RECT src, dst;
+int d2_BlitPartFromDD(int sx, int sy, int w, int h, LPDIRECTDRAWSURFACE4 img,
+                      int x, int y, D2SURF *surf) {
+  RECT src, dst;
 
-    if (sy < 0) {
-        h += sy;
-        sy = 0;
+  if (sy < 0) {
+    h += sy;
+    sy = 0;
+  }
+  if (sx < 0) {
+    w += sx;
+    sx = 0;
+  }
+  if (x < 0) {
+    sx -= x;
+    w += x;
+    x = 0;
+  }
+  if (y < 0) {
+    sy -= y;
+    h += y;
+    y = 0;
+  }
+  if (h != 0 && w != 0) {
+    if (img != 0) {
+      src.left = sx;
+      src.top = sy;
+      dst.top = y;
+      src.bottom = sy + h;
+      src.right = sx + w;
+      dst.left = x;
+      dst.bottom = y + h;
+      dst.right = x + w;
+      surf->DDSurface->lpVtbl->Blt(surf->DDSurface, &dst, img, &src, DDBLT_WAIT,
+                                   0);
     }
-    if (sx < 0) {
-        w += sx;
-        sx = 0;
-    }
-    if (x < 0) {
-        sx -= x;
-        w += x;
-        x = 0;
-    }
-    if (y < 0) {
-        sy -= y;
-        h += y;
-        y = 0;
-    }
-    if (h != 0 && w != 0) {
-        if (img != 0) {
-            src.left = sx;
-            src.top = sy;
-            dst.top = y;
-            src.bottom = sy + h;
-            src.right = sx + w;
-            dst.left = x;
-            dst.bottom = y + h;
-            dst.right = x + w;
-            surf->DDSurface->lpVtbl->Blt(surf->DDSurface, &dst, img, &src, DDBLT_WAIT, 0);
-        }
-        return 1;
-    }
-    return 0;
+    return 1;
+  }
+  return 0;
 }
 /* 0x4796c0, clears the pixels of surf to black: a memset for a system memory surface, a colour fill Blt for a
    DirectDraw one; returns 1 (0 only for a NULL surf) */
 
-int d2_ClearSurface(D2SURF *surf)
-{
-    int locked;
-    DDBLTFX fx;
+int d2_ClearSurface(D2SURF *surf) {
+  int locked;
+  DDBLTFX fx;
 
-    if (surf == 0)
-        return 0;
-    locked = surf->locked;
-    if (surf->DDSurface == 0) {
-        if (locked != 0)
-            d2_LockSurface(surf);
-        memset(surf->bits, 0, surf->rowbytes * surf->h);
-    } else {
-        if (locked != 0)
-            d2_UnlockSurface(surf);
-        memset(&fx, 0, sizeof(fx));
-        fx.dwFillColor = 0;
-        fx.dwSize = 100;
-        surf->DDSurface->lpVtbl->Blt(surf->DDSurface, 0, 0, 0, DDBLT_COLORFILL | DDBLT_WAIT, &fx);
-    }
-    if (locked != 0) {
-        d2_LockSurface(surf);
-        return 1;
-    }
-    d2_UnlockSurface(surf);
+  if (surf == 0)
+    return 0;
+  locked = surf->locked;
+  if (surf->DDSurface == 0) {
+    if (locked != 0)
+      d2_LockSurface(surf);
+    memset(surf->bits, 0, surf->rowbytes * surf->h);
+  } else {
+    if (locked != 0)
+      d2_UnlockSurface(surf);
+    memset(&fx, 0, sizeof(fx));
+    fx.dwFillColor = 0;
+    fx.dwSize = 100;
+    surf->DDSurface->lpVtbl->Blt(surf->DDSurface, 0, 0, 0,
+                                 DDBLT_COLORFILL | DDBLT_WAIT, &fx);
+  }
+  if (locked != 0) {
+    d2_LockSurface(surf);
     return 1;
+  }
+  d2_UnlockSurface(surf);
+  return 1;
 }
 /* 0x479780, makes a copy of a surface: the same description and make flags, the whole source image blitted over;
    returns the new surface */
 
-D2SURF *d2_CopySurface(D2SURF *surf)
-{
-    D2SURF desc;
-    D2SURF *ns;
+D2SURF *d2_CopySurface(D2SURF *surf) {
+  D2SURF desc;
+  D2SURF *ns;
 
-    desc = *surf;
-    desc.DDSurface = 0;
-    desc.bits = 0;
-    ns = d2_MakeSurface(&desc, surf->makeFlags);
-    d2_BlitPart(0, 0, ns->w, ns->h, surf, 0, 0, ns);
-    return ns;
+  desc = *surf;
+  desc.DDSurface = 0;
+  desc.bits = 0;
+  ns = d2_MakeSurface(&desc, surf->makeFlags);
+  d2_BlitPart(0, 0, ns->w, ns->h, surf, 0, 0, ns);
+  return ns;
 }
 /* 0x4797d0, clears the rectangle (x, y, w, h) of surf to black, clipped to the surface's width / height: a colour
    fill Blt for a DirectDraw surface, while a system memory surface is cleared whole (the rectangle is ignored);
    returns 1 (0 only for a NULL surf) */
 
-int d2_ClearRect(int x, int y, int w, int h, D2SURF *surf)
-{
-    int locked;
-    int l;
-    RECT r;
-    DDBLTFX fx;
+int d2_ClearRect(int x, int y, int w, int h, D2SURF *surf) {
+  int locked;
+  int l;
+  RECT r;
+  DDBLTFX fx;
 
-    if (surf == 0)
-        return 0;
-    locked = surf->locked;
-    if (locked != 0)
-        d2_UnlockSurface(surf);
-    if (surf->DDSurface == 0) {
-        memset(surf->bits, 0, surf->rowbytes * surf->h);
-    } else {
-        if (x < surf->left)
-            x = surf->left;
-        r.left = x;
-        l = x;
-        r.top = y;
-        r.right = l + w;
-        r.bottom = y + h;
-        if (r.right > surf->w - 1)
-            r.right = surf->w;
-        if (r.bottom > surf->h - 1)
-            r.bottom = surf->h;
-        if (l < surf->w && y < surf->h) {
-            memset(&fx, 0, sizeof(fx));
-            fx.dwFillColor = 0;
-            fx.dwSize = 100;
-            surf->DDSurface->lpVtbl->Blt(surf->DDSurface, &r, 0, 0, DDBLT_COLORFILL | DDBLT_WAIT, &fx);
-        }
-    }
-    if (locked != 0) {
-        d2_LockSurface(surf);
-        return 1;
-    }
+  if (surf == 0)
+    return 0;
+  locked = surf->locked;
+  if (locked != 0)
     d2_UnlockSurface(surf);
+  if (surf->DDSurface == 0) {
+    memset(surf->bits, 0, surf->rowbytes * surf->h);
+  } else {
+    if (x < surf->left)
+      x = surf->left;
+    r.left = x;
+    l = x;
+    r.top = y;
+    r.right = l + w;
+    r.bottom = y + h;
+    if (r.right > surf->w - 1)
+      r.right = surf->w;
+    if (r.bottom > surf->h - 1)
+      r.bottom = surf->h;
+    if (l < surf->w && y < surf->h) {
+      memset(&fx, 0, sizeof(fx));
+      fx.dwFillColor = 0;
+      fx.dwSize = 100;
+      surf->DDSurface->lpVtbl->Blt(surf->DDSurface, &r, 0, 0,
+                                   DDBLT_COLORFILL | DDBLT_WAIT, &fx);
+    }
+  }
+  if (locked != 0) {
+    d2_LockSurface(surf);
     return 1;
+  }
+  d2_UnlockSurface(surf);
+  return 1;
 }
 /* 0x4798f0, reads the colour of the pixel (x, y) of surf into rgb[0..2] (r, g, b): a 15 / 16 bpp pixel through
    dd_SplitRGB, the 3 bytes for 24 bpp; for 32 bpp r / g / b are the low bytes of the pixel's dword and of the
    next two dwords (the original indexes the dword array like the 3-byte case); any other depth leaves rgb
    untouched by the switch (it gets the caller's stack bytes) */
 
-void d2_GetPixelColour(int x, int y, D2SURF *surf, unsigned char *rgb)
-{
-    unsigned char r, g, b;
-    unsigned int bytes = surf->bpp >> 3;
+void d2_GetPixelColour(int x, int y, D2SURF *surf, unsigned char *rgb) {
+  unsigned char r, g, b;
+  unsigned int bytes = surf->bpp >> 3;
 
-    switch (surf->bpp) {
-    case 0xf:
-    case 0x10:
-        dd_SplitRGB(surf->bits[surf->pitch * y + x], &r, &g, &b);
-        break;
-    case 0x18:
-        r = surf->bytes[(surf->pitch * y + x) * bytes];
-        g = surf->bytes[(surf->pitch * y + x) * bytes + 1];
-        b = surf->bytes[(surf->pitch * y + x) * bytes + 2];
-        break;
-    case 0x20:
-        r = (unsigned char)((DWORD *)surf->bits)[surf->pitch * y + x];
-        g = (unsigned char)((DWORD *)surf->bits)[surf->pitch * y + x + 1];
-        b = (unsigned char)((DWORD *)surf->bits)[surf->pitch * y + x + 2];
-        break;
-    }
-    rgb[0] = r;
-    rgb[1] = g;
-    rgb[2] = b;
+  switch (surf->bpp) {
+  case 0xf:
+  case 0x10:
+    dd_SplitRGB(surf->bits[surf->pitch * y + x], &r, &g, &b);
+    break;
+  case 0x18:
+    r = surf->bytes[(surf->pitch * y + x) * bytes];
+    g = surf->bytes[(surf->pitch * y + x) * bytes + 1];
+    b = surf->bytes[(surf->pitch * y + x) * bytes + 2];
+    break;
+  case 0x20:
+    r = (unsigned char)((DWORD *)surf->bits)[surf->pitch * y + x];
+    g = (unsigned char)((DWORD *)surf->bits)[surf->pitch * y + x + 1];
+    b = (unsigned char)((DWORD *)surf->bits)[surf->pitch * y + x + 2];
+    break;
+  }
+  rgb[0] = r;
+  rgb[1] = g;
+  rgb[2] = b;
 }
 /* 0x4799e0, plots the pixel (x, y) of surf in the colour (r, g, b) at the surface's depth (8 bpp: the grey
    average; 15 / 16 bpp: dd_RGB; 24 bpp: 3 bytes; 32 bpp: a dword), clipped to the surface's clip rectangle;
    1 if plotted, 0 when outside the clip or surf is NULL (the pen d2_Plot and the outline below use it) */
 
-int d2_PutPixelRGB(int x, int y, unsigned char r, unsigned char g, unsigned char b, D2SURF *surf)
-{
-    unsigned char bpp;
-    DWORD c;
+int d2_PutPixelRGB(int x, int y, unsigned char r, unsigned char g,
+                   unsigned char b, D2SURF *surf) {
+  unsigned char bpp;
+  DWORD c;
 
-    if (surf != 0 && x >= surf->left && x < surf->right && y >= surf->top && y < surf->bottom) {
-        bpp = surf->bpp >> 3;
-        c = dd_RGB((unsigned char)r, (unsigned char)g, (unsigned char)b);
-        switch (surf->bpp) {
-        case 8:
-            surf->bytes[surf->pitch * y + x] =
-                (unsigned char)((int)((r & 0xff) + (g & 0xff) + (b & 0xff)) / 3);
-            break;
-        case 0xf:
-        case 0x10:
-            ((unsigned short *)surf->bits)[surf->pitch * y + x] = (unsigned short)c;
-            break;
-        case 0x18:
-            x = bpp * x;
-            surf->bytes[surf->pitch * y + x] = (unsigned char)r;
-            surf->bytes[surf->pitch * y + x + 1] = (unsigned char)g;
-            surf->bytes[surf->pitch * y + x + 2] = (unsigned char)b;
-            break;
-        case 0x20:
-            ((DWORD *)surf->bits)[surf->pitch * y + x] = c;
-        }
-        return 1;
+  if (surf != 0 && x >= surf->left && x < surf->right && y >= surf->top &&
+      y < surf->bottom) {
+    bpp = surf->bpp >> 3;
+    c = dd_RGB((unsigned char)r, (unsigned char)g, (unsigned char)b);
+    switch (surf->bpp) {
+    case 8:
+      surf->bytes[surf->pitch * y + x] =
+          (unsigned char)((int)((r & 0xff) + (g & 0xff) + (b & 0xff)) / 3);
+      break;
+    case 0xf:
+    case 0x10:
+      ((unsigned short *)surf->bits)[surf->pitch * y + x] = (unsigned short)c;
+      break;
+    case 0x18:
+      x = bpp * x;
+      surf->bytes[surf->pitch * y + x] = (unsigned char)r;
+      surf->bytes[surf->pitch * y + x + 1] = (unsigned char)g;
+      surf->bytes[surf->pitch * y + x + 2] = (unsigned char)b;
+      break;
+    case 0x20:
+      ((DWORD *)surf->bits)[surf->pitch * y + x] = c;
     }
-    return 0;
+    return 1;
+  }
+  return 0;
 }
 /* 0x479b60, plots a 16 bit pixel */
 
-int d2_PutPixel(int x, int y, unsigned short color, D2SURF *surf)
-{
-    ((unsigned short *)surf->bits)[surf->pitch * y + x] = color;
-    return 1;
+int d2_PutPixel(int x, int y, unsigned short color, D2SURF *surf) {
+  ((unsigned short *)surf->bits)[surf->pitch * y + x] = color;
+  return 1;
 }
 /* 0x479b90, the same, clipped */
 
-int d2_PutPixelClipped(int x, int y, unsigned short color, D2SURF *surf)
-{
-    if (x >= 0 && x < surf->w && y >= 0 && y < surf->h && x >= surf->left && x < surf->right && y >= surf->top
-        && y < surf->bottom) {
-        ((unsigned short *)surf->bits)[surf->pitch * y + x] = color;
-        return 1;
-    }
-    return 0;
+int d2_PutPixelClipped(int x, int y, unsigned short color, D2SURF *surf) {
+  if (x >= 0 && x < surf->w && y >= 0 && y < surf->h && x >= surf->left &&
+      x < surf->right && y >= surf->top && y < surf->bottom) {
+    ((unsigned short *)surf->bits)[surf->pitch * y + x] = color;
+    return 1;
+  }
+  return 0;
 }
 /* 0x479bf0, draws the outline of the w x h rectangle at (x, y) in the colour (r, g, b): the left / right columns,
    then the top / bottom rows, pixel by pixel through d2_PutPixelRGB; nothing at all when the blue byte is 0 or
    h < 1 (the d2.c window border with 0xff, 0xff, 0xff comes through here)
    */
 
-void d2_DrawRectOutline(int x, int y, int w, int h, unsigned char r, unsigned char g, unsigned char b, D2SURF *surf)
-{
-    int i, j;
+void d2_DrawRectOutline(int x, int y, int w, int h, unsigned char r,
+                        unsigned char g, unsigned char b, D2SURF *surf) {
+  int i, j;
 
-    if (b >= 1 && h >= 1) {
-        for (i = 0; i < h; i++) {
-            d2_PutPixelRGB(x, y + i, r, g, b, surf);
-            d2_PutPixelRGB(x - 1 + w, y + i, r, g, b, surf);
-        }
-        for (i = 0; i < w; i++) {
-            d2_PutPixelRGB(x + i, y, r, g, b, surf);
-            d2_PutPixelRGB(x + i, y - 1 + h, r, g, b, surf);
-        }
+  if (b >= 1 && h >= 1) {
+    for (i = 0; i < h; i++) {
+      d2_PutPixelRGB(x, y + i, r, g, b, surf);
+      d2_PutPixelRGB(x - 1 + w, y + i, r, g, b, surf);
     }
+    for (i = 0; i < w; i++) {
+      d2_PutPixelRGB(x + i, y, r, g, b, surf);
+      d2_PutPixelRGB(x + i, y - 1 + h, r, g, b, surf);
+    }
+  }
 }
 /* 0x479cd0, sets the clip rectangle of surf to the w x h rectangle at (x, y): left / top / right / bottom (the
    same rectangle d2_SetClipRect sets on the screen globals); a NULL surf is ignored */
 
-void d2_SetSurfaceClip(int x, int y, int w, int h, D2SURF *surf)
-{
-    if (surf != 0) {
-        surf->left = x;
-        surf->top = y;
-        surf->right = x + w;
-        surf->bottom = y + h;
-    }
+void d2_SetSurfaceClip(int x, int y, int w, int h, D2SURF *surf) {
+  if (surf != 0) {
+    surf->left = x;
+    surf->top = y;
+    surf->right = x + w;
+    surf->bottom = y + h;
+  }
 }
 
-short d2_LastMouseX;  /* 0xf8a650 */
-short d2_LastMouseY;  /* 0xf8a652 */
-int d2_HoverTick;  /* 0xf8a654 */
-int d2_FocusObjIndex;  /* 0xf8a658 */
-int d2_ClickedSlot;  /* 0xf8a65c */
-int d2_InputDragOffsetY;  /* 0xf8a660 */
-int d2_SavedMaxY;  /* 0xf8a664 */
-int d2_SavedMinY;  /* 0xf8a66c */
-D2OBJ * d2_ClickedObj;  /* 0xf8a670 */
-D2HIT d2_HitRects[0x40];  /* 0xf8a680 (d2_AddHitRect allows i = 0x40, one past: the original's latent overrun) */
-int d2_PointerObjSlot;  /* 0xf8aa80 */
-int d2_HitCount;  /* 0xf8aa84 */
-D2SLOT d2_ItemListSurf256;  /* 0xf8aa90 */
-int d2_LastClickedId;  /* 0xf8aa9c */
-D2SLOT d2_ItemListSurf128[3];  /* 0xf8aaa0 */
-int d2_ClickedForm;  /* 0xf8aac4 */
-int d2_RightHeldObj;  /* 0xf8aac8 */
-int d2_HoverObj;  /* 0xf8aacc */
-int d2_TextCursorX;  /* 0xf8aad4 */
-int d2_TextCursorY;  /* 0xf8aad8 */
-void * d2_ItemListSurf64;  /* 0xf8aadc */
-int d2_InputDragValue;  /* 0xf8ab60 */
-int d2_PrevHoverObj;  /* 0xf8ab64 */
-int d2_InputDragReleased;  /* 0xf8ab68 */
-int d2_ClickedId;  /* 0xf8a668 */
-short d2_MouseX;  /* 0xf8a674, mouse x */
-short d2_MouseY;  /* 0xf8a676, mouse y */
-int d2_HitWindow;  /* 0xf8aad0 */
-char d2_CaptionCopy[0x80]; /* 0xf8aae0, the d2 caption / status text buffer (gfx.h's d2_CaptionCopy, 0x80 bytes up to d2_InputDragValue at 0xf8ab60) */
-int d2_PointerSprite = -1;  /* 0x5febc8, sprite of the pointer, -1: none */
-int d2_TextCursorOffset = -7;  /* 0x5febcc, -7 or 0 */
-int d2_HitClicked = -1;  /* 0x5febd0 */
+short d2_LastMouseX;     /* 0xf8a650 */
+short d2_LastMouseY;     /* 0xf8a652 */
+int d2_HoverTick;        /* 0xf8a654 */
+int d2_FocusObjIndex;    /* 0xf8a658 */
+int d2_ClickedSlot;      /* 0xf8a65c */
+int d2_InputDragOffsetY; /* 0xf8a660 */
+int d2_SavedMaxY;        /* 0xf8a664 */
+int d2_SavedMinY;        /* 0xf8a66c */
+D2OBJ *d2_ClickedObj;    /* 0xf8a670 */
+D2HIT d2_HitRects
+    [0x40]; /* 0xf8a680 (d2_AddHitRect allows i = 0x40, one past: the original's latent overrun) */
+int d2_PointerObjSlot;        /* 0xf8aa80 */
+int d2_HitCount;              /* 0xf8aa84 */
+D2SLOT d2_ItemListSurf256;    /* 0xf8aa90 */
+int d2_LastClickedId;         /* 0xf8aa9c */
+D2SLOT d2_ItemListSurf128[3]; /* 0xf8aaa0 */
+int d2_ClickedForm;           /* 0xf8aac4 */
+int d2_RightHeldObj;          /* 0xf8aac8 */
+int d2_HoverObj;              /* 0xf8aacc */
+int d2_TextCursorX;           /* 0xf8aad4 */
+int d2_TextCursorY;           /* 0xf8aad8 */
+void *d2_ItemListSurf64;      /* 0xf8aadc */
+int d2_InputDragValue;        /* 0xf8ab60 */
+int d2_PrevHoverObj;          /* 0xf8ab64 */
+int d2_InputDragReleased;     /* 0xf8ab68 */
+int d2_ClickedId;             /* 0xf8a668 */
+short d2_MouseX;              /* 0xf8a674, mouse x */
+short d2_MouseY;              /* 0xf8a676, mouse y */
+int d2_HitWindow;             /* 0xf8aad0 */
+char d2_CaptionCopy
+    [0x80]; /* 0xf8aae0, the d2 caption / status text buffer (gfx.h's d2_CaptionCopy, 0x80 bytes up to d2_InputDragValue at 0xf8ab60) */
+int d2_PointerSprite = -1;    /* 0x5febc8, sprite of the pointer, -1: none */
+int d2_TextCursorOffset = -7; /* 0x5febcc, -7 or 0 */
+int d2_HitClicked = -1;       /* 0x5febd0 */
 int d2_HitUnderPointer = -1;  /* 0x5febd4 */
-int d2_UnreadData = -1;  /* 0x5febd8, no surviving instruction or image dword reads it (holes.py --section data): data of
-   functions /OPT:REF removed; the original's value */
-int d2_HoverX = -1;  /* 0x5febdc */
-int d2_HoverY = -1;  /* 0x5febe0 */
-int d2_LimitsChanged = -1;  /* 0x5febe4 */
-int d2_TextCursorSprite = -1;  /* 0x5febe8, sprite of the text cursor, -1: none */
-int d2_DragSlider = -1;  /* 0x5febec */
+int d2_UnreadData =
+    -1; /* 0x5febd8, no surviving instruction or image dword reads it (holes.py --section data): data of
+functions /OPT:REF removed; the original's value */
+int d2_HoverX = -1;        /* 0x5febdc */
+int d2_HoverY = -1;        /* 0x5febe0 */
+int d2_LimitsChanged = -1; /* 0x5febe4 */
+int d2_TextCursorSprite =
+    -1;                 /* 0x5febe8, sprite of the text cursor, -1: none */
+int d2_DragSlider = -1; /* 0x5febec */
 
 /* unlinked: an empty function; LINK folds it (/OPT:ICF) into d3io_NoopCallback, 0x44ee40, where the original's call
    of it in d2_MouseUpdate (a dragged scroll bar moved the window's text: the window index pushed) points */
-void d2_ScrolledNotify(int win)
-{
-}
+void d2_ScrolledNotify(int win) {}

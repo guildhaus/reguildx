@@ -1,305 +1,389 @@
 struct VFSFILE;
 struct D3OBJECT;
 struct D3MIRROR;
-struct D3FLMAP;                     /* the tag (d3_fl.h spells it out; MS compat needs the forward declaration) */
+struct
+    D3FLMAP; /* the tag (d3_fl.h spells it out; MS compat needs the forward declaration) */
 /* d3_engine.c types (only what the functions from 0x438c30 need so far). */
 #ifndef D3_ENGINE_H
 #define D3_ENGINE_H
-#include <windows.h>                  /* HWND (d3_Init) */
-#include "d3.h"                       /* the D3 records and typedefs this header names */
+#include <windows.h> /* HWND (d3_Init) */
+#include "d3.h"      /* the D3 records and typedefs this header names */
 struct D3SOUND;
 
-extern D3OBJECT d3_ObjEnd;                  /* 0xfc2700, list end marker */
+extern D3OBJECT d3_ObjEnd; /* 0xfc2700, list end marker */
 /* d3_TopFirst and d3_TopLast are not storage of their own: the original's 0xfc52f0 is
    d3_TopHead.next (0xfc5100 + 0x1f0) and 0xfc28f4 is d3_ObjEnd.prev (0xfc2700 + 0x1f4).
    Both spellings are one object, which d3_LinkTop / d3_UnlinkTop require. */
+/* clang-format off */
 #define d3_TopFirst (d3_TopHead.next)      /* 0xfc52f0, first top-level object */
-#define d3_TopLast (d3_ObjEnd.prev)        /* 0xfc28f4, last top-level object */
+/* clang-format on */
+#define d3_TopLast (d3_ObjEnd.prev) /* 0xfc28f4, last top-level object */
 /* The particle list likewise: its head pointer is the next field of the head node d3if_ParList (d3_interface.c),
    its tail pointer the prev field of the end marker d3_ParEnd (d3_par.c). */
+/* clang-format off */
 #define d3_ParHead (d3if_ParList.next)     /* 0xfb98f4, first particle system of the default scene */
 #define d3_ParTail (d3_ParEnd.prev)        /* 0xfb9598, last particle system of the default scene */
+/* clang-format on */
 
-extern unsigned char d3_Hardware;          /* 0x633450 */
-extern char d3_FogOn;                       /* 0x6334a4 */
-extern float d3_ScaleX;                 /* 0xfc5348, projection */
-extern float d3_ScaleY;                 /* 0xfc2944 */
-extern float d3_CenterX;                /* 0xfe75fc */
-extern float d3_CenterY;                /* 0xfe7604 */
-extern float d3_Dist2;                      /* 0xfc294c */
-extern float d3_FogStart2;                  /* 0xfc5330, squared */
-extern float d3_FogStart;                   /* 0xfc300c */
-extern float d3_FogScale;                   /* 0xfc2948 */
+extern unsigned char d3_Hardware; /* 0x633450 */
+extern char d3_FogOn;             /* 0x6334a4 */
+extern float d3_ScaleX;           /* 0xfc5348, projection */
+extern float d3_ScaleY;           /* 0xfc2944 */
+extern float d3_CenterX;          /* 0xfe75fc */
+extern float d3_CenterY;          /* 0xfe7604 */
+extern float d3_Dist2;            /* 0xfc294c */
+extern float d3_FogStart2;        /* 0xfc5330, squared */
+extern float d3_FogStart;         /* 0xfc300c */
+extern float d3_FogScale;         /* 0xfc2948 */
 
 /* ---- from 0x439000 on ---- */
 
 /* D3OBJECT fields not in d3.h's declaration */
-__inline D3OBJBITS *d3_ObjBits(D3OBJECT *obj)
-{
-    return &obj->bits;
-}
+__inline D3OBJBITS *d3_ObjBits(D3OBJECT *obj) { return &obj->bits; }
 #define D3_OBJBITS(o) (*d3_ObjBits(o))
 
-
-
-extern const int d3_TriEdge[3][2];        /* 0x5eba80, per triangle vertex: [0] the next one, [1] the previous one */
-extern D3OBJECT *d3s_Object;              /* 0x633448 */
-extern struct D3SKY *d3_Sky;                /* 0x633dd4, d3_sky.c (D3SKY, d3_sky.h) */
-extern int d3s_NumUVs;                /* 0xfb925c */
-extern int d3s_NumVerts;                /* 0xfb9220 */
-extern int d3_ClipExtraTris;                    /* 0x63346c */
-#include "d3_types.h"                /* D3SORTENT */
-extern unsigned int d3_SortCount;           /* 0xfc2dcc */
-extern D3SORTENT *d3_SortBuf;               /* 0xfc2de0 */
-extern D3SORTENT *d3_SortPtr;               /* 0xfc2dc8 */
-extern int d3_TriCount;                /* 0xfc7b60 */
-extern int d3_VertCount;                /* 0xfc2dc4 */
-extern int d3_DrawnVerts;              /* 0xfe75b0, vertices drawn this frame (d3_DrawSorted resets it) */
+extern const int d3_TriEdge
+    [3]
+    [2]; /* 0x5eba80, per triangle vertex: [0] the next one, [1] the previous one */
+extern D3OBJECT *d3s_Object;      /* 0x633448 */
+extern struct D3SKY *d3_Sky;      /* 0x633dd4, d3_sky.c (D3SKY, d3_sky.h) */
+extern int d3s_NumUVs;            /* 0xfb925c */
+extern int d3s_NumVerts;          /* 0xfb9220 */
+extern int d3_ClipExtraTris;      /* 0x63346c */
+#include "d3_types.h"             /* D3SORTENT */
+extern unsigned int d3_SortCount; /* 0xfc2dcc */
+extern D3SORTENT *d3_SortBuf;     /* 0xfc2de0 */
+extern D3SORTENT *d3_SortPtr;     /* 0xfc2dc8 */
+extern int d3_TriCount;           /* 0xfc7b60 */
+extern int d3_VertCount;          /* 0xfc2dc4 */
+extern int
+    d3_DrawnVerts; /* 0xfe75b0, vertices drawn this frame (d3_DrawSorted resets it) */
 /* a byte read as an int bitfield (mov dword; and 0xff): d3_Init passes d3_D3DActive so */
-extern unsigned char d3_EngineReady;          /* 0x633451, engine up: set at the end of d3_Init, cleared in d3_Shutdown */
-extern unsigned char d3_MipSkip;          /* 0x63342c, d3_d3d.c */
-extern int d3_FrameCount;                    /* 0x63343c */
-extern unsigned int d3_SceneFlags;           /* 0x63349c */
+extern unsigned char
+    d3_EngineReady; /* 0x633451, engine up: set at the end of d3_Init, cleared in d3_Shutdown */
+extern unsigned char d3_MipSkip;   /* 0x63342c, d3_d3d.c */
+extern int d3_FrameCount;          /* 0x63343c */
+extern unsigned int d3_SceneFlags; /* 0x63349c */
 
-void d3s_ResetShadows(D3OBJECT *obj);       /* 0x45ce00, d3s.c, d3_ForEachObject2 callback */
-void d3s_FreeShadows(D3OBJECT *obj);        /* 0x45ccd0, d3s.c, d3_ForEachObject2 callback */
-void d3_WorldMatrix(struct D3OBJECT *obj, struct D3OBJECT *ref, char orientOnly, D3MATRIX *out);   /* 0x458da0 */
-void d3fl_SetMips(char a);               /* 0x43f930, d3_fl.c (takes char; the 0x43c4e0 caller pushes an int) */
-void d3fl_SetDetail(unsigned int n); /* 0x43f8a0, d3_fl.c (takes unsigned int; the 0x43c4e0 caller pushes an int) */
-void tex_ReloadAll(char keep, void (*cb)(int, int, int));       /* 0x461090, ts_texture.c: void tex_ReloadAll(char, void (*)(int, int, int)) */
-void d3fl_FreeTiles(struct D3FLMAP *map);   /* 0x441db0, d3_fl.c */
+void d3s_ResetShadows(
+    D3OBJECT *obj); /* 0x45ce00, d3s.c, d3_ForEachObject2 callback */
+void d3s_FreeShadows(
+    D3OBJECT *obj); /* 0x45ccd0, d3s.c, d3_ForEachObject2 callback */
+void d3_WorldMatrix(struct D3OBJECT *obj, struct D3OBJECT *ref, char orientOnly,
+                    D3MATRIX *out); /* 0x458da0 */
+void d3fl_SetMips(
+    char
+        a); /* 0x43f930, d3_fl.c (takes char; the 0x43c4e0 caller pushes an int) */
+void d3fl_SetDetail(
+    unsigned int
+        n); /* 0x43f8a0, d3_fl.c (takes unsigned int; the 0x43c4e0 caller pushes an int) */
+void tex_ReloadAll(
+    char keep,
+    void (*cb)(
+        int, int,
+        int)); /* 0x461090, ts_texture.c: void tex_ReloadAll(char, void (*)(int, int, int)) */
+void d3fl_FreeTiles(struct D3FLMAP *map); /* 0x441db0, d3_fl.c */
 
 /* d3_engine.c functions referenced before their definition */
-D3SURF *d3_SelectSurf(D3OBJECT *obj);                                                 /* 0x43a000 */
-void d3_DrawSortedD3D(void);                                                                /* 0x43a7d0 */
-void d3_DrawSortedSW(void);                                                                /* 0x43b080 */
-void d3_RadixSort(unsigned int n, unsigned char twobytes);                              /* 0x43b300 */
-void d3_UpdateAll(unsigned char full);                                                  /* 0x43b6e0 */
-void d3_LinkTop(D3OBJECT *obj);                                                         /* 0x43ca20 */
-void d3_SetCamera(D3OBJECT *obj);                                                       /* 0x43cbe0 */
-void d3_FreeSurf(D3SURF *s);                                                            /* 0x43cc90 */
-void d3_DeflateObject(D3OBJECT *obj);                                                       /* 0x43da00 */
+D3SURF *d3_SelectSurf(D3OBJECT *obj);                      /* 0x43a000 */
+void d3_DrawSortedD3D(void);                               /* 0x43a7d0 */
+void d3_DrawSortedSW(void);                                /* 0x43b080 */
+void d3_RadixSort(unsigned int n, unsigned char twobytes); /* 0x43b300 */
+void d3_UpdateAll(unsigned char full);                     /* 0x43b6e0 */
+void d3_LinkTop(D3OBJECT *obj);                            /* 0x43ca20 */
+void d3_SetCamera(D3OBJECT *obj);                          /* 0x43cbe0 */
+void d3_FreeSurf(D3SURF *s);                               /* 0x43cc90 */
+void d3_DeflateObject(D3OBJECT *obj);                      /* 0x43da00 */
 
 /* ---- round 2 (0x439000..0x43e000) ---- */
 /* view and fog state */
-extern float d3_ViewW;                  /* 0xfe73c8 */
-extern float d3_ViewH;                  /* 0xfe73c4 */
-extern float d3_ViewX;                  /* 0xfe73a8 */
-extern float d3_ViewY;                  /* 0xfc5328 */
-extern float d3_ZNear;                  /* 0xfe73b4 */
-extern float d3_ZFar;                   /* 0xfc2564 */
-extern int d3_ScreenW;                /* 0xfc2df4 */
-extern int d3_ScreenH;                /* 0xfc2df0 */
-extern float d3_FogEnd;                     /* 0xfc2dd8 */
-extern float d3_SavedZFar;                  /* 0xfe73bc, d3_ZFar while the fog is off */
-extern float d3_FogEnd2;                    /* 0xfc5340 */
-extern float d3_FogStart1;                  /* 0xfc29bc */
-extern D3COLORU d3_fog_color;               /* 0x6334a0 */
-extern struct D3SM *d3sm_Shadow;                  /* 0x633df8 */
+extern float d3_ViewW;           /* 0xfe73c8 */
+extern float d3_ViewH;           /* 0xfe73c4 */
+extern float d3_ViewX;           /* 0xfe73a8 */
+extern float d3_ViewY;           /* 0xfc5328 */
+extern float d3_ZNear;           /* 0xfe73b4 */
+extern float d3_ZFar;            /* 0xfc2564 */
+extern int d3_ScreenW;           /* 0xfc2df4 */
+extern int d3_ScreenH;           /* 0xfc2df0 */
+extern float d3_FogEnd;          /* 0xfc2dd8 */
+extern float d3_SavedZFar;       /* 0xfe73bc, d3_ZFar while the fog is off */
+extern float d3_FogEnd2;         /* 0xfc5340 */
+extern float d3_FogStart1;       /* 0xfc29bc */
+extern D3COLORU d3_fog_color;    /* 0x6334a0 */
+extern struct D3SM *d3sm_Shadow; /* 0x633df8 */
 
-typedef struct D3RELOADCTX {        /* context of d3_ReloadMeshCB */
-    void (*progress)(int a, int i, int n);
-    int type;                       /* 0x04, compared with D3OBJECT::kind */
-    int n;                          /* 0x08 */
-    int i;                          /* 0x0c */
-    signed char count;              /* 0x10, only count the objects */
+typedef struct D3RELOADCTX { /* context of d3_ReloadMeshCB */
+  void (*progress)(int a, int i, int n);
+  int type;          /* 0x04, compared with D3OBJECT::kind */
+  int n;             /* 0x08 */
+  int i;             /* 0x0c */
+  signed char count; /* 0x10, only count the objects */
 } D3RELOADCTX;
 
-unsigned char d3_ClipBox(void *box, float *zmin, float *zmax);                        /* 0x439650 */
-void d3_SetFogRange(float start, float end);                                            /* 0x43a610 */
-void d3_SetViewport(float w, float h, float x, float y, float zn, float zf, float scale, int a, int b); /* 0x43b950 */
-void d3_FreeObjectData(D3OBJECT *obj);                                                  /* 0x43c670 */
-void d3fl_Inflate(struct D3FLMAP *map);                                                 /* 0x441ea0, d3_fl.c */
-struct D3SM; struct D3FLMAP; void d3sm_Build(struct D3SM *h, struct D3FLMAP *t);                                                    /* 0x45e620, d3_sm.c: void d3sm_Build(D3SM *, D3FLMAP *) */
-void d3_AttachMesh(D3OBJECT *obj, struct D3SURF *surf, char *name);                                  /* 0x44cbb0 */
-struct D3BGF *d3io_LoadObject(char *a, char *b);                                         /* 0x44e080, d3_io_t.c (d3io_LoadObject; d3_io_t.h declares it too) */
+unsigned char d3_ClipBox(void *box, float *zmin, float *zmax); /* 0x439650 */
+void d3_SetFogRange(float start, float end);                   /* 0x43a610 */
+void d3_SetViewport(float w, float h, float x, float y, float zn, float zf,
+                    float scale, int a, int b); /* 0x43b950 */
+void d3_FreeObjectData(D3OBJECT *obj);          /* 0x43c670 */
+void d3fl_Inflate(struct D3FLMAP *map);         /* 0x441ea0, d3_fl.c */
+struct D3SM;
+struct D3FLMAP;
+void d3sm_Build(
+    struct D3SM *h,
+    struct D3FLMAP
+        *t); /* 0x45e620, d3_sm.c: void d3sm_Build(D3SM *, D3FLMAP *) */
+void d3_AttachMesh(D3OBJECT *obj, struct D3SURF *surf,
+                   char *name); /* 0x44cbb0 */
+struct D3BGF *d3io_LoadObject(
+    char *a,
+    char *
+        b); /* 0x44e080, d3_io_t.c (d3io_LoadObject; d3_io_t.h declares it too) */
 
+extern char d3_EditorMode; /* 0x633438, editor / tool mode (reasoned guess) */
+extern float d3_InvZFar;   /* 0xfc2dd4, 1 / d3_ZFar */
+extern char d3_LightsChanged; /* 0x633b14 */
+char d3s_FreeLightCB(
+    D3OBJECT *obj,
+    D3OBJECT *light); /* 0x45cd60, d3s.c, d3_ForEachObject callback */
+void d3anim_PoseBones(D3OBJECT *obj); /* 0x431ae0 */
+void d3_InitObject(D3OBJECT *obj);    /* 0x43ce60 */
+void d3_FreeMesh(D3OBJECT *obj);      /* 0x43cd80 */
 
-extern char d3_EditorMode;                   /* 0x633438, editor / tool mode (reasoned guess) */
-extern float d3_InvZFar;                    /* 0xfc2dd4, 1 / d3_ZFar */
-extern char d3_LightsChanged;                   /* 0x633b14 */
-char d3s_FreeLightCB(D3OBJECT *obj, D3OBJECT *light);                                         /* 0x45cd60, d3s.c, d3_ForEachObject callback */
-void d3anim_PoseBones(D3OBJECT *obj);                                                       /* 0x431ae0 */
-void d3_InitObject(D3OBJECT *obj);                                                      /* 0x43ce60 */
-void d3_FreeMesh(D3OBJECT *obj);                                                        /* 0x43cd80 */
+extern float d3_HalfW; /* 0xfe75f8 */
+extern float d3_HalfH; /* 0xfe75b8 */
+extern int
+    d3_ViewBottomFx; /* 0xfe73a4, the view's bottom edge (h + y) as 16.16 fixed (d3_SetViewport) */
+extern float
+    d3_ViewZScale; /* 0xfc2ddc, 1.0 from d3_SetViewport (reasoned guess: a z scale; no reader) */
+extern char dd_Cleared;  /* 0x631222, dd_vesa.c */
+extern char dd_ZCleared; /* 0x631223, dd_vesa.c */
+void d3d_SetViewport(float w, float h, float x, float y, float zn,
+                     float zf); /* 0x436de0 */
+void d3_SetupFrustum(
+    void); /* 0x4391d0, sets d3_Planes / d3_Frustum / d3_ClipInfo from the viewport */
 
-extern float d3_HalfW;                  /* 0xfe75f8 */
-extern float d3_HalfH;                  /* 0xfe75b8 */
-extern int d3_ViewBottomFx;                 /* 0xfe73a4, the view's bottom edge (h + y) as 16.16 fixed (d3_SetViewport) */
-extern float d3_ViewZScale;                 /* 0xfc2ddc, 1.0 from d3_SetViewport (reasoned guess: a z scale; no reader) */
-extern char dd_Cleared;                     /* 0x631222, dd_vesa.c */
-extern char dd_ZCleared;                   /* 0x631223, dd_vesa.c */
-void d3d_SetViewport(float w, float h, float x, float y, float zn, float zf);          /* 0x436de0 */
-void d3_SetupFrustum(void);                                                             /* 0x4391d0, sets d3_Planes / d3_Frustum / d3_ClipInfo from the viewport */
+void d3_UpdateWorldMatrix(struct D3OBJECT *obj, struct D3OBJECT *camera,
+                          char force); /* 0x439870 */
 
-void d3_UpdateWorldMatrix(struct D3OBJECT *obj, struct D3OBJECT *camera, char force);                       /* 0x439870 */
+void d3_PointToRef(struct D3OBJECT *obj, struct D3OBJECT *ref,
+                   struct D3VECTOR *in, struct D3VECTOR *out); /* 0x458b20 */
 
-void d3_PointToRef(struct D3OBJECT *obj, struct D3OBJECT *ref, struct D3VECTOR *in, struct D3VECTOR *out);             /* 0x458b20 */
-
-typedef struct D3TEXMAP {           /* d3_SetObjectAlpha: a texture and its replacement */
-    struct TSTEXTURE *from;
-    struct TSTEXTURE *to;
+typedef struct D3TEXMAP { /* d3_SetObjectAlpha: a texture and its replacement */
+  struct TSTEXTURE *from;
+  struct TSTEXTURE *to;
 } D3TEXMAP;
-struct TSTEXTURE; struct TSTEXTURE *tex_ReleaseAlias(struct TSTEXTURE *tex, char group);                                /* 0x461610, ts_texture.c */
-struct TSTEXTURE; struct TSTEXTURE *tex_AliasForFlags(struct TSTEXTURE *tex, D3TEXFLAGS flags, char group);  /* 0x4616a0, ts_texture.c (TSFLAGS is D3TEXFLAGS) */
+struct TSTEXTURE;
+struct TSTEXTURE *tex_ReleaseAlias(struct TSTEXTURE *tex,
+                                   char group); /* 0x461610, ts_texture.c */
+struct TSTEXTURE;
+struct TSTEXTURE *tex_AliasForFlags(
+    struct TSTEXTURE *tex, D3TEXFLAGS flags,
+    char group); /* 0x4616a0, ts_texture.c (TSFLAGS is D3TEXFLAGS) */
 
-extern D3PARTSYS d3_ParEnd;                 /* 0xfb9280, particle system list end marker */
-extern D3PARTSYS d3if_ParList;              /* 0xfb95e0, particle system list head node (d3_interface.c) */
-void par_Delete(D3PARTSYS *ps);                                                         /* 0x455760 */
-void d3snd_Free(struct D3SOUND *s);                                                     /* 0x4179d0, d3_snd.c */
-void d3_DisposeObject(D3OBJECT *obj);                                                   /* 0x43c7a0 */
-void d3_UnlinkTop(D3OBJECT *obj);                                                       /* 0x43cab0 */
+extern D3PARTSYS d3_ParEnd; /* 0xfb9280, particle system list end marker */
+extern D3PARTSYS
+    d3if_ParList; /* 0xfb95e0, particle system list head node (d3_interface.c) */
+void par_Delete(D3PARTSYS *ps);       /* 0x455760 */
+void d3snd_Free(struct D3SOUND *s);   /* 0x4179d0, d3_snd.c */
+void d3_DisposeObject(D3OBJECT *obj); /* 0x43c7a0 */
+void d3_UnlinkTop(D3OBJECT *obj);     /* 0x43cab0 */
 
-#define D3_SCENE3C8(s) ((s)->events)   /* D3SCENE.events (d3.h); the typed view is the field itself */
-extern unsigned int d3s_MaxPolys;           /* 0x633dc4 */
-extern struct D3OBJECT *d3if_MegaCam;      /* 0x6338c4 */
-extern struct D3BGF d3_StockListStart;     /* 0xfc2e00, the head sentinel of the stock object (mesh driver, D3BGF in d3_io_t.h) list: its next is the first one, walked with ->Release */
-extern struct D3BGF d3_StockListEnd;       /* 0xfc4a40, its end sentinel */
-extern struct D3ANIMDATA d3anim_Head;      /* 0xfc2580, the animation cache list (D3ANIMDATA, d3_anim.h): its head sentinel */
-extern struct D3ANIMDATA d3anim_Tail;      /* 0xfe7440, and its end sentinel */
-extern D3SORTENT *d3_SortTmp;               /* 0xfe75c0 */
-extern unsigned int d3_RadixCount[256];     /* 0xfc29c0 */
+#define D3_SCENE3C8(s)                                                         \
+  ((s)->events) /* D3SCENE.events (d3.h); the typed view is the field itself */
+extern unsigned int d3s_MaxPolys;     /* 0x633dc4 */
+extern struct D3OBJECT *d3if_MegaCam; /* 0x6338c4 */
+extern struct D3BGF
+    d3_StockListStart; /* 0xfc2e00, the head sentinel of the stock object (mesh driver, D3BGF in d3_io_t.h) list: its next is the first one, walked with ->Release */
+extern struct D3BGF d3_StockListEnd; /* 0xfc4a40, its end sentinel */
+extern struct D3ANIMDATA
+    d3anim_Head; /* 0xfc2580, the animation cache list (D3ANIMDATA, d3_anim.h): its head sentinel */
+extern struct D3ANIMDATA d3anim_Tail;   /* 0xfe7440, and its end sentinel */
+extern D3SORTENT *d3_SortTmp;           /* 0xfe75c0 */
+extern unsigned int d3_RadixCount[256]; /* 0xfc29c0 */
 extern D3SORTENT *d3_RadixSrc;          /* 0xfe73c0 */
 extern D3SORTENT *d3_RadixDst;          /* 0xfc50c8 */
-struct D3SKY; void d3sky_Destroy(struct D3SKY *s);                /* 0x45daa0, d3_sky.c */
-void d3sky_Free(void);                      /* 0x45db20, d3_sky.c */
-void par_DeleteAll(void);                   /* 0x4556b0, d3_par.c */
-void d3_ExitShadows(void);                    /* 0x45aee0 */
-void d3fl_Exit(void);                       /* 0x43fed0, d3_fl.c */
-void tex_Exit(void);                        /* 0x45fd00, ts_texture.c */
-void d3d_Exit(void);                        /* 0x4370e0, d3_d3d.c */
-void dd_Exit(void);                         /* 0x41be00, dd_vesa.c */
+struct D3SKY;
+void d3sky_Destroy(struct D3SKY *s); /* 0x45daa0, d3_sky.c */
+void d3sky_Free(void);               /* 0x45db20, d3_sky.c */
+void par_DeleteAll(void);            /* 0x4556b0, d3_par.c */
+void d3_ExitShadows(void);           /* 0x45aee0 */
+void d3fl_Exit(void);                /* 0x43fed0, d3_fl.c */
+void tex_Exit(void);                 /* 0x45fd00, ts_texture.c */
+void d3d_Exit(void);                 /* 0x4370e0, d3_d3d.c */
+void dd_Exit(void);                  /* 0x41be00, dd_vesa.c */
 
 /* d3_Planes: a field of d3_ClipState (below) */
-extern float d3_MinZ;                   /* 0xfc5344 */
-extern float d3_MaxZ;                   /* 0xfc5338 */
+extern float d3_MinZ; /* 0xfc5344 */
+extern float d3_MaxZ; /* 0xfc5338 */
 
 /* Inline-asm byte fill: value and size through temps (declared in this order), dst named directly. */
+/* clang-format off */
 #define D3E_FILL(dvar, val, size) {                                 int _fv = (val); int _fn = (size);                              __asm mov edi, dvar                                             __asm mov eax, _fv                                              __asm mov ebx, _fn                                              __asm mov ah, al                                                __asm shl eax, 16                                               __asm mov ecx, eax                                              __asm shr ecx, 16                                               __asm add eax, ecx                                              __asm lea ecx, [edi+edi*2]                                      __asm and ecx, 3                                                __asm sub ebx, ecx                                              __asm jle D3_COPY_LABEL(__LINE__)                               __asm rep stosb                                                 __asm mov ecx, ebx                                              __asm and ebx, 3                                                __asm shr ecx, 2                                                __asm rep stosd                                                 __asm D3_COPY_LABEL(__LINE__): add ecx, ebx                     __asm rep stosb                                             }
+/* clang-format on */
 
 #define D3E_LBL(name, n) D3_ZERO_CAT(name, n)
 /* One pass of the radix sort (inline asm): sorts n D3SORTENTs from d3_RadixSrc into d3_RadixDst by key byte b;
    d3_RadixCount must be zero. */
+/* clang-format off */
 #define D3E_RADIX(n, b) {                                           int _rb = (b);                                                  __asm mov ecx, n                                                __asm mov edi, _rb                                              __asm xor eax, eax                                              __asm mov esi, d3_RadixSrc                                      __asm add esi, edi                                              __asm D3E_LBL(d3_rx1_, __LINE__): mov al, [esi]                 __asm lea ebx, d3_RadixCount[eax*4]                             __asm inc dword ptr [ebx]                                       __asm add esi, 8                                                __asm dec ecx                                                   __asm jne D3E_LBL(d3_rx1_, __LINE__)                            __asm mov ecx, 0xff                                             __asm lea ebx, d3_RadixCount                                    __asm D3E_LBL(d3_rx2_, __LINE__): mov eax, [ebx]                __asm add [ebx+4], eax                                          __asm add ebx, 4                                                __asm dec ecx                                                   __asm jne D3E_LBL(d3_rx2_, __LINE__)                            __asm mov ecx, n                                                __asm dec ecx                                                   __asm mov esi, d3_RadixSrc                                      __asm mov edx, esi                                              __asm add esi, edi                                              __asm mov edi, d3_RadixDst                                      __asm xor eax, eax                                              __asm D3E_LBL(d3_rx3_, __LINE__): mov al, [esi+ecx*8]           __asm lea ebx, d3_RadixCount[eax*4]                             __asm dec dword ptr [ebx]                                       __asm mov ebx, [ebx]                                            __asm mov eax, [edx+ecx*8]                                      __asm mov [edi+ebx*8], eax                                      __asm mov eax, [edx+ecx*8+4]                                    __asm mov [edi+ebx*8+4], eax                                    __asm xor eax, eax                                              __asm dec ecx                                                   __asm jns D3E_LBL(d3_rx3_, __LINE__)                        }
+/* clang-format on */
 
-extern int d3_ObjectsTested;                /* 0x633494, objects tested / drawn */
-extern int d3_ObjectsDrawn;                /* 0x633498 */
-extern unsigned int d3_LightKeysCulled;     /* 0x633b08, light keys this frame spent on culled lights */
-extern unsigned int d3_LightKeysVisible;    /* 0x633b0c, light keys this frame spent on visible lights */
-extern unsigned int d3_LightGeneration;     /* 0x633b10, lightmap generation, D3MESH::lightGeneration holds the one drawn */
-extern unsigned int d3_LightKeyBudgetCulled;  /* 0x5fcc6c, per-frame key budget for culled lights */
-extern unsigned int d3_LightKeyBudgetVisible; /* 0x5fcc70, per-frame key budget for visible lights */
-extern unsigned int d3s_Count;     /* 0x633dc0, d3s.c: the shadow triangles d3s_UpdateObject produced (unsigned: d3_DrawObjectCB tests it with ja) */
-void d3s_UpdateObject(D3OBJECT *obj);       /* 0x45ca20, d3s.c */
-void d3s_UpdateObjectAt(D3OBJECT *obj);     /* 0x45ca60, d3s.c */
-struct D3OBJECT; struct D3SURF; struct D3MATRIX; void d3_TransformVerts(struct D3OBJECT *obj, struct D3SURF *info, struct D3MATRIX *m);                             /* 0x459300 */
-void d3_MirBeginFrame(D3OBJECT *obj, struct D3MIRROR *m);                                   /* 0x4554b0, d3_mir.h */
-void d3_ProjectMesh(D3OBJECT *obj);                                                     /* 0x438f60 */
+extern int d3_ObjectsTested; /* 0x633494, objects tested / drawn */
+extern int d3_ObjectsDrawn;  /* 0x633498 */
+extern unsigned int
+    d3_LightKeysCulled; /* 0x633b08, light keys this frame spent on culled lights */
+extern unsigned int
+    d3_LightKeysVisible; /* 0x633b0c, light keys this frame spent on visible lights */
+extern unsigned int
+    d3_LightGeneration; /* 0x633b10, lightmap generation, D3MESH::lightGeneration holds the one drawn */
+extern unsigned int
+    d3_LightKeyBudgetCulled; /* 0x5fcc6c, per-frame key budget for culled lights */
+extern unsigned int
+    d3_LightKeyBudgetVisible; /* 0x5fcc70, per-frame key budget for visible lights */
+extern unsigned int
+    d3s_Count; /* 0x633dc0, d3s.c: the shadow triangles d3s_UpdateObject produced (unsigned: d3_DrawObjectCB tests it with ja) */
+void d3s_UpdateObject(D3OBJECT *obj);   /* 0x45ca20, d3s.c */
+void d3s_UpdateObjectAt(D3OBJECT *obj); /* 0x45ca60, d3s.c */
+struct D3OBJECT;
+struct D3SURF;
+struct D3MATRIX;
+void d3_TransformVerts(struct D3OBJECT *obj, struct D3SURF *info,
+                       struct D3MATRIX *m); /* 0x459300 */
+void d3_MirBeginFrame(D3OBJECT *obj,
+                      struct D3MIRROR *m); /* 0x4554b0, d3_mir.h */
+void d3_ProjectMesh(D3OBJECT *obj);        /* 0x438f60 */
 
 /* float to int with fistp (current rounding mode) */
-__inline void d3_FtoI(int *dst, float f)
-{
+__inline void d3_FtoI(int *dst, float f){
+    /* clang-format off */
     __asm fld f
     __asm mov edx, dst
     __asm fistp dword ptr [edx]
+    /* clang-format on */
 }
 
 /* Inline-asm copy with size, src and dst through temps, declared in this order (as D3_COPY3 in d3_d3d.h). */
+/* clang-format off */
 #define D3E_COPY3(dst, src, size) {                                 int _cn = (size); void *_cs = (src); void *_cd = (dst);         __asm mov edi, _cd                                              __asm mov esi, _cs                                              __asm mov ebx, _cn                                              __asm lea ecx, [edi+edi*2]                                      __asm and ecx, 3                                                __asm sub ebx, ecx                                              __asm jle D3_COPY_LABEL(__LINE__)                               __asm rep movsb                                                 __asm mov ecx, ebx                                              __asm and ebx, 3                                                __asm shr ecx, 2                                                __asm rep movsd                                                 __asm D3_COPY_LABEL(__LINE__): add ecx, ebx                     __asm rep movsb                                             }
+/* clang-format on */
 
 /* ---- round 3 (worker d3_left) ---- */
-typedef struct D3CLIPINFO {         /* 0x68 bytes, d3_ClipInfo[clip code]: the planes a triangle must be clipped at */
-    unsigned int n;                 /* number of planes */
-    unsigned char mirror;           /* 0x04, nonzero: the planes are the mirror outline's (d3_MirCreatePlanes):
-                                       always run the software clipper, with the winding test flipped */
-    char pad05[0x3];
-    D3VECTOR4 plane[6];             /* 0x08, normal and distance */
+typedef struct
+    D3CLIPINFO { /* 0x68 bytes, d3_ClipInfo[clip code]: the planes a triangle must be clipped at */
+  unsigned int n; /* number of planes */
+  unsigned char
+      mirror; /* 0x04, nonzero: the planes are the mirror outline's (d3_MirCreatePlanes):
+                 always run the software clipper, with the winding test flipped */
+  char pad05[0x3];
+  D3VECTOR4 plane[6]; /* 0x08, normal and distance */
 } D3CLIPINFO;
-extern D3CLIPINFO d3_ClipInfo[64];          /* 0xfc3020 */
-extern unsigned int d3_ClipOut;            /* 0x633454, vertices in the clipped polygon */
-extern unsigned int d3_ClipIn;              /* 0x633458, vertices in the polygon to clip */
-extern D3VERTEX *d3_ClipList[2][0x80];       /* 0xfc4c60, polygon vertex lists (ping-pong) */
-extern D3VERTEX d3_ClipPool[];               /* 0xfc5360, vertices made by the clipper */
-D3VERTEX **d3_ClipPoly(D3CLIPINFO *info);                                               /* 0x439c90 */
+extern D3CLIPINFO d3_ClipInfo[64]; /* 0xfc3020 */
+extern unsigned int d3_ClipOut; /* 0x633454, vertices in the clipped polygon */
+extern unsigned int d3_ClipIn;  /* 0x633458, vertices in the polygon to clip */
+extern D3VERTEX
+    *d3_ClipList[2][0x80];     /* 0xfc4c60, polygon vertex lists (ping-pong) */
+extern D3VERTEX d3_ClipPool[]; /* 0xfc5360, vertices made by the clipper */
+D3VERTEX **d3_ClipPoly(D3CLIPINFO *info); /* 0x439c90 */
 typedef void (*D3TRIFUNC)(D3TRI *t);
-extern D3TRIFUNC d3_TriFuncs[];             /* 0xfe75e0, software triangle fillers by mode */
-extern int d3_TextureSwitches;                    /* 0xfe75b4 */
-char dd_LockNoWait(void);                   /* 0x41df80, dd_vesa.c */
-void dd_Unlock(void);                       /* 0x41e050, dd_vesa.c */
-extern D3VECTOR4 d3_Frustum[5];             /* 0xfc2960, corner directions of the view, then (0, 0, 1) */
+extern D3TRIFUNC
+    d3_TriFuncs[];             /* 0xfe75e0, software triangle fillers by mode */
+extern int d3_TextureSwitches; /* 0xfe75b4 */
+char dd_LockNoWait(void);      /* 0x41df80, dd_vesa.c */
+void dd_Unlock(void);          /* 0x41e050, dd_vesa.c */
+extern D3VECTOR4
+    d3_Frustum[5]; /* 0xfc2960, corner directions of the view, then (0, 0, 1) */
 #ifndef DATA_VIEWS_H
-extern float d3_FovX, d3_FovY;              /* 0xfc4a20, 0xfc4c4c, half view angles */
+extern float d3_FovX, d3_FovY; /* 0xfc4a20, 0xfc4c4c, half view angles */
 #endif
-typedef struct D3INITCFG {          /* 0x60 bytes, d3_Init's configuration (copied to d3_Cfg); main_OpenScreen 0x531c50 fills it on the stack with dword stores */
-    unsigned int w, h;              /* screen size */
-    int bpp;                        /* 0x08 */
-    int mode;                       /* 0x0c, dd mode, 0: none */
-    int d3d;                        /* 0x10, use Direct3D */
-    int triple;                     /* 0x14, dd_SetMode's last argument (d3_Init reads its low byte) */
-    int maxpolys;                   /* 0x18, sort buffer entries (the draw functions clip to it) */
-    int texcount;                   /* 0x1c */
-    int maxhicol;                   /* 0x20 */
-    int texParam;                   /* 0x24, tex_Init's 3rd argument */
-    int zbpp;                       /* 0x28 */
-    int texbpp;                     /* 0x2c */
-    int flFlag;                     /* 0x30, d3fl_Init's 4th argument (read as a byte) */
-    int flShift;                    /* 0x34, d3fl_Init's 2nd argument is 0x40 >> flShift */
-    int flArg;                      /* 0x38, d3fl_Init's 3rd argument (read as a byte) */
-    int texShift;                   /* 0x3c, d3_MipSkip (read as a byte) */
-    int shadowSize;                 /* 0x40, d3_InitShadows' first argument */
-    float viewW, viewH;             /* 0x44 */
-    float viewX, viewY;             /* 0x4c */
-    float zn, zf;                   /* 0x54 */
-    float scale;                    /* 0x5c */
+typedef struct
+    D3INITCFG { /* 0x60 bytes, d3_Init's configuration (copied to d3_Cfg); main_OpenScreen 0x531c50 fills it on the stack with dword stores */
+  unsigned int w, h; /* screen size */
+  int bpp;           /* 0x08 */
+  int mode;          /* 0x0c, dd mode, 0: none */
+  int d3d;           /* 0x10, use Direct3D */
+  int triple; /* 0x14, dd_SetMode's last argument (d3_Init reads its low byte) */
+  int maxpolys; /* 0x18, sort buffer entries (the draw functions clip to it) */
+  int texcount; /* 0x1c */
+  int maxhicol; /* 0x20 */
+  int texParam; /* 0x24, tex_Init's 3rd argument */
+  int zbpp;     /* 0x28 */
+  int texbpp;   /* 0x2c */
+  int flFlag;   /* 0x30, d3fl_Init's 4th argument (read as a byte) */
+  int flShift;  /* 0x34, d3fl_Init's 2nd argument is 0x40 >> flShift */
+  int flArg;    /* 0x38, d3fl_Init's 3rd argument (read as a byte) */
+  int texShift; /* 0x3c, d3_MipSkip (read as a byte) */
+  int shadowSize;     /* 0x40, d3_InitShadows' first argument */
+  float viewW, viewH; /* 0x44 */
+  float viewX, viewY; /* 0x4c */
+  float zn, zf;       /* 0x54 */
+  float scale;        /* 0x5c */
 } D3INITCFG;
-extern D3INITCFG d3_Cfg;                    /* 0xfe73e0 */
-char d3_Init(D3INITCFG *cfg, HWND wnd, int unk);  /* 0x43bc20, starts the engine (unk: the instance, handed to dd_Init / d3d_Init / dd_SetMode) */
-void d3_Shutdown(void);                     /* 0x43c240, stops the engine */
+extern D3INITCFG d3_Cfg; /* 0xfe73e0 */
+char d3_Init(
+    D3INITCFG *cfg, HWND wnd,
+    int unk); /* 0x43bc20, starts the engine (unk: the instance, handed to dd_Init / d3d_Init / dd_SetMode) */
+void d3_Shutdown(void); /* 0x43c240, stops the engine */
 /* 0xfe73f8 / 0xfe7400 lie inside D3INITCFG (.maxpolys / .maxhicol), but they stay separate definitions:
    spelling them as struct fields costs d3_MirDrawObject's and d3sm_GetGround's byte grade (the load
    schedule changes).  The two ledger overlaps are the price; the macro form is in the note. */
-typedef struct D3CLIPSTATE {            /* 0x68 bytes at 0xfc5060 (a common of d3_engine's group): the frustum planes sit at
-                                               0xfc5068, off the 32-byte alignment LINK gives a 96-byte common; the
-                                               object starts with the clip word and the two flags before them */
-    int none;                               /* +0x00, d3_ClipNone: the empty clip info the particles point at */
-    unsigned char flagA, flagB;             /* +0x04, +0x05, d3_ClipFlagA / B: cleared by d3_Init, no reader (the
-                                               names are a reasoned guess) */
-    D3VECTOR4 planes[6];                    /* +0x08, d3_Planes: side planes of the view frustum (normal, distance);
-                                               the code writes 6 (near/far) */
+typedef struct
+    D3CLIPSTATE { /* 0x68 bytes at 0xfc5060 (a common of d3_engine's group): the frustum planes sit at
+                         0xfc5068, off the 32-byte alignment LINK gives a 96-byte common; the
+                         object starts with the clip word and the two flags before them */
+  int none; /* +0x00, d3_ClipNone: the empty clip info the particles point at */
+  unsigned char flagA,
+      flagB; /* +0x04, +0x05, d3_ClipFlagA / B: cleared by d3_Init, no reader (the
+                names are a reasoned guess) */
+  D3VECTOR4 planes
+      [6]; /* +0x08, d3_Planes: side planes of the view frustum (normal, distance);
+              the code writes 6 (near/far) */
 } D3CLIPSTATE;
-extern D3CLIPSTATE d3_ClipState;           /* 0xfc5060 */
+extern D3CLIPSTATE d3_ClipState; /* 0xfc5060 */
 #define d3_ClipNone (d3_ClipState.none)
 #define d3_ClipFlagA (d3_ClipState.flagA)
 #define d3_ClipFlagB (d3_ClipState.flagB)
 #define d3_Planes (d3_ClipState.planes)
-extern D3OBJECT d3_TopHead;               /* 0xfc5100, list start marker */
-extern struct D3DCONFIG d3_DefaultD3DConfig;  /* 0x5fb5b4 */
-extern unsigned char dd_BBits, dd_GBits, dd_RBits;  /* 0x1464fbd, 0x1463580, 0x1463570 */
-extern float d3_HalfAngleX;              /* 0xfe7600, atan2(d3_HalfW, d3_ScaleX) (d3_Init), no reader */
-extern float d3_HalfAngleY;              /* 0xfe75bc, atan2(d3_HalfH, d3_ScaleY) (d3_Init), no reader */
-extern unsigned char d3_Noise[256][256];    /* 0xfc7b80 */
-void d3io_NoopCallback(void *t);               /* 0x44ee40 */
-char dd_Init(int mode, int bpp, HWND parent, int unk);                                  /* 0x41cfb0, dd_vesa.c */
-void dd_SetClipRect(int left, int top, int right, int bottom);                          /* 0x41d190, dd_vesa.c */
-char dd_SetMode(int xres, int yres, int bpp, int mode, HWND wnd, int notused, char triple); /* 0x41d2e0, dd_vesa.c */
-char d3d_Init(int bitplanes, HWND wnd, int unk);                                        /* 0x435d70, d3_d3d.c */
-char d3d_CreateDevice(DWORD texbpp, DWORD fourcc, DWORD texbpp2, DWORD zbpp);           /* 0x436160, d3_d3d.c */
-struct D3DCONFIG; void d3d_SetConfig(struct D3DCONFIG *c);                                                            /* 0x436560, d3_d3d.c */
-void d3d_SetWBuffer(char w);                                                            /* 0x437060, d3_d3d.c */
-void tex_Init(int count, int maxhicol, int mips, unsigned int cache);                   /* 0x45fa80, ts_texture.c */
-void d3sky_InitColors(void);                                                            /* 0x45dae0, d3_sky.c */
-void d3fl_Init(unsigned int n, unsigned int detail, char mips, char b);                 /* 0x43fe00, d3_fl.c */
-void d3_InitShadows(unsigned int size, unsigned int maxsize, int ncache, int age, char mips, int polys, int mapsize);                     /* 0x45ad80 */
-void par_Init(void);                                                                    /* 0x455630, d3_par.c */
-extern int d3_TextureBytes;                    /* 0xfc2dc0, texture bytes used this frame */
-extern float d3_ZScale;                     /* 0xfc532c */
-extern float d3_ZOfs;                       /* 0xfc7b64 */
-extern float d3_UOfs, d3_VOfs;              /* 0xfe73ac, 0xfc26ec */
-extern float ts_ScrollV[32], ts_ScrollU[32];    /* 0xfb9120, 0xfb90a0 */
+extern D3OBJECT d3_TopHead;                  /* 0xfc5100, list start marker */
+extern struct D3DCONFIG d3_DefaultD3DConfig; /* 0x5fb5b4 */
+extern unsigned char dd_BBits, dd_GBits,
+    dd_RBits; /* 0x1464fbd, 0x1463580, 0x1463570 */
+extern float
+    d3_HalfAngleX; /* 0xfe7600, atan2(d3_HalfW, d3_ScaleX) (d3_Init), no reader */
+extern float
+    d3_HalfAngleY; /* 0xfe75bc, atan2(d3_HalfH, d3_ScaleY) (d3_Init), no reader */
+extern unsigned char d3_Noise[256][256];               /* 0xfc7b80 */
+void d3io_NoopCallback(void *t);                       /* 0x44ee40 */
+char dd_Init(int mode, int bpp, HWND parent, int unk); /* 0x41cfb0, dd_vesa.c */
+void dd_SetClipRect(int left, int top, int right,
+                    int bottom); /* 0x41d190, dd_vesa.c */
+char dd_SetMode(int xres, int yres, int bpp, int mode, HWND wnd, int notused,
+                char triple);                    /* 0x41d2e0, dd_vesa.c */
+char d3d_Init(int bitplanes, HWND wnd, int unk); /* 0x435d70, d3_d3d.c */
+char d3d_CreateDevice(DWORD texbpp, DWORD fourcc, DWORD texbpp2,
+                      DWORD zbpp); /* 0x436160, d3_d3d.c */
+struct D3DCONFIG;
+void d3d_SetConfig(struct D3DCONFIG *c); /* 0x436560, d3_d3d.c */
+void d3d_SetWBuffer(char w);             /* 0x437060, d3_d3d.c */
+void tex_Init(int count, int maxhicol, int mips,
+              unsigned int cache); /* 0x45fa80, ts_texture.c */
+void d3sky_InitColors(void);       /* 0x45dae0, d3_sky.c */
+void d3fl_Init(unsigned int n, unsigned int detail, char mips,
+               char b); /* 0x43fe00, d3_fl.c */
+void d3_InitShadows(unsigned int size, unsigned int maxsize, int ncache,
+                    int age, char mips, int polys, int mapsize); /* 0x45ad80 */
+void par_Init(void);           /* 0x455630, d3_par.c */
+extern int d3_TextureBytes;    /* 0xfc2dc0, texture bytes used this frame */
+extern float d3_ZScale;        /* 0xfc532c */
+extern float d3_ZOfs;          /* 0xfc7b64 */
+extern float d3_UOfs, d3_VOfs; /* 0xfe73ac, 0xfc26ec */
+extern float ts_ScrollV[32], ts_ScrollU[32]; /* 0xfb9120, 0xfb90a0 */
 /* 0x63345d: the first byte of d3_NoTextures (d3.h), read as a byte */
-int d3d_GetVertexBuffer(struct _D3DTLVERTEX **buf, int *n);                                            /* 0x4364f0, d3_d3d.c */
-void d3d_DrawTriangles(int vbh, struct _D3DTLVERTEX *buf, DWORD num);                                /* 0x436510, d3_d3d.c */
+int d3d_GetVertexBuffer(struct _D3DTLVERTEX **buf,
+                        int *n); /* 0x4364f0, d3_d3d.c */
+void d3d_DrawTriangles(int vbh, struct _D3DTLVERTEX *buf,
+                       DWORD num); /* 0x436510, d3_d3d.c */
 /* Inline asm: one transformed vertex from a D3VERTEX and a texture coordinate pair (u, v at uv). */
+/* clang-format off */
 #define D3E_TLV(dst, src, uv) {                                     \
     void *_td = (dst); void *_ts = (src); void *_tu = (uv);         \
     __asm mov edi, _td                                              \
@@ -326,7 +410,9 @@ void d3d_DrawTriangles(int vbh, struct _D3DTLVERTEX *buf, DWORD num);           
     __asm fadd d3_VOfs                                              \
     __asm fstp dword ptr [edi+0x1c]                                 \
 }
+/* clang-format on */
 /* Same for a clipped vertex: rhw = 1 / z, u and v through pointers. */
+/* clang-format off */
 #define D3E_TLV2(dst, src, pu, pv) {                                \
     void *_td = (dst); void *_ts = (src); void *_tu = (pu); void *_tv = (pv); \
     __asm mov edi, _td                                              \
@@ -353,10 +439,12 @@ void d3d_DrawTriangles(int vbh, struct _D3DTLVERTEX *buf, DWORD num);           
     __asm fmul d3_ZScale                                            \
     __asm fstp dword ptr [edi+0x8]                                  \
 }
-D3OBJECT *d3_SpawnObject(int type, char *name);                                         /* 0x43c570 */
-void d3_AllocObjectPolys(D3SURF *info);                                              /* 0x43cc10 */
-void d3_AddObjectDrawData(D3OBJECT *obj);                                               /* 0x43cfb0 */
+/* clang-format on */
+D3OBJECT *d3_SpawnObject(int type, char *name); /* 0x43c570 */
+void d3_AllocObjectPolys(D3SURF *info);         /* 0x43cc10 */
+void d3_AddObjectDrawData(D3OBJECT *obj);       /* 0x43cfb0 */
 /* Inline-asm copy with both operands named directly in the asm (D3_COPY_AT in d3_d3d.h). */
+/* clang-format off */
 #define D3E_COPY_AT(dvar, svar, size) {                             \
     int _cn = (size);                                               \
     __asm mov edi, dvar                                             \
@@ -374,57 +462,70 @@ void d3_AddObjectDrawData(D3OBJECT *obj);                                       
     __asm D3_COPY_LABEL(__LINE__): add ecx, ebx                     \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 
 /* ---- round 3, worker d3_engine2 (0x43e090..0x43eab0) ---- */
-extern int d3_Busy;                         /* 0x633b04, nesting guard of d3_Render/d3_Animate */
-extern unsigned char d3_FogByDistance;          /* 0x6334a5 */
-extern int d3_MirrorObject;                    /* 0x63344c, the object the frame's mirror was built for (0 none) */
-extern int d3_TextureSwitches;                /* 0xfe75b4 */
-extern int d3_TextureBytes;                /* 0xfc2dc0 */
-extern int d3_StatPolys;                /* 0x633470, frame statistics */
-extern int d3_StatTris;                /* 0x633474 */
-extern int d3_StatShadowTris;                /* 0x633478 */
-extern int d3_StatTexSwitches;                /* 0x63347c */
-extern int d3_StatTexBytes;                /* 0x633480 */
-extern int d3_StatVerts;                /* 0x633484 */
-extern int d3_StatDrawnVerts;                /* 0x633488 */
-extern unsigned int d3_Fps60Time;       /* 0x6334a8 */
-extern unsigned int d3_Fps60Frames;       /* 0x6334ac */
-extern unsigned int d3_Fps10Time;       /* 0x6334b0 */
-extern unsigned int d3_Fps10Frames;       /* 0x6334b4 */
-extern unsigned int d3_Fps60;       /* 0x63348c, frames per second (two windows) */
-extern unsigned int d3_Fps10;       /* 0x633490 */
-extern unsigned int tb_Delay;           /* 0xfe7a88, tb.c (the script clock factor) */
-void d3d_Clear(D3RECT *r);                                                              /* 0x435fb0, d3_d3d.c */
-float d3fl_FarDist(struct D3FLMAP *p, D3VECTOR *pos, D3MATRIX *m);                      /* 0x446990 */
-void d3fl_Draw(struct D3FLMAP *map, char water);                                      /* 0x4439e0 */
-void d3s_CollectLights(void);                                                           /* 0x45c9f0, d3s.c */
-char d3_DrawObjectCB(D3OBJECT *obj);                                                    /* 0x43a160 */
-char d3_MirDrawObject(D3OBJECT *obj, struct D3MIRROR *m);                                   /* 0x4550e0, d3_mir.h, a d3_ForEachObject callback */
-void par_Draw(D3PARTSYS *ps);                                                       /* 0x455a90 */
-struct D3SKY; char d3sky_Draw(struct D3SKY *s);                                                             /* 0x45d500 */
-void d3_DrawSorted(void);                                                                /* 0x43b600 */
-void ts_UpdateScroll(unsigned long now);                                                   /* 0x460cb0 */
+extern int d3_Busy; /* 0x633b04, nesting guard of d3_Render/d3_Animate */
+extern unsigned char d3_FogByDistance; /* 0x6334a5 */
+extern int
+    d3_MirrorObject; /* 0x63344c, the object the frame's mirror was built for (0 none) */
+extern int d3_TextureSwitches;      /* 0xfe75b4 */
+extern int d3_TextureBytes;         /* 0xfc2dc0 */
+extern int d3_StatPolys;            /* 0x633470, frame statistics */
+extern int d3_StatTris;             /* 0x633474 */
+extern int d3_StatShadowTris;       /* 0x633478 */
+extern int d3_StatTexSwitches;      /* 0x63347c */
+extern int d3_StatTexBytes;         /* 0x633480 */
+extern int d3_StatVerts;            /* 0x633484 */
+extern int d3_StatDrawnVerts;       /* 0x633488 */
+extern unsigned int d3_Fps60Time;   /* 0x6334a8 */
+extern unsigned int d3_Fps60Frames; /* 0x6334ac */
+extern unsigned int d3_Fps10Time;   /* 0x6334b0 */
+extern unsigned int d3_Fps10Frames; /* 0x6334b4 */
+extern unsigned int d3_Fps60; /* 0x63348c, frames per second (two windows) */
+extern unsigned int d3_Fps10; /* 0x633490 */
+extern unsigned int tb_Delay; /* 0xfe7a88, tb.c (the script clock factor) */
+void d3d_Clear(D3RECT *r);    /* 0x435fb0, d3_d3d.c */
+float d3fl_FarDist(struct D3FLMAP *p, D3VECTOR *pos,
+                   D3MATRIX *m);                 /* 0x446990 */
+void d3fl_Draw(struct D3FLMAP *map, char water); /* 0x4439e0 */
+void d3s_CollectLights(void);                    /* 0x45c9f0, d3s.c */
+char d3_DrawObjectCB(D3OBJECT *obj);             /* 0x43a160 */
+char d3_MirDrawObject(
+    D3OBJECT *obj,
+    struct D3MIRROR *m); /* 0x4550e0, d3_mir.h, a d3_ForEachObject callback */
+void par_Draw(D3PARTSYS *ps); /* 0x455a90 */
+struct D3SKY;
+char d3sky_Draw(struct D3SKY *s);        /* 0x45d500 */
+void d3_DrawSorted(void);                /* 0x43b600 */
+void ts_UpdateScroll(unsigned long now); /* 0x460cb0 */
 
-#include "d3_event.h"                       /* the event tables ("d3e:"), d3_event.c */
-void bio_rd_s(struct VFSFILE *f, char *s);      /* 0x4011a0 */
-void bio_rd_i(struct VFSFILE *f, void *i);        /* 0x4011d0 */
-void bio_wr_s(struct VFSFILE *f, char *s);       /* 0x401210 */
-void bio_wr_i(struct VFSFILE *f, int i);         /* 0x401240 */
+#include "d3_event.h" /* the event tables ("d3e:"), d3_event.c */
+void bio_rd_s(struct VFSFILE *f, char *s); /* 0x4011a0 */
+void bio_rd_i(struct VFSFILE *f, void *i); /* 0x4011d0 */
+void bio_wr_s(struct VFSFILE *f, char *s); /* 0x401210 */
+void bio_wr_i(struct VFSFILE *f, int i);   /* 0x401240 */
 
 /* declared in other units' headers before (moved to the owner) */
-void d3_Unlink(D3OBJECT *obj);  /* 0x43d0e0 */
-extern int d3if_SceneState1;  /* 0x5fb5c4 */
-char d3_GetBounds(D3OBJECT *obj, D3OBJECT *camera, D3VECTOR *center, float *radius);  /* 0x43d860 */
-D3OBJECT *d3_NextGroup(D3OBJECT *obj);  /* 0x438c30 */
-char d3_ForEachObject2(D3SCENE *scene, D3OBJECT *obj, unsigned int mask, void (*cb)(D3OBJECT *obj));  /* 0x438e60; cb's result is not read: the callers pass
-   their char / int returning callbacks (ls_HookBuildingCB, init_TextureSetHook ..) cast to void (*)(D3OBJECT *) */
-void d3_ClipMesh(D3CLIP mask, D3VERTEX *v, int nverts, D3TRI *t, int ntris);  /* 0x439a60 */
-void d3_AppendSibling(D3OBJECT *first, D3OBJECT *obj);  /* 0x43cb20 */
-void d3_SetAlpha(D3OBJECT *obj, D3TEXFLAGS *f);  /* 0x43d690, the alpha flags f on obj and its group */
-char d3_AttachToBone(D3OBJECT *obj, char *name);  /* 0x43d6c0 */
-char d3_DeflateScene(unsigned int flags);  /* 0x43db30 */
-char d3_InflateScene(unsigned int flags);  /* 0x43deb0 */
-void d3_SetObject078(D3OBJECT *obj, const D3VECTOR *v);  /* 0x43b820 */
+void d3_Unlink(D3OBJECT *obj); /* 0x43d0e0 */
+extern int d3if_SceneState1;   /* 0x5fb5c4 */
+char d3_GetBounds(D3OBJECT *obj, D3OBJECT *camera, D3VECTOR *center,
+                  float *radius);      /* 0x43d860 */
+D3OBJECT *d3_NextGroup(D3OBJECT *obj); /* 0x438c30 */
+char d3_ForEachObject2(
+    D3SCENE *scene, D3OBJECT *obj, unsigned int mask,
+    void (*cb)(
+        D3OBJECT *obj)); /* 0x438e60; cb's result is not read: the callers pass
+their char / int returning callbacks (ls_HookBuildingCB, init_TextureSetHook ..) cast to void (*)(D3OBJECT *) */
+void d3_ClipMesh(D3CLIP mask, D3VERTEX *v, int nverts, D3TRI *t,
+                 int ntris);                           /* 0x439a60 */
+void d3_AppendSibling(D3OBJECT *first, D3OBJECT *obj); /* 0x43cb20 */
+void d3_SetAlpha(
+    D3OBJECT *obj,
+    D3TEXFLAGS *f); /* 0x43d690, the alpha flags f on obj and its group */
+char d3_AttachToBone(D3OBJECT *obj, char *name);        /* 0x43d6c0 */
+char d3_DeflateScene(unsigned int flags);               /* 0x43db30 */
+char d3_InflateScene(unsigned int flags);               /* 0x43deb0 */
+void d3_SetObject078(D3OBJECT *obj, const D3VECTOR *v); /* 0x43b820 */
 
 #endif

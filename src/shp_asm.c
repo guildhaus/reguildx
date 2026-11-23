@@ -17,8 +17,8 @@
 /* 0x47d600, blits the runs of an 8 bit shape into an 8 bit surface (bits, row pitch d2_SurfPitch) at x, y:
  * y is clipped to d2_ClipTop / d2_ClipBottom (x is the caller's clip); leaves the shape size in d2_ShpW /
  * d2_ShpH, the offset of the first visible line's runs in d2_ShpDataOfs and its row count in d2_ShpRows */
-void d2_ShpBlit8(int x, int y, void *bits, D2SHP *s)
-{
+void d2_ShpBlit8(int x, int y, void *bits, D2SHP *s) {
+  /* clang-format off */
     __asm {
                 push edi
                 push esi
@@ -109,17 +109,20 @@ void d2_ShpBlit8(int x, int y, void *bits, D2SHP *s)
                 pop esi
                 pop edi
     }
+  /* clang-format on */
 }
 
-#pragma optimize("", off)   /* the original has no alignment pad after this function: its section ends at the
-                               last byte and the linker fills 0xcc; VC6 pads only under the default optimization, so a
-                               pragma stood here (optimize("s", on) gives the same bytes) */
+#pragma optimize(                                                                                   \
+    "",                                                                                             \
+    off) /* the original has no alignment pad after this function: its section ends at the          \
+            last byte and the linker fills 0xcc; VC6 pads only under the default optimization, so a \
+            pragma stood here (optimize("s", on) gives the same bytes) */
 /* 0x47d710, blits the runs of an 8 bit shape into a 16 bit surface (bits, row pitch d2_SurfPitch, line gap
  * d2_ShpRowGap) at x, y, clipped to d2_ClipTop / d2_ClipBottom; s->mode picks the pixel loop: 0 palette
  * (d2_ShpPalTable), 2 half dark, 1 light table (d2_ShpLightTable) and 3 add source, of which the original
  * reaches 1 and 3 only through dead je +0 dispatches (kept verbatim) */
-void d2_ShpBlit8To16(int x, int y, void *bits, D2SHP *s)
-{
+void d2_ShpBlit8To16(int x, int y, void *bits, D2SHP *s) {
+  /* clang-format off */
     __asm {
                 push edi
                 push esi
@@ -350,6 +353,7 @@ void d2_ShpBlit8To16(int x, int y, void *bits, D2SHP *s)
                 pop esi
                 pop edi
     }
+  /* clang-format on */
 }
 
 #pragma optimize("", on)
@@ -357,8 +361,8 @@ void d2_ShpBlit8To16(int x, int y, void *bits, D2SHP *s)
 /* 0x47d960, darkens h rows of w 16 bit pixels to half brightness at dst (a shift, then the colour masks
  * 0x3def / 0x3defbdef); w and the source of an odd first pixel arrive in the caller's edx / esi (this asm
  * was one piece with its caller), the row pitch is d2_SurfPitch */
-void d2_ShpDarken16(void *dst, int w, int h)
-{
+void d2_ShpDarken16(void *dst, int w, int h) {
+  /* clang-format off */
     __asm {
         push edi
         push esi
@@ -410,9 +414,10 @@ void d2_ShpDarken16(void *dst, int w, int h)
         pop esi
         pop edi
     }
+  /* clang-format on */
 }
 
-int d2_ShpDataOfs = 50;  /* 0x5fef00 */
+int d2_ShpDataOfs = 50; /* 0x5fef00 */
 extern unsigned int d2_ShpRows;
 extern unsigned int d2_BlitW;
 extern unsigned int d2_ShpPalTable;

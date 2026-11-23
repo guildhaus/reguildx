@@ -15,7 +15,7 @@
 #include "mission.h"
 #include "di_input.h"
 #include "net.h"
-#include "d2_types.h"                 /* D2OBJ, d2_Objs' record */
+#include "d2_types.h" /* D2OBJ, d2_Objs' record */
 #include "ahm.h"
 #include "anm.h"
 #include "cm.h"
@@ -28,280 +28,316 @@
 #include "sv.h"
 #include "gv.h"
 /* 0x4b39f0, clears the running missions */
-int ai_ClearMissions(void)
-{
-    memset(ai_Missions, 0, sizeof(ai_Missions));
-    return 1;
+int ai_ClearMissions(void) {
+  memset(ai_Missions, 0, sizeof(ai_Missions));
+  return 1;
 }
 /* 0x4b3a10, a random number below n (LCG ai_MissionSeed) */
 
-unsigned int ai_MissionRandom(unsigned int n)
-{
-    ai_MissionSeed = ai_MissionSeed * 0x41c64e6d + 0x3039;
-    return (*((unsigned short *)&ai_MissionSeed + 1) % 0x7fffu) % n;
+unsigned int ai_MissionRandom(unsigned int n) {
+  ai_MissionSeed = ai_MissionSeed * 0x41c64e6d + 0x3039;
+  return (*((unsigned short *)&ai_MissionSeed + 1) % 0x7fffu) % n;
 }
 /* 0x4b3a50, the running mission of the character c (its owner is c's netId) */
 
-G13MIS *ai_FindOwnerMission(AICHAR *c)
-{
-    int i;
+G13MIS *ai_FindOwnerMission(AICHAR *c) {
+  int i;
 
-    for (i = 0; i < 0x80; i++) {
-        if (ai_Missions[i].type && ai_Missions[i].owner == c->netId)
-            return &ai_Missions[i];
-    }
-    return 0;
+  for (i = 0; i < 0x80; i++) {
+    if (ai_Missions[i].type && ai_Missions[i].owner == c->netId)
+      return &ai_Missions[i];
+  }
+  return 0;
 }
 /* 0x4b3a90, restarts the running mission of the character c (owner: its netId) now */
 
-void ai_RestartMission(AICHAR *c)
-{
-    G13MIS *e = ai_FindOwnerMission(c);
+void ai_RestartMission(AICHAR *c) {
+  G13MIS *e = ai_FindOwnerMission(c);
 
-    if (e != 0) {
-        e->time = ai_Time;
-        e->v18 = 0;
-        e->progress = 0;
-        e->fulfilled = 0;
-    }
+  if (e != 0) {
+    e->time = ai_Time;
+    e->v18 = 0;
+    e->progress = 0;
+    e->fulfilled = 0;
+  }
 }
 /* 0x4b3ae0, the mission type type */
 
-G13TYPE *ai_GetMissionType(int type)
-{
-    int i;
+G13TYPE *ai_GetMissionType(int type) {
+  int i;
 
-    for (i = 0; i < 48; i++) {
-        if (ai_MissionTypes[i].type == type)
-            return &ai_MissionTypes[i];
-    }
-    return 0;
+  for (i = 0; i < 48; i++) {
+    if (ai_MissionTypes[i].type == type)
+      return &ai_MissionTypes[i];
+  }
+  return 0;
 }
 /* 0x4b3b10, 1 if owner has a mission */
 
-int ai_HasMission(int owner)
-{
-    int i;
+int ai_HasMission(int owner) {
+  int i;
 
-    for (i = 0; i < 0x80; i++) {
-        if (ai_Missions[i].type && ai_Missions[i].owner == owner)
-            return 1;
-    }
-    return 0;
+  for (i = 0; i < 0x80; i++) {
+    if (ai_Missions[i].type && ai_Missions[i].owner == owner)
+      return 1;
+  }
+  return 0;
 }
 /* 0x4b3b40, the number of mission types of kind (0..5, else -1) */
 
-int ai_CountMissionTypes(int kind)
-{
-    int i, n;
+int ai_CountMissionTypes(int kind) {
+  int i, n;
 
-    if (kind < 0 || kind > 5)
-        return -1;
-    n = 0;
-    for (i = 0; i < 48; i++) {
-        if (ai_MissionTypes[i].kind == kind)
-            n++;
-    }
-    return n;
+  if (kind < 0 || kind > 5)
+    return -1;
+  n = 0;
+  for (i = 0; i < 48; i++) {
+    if (ai_MissionTypes[i].kind == kind)
+      n++;
+  }
+  return n;
 }
 /* 0x4b3b70, the first mission type of kind (after `after` if given) */
 
-G13TYPE *ai_FindMissionType(int kind, G13TYPE *after)
-{
-    G13TYPE *p;
-    int i, n;
+G13TYPE *ai_FindMissionType(int kind, G13TYPE *after) {
+  G13TYPE *p;
+  int i, n;
 
-    n = 48;
-    if (after == 0) {
-        for (i = 0; i < n; i++) {
-            if (ai_MissionTypes[i].kind == kind)
-                return &ai_MissionTypes[i];
-        }
-        return 0;
-    }
-    if (after >= &ai_MissionTypes[n - 1])
-        return 0;
-    for (p = after + 1; p <= &ai_MissionTypes[n - 1]; p++) {
-        if (p->kind == kind)
-            return p;
+  n = 48;
+  if (after == 0) {
+    for (i = 0; i < n; i++) {
+      if (ai_MissionTypes[i].kind == kind)
+        return &ai_MissionTypes[i];
     }
     return 0;
+  }
+  if (after >= &ai_MissionTypes[n - 1])
+    return 0;
+  for (p = after + 1; p <= &ai_MissionTypes[n - 1]; p++) {
+    if (p->kind == kind)
+      return p;
+  }
+  return 0;
 }
 
-const int ai_MissionTypeCount = 48;  /* 0x5edbb0, the number of mission types (ai_MissionTypes[48]); no reader in the surviving code (the loops use the immediate 48). Owner and name a guess: the first named .rdata after hmt.c's literals 0x5edba8 / 0x5edbac, before rmsg.c's literals 0x5edbb8; hst.c and mission.c have no .rdata of their own, and 48 is this unit's count */
-G13TYPE ai_MissionTypes[48] = { { 0, -1, -1, -1, -1, -1, -1 }, { 1, 0, 6913, 3, 3, 10000, -1 }, { 2, 0, 6916, 4, 4, 4, -1 }, { 3, 0, 6919, 17, 2, 3, 2880 }, { 4, 0, 6922, 1, 1, 3, 4 }, { 5, 1, 6925, 0, 14, 40000, -1 }, { 6, 1, 6928, 3, 18, 30000, -1 }, { 7, 1, 6931, 19, 19, 6, -1 }, { 8, 1, 6934, 9, 9, 5, 7200 }, { 9, 1, 6937, 16, 16, 2, 6 }, { 10, 1, 6940, 2, 17, 4, 2880 }, { 11, 1, 6943, 12, 12, 3, -1 }, { 12, 1, 6946, 10, 10, 3, -1 }, { 13, 2, 6949, 14, 14, 75000, -1 }, { 14, 2, 6952, 18, 18, 60000, -1 }, { 15, 2, 6955, 5, 5, 13, 5760 }, { 16, 2, 6958, 6, 6, 14, 5760 }, { 17, 2, 6961, 7, 7, 19, 5760 }, { 18, 2, 6964, 8, 8, 20, 5760 }, { 19, 2, 6967, 23, 23, 3, 4 }, { 20, 2, 6970, 11, 21, 40000, -1 }, { 21, 3, 6973, 14, 14, 150000, -1 }, { 22, 3, 6976, 18, 18, 125000, -1 }, { 24, 3, 6982, 17, 17, 5, 14400 }, { 25, 3, 6985, 21, 33, 90000, -1 }, { 26, 3, 6988, 22, 34, 70000, -1 }, { 27, 3, 6991, 35, 35, 80000, -1 }, { 28, 3, 6994, 25, 37, 4, -1 }, { 29, 3, 6997, 29, 29, 4, 6 }, { 30, 4, 7000, 27, 27, 250000, -1 }, { 31, 4, 7003, 28, 28, 200000, -1 }, { 32, 4, 7006, 18, 18, 175000, -1 }, { 33, 4, 7009, 30, 30, 6, 6 }, { 34, 4, 7012, 31, 31, 25, 4320 }, { 35, 4, 7015, 32, 32, 26, 4320 }, { 36, 4, 7018, 33, 33, 150000, -1 }, { 37, 4, 7021, 34, 34, 125000, -1 }, { 38, 4, 7024, 36, 36, -1, -1 }, { 39, 4, 7027, 37, 25, 0, -1 }, { 40, 4, 7030, 38, 38, 5, -1 }, { 41, 4, 7033, 39, 39, 90, -1 }, { 43, 5, 7039, 41, 41, 18, -1 }, { 44, 5, 7042, 42, 42, 3, 8640 }, { 45, 5, 7045, 43, 43, 0, -1 }, { 46, 5, 7048, 44, 44, 500, 1440 }, { 47, 5, 7051, 45, 45, 60, 0 }, { 48, 5, 7054, 47, 46, 0, -1 }, { 49, 5, 7057, 46, 47, 0, -1 } };  /* 0x601f88 */
+const int ai_MissionTypeCount =
+    48; /* 0x5edbb0, the number of mission types (ai_MissionTypes[48]); no reader in the surviving code (the loops use the immediate 48). Owner and name a guess: the first named .rdata after hmt.c's literals 0x5edba8 / 0x5edbac, before rmsg.c's literals 0x5edbb8; hst.c and mission.c have no .rdata of their own, and 48 is this unit's count */
+G13TYPE ai_MissionTypes[48] = {{0, -1, -1, -1, -1, -1, -1},
+                               {1, 0, 6913, 3, 3, 10000, -1},
+                               {2, 0, 6916, 4, 4, 4, -1},
+                               {3, 0, 6919, 17, 2, 3, 2880},
+                               {4, 0, 6922, 1, 1, 3, 4},
+                               {5, 1, 6925, 0, 14, 40000, -1},
+                               {6, 1, 6928, 3, 18, 30000, -1},
+                               {7, 1, 6931, 19, 19, 6, -1},
+                               {8, 1, 6934, 9, 9, 5, 7200},
+                               {9, 1, 6937, 16, 16, 2, 6},
+                               {10, 1, 6940, 2, 17, 4, 2880},
+                               {11, 1, 6943, 12, 12, 3, -1},
+                               {12, 1, 6946, 10, 10, 3, -1},
+                               {13, 2, 6949, 14, 14, 75000, -1},
+                               {14, 2, 6952, 18, 18, 60000, -1},
+                               {15, 2, 6955, 5, 5, 13, 5760},
+                               {16, 2, 6958, 6, 6, 14, 5760},
+                               {17, 2, 6961, 7, 7, 19, 5760},
+                               {18, 2, 6964, 8, 8, 20, 5760},
+                               {19, 2, 6967, 23, 23, 3, 4},
+                               {20, 2, 6970, 11, 21, 40000, -1},
+                               {21, 3, 6973, 14, 14, 150000, -1},
+                               {22, 3, 6976, 18, 18, 125000, -1},
+                               {24, 3, 6982, 17, 17, 5, 14400},
+                               {25, 3, 6985, 21, 33, 90000, -1},
+                               {26, 3, 6988, 22, 34, 70000, -1},
+                               {27, 3, 6991, 35, 35, 80000, -1},
+                               {28, 3, 6994, 25, 37, 4, -1},
+                               {29, 3, 6997, 29, 29, 4, 6},
+                               {30, 4, 7000, 27, 27, 250000, -1},
+                               {31, 4, 7003, 28, 28, 200000, -1},
+                               {32, 4, 7006, 18, 18, 175000, -1},
+                               {33, 4, 7009, 30, 30, 6, 6},
+                               {34, 4, 7012, 31, 31, 25, 4320},
+                               {35, 4, 7015, 32, 32, 26, 4320},
+                               {36, 4, 7018, 33, 33, 150000, -1},
+                               {37, 4, 7021, 34, 34, 125000, -1},
+                               {38, 4, 7024, 36, 36, -1, -1},
+                               {39, 4, 7027, 37, 25, 0, -1},
+                               {40, 4, 7030, 38, 38, 5, -1},
+                               {41, 4, 7033, 39, 39, 90, -1},
+                               {43, 5, 7039, 41, 41, 18, -1},
+                               {44, 5, 7042, 42, 42, 3, 8640},
+                               {45, 5, 7045, 43, 43, 0, -1},
+                               {46, 5, 7048, 44, 44, 500, 1440},
+                               {47, 5, 7051, 45, 45, 60, 0},
+                               {48, 5, 7054, 47, 46, 0, -1},
+                               {49, 5, 7057, 46, 47, 0, -1}}; /* 0x601f88 */
 
 /* 0x4b3bd0, sets mission 0 (ai_Missions[0]): its owner and type, the time cleared */
-void ai_SetFirstMission(int owner, int type)
-{
+void ai_SetFirstMission(int owner, int type) {
+  ai_Missions[0].type = type;
+  ai_Missions[0].owner = owner;
+  ai_Missions[0].time.year = 0;
+  gm_SetTime(&ai_Missions[0].time, 0, 0, 0);
+  ai_Missions[0].fulfilled = 0;
+}
+/* 0x4b3c10, gives owner a random mission of kind */
+
+G13MIS *ai_NewRandomMission(int owner, int kind, int x) {
+  return ai_NewMission(owner, ai_RandomMissionType(kind), x);
+}
+/* 0x4b3c40, a random mission type of kind (0xff: none) */
+
+int ai_RandomMissionType(int kind) {
+  int i, j, r, n;
+
+  n = ai_CountMissionTypes(kind);
+  if (n > 0) {
+    r = ai_MissionRandom(n);
+    for (i = 0, j = 0; i < 48; i++) {
+      if (ai_MissionTypes[i].kind == kind)
+        j++;
+      if (j > r)
+        return ai_MissionTypes[i].type;
+    }
+  }
+  return 0xff;
+}
+/* 0x4b3ca0, gives owner a mission of type (in a free slot; game mode 5: always slot 0) */
+
+G13MIS *ai_NewMission(int owner, int type, int x) {
+  int i;
+
+  if (ai_MissionMode == 5) {
     ai_Missions[0].type = type;
     ai_Missions[0].owner = owner;
     ai_Missions[0].time.year = 0;
     gm_SetTime(&ai_Missions[0].time, 0, 0, 0);
     ai_Missions[0].fulfilled = 0;
-}
-/* 0x4b3c10, gives owner a random mission of kind */
-
-G13MIS *ai_NewRandomMission(int owner, int kind, int x)
-{
-    return ai_NewMission(owner, ai_RandomMissionType(kind), x);
-}
-/* 0x4b3c40, a random mission type of kind (0xff: none) */
-
-int ai_RandomMissionType(int kind)
-{
-    int i, j, r, n;
-
-    n = ai_CountMissionTypes(kind);
-    if (n > 0) {
-        r = ai_MissionRandom(n);
-        for (i = 0, j = 0; i < 48; i++) {
-            if (ai_MissionTypes[i].kind == kind)
-                j++;
-            if (j > r)
-                return ai_MissionTypes[i].type;
-        }
+    return &ai_Missions[0];
+  }
+  for (i = 0; i < 0x80; i++) {
+    if (ai_Missions[i].type == 0) {
+      ai_Missions[i].type = type;
+      ai_Missions[i].owner = owner;
+      ai_Missions[i].time.year = 0;
+      gm_SetTime(&ai_Missions[i].time, 0, 0, 0);
+      ai_Missions[i].fulfilled = 0;
+      return &ai_Missions[i];
     }
-    return 0xff;
-}
-/* 0x4b3ca0, gives owner a mission of type (in a free slot; game mode 5: always slot 0) */
-
-G13MIS *ai_NewMission(int owner, int type, int x)
-{
-    int i;
-
-    if (ai_MissionMode == 5) {
-        ai_Missions[0].type = type;
-        ai_Missions[0].owner = owner;
-        ai_Missions[0].time.year = 0;
-        gm_SetTime(&ai_Missions[0].time, 0, 0, 0);
-        ai_Missions[0].fulfilled = 0;
-        return &ai_Missions[0];
-    }
-    for (i = 0; i < 0x80; i++) {
-        if (ai_Missions[i].type == 0) {
-            ai_Missions[i].type = type;
-            ai_Missions[i].owner = owner;
-            ai_Missions[i].time.year = 0;
-            gm_SetTime(&ai_Missions[i].time, 0, 0, 0);
-            ai_Missions[i].fulfilled = 0;
-            return &ai_Missions[i];
-        }
-    }
-    return 0;
+  }
+  return 0;
 }
 
-int d2_OpenForm(short x, short y, char *name);                                     /* 0x4741f0 */
-void d2_CentreViewWindows(int view);                                                     /* 0x475600 */
-void d2_CloseView(int view);                                                     /* 0x4758f0 */
-int d2_SetForm(int view, int n);                                                 /* 0x475f70 */
-extern int d2_ClickedId;                /* 0xf8a668 */
-int io_PrintText(intptr_t fmt, ...);                                                /* 0x515960, defined elsewhere */
-int sv_RunFrame(void (*cb)(), unsigned mask);                                      /* 0x5309a0, defined elsewhere */
-struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var);                             /* 0x4c2760, plays a speech sample */
-int sb_IsPlaying(struct SBSAMPLE *s);                                                       /* 0x426f20 */
-void sb_Stop(struct SBSAMPLE *s, int fade);                                                 /* 0x427290 */
-extern int sv_PopRequest;                /* 0x6f22a0 */
+int d2_OpenForm(short x, short y, char *name); /* 0x4741f0 */
+void d2_CentreViewWindows(int view);           /* 0x475600 */
+void d2_CloseView(int view);                   /* 0x4758f0 */
+int d2_SetForm(int view, int n);               /* 0x475f70 */
+extern int d2_ClickedId;                       /* 0xf8a668 */
+int io_PrintText(intptr_t fmt, ...);           /* 0x515960, defined elsewhere */
+int sv_RunFrame(void (*cb)(), unsigned mask);  /* 0x5309a0, defined elsewhere */
+struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text,
+                               int var); /* 0x4c2760, plays a speech sample */
+int sb_IsPlaying(struct SBSAMPLE *s);    /* 0x426f20 */
+void sb_Stop(struct SBSAMPLE *s, int fade); /* 0x427290 */
+extern int sv_PopRequest;                   /* 0x6f22a0 */
 
 /* 0x4b3d50, the mission offer dialog of the type: shows the mission form and its texts, plays the offer speech
    "_AUFTRAEGE_VERGABE_HS_nn", 1 when the player accepts */
-int ai_MissionOfferDialog(int type, int id)
-{
-    char name[0x100];
-    G13TYPE *t;
-    int view, r;
-    struct SBSAMPLE *snd;
+int ai_MissionOfferDialog(int type, int id) {
+  char name[0x100];
+  G13TYPE *t;
+  int view, r;
+  struct SBSAMPLE *snd;
 
-    r = 0;
-    t = ai_GetMissionType(type);
-    view = d2_OpenForm(0, 0, "special\\mission");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 1);
-    io_PrintText(t->text + 1);
-    io_PrintText((intptr_t)"$N");
-    io_PrintText(0x7d);
-    io_PrintText((intptr_t)"$N");
-    io_PrintText(0x7e);
-    sprintf(name, "_AUFTRAEGE_VERGABE_HS_%.2d", t->offerSpeech);
-    snd = snd_PlayVoice(-7, 0, name, -1);
-    while (sv_RunFrame(ai_MissionOfferDialog, id)) {
-        if (dm_L.rup != 0 || d2_ClickedId == 1)
-            sv_PopRequest = 1;
-        if (d2_ClickedId == 0) {
-            r = 1;
-            sv_PopRequest = 1;
-        }
+  r = 0;
+  t = ai_GetMissionType(type);
+  view = d2_OpenForm(0, 0, "special\\mission");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 1);
+  io_PrintText(t->text + 1);
+  io_PrintText((intptr_t)"$N");
+  io_PrintText(0x7d);
+  io_PrintText((intptr_t)"$N");
+  io_PrintText(0x7e);
+  sprintf(name, "_AUFTRAEGE_VERGABE_HS_%.2d", t->offerSpeech);
+  snd = snd_PlayVoice(-7, 0, name, -1);
+  while (sv_RunFrame(ai_MissionOfferDialog, id)) {
+    if (dm_L.rup != 0 || d2_ClickedId == 1)
+      sv_PopRequest = 1;
+    if (d2_ClickedId == 0) {
+      r = 1;
+      sv_PopRequest = 1;
     }
-    if (view != -1)
-        d2_CloseView(view);
-    if (sb_IsPlaying(snd))
-        sb_Stop(snd, 0x19);
-    return r;
+  }
+  if (view != -1)
+    d2_CloseView(view);
+  if (sb_IsPlaying(snd))
+    sb_Stop(snd, 0x19);
+  return r;
 }
 
-
-typedef struct G13RADIO {               /* 0x8c bytes, d2.h's D2RADIO */
-    int unk00;
-    int n;                              /* 0x04 */
-    int sel;                            /* 0x08, -1 = none */
-    int objs[0x20];                     /* 0x0c */
+typedef struct G13RADIO { /* 0x8c bytes, d2.h's D2RADIO */
+  int unk00;
+  int n;          /* 0x04 */
+  int sel;        /* 0x08, -1 = none */
+  int objs[0x20]; /* 0x0c */
 } G13RADIO;
 
-extern struct D2OBJ *d2_Objs;                 /* 0xf8f080 */
-extern G13RADIO d2_Radios[8];           /* 0xfa5aa0 */
-extern int d2_PointerObj;                /* 0x5fe710, focused object */
-extern int d2_LastWindow;                /* 0x6ed938 */
-extern unsigned char kb_Last;           /* 0x1468410 */
+extern struct D2OBJ *d2_Objs; /* 0xf8f080 */
+extern G13RADIO d2_Radios[8]; /* 0xfa5aa0 */
+extern int d2_PointerObj;     /* 0x5fe710, focused object */
+extern int d2_LastWindow;     /* 0x6ed938 */
+extern unsigned char kb_Last; /* 0x1468410 */
 extern int sv_FrameMask;
-void d2_CreateScrollButtons(int x, int y, int win, int obj, int pic);                      /* 0x472270 */
-int d2_GetWinObj(int view, int idx, int k);                                      /* 0x475b80 */
-int d2_CreateRadioGroup(int n, ...);                                             /* 0x46c490 */
-void d2_RadioAdd(int g, int obj);                                                /* 0x46c560 */
-void d2_RadioClear(int g);                                                       /* 0x46c600 */
-void d2_MenuNavigate(int g);                                                        /* 0x46c6c0 */
+void d2_CreateScrollButtons(int x, int y, int win, int obj,
+                            int pic);       /* 0x472270 */
+int d2_GetWinObj(int view, int idx, int k); /* 0x475b80 */
+int d2_CreateRadioGroup(int n, ...);        /* 0x46c490 */
+void d2_RadioAdd(int g, int obj);           /* 0x46c560 */
+void d2_RadioClear(int g);                  /* 0x46c600 */
+void d2_MenuNavigate(int g);                /* 0x46c6c0 */
 
 /* 0x4b3e70, the dialog "special\CHOOSE_MISSION": lists the mission types of kind, offers the one picked
    (0x4b3d50); returns its type (0xff: none) */
-int ai_ChooseMissionType(int kind)
-{
-    int chosen, view, win, g, o;
-    G13TYPE *t;
+int ai_ChooseMissionType(int kind) {
+  int chosen, view, win, g, o;
+  G13TYPE *t;
 
-    chosen = 0xff;
-    view = d2_OpenForm(0, 0, "special\\CHOOSE_MISSION");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1ace);
-    d2_SetForm(view, 2);
-    win = d2_LastWindow;
-    d2_SetForm(view, 0);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
-    d2_SetForm(view, 2);
-    g = d2_CreateRadioGroup(0);
-    for (t = ai_FindMissionType(kind, 0); t != 0; t = ai_FindMissionType(kind, t)) {
-        o = d2_GetWinObj(view, 2, io_PrintText((intptr_t)"%ia[%s]$N", t->text));
-        d2_Objs[o].user = t;
-        d2_RadioAdd(g, o);
+  chosen = 0xff;
+  view = d2_OpenForm(0, 0, "special\\CHOOSE_MISSION");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1ace);
+  d2_SetForm(view, 2);
+  win = d2_LastWindow;
+  d2_SetForm(view, 0);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
+  d2_SetForm(view, 2);
+  g = d2_CreateRadioGroup(0);
+  for (t = ai_FindMissionType(kind, 0); t != 0;
+       t = ai_FindMissionType(kind, t)) {
+    o = d2_GetWinObj(view, 2, io_PrintText((intptr_t)"%ia[%s]$N", t->text));
+    d2_Objs[o].user = t;
+    d2_RadioAdd(g, o);
+  }
+  while (sv_RunFrame(ai_ChooseMissionType, 0x1c6)) {
+    d2_MenuNavigate(g);
+    if (dm_L.rup != 0 || kb_Last == 1 || d2_ClickedId == 1)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1 && d2_Radios[g].sel != -1 &&
+        d2_PointerObj == d2_Radios[g].objs[d2_Radios[g].sel]) {
+      t = (G13TYPE *)d2_Objs[d2_Radios[g].objs[d2_Radios[g].sel]].user;
+      if (ai_MissionOfferDialog(t->type, sv_FrameMask)) {
+        chosen = t->type;
+        sv_PopRequest = 1;
+      }
     }
-    while (sv_RunFrame(ai_ChooseMissionType, 0x1c6)) {
-        d2_MenuNavigate(g);
-        if (dm_L.rup != 0 || kb_Last == 1 || d2_ClickedId == 1)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1 && d2_Radios[g].sel != -1
-            && d2_PointerObj == d2_Radios[g].objs[d2_Radios[g].sel]) {
-            t = (G13TYPE *)d2_Objs[d2_Radios[g].objs[d2_Radios[g].sel]].user;
-            if (ai_MissionOfferDialog(t->type, sv_FrameMask)) {
-                chosen = t->type;
-                sv_PopRequest = 1;
-            }
-        }
-    }
-    d2_RadioClear(g);
-    d2_CloseView(view);
-    return chosen;
+  }
+  d2_RadioClear(g);
+  d2_CloseView(view);
+  return chosen;
 }
 
-void d2_RadioSelect(int g, int sel);                                             /* 0x46c630 */
+void d2_RadioSelect(int g, int sel); /* 0x46c630 */
 
 /* 0x4b4040, the dialog "Menu\CHOOSEHISTORY": picks the mission kind ai_MissionMode (0..5, the first button:
    none) and then a mission (0x4b3e70); returns its type (0xff: cancelled)
@@ -322,1177 +358,1146 @@ void d2_RadioSelect(int g, int sel);                                            
    set after the renaming); no meaning-class lead, no source form left. Tried: declaration order 'first,
    view' (no effect on C2 priorities). Readability done (Q1/Q2 cleared, Q6 present, Q7 clean). Left: C2
    register-priority / colouring work (c2prio / vargen ren). */
-int ai_ChooseMission(void)
-{
-    int o0, o1, o2, o3, o4, o5, o6;
-    int view, first, g, r;
+int ai_ChooseMission(void) {
+  int o0, o1, o2, o3, o4, o5, o6;
+  int view, first, g, r;
 
-    r = 0;
-    o6 = -1;
-    view = d2_OpenForm(0, 0, "Menu\\CHOOSEHISTORY");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 0);
-    first = io_PrintText(0x1ac5, 0x1ac7, 0x1ac8, 0x1ac9, 0x1aca, 0x1acb, 0x1acc);
-    o0 = d2_GetWinObj(view, 0, first);
-    o1 = d2_GetWinObj(view, 0, first + 1);
-    o2 = d2_GetWinObj(view, 0, first + 2);
-    o3 = d2_GetWinObj(view, 0, first + 3);
-    o4 = d2_GetWinObj(view, 0, first + 4);
-    o5 = d2_GetWinObj(view, 0, first + 5);
-    if (ai_NumPlayers > 1)
-        o6 = d2_GetWinObj(view, 0, io_PrintText((intptr_t)"%it[%s]", 0, 0x1acd));
-    g = d2_CreateRadioGroup(6, o0, o1, o2, o3, o4, o5);
-    d2_RadioSelect(g, 0);
-    d2_RadioAdd(g, d2_GetWinObj(view, 0, io_PrintText(0x7e)));
-    while (sv_RunFrame(ai_ChooseMission, sv_FrameMask)) {
-        d2_MenuNavigate(g);
-        if (dm_L.rup != 0 || kb_Last == 1 || d2_ClickedId == 1) {
-            r = 0xff;
-            sv_PopRequest = 1;
-        }
-        if (d2_ClickedId == 0) {
-            if (d2_PointerObj == o0) {
-                ai_MissionMode = -1;
-                r = 0;
-            } else {
-                if (d2_PointerObj == o1)
-                    ai_MissionMode = 0;
-                else if (d2_PointerObj == o2)
-                    ai_MissionMode = 1;
-                else if (d2_PointerObj == o3)
-                    ai_MissionMode = 2;
-                else if (d2_PointerObj == o4)
-                    ai_MissionMode = 3;
-                else if (d2_PointerObj == o5)
-                    ai_MissionMode = 4;
-                else if (d2_PointerObj == o6)
-                    ai_MissionMode = 5;
-                d2_RadioSelect(g, 0);
-                r = ai_ChooseMissionType(ai_MissionMode);
-                if (r == 0xff)
-                    continue;
-            }
-            sv_PopRequest = 1;
-        }
+  r = 0;
+  o6 = -1;
+  view = d2_OpenForm(0, 0, "Menu\\CHOOSEHISTORY");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 0);
+  first = io_PrintText(0x1ac5, 0x1ac7, 0x1ac8, 0x1ac9, 0x1aca, 0x1acb, 0x1acc);
+  o0 = d2_GetWinObj(view, 0, first);
+  o1 = d2_GetWinObj(view, 0, first + 1);
+  o2 = d2_GetWinObj(view, 0, first + 2);
+  o3 = d2_GetWinObj(view, 0, first + 3);
+  o4 = d2_GetWinObj(view, 0, first + 4);
+  o5 = d2_GetWinObj(view, 0, first + 5);
+  if (ai_NumPlayers > 1)
+    o6 = d2_GetWinObj(view, 0, io_PrintText((intptr_t)"%it[%s]", 0, 0x1acd));
+  g = d2_CreateRadioGroup(6, o0, o1, o2, o3, o4, o5);
+  d2_RadioSelect(g, 0);
+  d2_RadioAdd(g, d2_GetWinObj(view, 0, io_PrintText(0x7e)));
+  while (sv_RunFrame(ai_ChooseMission, sv_FrameMask)) {
+    d2_MenuNavigate(g);
+    if (dm_L.rup != 0 || kb_Last == 1 || d2_ClickedId == 1) {
+      r = 0xff;
+      sv_PopRequest = 1;
     }
-    d2_RadioClear(g);
-    d2_CloseView(view);
-    return r;
+    if (d2_ClickedId == 0) {
+      if (d2_PointerObj == o0) {
+        ai_MissionMode = -1;
+        r = 0;
+      } else {
+        if (d2_PointerObj == o1)
+          ai_MissionMode = 0;
+        else if (d2_PointerObj == o2)
+          ai_MissionMode = 1;
+        else if (d2_PointerObj == o3)
+          ai_MissionMode = 2;
+        else if (d2_PointerObj == o4)
+          ai_MissionMode = 3;
+        else if (d2_PointerObj == o5)
+          ai_MissionMode = 4;
+        else if (d2_PointerObj == o6)
+          ai_MissionMode = 5;
+        d2_RadioSelect(g, 0);
+        r = ai_ChooseMissionType(ai_MissionMode);
+        if (r == 0xff)
+          continue;
+      }
+      sv_PopRequest = 1;
+    }
+  }
+  d2_RadioClear(g);
+  d2_CloseView(view);
+  return r;
 }
 
-void d2_SetObjEnabled(int obj, int on);                                              /* 0x475e40 */
+void d2_SetObjEnabled(int obj, int on); /* 0x475e40 */
 
 /* 0x4b4280, 0x4b4040 with the first n kinds disabled (0x475e40) and a cancel button (returns 0xff); passes
    0x4b4040 to 0x5309a0 (sic) */
-int ai_ChooseMissionFrom(int n)
-{
-    int o0, o1, o2, o3, o4, o5, o6;
-    int view, first, g, r, sel;
+int ai_ChooseMissionFrom(int n) {
+  int o0, o1, o2, o3, o4, o5, o6;
+  int view, first, g, r, sel;
 
-    r = 0;
-    view = d2_OpenForm(0, 0, "Menu\\CHOOSEHISTORY");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 0);
-    first = io_PrintText(0x1b9f);
-    o0 = d2_GetWinObj(view, 0, first);
-    o1 = d2_GetWinObj(view, 0, first + 1);
-    o2 = d2_GetWinObj(view, 0, first + 2);
-    o3 = d2_GetWinObj(view, 0, first + 3);
-    o4 = d2_GetWinObj(view, 0, first + 4);
-    o5 = d2_GetWinObj(view, 0, first + 5);
-    o6 = d2_GetWinObj(view, 0, first + 6);
-    g = d2_CreateRadioGroup(7, o0, o1, o2, o3, o4, o5, o6);
-    sel = 1;
-    if (n > 0) {
-        d2_SetObjEnabled(o1, 0);
-        sel = 2;
+  r = 0;
+  view = d2_OpenForm(0, 0, "Menu\\CHOOSEHISTORY");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 0);
+  first = io_PrintText(0x1b9f);
+  o0 = d2_GetWinObj(view, 0, first);
+  o1 = d2_GetWinObj(view, 0, first + 1);
+  o2 = d2_GetWinObj(view, 0, first + 2);
+  o3 = d2_GetWinObj(view, 0, first + 3);
+  o4 = d2_GetWinObj(view, 0, first + 4);
+  o5 = d2_GetWinObj(view, 0, first + 5);
+  o6 = d2_GetWinObj(view, 0, first + 6);
+  g = d2_CreateRadioGroup(7, o0, o1, o2, o3, o4, o5, o6);
+  sel = 1;
+  if (n > 0) {
+    d2_SetObjEnabled(o1, 0);
+    sel = 2;
+  }
+  if (n > 1) {
+    d2_SetObjEnabled(o2, 0);
+    sel++;
+  }
+  if (n > 2) {
+    d2_SetObjEnabled(o3, 0);
+    sel++;
+  }
+  if (n > 3) {
+    d2_SetObjEnabled(o4, 0);
+    sel++;
+  }
+  if (n > 4) {
+    d2_SetObjEnabled(o5, 0);
+    sel = 0;
+  }
+  d2_RadioSelect(g, sel);
+  while (sv_RunFrame(ai_ChooseMission, sv_FrameMask)) {
+    d2_MenuNavigate(g);
+    if (d2_ClickedId == 0) {
+      if (d2_PointerObj == o6) {
+        ai_MissionMode = -1;
+        r = 0xff;
+      } else if (d2_PointerObj == o0) {
+        ai_MissionMode = -1;
+        r = 0;
+      } else {
+        if (d2_PointerObj == o1)
+          ai_MissionMode = 0;
+        else if (d2_PointerObj == o2)
+          ai_MissionMode = 1;
+        else if (d2_PointerObj == o3)
+          ai_MissionMode = 2;
+        else if (d2_PointerObj == o4)
+          ai_MissionMode = 3;
+        else if (d2_PointerObj == o5)
+          ai_MissionMode = 4;
+        d2_RadioSelect(g, 0);
+        r = ai_ChooseMissionType(ai_MissionMode);
+        if (r == 0 || r == 0xff)
+          continue;
+      }
+      sv_PopRequest = 1;
     }
-    if (n > 1) {
-        d2_SetObjEnabled(o2, 0);
-        sel++;
-    }
-    if (n > 2) {
-        d2_SetObjEnabled(o3, 0);
-        sel++;
-    }
-    if (n > 3) {
-        d2_SetObjEnabled(o4, 0);
-        sel++;
-    }
-    if (n > 4) {
-        d2_SetObjEnabled(o5, 0);
-        sel = 0;
-    }
-    d2_RadioSelect(g, sel);
-    while (sv_RunFrame(ai_ChooseMission, sv_FrameMask)) {
-        d2_MenuNavigate(g);
-        if (d2_ClickedId == 0) {
-            if (d2_PointerObj == o6) {
-                ai_MissionMode = -1;
-                r = 0xff;
-            } else if (d2_PointerObj == o0) {
-                ai_MissionMode = -1;
-                r = 0;
-            } else {
-                if (d2_PointerObj == o1)
-                    ai_MissionMode = 0;
-                else if (d2_PointerObj == o2)
-                    ai_MissionMode = 1;
-                else if (d2_PointerObj == o3)
-                    ai_MissionMode = 2;
-                else if (d2_PointerObj == o4)
-                    ai_MissionMode = 3;
-                else if (d2_PointerObj == o5)
-                    ai_MissionMode = 4;
-                d2_RadioSelect(g, 0);
-                r = ai_ChooseMissionType(ai_MissionMode);
-                if (r == 0 || r == 0xff)
-                    continue;
-            }
-            sv_PopRequest = 1;
-        }
-    }
-    d2_RadioClear(g);
-    d2_CloseView(view);
-    return r;
+  }
+  d2_RadioClear(g);
+  d2_CloseView(view);
+  return r;
 }
 
-int ai_TimedCondition(G13MIS *m, int ok, int min);                                          /* 0x4b5160 */
+int ai_TimedCondition(G13MIS *m, int ok, int min); /* 0x4b5160 */
 
 /* 0x4b44e0, counts event ev (11, 19, 23, 28, 40) for the running mission of the character c when it is of that type */
-int ai_CountMissionEvent(AICHAR *c, int ev)
-{
-    G13MIS *e = ai_FindOwnerMission(c);
+int ai_CountMissionEvent(AICHAR *c, int ev) {
+  G13MIS *e = ai_FindOwnerMission(c);
 
-    if (e != 0) {
-        switch (ev) {
-        case 11:
-        case 19:
-        case 23:
-        case 28:
-        case 40:
-            if (e->type == ev)
-                e->progress++;
-            return 1;
-        }
-    }
-    return 0;
-}
-/* 0x4b4550, mission condition: the player record's saved money statistic missionMoney[3] (0x38), converted to
-   the own player's currency, is above t->goal; no player record: 0. The field has no writer in this build (it
-   comes from saved data, ls_WritePlayerRecords saves it only for ls_Version > 0x10013); the name follows the
-   field it reads, like ai_CondMissionMoney1 */
-int ai_CondMissionMoney3(AICHAR *c, G13TYPE *t)
-{
-    AIFIN *f = gm_PlayerRecord(c);
-
-    if (f == 0)
-        return 0;
-    return gm_ConvertMoney(f->missionMoney[3], ai_OwnPlayer) > t->goal;
-}
-/* 0x4b4590, mission condition (types 2 / 7): the titles left in the job title group of c's title number
-   (AICHAR.jobId, gm_TitlesLeft) reach t->goal */
-
-int ai_CondTitlesLeft(AICHAR *c, G13TYPE *t)
-{
-    return gm_TitlesLeft(c->jobId) >= t->goal;
-}
-/* 0x4b45c0, mission condition (types 3 / 10 / 24): the character's rank (AICHAR.level) reaches
-   t->goal, held for t->threshold minutes */
-
-int ai_CondRankTimed(AICHAR *c, G13MIS *m, G13TYPE *t)
-{
-    return ai_TimedCondition(m, c->level >= t->goal, t->threshold);
-}
-/* 0x4b45f0, mission condition (types 5 / 13 / 21 / 30): the worth of the character (gm_GetWorth, its objects
-   and buildings in player money) reaches t->goal */
-
-int ai_CondWorth(AICHAR *c, G13TYPE *t)
-{
-    return gm_ConvertMoney(gm_GetWorth(c->id), ai_OwnPlayer) >= t->goal;
-}
-/* 0x4b4630, mission condition (type 31): the amount of the character's city currency (gm_CharCurrency, in
-   player money) reaches t->goal */
-
-int ai_CondMoney(AICHAR *c, G13TYPE *t)
-{
-    return gm_ConvertMoney(gm_CharCurrency(c, ai_OwnPlayer), ai_OwnPlayer) >= t->goal;
-}
-/* 0x4b4670, mission condition (types 4 / 9 / 29): at least t->goal of the character's five skills (AICHAR.skills,
-   each / 42) reach t->threshold */
-
-int ai_CondSkills(AICHAR *c, G13TYPE *t)
-{
-    int i, n;
-
-    for (i = 0, n = 0; i < 5; i++) {
-        if (c->skills[i] * 0.023809524f >= t->threshold)
-            n++;
-    }
-    return n >= t->goal;
-}
-/* 0x4b46c0, mission condition (types 15 .. 18 / 34 / 35): the character's office kind (AICHAR.officeKind) equals t->goal, held for t->threshold minutes */
-
-int ai_CondOfficeTimed(AICHAR *c, G13MIS *m, G13TYPE *t)
-{
-    return ai_TimedCondition(m, c->officeKind == t->goal, t->threshold);
-}
-
-int gm_BuildingTypeOfJob(int k);                                                         /* 0x503fa0, defined elsewhere */
-
-/* 0x4b46f0, mission condition (type 8): the character owns a building (gm_BuildQuery owner c, class 2) of type
-   >= 5 whose v65 is its netId and that was created more than t->threshold minutes ago */
-int ai_CondOldBuilding(AICHAR *c, G13TYPE *t)
-{
-    AIBLD *b;
-
-    for (b = gm_BuildQuery(2, 4, c->id, 5, 2); b != 0; b = gm_BuildNext()) {
-        if (b->type >= 5 && b->ownerNetId == c->netId
-            && gm_MinutesBetween(&b->created, &ai_Time) > t->threshold)
-            return 1;
-    }
-    return 0;
-}
-/* 0x4b4760, mission condition: c has three buildings of the building type of its job (gm_BuildingTypeOfJob
-   of AICHAR.jobId +0x164) that stock every needed good of their type's list (AIBTYPE.slot +0x23 of the
-   0x24d-byte records at ai_BTypes, bit 15 = flag) */
-
-int ai_HasThreeStockedBuildings(AICHAR *c, G13TYPE *t)
-{
-    AIBLD *b;
-    AIBTYPE *bt;
-    int k, n, j, ok;
-
-    k = gm_BuildingTypeOfJob(c->jobId);
-    if (k == 0)
-        return 0;
-    n = 0;
-    for (b = gm_BuildQuery(2, 4, c->id, 5, k); n < 3 && b != 0; b = gm_BuildNext()) {
-        ok = 1;
-        bt = &ai_BTypes[b->type];
-        for (j = 0; j < 0x40 && bt->slot[j] != 0; j++) {
-            if (!gm_Query(b->objList, 2, 6, 0, bt->slot[j] & 0x7fff)) {
-                ok = 0;
-                break;
-            }
-        }
-        n += ok;
-    }
-    if (n >= 3)
-        return 1;
-    return 0;
-}
-/* 0x4b4830, mission condition (types 20 / 25 / 36): two of the player record's saved money statistics (0x2c +
-   0x34) converted to player money are above t->goal */
-int ai_CondMissionMoney02(AICHAR *c, G13TYPE *t)
-{
-    AIFIN *f = gm_PlayerRecord(c);
-
-    if (f == 0)
-        return 0;
-    return gm_ConvertMoney(f->missionMoney[0] + f->missionMoney[2], ai_OwnPlayer) > t->goal;
-}
-/* 0x4b4870, mission condition (types 26 / 37): the player record's saved money statistic missionMoney[1]
-   (0x30), converted to player money, is above t->goal. The statistic's category is unknown (no writer in the
-   build, it comes from saved data); the name follows the field it reads, like ai_CondMissionMoney02 */
-int ai_CondMissionMoney1(AICHAR *c, G13TYPE *t)
-{
-    AIFIN *f = gm_PlayerRecord(c);
-
-    if (f == 0)
-        return 0;
-    return gm_ConvertMoney(f->missionMoney[1], ai_OwnPlayer) > t->goal;
-}
-/* 0x4b48b0, mission condition (type 27): the player record's saved money statistic missionMoney[4] (0x3c),
-   converted to player money, is above t->goal. The statistic's category is unknown (no writer in the build, it
-   comes from saved data); the name follows the field it reads, like ai_CondMissionMoney1 */
-
-int ai_CondMissionMoney4(AICHAR *c, G13TYPE *t)
-{
-    AIFIN *f = gm_PlayerRecord(c);
-
-    if (f == 0)
-        return 0;
-    return gm_ConvertMoney(f->missionMoney[4], ai_OwnPlayer) > t->goal;
-}
-
-typedef struct G13STAT {                /* 0x0c bytes, filled by 0x4b51f0 */
-    int same;                           /* 0x00, the holders that match (the fillers' local same) */
-    int n;                              /* 0x04 */
-    float v;                            /* 0x08 */
-} G13STAT;
-
-void ai_CharBuildingShare(AICHAR *c, int k, G13STAT *s);                                 /* 0x4b51f0 */
-
-/* 0x4b48f0, mission condition: the share (in percent) of the characters (kind < 10) of c's faith
-   (AICHAR.faith) reaches t->goal */
-int ai_CondCharShare(AICHAR *c, G13TYPE *t)
-{
-    int i, n, same;
-
-    n = 0;
-    same = 0;
-    for (i = 0; i < 0x300; i++) {
-        if (ai_Chars[i].kind < 10) {
-            n++;
-            if (ai_Chars[i].faith == c->faith)
-                same++;
-        }
-    }
-    if ((float)same / n * 100.0f >= t->goal)
-        return 1;
-    return 0;
-}
-/* 0x4b4960, mission condition (type 39): the character holds every building of the kind 0x13 and, where such
-   buildings exist, of the kinds 4 and 0x10 (ai_CharBuildingShare of each kind reaches 1) */
-
-int ai_CondCharHoldsKinds(AICHAR *c, G13TYPE *t)
-{
-    G13STAT s;
-
-    ai_CharBuildingShare(c, 0x13, &s);
-    if (s.v < 1.0f)
-        return 0;
-    ai_CharBuildingShare(c, 4, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return 0;
-    ai_CharBuildingShare(c, 0x10, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return 0;
-    return 1;
-}
-/* 0x4b4a00, mission condition (type 38): the character holds at least three buildings (and the whole share) of
-   each of the kinds 0x15, 0x14 and 0x12 */
-
-int ai_CondCharHoldsThreeOfEach(AICHAR *c, G13TYPE *t)
-{
-    G13STAT s;
-
-    ai_CharBuildingShare(c, 0x15, &s);
-    if (s.n < 3 || s.v < 1.0f)
-        return 0;
-    ai_CharBuildingShare(c, 0x14, &s);
-    if (s.n < 3 || s.v < 1.0f)
-        return 0;
-    ai_CharBuildingShare(c, 0x12, &s);
-    if (s.n < 3 || s.v < 1.0f)
-        return 0;
-    return 1;
-}
-/* 0x4b4aa0, mission condition (type 33): the rank condition of ai_CondRankTimed holds and the character owns at
-   least three buildings of the type 7 (the owner criterion +0x27 and the type criterion of the building query) */
-
-int ai_CondRankTimedThreeBuildings(AICHAR *c, G13MIS *m, G13TYPE *t)
-{
-    AIBLD *b;
-    int n;
-
-    if (!ai_CondRankTimed(c, m, t))
-        return 0;
-    n = 0;
-    for (b = gm_BuildQuery(2, 4, c->id, 0, 7); b != 0; b = gm_BuildNext())
-        n++;
-    return n >= 3;
-}
-
-void ai_PlayerShare(int k, G13STAT *s);                                            /* 0x4b5270 */
-
-/* 0x4b4af0, mission condition: values 0x15, 0x14, 0x12, 0x16, 8 and 9 of 0x4b5270 all reach 1 (where present)
-   and their counts add up to t->goal */
-int ai_PlayerHeldBuildings(AICHAR *c, G13TYPE *t)
-{
-    G13STAT s;
-    int n;
-
-    ai_PlayerShare(0x15, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return 0;
-    n = s.same;
-    ai_PlayerShare(0x14, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return 0;
-    n += s.same;
-    ai_PlayerShare(0x12, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return 0;
-    n += s.same;
-    ai_PlayerShare(0x16, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return 0;
-    n += s.same;
-    ai_PlayerShare(8, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return 0;
-    n += s.same;
-    ai_PlayerShare(9, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return 0;
-    return s.same + n >= t->goal;
-}
-/* 0x4b4c50, mission condition (type 44): the players (kinds 6 / 7) hold every building of the kinds 0x0b, 0x0c
-   and 0x0d (where such buildings exist) and t->goal <= 3, held for t->threshold minutes (ai_TimedCondition) */
-
-int ai_CondPlayerHeldKindsTimed(AICHAR *c, G13MIS *m, G13TYPE *t)
-{
-    G13STAT s;
-
-    ai_PlayerShare(0x0b, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return ai_TimedCondition(m, 0, t->threshold);
-    ai_PlayerShare(0x0c, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return ai_TimedCondition(m, 0, t->threshold);
-    ai_PlayerShare(0x0d, &s);
-    if (s.n > 0 && s.v < 1.0f)
-        return ai_TimedCondition(m, 0, t->threshold);
-    return ai_TimedCondition(m, t->goal <= 3, t->threshold);
-}
-/* 0x4b4d50, mission condition: value 0 of 0x4b5270 reaches t->goal percent */
-
-int ai_CondPlayerShare(AICHAR *c, G13TYPE *t)
-{
-    G13STAT s;
-
-    ai_PlayerShare(0, &s);
-    if (t->goal * 0.01f <= s.v)
-        return 1;
-    return 0;
-}
-
-/* 0x4b4d90, mission condition (type 48): the weighted sum of the AI decision records' current values
-   (ord_WeightedRecordSum over gv_Decisions 0x11 .. 0x1c) is 0 */
-int ai_CondDecisionSumZero(AICHAR *c, G13TYPE *t)
-{
-    int rec[12];
-
-    if (ord_WeightedRecordSum(rec) == 0.0f)
-        return 1;
-    return 0;
-}
-
-struct VFSFILE; struct ORDSTATS; float ord_GetStatistics(struct ORDSTATS *o);                                                /* 0x4f9e00, defined elsewhere */
-
-/* 0x4b4dc0, mission condition (type 46, from year 10): the order statistics' rating base (ai_RatingBase,
-   ORDSTATS.base) is at or above t->goal, held for t->threshold minutes (ai_TimedCondition) */
-int ai_CondRatingBaseTimed(AICHAR *c, G13MIS *m, G13TYPE *t)
-{
-    ORDSTATS e;
-
-    if (ai_Time.year < 10)
-        return 0;
-    ord_GetStatistics(&e);
-    if (t->goal < e.base)
-        return ai_TimedCondition(m, 0, t->threshold);
-    return ai_TimedCondition(m, 1, t->threshold);
-}
-/* 0x4b4e30, mission condition (type 45): the order statistics' overall score at most 0.1 (the town at its
-   worst) and the shares of the kind 0 / 1 characters without a first / second building (out[1] / out[3]) and the
-   combined rating out[2] each at least 0.3 */
-
-int ai_CondTownDecline(AICHAR *c, G13TYPE *t)
-{
-    ORDSTATS e;
-
-    if (ord_GetStatistics(&e) > 0.1)
-        return 0;
-    if (e.col[3] < 0.3f)
-        return 0;
-    if (e.col[1] < 0.3f)
-        return 0;
-    if (e.col[2] < 0.3f)
-        return 0;
-    return 1;
-}
-/* 0x4b4eb0, mission condition (type 49): no building (the whole gm_BuildQuery(1, 6) list, all buildings) is
-   owned by a character of kind 5 (a player character) */
-
-int ai_CondPlayerHoldsNoBuilding(AICHAR *c, G13TYPE *t)
-{
-    AIBLD *b;
-
-    for (b = gm_BuildQuery(1, 6); b != 0; b = gm_BuildNext()) {
-        if (b->owner != 0xffff && ai_Chars[b->owner].kind == 5)
-            return 0;
-    }
-    return 1;
-}
-
-extern unsigned char ai_GameState;      /* 0x6f25ac, missions on */
-int ai_MissionForceDone = 0;  /* 0x6f0728, 1: the next fulfilled test passes once (no writer in the build) */
-
-/* 0x4b4f00, 1 if mission m is fulfilled (the condition of its type; 11 / 19 / 23 / 28 / 40: events counted by
-   ai_CountMissionEvent). ai_MissionForceDone == 1 passes once and clears (a debug / scripted completion) */
-int ai_IsMissionFulfilled(G13MIS *m)
-{
-    G13TYPE *t;
-    AICHAR *c;
-
-    t = ai_GetMissionType(m->type);
-    if (!ai_GameState || t == 0)
-        return 0;
-    if (ai_MissionForceDone == 1 && ai_MissionMode >= 0 && ai_MissionMode <= 5) {
-        ai_MissionForceDone = 0;
-        return 1;
-    }
-    c = gm_FindChar(m->owner);
-    if (c == 0)
-        return 0;
-    switch (m->type) {
-    case 1:
-    case 6:
-    case 14:
-    case 22:
-    case 32:
-        return ai_CondMissionMoney3(c, t);
-    case 2:
-    case 7:
-        return ai_CondTitlesLeft(c, t);
-    case 3:
-    case 10:
-    case 24:
-        return ai_CondRankTimed(c, m, t);
-    case 5:
-    case 13:
-    case 21:
-    case 30:
-        return ai_CondWorth(c, t);
-    case 31:
-        return ai_CondMoney(c, t);
-    case 4:
-    case 9:
-    case 29:
-        return ai_CondSkills(c, t);
-    case 15:
-    case 16:
-    case 17:
-    case 18:
-    case 34:
-    case 35:
-        return ai_CondOfficeTimed(c, m, t);
+  if (e != 0) {
+    switch (ev) {
     case 11:
     case 19:
     case 23:
     case 28:
     case 40:
-        return m->progress >= t->goal;
-    case 8:
-        return ai_CondOldBuilding(c, t);
-    case 12:
-        return ai_HasThreeStockedBuildings(c, t);
-    case 20:
-    case 25:
-    case 36:
-        return ai_CondMissionMoney02(c, t);
-    case 26:
-    case 37:
-        return ai_CondMissionMoney1(c, t);
-    case 27:
-        return ai_CondMissionMoney4(c, t);
-    case 41:
-        return ai_CondCharShare(c, t);
-    case 39:
-        return ai_CondCharHoldsKinds(c, t);
-    case 38:
-        return ai_CondCharHoldsThreeOfEach(c, t);
-    case 33:
-        return ai_CondRankTimedThreeBuildings(c, m, t);
-    case 43:
-        return ai_PlayerHeldBuildings(c, t);
-    case 44:
-        return ai_CondPlayerHeldKindsTimed(c, m, t);
-    case 45:
-        return ai_CondTownDecline(c, t);
-    case 46:
-        return ai_CondRatingBaseTimed(c, m, t);
-    case 47:
-        return ai_CondPlayerShare(c, t);
-    case 48:
-        return ai_CondDecisionSumZero(c, t);
-    case 49:
-        return ai_CondPlayerHoldsNoBuilding(c, t);
+      if (e->type == ev)
+        e->progress++;
+      return 1;
     }
+  }
+  return 0;
+}
+/* 0x4b4550, mission condition: the player record's saved money statistic missionMoney[3] (0x38), converted to
+   the own player's currency, is above t->goal; no player record: 0. The field has no writer in this build (it
+   comes from saved data, ls_WritePlayerRecords saves it only for ls_Version > 0x10013); the name follows the
+   field it reads, like ai_CondMissionMoney1 */
+int ai_CondMissionMoney3(AICHAR *c, G13TYPE *t) {
+  AIFIN *f = gm_PlayerRecord(c);
+
+  if (f == 0)
     return 0;
+  return gm_ConvertMoney(f->missionMoney[3], ai_OwnPlayer) > t->goal;
+}
+/* 0x4b4590, mission condition (types 2 / 7): the titles left in the job title group of c's title number
+   (AICHAR.jobId, gm_TitlesLeft) reach t->goal */
+
+int ai_CondTitlesLeft(AICHAR *c, G13TYPE *t) {
+  return gm_TitlesLeft(c->jobId) >= t->goal;
+}
+/* 0x4b45c0, mission condition (types 3 / 10 / 24): the character's rank (AICHAR.level) reaches
+   t->goal, held for t->threshold minutes */
+
+int ai_CondRankTimed(AICHAR *c, G13MIS *m, G13TYPE *t) {
+  return ai_TimedCondition(m, c->level >= t->goal, t->threshold);
+}
+/* 0x4b45f0, mission condition (types 5 / 13 / 21 / 30): the worth of the character (gm_GetWorth, its objects
+   and buildings in player money) reaches t->goal */
+
+int ai_CondWorth(AICHAR *c, G13TYPE *t) {
+  return gm_ConvertMoney(gm_GetWorth(c->id), ai_OwnPlayer) >= t->goal;
+}
+/* 0x4b4630, mission condition (type 31): the amount of the character's city currency (gm_CharCurrency, in
+   player money) reaches t->goal */
+
+int ai_CondMoney(AICHAR *c, G13TYPE *t) {
+  return gm_ConvertMoney(gm_CharCurrency(c, ai_OwnPlayer), ai_OwnPlayer) >=
+         t->goal;
+}
+/* 0x4b4670, mission condition (types 4 / 9 / 29): at least t->goal of the character's five skills (AICHAR.skills,
+   each / 42) reach t->threshold */
+
+int ai_CondSkills(AICHAR *c, G13TYPE *t) {
+  int i, n;
+
+  for (i = 0, n = 0; i < 5; i++) {
+    if (c->skills[i] * 0.023809524f >= t->threshold)
+      n++;
+  }
+  return n >= t->goal;
+}
+/* 0x4b46c0, mission condition (types 15 .. 18 / 34 / 35): the character's office kind (AICHAR.officeKind) equals t->goal, held for t->threshold minutes */
+
+int ai_CondOfficeTimed(AICHAR *c, G13MIS *m, G13TYPE *t) {
+  return ai_TimedCondition(m, c->officeKind == t->goal, t->threshold);
+}
+
+int gm_BuildingTypeOfJob(int k); /* 0x503fa0, defined elsewhere */
+
+/* 0x4b46f0, mission condition (type 8): the character owns a building (gm_BuildQuery owner c, class 2) of type
+   >= 5 whose v65 is its netId and that was created more than t->threshold minutes ago */
+int ai_CondOldBuilding(AICHAR *c, G13TYPE *t) {
+  AIBLD *b;
+
+  for (b = gm_BuildQuery(2, 4, c->id, 5, 2); b != 0; b = gm_BuildNext()) {
+    if (b->type >= 5 && b->ownerNetId == c->netId &&
+        gm_MinutesBetween(&b->created, &ai_Time) > t->threshold)
+      return 1;
+  }
+  return 0;
+}
+/* 0x4b4760, mission condition: c has three buildings of the building type of its job (gm_BuildingTypeOfJob
+   of AICHAR.jobId +0x164) that stock every needed good of their type's list (AIBTYPE.slot +0x23 of the
+   0x24d-byte records at ai_BTypes, bit 15 = flag) */
+
+int ai_HasThreeStockedBuildings(AICHAR *c, G13TYPE *t) {
+  AIBLD *b;
+  AIBTYPE *bt;
+  int k, n, j, ok;
+
+  k = gm_BuildingTypeOfJob(c->jobId);
+  if (k == 0)
+    return 0;
+  n = 0;
+  for (b = gm_BuildQuery(2, 4, c->id, 5, k); n < 3 && b != 0;
+       b = gm_BuildNext()) {
+    ok = 1;
+    bt = &ai_BTypes[b->type];
+    for (j = 0; j < 0x40 && bt->slot[j] != 0; j++) {
+      if (!gm_Query(b->objList, 2, 6, 0, bt->slot[j] & 0x7fff)) {
+        ok = 0;
+        break;
+      }
+    }
+    n += ok;
+  }
+  if (n >= 3)
+    return 1;
+  return 0;
+}
+/* 0x4b4830, mission condition (types 20 / 25 / 36): two of the player record's saved money statistics (0x2c +
+   0x34) converted to player money are above t->goal */
+int ai_CondMissionMoney02(AICHAR *c, G13TYPE *t) {
+  AIFIN *f = gm_PlayerRecord(c);
+
+  if (f == 0)
+    return 0;
+  return gm_ConvertMoney(f->missionMoney[0] + f->missionMoney[2],
+                         ai_OwnPlayer) > t->goal;
+}
+/* 0x4b4870, mission condition (types 26 / 37): the player record's saved money statistic missionMoney[1]
+   (0x30), converted to player money, is above t->goal. The statistic's category is unknown (no writer in the
+   build, it comes from saved data); the name follows the field it reads, like ai_CondMissionMoney02 */
+int ai_CondMissionMoney1(AICHAR *c, G13TYPE *t) {
+  AIFIN *f = gm_PlayerRecord(c);
+
+  if (f == 0)
+    return 0;
+  return gm_ConvertMoney(f->missionMoney[1], ai_OwnPlayer) > t->goal;
+}
+/* 0x4b48b0, mission condition (type 27): the player record's saved money statistic missionMoney[4] (0x3c),
+   converted to player money, is above t->goal. The statistic's category is unknown (no writer in the build, it
+   comes from saved data); the name follows the field it reads, like ai_CondMissionMoney1 */
+
+int ai_CondMissionMoney4(AICHAR *c, G13TYPE *t) {
+  AIFIN *f = gm_PlayerRecord(c);
+
+  if (f == 0)
+    return 0;
+  return gm_ConvertMoney(f->missionMoney[4], ai_OwnPlayer) > t->goal;
+}
+
+typedef struct G13STAT { /* 0x0c bytes, filled by 0x4b51f0 */
+  int same; /* 0x00, the holders that match (the fillers' local same) */
+  int n;    /* 0x04 */
+  float v;  /* 0x08 */
+} G13STAT;
+
+void ai_CharBuildingShare(AICHAR *c, int k, G13STAT *s); /* 0x4b51f0 */
+
+/* 0x4b48f0, mission condition: the share (in percent) of the characters (kind < 10) of c's faith
+   (AICHAR.faith) reaches t->goal */
+int ai_CondCharShare(AICHAR *c, G13TYPE *t) {
+  int i, n, same;
+
+  n = 0;
+  same = 0;
+  for (i = 0; i < 0x300; i++) {
+    if (ai_Chars[i].kind < 10) {
+      n++;
+      if (ai_Chars[i].faith == c->faith)
+        same++;
+    }
+  }
+  if ((float)same / n * 100.0f >= t->goal)
+    return 1;
+  return 0;
+}
+/* 0x4b4960, mission condition (type 39): the character holds every building of the kind 0x13 and, where such
+   buildings exist, of the kinds 4 and 0x10 (ai_CharBuildingShare of each kind reaches 1) */
+
+int ai_CondCharHoldsKinds(AICHAR *c, G13TYPE *t) {
+  G13STAT s;
+
+  ai_CharBuildingShare(c, 0x13, &s);
+  if (s.v < 1.0f)
+    return 0;
+  ai_CharBuildingShare(c, 4, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return 0;
+  ai_CharBuildingShare(c, 0x10, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return 0;
+  return 1;
+}
+/* 0x4b4a00, mission condition (type 38): the character holds at least three buildings (and the whole share) of
+   each of the kinds 0x15, 0x14 and 0x12 */
+
+int ai_CondCharHoldsThreeOfEach(AICHAR *c, G13TYPE *t) {
+  G13STAT s;
+
+  ai_CharBuildingShare(c, 0x15, &s);
+  if (s.n < 3 || s.v < 1.0f)
+    return 0;
+  ai_CharBuildingShare(c, 0x14, &s);
+  if (s.n < 3 || s.v < 1.0f)
+    return 0;
+  ai_CharBuildingShare(c, 0x12, &s);
+  if (s.n < 3 || s.v < 1.0f)
+    return 0;
+  return 1;
+}
+/* 0x4b4aa0, mission condition (type 33): the rank condition of ai_CondRankTimed holds and the character owns at
+   least three buildings of the type 7 (the owner criterion +0x27 and the type criterion of the building query) */
+
+int ai_CondRankTimedThreeBuildings(AICHAR *c, G13MIS *m, G13TYPE *t) {
+  AIBLD *b;
+  int n;
+
+  if (!ai_CondRankTimed(c, m, t))
+    return 0;
+  n = 0;
+  for (b = gm_BuildQuery(2, 4, c->id, 0, 7); b != 0; b = gm_BuildNext())
+    n++;
+  return n >= 3;
+}
+
+void ai_PlayerShare(int k, G13STAT *s); /* 0x4b5270 */
+
+/* 0x4b4af0, mission condition: values 0x15, 0x14, 0x12, 0x16, 8 and 9 of 0x4b5270 all reach 1 (where present)
+   and their counts add up to t->goal */
+int ai_PlayerHeldBuildings(AICHAR *c, G13TYPE *t) {
+  G13STAT s;
+  int n;
+
+  ai_PlayerShare(0x15, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return 0;
+  n = s.same;
+  ai_PlayerShare(0x14, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return 0;
+  n += s.same;
+  ai_PlayerShare(0x12, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return 0;
+  n += s.same;
+  ai_PlayerShare(0x16, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return 0;
+  n += s.same;
+  ai_PlayerShare(8, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return 0;
+  n += s.same;
+  ai_PlayerShare(9, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return 0;
+  return s.same + n >= t->goal;
+}
+/* 0x4b4c50, mission condition (type 44): the players (kinds 6 / 7) hold every building of the kinds 0x0b, 0x0c
+   and 0x0d (where such buildings exist) and t->goal <= 3, held for t->threshold minutes (ai_TimedCondition) */
+
+int ai_CondPlayerHeldKindsTimed(AICHAR *c, G13MIS *m, G13TYPE *t) {
+  G13STAT s;
+
+  ai_PlayerShare(0x0b, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return ai_TimedCondition(m, 0, t->threshold);
+  ai_PlayerShare(0x0c, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return ai_TimedCondition(m, 0, t->threshold);
+  ai_PlayerShare(0x0d, &s);
+  if (s.n > 0 && s.v < 1.0f)
+    return ai_TimedCondition(m, 0, t->threshold);
+  return ai_TimedCondition(m, t->goal <= 3, t->threshold);
+}
+/* 0x4b4d50, mission condition: value 0 of 0x4b5270 reaches t->goal percent */
+
+int ai_CondPlayerShare(AICHAR *c, G13TYPE *t) {
+  G13STAT s;
+
+  ai_PlayerShare(0, &s);
+  if (t->goal * 0.01f <= s.v)
+    return 1;
+  return 0;
+}
+
+/* 0x4b4d90, mission condition (type 48): the weighted sum of the AI decision records' current values
+   (ord_WeightedRecordSum over gv_Decisions 0x11 .. 0x1c) is 0 */
+int ai_CondDecisionSumZero(AICHAR *c, G13TYPE *t) {
+  int rec[12];
+
+  if (ord_WeightedRecordSum(rec) == 0.0f)
+    return 1;
+  return 0;
+}
+
+struct VFSFILE;
+struct ORDSTATS;
+float ord_GetStatistics(struct ORDSTATS *o); /* 0x4f9e00, defined elsewhere */
+
+/* 0x4b4dc0, mission condition (type 46, from year 10): the order statistics' rating base (ai_RatingBase,
+   ORDSTATS.base) is at or above t->goal, held for t->threshold minutes (ai_TimedCondition) */
+int ai_CondRatingBaseTimed(AICHAR *c, G13MIS *m, G13TYPE *t) {
+  ORDSTATS e;
+
+  if (ai_Time.year < 10)
+    return 0;
+  ord_GetStatistics(&e);
+  if (t->goal < e.base)
+    return ai_TimedCondition(m, 0, t->threshold);
+  return ai_TimedCondition(m, 1, t->threshold);
+}
+/* 0x4b4e30, mission condition (type 45): the order statistics' overall score at most 0.1 (the town at its
+   worst) and the shares of the kind 0 / 1 characters without a first / second building (out[1] / out[3]) and the
+   combined rating out[2] each at least 0.3 */
+
+int ai_CondTownDecline(AICHAR *c, G13TYPE *t) {
+  ORDSTATS e;
+
+  if (ord_GetStatistics(&e) > 0.1)
+    return 0;
+  if (e.col[3] < 0.3f)
+    return 0;
+  if (e.col[1] < 0.3f)
+    return 0;
+  if (e.col[2] < 0.3f)
+    return 0;
+  return 1;
+}
+/* 0x4b4eb0, mission condition (type 49): no building (the whole gm_BuildQuery(1, 6) list, all buildings) is
+   owned by a character of kind 5 (a player character) */
+
+int ai_CondPlayerHoldsNoBuilding(AICHAR *c, G13TYPE *t) {
+  AIBLD *b;
+
+  for (b = gm_BuildQuery(1, 6); b != 0; b = gm_BuildNext()) {
+    if (b->owner != 0xffff && ai_Chars[b->owner].kind == 5)
+      return 0;
+  }
+  return 1;
+}
+
+extern unsigned char ai_GameState; /* 0x6f25ac, missions on */
+int ai_MissionForceDone =
+    0; /* 0x6f0728, 1: the next fulfilled test passes once (no writer in the build) */
+
+/* 0x4b4f00, 1 if mission m is fulfilled (the condition of its type; 11 / 19 / 23 / 28 / 40: events counted by
+   ai_CountMissionEvent). ai_MissionForceDone == 1 passes once and clears (a debug / scripted completion) */
+int ai_IsMissionFulfilled(G13MIS *m) {
+  G13TYPE *t;
+  AICHAR *c;
+
+  t = ai_GetMissionType(m->type);
+  if (!ai_GameState || t == 0)
+    return 0;
+  if (ai_MissionForceDone == 1 && ai_MissionMode >= 0 && ai_MissionMode <= 5) {
+    ai_MissionForceDone = 0;
+    return 1;
+  }
+  c = gm_FindChar(m->owner);
+  if (c == 0)
+    return 0;
+  switch (m->type) {
+  case 1:
+  case 6:
+  case 14:
+  case 22:
+  case 32:
+    return ai_CondMissionMoney3(c, t);
+  case 2:
+  case 7:
+    return ai_CondTitlesLeft(c, t);
+  case 3:
+  case 10:
+  case 24:
+    return ai_CondRankTimed(c, m, t);
+  case 5:
+  case 13:
+  case 21:
+  case 30:
+    return ai_CondWorth(c, t);
+  case 31:
+    return ai_CondMoney(c, t);
+  case 4:
+  case 9:
+  case 29:
+    return ai_CondSkills(c, t);
+  case 15:
+  case 16:
+  case 17:
+  case 18:
+  case 34:
+  case 35:
+    return ai_CondOfficeTimed(c, m, t);
+  case 11:
+  case 19:
+  case 23:
+  case 28:
+  case 40:
+    return m->progress >= t->goal;
+  case 8:
+    return ai_CondOldBuilding(c, t);
+  case 12:
+    return ai_HasThreeStockedBuildings(c, t);
+  case 20:
+  case 25:
+  case 36:
+    return ai_CondMissionMoney02(c, t);
+  case 26:
+  case 37:
+    return ai_CondMissionMoney1(c, t);
+  case 27:
+    return ai_CondMissionMoney4(c, t);
+  case 41:
+    return ai_CondCharShare(c, t);
+  case 39:
+    return ai_CondCharHoldsKinds(c, t);
+  case 38:
+    return ai_CondCharHoldsThreeOfEach(c, t);
+  case 33:
+    return ai_CondRankTimedThreeBuildings(c, m, t);
+  case 43:
+    return ai_PlayerHeldBuildings(c, t);
+  case 44:
+    return ai_CondPlayerHeldKindsTimed(c, m, t);
+  case 45:
+    return ai_CondTownDecline(c, t);
+  case 46:
+    return ai_CondRatingBaseTimed(c, m, t);
+  case 47:
+    return ai_CondPlayerShare(c, t);
+  case 48:
+    return ai_CondDecisionSumZero(c, t);
+  case 49:
+    return ai_CondPlayerHoldsNoBuilding(c, t);
+  }
+  return 0;
 }
 
 /* 0x4b5160, timed condition of mission x: not ok resets its time; ok starts it (once) and holds after min
    minutes */
-int ai_TimedCondition(G13MIS *m, int ok, int min)
-{
+int ai_TimedCondition(G13MIS *m, int ok, int min) {
 
-    if (ok) {
-        if (m->time.year == 0 && m->time.hour == 0 && m->time.min == 0 && m->time.sec == 0) {
-            m->time.year = ai_Time.year;
-            gm_SetTime(&m->time, ai_Time.hour, ai_Time.min, ai_Time.sec);
-        }
-        return gm_MinutesBetween(&m->time, &ai_Time) >= min;
+  if (ok) {
+    if (m->time.year == 0 && m->time.hour == 0 && m->time.min == 0 &&
+        m->time.sec == 0) {
+      m->time.year = ai_Time.year;
+      gm_SetTime(&m->time, ai_Time.hour, ai_Time.min, ai_Time.sec);
     }
-    m->time.year = 0;
-    gm_SetTime(&m->time, 0, 0, 0);
-    return 0;
+    return gm_MinutesBetween(&m->time, &ai_Time) >= min;
+  }
+  m->time.year = 0;
+  gm_SetTime(&m->time, 0, 0, 0);
+  return 0;
 }
 /* 0x4b51f0, the share of c among the holders of the buildings of the 0x501190(1, 5, k) list (k 0: (1, 6)) */
 
-void ai_CharBuildingShare(AICHAR *c, int k, G13STAT *s)
-{
-    AIBLD *b;
-    int same, n;
+void ai_CharBuildingShare(AICHAR *c, int k, G13STAT *s) {
+  AIBLD *b;
+  int same, n;
 
-    same = 0;
-    if (k != 0)
-        b = gm_BuildQuery(1, 5, k);
-    else
-        b = gm_BuildQuery(1, 6);
-    n = 0;
-    for (; b != 0; b = gm_BuildNext(), n++) {
-        if (b->owner == c->id)
-            same++;
-    }
-    s->same = same;
-    s->n = n;
-    if (n > 0)
-        s->v = (float)same / n;
-    else
-        s->v = 0.0f;
+  same = 0;
+  if (k != 0)
+    b = gm_BuildQuery(1, 5, k);
+  else
+    b = gm_BuildQuery(1, 6);
+  n = 0;
+  for (; b != 0; b = gm_BuildNext(), n++) {
+    if (b->owner == c->id)
+      same++;
+  }
+  s->same = same;
+  s->n = n;
+  if (n > 0)
+    s->v = (float)same / n;
+  else
+    s->v = 0.0f;
 }
 /* 0x4b5270, the share of players (kind 6 / 7) among the holders of the buildings of the 0x501190(1, 5, k) list
    (k 0: (1, 6)) */
 
-void ai_PlayerShare(int k, G13STAT *s)
-{
-    AIBLD *b;
-    unsigned short w;
-    int same, n;
+void ai_PlayerShare(int k, G13STAT *s) {
+  AIBLD *b;
+  unsigned short w;
+  int same, n;
 
-    same = 0;
-    if (k != 0)
-        b = gm_BuildQuery(1, 5, k);
-    else
-        b = gm_BuildQuery(1, 6);
-    n = 0;
-    for (; b != 0; b = gm_BuildNext(), n++) {
-        w = b->owner;
-        if (w != 0xffff && (ai_Chars[w].kind == 6 || ai_Chars[w].kind == 7))
-            same++;
-    }
-    s->same = same;
-    s->n = n;
-    if (n > 0)
-        s->v = (float)same / n;
-    else
-        s->v = 0.0f;
+  same = 0;
+  if (k != 0)
+    b = gm_BuildQuery(1, 5, k);
+  else
+    b = gm_BuildQuery(1, 6);
+  n = 0;
+  for (; b != 0; b = gm_BuildNext(), n++) {
+    w = b->owner;
+    if (w != 0xffff && (ai_Chars[w].kind == 6 || ai_Chars[w].kind == 7))
+      same++;
+  }
+  s->same = same;
+  s->n = n;
+  if (n > 0)
+    s->v = (float)same / n;
+  else
+    s->v = 0.0f;
 }
 
 void ai_MissionInfoDialog(int type, int id);
 
 /* 0x4b5310, shows the missions of owner again (0x4b5360) */
-void ai_ShowMissions(int owner)
-{
-    int i, id;
+void ai_ShowMissions(int owner) {
+  int i, id;
 
-    id = sv_FrameMask | 0x80;
-    for (i = 0; i < 0x80; i++) {
-        if (ai_Missions[i].type != 0 && ai_Missions[i].owner == owner)
-            ai_MissionInfoDialog(ai_Missions[i].type, id | 0x80);
-    }
+  id = sv_FrameMask | 0x80;
+  for (i = 0; i < 0x80; i++) {
+    if (ai_Missions[i].type != 0 && ai_Missions[i].owner == owner)
+      ai_MissionInfoDialog(ai_Missions[i].type, id | 0x80);
+  }
 }
 /* 0x4b5360, the mission dialog of type type, information only (cf. ai_MissionOfferDialog) */
 
-void ai_MissionInfoDialog(int type, int id)
-{
-    char name[0x100];
-    G13TYPE *t;
-    int view;
-    struct SBSAMPLE *snd;
+void ai_MissionInfoDialog(int type, int id) {
+  char name[0x100];
+  G13TYPE *t;
+  int view;
+  struct SBSAMPLE *snd;
 
-    t = ai_GetMissionType(type);
-    view = d2_OpenForm(0, 0, "special\\mission");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 1);
-    io_PrintText(t->text + 1);
-    io_PrintText((intptr_t)"$N");
-    io_PrintText(0x7d);
-    sprintf(name, "_AUFTRAEGE_VERGABE_HS_%.2d", t->offerSpeech);
-    snd = snd_PlayVoice(-7, 0, name, -1);
-    while (sv_RunFrame(ai_MissionInfoDialog, id)) {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-        if (d2_ClickedId == 0)
-            sv_PopRequest = 1;
-    }
-    if (view != -1)
-        d2_CloseView(view);
-    if (sb_IsPlaying(snd))
-        sb_Stop(snd, 0x19);
+  t = ai_GetMissionType(type);
+  view = d2_OpenForm(0, 0, "special\\mission");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 1);
+  io_PrintText(t->text + 1);
+  io_PrintText((intptr_t)"$N");
+  io_PrintText(0x7d);
+  sprintf(name, "_AUFTRAEGE_VERGABE_HS_%.2d", t->offerSpeech);
+  snd = snd_PlayVoice(-7, 0, name, -1);
+  while (sv_RunFrame(ai_MissionInfoDialog, id)) {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+    if (d2_ClickedId == 0)
+      sv_PopRequest = 1;
+  }
+  if (view != -1)
+    d2_CloseView(view);
+  if (sb_IsPlaying(snd))
+    sb_Stop(snd, 0x19);
 }
 
-extern volatile unsigned long d3_Time;  /* 0x6333cc, milliseconds */
-int sb_IsInit(void);                                                          /* 0x4273c0, sound on */
-void snd_ClearQueue(void);                                                         /* 0x4c01b0, defined elsewhere */
+extern volatile unsigned long d3_Time; /* 0x6333cc, milliseconds */
+int sb_IsInit(void);                   /* 0x4273c0, sound on */
+void snd_ClearQueue(void);             /* 0x4c01b0, defined elsewhere */
 
 /* G13_PLAY: plays snd until it ends or button ok is pressed; without sound waits 250 ms (or the button) */
-#define G13_PLAY(snd, ok, id) {                                     \
-    if (sb_IsPlaying(snd)) {                                        \
-        do {                                                        \
-            sv_RunFrame(0, (id) | 0x80);                           \
-            if (d2_ClickedId != -1 && d2_PointerObj == (ok)) {       \
-                if (sb_IsPlaying(snd))                              \
-                    sb_Stop(snd, 1);                                \
-                break;                                              \
-            }                                                       \
-        } while (sb_IsPlaying(snd));                                \
-    }                                                               \
-}
-#define G13_WAIT(ok, id) {                                          \
-    unsigned long _start = d3_Time;                                 \
-    while (_start + 0xfa > d3_Time) {                               \
-        sv_RunFrame(0, (id) | 0x80);                               \
-        if (d2_ClickedId != -1 && d2_PointerObj == (ok))             \
-            break;                                                  \
-    }                                                               \
-}
+#define G13_PLAY(snd, ok, id)                                                  \
+  {                                                                            \
+    if (sb_IsPlaying(snd)) {                                                   \
+      do {                                                                     \
+        sv_RunFrame(0, (id) | 0x80);                                           \
+        if (d2_ClickedId != -1 && d2_PointerObj == (ok)) {                     \
+          if (sb_IsPlaying(snd))                                               \
+            sb_Stop(snd, 1);                                                   \
+          break;                                                               \
+        }                                                                      \
+      } while (sb_IsPlaying(snd));                                             \
+    }                                                                          \
+  }
+#define G13_WAIT(ok, id)                                                       \
+  {                                                                            \
+    unsigned long _start = d3_Time;                                            \
+    while (_start + 0xfa > d3_Time) {                                          \
+      sv_RunFrame(0, (id) | 0x80);                                             \
+      if (d2_ClickedId != -1 && d2_PointerObj == (ok))                         \
+        break;                                                                 \
+    }                                                                          \
+  }
 
 /* 0x4b5460, the mission success dialog of t: three general speeches ("AUFTRAEGE_ALLGEMEIN" 0..2), then
    "_AUFTRAEGE_ERFOLG_HS_nn", each cut short by the button */
-void ai_MissionSuccessDialog(G13TYPE *t, int id)
-{
-    char name[0x100];
-    int view, ok;
-    struct SBSAMPLE *snd;
+void ai_MissionSuccessDialog(G13TYPE *t, int id) {
+  char name[0x100];
+  int view, ok;
+  struct SBSAMPLE *snd;
 
-    snd_ClearQueue();
-    view = d2_OpenForm(0, 0, "special\\mission");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1b9b);
-    d2_SetForm(view, 2);
-    io_PrintText((intptr_t)"$C");
-    ok = d2_GetWinObj(view, 2, io_PrintText(0x7d));
-    if (sb_IsInit()) {
-        snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 0);
-        G13_PLAY(snd, ok, id);
-    } else
-        G13_WAIT(ok, id);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1b9c);
-    if (sb_IsInit()) {
-        snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 1);
-        G13_PLAY(snd, ok, id);
-    } else
-        G13_WAIT(ok, id);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1b9d);
-    if (sb_IsInit()) {
-        snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 2);
-        G13_PLAY(snd, ok, id);
-    } else
-        G13_WAIT(ok, id);
-    d2_SetForm(view, 1);
-    io_PrintText((intptr_t)"$C");
-    io_PrintText((intptr_t)0x1b9e);
-    io_PrintText(t->text + 2);
-    if (sb_IsInit()) {
-        sprintf(name, "_AUFTRAEGE_ERFOLG_HS_%.2d", t->speech);
-        snd = snd_PlayVoice(-7, 0, name, -1);
-        G13_PLAY(snd, ok, id);
-    } else
-        G13_WAIT(ok, id);
-    d2_CloseView(view);
+  snd_ClearQueue();
+  view = d2_OpenForm(0, 0, "special\\mission");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1b9b);
+  d2_SetForm(view, 2);
+  io_PrintText((intptr_t)"$C");
+  ok = d2_GetWinObj(view, 2, io_PrintText(0x7d));
+  if (sb_IsInit()) {
+    snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 0);
+    G13_PLAY(snd, ok, id);
+  } else
+    G13_WAIT(ok, id);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1b9c);
+  if (sb_IsInit()) {
+    snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 1);
+    G13_PLAY(snd, ok, id);
+  } else
+    G13_WAIT(ok, id);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1b9d);
+  if (sb_IsInit()) {
+    snd = snd_PlayVoice(-8, 0, "AUFTRAEGE_ALLGEMEIN", 2);
+    G13_PLAY(snd, ok, id);
+  } else
+    G13_WAIT(ok, id);
+  d2_SetForm(view, 1);
+  io_PrintText((intptr_t)"$C");
+  io_PrintText((intptr_t)0x1b9e);
+  io_PrintText(t->text + 2);
+  if (sb_IsInit()) {
+    sprintf(name, "_AUFTRAEGE_ERFOLG_HS_%.2d", t->speech);
+    snd = snd_PlayVoice(-7, 0, name, -1);
+    G13_PLAY(snd, ok, id);
+  } else
+    G13_WAIT(ok, id);
+  d2_CloseView(view);
 }
 /* 0x4b58b0, the dialog that ends the mission chain (text 0x1b99, the same text the result dialogs 0x4b5970 /
    0x4b5c20 show as their "no more missions" option): shown by 0x4b5f10 after the result dialog when the
    mission ended outside mission mode 5, one OK form, pops on a click or a mouse move */
 
-void ai_MissionEndDialog(int id)
-{
-    int view;
+void ai_MissionEndDialog(int id) {
+  int view;
 
-    view = d2_OpenForm(0, 0, "special\\mission");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1b99);
-    io_PrintText((intptr_t)"$N");
-    d2_SetForm(view, 2);
-    io_PrintText(0x7d);
-    id |= 0x80;
-    while (sv_RunFrame(ai_MissionEndDialog, id)) {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-        else if (d2_ClickedId == 0)
-            sv_PopRequest = 1;
-    }
-    d2_CloseView(view);
+  view = d2_OpenForm(0, 0, "special\\mission");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1b99);
+  io_PrintText((intptr_t)"$N");
+  d2_SetForm(view, 2);
+  io_PrintText(0x7d);
+  id |= 0x80;
+  while (sv_RunFrame(ai_MissionEndDialog, id)) {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+    else if (d2_ClickedId == 0)
+      sv_PopRequest = 1;
+  }
+  d2_CloseView(view);
 }
 
 extern int ai_GameOver;
-void sv_PopTo(void (*v)());                                             /* 0x52fb50, defined elsewhere */
-void main_GameLoop(int ctl);                                                         /* 0x53bb20, defined elsewhere */
+void sv_PopTo(void (*v)());  /* 0x52fb50, defined elsewhere */
+void main_GameLoop(int ctl); /* 0x53bb20, defined elsewhere */
 
 /* 0x4b5950, sets ai_GameOver and runs 0x53bb20 through 0x52fb50 */
-void ai_QuitGame(int x)
-{
-    ai_GameOver = 1;
-    sv_PopTo(main_GameLoop);
+void ai_QuitGame(int x) {
+  ai_GameOver = 1;
+  sv_PopTo(main_GameLoop);
 }
 
-int cm_SendExSysMessage(unsigned char id, void *msg);                                             /* 0x4c4db0, defined elsewhere (hmt.h: void) */
-int cm_GetSlotState(int h);                                                         /* 0x4c3ae0, defined elsewhere */
-void sv_PumpNet(void);                                                         /* 0x52fe00, defined elsewhere */
-int sb_UnloadSampleBank(struct SBBANK *bank);                                             /* 0x426ba0 */
-void * ai_MissionSampleBank = 0;  /* 0x6f072c, a sample bank */
+int cm_SendExSysMessage(
+    unsigned char id,
+    void *msg);             /* 0x4c4db0, defined elsewhere (hmt.h: void) */
+int cm_GetSlotState(int h); /* 0x4c3ae0, defined elsewhere */
+void sv_PumpNet(void);      /* 0x52fe00, defined elsewhere */
+int sb_UnloadSampleBank(struct SBBANK *bank); /* 0x426ba0 */
+void *ai_MissionSampleBank = 0;               /* 0x6f072c, a sample bank */
 
 /* 0x4b5970, the mission complete dialog (after 0x4b5460): a new mission of the same kind (message 0x0a, then
    0x4b5360), the end of the missions, or quitting (0x4b5950) */
-void ai_MissionCompleteDialog(int id)
-{
-    int msg1[0x1f];
-    int msg2[0x1f];
-    int msg3[0x1f];
-    AICHAR *c;
-    G13MIS *nm;
-    int again, quit, o1, o2, o3, view, h;
+void ai_MissionCompleteDialog(int id) {
+  int msg1[0x1f];
+  int msg2[0x1f];
+  int msg3[0x1f];
+  AICHAR *c;
+  G13MIS *nm;
+  int again, quit, o1, o2, o3, view, h;
 
-    c = &ai_Chars[ai_PlayerId];
-    again = 0;
-    quit = 0;
-    nm = 0;
-    {
-        G13TYPE *t = ai_GetMissionType(ai_Missions[0].type);
+  c = &ai_Chars[ai_PlayerId];
+  again = 0;
+  quit = 0;
+  nm = 0;
+  {
+    G13TYPE *t = ai_GetMissionType(ai_Missions[0].type);
 
-        memset(&ai_Missions[0], 0, sizeof(G13MIS));
-        id = (id & ~9) | 0x100;
-        ai_MissionSuccessDialog(t, id);
+    memset(&ai_Missions[0], 0, sizeof(G13MIS));
+    id = (id & ~9) | 0x100;
+    ai_MissionSuccessDialog(t, id);
+  }
+  view = d2_OpenForm(0, 0, "special\\mission");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1b95, c->id);
+  o1 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b98));
+  o2 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b99));
+  o3 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b9a));
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == o1) {
+        nm = ai_NewRandomMission(c->netId, ai_MissionMode, 1);
+        msg1[0] = c->netId;
+        msg1[4] = 0;
+        again = 1;
+        msg1[8] = nm->type;
+        h = cm_SendExSysMessage(0x0a, msg1);
+        while (!cm_GetSlotState(h))
+          sv_PumpNet();
+        sv_PopRequest = 1;
+      } else if (d2_PointerObj == o2) {
+        ai_MissionMode = -1;
+        msg2[0] = c->netId;
+        msg2[4] = 0;
+        msg2[8] = 0;
+        h = cm_SendExSysMessage(0x0a, msg2);
+        while (!cm_GetSlotState(h))
+          sv_PumpNet();
+        sv_PopRequest = 1;
+      } else if (d2_PointerObj == o3) {
+        ai_MissionMode = -1;
+        msg3[0] = c->netId;
+        quit = 1;
+        msg3[4] = 1;
+        msg3[8] = 0;
+        h = cm_SendExSysMessage(0x0a, msg3);
+        while (!cm_GetSlotState(h))
+          sv_PumpNet();
+        sv_PopRequest = 1;
+      }
     }
-    view = d2_OpenForm(0, 0, "special\\mission");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1b95, c->id);
-    o1 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b98));
-    o2 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b99));
-    o3 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b9a));
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == o1) {
-                nm = ai_NewRandomMission(c->netId, ai_MissionMode, 1);
-                msg1[0] = c->netId;
-                msg1[4] = 0;
-                again = 1;
-                msg1[8] = nm->type;
-                h = cm_SendExSysMessage(0x0a, msg1);
-                while (!cm_GetSlotState(h))
-                    sv_PumpNet();
-                sv_PopRequest = 1;
-            } else if (d2_PointerObj == o2) {
-                ai_MissionMode = -1;
-                msg2[0] = c->netId;
-                msg2[4] = 0;
-                msg2[8] = 0;
-                h = cm_SendExSysMessage(0x0a, msg2);
-                while (!cm_GetSlotState(h))
-                    sv_PumpNet();
-                sv_PopRequest = 1;
-            } else if (d2_PointerObj == o3) {
-                ai_MissionMode = -1;
-                msg3[0] = c->netId;
-                quit = 1;
-                msg3[4] = 1;
-                msg3[8] = 0;
-                h = cm_SendExSysMessage(0x0a, msg3);
-                while (!cm_GetSlotState(h))
-                    sv_PumpNet();
-                sv_PopRequest = 1;
-            }
-        }
-    } while (sv_RunFrame(ai_MissionCompleteDialog, id | 0x80));
-    d2_CloseView(view);
-    if (again)
-        ai_MissionInfoDialog(nm->type, id);
-    else if (quit)
-        ai_QuitGame(id);
-    if (ai_MissionSampleBank != 0)
-        sb_UnloadSampleBank(ai_MissionSampleBank);
-    ai_MissionSampleBank = 0;
+  } while (sv_RunFrame(ai_MissionCompleteDialog, id | 0x80));
+  d2_CloseView(view);
+  if (again)
+    ai_MissionInfoDialog(nm->type, id);
+  else if (quit)
+    ai_QuitGame(id);
+  if (ai_MissionSampleBank != 0)
+    sb_UnloadSampleBank(ai_MissionSampleBank);
+  ai_MissionSampleBank = 0;
 }
 /* 0x4b5c20, the mission complete dialog of the player's running mission: a mission of the next kind (only for
    kinds 0..3; message 0x0a, then 0x4b5360), the end of the missions, or quitting (0x4b5950) */
 
-void ai_MissionNextDialog(int id)
-{
-    int msg1[0x1f];
-    int msg2[0x1f];
-    AICHAR *c;
-    G13MIS *nm;
-    G13TYPE *t;
-    int next, again, quit, o1, o2, o3, view, flags, h, i;
+void ai_MissionNextDialog(int id) {
+  int msg1[0x1f];
+  int msg2[0x1f];
+  AICHAR *c;
+  G13MIS *nm;
+  G13TYPE *t;
+  int next, again, quit, o1, o2, o3, view, flags, h, i;
 
-    o1 = -1;
-    next = -1;
-    again = 0;
-    quit = 0;
-    t = 0;
-    c = &ai_Chars[ai_PlayerId];
-    for (i = 0; i < 0x80; i++) {
-        if (ai_Missions[i].type != 0 && ai_Missions[i].owner == c->netId) {
-            t = ai_GetMissionType(ai_Missions[i].type);
-            next = t->kind + 1;
-            memset(&ai_Missions[i], 0, sizeof(G13MIS));
-            break;
-        }
+  o1 = -1;
+  next = -1;
+  again = 0;
+  quit = 0;
+  t = 0;
+  c = &ai_Chars[ai_PlayerId];
+  for (i = 0; i < 0x80; i++) {
+    if (ai_Missions[i].type != 0 && ai_Missions[i].owner == c->netId) {
+      t = ai_GetMissionType(ai_Missions[i].type);
+      next = t->kind + 1;
+      memset(&ai_Missions[i], 0, sizeof(G13MIS));
+      break;
     }
-    id = (id & ~9) | 0x100;
-    ai_MissionSuccessDialog(t, id);
-    view = d2_OpenForm(0, 0, "special\\mission");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1b94, c->id);
-    if (next > -1 && next < 4)
-        o1 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b98));
-    o2 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b99));
-    o3 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b9a));
-    d2_ClickedId = -1;
-    flags = id | 0x80;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == o1) {
-                again = 1;
-                sv_PopRequest = 1;
-            } else if (d2_PointerObj == o2) {
-                ai_MissionMode = -1;
-                msg2[0] = c->netId;
-                msg2[4] = 0;
-                h = cm_SendExSysMessage(0x0a, msg2);
-                while (!cm_GetSlotState(h))
-                    sv_PumpNet();
-                sv_PopRequest = 1;
-            } else if (d2_PointerObj == o3) {
-                ai_MissionMode = -1;
-                msg1[0] = c->netId;
-                quit = 1;
-                msg1[4] = 1;
-                h = cm_SendExSysMessage(0x0a, msg1);
-                while (!cm_GetSlotState(h))
-                    sv_PumpNet();
-                sv_PopRequest = 1;
-            }
-        }
-    } while (sv_RunFrame(ai_MissionNextDialog, flags));
-    d2_CloseView(view);
-    if (again) {
-        nm = ai_NewRandomMission(c->netId, next, 1);
+  }
+  id = (id & ~9) | 0x100;
+  ai_MissionSuccessDialog(t, id);
+  view = d2_OpenForm(0, 0, "special\\mission");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1b94, c->id);
+  if (next > -1 && next < 4)
+    o1 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b98));
+  o2 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b99));
+  o3 = d2_GetWinObj(view, 1, io_PrintText(0x1b96, 0x1b9a));
+  d2_ClickedId = -1;
+  flags = id | 0x80;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == o1) {
+        again = 1;
+        sv_PopRequest = 1;
+      } else if (d2_PointerObj == o2) {
+        ai_MissionMode = -1;
+        msg2[0] = c->netId;
+        msg2[4] = 0;
+        h = cm_SendExSysMessage(0x0a, msg2);
+        while (!cm_GetSlotState(h))
+          sv_PumpNet();
+        sv_PopRequest = 1;
+      } else if (d2_PointerObj == o3) {
+        ai_MissionMode = -1;
         msg1[0] = c->netId;
-        msg1[4] = 0;
+        quit = 1;
+        msg1[4] = 1;
         h = cm_SendExSysMessage(0x0a, msg1);
         while (!cm_GetSlotState(h))
-            sv_PumpNet();
-        ai_MissionInfoDialog(nm->type, id);
-        return;
+          sv_PumpNet();
+        sv_PopRequest = 1;
+      }
     }
-    if (quit)
-        ai_QuitGame(id);
+  } while (sv_RunFrame(ai_MissionNextDialog, flags));
+  d2_CloseView(view);
+  if (again) {
+    nm = ai_NewRandomMission(c->netId, next, 1);
+    msg1[0] = c->netId;
+    msg1[4] = 0;
+    h = cm_SendExSysMessage(0x0a, msg1);
+    while (!cm_GetSlotState(h))
+      sv_PumpNet();
+    ai_MissionInfoDialog(nm->type, id);
+    return;
+  }
+  if (quit)
+    ai_QuitGame(id);
 }
 /* 0x4b5ef0, the mission complete dialog of the game mode (5: 0x4b5970, else 0x4b5c20) */
 
-void ai_MissionCompleteByMode(int id)
-{
-    if (ai_MissionMode == 5)
-        ai_MissionCompleteDialog(id);
-    else
-        ai_MissionNextDialog(id);
+void ai_MissionCompleteByMode(int id) {
+  if (ai_MissionMode == 5)
+    ai_MissionCompleteDialog(id);
+  else
+    ai_MissionNextDialog(id);
 }
-
 
 /* 0x4b5f10, the mission result dialog of mission 0 (0x4b5460, text 0x1b95); then the mission again (0x4b5360),
    the mission end dialog (0x4b58b0, game mode not 5) or quitting (0x4b5950, ai_GameOver) */
-void ai_MissionResultDialog(int id)
-{
-    AICHAR *c;
-    G13TYPE *t;
-    int r, view;
+void ai_MissionResultDialog(int id) {
+  AICHAR *c;
+  G13TYPE *t;
+  int r, view;
 
-    r = 0;
-    c = &ai_Chars[ai_PlayerId];
-    t = ai_GetMissionType(ai_Missions[0].type);
-    view = d2_OpenForm(0, 0, "special\\mission");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 0);
-    id = (id & ~9) | 0x100;
-    ai_MissionSuccessDialog(t, id);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1b95, c->id);
-    d2_ClickedId = -1;
-    do {
-        if (ai_MissionPartner == -1) {
-            if (ai_GameOver)
-                r = 3;
-            else
-                r = (ai_MissionMode != 5) + 1;
-            sv_PopRequest = 1;
-        }
-    } while (sv_RunFrame(ai_MissionResultDialog, id | 0x80));
-    d2_CloseView(view);
-    if (r == 1)
-        ai_MissionInfoDialog(ai_Missions[0].type, id);
-    else if (r == 2)
-        ai_MissionEndDialog(id);
-    else if (r == 3)
-        ai_QuitGame(id);
+  r = 0;
+  c = &ai_Chars[ai_PlayerId];
+  t = ai_GetMissionType(ai_Missions[0].type);
+  view = d2_OpenForm(0, 0, "special\\mission");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 0);
+  id = (id & ~9) | 0x100;
+  ai_MissionSuccessDialog(t, id);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1b95, c->id);
+  d2_ClickedId = -1;
+  do {
+    if (ai_MissionPartner == -1) {
+      if (ai_GameOver)
+        r = 3;
+      else
+        r = (ai_MissionMode != 5) + 1;
+      sv_PopRequest = 1;
+    }
+  } while (sv_RunFrame(ai_MissionResultDialog, id | 0x80));
+  d2_CloseView(view);
+  if (r == 1)
+    ai_MissionInfoDialog(ai_Missions[0].type, id);
+  else if (r == 2)
+    ai_MissionEndDialog(id);
+  else if (r == 3)
+    ai_QuitGame(id);
 }
 /* 0x4b6040, the mission dialog with text 0x1b97 for the character ai_MissionPartner (another player's mission);
    quits (0x4b5950) when ai_GameOver */
 
-void ai_MissionPartnerDialog(int id)
-{
-    AICHAR *c;
-    int r, view;
+void ai_MissionPartnerDialog(int id) {
+  AICHAR *c;
+  int r, view;
 
-    r = 0;
-    c = gm_FindChar(ai_MissionPartner);
-    view = d2_OpenForm(0, 0, "special\\mission");
-    d2_CentreViewWindows(view);
-    d2_SetForm(view, 1);
-    io_PrintText(0x1b97, c->id, c->id);
-    d2_ClickedId = -1;
-    do {
-        if (ai_MissionPartner == -1) {
-            r = (ai_GameOver != 0) + 1;
-            sv_PopRequest = 1;
-        }
-    } while (sv_RunFrame(ai_MissionPartnerDialog, id | 0x80));
-    d2_CloseView(view);
-    if (r == 2)
-        ai_QuitGame(id);
+  r = 0;
+  c = gm_FindChar(ai_MissionPartner);
+  view = d2_OpenForm(0, 0, "special\\mission");
+  d2_CentreViewWindows(view);
+  d2_SetForm(view, 1);
+  io_PrintText(0x1b97, c->id, c->id);
+  d2_ClickedId = -1;
+  do {
+    if (ai_MissionPartner == -1) {
+      r = (ai_GameOver != 0) + 1;
+      sv_PopRequest = 1;
+    }
+  } while (sv_RunFrame(ai_MissionPartnerDialog, id | 0x80));
+  d2_CloseView(view);
+  if (r == 2)
+    ai_QuitGame(id);
 }
 /* 0x4b60f0, the other result dialog of the game mode (5: 0x4b5f10, else 0x4b6040) */
 
-void ai_MissionResultByMode(int id)
-{
-    if (ai_MissionMode == 5)
-        ai_MissionResultDialog(id);
-    else
-        ai_MissionPartnerDialog(id);
+void ai_MissionResultByMode(int id) {
+  if (ai_MissionMode == 5)
+    ai_MissionResultDialog(id);
+  else
+    ai_MissionPartnerDialog(id);
 }
 
-void main_PlayOutro(void);                                                         /* 0x53cb40, defined elsewhere */
+void main_PlayOutro(void); /* 0x53cb40, defined elsewhere */
 
 /* 0x4b6110, the single player's mission complete sequence: 0x4b5460, then the choice of the next mission
    (0x4b4280 from the next kind on): none (message 0x0a), cancel (message 0x0a with 1, then 0x4b5950) or the
    new mission (0x4b3ca0, message 0x0a) */
-void ai_MissionCompleteSingle(int id)
-{
-    int msg[0x1f];
-    AICHAR *c;
-    G13TYPE *t;
-    int next, r, h, i;
+void ai_MissionCompleteSingle(int id) {
+  int msg[0x1f];
+  AICHAR *c;
+  G13TYPE *t;
+  int next, r, h, i;
 
-    t = 0;
-    next = -1;
-    c = &ai_Chars[ai_PlayerId];
-    for (i = 0; i < 0x80; i++) {
-        if (ai_Missions[i].type != 0 && ai_Missions[i].owner == c->netId) {
-            t = ai_GetMissionType(ai_Missions[i].type);
-            next = t->kind + 1;
-            memset(&ai_Missions[i], 0, sizeof(G13MIS));
-            break;
-        }
+  t = 0;
+  next = -1;
+  c = &ai_Chars[ai_PlayerId];
+  for (i = 0; i < 0x80; i++) {
+    if (ai_Missions[i].type != 0 && ai_Missions[i].owner == c->netId) {
+      t = ai_GetMissionType(ai_Missions[i].type);
+      next = t->kind + 1;
+      memset(&ai_Missions[i], 0, sizeof(G13MIS));
+      break;
     }
-    id = (id & ~9) | 0x100;
-    ai_MissionSuccessDialog(t, id);
-    main_PlayOutro();
-    r = ai_ChooseMissionFrom(next);
-    if (r == 0) {
-        ai_MissionMode = -1;
-        msg[0] = c->netId;
-        msg[4] = 0;
-        h = cm_SendExSysMessage(0x0a, msg);
-        while (!cm_GetSlotState(h))
-            sv_PumpNet();
-    } else if (r == 0xff) {
-        ai_MissionMode = -1;
-        msg[0] = c->netId;
-        msg[4] = 1;
-        h = cm_SendExSysMessage(0x0a, msg);
-        while (!cm_GetSlotState(h))
-            sv_PumpNet();
-    } else {
-        ai_NewMission(c->netId, r, 1);
-        msg[0] = c->netId;
-        msg[4] = 0;
-        h = cm_SendExSysMessage(0x0a, msg);
-        while (!cm_GetSlotState(h))
-            sv_PumpNet();
-    }
-    if (r == 0xff)
-        ai_QuitGame(id);
+  }
+  id = (id & ~9) | 0x100;
+  ai_MissionSuccessDialog(t, id);
+  main_PlayOutro();
+  r = ai_ChooseMissionFrom(next);
+  if (r == 0) {
+    ai_MissionMode = -1;
+    msg[0] = c->netId;
+    msg[4] = 0;
+    h = cm_SendExSysMessage(0x0a, msg);
+    while (!cm_GetSlotState(h))
+      sv_PumpNet();
+  } else if (r == 0xff) {
+    ai_MissionMode = -1;
+    msg[0] = c->netId;
+    msg[4] = 1;
+    h = cm_SendExSysMessage(0x0a, msg);
+    while (!cm_GetSlotState(h))
+      sv_PumpNet();
+  } else {
+    ai_NewMission(c->netId, r, 1);
+    msg[0] = c->netId;
+    msg[4] = 0;
+    h = cm_SendExSysMessage(0x0a, msg);
+    while (!cm_GetSlotState(h))
+      sv_PumpNet();
+  }
+  if (r == 0xff)
+    ai_QuitGame(id);
 }
 /* 0x4b62a0, the mission complete sequence: single player 0x4b6110; network: 0x4b5ef0 for the player who did
    it (ai_MissionPartner), 0x4b60f0 for the others */
 
-void ai_MissionCompleteSequence(int id)
-{
-    if (net_Conn.s != -1) {
-        if (ai_Chars[ai_PlayerId].netId == ai_MissionPartner)
-            ai_MissionCompleteByMode(id);
-        else
-            ai_MissionResultByMode(id);
-    } else
-        ai_MissionCompleteSingle(id);
+void ai_MissionCompleteSequence(int id) {
+  if (net_Conn.s != -1) {
+    if (ai_Chars[ai_PlayerId].netId == ai_MissionPartner)
+      ai_MissionCompleteByMode(id);
+    else
+      ai_MissionResultByMode(id);
+  } else
+    ai_MissionCompleteSingle(id);
 }
 
-unsigned vfs_fwrite(void *buf, int size, int n, struct VFSFILE *f);                             /* 0x430e30 */
+unsigned vfs_fwrite(void *buf, int size, int n,
+                    struct VFSFILE *f); /* 0x430e30 */
 
 /* 0x4b62e0, saves the mission kind and the running missions to f */
-int ai_SaveMissions(void *f)
-{
-    int i;
+int ai_SaveMissions(void *f) {
+  int i;
 
-    if (f == 0)
-        return 0;
-    if (vfs_fwrite(&ai_MissionMode, 1, 1, f) == -1)
-        return 0;
-    for (i = 0; i < 0x80; i++) {
-        if (vfs_fwrite(&ai_Missions[i].type, 4, 1, f) == -1)
-            return 0;
-        if (vfs_fwrite(&ai_Missions[i].owner, 4, 1, f) == -1)
-            return 0;
-        if (vfs_fwrite(&ai_Missions[i].time, 0x0e, 1, f) == -1)
-            return 0;
-        if (vfs_fwrite(&ai_Missions[i].v18, 4, 1, f) == -1)
-            return 0;
-        if (vfs_fwrite(&ai_Missions[i].progress, 4, 1, f) == -1)
-            return 0;
-        if (vfs_fwrite(&ai_Missions[i].fulfilled, 1, 1, f) == -1)
-            return 0;
-    }
-    return 1;
+  if (f == 0)
+    return 0;
+  if (vfs_fwrite(&ai_MissionMode, 1, 1, f) == -1)
+    return 0;
+  for (i = 0; i < 0x80; i++) {
+    if (vfs_fwrite(&ai_Missions[i].type, 4, 1, f) == -1)
+      return 0;
+    if (vfs_fwrite(&ai_Missions[i].owner, 4, 1, f) == -1)
+      return 0;
+    if (vfs_fwrite(&ai_Missions[i].time, 0x0e, 1, f) == -1)
+      return 0;
+    if (vfs_fwrite(&ai_Missions[i].v18, 4, 1, f) == -1)
+      return 0;
+    if (vfs_fwrite(&ai_Missions[i].progress, 4, 1, f) == -1)
+      return 0;
+    if (vfs_fwrite(&ai_Missions[i].fulfilled, 1, 1, f) == -1)
+      return 0;
+  }
+  return 1;
 }
 
-int ls_Read(void *buf, int size, int n, struct VFSFILE *f);                             /* 0x51c920, ls.c: true when the fread returned a positive count */
+int ls_Read(
+    void *buf, int size, int n,
+    struct VFSFILE
+        *f); /* 0x51c920, ls.c: true when the fread returned a positive count */
 
 /* 0x4b63b0, loads the mission kind and the running missions from f (cf. 0x4b62e0) */
-int ai_LoadMissions(void *f)
-{
-    int i;
+int ai_LoadMissions(void *f) {
+  int i;
 
-    if (f == 0)
-        return 0;
-    if (!ls_Read(&ai_MissionMode, 1, 1, f))
-        return 0;
-    for (i = 0; i < 0x80; i++) {
-        if (!ls_Read(&ai_Missions[i].type, 4, 1, f))
-            return 0;
-        if (!ls_Read(&ai_Missions[i].owner, 4, 1, f))
-            return 0;
-        if (!ls_Read(&ai_Missions[i].time, 0x0e, 1, f))
-            return 0;
-        if (!ls_Read(&ai_Missions[i].v18, 4, 1, f))
-            return 0;
-        if (!ls_Read(&ai_Missions[i].progress, 4, 1, f))
-            return 0;
-        if (!ls_Read(&ai_Missions[i].fulfilled, 1, 1, f))
-            return 0;
-    }
-    return 1;
+  if (f == 0)
+    return 0;
+  if (!ls_Read(&ai_MissionMode, 1, 1, f))
+    return 0;
+  for (i = 0; i < 0x80; i++) {
+    if (!ls_Read(&ai_Missions[i].type, 4, 1, f))
+      return 0;
+    if (!ls_Read(&ai_Missions[i].owner, 4, 1, f))
+      return 0;
+    if (!ls_Read(&ai_Missions[i].time, 0x0e, 1, f))
+      return 0;
+    if (!ls_Read(&ai_Missions[i].v18, 4, 1, f))
+      return 0;
+    if (!ls_Read(&ai_Missions[i].progress, 4, 1, f))
+      return 0;
+    if (!ls_Read(&ai_Missions[i].fulfilled, 1, 1, f))
+      return 0;
+  }
+  return 1;
 }
 
 extern int sv_FrameMask;
-G13MIS ai_Missions[0x80];  /* 0xf82320 */
+G13MIS ai_Missions[0x80]; /* 0xf82320 */

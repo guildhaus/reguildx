@@ -10,129 +10,172 @@ struct D3SOUND;
 struct MSXTRACK;
 struct SBSAMPLE;
 
-typedef struct G16SND {                 /* 0x10 bytes ("f3snd: snd_AddToQueue"), a queued sound */
-    struct SBSAMPLE *smp;               /* 0x00 */
-    unsigned int delay;                 /* 0x04, time units (d3_Time * 13) after the previous one */
-    int playing;                        /* 0x08 */
-    struct G16SND *next;                /* 0x0c */
+typedef struct
+    G16SND { /* 0x10 bytes ("f3snd: snd_AddToQueue"), a queued sound */
+  struct SBSAMPLE *smp; /* 0x00 */
+  unsigned int
+      delay;   /* 0x04, time units (d3_Time * 13) after the previous one */
+  int playing; /* 0x08 */
+  struct G16SND *next; /* 0x0c */
 } G16SND;
 
-typedef struct G16SEASON {              /* 0xc bytes, snd_Gusts[season]: the gusts */
-    float chance;                       /* 0x00 */
-    float vol;                          /* 0x04, 0..1, the gust volume (scaled by 127) */
-    unsigned int interval;              /* 0x08, time units */
+typedef struct G16SEASON { /* 0xc bytes, snd_Gusts[season]: the gusts */
+  float chance;            /* 0x00 */
+  float vol;               /* 0x04, 0..1, the gust volume (scaled by 127) */
+  unsigned int interval;   /* 0x08, time units */
 } G16SEASON;
 
-typedef struct G16AMB {                 /* 0x14 bytes, an animal sound of a season */
-    float chance;                       /* 0x00 */
-    float vol;                          /* 0x04 */
-    int count;                          /* 0x08, variants */
-    unsigned int interval;              /* 0x0c */
-    unsigned int last;                  /* 0x10 */
+typedef struct G16AMB {  /* 0x14 bytes, an animal sound of a season */
+  float chance;          /* 0x00 */
+  float vol;             /* 0x04 */
+  int count;             /* 0x08, variants */
+  unsigned int interval; /* 0x0c */
+  unsigned int last;     /* 0x10 */
 } G16AMB;
 
-typedef struct G16LOC {                 /* 0x114 bytes, snd_LocationTracks[]: a location track */
-    int kinds[4];                       /* 0x00, building kinds (0 ends; 0x2694: outdoors); kinds[0] 0 ends the table */
-    char track[0x100];                  /* 0x10 */
-    short prio;                         /* 0x110 */
-    signed char active;                 /* 0x112 */
-    char pad113;
+typedef struct
+    G16LOC { /* 0x114 bytes, snd_LocationTracks[]: a location track */
+  int kinds
+      [4]; /* 0x00, building kinds (0 ends; 0x2694: outdoors); kinds[0] 0 ends the table */
+  char track[0x100];  /* 0x10 */
+  short prio;         /* 0x110 */
+  signed char active; /* 0x112 */
+  char pad113;
 } G16LOC;
 
-typedef struct G16TRACKS {              /* 0x24c bytes, snd_BuildingTracks[]: tracks by kind / room / season */
-    unsigned int kind;                  /* 0x00, 0 ends */
-    unsigned int room;                  /* 0x04, 0: any */
-    int season;                         /* 0x08, -1: any */
-    char names[6][0x60];                /* 0x0c */
+typedef struct
+    G16TRACKS { /* 0x24c bytes, snd_BuildingTracks[]: tracks by kind / room / season */
+  unsigned int kind;   /* 0x00, 0 ends */
+  unsigned int room;   /* 0x04, 0: any */
+  int season;          /* 0x08, -1: any */
+  char names[6][0x60]; /* 0x0c */
 } G16TRACKS;
 
+#include "f3snd_types.h" /* G16TRACKHANDLES */
 
-#include "f3snd_types.h"               /* G16TRACKHANDLES */
-
-
-extern G16SEASON snd_Gusts[];           /* 0x602ba8, by season */
-extern float snd_VoiceVolume;           /* 0x602b08, voice volume (1.0, scaled by 127) */
-extern float snd_MusicVolume;           /* 0x602d68, music volume 0..1: 0 = no music (0x4c23f0, 0x4c2000) */
-extern unsigned int snd_PauseStart;       /* 0x60b0d8, start of the music pause */
-extern unsigned char ai_GameState;      /* 0x6f25ac, the game state (as cm.h / menu.h) */
-extern int snd_MusicEnabled;            /* 0x6f2578, the "msx" setting of game.INI [Sound]: music enabled */
-extern int snd_SfxEnabled;              /* 0x6f257c, the "sfx" setting of game.INI [Sound]: effects and voices on */
-extern int snd_MusicSeason;                /* 0x6f0cb4, the season of the music */
-extern unsigned int snd_PauseLength;       /* 0x6f0cb0, the pause length */
-extern unsigned int snd_LastDecision;       /* 0x6f0cb8, time of the last track decision */
-extern struct AIBLD *snd_TrackBuilding;     /* 0x6f0ca8, the building of the track */
-extern struct AIOBJ *snd_TrackRoom;                  /* 0x6f0cac, the room of the track */
-extern struct MSXTRACK *snd_SpecialTrack; /* 0x6f0b74, the special track of snd_PlaySpecialTrack */
-extern int snd_AmbientSaved;            /* 0x6f0b78, 1 while the ambient flag is off and saved (0x4c23f0) */
+extern G16SEASON snd_Gusts[]; /* 0x602ba8, by season */
+extern float snd_VoiceVolume; /* 0x602b08, voice volume (1.0, scaled by 127) */
+extern float
+    snd_MusicVolume; /* 0x602d68, music volume 0..1: 0 = no music (0x4c23f0, 0x4c2000) */
+extern unsigned int snd_PauseStart; /* 0x60b0d8, start of the music pause */
+extern unsigned char
+    ai_GameState; /* 0x6f25ac, the game state (as cm.h / menu.h) */
+extern int
+    snd_MusicEnabled; /* 0x6f2578, the "msx" setting of game.INI [Sound]: music enabled */
+extern int
+    snd_SfxEnabled; /* 0x6f257c, the "sfx" setting of game.INI [Sound]: effects and voices on */
+extern int snd_MusicSeason;          /* 0x6f0cb4, the season of the music */
+extern unsigned int snd_PauseLength; /* 0x6f0cb0, the pause length */
+extern unsigned int
+    snd_LastDecision; /* 0x6f0cb8, time of the last track decision */
+extern struct AIBLD
+    *snd_TrackBuilding;             /* 0x6f0ca8, the building of the track */
+extern struct AIOBJ *snd_TrackRoom; /* 0x6f0cac, the room of the track */
+extern struct MSXTRACK
+    *snd_SpecialTrack; /* 0x6f0b74, the special track of snd_PlaySpecialTrack */
+extern int
+    snd_AmbientSaved; /* 0x6f0b78, 1 while the ambient flag is off and saved (0x4c23f0) */
 extern unsigned int snd_AmbientOnSaved; /* 0x6f0b64, the saved snd_AmbientOn */
 extern char snd_MusicLog[];             /* 0x6f0860, a debug text */
 extern char ch_EmptyName[];             /* 0x631090, "" */
-extern struct SBBANK *snd_VoiceBankOrders;        /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
-extern struct SBBANK *snd_VoiceBankClick;         /* 0x6f0cc0, voice bank: click comments */
-extern struct SBBANK *snd_VoiceBankNoise;         /* 0x6f0cc4, voice bank: click noises */
-extern struct SBBANK *snd_VoiceBankGreeting;      /* 0x6f0ccc, voice bank: greeting */
-extern G16LOC snd_LocationTracks[];           /* 0x6094d0 */
-extern G16TRACKS snd_BuildingTracks[];        /* 0x602d70 */
-extern struct AIBLD *ai_FallbackBuilding;        /* 0x6f230c, the second current building, used when 0x6f2308 is 0 */
-extern unsigned short ai_PlayerId;      /* 0x6f25b8, the player (as am.h / cm.h / gv.h declare it) */
-extern G16TRACKHANDLES snd_TrackHandles; /* 0x6f0b6c, the music track and its copy */
-extern char snd_DebugText[];             /* 0x6f0a60, a debug text */
-extern char snd_TrackText[];             /* 0x6f0760, a debug text */
-extern char snd_LastTrack[];             /* 0x6f0ba8, the outdoor track played last */
-extern G16AMB snd_Animals[][5];        /* 0x602bd8, per season: birds, crickets, chickens, horses, dogs */
-extern char snd_LocustLog[];             /* 0x6f0960, a debug text */
-extern struct SBSAMPLE *snd_LocustsPerm;   /* 0x6f0b94, hpLocustsPerm: the summer cricket loop */
-extern struct SBSAMPLE *snd_Locusts;       /* 0x6f0b98, hpLocusts: the cricket sample */
-extern int snd_AnimalSeason;                /* 0x6f0b9c, the season */
-extern struct D3SOUND *snd_AmbientTrack;    /* 0x6f0b80, the d3snd handle of the ambient track (bird song, market ambience) */
-extern struct AIBLD *ai_MarketBuilding;        /* 0x6f1bc8, the market building (ai.c) */
-extern struct AIBLD *ai_PlayerBuilding;          /* 0x6f2308, the building the player is in: an AIBLD */
-extern struct AIOBJ *sv_PanelShown;                /* 0x6f2310, its room */
-extern void *snd_AtmoTrack;              /* 0x6f0ba0, the atmosphere mp3 (MSXTRACK *) */
-extern int d3_CurrentScene;             /* 0x633444 */        /* 0x602ba8 */
-extern char snd_GustNames[3][0x32];     /* 0x602b10, "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" */
-extern struct D3FLMAP *d3_Terrain;      /* 0x633738, d3_fl.c: the current terrain map */
-extern unsigned char snd_AmbientOn;     /* 0x6f0b60, 1: ambient sounds on */
-extern int snd_Season;                  /* 0x6f0b8c, the season */
-extern unsigned int snd_LastGust;       /* 0x6f0b90, time of the last gust */
-#include "ai_types.h"                /* AITIME */
-extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-extern struct D3TRAIN *d3t_Rain;    /* 0x760618, the rain system (its count: the rain level) */
-extern struct SBBANK *snd_Bank;                    /* 0x6f2404, the sample bank */
-typedef struct SNDRAIN {                /* 0x48 bytes, snd_UpdateRain's state */
-    AITIME time;                        /* 0x00, a copy of ai_Time (14 bytes) */
-    struct { int unread; struct SBSAMPLE *smp; } loop[7];  /* 0x10, the loops (smp: the playing sample, 0: none); no
-                                           surviving code reads the int before each */
+extern struct SBBANK *
+    snd_VoiceBankOrders; /* 0x6f0cbc, voice bank: orders (snd_LoadBuildingVoices) */
+extern struct SBBANK
+    *snd_VoiceBankClick; /* 0x6f0cc0, voice bank: click comments */
+extern struct SBBANK
+    *snd_VoiceBankNoise; /* 0x6f0cc4, voice bank: click noises */
+extern struct SBBANK
+    *snd_VoiceBankGreeting;            /* 0x6f0ccc, voice bank: greeting */
+extern G16LOC snd_LocationTracks[];    /* 0x6094d0 */
+extern G16TRACKS snd_BuildingTracks[]; /* 0x602d70 */
+extern struct AIBLD *
+    ai_FallbackBuilding; /* 0x6f230c, the second current building, used when 0x6f2308 is 0 */
+extern unsigned short
+    ai_PlayerId; /* 0x6f25b8, the player (as am.h / cm.h / gv.h declare it) */
+extern G16TRACKHANDLES
+    snd_TrackHandles;        /* 0x6f0b6c, the music track and its copy */
+extern char snd_DebugText[]; /* 0x6f0a60, a debug text */
+extern char snd_TrackText[]; /* 0x6f0760, a debug text */
+extern char snd_LastTrack[]; /* 0x6f0ba8, the outdoor track played last */
+extern G16AMB snd_Animals
+    [][5]; /* 0x602bd8, per season: birds, crickets, chickens, horses, dogs */
+extern char snd_LocustLog[]; /* 0x6f0960, a debug text */
+extern struct SBSAMPLE
+    *snd_LocustsPerm; /* 0x6f0b94, hpLocustsPerm: the summer cricket loop */
+extern struct SBSAMPLE
+    *snd_Locusts;            /* 0x6f0b98, hpLocusts: the cricket sample */
+extern int snd_AnimalSeason; /* 0x6f0b9c, the season */
+extern struct D3SOUND *
+    snd_AmbientTrack; /* 0x6f0b80, the d3snd handle of the ambient track (bird song, market ambience) */
+extern struct AIBLD
+    *ai_MarketBuilding; /* 0x6f1bc8, the market building (ai.c) */
+extern struct AIBLD
+    *ai_PlayerBuilding; /* 0x6f2308, the building the player is in: an AIBLD */
+extern struct AIOBJ *sv_PanelShown; /* 0x6f2310, its room */
+extern void *snd_AtmoTrack; /* 0x6f0ba0, the atmosphere mp3 (MSXTRACK *) */
+extern int d3_CurrentScene; /* 0x633444 */ /* 0x602ba8 */
+extern char snd_GustNames
+    [3]
+    [0x32]; /* 0x602b10, "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" */
+extern struct D3FLMAP
+    *d3_Terrain; /* 0x633738, d3_fl.c: the current terrain map */
+extern unsigned char snd_AmbientOn; /* 0x6f0b60, 1: ambient sounds on */
+extern int snd_Season;              /* 0x6f0b8c, the season */
+extern unsigned int snd_LastGust;   /* 0x6f0b90, time of the last gust */
+#include "ai_types.h"               /* AITIME */
+extern AITIME ai_Time;              /* 0x770ae0, the game clock */
+extern struct D3TRAIN
+    *d3t_Rain; /* 0x760618, the rain system (its count: the rain level) */
+extern struct SBBANK *snd_Bank; /* 0x6f2404, the sample bank */
+typedef struct SNDRAIN {        /* 0x48 bytes, snd_UpdateRain's state */
+  AITIME time;                  /* 0x00, a copy of ai_Time (14 bytes) */
+  struct {
+    int unread;
+    struct SBSAMPLE *smp;
+  } loop[7]; /* 0x10, the loops (smp: the playing sample, 0: none); no
+surviving code reads the int before each */
 } SNDRAIN;
-extern SNDRAIN snd_Rain;                /* 0xf81240 */
-#define snd_TimeCopy snd_Rain.time      /* 0xf81240 */
+extern SNDRAIN snd_Rain;           /* 0xf81240 */
+#define snd_TimeCopy snd_Rain.time /* 0xf81240 */
+/* clang-format off */
 #define snd_RainDrops snd_Rain.loop[0].smp      /* 0xf81254, the "Tropfen_s" loop */
+/* clang-format on */
 #define snd_RainLightNear snd_Rain.loop[1].smp  /* 0xf8125c, "LeichtNah_l_01" */
 #define snd_RainMediumNear snd_Rain.loop[2].smp /* 0xf81264, "MittelNah_l_01" */
 #define snd_RainHeavyNear snd_Rain.loop[3].smp  /* 0xf8126c, "StarkNah_l_01" */
+/* clang-format off */
 #define snd_RainLightFar snd_Rain.loop[4].smp   /* 0xf81274, "LeichtFern_l_01" */
 #define snd_RainMediumFar snd_Rain.loop[5].smp  /* 0xf8127c, "MittelFern_l_01" */
-#define snd_RainHeavyFar snd_Rain.loop[6].smp   /* 0xf81284, "StarkFern_l_01" */
-extern int snd_FanfareFade;             /* 0x6f0b7c, 1 while a "Fanfare" has faded the music out */
-extern G16SND *snd_Queue;               /* 0x6f0b84, the queue (the first queued sound) */
-extern int snd_QueuePaused;             /* 0x6f0b68, nonzero: the queue does not advance */
-extern int snd_QueueTime;               /* 0x6f0b88, time of the last queue change */
-extern volatile unsigned long d3_Time;  /* 0x6333cc */
+/* clang-format on */
+#define snd_RainHeavyFar snd_Rain.loop[6].smp /* 0xf81284, "StarkFern_l_01" */
+extern int
+    snd_FanfareFade; /* 0x6f0b7c, 1 while a "Fanfare" has faded the music out */
+extern G16SND *snd_Queue;   /* 0x6f0b84, the queue (the first queued sound) */
+extern int snd_QueuePaused; /* 0x6f0b68, nonzero: the queue does not advance */
+extern int snd_QueueTime;   /* 0x6f0b88, time of the last queue change */
+extern volatile unsigned long d3_Time; /* 0x6333cc */
 
-int gm_ClockSeason(AITIME *c);                                                     /* 0x4fe350, the season */
-struct SBSAMPLE *sb_PlaySample(struct SBBANK *bank, char *name, int loops, int pan, int volume, int fade, int delay); /* 0x426fa0, sblib.c */
-void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                               /* 0x458a20 */
-int ch_CountAt(int scene, int all, struct D3VECTOR *pos, float eps);                               /* 0x402720 */
-int ch_Count(int scene, int a);                                                  /* 0x4026c0 */
-struct MSXTRACK * msx_PlayAmbient(char *name, int vol);                                      /* 0x4243f0 */
-struct MSXTRACK * msx_Play(char *name, int once);                                            /* 0x423a90, msx.h: MSXTRACK * */
-float util_RandomF(void);                                                        /* 0x42ec20 */
-struct SBSAMPLE *sb_GetVariation(struct SBBANK *bank, char *name, int idx);       /* 0x426190, sblib.c */
-struct SBSAMPLE * sb_GetSample(struct SBBANK *bank, char *name);                                          /* 0x426030 */
-struct SBBANK * sb_LoadSampleBank(char *name, int preload);                                        /* 0x426950 */
-struct D3SOUND *d3snd_Attach(struct SBSAMPLE *snd, struct D3OBJECT *obj, int volume, float range);   /* 0x417710, d3_snd.c */
-void * mem_Alloc(int size, char *tag);                                            /* 0x4223c0, mem.c */
-void mem_Free(void *p);                                                          /* 0x422620, mem.c */
+int gm_ClockSeason(AITIME *c); /* 0x4fe350, the season */
+struct SBSAMPLE *sb_PlaySample(struct SBBANK *bank, char *name, int loops,
+                               int pan, int volume, int fade,
+                               int delay); /* 0x426fa0, sblib.c */
+void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in,
+                     struct D3VECTOR *out); /* 0x458a20 */
+int ch_CountAt(int scene, int all, struct D3VECTOR *pos,
+               float eps);                             /* 0x402720 */
+int ch_Count(int scene, int a);                        /* 0x4026c0 */
+struct MSXTRACK *msx_PlayAmbient(char *name, int vol); /* 0x4243f0 */
+struct MSXTRACK *msx_Play(char *name,
+                          int once); /* 0x423a90, msx.h: MSXTRACK * */
+float util_RandomF(void);            /* 0x42ec20 */
+struct SBSAMPLE *sb_GetVariation(struct SBBANK *bank, char *name,
+                                 int idx); /* 0x426190, sblib.c */
+struct SBSAMPLE *sb_GetSample(struct SBBANK *bank, char *name); /* 0x426030 */
+struct SBBANK *sb_LoadSampleBank(char *name, int preload);      /* 0x426950 */
+struct D3SOUND *d3snd_Attach(struct SBSAMPLE *snd, struct D3OBJECT *obj,
+                             int volume, float range); /* 0x417710, d3_snd.c */
+void *mem_Alloc(int size, char *tag);                  /* 0x4223c0, mem.c */
+void mem_Free(void *p);                                /* 0x422620, mem.c */
 
 void snd_ClearQueue(void);
 G16SND *snd_QueueTail(void);
@@ -148,9 +191,12 @@ void snd_UpdateMusic(void);
 void snd_PlaySpecialTrack(char *name);
 void snd_EndSpecialTrack(void);
 int snd_VoiceVariant(unsigned int voice, int woman);
-struct SBSAMPLE *snd_FindVoiceSample(int id, struct SBBANK *bank, char *text, int var);
-struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text, int var);
-struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var, unsigned int delay);
+struct SBSAMPLE *snd_FindVoiceSample(int id, struct SBBANK *bank, char *text,
+                                     int var);
+struct SBSAMPLE *snd_PlayVoice(int id, struct SBBANK *bank, char *text,
+                               int var);
+struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text,
+                                int var, unsigned int delay);
 struct SBBANK *snd_LoadVoiceBank(char *name, int a);
 void snd_LoadBuildingVoices(struct AIBLD *b);
 void snd_UnloadBuildingVoices(void);

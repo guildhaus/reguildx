@@ -3,21 +3,22 @@
 #ifndef UNK_42EA90_H
 #define UNK_42EA90_H
 
-typedef struct TRREC {                  /* 0x84 bytes */
-    char key1[0x74];
-    char key2[0x10];                    /* 0x74 */
+typedef struct TRREC { /* 0x84 bytes */
+  char key1[0x74];
+  char key2[0x10]; /* 0x74 */
 } TRREC;
 
-extern char *tr_Key1;                   /* 0x5f8fd0, "*bRaIn DeaD%&" */
-extern char *tr_Key2;                   /* 0x5f8fd4, "%aRscH Ab :-)" */
-extern TRREC *tr_First;                 /* 0x6333f0 */
-extern TRREC *tr_End;                   /* 0x6333f4 */
-extern TRREC *tr_Table;                 /* 0x6333f8 */
+extern char *tr_Key1;   /* 0x5f8fd0, "*bRaIn DeaD%&" */
+extern char *tr_Key2;   /* 0x5f8fd4, "%aRscH Ab :-)" */
+extern TRREC *tr_First; /* 0x6333f0 */
+extern TRREC *tr_End;   /* 0x6333f4 */
+extern TRREC *tr_Table; /* 0x6333f8 */
 
 /* Inline-asm clear and copy as D3_ZERO / VFS_COPY: zero through a size and a pointer temp, copy with the
    destination named directly and src, size through temps. */
 #define TR_CAT(a, b) a##b
 #define TR_LABEL(n) TR_CAT(tr_tail, n)
+/* clang-format off */
 #define TR_ZERO(dst, size) {                                        \
     int _zn = (size); void *_zp = (dst);                            \
     __asm mov edi, _zp                                              \
@@ -52,15 +53,15 @@ extern TRREC *tr_Table;                 /* 0x6333f8 */
     __asm TR_LABEL(__LINE__): add ecx, ebx                          \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 
-
-int tr_startup(unsigned short n);                                                       /* 0x42ea90 */
-void tr_shutdown(void);                                                                 /* 0x42ebc0 */
+int tr_startup(unsigned short n); /* 0x42ea90 */
+void tr_shutdown(void);           /* 0x42ebc0 */
 /* 0x42ec00, rand() % n */
-float util_RandomF(void);                                                               /* 0x42ec20, 0..1 */
-float util_RandomSq(void);                                                              /* 0x42ec40, -1..1, squared with sign */
-float util_RandomF2(void);                                                              /* 0x42ec70, 0..1 squared */
-void util_Randomize(void);                                                              /* 0x42ec80 */
-void util_Seed(unsigned int seed);                                                      /* 0x42ec90 */
+float util_RandomF(void);          /* 0x42ec20, 0..1 */
+float util_RandomSq(void);         /* 0x42ec40, -1..1, squared with sign */
+float util_RandomF2(void);         /* 0x42ec70, 0..1 squared */
+void util_Randomize(void);         /* 0x42ec80 */
+void util_Seed(unsigned int seed); /* 0x42ec90 */
 
 #endif

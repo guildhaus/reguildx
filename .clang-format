@@ -1,0 +1,11 @@
+# clang-format's default (LLVM) style, with only the overrides the decompilation needs.
+# Code clang-format must not touch is fenced locally with /* clang-format off */ .. /* clang-format on */:
+# __asm blocks and macros, the #line spans that pin D3DCHECK's / err_Log's / assert's __LINE__ (and D3DCHECK's
+# #call text), and declarations whose trailing @original / @vc6 marker or address comment dcp reads by line.
+BasedOnStyle: LLVM
+# include order is declaration order: VC6 breaks register ties by the declarations before a function (tie-breaks),
+# and some headers need the ones before them
+SortIncludes: Never
+# keep comment text as written (re-indent only): rewrapping cuts dcp's line-read `@original why` texts, adds ` * `
+# into address comments and merges the hand-aligned tables and lists in the @deep notes
+ReflowComments: IndentOnly

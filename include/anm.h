@@ -5,46 +5,56 @@ struct D3VECTOR;
 /* Declarations of anm.c (0x4bb810..): animals (module tag "anm:animals", "DOG", "CAT", ..). Names are ours. */
 #ifndef ANM_H
 #define ANM_H
-#include "d3_types.h"                /* D3VECTOR */
+#include "d3_types.h" /* D3VECTOR */
 
-typedef struct ANMREC {                 /* 0x124 bytes, anm_Animals[32], an animal */
-    struct CHARACTER *obj;              /* 0x00, its character (ch_Create; its 3D object ->obj, flags byte 0x96d) */
-    int kind;                           /* 0x04, 0..7 */
-    int nPoints;                        /* 0x08, kind 2: collected coordinates, 3 per building; -1 = not yet */
-    unsigned char remove;               /* 0x0c, 1: to be removed (anm_RemoveAnimal) */
-    char pad0d[3];
-    D3VECTOR pos;                       /* 0x10, where it was created */
-    char pad1c[4];
-    unsigned int birth;                 /* 0x20, d3_Time of its anm_NewAnimal */
-    char pad24[0x100];
+typedef struct ANMREC { /* 0x124 bytes, anm_Animals[32], an animal */
+  struct CHARACTER *
+      obj; /* 0x00, its character (ch_Create; its 3D object ->obj, flags byte 0x96d) */
+  int kind; /* 0x04, 0..7 */
+  int nPoints; /* 0x08, kind 2: collected coordinates, 3 per building; -1 = not yet */
+  unsigned char remove; /* 0x0c, 1: to be removed (anm_RemoveAnimal) */
+  char pad0d[3];
+  D3VECTOR pos; /* 0x10, where it was created */
+  char pad1c[4];
+  unsigned int birth; /* 0x20, d3_Time of its anm_NewAnimal */
+  char pad24[0x100];
 } ANMREC;
 
-extern char anm_KindNames[8][0x20];   /* 0x602688, "DOG", "CAT", "BIRD", "COW", "SHEEP", "CHICK", "PIG", "HORSE" */
-extern int anm_NAnimals;                /* 0x6f0734, the number of animals */
-extern ANMREC *anm_Animals;             /* 0x6f0738, the animal list (32 records, "anm:animals") */
-extern int anm_NextAnimal;                /* 0x6f073c, the animal updated next */
-extern unsigned int anm_LastSpawn;       /* 0x6f0740, d3_Time of the last spawn try */
+extern char anm_KindNames
+    [8]
+    [0x20]; /* 0x602688, "DOG", "CAT", "BIRD", "COW", "SHEEP", "CHICK", "PIG", "HORSE" */
+extern int anm_NAnimals; /* 0x6f0734, the number of animals */
+extern ANMREC
+    *anm_Animals; /* 0x6f0738, the animal list (32 records, "anm:animals") */
+extern int anm_NextAnimal;         /* 0x6f073c, the animal updated next */
+extern unsigned int anm_LastSpawn; /* 0x6f0740, d3_Time of the last spawn try */
 
 /* views of other units (d3.h / ai.h do not compile here together) */
-extern int d3_CurrentScene;             /* 0x633444 */
-extern volatile unsigned long d3_Time;  /* 0x6333cc */
-char d3if_SelectScene(int index, char keep);                                         /* 0x4478e0 */
-#include "ai_types.h"                /* AITIME */
-extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
-int gm_ClockSeason(AITIME *c);                                                     /* 0x4fe350, the season of the clock c (3: winter?) */
-struct CHARACTER *ch_Create(char *name, struct D3VECTOR *pos);                                         /* 0x403390, ch.c: CHARACTER *, D3VECTOR * */
-struct CHACTION *ch_AddAction(struct CHARACTER *ch, unsigned int type, ...);                            /* 0x40b2f0, ch.c */
-int ch_Delete(struct CHARACTER *ch);                                                         /* 0x4028a0, ch.c: CHARACTER * */
-void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                               /* 0x458a20, d3.h: D3 types */
-int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);                                  /* 0x453e80, d3.h: D3VECTOR */
-struct AIBLD *gm_BuildQuery(int n, ...);                                                  /* 0x501190, ai.h: AIBLD * */
-struct AIBLD *gm_BuildNext(void);                                                        /* 0x501030 */
-int gm_IsHomeType(struct AIBLD *b);                                                       /* 0x502520 */
-void anm_Update(void);                                                                     /* 0x4bb860, the animal step */
-int ch_QueueAnim(struct CHARACTER *ch, char *name, int n);                                   /* 0x4057a0, ch.c */
-char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py);           /* 0x45f170, ch.h: D3SM *, D3VECTOR * */
+extern int d3_CurrentScene;                  /* 0x633444 */
+extern volatile unsigned long d3_Time;       /* 0x6333cc */
+char d3if_SelectScene(int index, char keep); /* 0x4478e0 */
+#include "ai_types.h"                        /* AITIME */
+extern AITIME ai_Time;                       /* 0x770ae0, the game clock */
+int gm_ClockSeason(
+    AITIME *c); /* 0x4fe350, the season of the clock c (3: winter?) */
+struct CHARACTER *
+ch_Create(char *name,
+          struct D3VECTOR *pos); /* 0x403390, ch.c: CHARACTER *, D3VECTOR * */
+struct CHACTION *ch_AddAction(struct CHARACTER *ch, unsigned int type,
+                              ...);  /* 0x40b2f0, ch.c */
+int ch_Delete(struct CHARACTER *ch); /* 0x4028a0, ch.c: CHARACTER * */
+void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in,
+                     struct D3VECTOR *out); /* 0x458a20, d3.h: D3 types */
+int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b,
+                float eps);              /* 0x453e80, d3.h: D3VECTOR */
+struct AIBLD *gm_BuildQuery(int n, ...); /* 0x501190, ai.h: AIBLD * */
+struct AIBLD *gm_BuildNext(void);        /* 0x501030 */
+int gm_IsHomeType(struct AIBLD *b);      /* 0x502520 */
+void anm_Update(void);                   /* 0x4bb860, the animal step */
+int ch_QueueAnim(struct CHARACTER *ch, char *name, int n); /* 0x4057a0, ch.c */
+char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz,
+                    float *py);         /* 0x45f170, ch.h: D3SM *, D3VECTOR * */
 extern struct D3SCENE *d3_DefaultScene; /* 0x5fb5b0 (as d3.h / lc.h) */
-
 
 ANMREC *anm_NewAnimal(void);
 void anm_RemoveAnimal(ANMREC *a);
@@ -60,7 +70,8 @@ void anm_UpdateSheep(ANMREC *a);
 #include "rd.h"
 struct D3VECTOR;
 
-void anm_Alloc(void);  /* 0x4bb810, allocates the animal list and resets the count */
-void anm_Free(void);  /* 0x4bb840, frees the animal list */
+void anm_Alloc(
+    void); /* 0x4bb810, allocates the animal list and resets the count */
+void anm_Free(void); /* 0x4bb840, frees the animal list */
 
 #endif

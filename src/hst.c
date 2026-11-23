@@ -15,9 +15,9 @@
 #include <windows.h>
 #include "hst.h"
 #include "txt.h"
-typedef unsigned int SOCKET;            /* <winsock.h>, for net.h (as ai.c) */
+typedef unsigned int SOCKET; /* <winsock.h>, for net.h (as ai.c) */
 #include "net.h"
-#include "d2_types.h"                 /* D2WIN, d2_LastWindowPtr's record */
+#include "d2_types.h" /* D2WIN, d2_LastWindowPtr's record */
 #include "data_views.h"
 #include "ahm.h"
 #include "amt.h"
@@ -30,9 +30,12 @@ typedef unsigned int SOCKET;            /* <winsock.h>, for net.h (as ai.c) */
 #include "tr.h"
 #include "d2.h"
 #include "gfx.h"
+/* clang-format off */
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
+/* clang-format on */
 /* AI_ZERO_AT with the destination local assigned inside: @original the token callbacks store the size temp
    (0x200) before n1 = buf and read both slots into edi / ebx (ai_TokenRandomChurchProfession, byte) */
+/* clang-format off */
 #define AI_ZERO_BUF(var, dst, size) {                               \
     int _zn = (size);                                               \
     var = (int)(dst);                                               \
@@ -51,473 +54,481 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
     __asm AI_ZERO_LABEL(__LINE__): add ecx, ebx                     \
     __asm rep stosb                                                 \
 }
+/* clang-format on */
 /* a list reference's mode ("_SET" / "_USE") is its four characters, which the parser compares as one dword */
 typedef union HST_MODE {
-    char text[4];                       /* the characters, without the terminator */
-    int  tag;                           /* the same four bytes as the dword VC6 compares */
+  char text[4]; /* the characters, without the terminator */
+  int tag;      /* the same four bytes as the dword VC6 compares */
 } HST_MODE;
 #pragma pack(push, 1)
-typedef struct HST_LABEL {              /* the start of a text label: "[_SET..." / "[_USE..." */
-    char     lead;                      /* +0, the '[' */
-    HST_MODE mode;                      /* +1, the mode's four characters */
+typedef struct
+    HST_LABEL {  /* the start of a text label: "[_SET..." / "[_USE..." */
+  char lead;     /* +0, the '[' */
+  HST_MODE mode; /* +1, the mode's four characters */
 } HST_LABEL;
 #pragma pack(pop)
 /* 0x4adf40, copies src to dst up to the second '-', '%' becomes " %" after a non-blank; *n1 = the characters
    read, *n2 = the length of the rest */
-void ai_SplitTokenFormat(char *src, char *dst, int *n1, int *n2)
-{
-    char *p;
-    char *d;
-    char prev;
-    int n;
+void ai_SplitTokenFormat(char *src, char *dst, int *n1, int *n2) {
+  char *p;
+  char *d;
+  char prev;
+  int n;
 
-    d = dst;
-    n = 0;
-    prev = ' ';
-    for (p = src; *p != 0 && n < 2; p++) {
-        if (*p == '-') {
-            n++;
+  d = dst;
+  n = 0;
+  prev = ' ';
+  for (p = src; *p != 0 && n < 2; p++) {
+    if (*p == '-') {
+      n++;
+    } else {
+      if (*p == '%') {
+        if (prev == ' ') {
+          *d = '%';
         } else {
-            if (*p == '%') {
-                if (prev == ' ') {
-                    *d = '%';
-                } else {
-                    *d = ' ';
-                    prev = *p;
-                    d++;
-                    *d = prev;
-                }
-            } else {
-                prev = *p;
-                *d = *p;
-            }
-            d++;
+          *d = ' ';
+          prev = *p;
+          d++;
+          *d = prev;
         }
+      } else {
+        prev = *p;
+        *d = *p;
+      }
+      d++;
     }
-    *n1 = p - src;
-    *n2 = strlen(p);
+  }
+  *n1 = p - src;
+  *n2 = strlen(p);
 }
 /* 0x4adfb0, 1 if id is in none of the four lists of hst_Lists */
 
-int ai_NotInLists(int id)
-{
-    int i, j;
+int ai_NotInLists(int id) {
+  int i, j;
 
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 8; j++) {
-            if (hst_Lists[i].e[j].id == id)
-                return 0;
-        }
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < 8; j++) {
+      if (hst_Lists[i].e[j].id == id)
+        return 0;
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4adff0, character id exists, lives and has kind < 10 */
 
-int ai_IsLivingCharacter(unsigned short id)
-{
-    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 && ai_Chars[id].kind < 10)
-        return 1;
-    return 0;
+int ai_IsLivingCharacter(unsigned short id) {
+  if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 &&
+      ai_Chars[id].kind < 10)
+    return 1;
+  return 0;
 }
 /* 0x4ae030, ... and is a player (kind 6 / 7 / 5) */
 
-int ai_IsLivingPlayer(unsigned short id)
-{
-    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0
-        && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7 || ai_Chars[id].kind == 5))
-        return 1;
-    return 0;
+int ai_IsLivingPlayer(unsigned short id) {
+  if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 &&
+      (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7 ||
+       ai_Chars[id].kind == 5))
+    return 1;
+  return 0;
 }
 /* 0x4ae080, ... kind < 10 and not a human player (6 / 7) */
 
-int ai_IsLivingNonPlayer(unsigned short id)
-{
-    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 && ai_Chars[id].kind < 10
-        && ai_Chars[id].kind != 6 && ai_Chars[id].kind != 7)
-        return 1;
-    return 0;
+int ai_IsLivingNonPlayer(unsigned short id) {
+  if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 &&
+      ai_Chars[id].kind < 10 && ai_Chars[id].kind != 6 &&
+      ai_Chars[id].kind != 7)
+    return 1;
+  return 0;
 }
 /* 0x4ae0d0, ... a human player (kind 6 / 7) */
 
-int ai_IsLivingHuman(unsigned short id)
-{
-    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0
-        && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7))
-        return 1;
-    return 0;
+int ai_IsLivingHuman(unsigned short id) {
+  if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 &&
+      (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7))
+    return 1;
+  return 0;
 }
 /* 0x4ae120, ... a plain inhabitant (kind 0): the predicate of the RND_NPC_EINWOHNER token (0x4af8d0) */
 
-int ai_IsLivingInhabitant(unsigned short id)
-{
-    if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 && ai_Chars[id].kind == 0)
-        return 1;
-    return 0;
+int ai_IsLivingInhabitant(unsigned short id) {
+  if (ai_Chars[id].id != 0xffff && ai_Chars[id].health > 0 &&
+      ai_Chars[id].kind == 0)
+    return 1;
+  return 0;
 }
-
 
 /* 0x4ae160, the BUERGERMEISTER token of a history text (callback 0x601b10[0], name 0x601730[0]): the mayor
    (officeKind 0x0f); mode 1 checks row->e[k].id, otherwise the first living one is taken (mode 0 stores it in
    row->e[k]); out = fmt (0x4adf40) with its id; 0 if there is none
    */
-int ai_TokenMayor(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    AICHAR *c;
-    int i, n1, n2;
+int ai_TokenMayor(int mode, G12ROW *row, int k, char *fmt, char *out) {
+  char buf[512];
+  AICHAR *c;
+  int i, n1, n2;
 
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health == 0 || c->officeKind != 0x0f)
-            return 0;
-    } else {
-        for (i = 0; ; i++) {
-            if (i >= 768)
-                return 0;
-            if (ai_IsLivingCharacter((unsigned short)i) && ai_Chars[i].officeKind == 0x0f)
-                break;
-        }
-        c = &ai_Chars[i];
-        if (mode == 0)
-            row->e[k].id = c->netId;
-        if (c == 0)
-            return 0;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health == 0 || c->officeKind != 0x0f)
+      return 0;
+  } else {
+    for (i = 0;; i++) {
+      if (i >= 768)
+        return 0;
+      if (ai_IsLivingCharacter((unsigned short)i) &&
+          ai_Chars[i].officeKind == 0x0f)
+        break;
     }
-    n1 = (int)buf;
-    AI_ZERO((char *)n1, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    c = &ai_Chars[i];
+    if (mode == 0)
+      row->e[k].id = c->netId;
+    if (c == 0)
+      return 0;
+  }
+  n1 = (int)buf;
+  AI_ZERO((char *)n1, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4ae280, the BISCHOF token of a history text (callback 0x601b10[1], name 0x601730[1]): a bishop (officeKind
    0x15 or 0x1a); otherwise as ai_TokenMayor */
 
-int ai_TokenBishop(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    AICHAR *c;
-    int i, n1, n2;
+int ai_TokenBishop(int mode, G12ROW *row, int k, char *fmt, char *out) {
+  char buf[512];
+  AICHAR *c;
+  int i, n1, n2;
 
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health == 0 || c->officeKind != 0x15)
-            return 0;
-    } else {
-        i = 0;
-        while (!(ai_IsLivingCharacter((unsigned short)i) && ai_Chars[i].officeKind == 0x1a
-                 || ai_Chars[i].officeKind == 0x15)) {
-            if (++i >= 768)
-                return 0;
-        }
-        c = &ai_Chars[i];
-        if (mode == 0)
-            row->e[k].id = c->netId;
-        if (c == 0)
-            return 0;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health == 0 || c->officeKind != 0x15)
+      return 0;
+  } else {
+    i = 0;
+    while (!(ai_IsLivingCharacter((unsigned short)i) &&
+                 ai_Chars[i].officeKind == 0x1a ||
+             ai_Chars[i].officeKind == 0x15)) {
+      if (++i >= 768)
+        return 0;
     }
-    n1 = (int)buf;
-    AI_ZERO((char *)n1, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    c = &ai_Chars[i];
+    if (mode == 0)
+      row->e[k].id = c->netId;
+    if (c == 0)
+      return 0;
+  }
+  n1 = (int)buf;
+  AI_ZERO((char *)n1, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4ae3a0, the RND_GILDENMEISTER token of a history text (callback 0x601b10[2], name 0x601730[2]): a random
    character holding a guild master office (secondOffice 0x1e..0x21); fmt "...-n" selects 0 = anybody living,
    1 = no human player (default), 2 = a computer one, else a human one; mode 1 checks row->e[k].id, mode 0 stores
    the pick */
 
-int ai_TokenRandomGuildMaster(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int sel;
-    int i, n;
-    AICHAR *c, *pick;
+int ai_TokenRandomGuildMaster(int mode, G12ROW *row, int k, char *fmt,
+                              char *out) {
+  char buf[512];
+  int n1, n2;
+  int sel;
+  int i, n;
+  AICHAR *c, *pick;
 
-    AI_ZERO_BUF(n1, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
-        sel = 1;
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0 || c->secondOffice == 0)
-            return 0;
-    } else {
-        c = 0;
-        if (sel == 0) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_IsLivingCharacter((unsigned short)i) && ai_Chars[i].secondOffice >= 0x1e
-                    && ai_Chars[i].secondOffice <= 0x21) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else if (sel == 1) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_IsLivingNonPlayer((unsigned short)i) && ai_Chars[i].secondOffice >= 0x1e
-                    && ai_Chars[i].secondOffice <= 0x21) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else {
-            pick = 0;
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && ai_Chars[i].secondOffice >= 0x1e
-                    && ai_Chars[i].secondOffice <= 0x21) {
-                    pick = &ai_Chars[i];
-                } else if (ai_IsLivingHuman((unsigned short)i) && ai_Chars[i].secondOffice >= 0x1e
-                           && ai_Chars[i].secondOffice <= 0x21) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-            if (c == 0)
-                c = pick;
+  AI_ZERO_BUF(n1, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
+    sel = 1;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0 || c->secondOffice == 0)
+      return 0;
+  } else {
+    c = 0;
+    if (sel == 0) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_IsLivingCharacter((unsigned short)i) &&
+            ai_Chars[i].secondOffice >= 0x1e &&
+            ai_Chars[i].secondOffice <= 0x21) {
+          c = &ai_Chars[i];
+          break;
         }
-        if (c == 0)
-            return 0;
-        if (mode == 0)
-            row->e[k].id = c->netId;
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else if (sel == 1) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_IsLivingNonPlayer((unsigned short)i) &&
+            ai_Chars[i].secondOffice >= 0x1e &&
+            ai_Chars[i].secondOffice <= 0x21) {
+          c = &ai_Chars[i];
+          break;
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else {
+      pick = 0;
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) &&
+            ai_Chars[i].secondOffice >= 0x1e &&
+            ai_Chars[i].secondOffice <= 0x21) {
+          pick = &ai_Chars[i];
+        } else if (ai_IsLivingHuman((unsigned short)i) &&
+                   ai_Chars[i].secondOffice >= 0x1e &&
+                   ai_Chars[i].secondOffice <= 0x21) {
+          c = &ai_Chars[i];
+          break;
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+      if (c == 0)
+        c = pick;
     }
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (c == 0)
+      return 0;
+    if (mode == 0)
+      row->e[k].id = c->netId;
+  }
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 
-#define G12_TITLED(i) (ai_Chars[i].officeKind > 0 && ai_Chars[i].officeKind != 0x0f && ai_Chars[i].officeKind != 0x1a \
-                       && ai_Chars[i].officeKind != 0x15)
+#define G12_TITLED(i)                                                          \
+  (ai_Chars[i].officeKind > 0 && ai_Chars[i].officeKind != 0x0f &&             \
+   ai_Chars[i].officeKind != 0x1a && ai_Chars[i].officeKind != 0x15)
 
 /* 0x4ae600, the RND_AMTSTRAEGERIN token of a history text (callback 0x601b10[3], name 0x601730[3]): a character
    with sex == 1, an ordinary title (G12_TITLED) and in none of the lists of 0x4adfb0; the selection as in
    ai_TokenRandomGuildMaster */
-int ai_TokenRandomOfficeHolderFemale(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int sel;
-    int i, n;
-    AICHAR *c, *pick;
+int ai_TokenRandomOfficeHolderFemale(int mode, G12ROW *row, int k, char *fmt,
+                                     char *out) {
+  char buf[512];
+  int n1, n2;
+  int sel;
+  int i, n;
+  AICHAR *c, *pick;
 
-    AI_ZERO_BUF(n1, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
-        sel = 1;
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0 || c->officeKind == 0)
-            return 0;
-    } else {
-        c = 0;
-        if (sel == 0) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_Chars[i].sex == 1 && ai_IsLivingCharacter((unsigned short)i) && ai_NotInLists(ai_Chars[i].netId)
-                    && G12_TITLED(i)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else if (sel == 1) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_Chars[i].sex == 1 && ai_IsLivingNonPlayer((unsigned short)i) && ai_NotInLists(ai_Chars[i].netId)
-                    && G12_TITLED(i)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else {
-            pick = 0;
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_Chars[i].sex == 1) {
-                    if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)) {
-                        if (ai_NotInLists(ai_Chars[i].netId))
-                            pick = &ai_Chars[i];
-                    } else if (ai_IsLivingHuman((unsigned short)i) && ai_NotInLists(ai_Chars[i].netId)
-                               && G12_TITLED(i)) {
-                        c = &ai_Chars[i];
-                        break;
-                    }
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-            if (c == 0)
-                c = pick;
+  AI_ZERO_BUF(n1, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
+    sel = 1;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0 || c->officeKind == 0)
+      return 0;
+  } else {
+    c = 0;
+    if (sel == 0) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_Chars[i].sex == 1 && ai_IsLivingCharacter((unsigned short)i) &&
+            ai_NotInLists(ai_Chars[i].netId) && G12_TITLED(i)) {
+          c = &ai_Chars[i];
+          break;
         }
-        if (c == 0)
-            return 0;
-        if (mode == 0)
-            row->e[k].id = c->netId;
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else if (sel == 1) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_Chars[i].sex == 1 && ai_IsLivingNonPlayer((unsigned short)i) &&
+            ai_NotInLists(ai_Chars[i].netId) && G12_TITLED(i)) {
+          c = &ai_Chars[i];
+          break;
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else {
+      pick = 0;
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_Chars[i].sex == 1) {
+          if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) &&
+              G12_TITLED(i)) {
+            if (ai_NotInLists(ai_Chars[i].netId))
+              pick = &ai_Chars[i];
+          } else if (ai_IsLivingHuman((unsigned short)i) &&
+                     ai_NotInLists(ai_Chars[i].netId) && G12_TITLED(i)) {
+            c = &ai_Chars[i];
+            break;
+          }
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+      if (c == 0)
+        c = pick;
     }
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (c == 0)
+      return 0;
+    if (mode == 0)
+      row->e[k].id = c->netId;
+  }
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4ae900, the same as 0x4ae600 for a man (sex == 0; 0x4ae600, RND_AMTSTRAEGERIN, takes sex == 1)
    name: callback 0x601b10[4] = 0x4ae900, token name 0x601730[4] RND_AMTSTRAEGER */
 
-int ai_TokenRandomOfficeHolder(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int sel;
-    int i, n;
-    AICHAR *c, *pick;
+int ai_TokenRandomOfficeHolder(int mode, G12ROW *row, int k, char *fmt,
+                               char *out) {
+  char buf[512];
+  int n1, n2;
+  int sel;
+  int i, n;
+  AICHAR *c, *pick;
 
-    AI_ZERO_BUF(n1, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
-        sel = 1;
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0 || c->officeKind == 0)
-            return 0;
-    } else {
-        c = 0;
-        if (sel == 0) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_Chars[i].sex == 0 && ai_IsLivingCharacter((unsigned short)i) && G12_TITLED(i)
-                    && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else if (sel == 1) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_Chars[i].sex == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)
-                    && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else {
-            pick = 0;
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_Chars[i].sex == 0) {
-                    if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)) {
-                        if (ai_NotInLists(ai_Chars[i].netId))
-                            pick = &ai_Chars[i];
-                    } else if (ai_IsLivingHuman((unsigned short)i) && G12_TITLED(i)
-                               && ai_NotInLists(ai_Chars[i].netId)) {
-                        c = &ai_Chars[i];
-                        break;
-                    }
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-            if (c == 0)
-                c = pick;
+  AI_ZERO_BUF(n1, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
+    sel = 1;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0 || c->officeKind == 0)
+      return 0;
+  } else {
+    c = 0;
+    if (sel == 0) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_Chars[i].sex == 0 && ai_IsLivingCharacter((unsigned short)i) &&
+            G12_TITLED(i) && ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
         }
-        if (c == 0)
-            return 0;
-        if (mode == 0)
-            row->e[k].id = c->netId;
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else if (sel == 1) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_Chars[i].sex == 0 && ai_IsLivingNonPlayer((unsigned short)i) &&
+            G12_TITLED(i) && ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else {
+      pick = 0;
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_Chars[i].sex == 0) {
+          if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) &&
+              G12_TITLED(i)) {
+            if (ai_NotInLists(ai_Chars[i].netId))
+              pick = &ai_Chars[i];
+          } else if (ai_IsLivingHuman((unsigned short)i) && G12_TITLED(i) &&
+                     ai_NotInLists(ai_Chars[i].netId)) {
+            c = &ai_Chars[i];
+            break;
+          }
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+      if (c == 0)
+        c = pick;
     }
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (c == 0)
+      return 0;
+    if (mode == 0)
+      row->e[k].id = c->netId;
+  }
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4aec00, the same as 0x4ae600 for anybody (no sex test); mode 2 gives no token
    name: callback 0x601b10[5] = 0x4aec00, token name 0x601730[5] RND_AMTSPERSON */
 
-int ai_TokenRandomOfficePerson(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int sel;
-    int i, n;
-    AICHAR *c, *pick;
+int ai_TokenRandomOfficePerson(int mode, G12ROW *row, int k, char *fmt,
+                               char *out) {
+  char buf[512];
+  int n1, n2;
+  int sel;
+  int i, n;
+  AICHAR *c, *pick;
 
-    AI_ZERO_BUF(n1, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
-        sel = 1;
-    if (mode == 2)
-        return 0;
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0 || c->officeKind == 0)
-            return 0;
-    } else {
-        c = 0;
-        if (sel == 0) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_IsLivingCharacter((unsigned short)i) && G12_TITLED(i) && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else if (sel == 1) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i) && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else {
-            pick = 0;
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i)) {
-                    if (ai_NotInLists(ai_Chars[i].netId))
-                        pick = &ai_Chars[i];
-                } else if (ai_IsLivingHuman((unsigned short)i) && G12_TITLED(i)
-                           && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-            if (c == 0)
-                c = pick;
+  AI_ZERO_BUF(n1, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
+    sel = 1;
+  if (mode == 2)
+    return 0;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0 || c->officeKind == 0)
+      return 0;
+  } else {
+    c = 0;
+    if (sel == 0) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_IsLivingCharacter((unsigned short)i) && G12_TITLED(i) &&
+            ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
         }
-        if (c == 0)
-            return 0;
-        if (mode == 0)
-            row->e[k].id = c->netId;
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else if (sel == 1) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_IsLivingNonPlayer((unsigned short)i) && G12_TITLED(i) &&
+            ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else {
+      pick = 0;
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) &&
+            G12_TITLED(i)) {
+          if (ai_NotInLists(ai_Chars[i].netId))
+            pick = &ai_Chars[i];
+        } else if (ai_IsLivingHuman((unsigned short)i) && G12_TITLED(i) &&
+                   ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+      if (c == 0)
+        c = pick;
     }
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (c == 0)
+      return 0;
+    if (mode == 0)
+      row->e[k].id = c->netId;
+  }
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 
 /* below every character's worth (gm_GetWorth): the "no candidate yet" start value of the richest searches */
@@ -537,158 +548,163 @@ int ai_TokenRandomOfficePerson(int mode, G12ROW *row, int k, char *fmt, char *ou
 
 
    */
-int ai_TokenRichestInhabitant(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int sel, i, v;
-    int best = HST_NO_WORTH;
-    unsigned int sex = 0;
-    unsigned int filt;
-    AICHAR *c;
+int ai_TokenRichestInhabitant(int mode, G12ROW *row, int k, char *fmt,
+                              char *out) {
+  char buf[512];
+  int n1, n2;
+  int sel, i, v;
+  int best = HST_NO_WORTH;
+  unsigned int sex = 0;
+  unsigned int filt;
+  AICHAR *c;
 
-    AI_ZERO_BUF(v, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (n2 != 1)
-        return 0;
-    sel = atoi(fmt + n1);
-    if (sel < 0 || sel > 2)
-        return 0;
-    filt = 1;
-    if (sel == 0)
-        filt = 0;
-    else
-        sex = sel != 1;
-    if (mode == 2)
-        return 0;
-    c = 0;
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0)
-            return 0;
-    } else {
-        for (i = 0; i < 0x300; i++) {
-            if (ai_IsLivingCharacter((unsigned short)i) && (filt == 0 || ai_Chars[i].sex == sex)
-                && (v = gm_GetWorth((unsigned short)i)) > best && ai_NotInLists(ai_Chars[i].netId)) {
-                c = &ai_Chars[i];
-                best = v;
-            }
-        }
-        if (c == 0)
-            return 0;
+  AI_ZERO_BUF(v, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (n2 != 1)
+    return 0;
+  sel = atoi(fmt + n1);
+  if (sel < 0 || sel > 2)
+    return 0;
+  filt = 1;
+  if (sel == 0)
+    filt = 0;
+  else
+    sex = sel != 1;
+  if (mode == 2)
+    return 0;
+  c = 0;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0)
+      return 0;
+  } else {
+    for (i = 0; i < 0x300; i++) {
+      if (ai_IsLivingCharacter((unsigned short)i) &&
+          (filt == 0 || ai_Chars[i].sex == sex) &&
+          (v = gm_GetWorth((unsigned short)i)) > best &&
+          ai_NotInLists(ai_Chars[i].netId)) {
+        c = &ai_Chars[i];
+        best = v;
+      }
     }
-    if (mode == 0)
-        row->e[k].id = c->netId;
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (c == 0)
+      return 0;
+  }
+  if (mode == 0)
+    row->e[k].id = c->netId;
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4af090, text token for the building of type 0x16 with the highest 0x509b10 rating */
 
-int ai_TokenBestInn(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int best = -1, v;
-    AIBLD *b, *pick = 0;
+int ai_TokenBestInn(int mode, G12ROW *row, int k, char *fmt, char *out) {
+  char buf[512];
+  int n1, n2;
+  int best = -1, v;
+  AIBLD *b, *pick = 0;
 
-    if (mode == 2)
-        return 0;
-    if (mode == 1) {
-        gm_FindById(&pick, 0, 0, row->e[k].id);
-        if (pick == 0)
-            return 0;
-    } else {
-        for (b = gm_BuildQuery(1, 5, 0x16); b != 0; b = gm_BuildNext()) {
-            v = gm_EquipmentValue(b, b->level);
-            if (v > best) {
-                pick = b;
-                best = v;
-            }
-        }
-        if (pick == 0)
-            return 0;
-        if (mode == 0)
-            row->e[k].id = pick->id;
+  if (mode == 2)
+    return 0;
+  if (mode == 1) {
+    gm_FindById(&pick, 0, 0, row->e[k].id);
+    if (pick == 0)
+      return 0;
+  } else {
+    for (b = gm_BuildQuery(1, 5, 0x16); b != 0; b = gm_BuildNext()) {
+      v = gm_EquipmentValue(b, b->level);
+      if (v > best) {
+        pick = b;
+        best = v;
+      }
     }
-    n1 = (int)buf;
-    AI_ZERO((char *)n1, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    txt_Format(out, (intptr_t)buf, pick);
-    return 1;
+    if (pick == 0)
+      return 0;
+    if (mode == 0)
+      row->e[k].id = pick->id;
+  }
+  n1 = (int)buf;
+  AI_ZERO((char *)n1, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  txt_Format(out, (intptr_t)buf, pick);
+  return 1;
 }
 /* 0x4af1b0, text token (mode 2 only): fmt "...-n" gives n percent of the wealth (0x50a640) of the character
    row->e[k], as a money text (0x5085b0)
    name: callback 0x601b10[8] = 0x4af1b0, token name 0x601730[8] GELD */
 
-int ai_TokenMoney(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int v;
-    AICHAR *c;
+int ai_TokenMoney(int mode, G12ROW *row, int k, char *fmt, char *out) {
+  char buf[512];
+  int n1, n2;
+  int v;
+  AICHAR *c;
 
-    if (mode == 2 && row != 0 && k != 8 && (c = gm_FindChar(row->e[k].id)) != 0
-        && ai_IsLivingCharacter(c->id)) {
-        v = gm_GetWorth(c->id);
-        n1 = 0x200;
-        n2 = (int)buf;
-        /* @original the engine's clear (AI_ZERO) with both operands named in the asm: the original reads
-           edi and ebx straight from the n2 / n1 slots, no _zp / _zn temporaries */
-        __asm {
-            mov edi, n2
-            mov ebx, n1
-            xor eax, eax
-            lea ecx, [edi+edi*2]
-            and ecx, 3
-            sub ebx, ecx
-            jle tail
-            rep stosb
-            mov ecx, ebx
-            and ebx, 3
-            shr ecx, 2
-            rep stosd
-        tail:
-            add ecx, ebx
-            rep stosb
-        }
-        ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-        n1 = atoi(fmt + n1);
-        txt_Format(out, (intptr_t)buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
-        return 1;
+  if (mode == 2 && row != 0 && k != 8 && (c = gm_FindChar(row->e[k].id)) != 0 &&
+      ai_IsLivingCharacter(c->id)) {
+    v = gm_GetWorth(c->id);
+    n1 = 0x200;
+    n2 = (int)buf;
+    /* @original the engine's clear (AI_ZERO) with both operands named in the asm: the original reads
+       edi and ebx straight from the n2 / n1 slots, no _zp / _zn temporaries */
+    /* clang-format off */
+    __asm {
+        mov edi, n2
+        mov ebx, n1
+        xor eax, eax
+        lea ecx, [edi+edi*2]
+        and ecx, 3
+        sub ebx, ecx
+        jle tail
+        rep stosb
+        mov ecx, ebx
+        and ebx, 3
+        shr ecx, 2
+        rep stosd
+    tail:
+        add ecx, ebx
+        rep stosb
     }
-    return 0;
+    /* clang-format on */
+    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+    n1 = atoi(fmt + n1);
+    txt_Format(out, (intptr_t)buf,
+               gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer),
+               ai_OwnPlayer);
+    return 1;
+  }
+  return 0;
 }
 /* 0x4af2c0, text token: n percent of the count of the first goods of type 9 in the stock (object 0x115) of
    building 0x50b010(1), as a money text: txt_Format (out, the split format, gm_ConvertMoney (amount,
    ai_OwnPlayer), ai_OwnPlayer) */
 
-int ai_TokenCityTreasury(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2, cnt;
-    int v = 0;
-    AIBLD *b;
-    AIOBJ *o;
+int ai_TokenCityTreasury(int mode, G12ROW *row, int k, char *fmt, char *out) {
+  char buf[512];
+  int n1, n2, cnt;
+  int v = 0;
+  AIBLD *b;
+  AIOBJ *o;
 
-    b = gm_FirstBuilding(1);
-    if (b == 0)
-        return 0;
-    o = gm_Query(b->objList, 2, 6, 0, 0x115);
-    if (o == 0)
-        return 0;
-    for (o = gm_Query(o->list, 1, 5); o != 0; o = gm_QueryNext()) {
-        if (ai_Goods[o->id].type == 9) {
-            v = o->count;
-            break;
-        }
+  b = gm_FirstBuilding(1);
+  if (b == 0)
+    return 0;
+  o = gm_Query(b->objList, 2, 6, 0, 0x115);
+  if (o == 0)
+    return 0;
+  for (o = gm_Query(o->list, 1, 5); o != 0; o = gm_QueryNext()) {
+    if (ai_Goods[o->id].type == 9) {
+      v = o->count;
+      break;
     }
-    cnt = 0x200;
-    n2 = (int)buf;
-    AI_ZERO((char *)n2, cnt);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    n1 = atoi(fmt + n1);
-    txt_Format(out, (intptr_t)buf, gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer), ai_OwnPlayer);
-    return 1;
+  }
+  cnt = 0x200;
+  n2 = (int)buf;
+  AI_ZERO((char *)n2, cnt);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  n1 = atoi(fmt + n1);
+  txt_Format(out, (intptr_t)buf,
+             gm_ConvertMoney((int)(v * (n1 * 0.01f)), ai_OwnPlayer),
+             ai_OwnPlayer);
+  return 1;
 }
 
 /* 0x4af3f0, the same as 0x4aec00 for a character whose byte 0x164 is 13..18 */
@@ -698,72 +714,75 @@ int ai_TokenCityTreasury(int mode, G12ROW *row, int k, char *fmt, char *out)
 /* 0x4af3f0, text token for a living character holding a church office (job 13 .. 18) and in none of the lists of
    0x4adfb0: fmt "...-n", n 0 any character, 1 (the default) a non-player, 2 a non-player first, else a human taking
    precedence; mode 1 formats row->e[k]'s character, mode 0 also stores the pick's net id there */
-int ai_TokenRandomChurchProfession(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int sel;
-    int i, n;
-    AICHAR *c, *pick;
+int ai_TokenRandomChurchProfession(int mode, G12ROW *row, int k, char *fmt,
+                                   char *out) {
+  char buf[512];
+  int n1, n2;
+  int sel;
+  int i, n;
+  AICHAR *c, *pick;
 
-    AI_ZERO_BUF(n1, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
-        sel = 1;
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0)
-            return 0;
-    } else {
-        c = 0;
-        if (sel == 0) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_IsLivingCharacter((unsigned short)i) && G12_CHURCHJOB(i) && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else if (sel == 1) {
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_IsLivingNonPlayer((unsigned short)i) && G12_CHURCHJOB(i) && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-        } else {
-            pick = 0;
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) && G12_CHURCHJOB(i)) {
-                    if (ai_NotInLists(ai_Chars[i].netId))
-                        pick = &ai_Chars[i];
-                } else if (ai_IsLivingHuman((unsigned short)i) && G12_CHURCHJOB(i)
-                           && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (i + 1) % 0x300;
-            }
-            if (c == 0)
-                c = pick;
+  AI_ZERO_BUF(n1, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (n2 != 1 || (sel = atoi(fmt + n1)) < 0 || sel > 2)
+    sel = 1;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0)
+      return 0;
+  } else {
+    c = 0;
+    if (sel == 0) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_IsLivingCharacter((unsigned short)i) && G12_CHURCHJOB(i) &&
+            ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
         }
-        if (c == 0)
-            return 0;
-        if (mode == 0)
-            row->e[k].id = c->netId;
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else if (sel == 1) {
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_IsLivingNonPlayer((unsigned short)i) && G12_CHURCHJOB(i) &&
+            ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+    } else {
+      pick = 0;
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (pick == 0 && ai_IsLivingNonPlayer((unsigned short)i) &&
+            G12_CHURCHJOB(i)) {
+          if (ai_NotInLists(ai_Chars[i].netId))
+            pick = &ai_Chars[i];
+        } else if (ai_IsLivingHuman((unsigned short)i) && G12_CHURCHJOB(i) &&
+                   ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
+        }
+        n--;
+        i = (i + 1) % 0x300;
+      }
+      if (c == 0)
+        c = pick;
     }
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (c == 0)
+      return 0;
+    if (mode == 0)
+      row->e[k].id = c->netId;
+  }
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4af6c0, text token for one of the five richest characters (0x50a640) passing a predicate: fmt "...-n"
    0 = 0x4adff0, 2 = 0x4ae0d0, else 0x4ae080
@@ -783,507 +802,502 @@ int ai_TokenRandomChurchProfession(int mode, G12ROW *row, int k, char *fmt, char
 
    */
 
-int ai_TokenRandomRich(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int score[5];
-    int found;
-    unsigned short ids[5];
-    int (*pred)(unsigned short);
-    int i, j, v, t;
-    unsigned short u;
-    AICHAR *c;
+int ai_TokenRandomRich(int mode, G12ROW *row, int k, char *fmt, char *out) {
+  char buf[512];
+  int n1, n2;
+  int score[5];
+  int found;
+  unsigned short ids[5];
+  int (*pred)(unsigned short);
+  int i, j, v, t;
+  unsigned short u;
+  AICHAR *c;
 
-    score[0] = HST_NO_WORTH;
-    score[1] = HST_NO_WORTH;
-    score[2] = HST_NO_WORTH;
-    score[3] = HST_NO_WORTH;
-    score[4] = HST_NO_WORTH;
-    found = 0;
-    ids[0] = 0xffff;
-    ids[1] = 0xffff;
-    ids[2] = 0xffff;
-    ids[3] = 0xffff;
-    ids[4] = 0xffff;
-    if (mode == 2)
-        return 0;
-    AI_ZERO_BUF(v, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (n2 != 1 || (v = atoi(fmt + n1)) < 0 || v > 2)
-        v = 1;
-    if (v == 0)
-        pred = ai_IsLivingCharacter;
-    else if (v == 1)
-        pred = ai_IsLivingNonPlayer;
-    else
-        pred = ai_IsLivingHuman;
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0)
-            return 0;
-    } else {
-        for (i = 0; i < 0x300; i++) {
-            if (pred((unsigned short)i) && (v = gm_GetWorth((unsigned short)i)) > score[4]
-                && ai_NotInLists(ai_Chars[i].netId)) {
-                score[4] = v;
-                found |= 1;
-                ids[4] = ai_Chars[i].id;
-                for (j = 3; j >= 0; j--) {
-                    t = score[j + 1];
-                    v = score[j];
-                    if (t > v) {
-                        u = ids[j];
-                        score[j] = t;
-                        score[j + 1] = v;
-                        ids[j] = ids[j + 1];
-                        ids[j + 1] = u;
-                    }
-                }
-            }
+  score[0] = HST_NO_WORTH;
+  score[1] = HST_NO_WORTH;
+  score[2] = HST_NO_WORTH;
+  score[3] = HST_NO_WORTH;
+  score[4] = HST_NO_WORTH;
+  found = 0;
+  ids[0] = 0xffff;
+  ids[1] = 0xffff;
+  ids[2] = 0xffff;
+  ids[3] = 0xffff;
+  ids[4] = 0xffff;
+  if (mode == 2)
+    return 0;
+  AI_ZERO_BUF(v, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (n2 != 1 || (v = atoi(fmt + n1)) < 0 || v > 2)
+    v = 1;
+  if (v == 0)
+    pred = ai_IsLivingCharacter;
+  else if (v == 1)
+    pred = ai_IsLivingNonPlayer;
+  else
+    pred = ai_IsLivingHuman;
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0)
+      return 0;
+  } else {
+    for (i = 0; i < 0x300; i++) {
+      if (pred((unsigned short)i) &&
+          (v = gm_GetWorth((unsigned short)i)) > score[4] &&
+          ai_NotInLists(ai_Chars[i].netId)) {
+        score[4] = v;
+        found |= 1;
+        ids[4] = ai_Chars[i].id;
+        for (j = 3; j >= 0; j--) {
+          t = score[j + 1];
+          v = score[j];
+          if (t > v) {
+            u = ids[j];
+            score[j] = t;
+            score[j + 1] = v;
+            ids[j] = ids[j + 1];
+            ids[j + 1] = u;
+          }
         }
-        if (found == 0)
-            return 0;
-        c = &ai_Chars[ids[util_Random(5)]];
-        if (mode == 0)
-            row->e[k].id = c->netId;
+      }
     }
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (found == 0)
+      return 0;
+    c = &ai_Chars[ids[util_Random(5)]];
+    if (mode == 0)
+      row->e[k].id = c->netId;
+  }
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4af8d0, text token for the first character in the lists of 0x4adfb0 who passes 0x4ae120; fmt "...-n" as in
    0x4aef10 (sex filter) */
 
-int ai_TokenRandomNpcInhabitant(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int sel, i;
-    unsigned int sex = 0;
-    unsigned int filt;
-    AICHAR *c = 0;
+int ai_TokenRandomNpcInhabitant(int mode, G12ROW *row, int k, char *fmt,
+                                char *out) {
+  char buf[512];
+  int n1, n2;
+  int sel, i;
+  unsigned int sex = 0;
+  unsigned int filt;
+  AICHAR *c = 0;
 
-    AI_ZERO_BUF(n1, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (n2 == 1) {
-        sel = atoi(fmt + n1);
-        if (sel >= 0 && sel <= 2) {
-            filt = 1;
-            if (sel == 0)
-                filt = 0;
-            else
-                sex = sel != 1;
-            if (mode == 1) {
-                c = gm_FindChar(row->e[k].id);
-                if (c == 0)
-                    return 0;
-                if (c->health <= 0)
-                    return 0;
-            } else {
-                for (i = 0; i < 768; i++) {
-                    if (ai_NotInLists(ai_Chars[i].netId)) {
-                        c = &ai_Chars[i];
-                        if (filt == 0 || c->sex == sex) {
-                            if (ai_IsLivingInhabitant((unsigned short)i))
-                                break;
-                            c = 0;
-                        }
-                    }
-                }
-                if (c == 0)
-                    return 0;
-                if (mode == 0)
-                    row->e[k].id = c->netId;
+  AI_ZERO_BUF(n1, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (n2 == 1) {
+    sel = atoi(fmt + n1);
+    if (sel >= 0 && sel <= 2) {
+      filt = 1;
+      if (sel == 0)
+        filt = 0;
+      else
+        sex = sel != 1;
+      if (mode == 1) {
+        c = gm_FindChar(row->e[k].id);
+        if (c == 0)
+          return 0;
+        if (c->health <= 0)
+          return 0;
+      } else {
+        for (i = 0; i < 768; i++) {
+          if (ai_NotInLists(ai_Chars[i].netId)) {
+            c = &ai_Chars[i];
+            if (filt == 0 || c->sex == sex) {
+              if (ai_IsLivingInhabitant((unsigned short)i))
+                break;
+              c = 0;
             }
-            txt_Format(out, (intptr_t)buf, c->id);
-            return 1;
+          }
         }
+        if (c == 0)
+          return 0;
+        if (mode == 0)
+          row->e[k].id = c->netId;
+      }
+      txt_Format(out, (intptr_t)buf, c->id);
+      return 1;
     }
-    return 0;
+  }
+  return 0;
 }
 /* jobs 19 .. 69 without 31 .. 33, 40 .. 45 and 52 .. 57: the merchant trades (the token's name, RND_HANDELSHERR);
    @original the job byte is read at each test (a local gives another strength-reduced base) */
-#define G12_MERCHANTJOB(i) (ai_Chars[i].jobId >= 19 && ai_Chars[i].jobId <= 69                         \
-                            && (ai_Chars[i].jobId < 31 || ai_Chars[i].jobId > 33)                    \
-                            && (ai_Chars[i].jobId < 40 || ai_Chars[i].jobId > 45)                    \
-                            && (ai_Chars[i].jobId < 52 || ai_Chars[i].jobId > 57))
+#define G12_MERCHANTJOB(i)                                                     \
+  (ai_Chars[i].jobId >= 19 && ai_Chars[i].jobId <= 69 &&                       \
+   (ai_Chars[i].jobId < 31 || ai_Chars[i].jobId > 33) &&                       \
+   (ai_Chars[i].jobId < 40 || ai_Chars[i].jobId > 45) &&                       \
+   (ai_Chars[i].jobId < 52 || ai_Chars[i].jobId > 57))
 
 /* 0x4afa20, one of the five richest characters (0x50a640) passing 0x4adff0 with a merchant job
    (G12_MERCHANTJOB)
    name: callback 0x601b10[13] = 0x4afa20, token name 0x601730[13] RND_HANDELSHERR */
 
-int ai_TokenRandomMerchant(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int score[5];
-    int found;
-    unsigned short ids[5];
-    int i, j, v, t;
-    unsigned short u;
-    AICHAR *c;
+int ai_TokenRandomMerchant(int mode, G12ROW *row, int k, char *fmt, char *out) {
+  char buf[512];
+  int n1, n2;
+  int score[5];
+  int found;
+  unsigned short ids[5];
+  int i, j, v, t;
+  unsigned short u;
+  AICHAR *c;
 
-    score[0] = HST_NO_WORTH;
-    score[1] = HST_NO_WORTH;
-    score[2] = HST_NO_WORTH;
-    score[3] = HST_NO_WORTH;
-    score[4] = HST_NO_WORTH;
-    found = 0;
-    ids[0] = 0xffff;
-    ids[1] = 0xffff;
-    ids[2] = 0xffff;
-    ids[3] = 0xffff;
-    ids[4] = 0xffff;
-    if (mode == 2)
-        return 0;
-    AI_ZERO_BUF(n1, buf, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0)
-            return 0;
-    } else {
-        for (i = 0; i < 0x300; i++) {
-            if (G12_MERCHANTJOB(i)
-                && ai_IsLivingCharacter((unsigned short)i) && (v = gm_GetWorth((unsigned short)i)) > score[4]
-                && ai_NotInLists(ai_Chars[i].netId)) {
-                score[4] = v;
-                found |= 1;
-                ids[4] = ai_Chars[i].id;
-                for (j = 3; j >= 0; j--) {
-                    t = score[j + 1];
-                    v = score[j];
-                    if (t > v) {
-                        u = ids[j];
-                        score[j] = t;
-                        score[j + 1] = v;
-                        ids[j] = ids[j + 1];
-                        ids[j + 1] = u;
-                    }
-                }
-            }
+  score[0] = HST_NO_WORTH;
+  score[1] = HST_NO_WORTH;
+  score[2] = HST_NO_WORTH;
+  score[3] = HST_NO_WORTH;
+  score[4] = HST_NO_WORTH;
+  found = 0;
+  ids[0] = 0xffff;
+  ids[1] = 0xffff;
+  ids[2] = 0xffff;
+  ids[3] = 0xffff;
+  ids[4] = 0xffff;
+  if (mode == 2)
+    return 0;
+  AI_ZERO_BUF(n1, buf, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0)
+      return 0;
+  } else {
+    for (i = 0; i < 0x300; i++) {
+      if (G12_MERCHANTJOB(i) && ai_IsLivingCharacter((unsigned short)i) &&
+          (v = gm_GetWorth((unsigned short)i)) > score[4] &&
+          ai_NotInLists(ai_Chars[i].netId)) {
+        score[4] = v;
+        found |= 1;
+        ids[4] = ai_Chars[i].id;
+        for (j = 3; j >= 0; j--) {
+          t = score[j + 1];
+          v = score[j];
+          if (t > v) {
+            u = ids[j];
+            score[j] = t;
+            score[j + 1] = v;
+            ids[j] = ids[j + 1];
+            ids[j + 1] = u;
+          }
         }
-        if (found == 0)
-            return 0;
-        c = &ai_Chars[ids[util_Random(5)]];
-        if (mode == 0)
-            row->e[k].id = c->netId;
+      }
     }
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (found == 0)
+      return 0;
+    c = &ai_Chars[ids[util_Random(5)]];
+    if (mode == 0)
+      row->e[k].id = c->netId;
+  }
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4afc30, text token for a random character passing 0x4ae0d0 / 0x4adfb0, searched with a random step
    (3, 5, 7 or 11); the RND_SPIELER token (callback 0x601b10[14] = 0x4afc30, name 0x601730[14]) */
 
-int ai_TokenRandomPlayer(int mode, G12ROW *row, int k, char *fmt, char *out)
-{
-    char buf[512];
-    int n1, n2;
-    int steps[4];
-    int step, i, n;
-    AICHAR *c = 0;
+int ai_TokenRandomPlayer(int mode, G12ROW *row, int k, char *fmt, char *out) {
+  char buf[512];
+  int n1, n2;
+  int steps[4];
+  int step, i, n;
+  AICHAR *c = 0;
 
-    if (mode == 2)
-        return 0;
-    n1 = (int)buf;
-    AI_ZERO_AT(n1, 0x200);
-    ai_SplitTokenFormat(fmt, buf, &n1, &n2);
-    if (mode == 1) {
-        c = gm_FindChar(row->e[k].id);
-        if (c == 0 || c->health <= 0)
-            return 0;
-    } else {
-        steps[0] = 3;
-        steps[1] = 5;
-        steps[2] = 7;
-        steps[3] = 11;
-        /* @original the outer loop counts i, which the search reuses: it repeats the search until a
-           search ends on 0x2ff (the original's inc / cmp 0x300 after each search) */
-        for (i = 0; i < 0x300; i++) {
-            step = steps[util_Random(4)];
-            i = util_Random(0x300);
-            n = 0x300;
-            while (n != 0) {
-                if (ai_IsLivingHuman((unsigned short)i) && ai_NotInLists(ai_Chars[i].netId)) {
-                    c = &ai_Chars[i];
-                    break;
-                }
-                n--;
-                i = (step + i) % 0x300;
-            }
+  if (mode == 2)
+    return 0;
+  n1 = (int)buf;
+  AI_ZERO_AT(n1, 0x200);
+  ai_SplitTokenFormat(fmt, buf, &n1, &n2);
+  if (mode == 1) {
+    c = gm_FindChar(row->e[k].id);
+    if (c == 0 || c->health <= 0)
+      return 0;
+  } else {
+    steps[0] = 3;
+    steps[1] = 5;
+    steps[2] = 7;
+    steps[3] = 11;
+    /* @original the outer loop counts i, which the search reuses: it repeats the search until a
+       search ends on 0x2ff (the original's inc / cmp 0x300 after each search) */
+    for (i = 0; i < 0x300; i++) {
+      step = steps[util_Random(4)];
+      i = util_Random(0x300);
+      n = 0x300;
+      while (n != 0) {
+        if (ai_IsLivingHuman((unsigned short)i) &&
+            ai_NotInLists(ai_Chars[i].netId)) {
+          c = &ai_Chars[i];
+          break;
         }
-        if (c == 0)
-            return 0;
-        if (mode == 0)
-            row->e[k].id = c->netId;
+        n--;
+        i = (step + i) % 0x300;
+      }
     }
-    txt_Format(out, (intptr_t)buf, c->id);
-    return 1;
+    if (c == 0)
+      return 0;
+    if (mode == 0)
+      row->e[k].id = c->netId;
+  }
+  txt_Format(out, (intptr_t)buf, c->id);
+  return 1;
 }
 /* 0x4afdd0, the FEST text command (callback 0x601b50[0], name 0x601070[0]) "-n" (n > 0): sends message 0x53
    for the character ai_PlayerChar, today 12:00 */
 
-int ai_CommandFest(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
+int ai_CommandFest(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
 
-    if (*fmt != '-')
-        return 0;
-    if (atoi(fmt + 1) > 0) {
-        memset(&msg, 0, sizeof(msg));
-        msg.type = 0x53;
-        msg.to = ai_PlayerChar->netId;
-        msg.fromId = -1;
-        msg.flags = 1;
-        msg.thiefClass = 0;     /* @original a byte store at 0x58 (the field's name is the thief message's) */
-        msg.time = ai_Time;
-        msg.time.hour = 12;
-        msg.time.min = 0;
-        cm_SendLongMessage(&msg);
-    }
-    return 1;
+  if (*fmt != '-')
+    return 0;
+  if (atoi(fmt + 1) > 0) {
+    memset(&msg, 0, sizeof(msg));
+    msg.type = 0x53;
+    msg.to = ai_PlayerChar->netId;
+    msg.fromId = -1;
+    msg.flags = 1;
+    /* clang-format off */
+    msg.thiefClass = 0;     /* @original a byte store at 0x58 (the field's name is the thief message's) */
+    /* clang-format on */
+    msg.time = ai_Time;
+    msg.time.hour = 12;
+    msg.time.min = 0;
+    cm_SendLongMessage(&msg);
+  }
+  return 1;
 }
 /* 0x4afe80, the BELAGERUNG_START text command (callback 0x601b50[1]): sends message 0x7f to every councillor
    (kind 6 / 7), today 8:00 */
 
-int ai_CommandSiegeStart(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
-    int i;
+int ai_CommandSiegeStart(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
+  int i;
 
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x7f;
-    msg.time = ai_Time;
-    msg.fromId = -1;
-    msg.time.hour = 8;
-    msg.time.min = 0;
-    msg.flags = 1;
-    for (i = 0; i < 0x300; i++) {
-        if (ai_Chars[i].kind == 6 || ai_Chars[i].kind == 7) {
-            msg.to = ai_Chars[i].netId;
-            msg.car = ai_Chars[i].netId;
-            cm_SendLongMessage(&msg);
-        }
+  memset(&msg, 0, sizeof(msg));
+  msg.type = 0x7f;
+  msg.time = ai_Time;
+  msg.fromId = -1;
+  msg.time.hour = 8;
+  msg.time.min = 0;
+  msg.flags = 1;
+  for (i = 0; i < 0x300; i++) {
+    if (ai_Chars[i].kind == 6 || ai_Chars[i].kind == 7) {
+      msg.to = ai_Chars[i].netId;
+      msg.car = ai_Chars[i].netId;
+      cm_SendLongMessage(&msg);
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4aff30, the AUFSTAND text command (callback 0x601b50[2]): sends message 0x7d (arg 1) for the character
    ai_PlayerChar, today 8:00 */
 
-int ai_CommandUprising(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
+int ai_CommandUprising(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
 
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x7d;
-    msg.to = ai_PlayerChar->netId;
-    msg.fromId = -1;
-    msg.flags = 1;
-    msg.car = 1;
-    msg.time = ai_Time;
-    msg.time.hour = 8;
-    msg.time.min = 0;
-    cm_SendLongMessage(&msg);
-    return 1;
+  memset(&msg, 0, sizeof(msg));
+  msg.type = 0x7d;
+  msg.to = ai_PlayerChar->netId;
+  msg.fromId = -1;
+  msg.flags = 1;
+  msg.car = 1;
+  msg.time = ai_Time;
+  msg.time.hour = 8;
+  msg.time.min = 0;
+  cm_SendLongMessage(&msg);
+  return 1;
 }
 
 /* the 0x4e / 0x50 event messages (the BRAND / WIRBELSTURM commands): an AIMSG (0xf8 bytes) with the event's
    value at 0x9c (1000 in both; the same dword is a name / a flag byte in the other long-message kinds) */
 /* 0x4affc0, the BRAND text command (callback 0x601b50[3], name 0x601070[3]): sends message 0x4e (value 1000) for
    the character ai_PlayerChar, today 7:00 */
-int ai_CommandFire(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
+int ai_CommandFire(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
 
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x4e;
-    msg.to = ai_PlayerChar->netId;
-    msg.fromId = -1;
-    msg.car = -1;
-    msg.flags = 1;
-    msg.word9c = 1000;
-    msg.time = ai_Time;
-    msg.time.hour = 7;
-    cm_SendLongMessage(&msg);
-    return 1;
+  memset(&msg, 0, sizeof(msg));
+  msg.type = 0x4e;
+  msg.to = ai_PlayerChar->netId;
+  msg.fromId = -1;
+  msg.car = -1;
+  msg.flags = 1;
+  msg.word9c = 1000;
+  msg.time = ai_Time;
+  msg.time.hour = 7;
+  cm_SendLongMessage(&msg);
+  return 1;
 }
 /* 0x4b0050, the WIRBELSTURM text command (callback 0x601b50[4], name 0x601070[4]), the same as ai_CommandFire:
    message 0x50 (value 1000, flags 2), today 16:00 */
 
-int ai_CommandTornado(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
+int ai_CommandTornado(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
 
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x50;
-    msg.to = ai_PlayerChar->netId;
-    msg.fromId = -1;
-    msg.car = -1;
-    msg.flags = 2;
-    msg.word9c = 1000;
-    msg.time = ai_Time;
-    msg.time.hour = 16;
-    cm_SendLongMessage(&msg);
-    return 1;
+  memset(&msg, 0, sizeof(msg));
+  msg.type = 0x50;
+  msg.to = ai_PlayerChar->netId;
+  msg.fromId = -1;
+  msg.car = -1;
+  msg.flags = 2;
+  msg.word9c = 1000;
+  msg.time = ai_Time;
+  msg.time.hour = 16;
+  cm_SendLongMessage(&msg);
+  return 1;
 }
 /* 0x4b00e0, the STADTKASSE text command (callback 0x601b50[5], name 0x601070[5]) "-PLUS_n" / "-MINUS_n":
    moves n percent of the count of the first goods of type 9 in the stock (object 0x115) of building 0x50b010(1)
    to or from that stock (0x4c4830) */
 
-int ai_CommandCityTreasury(G12ROW *row, int slot, char *fmt)
-{
-    if (*fmt != '-')
-        return 0;
-    {
-        int sign[2] = { -1, 1 };
-        char name[2][6] = { "MINUS", "PLUS" };
-        int i, s, n, v;
-        AIBLD *bld;
-        AIOBJ *o, *g;
+int ai_CommandCityTreasury(G12ROW *row, int slot, char *fmt) {
+  if (*fmt != '-')
+    return 0;
+  {
+    int sign[2] = {-1, 1};
+    char name[2][6] = {"MINUS", "PLUS"};
+    int i, s, n, v;
+    AIBLD *bld;
+    AIOBJ *o, *g;
 
-        fmt++;
-        for (i = 0; i < 2; i++) {
-            if (memcmp(fmt, name[i], strlen(name[i])) == 0)
-                break;
-        }
-        if (i >= 2)
-            return 0;
-        s = sign[i];
-        fmt += strlen(name[i]);
-        if (*fmt != '_')
-            return 0;
-        n = atoi(fmt + 1);
-        if (n > 0) {
-            bld = gm_FirstBuilding(1);
-            if (bld == 0)
-                return 0;
-            o = gm_Query(bld->objList, 2, 6, 0, 0x115);
-            if (o == 0)
-                return 0;
-            for (g = gm_Query(o->list, 1, 5); g != 0; g = gm_QueryNext()) {
-                if (ai_Goods[g->id].type == 9)
-                    break;
-            }
-            if (g == 0)
-                return 1;
-            v = g->count;
-            if (v > 0) {
-                if (s == -1)
-                    cm_SendMoveGoodsUnchecked(s, o->objId, 0, (int)(v * (n * 0.01f)));
-                else if (s == 1)
-                    cm_SendMoveGoodsUnchecked(o->objId, -1, 0, (int)(v * (n * 0.01f)));
-            }
-        }
-        return 1;
+    fmt++;
+    for (i = 0; i < 2; i++) {
+      if (memcmp(fmt, name[i], strlen(name[i])) == 0)
+        break;
     }
+    if (i >= 2)
+      return 0;
+    s = sign[i];
+    fmt += strlen(name[i]);
+    if (*fmt != '_')
+      return 0;
+    n = atoi(fmt + 1);
+    if (n > 0) {
+      bld = gm_FirstBuilding(1);
+      if (bld == 0)
+        return 0;
+      o = gm_Query(bld->objList, 2, 6, 0, 0x115);
+      if (o == 0)
+        return 0;
+      for (g = gm_Query(o->list, 1, 5); g != 0; g = gm_QueryNext()) {
+        if (ai_Goods[g->id].type == 9)
+          break;
+      }
+      if (g == 0)
+        return 1;
+      v = g->count;
+      if (v > 0) {
+        if (s == -1)
+          cm_SendMoveGoodsUnchecked(s, o->objId, 0, (int)(v * (n * 0.01f)));
+        else if (s == 1)
+          cm_SendMoveGoodsUnchecked(o->objId, -1, 0, (int)(v * (n * 0.01f)));
+      }
+    }
+    return 1;
+  }
 }
 /* 0x4b02a0, the VERMOEGEN_STEUER text command (callback 0x601b50[6], name 0x601070[6]) "-n": every character
    passing ai_IsLivingCharacter pays n percent of his wealth (0x50a640) into the stock (object 0x115) of building
    0x50b010(1)
    */
 
-int ai_CommandWealthTax(G12ROW *row, int slot, char *fmt)
-{
-    AIBLD *bld;
-    AIOBJ *o;
-    float f;
-    int i, n, w;
+int ai_CommandWealthTax(G12ROW *row, int slot, char *fmt) {
+  AIBLD *bld;
+  AIOBJ *o;
+  float f;
+  int i, n, w;
 
-    bld = gm_FirstBuilding(1);
-    if (bld == 0)
-        return 0;
-    o = gm_Query(bld->objList, 2, 6, 0, 0x115);
-    if (o == 0)
-        return 0;
-    if (*fmt != '-')
-        return 0;
-    n = atoi(fmt + 1);
-    f = n * 0.01f;
-    for (i = 0; i < 0x300; i++) {
-        if (ai_IsLivingCharacter((unsigned short)i)) {
-            w = gm_GetWorth(ai_Chars[i].id);
-            cm_SendMoveGoodsUnchecked(o->objId, ai_Chars[i].netId, 0, (int)(w * f));
-        }
+  bld = gm_FirstBuilding(1);
+  if (bld == 0)
+    return 0;
+  o = gm_Query(bld->objList, 2, 6, 0, 0x115);
+  if (o == 0)
+    return 0;
+  if (*fmt != '-')
+    return 0;
+  n = atoi(fmt + 1);
+  f = n * 0.01f;
+  for (i = 0; i < 0x300; i++) {
+    if (ai_IsLivingCharacter((unsigned short)i)) {
+      w = gm_GetWorth(ai_Chars[i].id);
+      cm_SendMoveGoodsUnchecked(o->objId, ai_Chars[i].netId, 0, (int)(w * f));
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4b0360, the VERMOEGEN text command (callback 0x601b50[7], name 0x601070[7]) "-PLUS_n" / "-MINUS_n" for the
    character row->e[k]: gives or takes n percent of 0x509e60 (0x4c4830) */
 
-int ai_CommandWealth(G12ROW *row, int k, char *fmt)
-{
-    int sign[2] = { -1, 1 };
-    char name[2][6] = { "MINUS", "PLUS" };
-    int i, n, v;
-    float f;
-    AICHAR *c;
+int ai_CommandWealth(G12ROW *row, int k, char *fmt) {
+  int sign[2] = {-1, 1};
+  char name[2][6] = {"MINUS", "PLUS"};
+  int i, n, v;
+  float f;
+  AICHAR *c;
 
-    if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0 && *fmt == '-') {
-        fmt++;
-        for (i = 0; i < 2; i++) {
-            if (memcmp(fmt, name[i], strlen(name[i])) == 0)
-                break;
-        }
-        if (i < 2) {
-            fmt += strlen(name[i]);
-            if (*fmt == '_') {
-                n = atoi(fmt + 1);
-                f = n * 0.01f;
-                v = (int)(gm_GetGoodsValue(c) * f);
-                if (sign[i] == -1)
-                    cm_SendMoveGoodsUnchecked(-1, c->netId, 0, v);
-                else
-                    cm_SendMoveGoodsUnchecked(c->netId, -1, 0, v);
-                return 1;
-            }
-        }
+  if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0 &&
+      *fmt == '-') {
+    fmt++;
+    for (i = 0; i < 2; i++) {
+      if (memcmp(fmt, name[i], strlen(name[i])) == 0)
+        break;
     }
-    return 0;
+    if (i < 2) {
+      fmt += strlen(name[i]);
+      if (*fmt == '_') {
+        n = atoi(fmt + 1);
+        f = n * 0.01f;
+        v = (int)(gm_GetGoodsValue(c) * f);
+        if (sign[i] == -1)
+          cm_SendMoveGoodsUnchecked(-1, c->netId, 0, v);
+        else
+          cm_SendMoveGoodsUnchecked(c->netId, -1, 0, v);
+        return 1;
+      }
+    }
+  }
+  return 0;
 }
 /* 0x4b04a0, the ANSEHEN_BEI_AMTSTRAEGERN text command (callback 0x601b50[8], name 0x601070[8])
    "-PLUS_n" / "-MINUS_n": changes the relation (0x4c4b00) of every character with a title (byte 0x166 or 0x169)
    to the character row->e[k] by 2n */
 
-int ai_CommandOfficeStanding(G12ROW *row, int k, char *fmt)
-{
-    AICHAR *c;
+int ai_CommandOfficeStanding(G12ROW *row, int k, char *fmt) {
+  AICHAR *c;
 
-    if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0 && *fmt == '-') {
-        int sign[2] = { -1, 1 };
-        char name[2][6] = { "MINUS", "PLUS" };
-        int i, n;
+  if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0 &&
+      *fmt == '-') {
+    int sign[2] = {-1, 1};
+    char name[2][6] = {"MINUS", "PLUS"};
+    int i, n;
 
-        fmt++;
-        for (i = 0; i < 2; i++) {
-            if (memcmp(fmt, name[i], strlen(name[i])) == 0)
-                break;
-        }
-        if (i < 2) {
-            fmt += strlen(name[i]);
-            if (*fmt == '_') {
-                n = atoi(fmt + 1) * sign[i] * 2;
-                for (i = 0; i < 0x300; i++) {
-                    if (ai_IsLivingCharacter((unsigned short)i) && (ai_Chars[i].officeKind != 0 || ai_Chars[i].secondOffice != 0))
-                        cm_SendRelations(c->netId, ai_Chars[i].netId, n, 1);
-                }
-                return 1;
-            }
-        }
+    fmt++;
+    for (i = 0; i < 2; i++) {
+      if (memcmp(fmt, name[i], strlen(name[i])) == 0)
+        break;
     }
-    return 0;
+    if (i < 2) {
+      fmt += strlen(name[i]);
+      if (*fmt == '_') {
+        n = atoi(fmt + 1) * sign[i] * 2;
+        for (i = 0; i < 0x300; i++) {
+          if (ai_IsLivingCharacter((unsigned short)i) &&
+              (ai_Chars[i].officeKind != 0 || ai_Chars[i].secondOffice != 0))
+            cm_SendRelations(c->netId, ai_Chars[i].netId, n, 1);
+        }
+        return 1;
+      }
+    }
+  }
+  return 0;
 }
 /* 0x4b05e0, the KILL_PLAYER text command (callback 0x601b50[9], name 0x601070[9]): lowers the health
    (0x4fc820) of the character row->e[k] below zero (gm_AddHealth with -(x + 1)) */
 
-int ai_CommandKillPlayer(G12ROW *row, int k, char *fmt)
-{
-    AICHAR *c;
+int ai_CommandKillPlayer(G12ROW *row, int k, char *fmt) {
+  AICHAR *c;
 
-    if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0) {
-        gm_AddHealth(c->id, (int)-(gm_CharacterHealth(c) + 1.0f));
-        return 1;
-    }
-    return 0;
+  if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0) {
+    gm_AddHealth(c->id, (int)-(gm_CharacterHealth(c) + 1.0f));
+    return 1;
+  }
+  return 0;
 }
 
 /* 0x4b0640, the STRAFE_HINRICHTUNG text command (callback 0x601b50[10], name 0x601070[10])
@@ -1306,199 +1320,196 @@ int ai_CommandKillPlayer(G12ROW *row, int k, char *fmt)
    Moved code: the netId read at each of its three uses (loop base to netId, the original's
    ai_CharInts/0x7d5f84 refs: 59 -> 54); memcmp(fmt + 1, ..) instead of fmt++ (the original's lea
 ebx,[eax+1]: 26 -> 8); flags = 0x22 before the time copy (8 -> 6); party.variant = kinds[i] directly, no variant local (the name-table M9 crossing went: draft -> shape); the setup stores' order by tryclimb. Left: the setup block's scheduling, '- mov byte ptr [esp+0xe4],dl' right after the -1 store where the original stores list[1]=-1, loads ai_JudgeCatholic, stores kind/flags and only then the variant (dl). No lever: 1500 random orders and all 2602 two-line moves of the 10 setup stores (none below 6 ins); the variant store after flags gives the original's store order but loads kinds[i] late into cl and c early (draft 18 ins); a variant local before or inside the block (draft 18-34); thing = list[1] = -1 chains (draft 34-36). Declaration set insensitive. (tiebreak: insensitive) */
-int ai_CommandExecution(G12ROW *row, int k, char *fmt)
-{
-    G28REC party;
-    AICHAR *c;
-    int kinds[4];
-    int i, n;
+int ai_CommandExecution(G12ROW *row, int k, char *fmt) {
+  G28REC party;
+  AICHAR *c;
+  int kinds[4];
+  int i, n;
 
-    c = gm_FindChar(row->e[k].id);
-    if (c == 0 || !ai_IsLivingCharacter(c->id))
-        return 0;
-    {
-        char name[4][8] = { "SHAUFEN", "KOEPFEN", "GALGEN", "KANONE" };
+  c = gm_FindChar(row->e[k].id);
+  if (c == 0 || !ai_IsLivingCharacter(c->id))
+    return 0;
+  {
+    char name[4][8] = {"SHAUFEN", "KOEPFEN", "GALGEN", "KANONE"};
 
-        n = 4;
-        kinds[3] = 4;
-        kinds[0] = 3;
-        kinds[1] = 0;
-        kinds[2] = 2;
-        if (*fmt != '-')
-            return 0;
-        for (i = 0; i < 4; i++) {
-            if (memcmp(fmt + 1, name[i], strlen(name[i])) == 0)
-                break;
-        }
-        if (i >= 4)
-            return 0;
+    n = 4;
+    kinds[3] = 4;
+    kinds[0] = 3;
+    kinds[1] = 0;
+    kinds[2] = 2;
+    if (*fmt != '-')
+      return 0;
+    for (i = 0; i < 4; i++) {
+      if (memcmp(fmt + 1, name[i], strlen(name[i])) == 0)
+        break;
     }
-    {
-        int list[16];
+    if (i >= 4)
+      return 0;
+  }
+  {
+    int list[16];
 
-        party.thing = -1;
-        party.host = ai_Chars[ai_PlayerId].netId;
-        party.variant = (unsigned char)kinds[i];
-        list[1] = -1;
-        party.kind = 5;
-        party.flags = 0;
-        party.quiet = 1;
-        list[0] = c->netId;
-        list[2] = ai_JudgeCatholic->netId;
-        list[3] = ai_JudgeProtestant->netId;
-        for (i = 0; i < 0x300; i++) {
-            if (ai_Chars[i].netId != c->netId && ai_IsLivingNonPlayer((unsigned short)i)) {
-                if (ai_Chars[i].officeKind != 0)
-                    list[1] = ai_Chars[i].netId;
-            } else if (n < 16 && ai_IsLivingHuman((unsigned short)i)) {
-                list[n++] = ai_Chars[i].netId;
-            }
-        }
-        if (list[1] == -1)
-            list[1] = list[n-- - 1];
-        if (n > 0)
-            memcpy(party.members, list, n * 4);
+    party.thing = -1;
+    party.host = ai_Chars[ai_PlayerId].netId;
+    party.variant = (unsigned char)kinds[i];
+    list[1] = -1;
+    party.kind = 5;
+    party.flags = 0;
+    party.quiet = 1;
+    list[0] = c->netId;
+    list[2] = ai_JudgeCatholic->netId;
+    list[3] = ai_JudgeProtestant->netId;
+    for (i = 0; i < 0x300; i++) {
+      if (ai_Chars[i].netId != c->netId &&
+          ai_IsLivingNonPlayer((unsigned short)i)) {
+        if (ai_Chars[i].officeKind != 0)
+          list[1] = ai_Chars[i].netId;
+      } else if (n < 16 && ai_IsLivingHuman((unsigned short)i)) {
+        list[n++] = ai_Chars[i].netId;
+      }
     }
-    for (i = n; i < 16; i++)
-        party.members[i] = -1;
-    party.used = (unsigned char)n;
-    party.flags = 0x22;
-    party.time = ai_Time;
-    gm_AddTime(&party.time, 0x18, 0, 0);
-    party.time.hour = 10;
-    cm_SendNewParty(&party);
-    return 1;
+    if (list[1] == -1)
+      list[1] = list[n-- - 1];
+    if (n > 0)
+      memcpy(party.members, list, n * 4);
+  }
+  for (i = n; i < 16; i++)
+    party.members[i] = -1;
+  party.used = (unsigned char)n;
+  party.flags = 0x22;
+  party.time = ai_Time;
+  gm_AddTime(&party.time, 0x18, 0, 0);
+  party.time.hour = 10;
+  cm_SendNewParty(&party);
+  return 1;
 }
 /* 0x4b08e0, the STRAFE_KERKER text command (callback 0x601b50[11], name 0x601070[11]) "-n": sets the byte field
    0x1b1 of the character row->e[k] to n (message 0x4c3ba0) */
 
-int ai_CommandPrison(G12ROW *row, int k, char *fmt)
-{
-    char v = 0;
-    AICHAR *c;
+int ai_CommandPrison(G12ROW *row, int k, char *fmt) {
+  char v = 0;
+  AICHAR *c;
 
-    if (*fmt == '-') {
-        v = (char)atoi(fmt + 1);
-        if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0) {
-            cm_BeginFieldBlock((void *)c, c->netId);
-            cm_AddFieldValues(1, 1, 0x1b1, &v);
-            cm_SendFieldDeltas();
-            return 1;
-        }
+  if (*fmt == '-') {
+    v = (char)atoi(fmt + 1);
+    if (row != 0 && k < 8 && (c = gm_FindChar(row->e[k].id)) != 0) {
+      cm_BeginFieldBlock((void *)c, c->netId);
+      cm_AddFieldValues(1, 1, 0x1b1, &v);
+      cm_SendFieldDeltas();
+      return 1;
     }
-    return 0;
+  }
+  return 0;
 }
 
-int gm_FindObjectProto(char *s);                                                       /* 0x4fe900 */
-int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f);           /* 0x4c4880 */
+int gm_FindObjectProto(char *s); /* 0x4fe900 */
+int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e,
+                        int f); /* 0x4c4880 */
 
 /* 0x4b0950, the AMTSTRAEGER_INVENTAR_PLUS text command (callback 0x601b50[12], name 0x601070[12]) "-xxxNAME":
    0x4c4880 from every titled character (byte 0x166 or 0x169) with the value of 0x4fe900(fmt + 4) */
-int ai_CommandOfficeInventoryPlus(G12ROW *row, int slot, char *fmt)
-{
-    char *s;
-    int v, i;
+int ai_CommandOfficeInventoryPlus(G12ROW *row, int slot, char *fmt) {
+  char *s;
+  int v, i;
 
-    if (*fmt != '-')
-        return 0;
-    s = fmt + 1;
-    if (strlen(s) < 4)
-        return 0;
-    s += 3;
-    tolower((int)(s + 1));      /* sic: a pointer */
-    v = gm_FindObjectProto(s);
-    if (v == 0)
-        return 0;
-    for (i = 0; i < 0x300; i++) {
-        if (ai_IsLivingCharacter((unsigned short)i) && (ai_Chars[i].officeKind != 0 || ai_Chars[i].secondOffice != 0))
-            cm_SendExSellObject(ai_Chars[i].netId, -1, v, 1, ai_OwnPlayer, 0);
-    }
-    return 1;
+  if (*fmt != '-')
+    return 0;
+  s = fmt + 1;
+  if (strlen(s) < 4)
+    return 0;
+  s += 3;
+  tolower((int)(s + 1)); /* sic: a pointer */
+  v = gm_FindObjectProto(s);
+  if (v == 0)
+    return 0;
+  for (i = 0; i < 0x300; i++) {
+    if (ai_IsLivingCharacter((unsigned short)i) &&
+        (ai_Chars[i].officeKind != 0 || ai_Chars[i].secondOffice != 0))
+      cm_SendExSellObject(ai_Chars[i].netId, -1, v, 1, ai_OwnPlayer, 0);
+  }
+  return 1;
 }
-
 
 /* 0x4b09f0, the GESETZ text command (callback 0x601b50[13], name 0x601070[13])
    "-RECHTSPRECHUNG_HAERTE_n" / "-AEMTEREINKOMMEN_n": sets the AI decision 0 / 15 to n, clamped to its range
    (refused out of range when its byte 1 is set) */
-int ai_CommandLaw(G12ROW *row, int slot, char *fmt)
-{
-    if (*fmt != '-')
-        return 0;
-    {
-        char name[2][32] = { "RECHTSPRECHUNG_HAERTE", "AEMTEREINKOMMEN" };
-        int kinds[2];
-        int i, n, k;
-        AIDEC d;
+int ai_CommandLaw(G12ROW *row, int slot, char *fmt) {
+  if (*fmt != '-')
+    return 0;
+  {
+    char name[2][32] = {"RECHTSPRECHUNG_HAERTE", "AEMTEREINKOMMEN"};
+    int kinds[2];
+    int i, n, k;
+    AIDEC d;
 
-        kinds[0] = 0;
-        kinds[1] = 0xf;
-        fmt++;
-        for (i = 0; i < 2; i++) {
-            if (memcmp(fmt, name[i], strlen(name[i])) == 0)
-                break;
-        }
-        if (i >= 2)
-            return 0;
-        fmt += strlen(name[i]);
-        if (*fmt != '_')
-            return 0;
-        n = atoi(fmt + 1);
-        k = kinds[i];
-        if (!gv_GetTableRecord(k, &d))
-            return 0;
-        if ((n < d.min || n > d.max) && d.valueText != 0)
-            return 0;
-        gv_SetTableRecord(0, k, max(min(d.max, n), d.min));
-        return 1;
+    kinds[0] = 0;
+    kinds[1] = 0xf;
+    fmt++;
+    for (i = 0; i < 2; i++) {
+      if (memcmp(fmt, name[i], strlen(name[i])) == 0)
+        break;
     }
+    if (i >= 2)
+      return 0;
+    fmt += strlen(name[i]);
+    if (*fmt != '_')
+      return 0;
+    n = atoi(fmt + 1);
+    k = kinds[i];
+    if (!gv_GetTableRecord(k, &d))
+      return 0;
+    if ((n < d.min || n > d.max) && d.valueText != 0)
+      return 0;
+    gv_SetTableRecord(0, k, max(min(d.max, n), d.min));
+    return 1;
+  }
 }
 /* 0x4b0b50, the GESETZ_REL text command (callback 0x601b50[14], name 0x601070[14])
    "-PLUS_<decision>_n" / "-MINUS_...": moves the AI decision 0 / 15 (names of ai_CommandLaw) by n, clamped to its
    range. Sic: after the sign word it skips the length of the sign name with its own index. */
 
-int ai_CommandLawChange(G12ROW *row, int slot, char *fmt)
-{
-    if (*fmt != '-')
-        return 0;
-    {
-        int sign = -1;
-        char sname[2][6] = { "MINUS", "PLUS" };
-        char name[2][32] = { "RECHTSPRECHUNG_HAERTE", "AEMTEREINKOMMEN" };
-        int kinds[2];
-        int i, k;
-        AIDEC d;
+int ai_CommandLawChange(G12ROW *row, int slot, char *fmt) {
+  if (*fmt != '-')
+    return 0;
+  {
+    int sign = -1;
+    char sname[2][6] = {"MINUS", "PLUS"};
+    char name[2][32] = {"RECHTSPRECHUNG_HAERTE", "AEMTEREINKOMMEN"};
+    int kinds[2];
+    int i, k;
+    AIDEC d;
 
-        kinds[0] = 0;
-        kinds[1] = 0xf;
-        fmt++;
-        for (i = 0; i < 2; i++) {
-            if (memcmp(fmt, sname[i], strlen(sname[i])) == 0)
-                break;
-        }
-        if (i >= 2)
-            return 0;
-        if (i == 1)
-            sign = i;
-        fmt += strlen(name[i]);
-        if (*fmt != '_')
-            return 0;
-        fmt++;
-        for (i = 0; i < 2; i++) {
-            if (memcmp(fmt, name[i], strlen(name[i])) == 0)
-                break;
-        }
-        if (i >= 2)
-            return 0;
-        fmt += strlen(name[i]);
-        if (*fmt != '_')
-            return 0;
-        k = kinds[i];
-        if (!gv_GetTableRecord(k, &d))
-            return 0;
-        i = atoi(fmt + 1) * sign + d.cur;
-        gv_SetTableRecord(0, k, max(min(d.max, i), d.min));
-        return 1;
+    kinds[0] = 0;
+    kinds[1] = 0xf;
+    fmt++;
+    for (i = 0; i < 2; i++) {
+      if (memcmp(fmt, sname[i], strlen(sname[i])) == 0)
+        break;
     }
+    if (i >= 2)
+      return 0;
+    if (i == 1)
+      sign = i;
+    fmt += strlen(name[i]);
+    if (*fmt != '_')
+      return 0;
+    fmt++;
+    for (i = 0; i < 2; i++) {
+      if (memcmp(fmt, name[i], strlen(name[i])) == 0)
+        break;
+    }
+    if (i >= 2)
+      return 0;
+    fmt += strlen(name[i]);
+    if (*fmt != '_')
+      return 0;
+    k = kinds[i];
+    if (!gv_GetTableRecord(k, &d))
+      return 0;
+    i = atoi(fmt + 1) * sign + d.cur;
+    gv_SetTableRecord(0, k, max(min(d.max, i), d.min));
+    return 1;
+  }
 }
 /* 0x4b0d40, the GLAUBENSWECHSEL text command (callback 0x601b50[15], name 0x601070[15])
    "-KATHOLISCH_pp_m" / "-EVANGELISCH_pp_m": message 0x81 for pp percent (1..80) of the characters of the religion
@@ -1513,367 +1524,360 @@ int ai_CommandLawChange(G12ROW *row, int slot, char *fmt)
    instructions. Q1 has evidence, Q2..Q7 pass.
    */
 
-int ai_CommandFaithChange(G12ROW *row, int slot, char *fmt)
-{
-    char name[2][16] = { "KATHOLISCH", "EVANGELISCH" };
-    char d1[4];
-    char d2[4];
-    int rel, i, p, m, n, cnt;
-    AIMSG msg;
+int ai_CommandFaithChange(G12ROW *row, int slot, char *fmt) {
+  char name[2][16] = {"KATHOLISCH", "EVANGELISCH"};
+  char d1[4];
+  char d2[4];
+  int rel, i, p, m, n, cnt;
+  AIMSG msg;
 
-    i = 0;
-    if (*fmt != '-')
-        return 0;
-    fmt++;
-    for (; i < 2; i++) {
-        if (memcmp(fmt, name[i], strlen(name[i])) == 0)
-            break;
-    }
-    if (i == 0)
-        rel = 1;
-    else if (i == 1)
-        rel = 0;
-    else
-        return 0;
-    fmt += strlen(name[i]);
-    if (*fmt != '_')
-        return 0;
-    i = 0;
-    fmt++;
-    memset(d1, 0, sizeof(d1));
-    memset(d2, 0, sizeof(d2));
-    for (; ; i++, fmt++) {
-        if (*fmt == 0)
-            return 0;
-        if (*fmt == '_' || i >= 3)
-            break;
-        if (*fmt < '0' || *fmt > '9')
-            return 0;
-        d1[i] = *fmt;
-    }
-    if (*fmt == 0 || i == 0)
-        return 0;
-    i = 0;
-    fmt++;
+  i = 0;
+  if (*fmt != '-')
+    return 0;
+  fmt++;
+  for (; i < 2; i++) {
+    if (memcmp(fmt, name[i], strlen(name[i])) == 0)
+      break;
+  }
+  if (i == 0)
+    rel = 1;
+  else if (i == 1)
+    rel = 0;
+  else
+    return 0;
+  fmt += strlen(name[i]);
+  if (*fmt != '_')
+    return 0;
+  i = 0;
+  fmt++;
+  memset(d1, 0, sizeof(d1));
+  memset(d2, 0, sizeof(d2));
+  for (;; i++, fmt++) {
     if (*fmt == 0)
-        return 0;
-    for (; *fmt != 0 && i < 3; i++, fmt++) {
-        if (*fmt < '0' || *fmt > '9')
-            return 0;
-        d2[i] = *fmt;
-    }
-    if (i == 0)
-        return 0;
-    p = atoi(d1);
-    m = atoi(d2);
-    if (p < 1 || p > 80 || m < 1 || m > 8)
-        return 0;
-    cnt = 0;
-    for (i = 0; i < 0x300; i++) {
-        if (ai_Chars[i].id != 0xffff && ai_Chars[i].kind <= 4 && ai_Chars[i].faith == rel)
-            cnt++;
-    }
-    n = (int)((float)cnt * p * 0.01f);
-    if (n == 0)
-        return 1;
-    m = max(min(m, n / 3), 1);
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x81;
-    msg.to = ai_PlayerChar->netId;
-    msg.ch = rel;
-    msg.fromId = -1;
-    msg.flags = 2;
-    msg.car = n;
-    msg.n = m;
-    msg.time = ai_Time;
-    msg.time.hour = 8;
-    msg.time.min = 0;
-    cm_SendLongMessage(&msg);
+      return 0;
+    if (*fmt == '_' || i >= 3)
+      break;
+    if (*fmt < '0' || *fmt > '9')
+      return 0;
+    d1[i] = *fmt;
+  }
+  if (*fmt == 0 || i == 0)
+    return 0;
+  i = 0;
+  fmt++;
+  if (*fmt == 0)
+    return 0;
+  for (; *fmt != 0 && i < 3; i++, fmt++) {
+    if (*fmt < '0' || *fmt > '9')
+      return 0;
+    d2[i] = *fmt;
+  }
+  if (i == 0)
+    return 0;
+  p = atoi(d1);
+  m = atoi(d2);
+  if (p < 1 || p > 80 || m < 1 || m > 8)
+    return 0;
+  cnt = 0;
+  for (i = 0; i < 0x300; i++) {
+    if (ai_Chars[i].id != 0xffff && ai_Chars[i].kind <= 4 &&
+        ai_Chars[i].faith == rel)
+      cnt++;
+  }
+  n = (int)((float)cnt * p * 0.01f);
+  if (n == 0)
     return 1;
+  m = max(min(m, n / 3), 1);
+  memset(&msg, 0, sizeof(msg));
+  msg.type = 0x81;
+  msg.to = ai_PlayerChar->netId;
+  msg.ch = rel;
+  msg.fromId = -1;
+  msg.flags = 2;
+  msg.car = n;
+  msg.n = m;
+  msg.time = ai_Time;
+  msg.time.hour = 8;
+  msg.time.min = 0;
+  cm_SendLongMessage(&msg);
+  return 1;
 }
 /* 0x4b0fd0, the AUFRUHR text command (callback 0x601b50[16], name 0x601070[16]), the same message as 0x4aff30
    (AUFSTAND) with car 0: message 0x7d for the character ai_PlayerChar, today 8:00 */
 
-int ai_CommandRiot(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
+int ai_CommandRiot(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
 
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x7d;
-    msg.to = ai_PlayerChar->netId;
-    msg.fromId = -1;
-    msg.flags = 1;
-    msg.car = 0;
-    msg.time = ai_Time;
-    msg.time.hour = 8;
-    msg.time.min = 0;
-    cm_SendLongMessage(&msg);
-    return 1;
+  memset(&msg, 0, sizeof(msg));
+  msg.type = 0x7d;
+  msg.to = ai_PlayerChar->netId;
+  msg.fromId = -1;
+  msg.flags = 1;
+  msg.car = 0;
+  msg.time = ai_Time;
+  msg.time.hour = 8;
+  msg.time.min = 0;
+  cm_SendLongMessage(&msg);
+  return 1;
 }
 
-
-int amt_GetFirstOffice(unsigned int k, struct AMTREC *out);                                         /* 0x4e6ec0, defined elsewhere */
-int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e);                /* 0x4e6680, defined elsewhere */
+int amt_GetFirstOffice(unsigned int k,
+                       struct AMTREC *out); /* 0x4e6ec0, defined elsewhere */
+int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c,
+                          int d,
+                          unsigned char e); /* 0x4e6680, defined elsewhere */
 
 /* 0x4b1060, the GILDENSITZE_BRACH text command (callback 0x601b50[17]): frees the holders of the offices
    0x1e..0x21 (0x4e6680) and sends message 0x80 (arg 4), today 8:00 */
-int ai_CommandBreakGuildSeats(G12ROW *row, int slot, char *fmt)
-{
-    AMTREC o;
-    AIMSG msg;
+int ai_CommandBreakGuildSeats(G12ROW *row, int slot, char *fmt) {
+  AMTREC o;
+  AIMSG msg;
 
-    if (*fmt != '-')
-        return 0;
-    if (amt_GetFirstOffice(0x1e, &o) && o.owner != -1)
-        amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
-    if (amt_GetFirstOffice(0x1f, &o) && o.owner != -1)
-        amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
-    if (amt_GetFirstOffice(0x20, &o) && o.owner != -1)
-        amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
-    if (amt_GetFirstOffice(0x21, &o) && o.owner != -1)
-        amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
-    atoi(fmt + 1);
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x80;
-    msg.to = ai_PlayerChar->netId;
-    msg.fromId = -1;
-    msg.flags = 2;
-    msg.car = 4;
-    msg.time = ai_Time;
-    msg.time.hour = 8;
-    msg.time.min = 0;
-    cm_SendLongMessage(&msg);
-    return 1;
+  if (*fmt != '-')
+    return 0;
+  if (amt_GetFirstOffice(0x1e, &o) && o.owner != -1)
+    amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
+  if (amt_GetFirstOffice(0x1f, &o) && o.owner != -1)
+    amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
+  if (amt_GetFirstOffice(0x20, &o) && o.owner != -1)
+    amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
+  if (amt_GetFirstOffice(0x21, &o) && o.owner != -1)
+    amt_SendOfficeMessage(o.idx, 0, 0, 4, 0xff);
+  atoi(fmt + 1);
+  memset(&msg, 0, sizeof(msg));
+  msg.type = 0x80;
+  msg.to = ai_PlayerChar->netId;
+  msg.fromId = -1;
+  msg.flags = 2;
+  msg.car = 4;
+  msg.time = ai_Time;
+  msg.time.hour = 8;
+  msg.time.min = 0;
+  cm_SendLongMessage(&msg);
+  return 1;
 }
 
-
-void cm_SendGoodsRecord(void *p, unsigned char k);                                /* 0x4c56d0, defined elsewhere */
+void cm_SendGoodsRecord(void *p,
+                        unsigned char k); /* 0x4c56d0, defined elsewhere */
 
 /* 0x4b11e0, text command "-PLUS_<kind>_n" / "-MINUS_<kind>_n" (kind WAFFEN / BUECHER / ENDPRODUKTE): scales
    the prices of the player's stock of that kind by 1 +- n% (0x4c56d0). Open: cm_SendGoodsRecord (0x4c56d0, message
    0x3f, k and 0x80 bytes of p, cm.c) and ai_FindWeaponRecord (0x4cd9d0, the record of ten with id, cm.c) need their
    own units' evidence before a rename. The 1.0f is ai_FloatOne in the original (the literal spelling is the one that
    gives VC6's common subexpression for f + 1) */
-int ai_CommandDemand(G12ROW *row, int slot, char *fmt)
-{
-    GMSTOCK e;
-    float f;
-    int i, j, s;
-    GMSTOCK *p;
+int ai_CommandDemand(G12ROW *row, int slot, char *fmt) {
+  GMSTOCK e;
+  float f;
+  int i, j, s;
+  GMSTOCK *p;
 
-    if (*fmt != '-')
-        return 0;
-    {
-    int sign[2] = { -1, 1 };
-    char name[2][6] = { "MINUS", "PLUS" };
-    char kind[3][12] = { "WAFFEN", "BUECHER", "ENDPRODUKTE" };
+  if (*fmt != '-')
+    return 0;
+  {
+    int sign[2] = {-1, 1};
+    char name[2][6] = {"MINUS", "PLUS"};
+    char kind[3][12] = {"WAFFEN", "BUECHER", "ENDPRODUKTE"};
 
     fmt++;
     for (i = 0; i < 2; i++) {
-        if (memcmp(fmt, name[i], strlen(name[i])) == 0)
-            break;
+      if (memcmp(fmt, name[i], strlen(name[i])) == 0)
+        break;
     }
     if (i >= 2)
-        return 0;
+      return 0;
     s = sign[i];
     fmt += strlen(name[i]);
     if (*fmt != '_')
-        return 0;
+      return 0;
     fmt++;
     for (j = 0; j < 3; j++) {
-        if (memcmp(fmt, kind[j], strlen(kind[j])) == 0)
-            break;
+      if (memcmp(fmt, kind[j], strlen(kind[j])) == 0)
+        break;
     }
     if (j >= 3)
-        return 0;
+      return 0;
     fmt += strlen(kind[j]);
     if (*fmt != '_')
-        return 0;
+      return 0;
     f = (float)(atoi(fmt + 1) * s) * 0.01;
     switch (j) {
     case 0:
-        for (i = 0; i < 0x55; i++) {
-            p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
-            if (p->item != 0 && p->amount != 0) {
-                AIWEAPON *r = ai_FindWeaponRecord(p->item);
+      for (i = 0; i < 0x55; i++) {
+        p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
+        if (p->item != 0 && p->amount != 0) {
+          AIWEAPON *r = ai_FindWeaponRecord(p->item);
 
-                if (r != 0 && r->id != 0) {
-                    e = gm_StockBlocks[ai_OwnPlayer].goods[i];
-                    e.mean = (f + 1.0f) * e.demand;
-                    e.price = gm_ItemPrice(p->item, 100) * (f + 1.0f);
-                    cm_SendGoodsRecord(&e, ai_OwnPlayer);
-                }
-            }
+          if (r != 0 && r->id != 0) {
+            e = gm_StockBlocks[ai_OwnPlayer].goods[i];
+            e.mean = (f + 1.0f) * e.demand;
+            e.price = gm_ItemPrice(p->item, 100) * (f + 1.0f);
+            cm_SendGoodsRecord(&e, ai_OwnPlayer);
+          }
         }
-        break;
+      }
+      break;
     case 1:
-        for (i = 0; i < 0x55; i++) {
-            p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
-            if (p->item != 0 && p->amount != 0
-                && ai_Goods[p->item].type == 8) {
-                e = *p;
-                e.mean = (f + 1.0f) * e.demand;
-                e.price = gm_ItemPrice(p->item, 100) * (f + 1.0f);
-                cm_SendGoodsRecord(&e, ai_OwnPlayer);
-            }
+      for (i = 0; i < 0x55; i++) {
+        p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
+        if (p->item != 0 && p->amount != 0 && ai_Goods[p->item].type == 8) {
+          e = *p;
+          e.mean = (f + 1.0f) * e.demand;
+          e.price = gm_ItemPrice(p->item, 100) * (f + 1.0f);
+          cm_SendGoodsRecord(&e, ai_OwnPlayer);
         }
-        break;
+      }
+      break;
     case 2:
-        for (i = 0; i < 0x55; i++) {
-            p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
-            if (p->item != 0 && p->amount != 0
-                && ai_Goods[p->item].type == 0x20) {
-                e = *p;
-                e.mean = (f + 1.0f) * e.demand;
-                e.price = gm_ItemPrice(p->item, 100) * (f + 1.0f);
-                cm_SendGoodsRecord(&e, ai_OwnPlayer);
-            }
+      for (i = 0; i < 0x55; i++) {
+        p = &gm_StockBlocks[ai_OwnPlayer].goods[i];
+        if (p->item != 0 && p->amount != 0 && ai_Goods[p->item].type == 0x20) {
+          e = *p;
+          e.mean = (f + 1.0f) * e.demand;
+          e.price = gm_ItemPrice(p->item, 100) * (f + 1.0f);
+          cm_SendGoodsRecord(&e, ai_OwnPlayer);
         }
-        break;
+      }
+      break;
     }
-    }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4b1600, the SOELDNER_PLUENDERN text command (callback 0x601b50[19]): sends message 0x57 to every living
    player, today at 10..13 o'clock (by id) */
 
-int ai_CommandMercenariesPlunder(G12ROW *row, int slot, char *fmt)
-{
-    AITIME t;
-    AIMSG msg;
-    int i;
+int ai_CommandMercenariesPlunder(G12ROW *row, int slot, char *fmt) {
+  AITIME t;
+  AIMSG msg;
+  int i;
 
-    t = ai_Time;
-    memset(&msg, 0, sizeof(msg));
-    t.min = 0;
-    for (i = 0; i < 0x300; i++) {
-        if (ai_IsLivingPlayer((unsigned short)i)) {
-            memset(&msg, 0, sizeof(msg));
-            t.hour = i % 4 + 10;
-            msg.type = 0x57;
-            msg.to = ai_Chars[i].netId;
-            msg.fromId = ai_Chars[i].netId;
-            msg.flags = 1;
-            msg.time = t;
-            cm_SendLongMessage(&msg);
-        }
+  t = ai_Time;
+  memset(&msg, 0, sizeof(msg));
+  t.min = 0;
+  for (i = 0; i < 0x300; i++) {
+    if (ai_IsLivingPlayer((unsigned short)i)) {
+      memset(&msg, 0, sizeof(msg));
+      t.hour = i % 4 + 10;
+      msg.type = 0x57;
+      msg.to = ai_Chars[i].netId;
+      msg.fromId = ai_Chars[i].netId;
+      msg.flags = 1;
+      msg.time = t;
+      cm_SendLongMessage(&msg);
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4b16e0, the SOELDNER_MARODIEREN text command (callback 0x601b50[20]): the same as
    ai_CommandMercenariesPlunder with message 0x58 at 13..16 o'clock */
 
-int ai_CommandMercenariesMaraud(G12ROW *row, int slot, char *fmt)
-{
-    AITIME t;
-    AIMSG msg;
-    int i;
+int ai_CommandMercenariesMaraud(G12ROW *row, int slot, char *fmt) {
+  AITIME t;
+  AIMSG msg;
+  int i;
 
-    t = ai_Time;
-    memset(&msg, 0, sizeof(msg));
-    t.min = 0;
-    for (i = 0; i < 0x300; i++) {
-        if (ai_IsLivingPlayer((unsigned short)i)) {
-            memset(&msg, 0, sizeof(msg));
-            t.hour = i % 4 + 13;
-            msg.type = 0x58;
-            msg.to = ai_Chars[i].netId;
-            msg.fromId = ai_Chars[i].netId;
-            msg.flags = 1;
-            msg.time = t;
-            cm_SendLongMessage(&msg);
-        }
+  t = ai_Time;
+  memset(&msg, 0, sizeof(msg));
+  t.min = 0;
+  for (i = 0; i < 0x300; i++) {
+    if (ai_IsLivingPlayer((unsigned short)i)) {
+      memset(&msg, 0, sizeof(msg));
+      t.hour = i % 4 + 13;
+      msg.type = 0x58;
+      msg.to = ai_Chars[i].netId;
+      msg.fromId = ai_Chars[i].netId;
+      msg.flags = 1;
+      msg.time = t;
+      cm_SendLongMessage(&msg);
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4b17c0, the FERNHANDEL_RAUBRITTER text command (callback 0x601b50[21], name 0x601070[21]) "-<d>..." (d one of
    N S O W A, the direction): message 0x51 for the player character with n = atoi(fmt + 1) (sic: starts at the letter,
    so n is 0) in countdownRuns and d in countdownDir, when n > 0 */
 
-int ai_CommandRemoteTradeRaider(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
-    char *p;
-    char d;
-    int n;
+int ai_CommandRemoteTradeRaider(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
+  char *p;
+  char d;
+  int n;
 
-    if (*fmt != '-')
-        return 0;
-    p = fmt + 1;
-    if (strlen(p) < 2)
-        return 0;
-    d = *p;
-    if (d != 'N' && d != 'S' && d != 'O' && d != 'W' && d != 'A')
-        return 0;
-    n = atoi(p);
-    if (n > 0) {
-        memset(&msg, 0, sizeof(msg));
-        msg.type = 0x51;
-        msg.to = ai_PlayerChar->netId;
-        msg.fromId = -1;
-        msg.flags = 0x12;
-        msg.countdownRuns = (unsigned char)n;
-        msg.countdownDir = d;
-        cm_SendLongMessage(&msg);
-    }
-    return 1;
+  if (*fmt != '-')
+    return 0;
+  p = fmt + 1;
+  if (strlen(p) < 2)
+    return 0;
+  d = *p;
+  if (d != 'N' && d != 'S' && d != 'O' && d != 'W' && d != 'A')
+    return 0;
+  n = atoi(p);
+  if (n > 0) {
+    memset(&msg, 0, sizeof(msg));
+    msg.type = 0x51;
+    msg.to = ai_PlayerChar->netId;
+    msg.fromId = -1;
+    msg.flags = 0x12;
+    msg.countdownRuns = (unsigned char)n;
+    msg.countdownDir = d;
+    cm_SendLongMessage(&msg);
+  }
+  return 1;
 }
 /* 0x4b1880, the SPENDE_ANSEHEN text command (callback 0x601b50[22], name 0x601070[22]): sends message 0x54, flags 9,
    from the character itself, to the first 8 living characters (ai_IsLivingHuman), today 12:00 */
 
-int ai_CommandViewDonation(G12ROW *row, int slot, char *fmt)
-{
-    AITIME t;
-    AIMSG msg;
-    int i, n;
+int ai_CommandViewDonation(G12ROW *row, int slot, char *fmt) {
+  AITIME t;
+  AIMSG msg;
+  int i, n;
 
-    t = ai_Time;
-    t.hour = 12;
-    t.min = 0;
-    n = 0;
-    for (i = 0; i < 0x300 && n < 8; i++) {
-        if (ai_IsLivingHuman((unsigned short)i)) {
-            memset(&msg, 0, sizeof(msg));
-            msg.type = 0x54;
-            msg.to = ai_Chars[i].netId;
-            msg.fromId = ai_Chars[i].netId;
-            msg.flags = 9;
-            msg.time = t;
-            cm_SendLongMessage(&msg);
-            n++;
-        }
+  t = ai_Time;
+  t.hour = 12;
+  t.min = 0;
+  n = 0;
+  for (i = 0; i < 0x300 && n < 8; i++) {
+    if (ai_IsLivingHuman((unsigned short)i)) {
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x54;
+      msg.to = ai_Chars[i].netId;
+      msg.fromId = ai_Chars[i].netId;
+      msg.flags = 9;
+      msg.time = t;
+      cm_SendLongMessage(&msg);
+      n++;
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4b1950, the BETEILIGUNG text command (callback 0x601b50[23], name 0x601070[23]), the same as ai_CommandViewDonation
    with message 0x55 at 10:00 */
 
-int ai_CommandParticipation(G12ROW *row, int slot, char *fmt)
-{
-    AITIME t;
-    AIMSG msg;
-    int i, n;
+int ai_CommandParticipation(G12ROW *row, int slot, char *fmt) {
+  AITIME t;
+  AIMSG msg;
+  int i, n;
 
-    t = ai_Time;
-    t.hour = 10;
-    t.min = 0;
-    n = 0;
-    for (i = 0; i < 0x300 && n < 8; i++) {
-        if (ai_IsLivingHuman((unsigned short)i)) {
-            memset(&msg, 0, sizeof(msg));
-            msg.type = 0x55;
-            msg.to = ai_Chars[i].netId;
-            msg.fromId = ai_Chars[i].netId;
-            msg.flags = 9;
-            msg.time = t;
-            cm_SendLongMessage(&msg);
-            n++;
-        }
+  t = ai_Time;
+  t.hour = 10;
+  t.min = 0;
+  n = 0;
+  for (i = 0; i < 0x300 && n < 8; i++) {
+    if (ai_IsLivingHuman((unsigned short)i)) {
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x55;
+      msg.to = ai_Chars[i].netId;
+      msg.fromId = ai_Chars[i].netId;
+      msg.flags = 9;
+      msg.time = t;
+      cm_SendLongMessage(&msg);
+      n++;
     }
-    return 1;
+  }
+  return 1;
 }
 
 /* G12_COPY: AI_ZERO's copy twin (inline rep movsb / movsd from a global) */
+/* clang-format off */
 #define G12_COPY(dst, src, size) {                                  \
     int _cn = (size); void *_cp = (dst);                            \
     __asm mov edi, _cp                                              \
@@ -1891,274 +1895,323 @@ int ai_CommandParticipation(G12ROW *row, int slot, char *fmt)
     __asm AI_ZERO_LABEL(__LINE__): add ecx, ebx                     \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 
 extern int hst_KeyFirst;
 extern int hst_KeyLast;
 extern int hst_KeyNext;
 extern char hst_Key[0x20];
-int hst_ParseDate(int k, int mode, int *year, char *name);              /* 0x4b2ed0 */
+int hst_ParseDate(int k, int mode, int *year, char *name); /* 0x4b2ed0 */
 
 /* 0x4b1a20, the KOMMENTARE text command (callback 0x601b50[24], name 0x601070[24]): looks for the key hst_Key in
    the list from hst_KeyNext on (entries of 6, up to today); found: sends message 0x52 with its index */
-int ai_CommandComments(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
-    char key[16];
-    int day[4];
-    char name[16];
-    int pos;
+int ai_CommandComments(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
+  char key[16];
+  int day[4];
+  char name[16];
+  int pos;
 
-    pos = hst_KeyNext;
-    if (hst_KeyFirst <= -1 && (hst_KeyNext < hst_KeyFirst || hst_KeyNext >= hst_KeyLast))
-        return 0;
-    AI_ZERO(key, 16);
-    G12_COPY(key, hst_Key, strlen(hst_Key));
-    AI_ZERO(name, 16);
-    if (!hst_ParseDate(pos, 4, day, name))
-        return 0;
-    do {
-        if (memcmp(key, name, strlen(name)) == 0) {
-            hst_KeyNext = pos + 6;
-            memset(&msg, 0, sizeof(msg));
-            msg.type = 0x52;
-            msg.to = ai_PlayerChar->netId;
-            msg.car = pos - hst_KeyFirst;
-            msg.fromId = -1;
-            msg.flags = 0x12;
-            cm_SendLongMessage(&msg);
-            return 1;
-        }
-        if (day[0] > ai_Time.year)
-            break;
-        pos += 6;
-        if (!hst_ParseDate(pos, 4, day, name))
-            break;
-    } while (hst_KeyNext < hst_KeyLast);
+  pos = hst_KeyNext;
+  if (hst_KeyFirst <= -1 &&
+      (hst_KeyNext < hst_KeyFirst || hst_KeyNext >= hst_KeyLast))
     return 0;
+  AI_ZERO(key, 16);
+  G12_COPY(key, hst_Key, strlen(hst_Key));
+  AI_ZERO(name, 16);
+  if (!hst_ParseDate(pos, 4, day, name))
+    return 0;
+  do {
+    if (memcmp(key, name, strlen(name)) == 0) {
+      hst_KeyNext = pos + 6;
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x52;
+      msg.to = ai_PlayerChar->netId;
+      msg.car = pos - hst_KeyFirst;
+      msg.fromId = -1;
+      msg.flags = 0x12;
+      cm_SendLongMessage(&msg);
+      return 1;
+    }
+    if (day[0] > ai_Time.year)
+      break;
+    pos += 6;
+    if (!hst_ParseDate(pos, 4, day, name))
+      break;
+  } while (hst_KeyNext < hst_KeyLast);
+  return 0;
 }
 /* 0x4b1bd0, the PEST text command (callback 0x601b50[25], name 0x601070[25]) "-n": message 0x59 with n clamped to
    1..10, today 11:00 */
 
-int ai_CommandPlague(G12ROW *row, int slot, char *fmt)
-{
-    AIMSG msg;
-    int n;
+int ai_CommandPlague(G12ROW *row, int slot, char *fmt) {
+  AIMSG msg;
+  int n;
 
-    if (*fmt != '-')
-        return 0;
-    n = atoi(fmt + 1);
-    n = max(min(10, n), 1);
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x59;
-    msg.to = ai_PlayerChar->netId;
-    msg.car = n;
-    msg.fromId = -1;
-    msg.flags = 2;
-    msg.time = ai_Time;
-    msg.time.hour = 11;
-    cm_SendLongMessage(&msg);
-    return 1;
+  if (*fmt != '-')
+    return 0;
+  n = atoi(fmt + 1);
+  n = max(min(10, n), 1);
+  memset(&msg, 0, sizeof(msg));
+  msg.type = 0x59;
+  msg.to = ai_PlayerChar->netId;
+  msg.car = n;
+  msg.fromId = -1;
+  msg.flags = 2;
+  msg.time = ai_Time;
+  msg.time.hour = 11;
+  cm_SendLongMessage(&msg);
+  return 1;
 }
 /* 0x4b1c90, the INVENTAR_PLUS text command (callback 0x601b50[26], name 0x601070[26]) "-xxxNAME": 0x4c4880 from
    the character row->e[k] with the value of 0x4fe900(fmt + 4) (cf. ai_CommandOfficeInventoryPlus) */
 
-int ai_CommandInventoryPlus(G12ROW *row, int k, char *fmt)
-{
-    AICHAR *c;
-    char *s;
-    int v;
+int ai_CommandInventoryPlus(G12ROW *row, int k, char *fmt) {
+  AICHAR *c;
+  char *s;
+  int v;
 
-    c = gm_FindChar(row->e[k].id);
-    if (c != 0 && ai_IsLivingCharacter(c->id) && *fmt == '-') {
-        s = fmt + 1;
-        if (strlen(s) >= 4) {
-            s += 3;
-            tolower((int)(s + 1));      /* sic: a pointer */
-            v = gm_FindObjectProto(s);
-            if (v != 0) {
-                cm_SendExSellObject(c->netId, -1, v, 1, ai_OwnPlayer, 0);
-                return 1;
-            }
-        }
+  c = gm_FindChar(row->e[k].id);
+  if (c != 0 && ai_IsLivingCharacter(c->id) && *fmt == '-') {
+    s = fmt + 1;
+    if (strlen(s) >= 4) {
+      s += 3;
+      tolower((int)(s + 1)); /* sic: a pointer */
+      v = gm_FindObjectProto(s);
+      if (v != 0) {
+        cm_SendExSellObject(c->netId, -1, v, 1, ai_OwnPlayer, 0);
+        return 1;
+      }
     }
-    return 0;
+  }
+  return 0;
 }
 
 /* G12_ZERO_G: AI_ZERO on a global (its address as an immediate) */
+/* clang-format off */
 #define G12_ZERO_G(dst, size) {                                         int _zn = (size);                                                   __asm mov edi, OFFSET dst                                           __asm mov ebx, _zn                                                  __asm xor eax, eax                                                  __asm lea ecx, [edi+edi*2]                                          __asm and ecx, 3                                                    __asm sub ebx, ecx                                                  __asm jle AI_ZERO_LABEL(__LINE__)                                   __asm rep stosb                                                     __asm mov ecx, ebx                                                  __asm and ebx, 3                                                    __asm shr ecx, 2                                                    __asm rep stosd                                                     __asm AI_ZERO_LABEL(__LINE__): add ecx, ebx                         __asm rep stosb                                                 }
+/* clang-format on */
 
-
-int hst_TextFirst = -1;  /* 0x601058, first text of the history file */
-int hst_TextLast = -1;  /* 0x60105c, last text of the history file */
-int hst_TextCurrent = -1;  /* 0x601060, the current text */
-unsigned char hst_TextsOn = 0;  /* 0x6f0724, history texts on */
+int hst_TextFirst = -1;        /* 0x601058, first text of the history file */
+int hst_TextLast = -1;         /* 0x60105c, last text of the history file */
+int hst_TextCurrent = -1;      /* 0x601060, the current text */
+unsigned char hst_TextsOn = 0; /* 0x6f0724, history texts on */
 
 /* 0x4b1d20, resets the lists hst_Lists and opens the player's history texts "historie\text_H_<name>"
    (txt.c); none: hst_TextsOn = 0 */
-void hst_LoadPlayerTexts(void)
-{
-    char path[0x40];
-    int i, j, k;
+void hst_LoadPlayerTexts(void) {
+  char path[0x40];
+  int i, j, k;
 
-    for (i = 0; i < 4; i++) {
-        hst_Lists[i].inUse = 0;
-        for (j = 0; j < 4; j++) {
-            hst_Lists[i].e[j].id = -1;
-            hst_Lists[i].e[j].token = 0xffff;
-        }
+  for (i = 0; i < 4; i++) {
+    hst_Lists[i].inUse = 0;
+    for (j = 0; j < 4; j++) {
+      hst_Lists[i].e[j].id = -1;
+      hst_Lists[i].e[j].token = 0xffff;
     }
-    hst_TextFirst = -1;
-    hst_TextLast = -1;
-    sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer].name);
-    if (txt_Files[txt_FindFile(path)].buf == 0 && !txt_ReloadTextFile(path)) {
-        hst_TextsOn = 0;
-        return;
-    }
-    k = txt_FindFile(path);
-    hst_TextFirst = txt_Files[k].first;
-    hst_TextLast = txt_Files[k].last;
-    hst_TextCurrent = txt_Files[k].first;
-    G12_ZERO_G(hst_Key, 16);
-    hst_KeyFirst = -1;
-    hst_KeyLast = -1;
+  }
+  hst_TextFirst = -1;
+  hst_TextLast = -1;
+  sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer].name);
+  if (txt_Files[txt_FindFile(path)].buf == 0 && !txt_ReloadTextFile(path)) {
+    hst_TextsOn = 0;
+    return;
+  }
+  k = txt_FindFile(path);
+  hst_TextFirst = txt_Files[k].first;
+  hst_TextLast = txt_Files[k].last;
+  hst_TextCurrent = txt_Files[k].first;
+  G12_ZERO_G(hst_Key, 16);
+  hst_KeyFirst = -1;
+  hst_KeyLast = -1;
 }
 /* 0x4b1e40, marks the lists hst_Lists used and empty, frees the player's history texts, resets the text
    positions */
 
-void hst_ResetPlayerTexts(void)
-{
-    char path[0x40];
-    int i, j;
+void hst_ResetPlayerTexts(void) {
+  char path[0x40];
+  int i, j;
 
-    for (i = 0; i < 4; i++) {
-        hst_Lists[i].inUse = 1;
-        for (j = 0; j < 4; j++) {
-            hst_Lists[i].e[j].id = -1;
-            hst_Lists[i].e[j].token = 0xffff;
-        }
+  for (i = 0; i < 4; i++) {
+    hst_Lists[i].inUse = 1;
+    for (j = 0; j < 4; j++) {
+      hst_Lists[i].e[j].id = -1;
+      hst_Lists[i].e[j].token = 0xffff;
     }
-    sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer].name);
-    txt_FreeFile(path);
-    hst_TextFirst = -1;
-    hst_TextLast = -1;
-    hst_TextCurrent = -1;
-    hst_KeyFirst = -1;
-    hst_KeyLast = -1;
-    hst_KeyNext = -1;
+  }
+  sprintf(path, "historie\\text_H_%s", ai_PlayerSlots[ai_OwnPlayer].name);
+  txt_FreeFile(path);
+  hst_TextFirst = -1;
+  hst_TextLast = -1;
+  hst_TextCurrent = -1;
+  hst_KeyFirst = -1;
+  hst_KeyLast = -1;
+  hst_KeyNext = -1;
 }
 /* 0x4b1ee0, marks list i of hst_Lists used and empty (the [_SET_n command of a history text) */
 
-int hst_ResetList(unsigned short i)
-{
-    int j;
+int hst_ResetList(unsigned short i) {
+  int j;
 
-    if (i >= 4)
-        return 0;
-    hst_Lists[i].inUse = 1;
-    for (j = 0; j < 4; j++) {
-        hst_Lists[i].e[j].id = -1;
-        hst_Lists[i].e[j].token = 0xffff;
-    }
-    return 1;
+  if (i >= 4)
+    return 0;
+  hst_Lists[i].inUse = 1;
+  for (j = 0; j < 4; j++) {
+    hst_Lists[i].e[j].id = -1;
+    hst_Lists[i].e[j].token = 0xffff;
+  }
+  return 1;
 }
 /* 0x4b1f30, marks all lists of hst_Lists used and empty and frees every text file under "historie\" */
 
-void hst_ResetLists(void)
-{
-    int i, j;
+void hst_ResetLists(void) {
+  int i, j;
 
-    for (i = 0; i < 4; i++) {
-        hst_Lists[i].inUse = 1;
-        for (j = 0; j < 4; j++) {
-            hst_Lists[i].e[j].id = -1;
-            hst_Lists[i].e[j].token = 0xffff;
-        }
+  for (i = 0; i < 4; i++) {
+    hst_Lists[i].inUse = 1;
+    for (j = 0; j < 4; j++) {
+      hst_Lists[i].e[j].id = -1;
+      hst_Lists[i].e[j].token = 0xffff;
     }
-    for (i = 0; i < 0x80; i++) {
-        if (strnicmp(txt_Files[i].name, "historie\\", 9) == 0)
-            txt_FreeFile(txt_Files[i].name);
-    }
+  }
+  for (i = 0; i < 0x80; i++) {
+    if (strnicmp(txt_Files[i].name, "historie\\", 9) == 0)
+      txt_FreeFile(txt_Files[i].name);
+  }
 }
 /* 0x4b1f90, switches the history texts on / off */
 
-void hst_SetTextsOn(unsigned char on)
-{
-    hst_TextsOn = on;
-}
+void hst_SetTextsOn(unsigned char on) { hst_TextsOn = on; }
 
-extern int txt_Loaded;                  /* 0xfe7c20 */
-extern char *txt_Ptrs[0x4800];          /* 0x143a1c0 */
+extern int txt_Loaded;         /* 0xfe7c20 */
+extern char *txt_Ptrs[0x4800]; /* 0x143a1c0 */
 
 /* 0x4b1fa0, leaked name: copies text k (a text number, or a string above 0x4800) to out with every label
    "[name#text]" replaced by its text; the error messages are written to a local buffer only */
-int hst_ParseText_Fake_1st_Pass(char *out, int k)
-{
-    char buf[0x17d0];
-    char err[0x100];
-    char *open, *hash, *p;
+int hst_ParseText_Fake_1st_Pass(char *out, int k) {
+  char buf[0x17d0];
+  char err[0x100];
+  char *open, *hash, *p;
 
-    open = 0;
-    hash = 0;
-    if (!txt_Loaded)
-        return 0;
-    AI_ZERO(buf, 0x17d0);
-    if (k < 0x4800) {
-        if (txt_Ptrs[k] == 0)
-            return 0;
-        if (strlen(txt_Ptrs[k]) > 0x17c0) {
-            sprintf(err, "hst_ParseText_Fake_1st_Pass() failed: Label %i is too long", k);
-            return 0;
-        }
-        strncpy(buf, txt_Ptrs[k], 0x17c0);
-    } else {
-        char *s = (char *)k, *d = buf;
+  open = 0;
+  hash = 0;
+  if (!txt_Loaded)
+    return 0;
+  AI_ZERO(buf, 0x17d0);
+  if (k < 0x4800) {
+    if (txt_Ptrs[k] == 0)
+      return 0;
+    if (strlen(txt_Ptrs[k]) > 0x17c0) {
+      sprintf(err, "hst_ParseText_Fake_1st_Pass() failed: Label %i is too long",
+              k);
+      return 0;
+    }
+    strncpy(buf, txt_Ptrs[k], 0x17c0);
+  } else {
+    char *s = (char *)k, *d = buf;
 
-        while ((*d++ = *s++) != 0)
-            ;
-    }
-    p = buf;
-    while (*p != 0) {
-        if (*p == '[') {
-            if (open != 0) {
-                sprintf(err, "hst_ParseText_Fake_1st_Pass() failed: Syntax Error in Label %i", k - hst_TextFirst);
-                return 0;
-            }
-            open = p;
-        } else if (*p == '#') {
-            if (open == 0 || hash != 0) {
-                sprintf(err, "hst_ParseText_Fake_1st_Pass() failed: Syntax Error in Label %i", k - hst_TextFirst);
-                return 0;
-            }
-            hash = p;
-        } else if (*p == ']') {
-            if (open == 0 || hash == 0) {
-                sprintf(err, "hst_ParseText_Fake_1st_Pass() failed: Syntax Error in Label %i", k - hst_TextFirst);
-                return 0;
-            }
-            memmove(p, p + 1, strlen(p + 1) + 1);
-            memmove(open, hash + 1, strlen(hash + 1) + 1);
-            p += open - hash - 1;
-            open = 0;
-            hash = 0;
-            continue;
-        }
-        p++;
-    }
-    if (open != 0 || hash != 0) {
-        sprintf(err, "hst_ParseText_Fake_1st_Pass() failed: Syntax Error in Label %i", k - hst_TextFirst);
+    while ((*d++ = *s++) != 0)
+      ;
+  }
+  p = buf;
+  while (*p != 0) {
+    if (*p == '[') {
+      if (open != 0) {
+        sprintf(
+            err,
+            "hst_ParseText_Fake_1st_Pass() failed: Syntax Error in Label %i",
+            k - hst_TextFirst);
         return 0;
+      }
+      open = p;
+    } else if (*p == '#') {
+      if (open == 0 || hash != 0) {
+        sprintf(
+            err,
+            "hst_ParseText_Fake_1st_Pass() failed: Syntax Error in Label %i",
+            k - hst_TextFirst);
+        return 0;
+      }
+      hash = p;
+    } else if (*p == ']') {
+      if (open == 0 || hash == 0) {
+        sprintf(
+            err,
+            "hst_ParseText_Fake_1st_Pass() failed: Syntax Error in Label %i",
+            k - hst_TextFirst);
+        return 0;
+      }
+      memmove(p, p + 1, strlen(p + 1) + 1);
+      memmove(open, hash + 1, strlen(hash + 1) + 1);
+      p += open - hash - 1;
+      open = 0;
+      hash = 0;
+      continue;
     }
-    sprintf(out, "%s", buf);
-    return 1;
+    p++;
+  }
+  if (open != 0 || hash != 0) {
+    sprintf(err,
+            "hst_ParseText_Fake_1st_Pass() failed: Syntax Error in Label %i",
+            k - hst_TextFirst);
+    return 0;
+  }
+  sprintf(out, "%s", buf);
+  return 1;
 }
 
-int hst_KeyFirst = -1;  /* 0x601064, first entry of the key list (-1: none) */
+int hst_KeyFirst = -1; /* 0x601064, first entry of the key list (-1: none) */
 int hst_KeyLast = -1;  /* 0x601068, end of the key list (-1: none) */
 int hst_KeyNext = -1;  /* 0x60106c, next entry to look at */
-char hst_CommandNames[27][0x40] = { "FEST", "BELAGERUNG_START", "AUFSTAND", "BRAND", "WIRBELSTURM", "STADTKASSE", "VERMOEGEN_STEUER", "VERMOEGEN", "ANSEHEN_BEI_AMTSTRAEGERN", "KILL_PLAYER", "STRAFE_HINRICHTUNG", "STRAFE_KERKER", "AMTSTRAEGER_INVENTAR_PLUS", "GESETZ", "GESETZ_REL", "GLAUBENSWECHSEL", "AUFRUHR", "GILDENSITZE_BRACH", "NACHFRAGE", "SOELDNER_PLUENDERN", "SOELDNER_MARODIEREN", "FERNHANDEL_RAUBRITTER", "SPENDE_ANSEHEN", "BETEILIGUNG", "KOMMENTARE", "PEST", "INVENTAR_PLUS" };  /* 0x601070, the text command names ("FEST" .. "INVENTAR_PLUS") */
-char hst_TokenNames[15][0x40] = { "BUERGERMEISTER", "BISCHOF", "RND_GILDENMEISTER", "RND_AMTSTRAEGERIN", "RND_AMTSTRAEGER", "RND_AMTSPERSON", "REICHSTER_EINWOHNER", "BESTES_WIRTSHAUS", "GELD", "STADTKASSE", "RND_KIRCHENBERUF", "RND_REICH", "RND_NPC_EINWOHNER", "RND_HANDELSHERR", "RND_SPIELER" };  /* 0x601730, the names of the text tokens (callback */
-char hst_Modes[3][5] = { "_NEW", "_USE", "_REL" };  /* 0x601af0, the modes of a context reference: "_NEW", "_USE", "_REL" */
-extern int (*hst_TokenCallbacks[15])(int mode, G12ROW *row, int k, char *fmt, char *out);
+char hst_CommandNames[27][0x40] = {
+    "FEST",
+    "BELAGERUNG_START",
+    "AUFSTAND",
+    "BRAND",
+    "WIRBELSTURM",
+    "STADTKASSE",
+    "VERMOEGEN_STEUER",
+    "VERMOEGEN",
+    "ANSEHEN_BEI_AMTSTRAEGERN",
+    "KILL_PLAYER",
+    "STRAFE_HINRICHTUNG",
+    "STRAFE_KERKER",
+    "AMTSTRAEGER_INVENTAR_PLUS",
+    "GESETZ",
+    "GESETZ_REL",
+    "GLAUBENSWECHSEL",
+    "AUFRUHR",
+    "GILDENSITZE_BRACH",
+    "NACHFRAGE",
+    "SOELDNER_PLUENDERN",
+    "SOELDNER_MARODIEREN",
+    "FERNHANDEL_RAUBRITTER",
+    "SPENDE_ANSEHEN",
+    "BETEILIGUNG",
+    "KOMMENTARE",
+    "PEST",
+    "INVENTAR_PLUS"}; /* 0x601070, the text command names ("FEST" .. "INVENTAR_PLUS") */
+char hst_TokenNames[15][0x40] = {
+    "BUERGERMEISTER",
+    "BISCHOF",
+    "RND_GILDENMEISTER",
+    "RND_AMTSTRAEGERIN",
+    "RND_AMTSTRAEGER",
+    "RND_AMTSPERSON",
+    "REICHSTER_EINWOHNER",
+    "BESTES_WIRTSHAUS",
+    "GELD",
+    "STADTKASSE",
+    "RND_KIRCHENBERUF",
+    "RND_REICH",
+    "RND_NPC_EINWOHNER",
+    "RND_HANDELSHERR",
+    "RND_SPIELER"}; /* 0x601730, the names of the text tokens (callback */
+char hst_Modes[3][5] = {
+    "_NEW", "_USE",
+    "_REL"}; /* 0x601af0, the modes of a context reference: "_NEW", "_USE", "_REL" */
+extern int (*hst_TokenCallbacks[15])(int mode, G12ROW *row, int k, char *fmt,
+                                     char *out);
 
 /* 0x4b21c0, leaked name (its messages): one replacement "[_NEWn_NAME...]": mode _NEW / _USE / _REL with
    slot n of ctx (ctx[n + 1].token holds the replacement, ctx->inUse the valid flag), then the callback of
@@ -2166,210 +2219,267 @@ extern int (*hst_TokenCallbacks[15])(int mode, G12ROW *row, int k, char *fmt, ch
    dead parameter slot (the original's 'mov [ebp+8],esi' at the entry), which gives the AI_ZERO temps their
    own slots; the found token is consumed inside the search loop, so an exhausted search falls to the one
    "Unknown Replacement" test */
-int hst_ParseContext(char *src, char *out, G12ROW *ctx)
-{
-    char buf[0x100];
-    char *s;
-    int slot, mode, k, i, r;
+int hst_ParseContext(char *src, char *out, G12ROW *ctx) {
+  char buf[0x100];
+  char *s;
+  int slot, mode, k, i, r;
 
-    s = src;
-    slot = -1;
-    mode = 4;
-    if (s == 0 || out == 0)
-        return 0;
-    for (i = 0; i < 3; i++) {
-        if (((HST_MODE *)s)->tag == ((HST_MODE *)hst_Modes[i])->tag)
-            mode = i;
+  s = src;
+  slot = -1;
+  mode = 4;
+  if (s == 0 || out == 0)
+    return 0;
+  for (i = 0; i < 3; i++) {
+    if (((HST_MODE *)s)->tag == ((HST_MODE *)hst_Modes[i])->tag)
+      mode = i;
+  }
+  AI_ZERO(buf, 0x100);
+  if (mode != 4) {
+    if (ctx == 0 || ctx->inUse == 0) {
+      sprintf(buf, "hst_ParseContext() failed: Wrong group reference");
+      return 0;
     }
-    AI_ZERO(buf, 0x100);
-    if (mode != 4) {
-        if (ctx == 0 || ctx->inUse == 0) {
-            sprintf(buf, "hst_ParseContext() failed: Wrong group reference");
-            return 0;
-        }
-        buf[0] = s[5];
-        slot = atoi(buf);
-        s += 6;
-        if (slot < 0 || slot >= 8) {
-            sprintf(buf, "hst_ParseContext() failed: Wrong slot reference %i", slot);
-            return 0;
-        }
+    buf[0] = s[5];
+    slot = atoi(buf);
+    s += 6;
+    if (slot < 0 || slot >= 8) {
+      sprintf(buf, "hst_ParseContext() failed: Wrong slot reference %i", slot);
+      return 0;
     }
-    if (mode == 1) {
-        k = ctx->e[slot].token;
-    } else {
-        s++;
-        for (k = 0; k < 15; k++) {
-            if (memcmp(s, hst_TokenNames[k], strlen(hst_TokenNames[k])) == 0) {
-                s += strlen(hst_TokenNames[k]);
-                if (mode == 0)
-                    ctx->e[slot].token = k;
-                break;
-            }
-        }
+  }
+  if (mode == 1) {
+    k = ctx->e[slot].token;
+  } else {
+    s++;
+    for (k = 0; k < 15; k++) {
+      if (memcmp(s, hst_TokenNames[k], strlen(hst_TokenNames[k])) == 0) {
+        s += strlen(hst_TokenNames[k]);
+        if (mode == 0)
+          ctx->e[slot].token = k;
+        break;
+      }
     }
-    if (k >= 15) {
-        sprintf(buf, "hst_ParseContext() failed: Unknown Replacement");
-        return 0;
-    }
-    r = hst_TokenCallbacks[k](mode, ctx, slot, s, out);
-    if (r == 0 && ctx != 0)
-        ctx->inUse = 0;
-    return r;
+  }
+  if (k >= 15) {
+    sprintf(buf, "hst_ParseContext() failed: Unknown Replacement");
+    return 0;
+  }
+  r = hst_TokenCallbacks[k](mode, ctx, slot, s, out);
+  if (r == 0 && ctx != 0)
+    ctx->inUse = 0;
+  return r;
 }
 
-char hst_ListModes[2][5] = { "_SET", "_USE" };  /* 0x601b00, the modes of a list reference: "_SET", "_USE" */
+char hst_ListModes[2][5] = {
+    "_SET",
+    "_USE"}; /* 0x601b00, the modes of a list reference: "_SET", "_USE" */
+/* clang-format off */
 #define hst_ListModeSet (*(int *)((char *)&hst_ListModes + 0x0))  /* 0x601b00, hst_ListModes[0] ("_SET") as one dword; @original why: the
-   readers compare a label's 4-byte tag with the first four characters of the 5-byte mode strings (one dword load each, the
-   second at the odd address 0x601b05): no C type puts an int at +5 of char[2][5], the string data is read as an int (view) */
+readers compare a label's 4-byte tag with the first four characters of the 5-byte mode strings (one dword load each, the
+second at the odd address 0x601b05): no C type puts an int at +5 of char[2][5], the string data is read as an int (view) */
 #define hst_ListModeUse (*(int *)((char *)&hst_ListModes + 0x5))  /* 0x601b05, hst_ListModes[1] ("_USE") as one dword */
+/* clang-format on */
 
 /* 0x4b2380, leaked name (its messages): text k (or a string above 0x4800) "[_SET_n..." / "[_USE_n...":
    returns list n of hst_Lists (_SET empties it first) */
-G12ROW *hst_ParseCommandline_1st_Pass(int k)
-{
-    union {
-        char      text[0x17d0];
-        HST_LABEL label;
-    } buf;
-    char err[0x100];
-    int set, n;
+G12ROW *hst_ParseCommandline_1st_Pass(int k) {
+  union {
+    char text[0x17d0];
+    HST_LABEL label;
+  } buf;
+  char err[0x100];
+  int set, n;
 
-    set = 0;
-    if (!txt_Loaded)
-        return 0;
-    AI_ZERO(buf.text, 0x17d0);
-    AI_ZERO(err, 0x100);
-    if (k < 0x4800) {
-        if (txt_Ptrs[k] == 0)
-            return 0;
-        if (strlen(txt_Ptrs[k]) > 0x17c0) {
-            sprintf(err, "hst_ParseCommandline_1st_Pass() failed: Label %i is too long", k);
-            return 0;
-        }
-        strncpy(buf.text, txt_Ptrs[k], 0x17c0);
-    } else {
-        char *s = (char *)k, *d = buf.text;
-
-        while ((*d++ = *s++) != 0)
-            ;
-    }
-    if (buf.label.mode.tag == hst_ListModeSet) {
-        err[0] = buf.text[6];
-        n = atoi(err);
-        set = 1;
-    } else if (buf.label.mode.tag == hst_ListModeUse) {
-        err[0] = buf.text[6];
-        n = atoi(err);
-    } else
-        return 0;
-    if (n > -1 && n < 4) {
-        G12ROW *row = &hst_Lists[n];
-
-        if (set)
-            hst_ResetList((unsigned short)n);
-        return row;
-    }
-    if (n >= 4)
-        sprintf(err, "hst_ParseCommandline_1st_Pass() failed: Wrong group index in Label %i", k - hst_TextFirst);
+  set = 0;
+  if (!txt_Loaded)
     return 0;
+  AI_ZERO(buf.text, 0x17d0);
+  AI_ZERO(err, 0x100);
+  if (k < 0x4800) {
+    if (txt_Ptrs[k] == 0)
+      return 0;
+    if (strlen(txt_Ptrs[k]) > 0x17c0) {
+      sprintf(err,
+              "hst_ParseCommandline_1st_Pass() failed: Label %i is too long",
+              k);
+      return 0;
+    }
+    strncpy(buf.text, txt_Ptrs[k], 0x17c0);
+  } else {
+    char *s = (char *)k, *d = buf.text;
+
+    while ((*d++ = *s++) != 0)
+      ;
+  }
+  if (buf.label.mode.tag == hst_ListModeSet) {
+    err[0] = buf.text[6];
+    n = atoi(err);
+    set = 1;
+  } else if (buf.label.mode.tag == hst_ListModeUse) {
+    err[0] = buf.text[6];
+    n = atoi(err);
+  } else
+    return 0;
+  if (n > -1 && n < 4) {
+    G12ROW *row = &hst_Lists[n];
+
+    if (set)
+      hst_ResetList((unsigned short)n);
+    return row;
+  }
+  if (n >= 4)
+    sprintf(
+        err,
+        "hst_ParseCommandline_1st_Pass() failed: Wrong group index in Label %i",
+        k - hst_TextFirst);
+  return 0;
 }
 
-int (*hst_TokenCallbacks[15])(int mode, G12ROW *row, int k, char *fmt, char *out) = { ai_TokenMayor, ai_TokenBishop, ai_TokenRandomGuildMaster, ai_TokenRandomOfficeHolderFemale, ai_TokenRandomOfficeHolder, ai_TokenRandomOfficePerson, ai_TokenRichestInhabitant, ai_TokenBestInn, ai_TokenMoney, ai_TokenCityTreasury, ai_TokenRandomChurchProfession, ai_TokenRandomRich, ai_TokenRandomNpcInhabitant, ai_TokenRandomMerchant, ai_TokenRandomPlayer };  /* 0x601b10 */
-int (*hst_CommandCallbacks[27])(G12ROW *row, int slot, char *fmt) = { ai_CommandFest, ai_CommandSiegeStart, ai_CommandUprising, ai_CommandFire, ai_CommandTornado, ai_CommandCityTreasury, ai_CommandWealthTax, ai_CommandWealth, ai_CommandOfficeStanding, ai_CommandKillPlayer, ai_CommandExecution, ai_CommandPrison, ai_CommandOfficeInventoryPlus, ai_CommandLaw, ai_CommandLawChange, ai_CommandFaithChange, ai_CommandRiot, ai_CommandBreakGuildSeats, ai_CommandDemand, ai_CommandMercenariesPlunder, ai_CommandMercenariesMaraud, ai_CommandRemoteTradeRaider, ai_CommandViewDonation, ai_CommandParticipation, ai_CommandComments, ai_CommandPlague, ai_CommandInventoryPlus };  /* 0x601b50 */
+int (*hst_TokenCallbacks[15])(int mode, G12ROW *row, int k, char *fmt,
+                              char *out) = {
+    ai_TokenMayor,
+    ai_TokenBishop,
+    ai_TokenRandomGuildMaster,
+    ai_TokenRandomOfficeHolderFemale,
+    ai_TokenRandomOfficeHolder,
+    ai_TokenRandomOfficePerson,
+    ai_TokenRichestInhabitant,
+    ai_TokenBestInn,
+    ai_TokenMoney,
+    ai_TokenCityTreasury,
+    ai_TokenRandomChurchProfession,
+    ai_TokenRandomRich,
+    ai_TokenRandomNpcInhabitant,
+    ai_TokenRandomMerchant,
+    ai_TokenRandomPlayer}; /* 0x601b10 */
+int (*hst_CommandCallbacks[27])(G12ROW *row, int slot, char *fmt) = {
+    ai_CommandFest,
+    ai_CommandSiegeStart,
+    ai_CommandUprising,
+    ai_CommandFire,
+    ai_CommandTornado,
+    ai_CommandCityTreasury,
+    ai_CommandWealthTax,
+    ai_CommandWealth,
+    ai_CommandOfficeStanding,
+    ai_CommandKillPlayer,
+    ai_CommandExecution,
+    ai_CommandPrison,
+    ai_CommandOfficeInventoryPlus,
+    ai_CommandLaw,
+    ai_CommandLawChange,
+    ai_CommandFaithChange,
+    ai_CommandRiot,
+    ai_CommandBreakGuildSeats,
+    ai_CommandDemand,
+    ai_CommandMercenariesPlunder,
+    ai_CommandMercenariesMaraud,
+    ai_CommandRemoteTradeRaider,
+    ai_CommandViewDonation,
+    ai_CommandParticipation,
+    ai_CommandComments,
+    ai_CommandPlague,
+    ai_CommandInventoryPlus}; /* 0x601b50 */
 
 /* 0x4b2530, leaked name (its messages): runs every word of text k (or a string above 0x4800) through the text
    commands of hst_CommandNames / hst_CommandCallbacks; a leading "[_SET_n" / "[_USE_n" selects list n of hst_Lists (it
    must be in use) */
-int hst_ParseCommandline_2nd_Pass(int k)
-{
-    char buf[0x17d0];
-    char word[0x100];
-    G12ROW *row;
-    char *p, *w, *q;
-    int started, slot, n, i;
+int hst_ParseCommandline_2nd_Pass(int k) {
+  char buf[0x17d0];
+  char word[0x100];
+  G12ROW *row;
+  char *p, *w, *q;
+  int started, slot, n, i;
 
-    row = 0;
-    if (!txt_Loaded)
-        return 0;
-    AI_ZERO(buf, 0x17d0);
-    AI_ZERO(word, 0x100);
-    if (k < 0x4800) {
-        if (txt_Ptrs[k] == 0)
-            return 0;
-        if (strlen(txt_Ptrs[k]) > 0x17c0) {
-            sprintf(word, "hst_ParseCommandline_2nd_Pass() failed: Label %i is too long", k);
-            return 0;
-        }
-        strncpy(buf, txt_Ptrs[k], 0x17c0);
-    } else {
-        char *s = (char *)k, *d = buf;
+  row = 0;
+  if (!txt_Loaded)
+    return 0;
+  AI_ZERO(buf, 0x17d0);
+  AI_ZERO(word, 0x100);
+  if (k < 0x4800) {
+    if (txt_Ptrs[k] == 0)
+      return 0;
+    if (strlen(txt_Ptrs[k]) > 0x17c0) {
+      sprintf(word,
+              "hst_ParseCommandline_2nd_Pass() failed: Label %i is too long",
+              k);
+      return 0;
+    }
+    strncpy(buf, txt_Ptrs[k], 0x17c0);
+  } else {
+    char *s = (char *)k, *d = buf;
 
-        while ((*d++ = *s++) != 0)
-            ;
+    while ((*d++ = *s++) != 0)
+      ;
+  }
+  if (((HST_LABEL *)buf)->mode.tag == hst_ListModeSet ||
+      ((HST_LABEL *)buf)->mode.tag == hst_ListModeUse) {
+    word[0] = buf[6];
+    n = atoi(word);
+    if (n <= -1 || n >= 4) {
+      sprintf(word,
+              "hst_ParseCommandline_2nd_Pass() failed: Invalid GROUP reference "
+              "in Label %i",
+              k - hst_TextFirst);
+      return 0;
     }
-    if (((HST_LABEL *)buf)->mode.tag == hst_ListModeSet || ((HST_LABEL *)buf)->mode.tag == hst_ListModeUse) {
-        word[0] = buf[6];
-        n = atoi(word);
-        if (n <= -1 || n >= 4) {
-            sprintf(word, "hst_ParseCommandline_2nd_Pass() failed: Invalid GROUP reference in Label %i",
-                    k - hst_TextFirst);
-            return 0;
-        }
-        row = &hst_Lists[n];
-        if (row->inUse == 0)
-            return 0;
-        p = buf + 7;
-    } else
-        p = buf;
-    started = 0;
-    AI_ZERO(word, 0x100);
-    w = word;
-    while (*p != 0) {
-        if (*p == ' ') {
-            if (started) {
-                slot = 8;
-                if (((HST_LABEL *)word)->mode.tag == hst_ListModeUse) {
-                    slot = atoi(word);
-                    q = word + 8;
-                } else
-                    q = word + 2;
-                for (i = 0; i < 27; i++) {
-                    if (memcmp(q, hst_CommandNames[i], strlen(hst_CommandNames[i])) == 0)
-                        break;
-                }
-                if (i < 27)
-                    hst_CommandCallbacks[i](row, slot, q + strlen(hst_CommandNames[i]));
-                started = 0;
-                AI_ZERO(word, 0x100);
-                w = word;
-                continue;
-            }
-        } else {
-            if (!started)
-                started = 1;
-            *w++ = *p;
-        }
-        p++;
-    }
-    if (started) {
-        k = 8;  /* @original: the last word's slot is kept in the parameter k (the frame packs it with p) */
+    row = &hst_Lists[n];
+    if (row->inUse == 0)
+      return 0;
+    p = buf + 7;
+  } else
+    p = buf;
+  started = 0;
+  AI_ZERO(word, 0x100);
+  w = word;
+  while (*p != 0) {
+    if (*p == ' ') {
+      if (started) {
+        slot = 8;
         if (((HST_LABEL *)word)->mode.tag == hst_ListModeUse) {
-            k = atoi(word);
-            q = word + 8;
+          slot = atoi(word);
+          q = word + 8;
         } else
-            q = word + 2;
+          q = word + 2;
         for (i = 0; i < 27; i++) {
-            if (memcmp(q, hst_CommandNames[i], strlen(hst_CommandNames[i])) == 0)
-                break;
+          if (memcmp(q, hst_CommandNames[i], strlen(hst_CommandNames[i])) == 0)
+            break;
         }
         if (i < 27)
-            hst_CommandCallbacks[i](row, k, q + strlen(hst_CommandNames[i]));
+          hst_CommandCallbacks[i](row, slot, q + strlen(hst_CommandNames[i]));
+        started = 0;
+        AI_ZERO(word, 0x100);
+        w = word;
+        continue;
+      }
+    } else {
+      if (!started)
+        started = 1;
+      *w++ = *p;
     }
-    return 1;
+    p++;
+  }
+  if (started) {
+    /* clang-format off */
+    k = 8;  /* @original: the last word's slot is kept in the parameter k (the frame packs it with p) */
+    /* clang-format on */
+    if (((HST_LABEL *)word)->mode.tag == hst_ListModeUse) {
+      k = atoi(word);
+      q = word + 8;
+    } else
+      q = word + 2;
+    for (i = 0; i < 27; i++) {
+      if (memcmp(q, hst_CommandNames[i], strlen(hst_CommandNames[i])) == 0)
+        break;
+    }
+    if (i < 27)
+      hst_CommandCallbacks[i](row, k, q + strlen(hst_CommandNames[i]));
+  }
+  return 1;
 }
 
 /* G12_COPY_P: G12_COPY from a pointer variable */
+/* clang-format off */
 #define G12_COPY_P(dst, src, size) {                                \
     int _cn = (size); void *_cp = (dst);                            \
     __asm mov edi, _cp                                              \
@@ -2387,173 +2497,183 @@ int hst_ParseCommandline_2nd_Pass(int k)
     __asm AI_ZERO_LABEL(__LINE__): add ecx, ebx                     \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 
 /* 0x4b28d0, leaked name (its message): replaces in src (in place) every word "_NAME-...-n" (two dashes, then
    digits) by its replacement (hst_ParseContext), with the list of the "[_SET_n" / "[_USE_n" prefix of text k. s, the output
    pointer, is a local copy of src that lives in the dead parameter slot (the original's reload and store of
    [ebp+8] before the loop), as in hst_ParseContext */
-int hst_ParseText_Fake_2nd_Pass(char *src, int k)
-{
-    char buf[0x17d0];
-    char err[0x400];
-    char rep[0x100];
-    char word[0x100];
-    G12ROW *row;
-    int in, dashes;
-    char *p, *w, *q;
-    char *s;
+int hst_ParseText_Fake_2nd_Pass(char *src, int k) {
+  char buf[0x17d0];
+  char err[0x400];
+  char rep[0x100];
+  char word[0x100];
+  G12ROW *row;
+  int in, dashes;
+  char *p, *w, *q;
+  char *s;
 
-    in = 0;
-    dashes = 0;
-    AI_ZERO(buf, 0x17d0);
-    G12_COPY_P(buf, src, strlen(src));
-    row = hst_ParseCommandline_1st_Pass(k);
-    p = buf;
-    s = src;
-    while (*p != 0) {
-        if (!in) {
-            if (*p == '_') {
-                AI_ZERO(word, 0x100);
-                word[0] = *p;
-                w = word + 1;
-                in = 1;
-                dashes = 0;
-            } else
-                *s++ = *p;
-        } else if (*p == ' ') {
-            sprintf(err, "hst_ParseText_Fake_2nd_Pass() failed: Syntax Error in Label %i < %s >",
-                    k - hst_TextFirst - 1, word);
-            return 0;
-        } else if (*p == '-') {
-            dashes++;
-            *w++ = '-';
-            p++;
-            if (dashes > 2) {
-                sprintf(err, "hst_ParseText_Fake_2nd_Pass() failed: Syntax Error in Label %i < %s >",
-                        k - hst_TextFirst - 1, word);
-                return 0;
-            }
-            continue;
-        } else if (dashes < 2) {
-            *w++ = *p;
-        } else {
-            if (dashes != 2)
-                continue;
-            if (!isdigit(*p)) {
-                sprintf(err, "hst_ParseText_Fake_2nd_Pass() failed: Syntax Error in Label %i < %s >",
-                        k - hst_TextFirst - 1, word);
-                return 0;
-            }
-            while (isdigit(*p) && *p != 0)
-                *w++ = *p++;
-            AI_ZERO(rep, 0x100);
-            *w = 0;
-            if (!hst_ParseContext(word, rep, row)) {
-                if (row != 0)
-                    row->inUse = 0;
-                return 0;
-            }
-            for (q = rep; *q != 0; q++)
-                *s++ = *q;
-            in = 0;
-            dashes = 0;
-            *s++ = *p;
-        }
-        p++;
-    }
-    if (in && dashes < 2) {
-        sprintf(err, "hst_ParseText_Fake_2nd_Pass() failed: Syntax Error in Label %i < %s >",
+  in = 0;
+  dashes = 0;
+  AI_ZERO(buf, 0x17d0);
+  G12_COPY_P(buf, src, strlen(src));
+  row = hst_ParseCommandline_1st_Pass(k);
+  p = buf;
+  s = src;
+  while (*p != 0) {
+    if (!in) {
+      if (*p == '_') {
+        AI_ZERO(word, 0x100);
+        word[0] = *p;
+        w = word + 1;
+        in = 1;
+        dashes = 0;
+      } else
+        *s++ = *p;
+    } else if (*p == ' ') {
+      sprintf(err,
+              "hst_ParseText_Fake_2nd_Pass() failed: Syntax Error in Label %i "
+              "< %s >",
+              k - hst_TextFirst - 1, word);
+      return 0;
+    } else if (*p == '-') {
+      dashes++;
+      *w++ = '-';
+      p++;
+      if (dashes > 2) {
+        sprintf(err,
+                "hst_ParseText_Fake_2nd_Pass() failed: Syntax Error in Label "
+                "%i < %s >",
                 k - hst_TextFirst - 1, word);
         return 0;
+      }
+      continue;
+    } else if (dashes < 2) {
+      *w++ = *p;
+    } else {
+      if (dashes != 2)
+        continue;
+      if (!isdigit(*p)) {
+        sprintf(err,
+                "hst_ParseText_Fake_2nd_Pass() failed: Syntax Error in Label "
+                "%i < %s >",
+                k - hst_TextFirst - 1, word);
+        return 0;
+      }
+      while (isdigit(*p) && *p != 0)
+        *w++ = *p++;
+      AI_ZERO(rep, 0x100);
+      *w = 0;
+      if (!hst_ParseContext(word, rep, row)) {
+        if (row != 0)
+          row->inUse = 0;
+        return 0;
+      }
+      for (q = rep; *q != 0; q++)
+        *s++ = *q;
+      in = 0;
+      dashes = 0;
+      *s++ = *p;
     }
-    if (in == 1 && dashes == 2) {
-        AI_ZERO(rep, 0x100);
-        *w = 0;
-        if (!hst_ParseContext(word, rep, row)) {
-            if (row != 0)
-                row->inUse = 0;
-            return 0;
-        }
-        for (q = rep; *q != 0; q++)
-            *s++ = *q;
+    p++;
+  }
+  if (in && dashes < 2) {
+    sprintf(
+        err,
+        "hst_ParseText_Fake_2nd_Pass() failed: Syntax Error in Label %i < %s >",
+        k - hst_TextFirst - 1, word);
+    return 0;
+  }
+  if (in == 1 && dashes == 2) {
+    AI_ZERO(rep, 0x100);
+    *w = 0;
+    if (!hst_ParseContext(word, rep, row)) {
+      if (row != 0)
+        row->inUse = 0;
+      return 0;
     }
-    *s = 0;
-    return 1;
+    for (q = rep; *q != 0; q++)
+      *s++ = *q;
+  }
+  *s = 0;
+  return 1;
 }
 /* 0x4b2c90, the text after label k: both passes into out (text k + 1, then k + 2), then the commands of text
    k + 2 if cmd */
 
-int hst_ParseEventText(char *out, int k, int cmd)
-{
-    if (!hst_ParseText_Fake_1st_Pass(out, k + 1))
-        return 0;
-    k += 2;
-    if (!hst_ParseText_Fake_2nd_Pass(out, k))
-        return 0;
-    if (cmd)
-        hst_ParseCommandline_2nd_Pass(k);
-    return 1;
+int hst_ParseEventText(char *out, int k, int cmd) {
+  if (!hst_ParseText_Fake_1st_Pass(out, k + 1))
+    return 0;
+  k += 2;
+  if (!hst_ParseText_Fake_2nd_Pass(out, k))
+    return 0;
+  if (cmd)
+    hst_ParseCommandline_2nd_Pass(k);
+  return 1;
 }
 /* 0x4b2ce0, leaked name (its message): writes text k (or a string above 0x4800) to out (0x5176d0) with every
    label "[text#name]" replaced by its text */
 
-void hst_ParseText_Real(char *out, int k)
-{
-    char buf[0x17d0];
-    char err[0x100];
-    char *open, *hash, *p;
+void hst_ParseText_Real(char *out, int k) {
+  char buf[0x17d0];
+  char err[0x100];
+  char *open, *hash, *p;
 
-    open = 0;
-    hash = 0;
-    if (!txt_Loaded)
-        return;
-    AI_ZERO(buf, 0x17d0);
-    if (k < 0x4800) {
-        if (txt_Ptrs[k] == 0)
-            return;
-        if (strlen(txt_Ptrs[k]) > 0x17c0)
-            return;
-        strncpy(buf, txt_Ptrs[k], 0x17c0);
-    } else {
-        char *s = (char *)k, *d = buf;
+  open = 0;
+  hash = 0;
+  if (!txt_Loaded)
+    return;
+  AI_ZERO(buf, 0x17d0);
+  if (k < 0x4800) {
+    if (txt_Ptrs[k] == 0)
+      return;
+    if (strlen(txt_Ptrs[k]) > 0x17c0)
+      return;
+    strncpy(buf, txt_Ptrs[k], 0x17c0);
+  } else {
+    char *s = (char *)k, *d = buf;
 
-        while ((*d++ = *s++) != 0)
-            ;
-    }
-    p = buf;
-    while (*p != 0) {
-        if (*p == '[') {
-            if (open != 0) {
-                sprintf(err, "hst_ParseText_Real() failed: Syntax Error in Label %i", k - hst_TextFirst);
-                return;
-            }
-            open = p;
-        } else if (*p == '#') {
-            if (open == 0 || hash != 0) {
-                sprintf(err, "hst_ParseText_Real() failed: Syntax Error in Label %i", k - hst_TextFirst);
-                return;
-            }
-            hash = p;
-        } else if (*p == ']') {
-            if (open == 0 || hash == 0) {
-                sprintf(err, "hst_ParseText_Real() failed: Syntax Error in Label %i", k - hst_TextFirst);
-                return;
-            }
-            memmove(hash, p + 1, strlen(p + 1) + 1);
-            memmove(open, open + 1, strlen(open + 1) + 1);
-            p = hash - 1;
-            open = 0;
-            hash = 0;
-            continue;
-        }
-        p++;
-    }
-    if (open != 0 || hash != 0)
+    while ((*d++ = *s++) != 0)
+      ;
+  }
+  p = buf;
+  while (*p != 0) {
+    if (*p == '[') {
+      if (open != 0) {
+        sprintf(err, "hst_ParseText_Real() failed: Syntax Error in Label %i",
+                k - hst_TextFirst);
         return;
-    txt_Format(out, (intptr_t)"%s", buf);
+      }
+      open = p;
+    } else if (*p == '#') {
+      if (open == 0 || hash != 0) {
+        sprintf(err, "hst_ParseText_Real() failed: Syntax Error in Label %i",
+                k - hst_TextFirst);
+        return;
+      }
+      hash = p;
+    } else if (*p == ']') {
+      if (open == 0 || hash == 0) {
+        sprintf(err, "hst_ParseText_Real() failed: Syntax Error in Label %i",
+                k - hst_TextFirst);
+        return;
+      }
+      memmove(hash, p + 1, strlen(p + 1) + 1);
+      memmove(open, open + 1, strlen(open + 1) + 1);
+      p = hash - 1;
+      open = 0;
+      hash = 0;
+      continue;
+    }
+    p++;
+  }
+  if (open != 0 || hash != 0)
+    return;
+  txt_Format(out, (intptr_t)"%s", buf);
 }
 
 /* G12_COPY2: G12_COPY with destination and source in variables */
+/* clang-format off */
 #define G12_COPY2(dst, src, size) {                                 \
     int _cn = (size); void *_cs = (src); void *_cp = (dst);         \
     __asm mov edi, _cp                                              \
@@ -2571,293 +2691,299 @@ void hst_ParseText_Real(char *out, int k)
     __asm AI_ZERO_LABEL(__LINE__): add ecx, ebx                     \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 
 /* G12_COPY2 into a pointer variable: the destination is read by the asm itself (mov edi, dst) */
+/* clang-format off */
 #define G12_COPY2_V(dst, src, size) {                                   int _cn = (size); void *_cs = (src);                                __asm mov edi, dst                                                  __asm mov esi, _cs                                                  __asm mov ebx, _cn                                                  __asm lea ecx, [edi+edi*2]                                          __asm and ecx, 3                                                    __asm sub ebx, ecx                                                  __asm jle AI_ZERO_LABEL(__LINE__)                                   __asm rep movsb                                                     __asm mov ecx, ebx                                                  __asm and ebx, 3                                                    __asm shr ecx, 2                                                    __asm rep movsd                                                     __asm AI_ZERO_LABEL(__LINE__): add ecx, ebx                         __asm rep movsb                                                 }
+/* clang-format on */
 
 /* G12_COPY2 into a global: the destination is the symbol itself (mov edi, OFFSET dst) */
+/* clang-format off */
 #define G12_COPY2_G(dst, src, size) {                                   int _cn = (size); void *_cs = (src);                                __asm mov edi, OFFSET dst                                           __asm mov esi, _cs                                                  __asm mov ebx, _cn                                                  __asm lea ecx, [edi+edi*2]                                          __asm and ecx, 3                                                    __asm sub ebx, ecx                                                  __asm jle AI_ZERO_LABEL(__LINE__)                                   __asm rep movsb                                                     __asm mov ecx, ebx                                                  __asm and ebx, 3                                                    __asm shr ecx, 2                                                    __asm rep movsd                                                     __asm AI_ZERO_LABEL(__LINE__): add ecx, ebx                         __asm rep movsb                                                 }
+/* clang-format on */
 
 /* 0x4b2ed0, leaked name (its message): text k is a date "DD.MM.YYYY..." (DD / MM 00: unknown); *year = YYYY -
    1400; mode 4: name = the text, mode 2: name = "<town>, d <month> y" (as far as known); mode 1: the first 10
    characters become the key hst_Key. The date is read into a GMDATE record (the original's 12-byte frame slot
    next to buf; day and month stay in memory, the year in a register) */
-int hst_ParseDate(int k, int mode, int *year, char *name)
-{
-    char buf[0x17d0];
-    char tmp[16];
-    GMDATE date;
-    int known;
-    int yr;
+int hst_ParseDate(int k, int mode, int *year, char *name) {
+  char buf[0x17d0];
+  char tmp[16];
+  GMDATE date;
+  int known;
+  int yr;
 
-    known = 0;
-    if (!txt_Loaded || hst_TextFirst == -1)
-        return 0;
-    AI_ZERO(buf, 0x17d0);
-    AI_ZERO(tmp, 16);
-    if (k < 0x4800) {
-        if (txt_Ptrs[k] == 0)
-            return 0;
-        if (strlen(txt_Ptrs[k]) > 0x17c0)
-            return 0;
-        strncpy(buf, txt_Ptrs[k], 0x17c0);
-    } else {
-        char *s = (char *)k, *t = buf;
+  known = 0;
+  if (!txt_Loaded || hst_TextFirst == -1)
+    return 0;
+  AI_ZERO(buf, 0x17d0);
+  AI_ZERO(tmp, 16);
+  if (k < 0x4800) {
+    if (txt_Ptrs[k] == 0)
+      return 0;
+    if (strlen(txt_Ptrs[k]) > 0x17c0)
+      return 0;
+    strncpy(buf, txt_Ptrs[k], 0x17c0);
+  } else {
+    char *s = (char *)k, *t = buf;
 
-        while ((*t++ = *s++) != 0)
-            ;
+    while ((*t++ = *s++) != 0)
+      ;
+  }
+  if (strlen(buf) != 10) {
+    sprintf(buf, "hst_ParseDate() failed: Label %i is not a <<DATE>> ",
+            k - hst_TextFirst);
+    return 0;
+  }
+  G12_COPY2(tmp, buf, 2);
+  date.day = (char)atoi(tmp);
+  G12_COPY2(tmp, buf + 3, 2);
+  date.month = (char)atoi(tmp);
+  G12_COPY2(tmp, buf + 6, 4);
+  date.year = (short)atoi(tmp);
+  yr = atoi(tmp);
+  if (date.day == 0) {
+    date.day = 1;
+    known = 1;
+  }
+  if (date.month == 0) {
+    date.month = 1;
+    known = 2;
+  }
+  *year = yr - 1400;
+  if (mode & 4) {
+    G12_COPY2_V(name, buf, strlen(buf));
+  } else if (mode & 2) {
+    switch (known) {
+    case 0:
+      txt_Format(name, (intptr_t)"%s, %i %s %i",
+                 ai_PlayerSlots[ai_OwnPlayer].townName, date.day,
+                 date.month + 0x4f, date.year);
+      break;
+    case 1:
+      txt_Format(name, (intptr_t)"%s, %s %i",
+                 ai_PlayerSlots[ai_OwnPlayer].townName, date.month + 0x4f,
+                 date.year);
+      break;
+    case 2:
+      txt_Format(name, (intptr_t)"%s, %i",
+                 ai_PlayerSlots[ai_OwnPlayer].townName, date.year);
+      break;
     }
-    if (strlen(buf) != 10) {
-        sprintf(buf, "hst_ParseDate() failed: Label %i is not a <<DATE>> ", k - hst_TextFirst);
-        return 0;
-    }
-    G12_COPY2(tmp, buf, 2);
-    date.day = (char)atoi(tmp);
-    G12_COPY2(tmp, buf + 3, 2);
-    date.month = (char)atoi(tmp);
-    G12_COPY2(tmp, buf + 6, 4);
-    date.year = (short)atoi(tmp);
-    yr = atoi(tmp);
-    if (date.day == 0) {
-        date.day = 1;
-        known = 1;
-    }
-    if (date.month == 0) {
-        date.month = 1;
-        known = 2;
-    }
-    *year = yr - 1400;
-    if (mode & 4) {
-        G12_COPY2_V(name, buf, strlen(buf));
-    } else if (mode & 2) {
-        switch (known) {
-        case 0:
-            txt_Format(name, (intptr_t)"%s, %i %s %i", ai_PlayerSlots[ai_OwnPlayer].townName, date.day, date.month + 0x4f, date.year);
-            break;
-        case 1:
-            txt_Format(name, (intptr_t)"%s, %s %i", ai_PlayerSlots[ai_OwnPlayer].townName, date.month + 0x4f, date.year);
-            break;
-        case 2:
-            txt_Format(name, (intptr_t)"%s, %i", ai_PlayerSlots[ai_OwnPlayer].townName, date.year);
-            break;
-        }
-    }
-    if (mode & 1) {
-        G12_ZERO_G(hst_Key, 16);
-        G12_COPY2_G(hst_Key, buf, 10);
-    }
-    return 1;
+  }
+  if (mode & 1) {
+    G12_ZERO_G(hst_Key, 16);
+    G12_COPY2_G(hst_Key, buf, 10);
+  }
+  return 1;
 }
 /* 0x4b3280, the next history event (3 texts per entry from hst_TextCurrent: date, text, ..) of last year: 1 with
 its date in name and its text in out; 2: not yet; 3 / 4: history off / ended @deep s36: the empty-text check moved behind the d chain (if (r == 1 && *out == 0) r = 6;): the d != 1 block now sits where the original has it: 16 -> 10 ins, kept. Left: only the order of the return blocks behind the main return (the original: r = 2, return 3, return 4; ours: return 3, return 4, r = 2). Guards positive x negative on this text: ParseDate positive (g01) gives return 3, r = 2, return 4 (6 ins); both positive (g11) r = 2, return 4, return 3 (6 ins); the d chain as d < 1 first / d > 1 first / if (d != 1) x the guard forms: 10..20; while (hst_TextsOn) {..} return 3: 28-30 (M8). prior: deep s32: the one hunk is block layout: the original lays the d != 1 code (jle r2; xor esi,esi; jmp tail) behind the loop's return r, then the r = 2 return copy, return 3, return 4; ours keeps it between the d == 1 arm (whose r = 6 then needs a jmp) and the tail. Tried (dcp try, whole-function products): the d test as if/else-if/else, d < 1 first, d > 1 first, if (d != 1) {..} else {..} (B before A: draft 20), r = 0 default, return 2 in the arm; x the guards as if (hst_TextsOn) {..} else return 3 and if (hst_ParseDate(..)) {..} else {..; return 4;}; x do-while / for (;;) with if (r != 0 && r != 6) break (M8, 29). Best: both guards positive (12 ins / 58 bytes: the return 3 / 4 blocks move, B stays inline) - not kept, it puts return 3 last where the original has it before return 4. The tail (TextCurrent += 3 + the TextsOn clear) written in both arms puts B behind the return as the original (draft 18), but VC6 decides the r == 0 loop test on B's path (r = 0 known) and B's copy jumps to the loop top, so xjump cannot merge it; only the += 3 in both arms: 3 becomes a register constant (40). climb round 1: nothing. c2tail: no tail merged in the control. */
 
-int hst_NextEvent(char *name, char *out)
-{
-    int year[4];
-    int r, d;
+int hst_NextEvent(char *name, char *out) {
+  int year[4];
+  int r, d;
 
-    do {
-        if (!hst_TextsOn)
-            return 3;
-        if (!hst_ParseDate(hst_TextCurrent, 3, year, name)) {
-            hst_TextsOn = 0;
-            return 4;
-        }
-        d = ai_Time.year - year[0];
-        if (d == 1) {
-            r = d;
-            hst_ParseText_Real(out, hst_TextCurrent + 1);
-        } else if (d > 1)
-            r = 0;
-        else {
-            r = 2;
-            break;
-        }
-        if (r == 1 && *out == 0)
-            r = 6;
-        hst_TextCurrent += 3;
-        if (hst_TextLast < hst_TextCurrent)
-            hst_TextsOn = 0;
-    } while (r == 0 || r == 6);
-    return r;
+  do {
+    if (!hst_TextsOn)
+      return 3;
+    if (!hst_ParseDate(hst_TextCurrent, 3, year, name)) {
+      hst_TextsOn = 0;
+      return 4;
+    }
+    d = ai_Time.year - year[0];
+    if (d == 1) {
+      r = d;
+      hst_ParseText_Real(out, hst_TextCurrent + 1);
+    } else if (d > 1)
+      r = 0;
+    else {
+      r = 2;
+      break;
+    }
+    if (r == 1 && *out == 0)
+      r = 6;
+    hst_TextCurrent += 3;
+    if (hst_TextLast < hst_TextCurrent)
+      hst_TextsOn = 0;
+  } while (r == 0 || r == 6);
+  return r;
 }
 
-
-extern D2WIN d2_Wins[];            /* 0xf8f120 */
-extern int d2_LastWindow;                /* 0x6ed938 */
-extern struct D2WIN *d2_LastWindowPtr;            /* 0x6ed980 */
-extern int d2_ClickedId;                /* 0xf8a668 */
-void d2_SetPointerSprite(int a, int pic);                                               /* 0x476f80 */
-int d2_SetForm(int view, int n);                                                 /* 0x475f70 */
-void d2_CreateScrollButtons(int x, int y, int win, int obj, int pic);                      /* 0x472270 */
-int sv_CreateScrollForm(void);                                                          /* 0x52fa10, defined elsewhere */
-void sv_ScrollFormAnimate(void);                                                         /* 0x52fad0, defined elsewhere */
-void sv_DestroyScrollForm(void);                                                         /* 0x52fa90, defined elsewhere */
-int io_PrintText(intptr_t fmt, ...);                                               /* 0x515960, defined elsewhere */
-int sv_RunFrame(void (*cb)(), unsigned mask);                                      /* 0x5309a0, defined elsewhere */
-extern int sv_PopRequest;                /* 0x6f22a0 */
+extern D2WIN d2_Wins[];                   /* 0xf8f120 */
+extern int d2_LastWindow;                 /* 0x6ed938 */
+extern struct D2WIN *d2_LastWindowPtr;    /* 0x6ed980 */
+extern int d2_ClickedId;                  /* 0xf8a668 */
+void d2_SetPointerSprite(int a, int pic); /* 0x476f80 */
+int d2_SetForm(int view, int n);          /* 0x475f70 */
+void d2_CreateScrollButtons(int x, int y, int win, int obj,
+                            int pic);         /* 0x472270 */
+int sv_CreateScrollForm(void);                /* 0x52fa10, defined elsewhere */
+void sv_ScrollFormAnimate(void);              /* 0x52fad0, defined elsewhere */
+void sv_DestroyScrollForm(void);              /* 0x52fa90, defined elsewhere */
+int io_PrintText(intptr_t fmt, ...);          /* 0x515960, defined elsewhere */
+int sv_RunFrame(void (*cb)(), unsigned mask); /* 0x5309a0, defined elsewhere */
+extern int sv_PopRequest;                     /* 0x6f22a0 */
 
 /* 0x4b3350, the history dialog: shows the events of last year (0x4b3280) one after the other */
-void hst_LastYearDialog(void)
-{
-    char text[0x1fb8];
-    char name[0x100];
-    int view, win;
-    int *vis;
+void hst_LastYearDialog(void) {
+  char text[0x1fb8];
+  char name[0x100];
+  int view, win;
+  int *vis;
 
-    AI_ZERO(name, 0x100);
-    AI_ZERO(text, 0x1fb8);
-    if (hst_NextEvent(name, text) != 1)
-        return;
-    view = sv_CreateScrollForm();
-    d2_SetPointerSprite(0, 0);
-    d2_SetForm(view, 1);
-    win = d2_LastWindow;
-    d2_SetForm(view, 2);
-    io_PrintText(0x10b0);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
-    vis = &d2_Wins[win].visible;
-    *vis = 0x18;
-    d2_SetForm(view, 1);
-    io_PrintText((intptr_t)"$C%s", text);
-    d2_SetForm(view, 3);
-    io_PrintText((intptr_t)"$C$Z$[%s$]", name);
-    d2_ClickedId = -1;
-    do {
-        sv_ScrollFormAnimate();
-        if (d2_ClickedId == 0) {
-            AI_ZERO(text, 0x1fb8);
-            AI_ZERO(name, 0x100);
-            if (hst_NextEvent(name, text) != 1) {
-                sv_PopRequest = 1;
-            } else {
-                d2_SetForm(view, 2);
-                io_PrintText(0x10b0);
-                d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
-                *vis = 0x18;
-                d2_SetForm(view, 1);
-                io_PrintText((intptr_t)"$C%s", text);
-                d2_LastWindowPtr->scrollY = 0;
-                d2_LastWindowPtr->scrollStep = 2;
-                d2_SetForm(view, 3);
-                io_PrintText((intptr_t)"$C$Z$[%s$]", name);
-            }
-        }
-    } while (sv_RunFrame(hst_LastYearDialog, 0x66087));
-    sv_DestroyScrollForm();
+  AI_ZERO(name, 0x100);
+  AI_ZERO(text, 0x1fb8);
+  if (hst_NextEvent(name, text) != 1)
+    return;
+  view = sv_CreateScrollForm();
+  d2_SetPointerSprite(0, 0);
+  d2_SetForm(view, 1);
+  win = d2_LastWindow;
+  d2_SetForm(view, 2);
+  io_PrintText(0x10b0);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
+  vis = &d2_Wins[win].visible;
+  *vis = 0x18;
+  d2_SetForm(view, 1);
+  io_PrintText((intptr_t)"$C%s", text);
+  d2_SetForm(view, 3);
+  io_PrintText((intptr_t)"$C$Z$[%s$]", name);
+  d2_ClickedId = -1;
+  do {
+    sv_ScrollFormAnimate();
+    if (d2_ClickedId == 0) {
+      AI_ZERO(text, 0x1fb8);
+      AI_ZERO(name, 0x100);
+      if (hst_NextEvent(name, text) != 1) {
+        sv_PopRequest = 1;
+      } else {
+        d2_SetForm(view, 2);
+        io_PrintText(0x10b0);
+        d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
+        *vis = 0x18;
+        d2_SetForm(view, 1);
+        io_PrintText((intptr_t)"$C%s", text);
+        d2_LastWindowPtr->scrollY = 0;
+        d2_LastWindowPtr->scrollStep = 2;
+        d2_SetForm(view, 3);
+        io_PrintText((intptr_t)"$C$Z$[%s$]", name);
+      }
+    }
+  } while (sv_RunFrame(hst_LastYearDialog, 0x66087));
+  sv_DestroyScrollForm();
 }
 /* 0x4b35e0, 0x4b3280 with both passes (0x4b2c90, commands if cmd): 5 when they fail @deep s36: the empty-text check as if (r == 1 && *out == 0) r = 6; after the d chain (VC6 decides r == 1 on each path, so the *out test sits behind the d != 1 block as in the original): 24 -> 18 ins, kept. Left: (1) the return blocks: the original orders r = 2 / return 3 / return 4 behind the main return, ours return 3 / return 4 / r = 2 (same as the twin hst_NextEvent); (2) name and cmd swapped between ebx and ebp (c2trace --prio: name -46 (ParseDate block P=3), cmd -40 (ParseEventText block P=4); the original serves name first). No lever: r = 1 for r = d, r = hst_ParseDate(..) (= control), d == 1 in the check (25), the d chain as d <= 1 / d < 1 first / d > 1 first (18 / 22 / 26), TextsOn == 0. */
 
-int hst_NextEventCmd(char *name, char *out, int cmd)
-{
-    int year[4];
-    int r, d;
+int hst_NextEventCmd(char *name, char *out, int cmd) {
+  int year[4];
+  int r, d;
 
-    do {
-        if (!hst_TextsOn)
-            return 3;
-        if (!hst_ParseDate(hst_TextCurrent, 3, year, name)) {
-            hst_TextsOn = 0;
-            return 4;
-        }
-        d = ai_Time.year - year[0];
-        if (d == 1) {
-            r = d;
-            if (!hst_ParseEventText(out, hst_TextCurrent, cmd))
-                r = 5;
-        } else if (d > 1)
-            r = 0;
-        else {
-            r = 2;
-            break;
-        }
-        if (r == 1 && *out == 0)
-            r = 6;
-        hst_TextCurrent += 3;
-        if (hst_TextLast < hst_TextCurrent)
-            hst_TextsOn = 0;
-    } while (r == 0 || r == 6 || r == 5);
-    return r;
+  do {
+    if (!hst_TextsOn)
+      return 3;
+    if (!hst_ParseDate(hst_TextCurrent, 3, year, name)) {
+      hst_TextsOn = 0;
+      return 4;
+    }
+    d = ai_Time.year - year[0];
+    if (d == 1) {
+      r = d;
+      if (!hst_ParseEventText(out, hst_TextCurrent, cmd))
+        r = 5;
+    } else if (d > 1)
+      r = 0;
+    else {
+      r = 2;
+      break;
+    }
+    if (r == 1 && *out == 0)
+      r = 6;
+    hst_TextCurrent += 3;
+    if (hst_TextLast < hst_TextCurrent)
+      hst_TextsOn = 0;
+  } while (r == 0 || r == 6 || r == 5);
+  return r;
 }
 /* 0x4b36d0, the same with 0x4b35e0 (commands if cmd) */
 
-void hst_LastYearCmdDialog(int cmd)
-{
-    char text[0x1fb8];
-    char name[0x100];
-    int view, win;
-    int *vis;
+void hst_LastYearCmdDialog(int cmd) {
+  char text[0x1fb8];
+  char name[0x100];
+  int view, win;
+  int *vis;
 
-    AI_ZERO(name, 0x100);
-    AI_ZERO(text, 0x1fb8);
-    if (hst_NextEventCmd(name, text, cmd) != 1)
-        return;
-    view = sv_CreateScrollForm();
-    d2_SetPointerSprite(0, 0);
-    d2_SetForm(view, 1);
-    win = d2_LastWindow;
-    d2_SetForm(view, 2);
-    io_PrintText(0x10b0);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
-    vis = &d2_Wins[win].visible;
-    *vis = 0x18;
-    d2_SetForm(view, 1);
-    io_PrintText((intptr_t)"$C%s", text);
-    d2_SetForm(view, 3);
-    io_PrintText((intptr_t)"$C$Z$[%s$]", name);
-    d2_ClickedId = -1;
-    do {
-        sv_ScrollFormAnimate();
-        if (d2_ClickedId == 0) {
-            AI_ZERO(text, 0x1fb8);
-            AI_ZERO(name, 0x100);
-            if (hst_NextEventCmd(name, text, cmd) != 1) {
-                sv_PopRequest = 1;
-            } else {
-                d2_SetForm(view, 2);
-                io_PrintText(0x10b0);
-                d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
-                *vis = 0x18;
-                d2_SetForm(view, 1);
-                io_PrintText((intptr_t)"$C%s", text);
-                d2_LastWindowPtr->scrollY = 0;
-                d2_LastWindowPtr->scrollStep = 2;
-                d2_SetForm(view, 3);
-                io_PrintText((intptr_t)"$C$Z$[%s$]", name);
-            }
-        }
-    } while (sv_RunFrame(hst_LastYearCmdDialog, 0x66087));
-    sv_DestroyScrollForm();
+  AI_ZERO(name, 0x100);
+  AI_ZERO(text, 0x1fb8);
+  if (hst_NextEventCmd(name, text, cmd) != 1)
+    return;
+  view = sv_CreateScrollForm();
+  d2_SetPointerSprite(0, 0);
+  d2_SetForm(view, 1);
+  win = d2_LastWindow;
+  d2_SetForm(view, 2);
+  io_PrintText(0x10b0);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
+  vis = &d2_Wins[win].visible;
+  *vis = 0x18;
+  d2_SetForm(view, 1);
+  io_PrintText((intptr_t)"$C%s", text);
+  d2_SetForm(view, 3);
+  io_PrintText((intptr_t)"$C$Z$[%s$]", name);
+  d2_ClickedId = -1;
+  do {
+    sv_ScrollFormAnimate();
+    if (d2_ClickedId == 0) {
+      AI_ZERO(text, 0x1fb8);
+      AI_ZERO(name, 0x100);
+      if (hst_NextEventCmd(name, text, cmd) != 1) {
+        sv_PopRequest = 1;
+      } else {
+        d2_SetForm(view, 2);
+        io_PrintText(0x10b0);
+        d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
+        *vis = 0x18;
+        d2_SetForm(view, 1);
+        io_PrintText((intptr_t)"$C%s", text);
+        d2_LastWindowPtr->scrollY = 0;
+        d2_LastWindowPtr->scrollStep = 2;
+        d2_SetForm(view, 3);
+        io_PrintText((intptr_t)"$C$Z$[%s$]", name);
+      }
+    }
+  } while (sv_RunFrame(hst_LastYearCmdDialog, 0x66087));
+  sv_DestroyScrollForm();
 }
 
-extern int cm_NetFlags;      /* 0x6f2594, game flags (8: network game) */
+extern int cm_NetFlags; /* 0x6f2594, game flags (8: network game) */
 extern int hst_SeedPending;
-int cm_SendExSysMessage(unsigned char id, void *msg);                                            /* 0x4c4db0, defined elsewhere */
-void sv_PumpNet(void);                                                         /* 0x52fe00, defined elsewhere */
+int cm_SendExSysMessage(unsigned char id,
+                        void *msg); /* 0x4c4db0, defined elsewhere */
+void sv_PumpNet(void);              /* 0x52fe00, defined elsewhere */
 
 /* 0x4b3960, the yearly history: tells the others (message 5 with the tick count) in a network game, waits
    while hst_SeedPending, then shows the history dialog of hst_TextsOn (1: texts, 2: texts and commands) */
-void hst_YearlyHistory(int cmd)
-{
-    int msg[0x1f];
+void hst_YearlyHistory(int cmd) {
+  int msg[0x1f];
 
-    if ((cm_NetFlags & 8) || net_Conn.s == -1) {
-        msg[0] = GetTickCount();
-        cm_SendExSysMessage(5, msg);
-    }
-    while (hst_SeedPending != 0) {
-        if (net_Conn.closed != 0)
-            return;
-        sv_PumpNet();
-    }
-    if (net_Conn.closed == 0 && hst_TextsOn != 0) {
-        if (hst_TextsOn == 1)
-            hst_LastYearDialog();
-        else if (hst_TextsOn == 2)
-            hst_LastYearCmdDialog(cmd);
-    }
+  if ((cm_NetFlags & 8) || net_Conn.s == -1) {
+    msg[0] = GetTickCount();
+    cm_SendExSysMessage(5, msg);
+  }
+  while (hst_SeedPending != 0) {
+    if (net_Conn.closed != 0)
+      return;
+    sv_PumpNet();
+  }
+  if (net_Conn.closed == 0 && hst_TextsOn != 0) {
+    if (hst_TextsOn == 1)
+      hst_LastYearDialog();
+    else if (hst_TextsOn == 2)
+      hst_LastYearCmdDialog(cmd);
+  }
 }
 
 char hst_Key[0x20];  /* 0xf83520, the key to look for */
-G12ROW hst_Lists[4];  /* 0xf83540 */
-int hst_SeedPending;  /* 0xf83650 */
+G12ROW hst_Lists[4]; /* 0xf83540 */
+int hst_SeedPending; /* 0xf83650 */

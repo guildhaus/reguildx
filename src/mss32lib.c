@@ -14,15 +14,11 @@ static void mss_AutoCleanupExit(void);
 
 /* 0x5de460, mss32.lib's MSS_auto_cleanup: registers the library's exit callback (mss_AutoCleanupExit, 0x5de470)
    and returns 0 */
-int MSS_auto_cleanup(void)
-{
-    atexit(mss_AutoCleanupExit);
-    return 0;
+int MSS_auto_cleanup(void) {
+  atexit(mss_AutoCleanupExit);
+  return 0;
 }
 /* 0x5de470, mss32.lib's exit callback that MSS_auto_cleanup registers: shuts the sound library down (a jump to
    the AIL_shutdown import thunk at 0x5de480) */
 
-static void mss_AutoCleanupExit(void)
-{
-    AIL_shutdown();
-}
+static void mss_AutoCleanupExit(void) { AIL_shutdown(); }

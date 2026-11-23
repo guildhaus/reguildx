@@ -9,102 +9,120 @@ struct AICHAR;
 struct AIARG;
 struct AIOBJ;
 
-typedef struct G8USE {                  /* 20 bytes, ai_UseGood's request (0x5cf8a0), handed on to the good's use callback */
-    struct AIOBJ *obj;                  /* 0x00, the inventory object used */
-    int target;                         /* 0x04, the target for the good's use callback (the table +0x14): a reference of the action's second argument */
-    int arg;                            /* 0x08, a value for the use callback, -1 none */
-    int effect;                         /* 0x0c, set by the callee: 1 the use took effect (0x175 only one time in three), 0 not; the use callback may set -1 (backfired) */
-    int handled;                        /* 0x10, 0 by the callee, set by a use callback that reported the use itself (no text then) */
+typedef struct
+    G8USE { /* 20 bytes, ai_UseGood's request (0x5cf8a0), handed on to the good's use callback */
+  struct AIOBJ *obj; /* 0x00, the inventory object used */
+  int target; /* 0x04, the target for the good's use callback (the table +0x14): a reference of the action's second argument */
+  int arg;    /* 0x08, a value for the use callback, -1 none */
+  int effect; /* 0x0c, set by the callee: 1 the use took effect (0x175 only one time in three), 0 not; the use callback may set -1 (backfired) */
+  int handled; /* 0x10, 0 by the callee, set by a use callback that reported the use itself (no text then) */
 } G8USE;
 
-typedef struct G9DOMIZIL {              /* 0x1c bytes, an entry of the Domizil table 0x62c420 (ai_FindUsableGood returns it) */
-    int id;                             /* 0x00, the good, 0 ends the table */
-    int minutes;                        /* 0x04, the duration of its effect in minutes (he.c 0x54fb50 adds it to the clock
-                                           with gm_AddTime's minute argument), 0: none */
-    int law;                            /* 0x08, the law broken by using the good (ai_UseGood passes it to gv_Accuse),
-                                           -1: none */
-    float weight;                       /* 0x0c, 1.0 .. 6.0: am.c's AI scales the use action's weight by it */
-    unsigned int mask;                 /* 0x10, tested against the character's goodsMask (0x1ec) */
-    int (*use)(struct AICHAR *, struct G8USE *);  /* 0x14, the use callback ai_UseGood calls (the character, the G8USE
-                                           request), 0: none; callbacks that read only the character leave the request unread */
-    unsigned short rank;                /* 0x18, the rank the good asks for (the use window prints it with text 0xfe3;
-                                           lc's range lookup tests it; the name is a reasoned guess) */
-    char pad1a[2];
+typedef struct
+    G9DOMIZIL { /* 0x1c bytes, an entry of the Domizil table 0x62c420 (ai_FindUsableGood returns it) */
+  int id;       /* 0x00, the good, 0 ends the table */
+  int minutes; /* 0x04, the duration of its effect in minutes (he.c 0x54fb50 adds it to the clock
+                  with gm_AddTime's minute argument), 0: none */
+  int law; /* 0x08, the law broken by using the good (ai_UseGood passes it to gv_Accuse),
+              -1: none */
+  float
+      weight; /* 0x0c, 1.0 .. 6.0: am.c's AI scales the use action's weight by it */
+  unsigned int
+      mask; /* 0x10, tested against the character's goodsMask (0x1ec) */
+  int (*use)(
+      struct AICHAR *,
+      struct G8USE
+          *); /* 0x14, the use callback ai_UseGood calls (the character, the G8USE
+       request), 0: none; callbacks that read only the character leave the request unread */
+  unsigned short
+      rank; /* 0x18, the rank the good asks for (the use window prints it with text 0xfe3;
+               lc's range lookup tests it; the name is a reasoned guess) */
+  char pad1a[2];
 } G9DOMIZIL;
 
 #pragma pack(push, 1)
-typedef struct G7GRP {                  /* 0x15 bytes, the item groups at 0x61a348 */
-    unsigned char key;                  /* 0x00 */
-    unsigned short items[10];           /* 0x01 */
+typedef struct G7GRP {      /* 0x15 bytes, the item groups at 0x61a348 */
+  unsigned char key;        /* 0x00 */
+  unsigned short items[10]; /* 0x01 */
 } G7GRP;
 
-typedef struct AIACTW {                 /* 8 bytes */
-    unsigned char k;                    /* 0x0, a need index */
-    char pad1[3];
-    float w;                            /* 0x4 */
+typedef struct AIACTW { /* 8 bytes */
+  unsigned char k;      /* 0x0, a need index */
+  char pad1[3];
+  float w; /* 0x4 */
 } AIACTW;
 
-typedef struct AIACT {                  /* 0x94 bytes, an AI action (table at 0xf83ec0) */
-    unsigned char id;                   /* 0x00 */
-    char name[0x23];                    /* 0x01 */
-    int (*eval)(float *a, float *b, int i, struct AICHAR *p, int f, struct AIARG *o1, struct AIARG *o2);  /* 0x24 */
-    int (*decide)(int a, struct AICHAR *p, int f, struct AIARG *o1, struct AIARG *o2);                    /* 0x28 */
-    int (*exec)(struct AICHAR *p, struct AIARG *s1, struct AIARG *s2);                                    /* 0x2c */
-    AIACTW w1[4];                       /* 0x30 */
-    AIACTW w3[4];                       /* 0x50, a copy of w1 (the short-term needs; ai_Actions[0x48] uses w3[0]) */
-    AIACTW w2[4];                       /* 0x70 */
-    unsigned int flags;                 /* 0x90 */
+typedef struct AIACT { /* 0x94 bytes, an AI action (table at 0xf83ec0) */
+  unsigned char id;    /* 0x00 */
+  char name[0x23];     /* 0x01 */
+  int (*eval)(float *a, float *b, int i, struct AICHAR *p, int f,
+              struct AIARG *o1, struct AIARG *o2); /* 0x24 */
+  int (*decide)(int a, struct AICHAR *p, int f, struct AIARG *o1,
+                struct AIARG *o2);                                   /* 0x28 */
+  int (*exec)(struct AICHAR *p, struct AIARG *s1, struct AIARG *s2); /* 0x2c */
+  AIACTW w1[4];                                                      /* 0x30 */
+  AIACTW w3
+      [4]; /* 0x50, a copy of w1 (the short-term needs; ai_Actions[0x48] uses w3[0]) */
+  AIACTW w2[4];       /* 0x70 */
+  unsigned int flags; /* 0x90 */
 } AIACT;
 
-typedef struct AIGRP {                  /* 0x34 bytes, a feast group: the host and up to four guests (ai_EvalFest 0x494ac0;
-                                           he.c's feast event 0x5437c0 fills one) */
-    struct AICHAR *leader;                /* 0x00, the host (am.h AICHAR, an ai_Chars record) */
-    struct {
-        struct AICHAR *ch;                /* 0x04, a guest */
-        int d;                          /* 0x08, the guest's verdict ai_EvalFest writes: the feast's level less the
-                                           guest's (gm_CharLevel), clamped to -2 .. 2; the feast's news line 0x1788
-                                           tells it with the text 0x178f + 3 * d + a random 0 .. 2 (he.c 0x5437c0) */
-    } mem[4];
-    unsigned int essen;                 /* 0x24, the feast menu pick 0 .. 5: ai_FeastWindow prints text 0x1782
-                                           (_MN_FEST_ESSEN) from it, 0 = the best menu */
-    unsigned int musik;                 /* 0x28, the feast musician pick 0 .. 5: text 0x1783 (_MN_FEST_MUSIKER),
-                                           0 = the best entertainment */
-    int cost;                           /* 0x2c, the feast's cost: ai_EvalFest computes it, the player's window
-                                           shows it (_MN_FEST_FEEDBACK+4, %T) */
-    unsigned char n;                    /* 0x30, member count, 1..4 */
-    char pad31[3];
+typedef struct
+    AIGRP { /* 0x34 bytes, a feast group: the host and up to four guests (ai_EvalFest 0x494ac0;
+               he.c's feast event 0x5437c0 fills one) */
+  struct AICHAR *leader; /* 0x00, the host (am.h AICHAR, an ai_Chars record) */
+  struct {
+    struct AICHAR *ch; /* 0x04, a guest */
+    int d; /* 0x08, the guest's verdict ai_EvalFest writes: the feast's level less the
+              guest's (gm_CharLevel), clamped to -2 .. 2; the feast's news line 0x1788
+              tells it with the text 0x178f + 3 * d + a random 0 .. 2 (he.c 0x5437c0) */
+  } mem[4];
+  unsigned int
+      essen; /* 0x24, the feast menu pick 0 .. 5: ai_FeastWindow prints text 0x1782
+                (_MN_FEST_ESSEN) from it, 0 = the best menu */
+  unsigned int
+      musik; /* 0x28, the feast musician pick 0 .. 5: text 0x1783 (_MN_FEST_MUSIKER),
+                0 = the best entertainment */
+  int cost; /* 0x2c, the feast's cost: ai_EvalFest computes it, the player's window
+               shows it (_MN_FEST_FEEDBACK+4, %T) */
+  unsigned char n; /* 0x30, member count, 1..4 */
+  char pad31[3];
 } AIGRP;
 #pragma pack(pop)
 
-typedef struct AIPLAN {                 /* 0x50 bytes, a plan record the callbacks 0x494020 .. 0x494410 look at; the trial
-                                           (cm.c 0x4db700) hands one to its scene party as the request */
-    int mode;                           /* 0x00, of the trial: what the members are asked (2 .. 5) */
-    float score;                        /* 0x04, the plan's score (rated 3..18 by 0x494020, ranked by 0x4945c0) */
-    int plea;                           /* 0x08, of the trial: 1 when the accused pleaded guilty (ai_DecideAcquittal skips the roll then) */
-    float amount;                       /* 0x0c, the scale of the tries' sum (ai_PlanRollTries); of the trial 1000, then the accused's plea amount */
-    unsigned char b10;                  /* 0x10 */
-    unsigned char crimes;               /* 0x11, of the trial: the number of its crimes */
-    char pad12[2];
-    union {
-        struct {
-            int c14;                    /* 0x14, character ids */
-            int c18;                    /* 0x18 */
-            int c1c;                    /* 0x1c */
-            int c20;                    /* 0x20 */
-            int c24;                    /* 0x24 */
-            int c28;                    /* 0x28 */
-        };
-        int ids[6];                     /* 0x14 */
+typedef struct
+    AIPLAN { /* 0x50 bytes, a plan record the callbacks 0x494020 .. 0x494410 look at; the trial
+                (cm.c 0x4db700) hands one to its scene party as the request */
+  int mode;  /* 0x00, of the trial: what the members are asked (2 .. 5) */
+  float
+      score; /* 0x04, the plan's score (rated 3..18 by 0x494020, ranked by 0x4945c0) */
+  int plea; /* 0x08, of the trial: 1 when the accused pleaded guilty (ai_DecideAcquittal skips the roll then) */
+  float
+      amount; /* 0x0c, the scale of the tries' sum (ai_PlanRollTries); of the trial 1000, then the accused's plea amount */
+  unsigned char b10;    /* 0x10 */
+  unsigned char crimes; /* 0x11, of the trial: the number of its crimes */
+  char pad12[2];
+  union {
+    struct {
+      int c14; /* 0x14, character ids */
+      int c18; /* 0x18 */
+      int c1c; /* 0x1c */
+      int c20; /* 0x20 */
+      int c24; /* 0x24 */
+      int c28; /* 0x28 */
     };
-    int rating2c;                       /* 0x2c, of the trial: ai_WealthRating (the accuser, the accused) */
-    int rating30;                       /* 0x30, of the trial: ai_WealthRatingHalf (the accuser, the accused) */
-    int rating34;                       /* 0x34, reasoned guess: a third rating beside 0x2c / 0x30 (the trial clears it) */
-    int instrument;                     /* 0x38, key into the torture-instrument table ai_TortureInstruments (ai_PlanRollTries); of the trial the torture instrument 0 .. 6 */
-    int tries;                          /* 0x3c, the number of rolls (ai_PlanLevel) */
-    int answer;                         /* 0x40, of the trial the accused's answer under torture; 0 changes the roll (ai_PlanRollTries) */
-    int tortured;                       /* 0x44, of the trial: 1 when the accuser chose the torture */
-    int success;                        /* 0x48, 1 when a roll succeeded (ai_PlanRollTries): the accused confesses */
-    float penalty;                      /* 0x4c, the negated sum of the rolls (ai_PlanRollTries); the trial takes it as the accused's health loss */
+    int ids[6]; /* 0x14 */
+  };
+  int rating2c; /* 0x2c, of the trial: ai_WealthRating (the accuser, the accused) */
+  int rating30; /* 0x30, of the trial: ai_WealthRatingHalf (the accuser, the accused) */
+  int rating34; /* 0x34, reasoned guess: a third rating beside 0x2c / 0x30 (the trial clears it) */
+  int instrument; /* 0x38, key into the torture-instrument table ai_TortureInstruments (ai_PlanRollTries); of the trial the torture instrument 0 .. 6 */
+  int tries;      /* 0x3c, the number of rolls (ai_PlanLevel) */
+  int answer; /* 0x40, of the trial the accused's answer under torture; 0 changes the roll (ai_PlanRollTries) */
+  int tortured; /* 0x44, of the trial: 1 when the accuser chose the torture */
+  int success; /* 0x48, 1 when a roll succeeded (ai_PlanRollTries): the accused confesses */
+  float
+      penalty; /* 0x4c, the negated sum of the rolls (ai_PlanRollTries); the trial takes it as the accused's health loss */
 } AIPLAN;
 typedef char am_AssertAIPLAN[sizeof(AIPLAN) == 0x50 ? 1 : -1];
 #endif

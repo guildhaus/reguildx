@@ -3,7 +3,11 @@
 #define AMT_AI_H
 
 struct AICHAR;
-int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out);  /* 0x4a63f0, a building of the kinds in mask for p (6: also its partner's ..), with a rating between lo and hi; its id in *out */
-extern const int ai_RingStrideCount;  /* 0x5ed1ac, the entries of ai_RingStrides */
+int ai_PickActionBuilding(
+    struct AICHAR *p, int a, __int64 mask, float lo, float hi,
+    int *
+        out); /* 0x4a63f0, a building of the kinds in mask for p (6: also its partner's ..), with a rating between lo and hi; its id in *out */
+extern const int
+    ai_RingStrideCount; /* 0x5ed1ac, the entries of ai_RingStrides */
 
 #endif

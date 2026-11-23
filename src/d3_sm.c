@@ -19,37 +19,39 @@
 #include "mem.h"
 #include "ts_texture.h"
 
+void d3_TransformMeshes(void); /* 0x43d840 */
 
-void d3_TransformMeshes(void);                                                                /* 0x43d840 */
+char d3sm_GroundNames[15][9] =
+    {
+        "_ill*",    "_unk*",  "SAND", "ERDE", "WIESE",  "MOOR",
+        "PFLASTER", "KIESEL", "FELS", "EIS",  "WASSER", "WEG",
+        "WEG",      "_ill*",  ""}; /* 0x5fcfa0, "_ill*", "_unk*", "SAND", ...; TODO define here once .data is matched */
 
-char d3sm_GroundNames[15][9] = { "_ill*", "_unk*", "SAND", "ERDE", "WIESE", "MOOR", "PFLASTER", "KIESEL", "FELS", "EIS", "WASSER", "WEG", "WEG", "_ill*", "" };  /* 0x5fcfa0, "_ill*", "_unk*", "SAND", ...; TODO define here once .data is matched */
-
-int d3sm_Ground[8] = {0};                   /* 0x633dd8, ground type per terrain material */
-D3SM *d3sm_Shadow = 0;                      /* 0x633df8 */
-D3FLMAP *d3sm_Last = 0;                   /* 0x633dfc, terrain d3sm_Ground was built for */
+int d3sm_Ground[8] = {0}; /* 0x633dd8, ground type per terrain material */
+D3SM *d3sm_Shadow = 0;    /* 0x633df8 */
+D3FLMAP *d3sm_Last = 0;   /* 0x633dfc, terrain d3sm_Ground was built for */
 /* 0x45db40, ground type at (x, z) of the terrain */
-int d3sm_GetGround(unsigned int x, unsigned int z, D3FLMAP *t)
-{
-    int idx, i, k;
+int d3sm_GetGround(unsigned int x, unsigned int z, D3FLMAP *t) {
+  int idx, i, k;
 
-    idx = (t->size - 1 & z) * t->size + (t->size - 1 & x);
-    if (t->types[idx] & 0x80)
-        return 0;
-    if (d3sm_Last != t) {
-        for (i = 0; i < 8; i++) {
-            d3sm_Ground[i] = 1;
-            if (t->typenames[i][0]) {
-                for (k = 0; k < 15; k++) {
-                    if (strstr(strupr(t->typenames[i]), d3sm_GroundNames[k])) {
-                        d3sm_Ground[i] = k;
-                        break;
-                    }
-                }
-            }
+  idx = (t->size - 1 & z) * t->size + (t->size - 1 & x);
+  if (t->types[idx] & 0x80)
+    return 0;
+  if (d3sm_Last != t) {
+    for (i = 0; i < 8; i++) {
+      d3sm_Ground[i] = 1;
+      if (t->typenames[i][0]) {
+        for (k = 0; k < 15; k++) {
+          if (strstr(strupr(t->typenames[i]), d3sm_GroundNames[k])) {
+            d3sm_Ground[i] = k;
+            break;
+          }
         }
-        d3sm_Last = t;
+      }
     }
-    return d3sm_Ground[t->types[idx]];
+    d3sm_Last = t;
+  }
+  return d3sm_Ground[t->types[idx]];
 }
 /* 0x45dc00, samples the heights and ground types of the terrain into the map
    @deep draft 340 ins -> 160 this session. Read against the original: the midpoint fill re-reads h->data
@@ -71,88 +73,104 @@ int d3sm_GetGround(unsigned int x, unsigned int z, D3FLMAP *t)
    by __ftol, count[15] ground-type vote, step-halving midpoint fill) are the same as the Ghidra
    pseudocode, readability already readable; restoring the original's allocation is byte work */
 
-void d3sm_Sample(D3FLMAP *t, D3SM *h)
-{
-    unsigned int count[15];
-    unsigned int n, ts, step, half, f, x, z, xx, zz, k, best, max, sum;
+void d3sm_Sample(D3FLMAP *t, D3SM *h) {
+  unsigned int count[15];
+  unsigned int n, ts, step, half, f, x, z, xx, zz, k, best, max, sum;
 
-    float inv;
+  float inv;
 
-    n = h->size;
-    ts = t->size;
-    step = n / ts;
-    inv = 1.0f / h->cell.y;
-    if (step == 0) {
-        f = ts / n;
-        for (z = 0; z < n; z++) {
-            for (x = 0; x < n; x++) {
-                sum = 0;
-                for (zz = z * f; zz < z * f + f; zz++) {
-                    for (xx = x * f; xx < x * f + f; xx++)
-                        sum += (int)((t->height[zz * ts + xx] * t->hscale + t->orgy - h->origin.y) * inv);
-                }
-                h->data[z * n + x] = sum / (f * f);
-                D3_ZERO(count, sizeof(count));
-                for (zz = z * f; zz < z * f + f; zz++) {
-                    for (xx = x * f; xx < x * f + f; xx++)
-                        count[d3sm_GetGround(xx, zz, t)]++;
-                }
-                max = 0;
-                best = -1;
-                for (k = 0; k < 15; k++) {
-                    if (count[k] > max) {
-                        max = count[k];
-                        best = k;
-                    }
-                }
-                if (best != -1)
-                    h->entries[z * n + x].type = best;
-                else
-                    h->entries[z * n + x].type = 0;
-            }
+  n = h->size;
+  ts = t->size;
+  step = n / ts;
+  inv = 1.0f / h->cell.y;
+  if (step == 0) {
+    f = ts / n;
+    for (z = 0; z < n; z++) {
+      for (x = 0; x < n; x++) {
+        sum = 0;
+        for (zz = z * f; zz < z * f + f; zz++) {
+          for (xx = x * f; xx < x * f + f; xx++)
+            sum += (int)((t->height[zz * ts + xx] * t->hscale + t->orgy -
+                          h->origin.y) *
+                         inv);
         }
-        return;
-    }
-    for (z = 0; z < ts; z++) {
-        for (x = 0; x < ts; x++) {
-            h->data[(z * n + x) * step] = (int)((t->height[z * ts + x] * t->hscale + t->orgy - h->origin.y) * inv);
-            h->entries[(z * n + x) * step].type = d3sm_GetGround(x, z, t);
+        h->data[z * n + x] = sum / (f * f);
+        D3_ZERO(count, sizeof(count));
+        for (zz = z * f; zz < z * f + f; zz++) {
+          for (xx = x * f; xx < x * f + f; xx++)
+            count[d3sm_GetGround(xx, zz, t)]++;
         }
-    }
-    for (; step > 1; step >>= 1) {
-        half = step >> 1;
-        for (z = 0; z < n / step; z++) {
-            for (x = 0; x < n / step; x++) {
-                sum = (h->data[z * step * n + x * step] + h->data[z * step * n + (x * step + step & n - 1)]
-                       + h->data[(z * step + step & n - 1) * n + x * step]
-                       + h->data[(z * step + step & n - 1) * n + (x * step + step & n - 1)]) / 4;
-                h->data[z * step * n + x * step + half] = (sum + (h->data[z * step * n + x * step] + h->data[z * step * n + (x * step + step & n - 1)]) * 2) / 5;
-                h->data[(z * step + half) * n + x * step] = (sum + (h->data[z * step * n + x * step] + h->data[(z * step + step & n - 1) * n + x * step]) * 2) / 5;
-                h->data[(z * step + half) * n + x * step + half] = sum;
-                h->entries[z * step * n + x * step + half].type = h->entries[z * step * n + x * step].type;
-                h->entries[(z * step + half) * n + x * step].type = h->entries[z * step * n + x * step].type;
-                h->entries[(z * step + half) * n + x * step + half].type = h->entries[z * step * n + x * step].type;
-            }
+        max = 0;
+        best = -1;
+        for (k = 0; k < 15; k++) {
+          if (count[k] > max) {
+            max = count[k];
+            best = k;
+          }
         }
+        if (best != -1)
+          h->entries[z * n + x].type = best;
+        else
+          h->entries[z * n + x].type = 0;
+      }
     }
+    return;
+  }
+  for (z = 0; z < ts; z++) {
+    for (x = 0; x < ts; x++) {
+      h->data[(z * n + x) * step] =
+          (int)((t->height[z * ts + x] * t->hscale + t->orgy - h->origin.y) *
+                inv);
+      h->entries[(z * n + x) * step].type = d3sm_GetGround(x, z, t);
+    }
+  }
+  for (; step > 1; step >>= 1) {
+    half = step >> 1;
+    for (z = 0; z < n / step; z++) {
+      for (x = 0; x < n / step; x++) {
+        sum = (h->data[z * step * n + x * step] +
+               h->data[z * step * n + (x * step + step & n - 1)] +
+               h->data[(z * step + step & n - 1) * n + x * step] +
+               h->data[(z * step + step & n - 1) * n +
+                       (x * step + step & n - 1)]) /
+              4;
+        h->data[z * step * n + x * step + half] =
+            (sum + (h->data[z * step * n + x * step] +
+                    h->data[z * step * n + (x * step + step & n - 1)]) *
+                       2) /
+            5;
+        h->data[(z * step + half) * n + x * step] =
+            (sum + (h->data[z * step * n + x * step] +
+                    h->data[(z * step + step & n - 1) * n + x * step]) *
+                       2) /
+            5;
+        h->data[(z * step + half) * n + x * step + half] = sum;
+        h->entries[z * step * n + x * step + half].type =
+            h->entries[z * step * n + x * step].type;
+        h->entries[(z * step + half) * n + x * step].type =
+            h->entries[z * step * n + x * step].type;
+        h->entries[(z * step + half) * n + x * step + half].type =
+            h->entries[z * step * n + x * step].type;
+      }
+    }
+  }
 }
 /* 0x45e180, d3_ForEachObject callback: grows box[0..1] (min, max) by the object's vertices */
 
-char d3sm_BoundsCB(D3OBJECT *obj, D3VECTOR4 *box)
-{
-    D3SURF *m = obj->info;
-    D3VERTEX *v;
-    int i, k;
+char d3sm_BoundsCB(D3OBJECT *obj, D3VECTOR4 *box) {
+  D3SURF *m = obj->info;
+  D3VERTEX *v;
+  int i, k;
 
-    if (m && (!(obj->stateFlags & 0xc) || (obj->stateFlags & 0x10))) {
-        for (i = 0, v = m->keys; i < obj->info->nkeys; i++, v++) {
-            for (k = 0; k < 3; k++) {
-                (&box[0].x)[k] = min((&box[0].x)[k], (&v->x)[k]);
-                (&box[1].x)[k] = max((&box[1].x)[k], (&v->x)[k]);
-            }
-        }
+  if (m && (!(obj->stateFlags & 0xc) || (obj->stateFlags & 0x10))) {
+    for (i = 0, v = m->keys; i < obj->info->nkeys; i++, v++) {
+      for (k = 0; k < 3; k++) {
+        (&box[0].x)[k] = min((&box[0].x)[k], (&v->x)[k]);
+        (&box[1].x)[k] = max((&box[1].x)[k], (&v->x)[k]);
+      }
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x45e210, d3_ForEachObject callback: maps the object's vertices into the height map and queues its
    shadow casting triangles
@@ -160,75 +178,82 @@ char d3sm_BoundsCB(D3OBJECT *obj, D3VECTOR4 *box)
    before a in all six products; VC6 ranks a parenthesized member read on its own, and only this one gives
    that operand order (the bare form loads gz first in three products). */
 
-char d3sm_ShadowCB(D3OBJECT *obj, D3SM *h)
-{
-    D3SURF *m;
-    D3TRI *tri;
-    D3VERTEX *v, *a, *b, *c;
-    float inv[3];
-    int i, n, hmax;
+char d3sm_ShadowCB(D3OBJECT *obj, D3SM *h) {
+  D3SURF *m;
+  D3TRI *tri;
+  D3VERTEX *v, *a, *b, *c;
+  float inv[3];
+  int i, n, hmax;
 
-    if (obj->info && !((h->mask & (obj->stateFlags >> 2 & 3)) && !(obj->stateFlags & 0x10))) {
-        for (i = 0; i < 3; i++)
-            inv[i] = 1.0f / (&h->cell.x)[i];
-        for (i = 0, v = obj->info->keys; i < obj->info->nkeys; i++, v++) {
-            v->gx = (v->x - h->origin.x) * inv[0] + 0.875f;
-            v->gz = (v->z - h->origin.z) * inv[2] + 0.875f;
-            v->hmHeight = (unsigned char)min(254.0f, max(1.0f, (v->y - h->origin.y) * inv[1]));
-            v->hmFlags = (!(h->mask & (obj->stateFlags >> 2 & 3)) | ((obj->stateFlags & 0x20) == 0x20) << 1) << 1 | (obj->stateFlags & 0x10) == 0x10;
-        }
-        m = obj->info;
-        n = min(m->ntris, d3_Cfg.maxpolys - (int)d3_SortCount);
-        for (tri = m->tris; n > 0; n--, tri++) {
-            D3VECTOR4 nrm;
-
-            a = tri->v[0];
-            b = tri->v[1];
-            c = tri->v[2];
-            d3_TriNormal(&a->pos, &b->pos, &c->pos, &nrm.v);
-            if (fabs(nrm.y) < 0.05f && !(obj->stateFlags & 0x40)) {
-                tri->hmSolid = 1;
-                tri->hmCast = 1;
-            } else {
-                tri->hmCast = (tri->drawFlags & 4) || b->gz * c->gx - (b->gx) * c->gz + b->gx * a->gz - b->gz * a->gx + c->gz * a->gx - c->gx * a->gz < 0.0f;
-                tri->hmSolid = 0;
-            }
-            if (tri->hmCast && !(tri->drawFlags & 2)) {
-                if (a->gx >= 0.0f && a->gx < h->size && a->gz >= 0.0f && a->gz < h->size
-                    && b->gx >= 0.0f && b->gx < h->size && b->gz >= 0.0f && b->gz < h->size
-                    && c->gx >= 0.0f && c->gx < h->size && c->gz >= 0.0f && c->gz < h->size) {
-                    d3_SortPtr->item = tri;
-                    d3_SortCount++;
-                    hmax = a->hmHeight;
-                    if (hmax <= b->hmHeight)
-                        hmax = b->hmHeight;
-                    hmax = max(hmax, c->hmHeight);
-                    d3_SortPtr->key = hmax * 0x300;
-                    d3_SortPtr++;
-                }
-            }
-        }
+  if (obj->info &&
+      !((h->mask & (obj->stateFlags >> 2 & 3)) && !(obj->stateFlags & 0x10))) {
+    for (i = 0; i < 3; i++)
+      inv[i] = 1.0f / (&h->cell.x)[i];
+    for (i = 0, v = obj->info->keys; i < obj->info->nkeys; i++, v++) {
+      v->gx = (v->x - h->origin.x) * inv[0] + 0.875f;
+      v->gz = (v->z - h->origin.z) * inv[2] + 0.875f;
+      v->hmHeight =
+          (unsigned char)min(254.0f, max(1.0f, (v->y - h->origin.y) * inv[1]));
+      v->hmFlags = (!(h->mask & (obj->stateFlags >> 2 & 3)) |
+                    ((obj->stateFlags & 0x20) == 0x20) << 1)
+                       << 1 |
+                   (obj->stateFlags & 0x10) == 0x10;
     }
-    return 1;
+    m = obj->info;
+    n = min(m->ntris, d3_Cfg.maxpolys - (int)d3_SortCount);
+    for (tri = m->tris; n > 0; n--, tri++) {
+      D3VECTOR4 nrm;
+
+      a = tri->v[0];
+      b = tri->v[1];
+      c = tri->v[2];
+      d3_TriNormal(&a->pos, &b->pos, &c->pos, &nrm.v);
+      if (fabs(nrm.y) < 0.05f && !(obj->stateFlags & 0x40)) {
+        tri->hmSolid = 1;
+        tri->hmCast = 1;
+      } else {
+        tri->hmCast = (tri->drawFlags & 4) ||
+                      b->gz * c->gx - (b->gx) * c->gz + b->gx * a->gz -
+                              b->gz * a->gx + c->gz * a->gx - c->gx * a->gz <
+                          0.0f;
+        tri->hmSolid = 0;
+      }
+      if (tri->hmCast && !(tri->drawFlags & 2)) {
+        if (a->gx >= 0.0f && a->gx < h->size && a->gz >= 0.0f &&
+            a->gz < h->size && b->gx >= 0.0f && b->gx < h->size &&
+            b->gz >= 0.0f && b->gz < h->size && c->gx >= 0.0f &&
+            c->gx < h->size && c->gz >= 0.0f && c->gz < h->size) {
+          d3_SortPtr->item = tri;
+          d3_SortCount++;
+          hmax = a->hmHeight;
+          if (hmax <= b->hmHeight)
+            hmax = b->hmHeight;
+          hmax = max(hmax, c->hmHeight);
+          d3_SortPtr->key = hmax * 0x300;
+          d3_SortPtr++;
+        }
+      }
+    }
+  }
+  return 1;
 }
 /* 0x45e560, cells of type from enclosed by from/to on all four sides become to */
 
-void d3sm_Replace(D3SM *h, int from, int to)
-{
-    D3SMENTRY *e;
-    int x, z;
+void d3sm_Replace(D3SM *h, int from, int to) {
+  D3SMENTRY *e;
+  int x, z;
 
-    for (z = 1; z < h->size - 1; z++) {
-        e = &h->entries[h->size * z + 1];
-        for (x = 1; x < h->size - 1; x++, e++) {
-            if (e->type == from
-                && (e[-h->size].type == from || e[-h->size].type == to)
-                && (e[h->size].type == from || e[h->size].type == to)
-                && (e[-1].type == from || e[-1].type == to)
-                && (e[1].type == from || e[1].type == to))
-                e->type = to;
-        }
+  for (z = 1; z < h->size - 1; z++) {
+    e = &h->entries[h->size * z + 1];
+    for (x = 1; x < h->size - 1; x++, e++) {
+      if (e->type == from &&
+          (e[-h->size].type == from || e[-h->size].type == to) &&
+          (e[h->size].type == from || e[h->size].type == to) &&
+          (e[-1].type == from || e[-1].type == to) &&
+          (e[1].type == from || e[1].type == to))
+        e->type = to;
     }
+  }
 }
 /* 0x45e620, (re)builds the map from the terrain and the objects of the default scene
    @deep frame sweep s21: ours 0xf8 vs the original's 0x108 (16 bytes short). D3VECTOR4 subsets of pos /
@@ -247,350 +272,357 @@ void d3sm_Replace(D3SM *h, int from, int to)
    frame 0x114, worse). Next: the mn/mx reference counts (the original packs mx with nrm densest, mn below
    box: something references mx more or mn less than our min/max macros do) (tiebreak: insensitive) */
 
-void d3sm_Build(D3SM *h, D3FLMAP *t)
-{
-    D3VECTOR pos, rot;
-    D3VECTOR4 box[2];
-    float f, lo, hi;
-    int top, bot;
-    int i, j, k, radius, last;
-    D3TRI *tri;
-    unsigned char *hm;              /* @original: the walk is based at the tiles' height range (lea [t+0x13c], the
-                                       hmin of tiles[0][0], hmax at [+1], += 0x64); a D3FLTILE * walk bases at
-                                       the tile and reads [+0x5c] / [+0x5d] (4 ins more) */
-    D3SMENTRY *e;
+void d3sm_Build(D3SM *h, D3FLMAP *t) {
+  D3VECTOR pos, rot;
+  D3VECTOR4 box[2];
+  float f, lo, hi;
+  int top, bot;
+  int i, j, k, radius, last;
+  D3TRI *tri;
+  /* clang-format off */
+  unsigned char *hm;              /* @original: the walk is based at the tiles' height range (lea [t+0x13c], the
+                                     hmin of tiles[0][0], hmax at [+1], += 0x64); a D3FLTILE * walk bases at
+                                     the tile and reads [+0x5c] / [+0x5d] (4 ins more) */
+  /* clang-format on */
+  D3SMENTRY *e;
 
-    if (!h || h->size <= 0 || !h->data || !d3_Camera)
-        return;
-    d3_Busy++;
-    pos.x = d3_Camera->pos.x;
-    pos.y = d3_Camera->pos.y;
-    pos.z = d3_Camera->pos.z;
-    rot.x = d3_Camera->rotation.x;
-    rot.y = d3_Camera->rotation.y;
-    rot.z = d3_Camera->rotation.z;
-    d3_SetObjectPosXYZ(d3_Camera, 0, 0, 0);
-    d3_SetObjectRotXYZ(d3_Camera, 0, 0, 0);
-    d3_TransformMeshes();
-    box[0].x = 1e10f;
-    box[0].y = 1e10f;
-    box[0].z = 1e10f;
-    box[1].x = -1e10f;
-    box[1].y = -1e10f;
-    box[1].z = -1e10f;
-    d3_ForEachObject(d3_DefaultScene, 0, 0x40, (D3OBJECTCB)d3sm_BoundsCB, box);
-    if (h->entries) {
-        D3_ZERO(h->entries, h->size * h->size * sizeof(D3SMENTRY));
-        for (i = 0, e = h->entries; i < h->size * h->size; i++, e++)
-            e->type = 1;
-    }
-    if (t) {
-        D3VECTOR4 corner[8];
-        D3VECTOR mn, mx;
-        float ax, ay, az, x0, y0, z0;
+  if (!h || h->size <= 0 || !h->data || !d3_Camera)
+    return;
+  d3_Busy++;
+  pos.x = d3_Camera->pos.x;
+  pos.y = d3_Camera->pos.y;
+  pos.z = d3_Camera->pos.z;
+  rot.x = d3_Camera->rotation.x;
+  rot.y = d3_Camera->rotation.y;
+  rot.z = d3_Camera->rotation.z;
+  d3_SetObjectPosXYZ(d3_Camera, 0, 0, 0);
+  d3_SetObjectRotXYZ(d3_Camera, 0, 0, 0);
+  d3_TransformMeshes();
+  box[0].x = 1e10f;
+  box[0].y = 1e10f;
+  box[0].z = 1e10f;
+  box[1].x = -1e10f;
+  box[1].y = -1e10f;
+  box[1].z = -1e10f;
+  d3_ForEachObject(d3_DefaultScene, 0, 0x40, (D3OBJECTCB)d3sm_BoundsCB, box);
+  if (h->entries) {
+    D3_ZERO(h->entries, h->size * h->size * sizeof(D3SMENTRY));
+    for (i = 0, e = h->entries; i < h->size * h->size; i++, e++)
+      e->type = 1;
+  }
+  if (t) {
+    D3VECTOR4 corner[8];
+    D3VECTOR mn, mx;
+    float ax, ay, az, x0, y0, z0;
 
-        top = 0;
-        bot = 0xff;
-        hm = &t->tiles[0][0].hmin;
-        for (i = 8; i; i--) {
-            for (j = 8; j; j--, hm += sizeof(D3FLTILE)) {
-                top = max(top, hm[1]);
-                bot = min(bot, hm[0]);
-            }
-        }
-        x0 = bot * t->yAxisX + t->orgx;
-        y0 = bot * t->hscale + t->orgy;
-        z0 = bot * t->yAxisZ + t->orgz;
-        corner[0].x = x0;
-        corner[0].y = y0;
-        corner[0].z = z0;
-        f = (float)t->size;
-        corner[1].x = (ax = f * t->scale) + x0;
-        corner[1].y = (ay = f * t->xAxisY) + y0;
-        corner[1].z = (az = f * t->xAxisZ) + z0;
-        corner[2].x = f * t->zAxisX + x0;
-        corner[2].y = f * t->zAxisY + y0;
-        corner[2].z = f * t->negScale + z0;
-        corner[3].x = corner[2].x + ax;
-        corner[3].y = corner[2].y + ay;
-        corner[3].z = corner[2].z + az;
-        f = (float)(top - bot);
-        for (i = 0; i < 4; i++) {
-            corner[i + 4].x = f * t->yAxisX + corner[i].x;
-            corner[i + 4].y = f * t->hscale + corner[i].y;
-            corner[i + 4].z = f * t->yAxisZ + corner[i].z;
-        }
-        mn.x = 1e10f;
-        mn.y = 1e10f;
-        mn.z = 1e10f;
-        mx.x = -1e10f;
-        mx.y = -1e10f;
-        mx.z = -1e10f;
-        for (i = 0; i < 8; i++) {
-            mn.x = min(mn.x, corner[i].x);
-            mn.y = min(mn.y, corner[i].y);
-            mn.z = min(mn.z, corner[i].z);
-            mx.x = max(mx.x, corner[i].x);
-            mx.y = max(mx.y, corner[i].y);
-            mx.z = max(mx.z, corner[i].z);
-        }
-        box[0].y = min(box[0].y, mn.y);
-        box[1].y = max(box[1].y, mx.y);
-        box[0].x = mn.x;
-        box[1].x = mx.x;
-        box[0].z = mn.z;
-        box[1].z = mx.z;
+    top = 0;
+    bot = 0xff;
+    hm = &t->tiles[0][0].hmin;
+    for (i = 8; i; i--) {
+      for (j = 8; j; j--, hm += sizeof(D3FLTILE)) {
+        top = max(top, hm[1]);
+        bot = min(bot, hm[0]);
+      }
     }
-    h->origin.y = box[0].y + 1.0f;
-    h->origin.x = box[0].x;
-    h->origin.z = box[1].z;               /* z runs from the far edge: origin at the maximum, a negative cell (0x45ea01 / 0x45ea27) */
-    h->cell.x = (box[1].x - box[0].x) / ((float)h->size - 1.75f);
-    h->cell.y = (box[1].y - box[0].y) * (1.0f / 253.0f);
-    h->cell.z = (box[0].z - box[1].z) / ((float)h->size - 1.75f);
-    radius = (int)(50.0f / h->cell.x + 0.5f) / 4;
-    if (radius < 1)
-        radius = 1;
-    else if (radius > 4)
-        radius = 4;
-    if (t)
-        d3sm_Sample(t, h);
-    else
-        D3_ZERO(h->data, h->size * h->size);
-    d3_SortCount = 0;
-    d3_SortPtr = d3_SortBuf;
-    d3_ForEachObject(d3_DefaultScene, 0, 0x40, (D3OBJECTCB)d3sm_ShadowCB, h);
-    d3_RadixSort(d3_SortCount, 0);
-    for (k = 0; k < (int)d3_SortCount; k++) {
-        float uv[3][2];
-        unsigned char hs[3];
-        D3VECTOR4 nrm;
-        float dx, dz, lim;
+    x0 = bot * t->yAxisX + t->orgx;
+    y0 = bot * t->hscale + t->orgy;
+    z0 = bot * t->yAxisZ + t->orgz;
+    corner[0].x = x0;
+    corner[0].y = y0;
+    corner[0].z = z0;
+    f = (float)t->size;
+    corner[1].x = (ax = f * t->scale) + x0;
+    corner[1].y = (ay = f * t->xAxisY) + y0;
+    corner[1].z = (az = f * t->xAxisZ) + z0;
+    corner[2].x = f * t->zAxisX + x0;
+    corner[2].y = f * t->zAxisY + y0;
+    corner[2].z = f * t->negScale + z0;
+    corner[3].x = corner[2].x + ax;
+    corner[3].y = corner[2].y + ay;
+    corner[3].z = corner[2].z + az;
+    f = (float)(top - bot);
+    for (i = 0; i < 4; i++) {
+      corner[i + 4].x = f * t->yAxisX + corner[i].x;
+      corner[i + 4].y = f * t->hscale + corner[i].y;
+      corner[i + 4].z = f * t->yAxisZ + corner[i].z;
+    }
+    mn.x = 1e10f;
+    mn.y = 1e10f;
+    mn.z = 1e10f;
+    mx.x = -1e10f;
+    mx.y = -1e10f;
+    mx.z = -1e10f;
+    for (i = 0; i < 8; i++) {
+      mn.x = min(mn.x, corner[i].x);
+      mn.y = min(mn.y, corner[i].y);
+      mn.z = min(mn.z, corner[i].z);
+      mx.x = max(mx.x, corner[i].x);
+      mx.y = max(mx.y, corner[i].y);
+      mx.z = max(mx.z, corner[i].z);
+    }
+    box[0].y = min(box[0].y, mn.y);
+    box[1].y = max(box[1].y, mx.y);
+    box[0].x = mn.x;
+    box[1].x = mx.x;
+    box[0].z = mn.z;
+    box[1].z = mx.z;
+  }
+  h->origin.y = box[0].y + 1.0f;
+  h->origin.x = box[0].x;
+  h->origin.z =
+      box[1]
+          .z; /* z runs from the far edge: origin at the maximum, a negative cell (0x45ea01 / 0x45ea27) */
+  h->cell.x = (box[1].x - box[0].x) / ((float)h->size - 1.75f);
+  h->cell.y = (box[1].y - box[0].y) * (1.0f / 253.0f);
+  h->cell.z = (box[0].z - box[1].z) / ((float)h->size - 1.75f);
+  radius = (int)(50.0f / h->cell.x + 0.5f) / 4;
+  if (radius < 1)
+    radius = 1;
+  else if (radius > 4)
+    radius = 4;
+  if (t)
+    d3sm_Sample(t, h);
+  else
+    D3_ZERO(h->data, h->size * h->size);
+  d3_SortCount = 0;
+  d3_SortPtr = d3_SortBuf;
+  d3_ForEachObject(d3_DefaultScene, 0, 0x40, (D3OBJECTCB)d3sm_ShadowCB, h);
+  d3_RadixSort(d3_SortCount, 0);
+  for (k = 0; k < (int)d3_SortCount; k++) {
+    float uv[3][2];
+    unsigned char hs[3];
+    D3VECTOR4 nrm;
+    float dx, dz, lim;
 
-        tri = d3_SortBuf[k].item;
-        if (tri->hmSolid) {
-            lo = 1e10f;
-            hi = -1e10f;
-            for (i = 0; i < 3; i++) {
-                f = tri->v[i]->y;
-                uv[i][0] = tri->v[i]->gx;
-                uv[i][1] = tri->v[i]->gz;
-                hs[i] = tri->v[i]->hmHeight;
-                if (f > hi) {
-                    hi = f;
-                    last = i;
-                }
-                if (f < lo) {
-                    lo = f;
-                    j = i;
-                }
-            }
-            d3_TriNormal(&tri->v[0]->pos, &tri->v[1]->pos, &tri->v[2]->pos, &nrm.v);
-            if (fabs(tri->v[d3_TriEdge[j][1]]->y + tri->v[d3_TriEdge[j][0]]->y - (lo + lo))
-                < fabs(tri->v[d3_TriEdge[last][1]]->y + tri->v[d3_TriEdge[last][0]]->y - (hi + hi)))
-                j = last;
-            dx = nrm.x * 0.875f;
-            uv[j][0] -= dx;
-            dz = nrm.z * 0.875f;
-            uv[j][1] -= dz;
-            uv[(j + 1) % 3][0] += dx;
-            uv[(j + 1) % 3][1] += dz;
-            uv[(j + 2) % 3][0] += dx;
-            uv[(j + 2) % 3][1] += dz;
-            for (i = 0; i < 3; i++) {
-                lim = (float)(h->size - 1);
-                uv[i][0] = max(0.0f, min(lim, uv[i][0]));
-                uv[i][1] = max(0.0f, min(lim, uv[i][1]));
-                hs[i] = tri->v[i]->hmHeight;
-            }
-        } else {
-            for (i = 0; i < 3; i++) {
-                lim = (float)(h->size - 1);
-                uv[i][0] = max(0.0f, min(lim, tri->v[i]->gx));
-                uv[i][1] = max(0.0f, min(lim, tri->v[i]->gz));
-                hs[i] = tri->v[i]->hmHeight;
-            }
+    tri = d3_SortBuf[k].item;
+    if (tri->hmSolid) {
+      lo = 1e10f;
+      hi = -1e10f;
+      for (i = 0; i < 3; i++) {
+        f = tri->v[i]->y;
+        uv[i][0] = tri->v[i]->gx;
+        uv[i][1] = tri->v[i]->gz;
+        hs[i] = tri->v[i]->hmHeight;
+        if (f > hi) {
+          hi = f;
+          last = i;
         }
-        d3s_ShadowTriangle(&uv[0][0], hs, h->data, h->size, tri->v[0]->hmFlags, h->entries, radius);
-    }
-    d3_SortCount = 0;
-    d3_SortPtr = d3_SortBuf;
-    if (h->entries) {
-        d3sm_Replace(h, 0xb, 0xc);
-        for (i = 0; i < h->size; i++) {
-            h->entries[i].type = 0xd;
-            h->entries[(h->size - 1) * h->size + i].type = 0xd;
-            h->entries[h->size * i].type = 0xd;
-            h->entries[h->size * (i + 1) - 1].type = 0xd;
+        if (f < lo) {
+          lo = f;
+          j = i;
         }
+      }
+      d3_TriNormal(&tri->v[0]->pos, &tri->v[1]->pos, &tri->v[2]->pos, &nrm.v);
+      if (fabs(tri->v[d3_TriEdge[j][1]]->y + tri->v[d3_TriEdge[j][0]]->y -
+               (lo + lo)) < fabs(tri->v[d3_TriEdge[last][1]]->y +
+                                 tri->v[d3_TriEdge[last][0]]->y - (hi + hi)))
+        j = last;
+      dx = nrm.x * 0.875f;
+      uv[j][0] -= dx;
+      dz = nrm.z * 0.875f;
+      uv[j][1] -= dz;
+      uv[(j + 1) % 3][0] += dx;
+      uv[(j + 1) % 3][1] += dz;
+      uv[(j + 2) % 3][0] += dx;
+      uv[(j + 2) % 3][1] += dz;
+      for (i = 0; i < 3; i++) {
+        lim = (float)(h->size - 1);
+        uv[i][0] = max(0.0f, min(lim, uv[i][0]));
+        uv[i][1] = max(0.0f, min(lim, uv[i][1]));
+        hs[i] = tri->v[i]->hmHeight;
+      }
+    } else {
+      for (i = 0; i < 3; i++) {
+        lim = (float)(h->size - 1);
+        uv[i][0] = max(0.0f, min(lim, tri->v[i]->gx));
+        uv[i][1] = max(0.0f, min(lim, tri->v[i]->gz));
+        hs[i] = tri->v[i]->hmHeight;
+      }
     }
-    d3_SetObjectPos(d3_Camera, &pos);
-    d3_SetObjectRot(d3_Camera, &rot);
-    d3_Busy--;
+    d3s_ShadowTriangle(&uv[0][0], hs, h->data, h->size, tri->v[0]->hmFlags,
+                       h->entries, radius);
+  }
+  d3_SortCount = 0;
+  d3_SortPtr = d3_SortBuf;
+  if (h->entries) {
+    d3sm_Replace(h, 0xb, 0xc);
+    for (i = 0; i < h->size; i++) {
+      h->entries[i].type = 0xd;
+      h->entries[(h->size - 1) * h->size + i].type = 0xd;
+      h->entries[h->size * i].type = 0xd;
+      h->entries[h->size * (i + 1) - 1].type = 0xd;
+    }
+  }
+  d3_SetObjectPos(d3_Camera, &pos);
+  d3_SetObjectRot(d3_Camera, &rot);
+  d3_Busy--;
 }
 /* 0x45eeb0, size < 0: shadow map (no ground types) */
 
-D3SM *d3sm_Create(D3FLMAP *t, int size, int mask)
-{
-    D3SM *h, *ret = 0;
+D3SM *d3sm_Create(D3FLMAP *t, int size, int mask) {
+  D3SM *h, *ret = 0;
 
-    if (size) {
-        h = mem_Alloc(sizeof(D3SM), "d3_sm:Create");
-        h->mask = mask;
-        h->size = abs(size);
-        h->data = mem_Alloc(h->size * h->size, "d3_sm:CreateHeight");
-        if (size > 0)
-            h->entries = mem_Alloc(h->size * h->size * sizeof(D3SMENTRY), "d3_sm:CreateEntries");
-        else
-            h->entries = 0;
-        if (h->data)
-            d3sm_Build(h, t);
-        if (size < 0) {
-            OutputDebugString("d3sm_Create(shadow)\n");
-            return h;
-        }
-        OutputDebugString("d3sm_Create\n");
-        ret = h;
+  if (size) {
+    h = mem_Alloc(sizeof(D3SM), "d3_sm:Create");
+    h->mask = mask;
+    h->size = abs(size);
+    h->data = mem_Alloc(h->size * h->size, "d3_sm:CreateHeight");
+    if (size > 0)
+      h->entries = mem_Alloc(h->size * h->size * sizeof(D3SMENTRY),
+                             "d3_sm:CreateEntries");
+    else
+      h->entries = 0;
+    if (h->data)
+      d3sm_Build(h, t);
+    if (size < 0) {
+      OutputDebugString("d3sm_Create(shadow)\n");
+      return h;
     }
-    return ret;
+    OutputDebugString("d3sm_Create\n");
+    ret = h;
+  }
+  return ret;
 }
 /* 0x45ef60, frees a height map with its entries and data; prints "d3sm_Destroy(shadow)" when it is the
    global d3sm_Shadow map */
 
-void d3sm_Destroy(D3SM *h)
-{
-    if (h) {
-        if (h == d3sm_Shadow)
-            OutputDebugString("d3sm_Destroy(shadow)\n");
-        else
-            OutputDebugString("d3sm_Destroy\n");
-        if (h->entries) {
-            mem_Free(h->entries);
-            h->entries = 0;
-        }
-        if (h->data) {
-            mem_Free(h->data);
-            h->data = 0;
-        }
-        mem_Free(h);
+void d3sm_Destroy(D3SM *h) {
+  if (h) {
+    if (h == d3sm_Shadow)
+      OutputDebugString("d3sm_Destroy(shadow)\n");
+    else
+      OutputDebugString("d3sm_Destroy\n");
+    if (h->entries) {
+      mem_Free(h->entries);
+      h->entries = 0;
     }
+    if (h->data) {
+      mem_Free(h->data);
+      h->data = 0;
+    }
+    mem_Free(h);
+  }
 }
 /* 0x45efc0, the cell nearest to (x, z) (in rings of growing distance) with a real ground type */
 
-char d3sm_FindGround(D3SM *h, int x, int z, int *ox, int *oz)
-{
-    int r = 0, xx, zz, x1, z1, w;
+char d3sm_FindGround(D3SM *h, int x, int z, int *ox, int *oz) {
+  int r = 0, xx, zz, x1, z1, w;
 
-    if (h && h->entries && ox && oz && h->size > 0) {
-        do {
-            z1 = min(h->size - 1, z + r);
-            for (zz = max(0, z - r); zz <= z1; zz++) {
-                w = r - abs(z - zz);
-                x1 = min(h->size - 1, x + w);
-                for (xx = max(0, x - w); xx <= x1; xx++) {
-                    if (zz >= 0 && zz < h->size && xx >= 0 && xx < h->size
-                        && h->entries[zz * h->size + xx].type != 0 && h->entries[zz * h->size + xx].type != 0xd) {
-                        *ox = xx;
-                        *oz = zz;
-                        return 1;
-                    }
-                }
-            }
-            r++;
-        } while (r < h->size);
-    }
-    return 0;
+  if (h && h->entries && ox && oz && h->size > 0) {
+    do {
+      z1 = min(h->size - 1, z + r);
+      for (zz = max(0, z - r); zz <= z1; zz++) {
+        w = r - abs(z - zz);
+        x1 = min(h->size - 1, x + w);
+        for (xx = max(0, x - w); xx <= x1; xx++) {
+          if (zz >= 0 && zz < h->size && xx >= 0 && xx < h->size &&
+              h->entries[zz * h->size + xx].type != 0 &&
+              h->entries[zz * h->size + xx].type != 0xd) {
+            *ox = xx;
+            *oz = zz;
+            return 1;
+          }
+        }
+      }
+      r++;
+    } while (r < h->size);
+  }
+  return 0;
 }
 /* 0x45f100, world position of map vertex (x, z) */
-char d3sm_GetVertex(D3SM *h, int x, int z, D3VECTOR *out)
-{
-    if (h && x >= 0 && x < h->size && z >= 0 && z < h->size) {
-        out->x = x * h->cell.x + h->origin.x;
-        out->y = h->data[h->size * z + x] * h->cell.y + h->origin.y;
-        out->z = z * h->cell.z + h->origin.z;
-        return 1;
-    }
-    return 0;
+char d3sm_GetVertex(D3SM *h, int x, int z, D3VECTOR *out) {
+  if (h && x >= 0 && x < h->size && z >= 0 && z < h->size) {
+    out->x = x * h->cell.x + h->origin.x;
+    out->y = h->data[h->size * z + x] * h->cell.y + h->origin.y;
+    out->z = z * h->cell.z + h->origin.z;
+    return 1;
+  }
+  return 0;
 }
 /* 0x45f170, cell of pos and (h != 0) the interpolated height there */
 
-char d3_GetHeightAt(D3SM *h, D3VECTOR *pos, int *px, int *pz, float *py)
-{
-    int x, z;
-    float y, yz, yx;
+char d3_GetHeightAt(D3SM *h, D3VECTOR *pos, int *px, int *pz, float *py) {
+  int x, z;
+  float y, yz, yx;
 
-    if (h) {
-        x = (int)((pos->x - h->origin.x) / h->cell.x);
-        z = (int)((pos->z - h->origin.z) / h->cell.z);
-        if (x >= 0 && x < h->size && z >= 0 && z < h->size && px && pz) {
-            *px = x;
-            *pz = z;
-            if (py) {
-                y = (h->data[h->size * z + x] + 0.5f) * h->cell.y + h->origin.y;
-                yz = (h->data[(z + 1 & h->size - 1) * h->size + x] + 0.5f) * h->cell.y + h->origin.y;
-                yx = (h->data[h->size * z + (x + 1 & h->size - 1)] + 0.5f) * h->cell.y + h->origin.y;
-                *py = (yz - y) * ((pos->z - (z * h->cell.z + h->origin.z)) / h->cell.z)
-                    + (yx - y) * ((pos->x - (x * h->cell.x + h->origin.x)) / h->cell.x) + y;
-            }
-            return 1;
-        }
+  if (h) {
+    x = (int)((pos->x - h->origin.x) / h->cell.x);
+    z = (int)((pos->z - h->origin.z) / h->cell.z);
+    if (x >= 0 && x < h->size && z >= 0 && z < h->size && px && pz) {
+      *px = x;
+      *pz = z;
+      if (py) {
+        y = (h->data[h->size * z + x] + 0.5f) * h->cell.y + h->origin.y;
+        yz = (h->data[(z + 1 & h->size - 1) * h->size + x] + 0.5f) * h->cell.y +
+             h->origin.y;
+        yx = (h->data[h->size * z + (x + 1 & h->size - 1)] + 0.5f) * h->cell.y +
+             h->origin.y;
+        *py =
+            (yz - y) * ((pos->z - (z * h->cell.z + h->origin.z)) / h->cell.z) +
+            (yx - y) * ((pos->x - (x * h->cell.x + h->origin.x)) / h->cell.x) +
+            y;
+      }
+      return 1;
     }
-    return 0;
+  }
+  return 0;
 }
 /* 0x45f2b0, the map cell under the screen point (sx, sy): steps along the view ray */
 
-char d3sm_Pick(D3SM *h, int sx, int sy, int *px, int *pz)
-{
-    D3MATRIX m;
-    D3VECTOR4 s, p, d;              /* the screen point, the camera position and the ray, in cells */
-    float step;
-    int ix, iz;
+char d3sm_Pick(D3SM *h, int sx, int sy, int *px, int *pz) {
+  D3MATRIX m;
+  D3VECTOR4 s, p,
+      d; /* the screen point, the camera position and the ray, in cells */
+  float step;
+  int ix, iz;
 
-    if (!h)
-        return 0;
-    p.x = d3_Camera->pos.x - h->origin.x;
-    p.y = d3_Camera->pos.y - h->origin.y;
-    p.z = d3_Camera->pos.z - h->origin.z;
-    p.x /= h->cell.x;
-    p.y /= h->cell.y;
-    p.z /= h->cell.z;
-    s.x = (sx - d3_CenterX) / d3_ScaleX;
-    s.y = (sy - d3_CenterY) / d3_ScaleY;
-    d3_MatTranspose(&d3_Camera->matrix, &m);
-    d.x = m._21 * s.y + m._11 * s.x + m._31;
-    d.y = m._22 * s.y + m._12 * s.x + m._32;
-    d.z = m._23 * s.y + m._13 * s.x + m._33;
-    d.x /= h->cell.x;
-    d.y /= h->cell.y;
-    d.z /= h->cell.z;
-    if (fabs(d.x) < 0.0001f && fabs(d.z) < 0.0001f) {
-        ix = (int)p.x;
-        iz = (int)p.z;
-        if (d.y > 0.0f && h->data[h->size * iz + ix] < p.y)
-            return 0;
-        *px = ix;
-        *pz = iz;
-        return 1;
-    }
-    step = 1.0f / (float)max(fabs(d.x), fabs(d.z));
-    d.x *= step;
-    d.y *= step;
-    d.z *= step;
-    while (p.x >= -h->size * 0.75f) {
-        /* off the map and its margin: give up */
-        if (!(p.x < h->size * 1.75f && p.z >= -h->size * 1.75f && p.z < h->size * 1.75f))
-            return 0;
-        if (p.x >= 0.0f && p.x < h->size && p.z >= 0.0f && p.z < h->size) {
-            iz = (int)(p.z + 0.5f);
-            ix = (int)(p.x + 0.5f);
-            if (h->data[iz * h->size + ix] >= p.y) {
-                *px = (int)(p.x + 0.5f);
-                *pz = (int)(p.z + 0.5f);
-                return 1;
-            }
-        }
-        p.x += d.x;
-        p.y += d.y;
-        p.z += d.z;
-    }
+  if (!h)
     return 0;
+  p.x = d3_Camera->pos.x - h->origin.x;
+  p.y = d3_Camera->pos.y - h->origin.y;
+  p.z = d3_Camera->pos.z - h->origin.z;
+  p.x /= h->cell.x;
+  p.y /= h->cell.y;
+  p.z /= h->cell.z;
+  s.x = (sx - d3_CenterX) / d3_ScaleX;
+  s.y = (sy - d3_CenterY) / d3_ScaleY;
+  d3_MatTranspose(&d3_Camera->matrix, &m);
+  d.x = m._21 * s.y + m._11 * s.x + m._31;
+  d.y = m._22 * s.y + m._12 * s.x + m._32;
+  d.z = m._23 * s.y + m._13 * s.x + m._33;
+  d.x /= h->cell.x;
+  d.y /= h->cell.y;
+  d.z /= h->cell.z;
+  if (fabs(d.x) < 0.0001f && fabs(d.z) < 0.0001f) {
+    ix = (int)p.x;
+    iz = (int)p.z;
+    if (d.y > 0.0f && h->data[h->size * iz + ix] < p.y)
+      return 0;
+    *px = ix;
+    *pz = iz;
+    return 1;
+  }
+  step = 1.0f / (float)max(fabs(d.x), fabs(d.z));
+  d.x *= step;
+  d.y *= step;
+  d.z *= step;
+  while (p.x >= -h->size * 0.75f) {
+    /* off the map and its margin: give up */
+    if (!(p.x < h->size * 1.75f && p.z >= -h->size * 1.75f &&
+          p.z < h->size * 1.75f))
+      return 0;
+    if (p.x >= 0.0f && p.x < h->size && p.z >= 0.0f && p.z < h->size) {
+      iz = (int)(p.z + 0.5f);
+      ix = (int)(p.x + 0.5f);
+      if (h->data[iz * h->size + ix] >= p.y) {
+        *px = (int)(p.x + 0.5f);
+        *pz = (int)(p.z + 0.5f);
+        return 1;
+      }
+    }
+    p.x += d.x;
+    p.y += d.y;
+    p.z += d.z;
+  }
+  return 0;
 }

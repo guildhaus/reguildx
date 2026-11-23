@@ -4,11 +4,12 @@
    here. Needs <ddraw.h>. Names are ours. */
 #ifndef UNK_41EBC0_H
 #define UNK_41EBC0_H
-#include <windows.h>                  /* Win32 types */
-#include <ddraw.h>                    /* DDSURFACEDESC2 */
+#include <windows.h> /* Win32 types */
+#include <ddraw.h>   /* DDSURFACEDESC2 */
 
 /* Inline-asm copy in the style of D3_ZERO: byte moves up to dword alignment of dst, dwords, bytes.
    n must be a plain variable. */
+/* clang-format off */
 #define SURF_COPY(dst, src, n) {                                    \
     void *_cs = (src); void *_cd = (dst);                           \
     __asm mov edi, _cd                                              \
@@ -26,18 +27,29 @@
     __asm D3_ZERO_LABEL(__LINE__): add ecx, ebx                     \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 
-void surf_Scale8(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                              /* 0x41ebc0 */
-void surf_Shrink16(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                             /* 0x41ec50 */
-void surf_Shrink24(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                             /* 0x41ee70 */
-void surf_Down32(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                             /* 0x41f000, box filter */
-void surf_Up8(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                                /* 0x41f220, nearest */
-void surf_Up16(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                               /* 0x41f2b0, bilinear */
-void surf_Up24(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                               /* 0x41f800, bilinear */
-void surf_Up32(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                               /* 0x41fc00, bilinear */
-void surf_ScaleBlit(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                       /* 0x420140, scales src down into dst */
-void surf_Pal8To16(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src, PALETTEENTRY *pal);        /* 0x4202d0 */
-void surf_24To16(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);                             /* 0x420450 */
-void surf_Blit(DDSURFACEDESC2 *dst, PALETTEENTRY *dstpal, DDSURFACEDESC2 *src, PALETTEENTRY *srcpal); /* 0x4205c0, copies a same-size src surface into dst, converting the pixel format */
+void surf_Scale8(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src);   /* 0x41ebc0 */
+void surf_Shrink16(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src); /* 0x41ec50 */
+void surf_Shrink24(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src); /* 0x41ee70 */
+void surf_Down32(DDSURFACEDESC2 *dst,
+                 DDSURFACEDESC2 *src); /* 0x41f000, box filter */
+void surf_Up8(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src); /* 0x41f220, nearest */
+void surf_Up16(DDSURFACEDESC2 *dst,
+               DDSURFACEDESC2 *src); /* 0x41f2b0, bilinear */
+void surf_Up24(DDSURFACEDESC2 *dst,
+               DDSURFACEDESC2 *src); /* 0x41f800, bilinear */
+void surf_Up32(DDSURFACEDESC2 *dst,
+               DDSURFACEDESC2 *src); /* 0x41fc00, bilinear */
+void surf_ScaleBlit(
+    DDSURFACEDESC2 *dst,
+    DDSURFACEDESC2 *src); /* 0x420140, scales src down into dst */
+void surf_Pal8To16(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src,
+                   PALETTEENTRY *pal);                      /* 0x4202d0 */
+void surf_24To16(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src); /* 0x420450 */
+void surf_Blit(
+    DDSURFACEDESC2 *dst, PALETTEENTRY *dstpal, DDSURFACEDESC2 *src,
+    PALETTEENTRY *
+        srcpal); /* 0x4205c0, copies a same-size src surface into dst, converting the pixel format */
 
 #endif

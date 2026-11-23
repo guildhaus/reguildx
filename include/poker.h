@@ -10,64 +10,69 @@ struct AMTKIND;
 
 #pragma pack(push, 1)
 #pragma pack(pop)
-typedef struct G10SEAT {                /* 0x34 bytes; seat 0 is the player, 1 and 2 the NPCs */
-    AICHAR *who;                        /* 0x00, the player's character (seat 0) or an opponent (ai_PokerOpponents) */
-    int model;                          /* 0x04, 0x639 + the model's index (0x4fb770) */
-    int card[5];                        /* 0x08, indices into the deck, -1 = none */
-    int bet;                            /* 0x1c, what the seat has put into the pot this round (+= stake2) */
-    int bold;                           /* 0x20, 1 for one NPC in five (rolled per round): folds only with a clearly better open hand (reasoned name) */
-    int swapped;                        /* 0x24, the card the seat gave away in the exchange, -1 = none */
-    int foldedAt;                       /* 0x28, the phase the seat folded in, -1 = still playing */
-    int strategy;                       /* 0x2c, the NPC's exchange strategy (0x4a77e0: 1 keep pairs, 2 the most common rank, 3 ..) */
-    int hand;                           /* 0x30, the hand kind at the showdown (ai_PokerRateHand) */
+typedef struct
+    G10SEAT { /* 0x34 bytes; seat 0 is the player, 1 and 2 the NPCs */
+  AICHAR *
+      who; /* 0x00, the player's character (seat 0) or an opponent (ai_PokerOpponents) */
+  int model;   /* 0x04, 0x639 + the model's index (0x4fb770) */
+  int card[5]; /* 0x08, indices into the deck, -1 = none */
+  int bet; /* 0x1c, what the seat has put into the pot this round (+= stake2) */
+  int bold; /* 0x20, 1 for one NPC in five (rolled per round): folds only with a clearly better open hand (reasoned name) */
+  int swapped; /* 0x24, the card the seat gave away in the exchange, -1 = none */
+  int foldedAt; /* 0x28, the phase the seat folded in, -1 = still playing */
+  int strategy; /* 0x2c, the NPC's exchange strategy (0x4a77e0: 1 keep pairs, 2 the most common rank, 3 ..) */
+  int hand;     /* 0x30, the hand kind at the showdown (ai_PokerRateHand) */
 } G10SEAT;
-typedef struct G10GAME {                /* 0xc0 bytes, the game the caller hands to 0x4a7140 (0xf83654) */
-    int phase;                          /* 0x00 */
-    G10SEAT seat[3];                    /* 0x04 */
-    int pot;                            /* 0xa0, the money in the pot (+= stake2 per bet; paid to the winner at the round end) */
-    int stake;                          /* 0xa4 */
-    int money;                          /* 0xa8 */
-    int stake2;                         /* 0xac */
-    int turn;                           /* 0xb0, 0..2, the seat whose turn it is (0x4a86f0: that NPC sets the stake; 0 = the player's dialog); rolled per round */
-    unsigned char left;                 /* 0xb4, cards left in the deck */
-    unsigned char dealt;                /* 0xb5, the cards dealt this round (+3 at the deal, +1 per further card) */
-    short pad;
-    short winner;                       /* 0xb8, the winning seat of the round (ai_PokerShowdown at the round end; 0 = the player), 4 = none yet (ai_PokerStart) */
-    short padba;
-    int winHand;                        /* 0xbc, the hand kind of the round's winner */
+typedef struct
+    G10GAME { /* 0xc0 bytes, the game the caller hands to 0x4a7140 (0xf83654) */
+  int phase;  /* 0x00 */
+  G10SEAT seat[3]; /* 0x04 */
+  int pot; /* 0xa0, the money in the pot (+= stake2 per bet; paid to the winner at the round end) */
+  int stake;  /* 0xa4 */
+  int money;  /* 0xa8 */
+  int stake2; /* 0xac */
+  int turn; /* 0xb0, 0..2, the seat whose turn it is (0x4a86f0: that NPC sets the stake; 0 = the player's dialog); rolled per round */
+  unsigned char left; /* 0xb4, cards left in the deck */
+  unsigned char
+      dealt; /* 0xb5, the cards dealt this round (+3 at the deal, +1 per further card) */
+  short pad;
+  short
+      winner; /* 0xb8, the winning seat of the round (ai_PokerShowdown at the round end; 0 = the player), 4 = none yet (ai_PokerStart) */
+  short padba;
+  int winHand; /* 0xbc, the hand kind of the round's winner */
 } G10GAME;
-typedef struct G10CARD {                /* 16 bytes, the deck at 0xf83660 (24 cards) */
-    int suit;                           /* 0x0 */
-    int rank;                           /* 0x4, 0..3 */
-    int owner;                          /* 0x8, the seat holding it, 3 = in the deck */
-    int shown;                          /* 0xc */
+typedef struct G10CARD { /* 16 bytes, the deck at 0xf83660 (24 cards) */
+  int suit;              /* 0x0 */
+  int rank;              /* 0x4, 0..3 */
+  int owner;             /* 0x8, the seat holding it, 3 = in the deck */
+  int shown;             /* 0xc */
 } G10CARD;
-extern G10GAME *ai_PokerTable;                                                    /* 0xf83654 */
-extern G10CARD ai_PokerDeck[24];                                                 /* 0xf83660 */
-extern AICHAR ai_PokerOpponents[2];                                                   /* 0xf837e0 */
+extern G10GAME *ai_PokerTable;      /* 0xf83654 */
+extern G10CARD ai_PokerDeck[24];    /* 0xf83660 */
+extern AICHAR ai_PokerOpponents[2]; /* 0xf837e0 */
 
-
-
-int ai_PokerStart(AICHAR *p, G10GAME *g);                                          /* 0x4a7140 */
-int ai_PokerDealRound(G10GAME *g);                                                    /* 0x4a7430 */
-unsigned short ai_PokerStep(void);                                                        /* 0x4a74e0 */
-int ai_PokerFindPair(int *hand, int shown, int skip, int *out);                         /* 0x4a7650 */
-int ai_PokerHighCard(int *hand, int high);                                           /* 0x4a76d0 */
-int ai_PokerDrawCard(int owner);                                                     /* 0x4a7760 */
-void ai_PokerNpcExchange(void);                                                         /* 0x4a77e0 */
-void ai_PokerSwapCard(G10SEAT *s, int k);                                            /* 0x4a79d0 */
-void ai_PokerPayStakes(void);                                                         /* 0x4a7a20 */
-void ai_PokerPickStrategies(void);                                                         /* 0x4a7ac0 */
-void ai_PokerNpcFold(void);                                                         /* 0x4a7c20 */
-void ai_PokerOpenCounts(G10SEAT *s, int *n, int *g, int *m, int *r);                 /* 0x4a7e70 */
-int ai_PokerRateHand(int owner, int *g1, int *g2, int *r1, int *r2);              /* 0x4a7f50 */
-int ai_PokerShowdown(void);                                                          /* 0x4a8190 */
-void ai_PokerDealThree(void);                                                         /* 0x4a8520 */
-void ai_PokerDealFourth(void);                                                         /* 0x4a8590 */
-void ai_PokerDealFifth(void);                                                         /* 0x4a85e0 */
-void ai_PokerExchange(int k);                                                        /* 0x4a8630 */
-void ai_PokerAnte(void);                                                         /* 0x4a8650 */
-void ai_PokerEndRound(void);                                                         /* 0x4a8690 */
-void ai_PokerNpcSetStake(void);                                                         /* 0x4a86f0 */
+int ai_PokerStart(AICHAR *p, G10GAME *g);                       /* 0x4a7140 */
+int ai_PokerDealRound(G10GAME *g);                              /* 0x4a7430 */
+unsigned short ai_PokerStep(void);                              /* 0x4a74e0 */
+int ai_PokerFindPair(int *hand, int shown, int skip, int *out); /* 0x4a7650 */
+int ai_PokerHighCard(int *hand, int high);                      /* 0x4a76d0 */
+int ai_PokerDrawCard(int owner);                                /* 0x4a7760 */
+void ai_PokerNpcExchange(void);                                 /* 0x4a77e0 */
+void ai_PokerSwapCard(G10SEAT *s, int k);                       /* 0x4a79d0 */
+void ai_PokerPayStakes(void);                                   /* 0x4a7a20 */
+void ai_PokerPickStrategies(void);                              /* 0x4a7ac0 */
+void ai_PokerNpcFold(void);                                     /* 0x4a7c20 */
+void ai_PokerOpenCounts(G10SEAT *s, int *n, int *g, int *m,
+                        int *r); /* 0x4a7e70 */
+int ai_PokerRateHand(int owner, int *g1, int *g2, int *r1,
+                     int *r2);  /* 0x4a7f50 */
+int ai_PokerShowdown(void);     /* 0x4a8190 */
+void ai_PokerDealThree(void);   /* 0x4a8520 */
+void ai_PokerDealFourth(void);  /* 0x4a8590 */
+void ai_PokerDealFifth(void);   /* 0x4a85e0 */
+void ai_PokerExchange(int k);   /* 0x4a8630 */
+void ai_PokerAnte(void);        /* 0x4a8650 */
+void ai_PokerEndRound(void);    /* 0x4a8690 */
+void ai_PokerNpcSetStake(void); /* 0x4a86f0 */
 #include "aip.h"
 #endif

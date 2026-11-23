@@ -3,6 +3,4 @@
 #ifndef D3_VTX_H
 #define D3_VTX_H
 
-
-
 #endif

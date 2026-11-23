@@ -34,22 +34,31 @@
 #include "d3_pose.h"
 #include "vfs.h"
 #include "chc.h"
+/* clang-format off */
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
+/* clang-format on */
 
-char ch_AnimPath[0x100] = "x:\\gfx\\engine\\animations\\character";  /* 0x5f1120 */
-int ch_Unk5f1220 = -1;  /* 0x5f1220, an int of ch's .data block (-1) no surviving code reads (a removed function's) */
-int ch_LastUpdate = -1;  /* 0x5f1224 */
-int ch_Unk5f1228 = 1;  /* 0x5f1228, an int of ch's .data block (1) no surviving code reads (a removed function's) */
-char ch_ShadowEnabled = 1;  /* 0x5f122c */
-char ch_StepSample[0x60] = "normal_s";  /* 0x5f1230, the step sound sample name (a buffer: chc.c SetCharacterStepSample and lc.c strcpy into it) */
-float cm_SpeedFactor = 1.0f;  /* 0x5f1290, 1.0 */
-int ch_CurrentGroup = -1;  /* 0x5f1294, the group of the building the player is in; -1 = none */
-int ch_CurrentScriptGroup = -1;  /* 0x5f1298, the script group that goes with it; -1 = none */
-int ch_MorphTimeout = -1;  /* 0x5f129c (-1), the D3ANIMSLOT.timeout of morphs in scene != 0 */
-int ch_MotionTimeout = 2;  /* 0x5f12a0 (2), the same for motions */
-int ch_Enabled = 1;  /* 0x5f12a4 */
-int ch_DirtyX0 = 256;  /* 0x5f12a8, changed ground rectangle */
-int ch_DirtyZ0 = 256;  /* 0x5f12ac */
+char ch_AnimPath[0x100] =
+    "x:\\gfx\\engine\\animations\\character"; /* 0x5f1120 */
+int ch_Unk5f1220 =
+    -1; /* 0x5f1220, an int of ch's .data block (-1) no surviving code reads (a removed function's) */
+int ch_LastUpdate = -1; /* 0x5f1224 */
+int ch_Unk5f1228 =
+    1; /* 0x5f1228, an int of ch's .data block (1) no surviving code reads (a removed function's) */
+char ch_ShadowEnabled = 1; /* 0x5f122c */
+char ch_StepSample[0x60] =
+    "normal_s"; /* 0x5f1230, the step sound sample name (a buffer: chc.c SetCharacterStepSample and lc.c strcpy into it) */
+float cm_SpeedFactor = 1.0f; /* 0x5f1290, 1.0 */
+int ch_CurrentGroup =
+    -1; /* 0x5f1294, the group of the building the player is in; -1 = none */
+int ch_CurrentScriptGroup =
+    -1; /* 0x5f1298, the script group that goes with it; -1 = none */
+int ch_MorphTimeout =
+    -1; /* 0x5f129c (-1), the D3ANIMSLOT.timeout of morphs in scene != 0 */
+int ch_MotionTimeout = 2; /* 0x5f12a0 (2), the same for motions */
+int ch_Enabled = 1;       /* 0x5f12a4 */
+int ch_DirtyX0 = 256;     /* 0x5f12a8, changed ground rectangle */
+int ch_DirtyZ0 = 256;     /* 0x5f12ac */
 
 extern unsigned char ch_PathBuf[1024];
 extern CHARACTER *ch_List[CH_MAX];
@@ -58,731 +67,968 @@ extern CHACTDEF ch_ActDefs[64];
 extern int ch_Ground0[65536];
 extern int ch_Ground1[65536];
 extern CHFADE ch_Fades[16];
-CHACTION * ch_Queue = 0;  /* 0x631050 */
-int ch_Time = 0;  /* 0x631054 */
-char ch_MarkWalkErrors = 0;  /* 0x631058, when set, a failed walk animation marks the character's
-                                flags bit 8; a debug switch (no writer in the image, always 0) */
-struct SBBANK *ch_SndLib = 0;  /* 0x63105c, sound library for step sounds */
-int ch_StepSounds = 0;  /* 0x631060 */
-int ch_LowPoly = 0;  /* 0x631064 */
-D3VECTOR ch_PathOffset = {0};  /* 0x631068, added to the last path cell */
-int ch_UnreadBss = 0;  /* 0x631074, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
-int sv_PanelCartChar = 0;  /* 0x631078 */
-int ch_DirtyX1 = 0;  /* 0x63107c */
-int ch_DirtyZ1 = 0;  /* 0x631080 */
-struct D3SCENE *ch_Saved0 = 0;  /* 0x631084 */
-D3SCENE * ch_Saved1 = 0;  /* 0x631088, the same for ch_Ground1 */
-D3SM * ch_PathMap = 0;  /* 0x63108c */
-char ch_EmptyName[1] = {0};  /* 0x631090, "" */
+CHACTION *ch_Queue = 0; /* 0x631050 */
+int ch_Time = 0;        /* 0x631054 */
+char ch_MarkWalkErrors =
+    0; /* 0x631058, when set, a failed walk animation marks the character's
+          flags bit 8; a debug switch (no writer in the image, always 0) */
+struct SBBANK *ch_SndLib = 0; /* 0x63105c, sound library for step sounds */
+int ch_StepSounds = 0;        /* 0x631060 */
+int ch_LowPoly = 0;           /* 0x631064 */
+D3VECTOR ch_PathOffset = {0}; /* 0x631068, added to the last path cell */
+int ch_UnreadBss =
+    0; /* 0x631074, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
+int sv_PanelCartChar = 0;      /* 0x631078 */
+int ch_DirtyX1 = 0;            /* 0x63107c */
+int ch_DirtyZ1 = 0;            /* 0x631080 */
+struct D3SCENE *ch_Saved0 = 0; /* 0x631084 */
+D3SCENE *ch_Saved1 = 0;        /* 0x631088, the same for ch_Ground1 */
+D3SM *ch_PathMap = 0;          /* 0x63108c */
+char ch_EmptyName[1] = {0};    /* 0x631090, "" */
 extern D3SCENE d3_Scenes[D3_MAX_SCENES];
-unsigned char ch_PathBuf[1024];  /* 0x14686e0, the cells path_Find writes for ch_Path */
-CHARACTER *ch_List[CH_MAX];  /* 0x1468ae0, the characters by id (CHARACTER.id) */
-PATHOUT ch_Path;  /* 0x14696e0, the result of a path search (xy = ch_PathBuf, max 0x200); nothing of the
-                           original reads 0x14696ec..0x1469700 */
-CHACTDEF ch_ActDefs[64];  /* 0x1469700, the action types (ch_DeclareAction); the name of type m is also the
-                                   motion name ch_AttachMotion loads; ch_Open clears all 0x1300 bytes */
-int ch_Ground0[65536];  /* 0x146aa00, ground types of d3_Scenes[0] */
-int ch_Ground1[65536];  /* 0x14aaa20, ground types of the default scene */
-CHFADE ch_Fades[16];                /* 0x14eaa20 */
+unsigned char
+    ch_PathBuf[1024]; /* 0x14686e0, the cells path_Find writes for ch_Path */
+CHARACTER *ch_List[CH_MAX]; /* 0x1468ae0, the characters by id (CHARACTER.id) */
+PATHOUT
+ch_Path; /* 0x14696e0, the result of a path search (xy = ch_PathBuf, max 0x200); nothing of the
+                  original reads 0x14696ec..0x1469700 */
+CHACTDEF ch_ActDefs
+    [64]; /* 0x1469700, the action types (ch_DeclareAction); the name of type m is also the
+                   motion name ch_AttachMotion loads; ch_Open clears all 0x1300 bytes */
+int ch_Ground0[65536]; /* 0x146aa00, ground types of d3_Scenes[0] */
+int ch_Ground1[65536]; /* 0x14aaa20, ground types of the default scene */
+CHFADE ch_Fades[16];   /* 0x14eaa20 */
 
 /* 0x402140, creates the height map of the character's scene on first use */
-struct D3SM *ch_GetHMap(CHARACTER *ch)
-{
-    int cur = d3_CurrentScene;
-    unsigned int flags = 0;
-    unsigned int df;
-    struct D3SM *h;
+struct D3SM *ch_GetHMap(CHARACTER *ch) {
+  int cur = d3_CurrentScene;
+  unsigned int flags = 0;
+  unsigned int df;
+  struct D3SM *h;
 
-    if (!(h = ch->scene->hmap)) {
-        df = d3_SceneFlags;
-        if (ch->scene != d3_DefaultScene)
-            df = ch->scene->sceneFlags;
-        if (!ch->scene->dirty && df) {
-            d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
-            flags = df & ~2;
-            d3_InflateScene(flags);
-        }
-        ch->scene->hmap = d3sm_Create(d3_Terrain, ch->scene->mapSize, 2);
-        h = ch->scene->hmap;
-        if (ch->scene != &d3_Scenes[0] && d3_DefaultScene == ch->scene && h)
-            ch_SaveGround(h);
-        if (flags) {
-            d3_DeflateScene(flags);
-            d3if_SelectScene(cur, 1);
-        }
+  if (!(h = ch->scene->hmap)) {
+    df = d3_SceneFlags;
+    if (ch->scene != d3_DefaultScene)
+      df = ch->scene->sceneFlags;
+    if (!ch->scene->dirty && df) {
+      d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
+      flags = df & ~2;
+      d3_InflateScene(flags);
     }
-    return h;
+    ch->scene->hmap = d3sm_Create(d3_Terrain, ch->scene->mapSize, 2);
+    h = ch->scene->hmap;
+    if (ch->scene != &d3_Scenes[0] && d3_DefaultScene == ch->scene && h)
+      ch_SaveGround(h);
+    if (flags) {
+      d3_DeflateScene(flags);
+      d3if_SelectScene(cur, 1);
+    }
+  }
+  return h;
 }
 /* 0x402220, the same for a scene */
 
-struct D3SM *ch_GetSceneHMap(D3SCENE *scene)
-{
-    int cur = d3_CurrentScene;
-    unsigned int flags = 0;
-    unsigned int df;
-    struct D3SM *h;
+struct D3SM *ch_GetSceneHMap(D3SCENE *scene) {
+  int cur = d3_CurrentScene;
+  unsigned int flags = 0;
+  unsigned int df;
+  struct D3SM *h;
 
-    if (!(h = scene->hmap)) {
-        df = d3_SceneFlags;
-        if (scene != d3_DefaultScene)
-            df = scene->sceneFlags;
-        if (!scene->dirty && df) {
-            d3if_SelectScene(d3t_SceneIndex(scene), 1);
-            flags = df & ~2;
-            d3_InflateScene(flags);
-        }
-        h = scene->hmap = d3sm_Create(d3_Terrain, scene->mapSize, 2);
-        if (scene != &d3_Scenes[0] && d3_DefaultScene == scene && h)
-            ch_SaveGround(h);
-        if (flags) {
-            d3_DeflateScene(flags);
-            d3if_SelectScene(cur, 1);
-        }
+  if (!(h = scene->hmap)) {
+    df = d3_SceneFlags;
+    if (scene != d3_DefaultScene)
+      df = scene->sceneFlags;
+    if (!scene->dirty && df) {
+      d3if_SelectScene(d3t_SceneIndex(scene), 1);
+      flags = df & ~2;
+      d3_InflateScene(flags);
     }
-    return h;
+    h = scene->hmap = d3sm_Create(d3_Terrain, scene->mapSize, 2);
+    if (scene != &d3_Scenes[0] && d3_DefaultScene == scene && h)
+      ch_SaveGround(h);
+    if (flags) {
+      d3_DeflateScene(flags);
+      d3if_SelectScene(cur, 1);
+    }
+  }
+  return h;
 }
 /* 0x4022e0, fades characters in or out over 50 time units */
 
-void ch_UpdateFades(void)
-{
-    int i;
-    CHARACTER *ch;
-    float a;
-    D3TEXFLAGS f;
+void ch_UpdateFades(void) {
+  int i;
+  CHARACTER *ch;
+  float a;
+  D3TEXFLAGS f;
 
-    for (i = 0; i < 16; i++) {
-        ch = ch_Fades[i].ch;
-        if (ch) {
-            a = ((float)ch_Time - ch_Fades[i].start) * 0.02f;
-            if (!ch_Fades[i].in)
-                a = 1.0f - a;
-            a = max(a, 0.0f);
-            a = min(a, 1.0f);
-            a *= 255.0f;
-            memset(&f, 0, sizeof(f));
-            f.b[2] &= 0xfe;
-            f.b[0] = (unsigned char)a;
-            if (a != 255.0f && a != 0.0f) {
-                d3_SetObjectAlpha(ch->obj, ch->obj->info, f);
-                if (ch->transport)
-                    d3_SetObjectAlpha(ch->transport->obj, ch->obj->info, f);
-            }
-            if (a == 0.0f || a == 255.0f) {
-                ch->flags.fading = 0;
-                f.b[0] = 0xff;
-                d3_SetObjectAlpha(ch->obj, ch->obj->info, f);
-                if (ch->transport)
-                    d3_SetObjectAlpha(ch->transport->obj, ch->transport->obj->info, f);
-                if (a == 0.0f)
-                    ch_SetVisible(ch, 0);
-                else if (a == 255.0f)
-                    ch_SetVisible(ch, 1);
-                ch_Fades[i].ch = 0;
-            }
-        }
+  for (i = 0; i < 16; i++) {
+    ch = ch_Fades[i].ch;
+    if (ch) {
+      a = ((float)ch_Time - ch_Fades[i].start) * 0.02f;
+      if (!ch_Fades[i].in)
+        a = 1.0f - a;
+      a = max(a, 0.0f);
+      a = min(a, 1.0f);
+      a *= 255.0f;
+      memset(&f, 0, sizeof(f));
+      f.b[2] &= 0xfe;
+      f.b[0] = (unsigned char)a;
+      if (a != 255.0f && a != 0.0f) {
+        d3_SetObjectAlpha(ch->obj, ch->obj->info, f);
+        if (ch->transport)
+          d3_SetObjectAlpha(ch->transport->obj, ch->obj->info, f);
+      }
+      if (a == 0.0f || a == 255.0f) {
+        ch->flags.fading = 0;
+        f.b[0] = 0xff;
+        d3_SetObjectAlpha(ch->obj, ch->obj->info, f);
+        if (ch->transport)
+          d3_SetObjectAlpha(ch->transport->obj, ch->transport->obj->info, f);
+        if (a == 0.0f)
+          ch_SetVisible(ch, 0);
+        else if (a == 255.0f)
+          ch_SetVisible(ch, 1);
+        ch_Fades[i].ch = 0;
+      }
     }
+  }
 }
 /* 0x402480, shows or hides a character and its objects (relights them when shown) */
 
-void ch_SetVisible(CHARACTER *ch, int show)
-{
-    if (ch && ch->obj) {
-        d3if_ShowTree(ch->obj, show);
-        if (ch->rightHand)
-            d3if_Show(ch->rightHand, show);
-        if (show)
-            d3_RelightObject(ch->obj);
-        if (ch->transport) {
-            d3if_ShowTree(ch->transport->obj, show);
-            if (show)
-                d3_RelightObject(ch->transport->obj);
-        }
-        if (ch->lowPolyBody)
-            d3if_Show(ch->lowPolyBody, show);
-        if (show)
-            ch->flags.hidden = 0;
-        else
-            ch->flags.hidden = 1;
-        ch_UpdateLowPoly(ch);
-    } else
-        err_Message("ch_SetVisible(): invalid character");
+void ch_SetVisible(CHARACTER *ch, int show) {
+  if (ch && ch->obj) {
+    d3if_ShowTree(ch->obj, show);
+    if (ch->rightHand)
+      d3if_Show(ch->rightHand, show);
+    if (show)
+      d3_RelightObject(ch->obj);
+    if (ch->transport) {
+      d3if_ShowTree(ch->transport->obj, show);
+      if (show)
+        d3_RelightObject(ch->transport->obj);
+    }
+    if (ch->lowPolyBody)
+      d3if_Show(ch->lowPolyBody, show);
+    if (show)
+      ch->flags.hidden = 0;
+    else
+      ch->flags.hidden = 1;
+    ch_UpdateLowPoly(ch);
+  } else
+    err_Message("ch_SetVisible(): invalid character");
 }
 /* 0x402540, inflates the models of a character and its parts (each not loaded yet) */
 
-void ch_InflateModel(CHARACTER *ch)
-{
-    if (!ch->obj->info)
-        d3_InflateObject(ch->obj);
-    if (ch->rightHand && !ch->rightHand->info)
-        d3_InflateObject(ch->rightHand);
-    if (ch->transport && ch->transport->obj && !ch->transport->obj->info)
-        d3_InflateObject(ch->transport->obj);
-    if (ch->lowPolyBody && !ch->lowPolyBody->info)
-        d3_InflateObject(ch->lowPolyBody);
+void ch_InflateModel(CHARACTER *ch) {
+  if (!ch->obj->info)
+    d3_InflateObject(ch->obj);
+  if (ch->rightHand && !ch->rightHand->info)
+    d3_InflateObject(ch->rightHand);
+  if (ch->transport && ch->transport->obj && !ch->transport->obj->info)
+    d3_InflateObject(ch->transport->obj);
+  if (ch->lowPolyBody && !ch->lowPolyBody->info)
+    d3_InflateObject(ch->lowPolyBody);
 }
 /* 0x4025c0, moves a character to a position, puts it and its transport on the ground (relight: relight them) */
 
-void ch_SetPos(CHARACTER *ch, D3VECTOR *pos, int relight)
-{
-    d3_SetObjectPos(ch->obj, pos);
+void ch_SetPos(CHARACTER *ch, D3VECTOR *pos, int relight) {
+  d3_SetObjectPos(ch->obj, pos);
+  if (relight)
+    d3_RelightObject(ch->obj);
+  ch_PlaceOnGround(ch, 0);
+  if (ch->transport) {
+    ch_PlaceTransport(ch, 0);
     if (relight)
-        d3_RelightObject(ch->obj);
-    ch_PlaceOnGround(ch, 0);
-    if (ch->transport) {
-        ch_PlaceTransport(ch, 0);
-        if (relight)
-            d3_RelightObject(ch->transport->obj);
-    }
-    if (ch->lowPolyBody)
-        ch_UpdateLowPoly(ch);
+      d3_RelightObject(ch->transport->obj);
+  }
+  if (ch->lowPolyBody)
+    ch_UpdateLowPoly(ch);
 }
 /* 0x402640, puts the character at the object's position, turned the way the object faces */
 
-void ch_PlaceAtObject(CHARACTER *ch, D3OBJECT *obj)
-{
-    D3VECTOR rot;
-    D3VECTOR dir;
-    D3VECTOR4 pos;
+void ch_PlaceAtObject(CHARACTER *ch, D3OBJECT *obj) {
+  D3VECTOR rot;
+  D3VECTOR dir;
+  D3VECTOR4 pos;
 
-    if (ch) {
-        d3_PointToWorld(obj, &obj->pos, &pos.v);
-        rot.x = 0.0f;
-        rot.y = 0.0f;
-        rot.z = 0.0f;
-        d3_DirToWorld(obj, &d3_ZAxis.v, &dir);
-        rot.y = d3_VecAngle(&d3_ZAxis.v, &dir);
-        d3_SetObjectRot(ch->obj, &rot);
-        ch_SetPos(ch, &pos.v, 1);
-    }
+  if (ch) {
+    d3_PointToWorld(obj, &obj->pos, &pos.v);
+    rot.x = 0.0f;
+    rot.y = 0.0f;
+    rot.z = 0.0f;
+    d3_DirToWorld(obj, &d3_ZAxis.v, &dir);
+    rot.y = d3_VecAngle(&d3_ZAxis.v, &dir);
+    d3_SetObjectRot(ch->obj, &rot);
+    ch_SetPos(ch, &pos.v, 1);
+  }
 }
 /* 0x4026c0, characters in scene (-1: all scenes); all = 0 skips objects of type 1 */
 
-int ch_Count(int scene, int all)
-{
-    int i, n = 0;
-    CHARACTER *ch;
+int ch_Count(int scene, int all) {
+  int i, n = 0;
+  CHARACTER *ch;
 
-    for (i = 0; i < CH_MAX; i++) {
-        ch = ch_List[i];
-        if (ch && (scene == -1 || ch->scene == &d3_Scenes[scene]) && (all || ch->obj->type != 1))
-            n++;
-    }
-    return n;
+  for (i = 0; i < CH_MAX; i++) {
+    ch = ch_List[i];
+    if (ch && (scene == -1 || ch->scene == &d3_Scenes[scene]) &&
+        (all || ch->obj->type != 1))
+      n++;
+  }
+  return n;
 }
 /* 0x402720, the same, counting only characters at pos */
 
-int ch_CountAt(int scene, int all, D3VECTOR *pos, float eps)
-{
-    int i, n = 0;
-    CHARACTER *ch;
+int ch_CountAt(int scene, int all, D3VECTOR *pos, float eps) {
+  int i, n = 0;
+  CHARACTER *ch;
 
-    for (i = 0; i < CH_MAX; i++) {
-        ch = ch_List[i];
-        if (ch && (scene == -1 || ch->scene == &d3_Scenes[scene]) && (all || ch->obj->type != 1)
-            && d3_VecEqual(&ch->obj->pos, pos, eps))
-            n++;
-    }
-    return n;
+  for (i = 0; i < CH_MAX; i++) {
+    ch = ch_List[i];
+    if (ch && (scene == -1 || ch->scene == &d3_Scenes[scene]) &&
+        (all || ch->obj->type != 1) && d3_VecEqual(&ch->obj->pos, pos, eps))
+      n++;
+  }
+  return n;
 }
 /* 0x4027b0, gives the 3D object of every dirty character of the default scene the character's offset */
 
-void ch_SyncObjectOffsets(void)
-{
-    int i;
-    CHARACTER *ch;
+void ch_SyncObjectOffsets(void) {
+  int i;
+  CHARACTER *ch;
 
-    for (i = 0; i < CH_MAX; i++) {
-        ch = ch_List[i];
-        if (ch && ch->flags.dirty && ch->scene == d3_DefaultScene)
-            d3_SetObject078(ch->obj, &ch->offset);
-    }
+  for (i = 0; i < CH_MAX; i++) {
+    ch = ch_List[i];
+    if (ch && ch->flags.dirty && ch->scene == d3_DefaultScene)
+      d3_SetObject078(ch->obj, &ch->offset);
+  }
 }
 /* 0x402800, moves every dirty character of the default scene to its object position plus its offset and clears
    the dirty flag */
 
-void ch_UpdatePositions(void)
-{
-    int i;
-    CHARACTER *ch;
-    D3VECTOR4 pos;
+void ch_UpdatePositions(void) {
+  int i;
+  CHARACTER *ch;
+  D3VECTOR4 pos;
 
-    for (i = 0; i < CH_MAX; i++) {
-        ch = ch_List[i];
-        if (ch && ch->flags.dirty && ch->scene == d3_DefaultScene) {
-            pos.x = ch->obj->pos.x + ch->offset.x;
-            pos.y = ch->obj->pos.y + ch->offset.y;
-            pos.z = ch->obj->pos.z + ch->offset.z;
-            if (ch->anim) {
-                if (ch->anim->name[9] != '-')
-                    ch_SetPos(ch, &pos.v, 0);
-            } else
-                ch_SetPos(ch, &pos.v, 0);
-            ch->flags.dirty = 0;
-        }
+  for (i = 0; i < CH_MAX; i++) {
+    ch = ch_List[i];
+    if (ch && ch->flags.dirty && ch->scene == d3_DefaultScene) {
+      pos.x = ch->obj->pos.x + ch->offset.x;
+      pos.y = ch->obj->pos.y + ch->offset.y;
+      pos.z = ch->obj->pos.z + ch->offset.z;
+      if (ch->anim) {
+        if (ch->anim->name[9] != '-')
+          ch_SetPos(ch, &pos.v, 0);
+      } else
+        ch_SetPos(ch, &pos.v, 0);
+      ch->flags.dirty = 0;
     }
+  }
 }
 /* 0x4028a0, deletes a character: takes it out of the list, releases its objects and frees it (1: deleted) */
 
-int ch_Delete(CHARACTER *ch)
-{
-    int i = 0;
-    int cur;
+int ch_Delete(CHARACTER *ch) {
+  int i = 0;
+  int cur;
 
-    if (ch) {
-        for (; ch_List[i] != ch && i < CH_MAX; i++)
-            ;
-        if (i < CH_MAX) {
-            ch_List[i] = 0;
-            ch->id = -1;
-            ch_ClearActions(ch);
-            if (ch->obj) {
-                cur = -1;
-                ch_ReleaseMorph(ch);
-                if (d3_DefaultScene != ch->scene) {
-                    cur = d3_CurrentScene;
-                    d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
-                }
-                if (ch->onDelete)
-                    ch->onDelete(ch);
-                d3if_Delete(ch->obj);
-                ch->obj = 0;
-                if (ch->transport && ch->transport->obj)
-                    d3if_Delete(ch->transport->obj);
-                if (ch->lowPolyBody)
-                    d3if_Delete(ch->lowPolyBody);
-                if (cur != -1)
-                    d3if_SelectScene(cur, 1);
-            }
-            if (ch->transport)
-                ch_DetachTransport(ch);
-            mem_Free(ch);
-            return 1;
+  if (ch) {
+    for (; ch_List[i] != ch && i < CH_MAX; i++)
+      ;
+    if (i < CH_MAX) {
+      ch_List[i] = 0;
+      ch->id = -1;
+      ch_ClearActions(ch);
+      if (ch->obj) {
+        cur = -1;
+        ch_ReleaseMorph(ch);
+        if (d3_DefaultScene != ch->scene) {
+          cur = d3_CurrentScene;
+          d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
         }
+        if (ch->onDelete)
+          ch->onDelete(ch);
+        d3if_Delete(ch->obj);
+        ch->obj = 0;
+        if (ch->transport && ch->transport->obj)
+          d3if_Delete(ch->transport->obj);
+        if (ch->lowPolyBody)
+          d3if_Delete(ch->lowPolyBody);
+        if (cur != -1)
+          d3if_SelectScene(cur, 1);
+      }
+      if (ch->transport)
+        ch_DetachTransport(ch);
+      mem_Free(ch);
+      return 1;
     }
-    return 0;
+  }
+  return 0;
 }
 /* 0x4029c0, allocates an empty character and takes the first free list slot (0 when the list is full) */
 
-CHARACTER *ch_Alloc(void)
-{
-    int i = 0;
-    CHARACTER *ch = mem_Alloc(sizeof(CHARACTER), "ch:Create:Character");
+CHARACTER *ch_Alloc(void) {
+  int i = 0;
+  CHARACTER *ch = mem_Alloc(sizeof(CHARACTER), "ch:Create:Character");
 
-    memset(ch, 0, sizeof(CHARACTER));
-    for (; ch_List[i] && i < CH_MAX; i++)
-        ;
-    if (i < CH_MAX) {
-        ch_List[i] = ch;
-        ch->id = i;
-        return ch;
-    }
-    mem_Free(ch);
-    err_Message("ch_Create:Too many characters!");
-    return 0;
+  memset(ch, 0, sizeof(CHARACTER));
+  for (; ch_List[i] && i < CH_MAX; i++)
+    ;
+  if (i < CH_MAX) {
+    ch_List[i] = ch;
+    ch->id = i;
+    return ch;
+  }
+  mem_Free(ch);
+  err_Message("ch_Create:Too many characters!");
+  return 0;
 }
 /* 0x402a30, allocates an empty character for the given id and puts it in that list slot (0 when the slot is taken) */
 
-CHARACTER *ch_AllocAt(int id)
-{
-    CHARACTER *ch = mem_Alloc(sizeof(CHARACTER), "ch:Create:Character");
+CHARACTER *ch_AllocAt(int id) {
+  CHARACTER *ch = mem_Alloc(sizeof(CHARACTER), "ch:Create:Character");
 
-    memset(ch, 0, sizeof(CHARACTER));
-    if (ch_List[id])
-        return 0;
-    ch_List[id] = ch;
-    ch->id = id;
-    return ch;
+  memset(ch, 0, sizeof(CHARACTER));
+  if (ch_List[id])
+    return 0;
+  ch_List[id] = ch;
+  ch->id = id;
+  return ch;
 }
 /* 0x402a70, finds the character whose object's name matches name (case-insensitive), 0 when none */
 
-CHARACTER *ch_FindByName(char *name)
-{
-    int i;
+CHARACTER *ch_FindByName(char *name) {
+  int i;
 
-    for (i = 0; i < CH_MAX; i++)
-        if (ch_List[i] && !strcmpi(ch_List[i]->obj->name, name))
-            break;
-    if (i < CH_MAX)
-        return ch_List[i];
-    return 0;
+  for (i = 0; i < CH_MAX; i++)
+    if (ch_List[i] && !strcmpi(ch_List[i]->obj->name, name))
+      break;
+  if (i < CH_MAX)
+    return ch_List[i];
+  return 0;
 }
 /* 0x402ac0, finds the character whose object is obj, 0 when none */
 
-CHARACTER *ch_FindByObject(D3OBJECT *obj)
-{
-    int i;
+CHARACTER *ch_FindByObject(D3OBJECT *obj) {
+  int i;
 
-    for (i = 0; i < CH_MAX; i++)
-        if (ch_List[i] && ch_List[i]->obj == obj)
-            return ch_List[i];
-    return 0;
+  for (i = 0; i < CH_MAX; i++)
+    if (ch_List[i] && ch_List[i]->obj == obj)
+      return ch_List[i];
+  return 0;
 }
-int ch_CreateLowPolyBody(CHARACTER *ch);  /* unlinked, below */
+int ch_CreateLowPolyBody(CHARACTER *ch); /* unlinked, below */
 /* 0x402af0, 0/1 create the low-poly bodies, 2 deletes them */
 
-void ch_SetLowPoly(unsigned char mode)
-{
-    int cur = d3_CurrentScene;
-    int i;
-    CHARACTER *ch;
+void ch_SetLowPoly(unsigned char mode) {
+  int cur = d3_CurrentScene;
+  int i;
+  CHARACTER *ch;
 
-    for (i = 0; i < CH_MAX; i++) {
-        ch = ch_List[i];
-        if (ch) {
-            d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
-            if (mode == 2) {
-                if (ch->lowPolyBody) {
-                    d3t_ReleaseObjectTextures(ch->lowPolyBody);
-                    d3if_Delete(ch->lowPolyBody);
-                    ch->lowPolyBody = 0;
-                }
-            } else if ((mode == 0 || mode == 1) && !ch->lowPolyBody) {
-                ch_CreateLowPolyBody(ch);
-                ch_UpdateLowPoly(ch);
-            }
+  for (i = 0; i < CH_MAX; i++) {
+    ch = ch_List[i];
+    if (ch) {
+      d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
+      if (mode == 2) {
+        if (ch->lowPolyBody) {
+          d3t_ReleaseObjectTextures(ch->lowPolyBody);
+          d3if_Delete(ch->lowPolyBody);
+          ch->lowPolyBody = 0;
         }
+      } else if ((mode == 0 || mode == 1) && !ch->lowPolyBody) {
+        ch_CreateLowPolyBody(ch);
+        ch_UpdateLowPoly(ch);
+      }
     }
-    ch_LowPoly = 2 - mode;
-    d3if_SelectScene(cur, 1);
+  }
+  ch_LowPoly = 2 - mode;
+  d3if_SelectScene(cur, 1);
 }
 
 /* unlinked: returns 0; LINK folds it (/OPT:ICF) into sv_ReturnZero, 0x52a040, where the original's call in
    ch_SetLowPoly points (0x402b6b: push esi; call). The name is a guess from the call site: it would create the
    missing low-poly body before ch_UpdateLowPoly shows it */
-int ch_CreateLowPolyBody(CHARACTER *ch)
-{
-    return 0;
-}
+int ch_CreateLowPolyBody(CHARACTER *ch) { return 0; }
 /* 0x402ba0, ch_Updatelowpoly: shows the body or the low-poly body and keeps the latter in sync */
 
-void ch_UpdateLowPoly(CHARACTER *ch)
-{
-    float dx, dy, dz;
-    D3SURF *anim;
-    D3ANIMSLOT *s;
-    CHANIMFLAGS f;
-    int lowPoly;
-    char name[0x100];
-    char path[0x100];
-    char msg[0x200];
+void ch_UpdateLowPoly(CHARACTER *ch) {
+  float dx, dy, dz;
+  D3SURF *anim;
+  D3ANIMSLOT *s;
+  CHANIMFLAGS f;
+  int lowPoly;
+  char name[0x100];
+  char path[0x100];
+  char msg[0x200];
 
-    if (!ch->lowPolyBody)
+  if (!ch->lowPolyBody)
+    return;
+  if (ch_LowPoly) {
+    ch->lowPolyBody->owner = ch->obj->owner;
+    ch->lowPolyBody->pickId = ch->obj->pickId;
+    if (ch->flags.lowPoly) {
+      if (ch->obj->type != 1)
+        d3if_Show(ch->obj, 0);
+      if (ch->lowPolyBody->type == 1) {
+        d3if_Show(ch->lowPolyBody, 1);
+        d3_RelightObject(ch->lowPolyBody);
+      }
+      return;
+    }
+    if (ch->scene == &d3_Scenes[0]) {
+      lowPoly = 1;
+      if (ch_LowPoly == 1 && d3_Camera) {
+        dx = d3_Camera->pos.x - ch->obj->pos.x;
+        dy = d3_Camera->pos.y - ch->obj->pos.y;
+        dz = d3_Camera->pos.z - ch->obj->pos.z;
+        if ((float)sqrt(dx * dx + dy * dy + dz * dz) < 1500.0f)
+          lowPoly = 0;
+      }
+      if (lowPoly) {
+        if (ch->obj->type != 1)
+          d3if_Show(ch->obj, 0);
+        if ((ch->group == ch_CurrentGroup &&
+             ch->scriptGroup == ch_CurrentScriptGroup) ||
+            !ch->scriptGroup) {
+          if (ch->lowPolyBody->type == 1 && !ch->flags.hidden) {
+            d3if_Show(ch->lowPolyBody, 1);
+            d3_RelightObject(ch->lowPolyBody);
+          }
+        } else if (ch->lowPolyBody->type != 1)
+          d3if_Show(ch->lowPolyBody, 0);
+        if (ch->lowPolyBody->type != 1 && ch->lowPolyBody->info &&
+            !d3_VecEqual(&ch->lowPolyBody->pos, &ch->obj->pos, 2.0f))
+          d3_SetObjectPos(ch->lowPolyBody, &ch->obj->pos);
+        if (ch->obj->info &&
+            !d3_VecEqual(&ch->lowPolyBody->rotation, &ch->obj->rotation, 0.05f))
+          d3_SetObjectRot(ch->lowPolyBody, &ch->obj->rotation);
+      } else {
+        if (ch->obj->type == 1 && !ch->flags.hidden) {
+          d3if_Show(ch->obj, 1);
+          d3_RelightObject(ch->obj);
+        }
+        if (ch->lowPolyBody->type != 1)
+          d3if_Show(ch->lowPolyBody, 0);
+      }
+      anim = ch->lowPolyBody->info;
+      if (!anim || ch->flags.lowPolyAnimFailed)
         return;
-    if (ch_LowPoly) {
-        ch->lowPolyBody->owner = ch->obj->owner;
-        ch->lowPolyBody->pickId = ch->obj->pickId;
-        if (ch->flags.lowPoly) {
-            if (ch->obj->type != 1)
-                d3if_Show(ch->obj, 0);
-            if (ch->lowPolyBody->type == 1) {
-                d3if_Show(ch->lowPolyBody, 1);
-                d3_RelightObject(ch->lowPolyBody);
-            }
-            return;
+      s = ch->slot;
+      if (s && !anim->slots[0].data) {
+        if (!strstr(s->data->name, "gehen") &&
+            !strstr(ch->slot->data->name, "karren_ziehen"))
+          return;
+        sprintf(path, "lowpolycharacter/%s/%s_%s_LOW.baf", ch->lowname, "gehen",
+                ch->lowname);
+        sprintf(name, "%s_%s_LOW.baf", "gehen", ch->lowname);
+        vfs_ToSlashes(name);
+        memset(&f, 0, sizeof(f));
+        f.u.all = 0;
+        f.b8 = 1;
+        f.u.c.b1 = 8;
+        f.u.c.b0 = 0;
+        f.b = 0;
+        f.a = 0;
+        if (!d3_FindAnim(name))
+          d3_LoadAnimStream(path, name, 1);
+        s = d3anim_StartAnim(&ch->lowPolyBody->material->surf[0], name, f.anim);
+        if (!s) {
+          sprintf(msg, "ch_Updatelowpoly(): Could not attach ani: %s", path);
+          ch->flags.lowPolyAnimFailed = 1;
+          return;
         }
-        if (ch->scene == &d3_Scenes[0]) {
-            lowPoly = 1;
-            if (ch_LowPoly == 1 && d3_Camera) {
-                dx = d3_Camera->pos.x - ch->obj->pos.x;
-                dy = d3_Camera->pos.y - ch->obj->pos.y;
-                dz = d3_Camera->pos.z - ch->obj->pos.z;
-                if ((float)sqrt(dx * dx + dy * dy + dz * dz) < 1500.0f)
-                    lowPoly = 0;
-            }
-            if (lowPoly) {
-                if (ch->obj->type != 1)
-                    d3if_Show(ch->obj, 0);
-                if ((ch->group == ch_CurrentGroup && ch->scriptGroup == ch_CurrentScriptGroup) || !ch->scriptGroup) {
-                    if (ch->lowPolyBody->type == 1 && !ch->flags.hidden) {
-                        d3if_Show(ch->lowPolyBody, 1);
-                        d3_RelightObject(ch->lowPolyBody);
-                    }
-                } else if (ch->lowPolyBody->type != 1)
-                    d3if_Show(ch->lowPolyBody, 0);
-                if (ch->lowPolyBody->type != 1 && ch->lowPolyBody->info
-                    && !d3_VecEqual(&ch->lowPolyBody->pos, &ch->obj->pos, 2.0f))
-                    d3_SetObjectPos(ch->lowPolyBody, &ch->obj->pos);
-                if (ch->obj->info && !d3_VecEqual(&ch->lowPolyBody->rotation, &ch->obj->rotation, 0.05f))
-                    d3_SetObjectRot(ch->lowPolyBody, &ch->obj->rotation);
-            } else {
-                if (ch->obj->type == 1 && !ch->flags.hidden) {
-                    d3if_Show(ch->obj, 1);
-                    d3_RelightObject(ch->obj);
-                }
-                if (ch->lowPolyBody->type != 1)
-                    d3if_Show(ch->lowPolyBody, 0);
-            }
-            anim = ch->lowPolyBody->info;
-            if (!anim || ch->flags.lowPolyAnimFailed)
-                return;
-            s = ch->slot;
-            if (s && !anim->slots[0].data) {
-                if (!strstr(s->data->name, "gehen") && !strstr(ch->slot->data->name, "karren_ziehen"))
-                    return;
-                sprintf(path, "lowpolycharacter/%s/%s_%s_LOW.baf", ch->lowname, "gehen", ch->lowname);
-                sprintf(name, "%s_%s_LOW.baf", "gehen", ch->lowname);
-                vfs_ToSlashes(name);
-                memset(&f, 0, sizeof(f));
-                f.u.all = 0;
-                f.b8 = 1;
-                f.u.c.b1 = 8;
-                f.u.c.b0 = 0;
-                f.b = 0;
-                f.a = 0;
-                if (!d3_FindAnim(name))
-                    d3_LoadAnimStream(path, name, 1);
-                s = d3anim_StartAnim(&ch->lowPolyBody->material->surf[0], name, f.anim);
-                if (!s) {
-                    sprintf(msg, "ch_Updatelowpoly(): Could not attach ani: %s", path);
-                    ch->flags.lowPolyAnimFailed = 1;
-                    return;
-                }
-                ch->lowPolyBody->info->slots[0].frame = ch->slot->frame;
-                s->timeout = -1;
-                return;
-            }
-            if (!ch->slot && anim->slots[0].data) {
-                d3t_ReleaseObjectTextures(ch->lowPolyBody);
-                return;
-            }
-            if (ch->slot && anim->slots[0].data)
-                anim->slots[0].speed = ch->slot->speed;
-            return;
-        }
-        if ((ch->group == ch_CurrentGroup && ch->scriptGroup == ch_CurrentScriptGroup) || !ch->scriptGroup) {
-            if (ch->obj->type == 1 && !ch->flags.hidden) {
-                d3if_Show(ch->obj, 1);
-                d3_RelightObject(ch->obj);
-            }
-        } else if (ch->obj->type != 1)
-            d3if_Show(ch->obj, 0);
-    } else if (ch->obj->type == 1 && !ch->flags.hidden) {
+        ch->lowPolyBody->info->slots[0].frame = ch->slot->frame;
+        s->timeout = -1;
+        return;
+      }
+      if (!ch->slot && anim->slots[0].data) {
+        d3t_ReleaseObjectTextures(ch->lowPolyBody);
+        return;
+      }
+      if (ch->slot && anim->slots[0].data)
+        anim->slots[0].speed = ch->slot->speed;
+      return;
+    }
+    if ((ch->group == ch_CurrentGroup &&
+         ch->scriptGroup == ch_CurrentScriptGroup) ||
+        !ch->scriptGroup) {
+      if (ch->obj->type == 1 && !ch->flags.hidden) {
         d3if_Show(ch->obj, 1);
         d3_RelightObject(ch->obj);
-    }
-    if (ch->lowPolyBody->type != 1)
-        d3if_Show(ch->lowPolyBody, 0);
+      }
+    } else if (ch->obj->type != 1)
+      d3if_Show(ch->obj, 0);
+  } else if (ch->obj->type == 1 && !ch->flags.hidden) {
+    d3if_Show(ch->obj, 1);
+    d3_RelightObject(ch->obj);
+  }
+  if (ch->lowPolyBody->type != 1)
+    d3if_Show(ch->lowPolyBody, 0);
 }
 /* 0x403070, name is <...>_<body>[_<variant>] */
 
-int ch_CreateMesh(CHARACTER *ch, char *name, D3VECTOR *pos)
-{
-    D3VECTOR4 rot = {0.0f, 0.0f, 0.0f, 0.0f};
-    char buf[0x100];
-    char msg[0x200];
-    char *p, *q;
+int ch_CreateMesh(CHARACTER *ch, char *name, D3VECTOR *pos) {
+  D3VECTOR4 rot = {0.0f, 0.0f, 0.0f, 0.0f};
+  char buf[0x100];
+  char msg[0x200];
+  char *p, *q;
 
-    if (!ch)
-        return 0;
-    ch->obj = d3_CreateObject(0, pos, &rot.v, name);
-    ch->scriptId = -1;
-    if (!ch->obj) {
-        sprintf(msg, "ch_CreateMesh(): Could not load 3D-Character: %s", name);
-        return 0;
+  if (!ch)
+    return 0;
+  ch->obj = d3_CreateObject(0, pos, &rot.v, name);
+  ch->scriptId = -1;
+  if (!ch->obj) {
+    sprintf(msg, "ch_CreateMesh(): Could not load 3D-Character: %s", name);
+    return 0;
+  }
+  strcpy(buf, name);
+  if (p = strrchr(buf, '_')) {
+    p++;
+    if (q = strrchr(p, '_'))
+      *q = 0;
+    strcpy(ch->body, p);
+    p[-1] = 0;
+    strcpy(ch->fullname, buf);
+  } else
+    ch->body[0] = ch_EmptyName[0];
+  ch->scene = d3_DefaultScene;
+  ch->obj->stateFlags |= 0xc;
+  ch->obj->objectFlags &= ~2;
+  ch->obj->kind = 2;
+  ch->obj->mask = 1;
+  ch->obj->flags &= ~4;
+  ch->obj->material->lightScale = 1.8f;
+  ch->walkSpeed = 1.0f;
+  ch->group = -1;
+  ch->scriptGroup = -1;
+  strcpy(ch->name, name);
+  ch->obj->objectFlags |= 4;
+  if (!d3t_SceneIndex(ch->scene))
+    ch->obj->flagBits.simpleShadow = ch_ShadowEnabled;
+  else
+    ch->obj->flagBits.simpleShadow = 0;
+  ch->obj->pickId = 0x3000000;
+  ch_PlaceOnGround(ch, 0);
+  d3_RelightObject(ch->obj);
+  d3_UpdateObject(ch->obj, 1);
+  ch->kind = 1;
+  if (strstr(ch->name, "RATTE") || strstr(ch->name, "HUND") ||
+      strstr(ch->name, "KATZE") || strstr(ch->name, "PFERD")) {
+    ch->kind = 2;
+    if (strstr(ch->name, "RATTE")) {
+      ch->obj->flagBits.simpleShadow = 0;
+      ch->obj->objectFlags &= ~4;
     }
-    strcpy(buf, name);
-    if (p = strrchr(buf, '_')) {
-        p++;
-        if (q = strrchr(p, '_'))
-            *q = 0;
-        strcpy(ch->body, p);
-        p[-1] = 0;
-        strcpy(ch->fullname, buf);
-    } else
-        ch->body[0] = ch_EmptyName[0];
-    ch->scene = d3_DefaultScene;
-    ch->obj->stateFlags |= 0xc;
-    ch->obj->objectFlags &= ~2;
-    ch->obj->kind = 2;
-    ch->obj->mask = 1;
-    ch->obj->flags &= ~4;
-    ch->obj->material->lightScale = 1.8f;
-    ch->walkSpeed = 1.0f;
-    ch->group = -1;
-    ch->scriptGroup = -1;
-    strcpy(ch->name, name);
-    ch->obj->objectFlags |= 4;
-    if (!d3t_SceneIndex(ch->scene))
-        ch->obj->flagBits.simpleShadow = ch_ShadowEnabled;
-    else
-        ch->obj->flagBits.simpleShadow = 0;
-    ch->obj->pickId = 0x3000000;
-    ch_PlaceOnGround(ch, 0);
-    d3_RelightObject(ch->obj);
-    d3_UpdateObject(ch->obj, 1);
-    ch->kind = 1;
-    if (strstr(ch->name, "RATTE") || strstr(ch->name, "HUND") || strstr(ch->name, "KATZE")
-        || strstr(ch->name, "PFERD")) {
-        ch->kind = 2;
-        if (strstr(ch->name, "RATTE")) {
-            ch->obj->flagBits.simpleShadow = 0;
-            ch->obj->objectFlags &= ~4;
-        }
-        if (strstr(ch->name, "PFERD")) {
-            ch->kind |= 8;
-            ch->obj->flagBits.simpleShadow = 0;
-        }
+    if (strstr(ch->name, "PFERD")) {
+      ch->kind |= 8;
+      ch->obj->flagBits.simpleShadow = 0;
     }
-    ch_PreloadAnims(ch, 2, "bewegung/gehen", "stehen/stehen_newnoise");
-    if (ch_LowPoly && ch->lowPolyBody) {
-        ch_LoadLowAnims(ch, 1, "gehen");
-        ch_UpdateLowPoly(ch);
-    }
-    ch->flags.idlePending = 1;
-    return 1;
+  }
+  ch_PreloadAnims(ch, 2, "bewegung/gehen", "stehen/stehen_newnoise");
+  if (ch_LowPoly && ch->lowPolyBody) {
+    ch_LoadLowAnims(ch, 1, "gehen");
+    ch_UpdateLowPoly(ch);
+  }
+  ch->flags.idlePending = 1;
+  return 1;
 }
 /* 0x403390, allocates a character and builds its mesh from name at pos (deletes it, 0 when the mesh fails) */
 
-CHARACTER *ch_Create(char *name, D3VECTOR *pos)
-{
-    CHARACTER *ch = ch_Alloc();
+CHARACTER *ch_Create(char *name, D3VECTOR *pos) {
+  CHARACTER *ch = ch_Alloc();
 
-    if (!ch_CreateMesh(ch, name, pos)) {
-        ch_Delete(ch);
-        return 0;
-    }
-    return ch;
+  if (!ch_CreateMesh(ch, name, pos)) {
+    ch_Delete(ch);
+    return 0;
+  }
+  return ch;
 }
 /* 0x4033c0, ch_MoveCharacter2Universe */
 
-int ch_MoveToScene(CHARACTER *ch, D3SCENE *scene)
-{
-    char msg[0x100];
+int ch_MoveToScene(CHARACTER *ch, D3SCENE *scene) {
+  char msg[0x100];
 
-    if (ch && ch->scene && scene && d3if_MoveObject(ch->obj, ch->scene, scene)) {
-        d3_SetObject078(ch->obj, &d3_Origin.v);
-        if (ch->transport)
-            d3if_MoveObject(ch->transport->obj, ch->scene, scene);
-        if (ch->lowPolyBody)
-            d3if_MoveObject(ch->lowPolyBody, ch->scene, scene);
-        ch->scene = scene;
-        if (!d3t_SceneIndex(scene))
-            ch->obj->flagBits.simpleShadow = ch_ShadowEnabled;
-        else
-            ch->obj->flagBits.simpleShadow = 0;
-        if (scene == d3_DefaultScene && !ch->obj->info) {
-            sprintf(msg, "ch_MoveCharacter2Universe(): character deflated, will be inflated:%s", ch->fullname);
-            ch_InflateModel(ch);
-        }
-        return 1;
+  if (ch && ch->scene && scene && d3if_MoveObject(ch->obj, ch->scene, scene)) {
+    d3_SetObject078(ch->obj, &d3_Origin.v);
+    if (ch->transport)
+      d3if_MoveObject(ch->transport->obj, ch->scene, scene);
+    if (ch->lowPolyBody)
+      d3if_MoveObject(ch->lowPolyBody, ch->scene, scene);
+    ch->scene = scene;
+    if (!d3t_SceneIndex(scene))
+      ch->obj->flagBits.simpleShadow = ch_ShadowEnabled;
+    else
+      ch->obj->flagBits.simpleShadow = 0;
+    if (scene == d3_DefaultScene && !ch->obj->info) {
+      sprintf(msg,
+              "ch_MoveCharacter2Universe(): character deflated, will be "
+              "inflated:%s",
+              ch->fullname);
+      ch_InflateModel(ch);
     }
-    return 0;
+    return 1;
+  }
+  return 0;
 }
 /* 0x4034e0, puts obj 70 units behind the character */
 
-CHTRANSPORT *ch_AttachTransport(CHARACTER *ch, D3OBJECT *obj)
-{
-    CHTRANSPORT *t = mem_Alloc(sizeof(CHTRANSPORT), "ch:ch_AttachTransport");
-    D3VECTOR4 pos;
+CHTRANSPORT *ch_AttachTransport(CHARACTER *ch, D3OBJECT *obj) {
+  CHTRANSPORT *t = mem_Alloc(sizeof(CHTRANSPORT), "ch:ch_AttachTransport");
+  D3VECTOR4 pos;
 
-    pos.x = 0.0f * ch->obj->matrix._11 + 0.0f * ch->obj->matrix._21 - 70.0f * ch->obj->matrix._31 + ch->obj->matrix._41;
-    pos.y = 0.0f * ch->obj->matrix._12 + 0.0f * ch->obj->matrix._22 - 70.0f * ch->obj->matrix._32 + ch->obj->matrix._42;
-    pos.z = 0.0f * ch->obj->matrix._13 + 0.0f * ch->obj->matrix._23 - 70.0f * ch->obj->matrix._33 + ch->obj->matrix._43;
-    d3_SetObjectPos(obj, &pos.v);
-    d3_SetObjectRot(obj, &ch->obj->rotation);
-    obj->flags &= ~4;
-    obj->stateFlags = obj->stateFlags & ~8 | 4;
-    obj->objectFlags &= ~2;
-    ch->transport = t;
-    t->reserved14 = 0;
-    t->obj = obj;
-    return t;
+  pos.x = 0.0f * ch->obj->matrix._11 + 0.0f * ch->obj->matrix._21 -
+          70.0f * ch->obj->matrix._31 + ch->obj->matrix._41;
+  pos.y = 0.0f * ch->obj->matrix._12 + 0.0f * ch->obj->matrix._22 -
+          70.0f * ch->obj->matrix._32 + ch->obj->matrix._42;
+  pos.z = 0.0f * ch->obj->matrix._13 + 0.0f * ch->obj->matrix._23 -
+          70.0f * ch->obj->matrix._33 + ch->obj->matrix._43;
+  d3_SetObjectPos(obj, &pos.v);
+  d3_SetObjectRot(obj, &ch->obj->rotation);
+  obj->flags &= ~4;
+  obj->stateFlags = obj->stateFlags & ~8 | 4;
+  obj->objectFlags &= ~2;
+  ch->transport = t;
+  t->reserved14 = 0;
+  t->obj = obj;
+  return t;
 }
 /* 0x4035f0, frees the transport record of ch and clears its transport */
 
-void ch_DetachTransport(CHARACTER *ch)
-{
-    if (ch->transport) {
-        mem_Free(ch->transport);
-        ch->transport = 0;
-    }
+void ch_DetachTransport(CHARACTER *ch) {
+  if (ch->transport) {
+    mem_Free(ch->transport);
+    ch->transport = 0;
+  }
 }
 /* 0x403620, drags the transport behind the character and puts it on the ground */
 
-void ch_PlaceTransport(CHARACTER *ch, char now)
-{
-    D3OBJECT *body = ch->obj;
-    D3SM *hmap = ch_GetHMap(ch);
-    D3OBJECT *obj;
-    int z, x;
-    float h2;
-    D3VECTOR4 v;
-    D3VECTOR4 d;
-    float len, k, dx, dy, dz, a;
-    D3VECTOR rot;
-    int t;
-    float h;
+void ch_PlaceTransport(CHARACTER *ch, char now) {
+  D3OBJECT *body = ch->obj;
+  D3SM *hmap = ch_GetHMap(ch);
+  D3OBJECT *obj;
+  int z, x;
+  float h2;
+  D3VECTOR4 v;
+  D3VECTOR4 d;
+  float len, k, dx, dy, dz, a;
+  D3VECTOR rot;
+  int t;
+  float h;
 
-    if (!ch->transport)
-        return;
-    obj = ch->transport->obj;
-    if (d3_VecEqual(&body->pos, &ch->transport->pos, 0.01f) && !now)
-        return;
-    v.x = ch->obj->posOffset.x + ch->obj->pos.x;
-    v.y = ch->obj->posOffset.y + ch->obj->pos.y;
-    v.z = ch->obj->posOffset.z + ch->obj->pos.z;
-    dx = v.x - ch->transport->pos.x;
-    dy = v.y - ch->transport->pos.y;
-    dz = v.z - ch->transport->pos.z;
-    len = (float)sqrt(dx * dx + dy * dy + dz * dz);
-    v.x = 0.0f * obj->matrix._11 + 0.0f * obj->matrix._21 + len * obj->matrix._31;
-    v.y = 0.0f * obj->matrix._12 + 0.0f * obj->matrix._22 + len * obj->matrix._32;
-    v.z = 0.0f * obj->matrix._13 + 0.0f * obj->matrix._23 + len * obj->matrix._33;
-    d.x = v.x + obj->pos.x;
-    d.y = v.y + obj->pos.y;
-    d.z = v.z + obj->pos.z;
-    v.x = body->pos.x - d.x;
-    v.y = body->pos.y - d.y;
-    v.z = body->pos.z - d.z;
-    k = (float)(70.0f / (float)sqrt(v.x * v.x + v.y * v.y + v.z * v.z));
-    d.x = k * v.x;
-    d.y = k * v.y;
-    d.z = k * v.z;
-    v.x = body->pos.x - d.x;
-    v.y = body->pos.y - d.y;
-    v.z = body->pos.z - d.z;
-    d3_SetObjectPos(obj, &v.v);
-    a = -(6.2831855f - d3_YawTo(obj, &body->pos));
-    rot.x = obj->rotation.x;
-    rot.y = obj->rotation.y;
-    rot.z = obj->rotation.z;
-    rot.y += a;
-    d3_SetObjectRot(obj, &rot);
-    if (d3_GetHeightAt(hmap, &obj->pos, &x, &z, &h)) {
-        t = hmap->entries[hmap->size * z + x].type;
-        if ((t == 0 || t == 0xd) && !ch->scene->map)
-            goto done;
-        if (ch->scene->map)
-            map_Pick(ch->scene->map, &obj->pos, 1, &x, &z, &h2);
-        if (t == 0 || t == 0xd || !(h2 - h < -5.0))
-            h = h2;
-        if (!d3t_SceneIndex(ch->scene))
-            h += 3.0f;
-        if (now)
-            obj->pos.y = h;
-        else
-            obj->pos.y = (h - obj->pos.y) * 0.25f + obj->pos.y;
-    }
-    d3_SetObjectPos(obj, &obj->pos);
+  if (!ch->transport)
+    return;
+  obj = ch->transport->obj;
+  if (d3_VecEqual(&body->pos, &ch->transport->pos, 0.01f) && !now)
+    return;
+  v.x = ch->obj->posOffset.x + ch->obj->pos.x;
+  v.y = ch->obj->posOffset.y + ch->obj->pos.y;
+  v.z = ch->obj->posOffset.z + ch->obj->pos.z;
+  dx = v.x - ch->transport->pos.x;
+  dy = v.y - ch->transport->pos.y;
+  dz = v.z - ch->transport->pos.z;
+  len = (float)sqrt(dx * dx + dy * dy + dz * dz);
+  v.x = 0.0f * obj->matrix._11 + 0.0f * obj->matrix._21 + len * obj->matrix._31;
+  v.y = 0.0f * obj->matrix._12 + 0.0f * obj->matrix._22 + len * obj->matrix._32;
+  v.z = 0.0f * obj->matrix._13 + 0.0f * obj->matrix._23 + len * obj->matrix._33;
+  d.x = v.x + obj->pos.x;
+  d.y = v.y + obj->pos.y;
+  d.z = v.z + obj->pos.z;
+  v.x = body->pos.x - d.x;
+  v.y = body->pos.y - d.y;
+  v.z = body->pos.z - d.z;
+  k = (float)(70.0f / (float)sqrt(v.x * v.x + v.y * v.y + v.z * v.z));
+  d.x = k * v.x;
+  d.y = k * v.y;
+  d.z = k * v.z;
+  v.x = body->pos.x - d.x;
+  v.y = body->pos.y - d.y;
+  v.z = body->pos.z - d.z;
+  d3_SetObjectPos(obj, &v.v);
+  a = -(6.2831855f - d3_YawTo(obj, &body->pos));
+  rot.x = obj->rotation.x;
+  rot.y = obj->rotation.y;
+  rot.z = obj->rotation.z;
+  rot.y += a;
+  d3_SetObjectRot(obj, &rot);
+  if (d3_GetHeightAt(hmap, &obj->pos, &x, &z, &h)) {
+    t = hmap->entries[hmap->size * z + x].type;
+    if ((t == 0 || t == 0xd) && !ch->scene->map)
+      goto done;
+    if (ch->scene->map)
+      map_Pick(ch->scene->map, &obj->pos, 1, &x, &z, &h2);
+    if (t == 0 || t == 0xd || !(h2 - h < -5.0))
+      h = h2;
+    if (!d3t_SceneIndex(ch->scene))
+      h += 3.0f;
+    if (now)
+      obj->pos.y = h;
+    else
+      obj->pos.y = (h - obj->pos.y) * 0.25f + obj->pos.y;
+  }
+  d3_SetObjectPos(obj, &obj->pos);
 done:
-    ch->transport->pos.x = body->pos.x;
-    ch->transport->pos.y = body->pos.y;
-    ch->transport->pos.z = body->pos.z;
+  ch->transport->pos.x = body->pos.x;
+  ch->transport->pos.y = body->pos.y;
+  ch->transport->pos.z = body->pos.z;
 }
 /* 0x403950, loads and attaches action motion <motion> of the character's body (0 when it cannot be attached) */
 
-D3ANIMSLOT *ch_AttachMotion(CHARACTER *ch, int motion)
-{
-    CHANIMFLAGS f;
-    D3ANIMSLOT *s;
-    char name[0x110];
-    char path[0x110];
-    char msg[0x200];
+D3ANIMSLOT *ch_AttachMotion(CHARACTER *ch, int motion) {
+  CHANIMFLAGS f;
+  D3ANIMSLOT *s;
+  char name[0x110];
+  char path[0x110];
+  char msg[0x200];
 
-    sprintf(path, "character/%s/%s_%s.baf", ch->body, ch_ActDefs[motion].name, ch->body);
-    sprintf(name, "%s_%s", ch_ActDefs[motion].name, ch->body);
-    vfs_ToSlashes(name);
-    if (path[0]) {
+  sprintf(path, "character/%s/%s_%s.baf", ch->body, ch_ActDefs[motion].name,
+          ch->body);
+  sprintf(name, "%s_%s", ch_ActDefs[motion].name, ch->body);
+  vfs_ToSlashes(name);
+  if (path[0]) {
+    memset(&f, 0, sizeof(f));
+    f.u.all = 0;
+    f.b8 = 1;
+    f.u.c.b1 = 0x18;
+    f.u.c.b0 = 0;
+    f.b = 0;
+    f.a = 1;
+    if (!d3_FindAnim(name))
+      d3_LoadAnimStream(path, name, 1);
+    s = d3anim_StartAnim(&ch->obj->material->surf[0], name, f.anim);
+    if (!s) {
+      sprintf(msg, "ch_AttachMotion(): Could not attach ani: %s", path);
+      return 0;
+    }
+  }
+  if (!d3t_SceneIndex(ch->scene))
+    s->timeout = -1;
+  else
+    s->timeout = ch_MotionTimeout;
+  return s;
+}
+/* 0x403ab0, 1 when the current animation has reached its last frame (last, or nframes when last is -1),
+   or when bit 5 of its flags byte is set; 1 also when the character has neither a slot nor a next anim */
+
+int ch_AnimDone(CHARACTER *ch) {
+  D3ANIMSLOT *s = ch->slot;
+  int n;
+
+  if (!ch->slot && !ch->next)
+    return 1;
+  if (!s)
+    return 0;
+  n = s->data->last != -1 ? s->data->last : s->data->nframes;
+  if (s->frame >= n)
+    return 1;
+  if (s->flags.b[1] & 0x20)
+    return 1;
+  return 0;
+}
+/* 0x403b00, loads the animation the character switches to next (ch_CheckAniMorph) */
+
+D3ANIMDATA *ch_SetNextAnim(CHARACTER *ch, char *anim, char loops) {
+  int walk = 0;
+  D3ANIMDATA *a;
+  char name[0x110];
+  char path[0x110];
+
+  if (ch->next)
+    return 0;
+  vfs_ToSlashes(anim);
+  sprintf(path, "character/%s/%s_%s.baf", ch->body, anim, ch->body);
+  sprintf(name, "%s_%s", anim, ch->body);
+  vfs_ToSlashes(name);
+  a = d3_FindAnim(name);
+  if (!strcmpi(anim, "bewegung/gehen") ||
+      !strcmpi(anim, "bewegung/karren_ziehen"))
+    walk = 1;
+  if (!a)
+    ch->next = d3_LoadAnimStream(path, name, walk);
+  else
+    ch->next = a;
+  if (!ch->next)
+    return 0;
+  ch->nextloops = loops;
+  ch->next->refs++;
+  return ch->next;
+}
+/* 0x403c10, ends the current animation, blending from its frame into a morph */
+
+void ch_StopAnim(CHARACTER *ch) {
+  D3OBJECT *obj = ch->obj;
+  CHANIMFLAGS f;
+  char name[0x60];
+  D3ANIMSLOT *s;
+
+  if (ch->slot) {
+    sprintf(name, "morph_%i", ch);
+    if (!d3_FindAnim(name)) {
+      if (obj->info &&
+          d3anim_CreateMorphAnim(obj->info->mesh, ch->slot->data,
+                                 &ch->slot->data->frames[ch->slot->frame], 0, 0,
+                                 obj->info->mesh, name, 4)) {
+        f.u.all = 0;
+        f.b8 = 1;
+        f.u.c.b1 = 0x18;
+        f.b = 0;
+        f.a = 0;
+        ch->morph = d3anim_StartAnim(&obj->material->surf[0], name, f.anim);
+        if (ch->morph) {
+          if (!d3t_SceneIndex(ch->scene))
+            ch->morph->timeout = -1;
+          else
+            ch->morph->timeout = ch_MorphTimeout;
+        }
+      }
+      s = ch->slot;
+      if (!s->data->relative && (s->flags.b[4] & 3))
+        d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
+      d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
+      ch->slot = 0;
+    }
+  }
+}
+/* 0x403d60, releases the character's morph animation (its texture and anim data) and clears it */
+
+void ch_ReleaseMorph(CHARACTER *ch) {
+  char name[0x60];
+  D3ANIMDATA *a;
+
+  if (ch->morph) {
+    sprintf(name, "morph_%i", ch);
+    d3_ReleaseTexture(&ch->obj->material->surf[0], name);
+    a = d3_FindAnim(name);
+    d3anim_Release(a, 1);
+    ch->morph = 0;
+  }
+}
+/* 0x403dc0, ends a finished animation or morph and starts the next animation, blending into it */
+
+void ch_CheckAniMorph(CHARACTER *ch) {
+  int released = 0;
+  D3OBJECT *obj;
+  CHANIMFLAGS f;
+  D3ANIMSLOT *s;
+  char name[0x60];
+  char msg[0x200];
+  D3ANIMDATA *a;
+  int n, i;
+  signed char loops;
+
+  s = ch->slot;
+  obj = ch->obj;
+  if (s && (s->flags.b[1] & 0x20) && !(s->flags.b[8] & 8) &&
+      !ch->flags.holdAnim) {
+    if (!s->data->relative && (s->flags.b[4] & 3))
+      d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
+    d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
+    ch->slot = 0;
+  }
+  if (ch->morph) {
+    if (!(ch->morph->flags.b[1] & 0x20))
+      return;
+    sprintf(name, "morph_%i", ch);
+    d3_ReleaseTexture(&obj->material->surf[0], name);
+    a = d3_FindAnim(name);
+    d3anim_Release(a, 1);
+    ch->morph = 0;
+    released = 1;
+  }
+  if (!ch->next)
+    return;
+  if (!ch->morph && ch->slot) {
+    s = ch->slot;
+    i = ch->next->first != -1 ? ch->next->first : 0;
+    sprintf(name, "morph_%i", ch);
+    a = ch->slot->data;
+    n = ch->next->frames[i].time - a->frames[ch->slot->frame].time;
+    n = (n + a->frames[a->nframes - 1].time) / 2;
+    n = (int)(n + 0.5f);
+    if (obj->info) {
+      if (d3anim_CreateMorphAnim(obj->info->mesh, a,
+                                 &a->frames[ch->slot->frame], ch->next,
+                                 &ch->next->frames[i], 0, name, n)) {
+        f.u.all = 0;
+        f.b8 = 1;
+        f.u.c.b1 = 0x18;
+        f.b = 0;
+        f.a = 0;
+        ch->morph = d3anim_StartAnim(&obj->material->surf[0], name, f.anim);
+        if (ch->morph) {
+          if (!d3t_SceneIndex(ch->scene))
+            ch->morph->timeout = -1;
+          else
+            ch->morph->timeout = ch_MorphTimeout;
+        }
+      } else
+        ch->morph = 0;
+    }
+    if (!s->data->relative && (s->flags.b[4] & 3))
+      d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
+    d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
+    if (obj->info && obj->info->slots[0].data && obj->info->slots[1].data)
+      err_Message("ch_CheckAniMorph(): huston we got a problem...");
+    ch->slot = 0;
+    return;
+  }
+  if (!ch->morph && !ch->slot) {
+    memset(&f, 0, sizeof(f));
+    f.u.all = 0;
+    f.u.c.b0 = 1;
+    f.b8 = 1;
+    loops = ch->nextloops;
+    if (loops >= 1)
+      f.u.c.b0 = loops;
+    f.u.c.b1 = loops != 1 ? 8 : 0x18;
+    ch->next->refs--;
+    f.b = 0;
+    f.a = 0;
+    if (!d3_FindAnim(ch->next->name)) {
+      sprintf(msg, "character/%s/%s.baf", ch->body, ch->next->name, ch->body);
+      d3_LoadAnimStream(msg, ch->next->name, 0);
+    }
+    ch->slot =
+        d3anim_StartAnim(&obj->material->surf[0], ch->next->name, f.anim);
+    ch->lastActionFrame = -1;
+    if (ch->slot) {
+      if (!d3t_SceneIndex(ch->scene))
+        ch->slot->timeout = -1;
+      else
+        ch->slot->timeout = ch_MotionTimeout;
+      if ((n = ch->next->first) != -1 && released) {
+        ch->slot->frame = n;
+        ch->slot->nextFrame = n + 1;
+        d3anim_PoseBones(ch->obj);
+      }
+    } else
+      sprintf(msg, "ch_CheckAniMorph(): Could not attach CurrentAnimStream: %s",
+              ch->next->name);
+    ch->next = 0;
+  }
+}
+/* 0x404200, loads the named animations of the character once (and releases them again) */
+
+void ch_PreloadAnims(CHARACTER *ch, int n, ...) {
+  va_list ap;
+  int i;
+  char *anim;
+  char walk;
+  CHANIMFLAGS f;
+  char name[0x100];
+  char path[0x100];
+
+  va_start(ap, n);
+  for (i = 0; i < n; i++) {
+    anim = va_arg(ap, char *);
+    if (*anim) {
+      walk = 0;
+      if (!strcmpi(anim, "bewegung/gehen") ||
+          !strcmpi(anim, "bewegung/karren_ziehen"))
+        walk = 1;
+      sprintf(path, "character/%s/%s_%s.baf", ch->body, anim, ch->body);
+      sprintf(name, "%s_%s", anim, ch->body);
+      vfs_ToSlashes(name);
+      if (!d3_FindAnim(name)) {
+        d3_LoadAnimStream(path, name, walk);
         memset(&f, 0, sizeof(f));
         f.u.all = 0;
         f.b8 = 1;
@@ -790,427 +1036,180 @@ D3ANIMSLOT *ch_AttachMotion(CHARACTER *ch, int motion)
         f.u.c.b0 = 0;
         f.b = 0;
         f.a = 1;
-        if (!d3_FindAnim(name))
-            d3_LoadAnimStream(path, name, 1);
-        s = d3anim_StartAnim(&ch->obj->material->surf[0], name, f.anim);
-        if (!s) {
-            sprintf(msg, "ch_AttachMotion(): Could not attach ani: %s", path);
-            return 0;
-        }
-    }
-    if (!d3t_SceneIndex(ch->scene))
-        s->timeout = -1;
-    else
-        s->timeout = ch_MotionTimeout;
-    return s;
-}
-/* 0x403ab0, 1 when the current animation has reached its last frame (last, or nframes when last is -1),
-   or when bit 5 of its flags byte is set; 1 also when the character has neither a slot nor a next anim */
-
-int ch_AnimDone(CHARACTER *ch)
-{
-    D3ANIMSLOT *s = ch->slot;
-    int n;
-
-    if (!ch->slot && !ch->next)
-        return 1;
-    if (!s)
-        return 0;
-    n = s->data->last != -1 ? s->data->last : s->data->nframes;
-    if (s->frame >= n)
-        return 1;
-    if (s->flags.b[1] & 0x20)
-        return 1;
-    return 0;
-}
-/* 0x403b00, loads the animation the character switches to next (ch_CheckAniMorph) */
-
-D3ANIMDATA *ch_SetNextAnim(CHARACTER *ch, char *anim, char loops)
-{
-    int walk = 0;
-    D3ANIMDATA *a;
-    char name[0x110];
-    char path[0x110];
-
-    if (ch->next)
-        return 0;
-    vfs_ToSlashes(anim);
-    sprintf(path, "character/%s/%s_%s.baf", ch->body, anim, ch->body);
-    sprintf(name, "%s_%s", anim, ch->body);
-    vfs_ToSlashes(name);
-    a = d3_FindAnim(name);
-    if (!strcmpi(anim, "bewegung/gehen") || !strcmpi(anim, "bewegung/karren_ziehen"))
-        walk = 1;
-    if (!a)
-        ch->next = d3_LoadAnimStream(path, name, walk);
-    else
-        ch->next = a;
-    if (!ch->next)
-        return 0;
-    ch->nextloops = loops;
-    ch->next->refs++;
-    return ch->next;
-}
-/* 0x403c10, ends the current animation, blending from its frame into a morph */
-
-void ch_StopAnim(CHARACTER *ch)
-{
-    D3OBJECT *obj = ch->obj;
-    CHANIMFLAGS f;
-    char name[0x60];
-    D3ANIMSLOT *s;
-
-    if (ch->slot) {
-        sprintf(name, "morph_%i", ch);
-        if (!d3_FindAnim(name)) {
-            if (obj->info && d3anim_CreateMorphAnim(obj->info->mesh, ch->slot->data,
-                                                      &ch->slot->data->frames[ch->slot->frame], 0, 0,
-                                                      obj->info->mesh, name, 4)) {
-                f.u.all = 0;
-                f.b8 = 1;
-                f.u.c.b1 = 0x18;
-                f.b = 0;
-                f.a = 0;
-                ch->morph = d3anim_StartAnim(&obj->material->surf[0], name, f.anim);
-                if (ch->morph) {
-                    if (!d3t_SceneIndex(ch->scene))
-                        ch->morph->timeout = -1;
-                    else
-                        ch->morph->timeout = ch_MorphTimeout;
-                }
-            }
-            s = ch->slot;
-            if (!s->data->relative && (s->flags.b[4] & 3))
-                d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
-            d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
-            ch->slot = 0;
-        }
-    }
-}
-/* 0x403d60, releases the character's morph animation (its texture and anim data) and clears it */
-
-void ch_ReleaseMorph(CHARACTER *ch)
-{
-    char name[0x60];
-    D3ANIMDATA *a;
-
-    if (ch->morph) {
-        sprintf(name, "morph_%i", ch);
+        d3anim_StartAnim(&ch->obj->material->surf[0], name, f.anim);
         d3_ReleaseTexture(&ch->obj->material->surf[0], name);
-        a = d3_FindAnim(name);
-        d3anim_Release(a, 1);
-        ch->morph = 0;
+      }
     }
-}
-/* 0x403dc0, ends a finished animation or morph and starts the next animation, blending into it */
-
-void ch_CheckAniMorph(CHARACTER *ch)
-{
-    int released = 0;
-    D3OBJECT *obj;
-    CHANIMFLAGS f;
-    D3ANIMSLOT *s;
-    char name[0x60];
-    char msg[0x200];
-    D3ANIMDATA *a;
-    int n, i;
-    signed char loops;
-
-    s = ch->slot;
-    obj = ch->obj;
-    if (s && (s->flags.b[1] & 0x20) && !(s->flags.b[8] & 8) && !ch->flags.holdAnim) {
-        if (!s->data->relative && (s->flags.b[4] & 3))
-            d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
-        d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
-        ch->slot = 0;
-    }
-    if (ch->morph) {
-        if (!(ch->morph->flags.b[1] & 0x20))
-            return;
-        sprintf(name, "morph_%i", ch);
-        d3_ReleaseTexture(&obj->material->surf[0], name);
-        a = d3_FindAnim(name);
-        d3anim_Release(a, 1);
-        ch->morph = 0;
-        released = 1;
-    }
-    if (!ch->next)
-        return;
-    if (!ch->morph && ch->slot) {
-        s = ch->slot;
-        i = ch->next->first != -1 ? ch->next->first : 0;
-        sprintf(name, "morph_%i", ch);
-        a = ch->slot->data;
-        n = ch->next->frames[i].time - a->frames[ch->slot->frame].time;
-        n = (n + a->frames[a->nframes - 1].time) / 2;
-        n = (int)(n + 0.5f);
-        if (obj->info) {
-            if (d3anim_CreateMorphAnim(obj->info->mesh, a, &a->frames[ch->slot->frame], ch->next, &ch->next->frames[i], 0, name, n)) {
-                f.u.all = 0;
-                f.b8 = 1;
-                f.u.c.b1 = 0x18;
-                f.b = 0;
-                f.a = 0;
-                ch->morph = d3anim_StartAnim(&obj->material->surf[0], name, f.anim);
-                if (ch->morph) {
-                    if (!d3t_SceneIndex(ch->scene))
-                        ch->morph->timeout = -1;
-                    else
-                        ch->morph->timeout = ch_MorphTimeout;
-                }
-            } else
-                ch->morph = 0;
-        }
-        if (!s->data->relative && (s->flags.b[4] & 3))
-            d3anim_ApplyRootMotion(obj, s, 0, s->frame, 3);
-        d3_ReleaseTexture(&obj->material->surf[0], s->data->name);
-        if (obj->info && obj->info->slots[0].data && obj->info->slots[1].data)
-            err_Message("ch_CheckAniMorph(): huston we got a problem...");
-        ch->slot = 0;
-        return;
-    }
-    if (!ch->morph && !ch->slot) {
-        memset(&f, 0, sizeof(f));
-        f.u.all = 0;
-        f.u.c.b0 = 1;
-        f.b8 = 1;
-        loops = ch->nextloops;
-        if (loops >= 1)
-            f.u.c.b0 = loops;
-        f.u.c.b1 = loops != 1 ? 8 : 0x18;
-        ch->next->refs--;
-        f.b = 0;
-        f.a = 0;
-        if (!d3_FindAnim(ch->next->name)) {
-            sprintf(msg, "character/%s/%s.baf", ch->body, ch->next->name, ch->body);
-            d3_LoadAnimStream(msg, ch->next->name, 0);
-        }
-        ch->slot = d3anim_StartAnim(&obj->material->surf[0], ch->next->name, f.anim);
-        ch->lastActionFrame = -1;
-        if (ch->slot) {
-            if (!d3t_SceneIndex(ch->scene))
-                ch->slot->timeout = -1;
-            else
-                ch->slot->timeout = ch_MotionTimeout;
-            if ((n = ch->next->first) != -1 && released) {
-                ch->slot->frame = n;
-                ch->slot->nextFrame = n + 1;
-                d3anim_PoseBones(ch->obj);
-            }
-        } else
-            sprintf(msg, "ch_CheckAniMorph(): Could not attach CurrentAnimStream: %s", ch->next->name);
-        ch->next = 0;
-    }
-}
-/* 0x404200, loads the named animations of the character once (and releases them again) */
-
-void ch_PreloadAnims(CHARACTER *ch, int n, ...)
-{
-    va_list ap;
-    int i;
-    char *anim;
-    char walk;
-    CHANIMFLAGS f;
-    char name[0x100];
-    char path[0x100];
-
-    va_start(ap, n);
-    for (i = 0; i < n; i++) {
-        anim = va_arg(ap, char *);
-        if (*anim) {
-            walk = 0;
-            if (!strcmpi(anim, "bewegung/gehen") || !strcmpi(anim, "bewegung/karren_ziehen"))
-                walk = 1;
-            sprintf(path, "character/%s/%s_%s.baf", ch->body, anim, ch->body);
-            sprintf(name, "%s_%s", anim, ch->body);
-            vfs_ToSlashes(name);
-            if (!d3_FindAnim(name)) {
-                d3_LoadAnimStream(path, name, walk);
-                memset(&f, 0, sizeof(f));
-                f.u.all = 0;
-                f.b8 = 1;
-                f.u.c.b1 = 0x18;
-                f.u.c.b0 = 0;
-                f.b = 0;
-                f.a = 1;
-                d3anim_StartAnim(&ch->obj->material->surf[0], name, f.anim);
-                d3_ReleaseTexture(&ch->obj->material->surf[0], name);
-            }
-        }
-    }
-    va_end(ap);
+  }
+  va_end(ap);
 }
 
 /* ---- 0x404360..0x405810 (worker ch2) ---- */
 
 /* 0x404360, loads the low-poly animations name... of the model attached at unk22c */
-void ch_LoadLowAnims(CHARACTER *ch, int n, ...)
-{
-    char buf[256];
-    char file[256];
-    union {
-        D3ANIMFLAGS anim;
-        int words[3];
-    } f;
-    char *name;
-    int i;
-    D3ANIMDATA *r;
-    va_list args;
+void ch_LoadLowAnims(CHARACTER *ch, int n, ...) {
+  char buf[256];
+  char file[256];
+  union {
+    D3ANIMFLAGS anim;
+    int words[3];
+  } f;
+  char *name;
+  int i;
+  D3ANIMDATA *r;
+  va_list args;
 
-    va_start(args, n);
-    for (i = 0; i < n; i++) {
-        name = va_arg(args, char *);
-        if (*name) {
-            sprintf(file, "lowpolycharacter/%s/%s_%s_LOW.baf", ch->lowname, name, ch->lowname);
-            sprintf(buf, "%s_%s_LOW.baf", name, ch->lowname);
-            vfs_ToSlashes(buf);
-            r = d3_FindAnim(buf);
-            memset(&f, 0, sizeof(f));
-            f.words[0] = 0;
-            f.anim.b[1] = 8;
-            f.anim.b[8] |= 2;
-            f.words[1] &= ~3;
-            f.anim.b[0] = 0;
-            if (!r)
-                r = d3_LoadAnimStream(file, buf, 1);
-            if (r) {
-                d3anim_StartAnim(&ch->lowPolyBody->material->surf[0], buf, f.anim);
-                d3_ReleaseTexture(&ch->lowPolyBody->material->surf[0], buf);
-            }
-        }
+  va_start(args, n);
+  for (i = 0; i < n; i++) {
+    name = va_arg(args, char *);
+    if (*name) {
+      sprintf(file, "lowpolycharacter/%s/%s_%s_LOW.baf", ch->lowname, name,
+              ch->lowname);
+      sprintf(buf, "%s_%s_LOW.baf", name, ch->lowname);
+      vfs_ToSlashes(buf);
+      r = d3_FindAnim(buf);
+      memset(&f, 0, sizeof(f));
+      f.words[0] = 0;
+      f.anim.b[1] = 8;
+      f.anim.b[8] |= 2;
+      f.words[1] &= ~3;
+      f.anim.b[0] = 0;
+      if (!r)
+        r = d3_LoadAnimStream(file, buf, 1);
+      if (r) {
+        d3anim_StartAnim(&ch->lowPolyBody->material->surf[0], buf, f.anim);
+        d3_ReleaseTexture(&ch->lowPolyBody->material->surf[0], buf);
+      }
     }
+  }
 }
 /* 0x4044a0, starts the animation <model>_<name> on the character */
 
-D3ANIMSLOT *ch_AttachAni(CHARACTER *ch, char *name, unsigned char loop)
-{
-    char msg[512];
-    char file[272];
-    char buf[272];
-    CHANIMFLAGS f;
-    D3ANIMSLOT *s;
+D3ANIMSLOT *ch_AttachAni(CHARACTER *ch, char *name, unsigned char loop) {
+  char msg[512];
+  char file[272];
+  char buf[272];
+  CHANIMFLAGS f;
+  D3ANIMSLOT *s;
 
-    vfs_ToSlashes(name);
-    sprintf(file, "character/%s/%s_%s.baf", ch->body, name, ch->body);
-    sprintf(buf, "%s_%s", name, ch->body);
-    vfs_ToSlashes(buf);
-    if (*name) {
-        memset(&f, 0, sizeof(f));
-        f.u.all = 0;
-        f.u.bits.f08 = loop;
-        f.b8 = 1;
-        f.u.c.b0 = 0;
-        f.u.bits.f10 = 1;
-        f.b = 1;
-        f.a = 1;
-        if (!d3_FindAnim(buf)) {
-            if (strcmp(name, "bewegung/gehen") && strcmp(name, "bewegung/karren_ziehen"))
-                d3_LoadAnimStream(file, buf, 0);
-            else
-                d3_LoadAnimStream(file, buf, 1);
-        }
-        s = d3anim_StartAnim(&ch->obj->material->surf[0], buf, f.anim);
-        if (!s) {
-            sprintf(msg, "ch_AttachAni(): Could not attach ani: %s", name);
-            return 0;
-        }
-        if (!d3t_SceneIndex(ch->scene))
-            s->timeout = -1;
-        else
-            s->timeout = ch_MotionTimeout;
+  vfs_ToSlashes(name);
+  sprintf(file, "character/%s/%s_%s.baf", ch->body, name, ch->body);
+  sprintf(buf, "%s_%s", name, ch->body);
+  vfs_ToSlashes(buf);
+  if (*name) {
+    memset(&f, 0, sizeof(f));
+    f.u.all = 0;
+    f.u.bits.f08 = loop;
+    f.b8 = 1;
+    f.u.c.b0 = 0;
+    f.u.bits.f10 = 1;
+    f.b = 1;
+    f.a = 1;
+    if (!d3_FindAnim(buf)) {
+      if (strcmp(name, "bewegung/gehen") &&
+          strcmp(name, "bewegung/karren_ziehen"))
+        d3_LoadAnimStream(file, buf, 0);
+      else
+        d3_LoadAnimStream(file, buf, 1);
     }
-    ch->slot = s;
-    ch->lastActionFrame = -1;
-    return s;
+    s = d3anim_StartAnim(&ch->obj->material->surf[0], buf, f.anim);
+    if (!s) {
+      sprintf(msg, "ch_AttachAni(): Could not attach ani: %s", name);
+      return 0;
+    }
+    if (!d3t_SceneIndex(ch->scene))
+      s->timeout = -1;
+    else
+      s->timeout = ch_MotionTimeout;
+  }
+  ch->slot = s;
+  ch->lastActionFrame = -1;
+  return s;
 }
 /* 0x404640, action callback: plays the action's animation */
 
-int ch_ActAnim(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    D3ANIMSLOT *s;
+int ch_ActAnim(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  D3ANIMSLOT *s;
 
-    if (!ch->slot && !a->count) {
-        ch->slot = ch_AttachMotion(ch, a->type);
-        return a->started;
-    }
-    if (ch->slot && (ch->slot->flags.b[1] & 0x20)) {
-        s = ch->slot;
-        if (!s->data->relative && (s->flags.b[4] & 3))
-            d3anim_ApplyRootMotion(ch->obj, s, 0, s->frame, 3);
-        if (!(ch->flags.bytes.lo & 2))
-            d3_ReleaseTexture(&a->ch->obj->material->surf[0], ch->slot->data->name);
-        ch->slot = 0;
-        return -1;
-    }
-    if (ch->slot && a->stop) {
-        s = ch->slot;
-        if (!s->data->relative && (s->flags.b[4] & 3))
-            d3anim_ApplyRootMotion(ch->obj, s, 0, s->frame, 3);
-        if (!(ch->flags.bytes.lo & 2))
-            d3_ReleaseTexture(&a->ch->obj->material->surf[0], ch->slot->data->name);
-        ch->slot = 0;
-        return -1;
-    }
-    if (!ch->slot)
-        return -1;
+  if (!ch->slot && !a->count) {
+    ch->slot = ch_AttachMotion(ch, a->type);
     return a->started;
+  }
+  if (ch->slot && (ch->slot->flags.b[1] & 0x20)) {
+    s = ch->slot;
+    if (!s->data->relative && (s->flags.b[4] & 3))
+      d3anim_ApplyRootMotion(ch->obj, s, 0, s->frame, 3);
+    if (!(ch->flags.bytes.lo & 2))
+      d3_ReleaseTexture(&a->ch->obj->material->surf[0], ch->slot->data->name);
+    ch->slot = 0;
+    return -1;
+  }
+  if (ch->slot && a->stop) {
+    s = ch->slot;
+    if (!s->data->relative && (s->flags.b[4] & 3))
+      d3anim_ApplyRootMotion(ch->obj, s, 0, s->frame, 3);
+    if (!(ch->flags.bytes.lo & 2))
+      d3_ReleaseTexture(&a->ch->obj->material->surf[0], ch->slot->data->name);
+    ch->slot = 0;
+    return -1;
+  }
+  if (!ch->slot)
+    return -1;
+  return a->started;
 }
 /* 0x404760, returns the first free entry of the action queue ch_Queue, 0 when all are in use */
 
-CHACTION *ch_GetFreeQueueEntry(void)
-{
-    int i;
+CHACTION *ch_GetFreeQueueEntry(void) {
+  int i;
 
-    for (i = 0; i < CH_QUEUE; )
-        if (!ch_Queue[i++].func)
-            break;
-    if (i >= CH_QUEUE)
-        return 0;
-    return &ch_Queue[i - 1];
+  for (i = 0; i < CH_QUEUE;)
+    if (!ch_Queue[i++].func)
+      break;
+  if (i >= CH_QUEUE)
+    return 0;
+  return &ch_Queue[i - 1];
 }
 /* 0x4047a0, unlinks the action from its character's queue and frees it */
 
-int ch_RemoveAction(CHACTION *a)
-{
-    CHACTION *prev, *next;
+int ch_RemoveAction(CHACTION *a) {
+  CHACTION *prev, *next;
 
-    if (!a)
-        return 0;
-    if (!a->next && a->ch && a == CH_ACTIONS(a->ch)) {
-        CH_ACTIONS(a->ch) = 0;
-    } else {
-        prev = a->prev;
-        if (prev)
-            prev->next = a->next;
-        next = a->next;
-        if (next)
-            next->prev = prev;
-        if (!prev && a->ch)
-            CH_ACTIONS(a->ch) = next;
-    }
-    memset(a, 0, sizeof(*a));
-    return 1;
+  if (!a)
+    return 0;
+  if (!a->next && a->ch && a == CH_ACTIONS(a->ch)) {
+    CH_ACTIONS(a->ch) = 0;
+  } else {
+    prev = a->prev;
+    if (prev)
+      prev->next = a->next;
+    next = a->next;
+    if (next)
+      next->prev = prev;
+    if (!prev && a->ch)
+      CH_ACTIONS(a->ch) = next;
+  }
+  memset(a, 0, sizeof(*a));
+  return 1;
 }
 /* 0x404810, removes every action of the character's queue, freeing the path of a walk action */
 
-int ch_ClearActions(CHARACTER *ch)
-{
-    CHACTION *a;
+int ch_ClearActions(CHARACTER *ch) {
+  CHACTION *a;
 
-    while (a = CH_ACTIONS(ch)) {
-        if (a->type == '-' && a->u.walk.path) {
-            mem_Free(a->u.walk.path);
-            a->u.walk.path = 0;
-        }
-        ch_RemoveAction(a);
+  while (a = CH_ACTIONS(ch)) {
+    if (a->type == '-' && a->u.walk.path) {
+      mem_Free(a->u.walk.path);
+      a->u.walk.path = 0;
     }
-    return 1;
+    ch_RemoveAction(a);
+  }
+  return 1;
 }
 /* 0x404860, consistency checks of the queue */
 
-void ch_CheckQueue(CHARACTER *ch, CHACTION *a)
-{
+void ch_CheckQueue(CHARACTER *ch, CHACTION *a) {
+  /* clang-format off */
     CHACTION *p;
 
     if (a != CH_ACTIONS(ch)) {
@@ -1222,1148 +1221,1130 @@ void ch_CheckQueue(CHARACTER *ch, CHACTION *a)
     for (p = CH_ACTIONS(ch); p; p = p->next)
         if (p->next && p->next->ch != ch)
             __asm int 3
+  /* clang-format on */
 }
 /* 0x4048b0, queues action type before the action "before"; the action's arguments follow */
 
-CHACTION *ch_InsertAction(CHARACTER *ch, CHACTION *before, unsigned int type, ...)
-{
-    int arg0;
-    CHACTION *a, *prev;
-    int i, x, z, s;
-    va_list args;
+CHACTION *ch_InsertAction(CHARACTER *ch, CHACTION *before, unsigned int type,
+                          ...) {
+  int arg0;
+  CHACTION *a, *prev;
+  int i, x, z, s;
+  va_list args;
 
-    if (!before)
-        return 0;
-    if (!ch_ActDefs[type].func) {
-        arg0 = type;
-        type = 0;
+  if (!before)
+    return 0;
+  if (!ch_ActDefs[type].func) {
+    arg0 = type;
+    type = 0;
+  }
+  a = ch_GetFreeQueueEntry();
+  if (!a) {
+    err_Message("ch_InsertAction(): Could not ch_GetFreeQueueEntry()");
+    return 0;
+  }
+  prev = before->prev;
+  before->prev = a;
+  a->prev = prev;
+  a->next = before;
+  if (prev)
+    prev->next = a;
+  else
+    CH_ACTIONS(before->ch) = a;
+  a->func = ch_ActDefs[type].func;
+  a->ch = ch;
+  a->type = type;
+  a->count = 0;
+  va_start(args, type);
+  for (i = 0; i < ch_ActDefs[a->type].nargs; i++)
+    a->args[i] = va_arg(args, int);
+  if (type == 0x33) {
+    if (!a->args[0] && a->args[1] != -1 || a->args[0] && a->args[1] == -1) {
+      err_Message("ch_InsertAction(): move2universe: invalid combination of "
+                  "ids and universeindex");
+      ch_RemoveAction(a);
+      return 0;
     }
-    a = ch_GetFreeQueueEntry();
-    if (!a) {
-        err_Message("ch_InsertAction(): Could not ch_GetFreeQueueEntry()");
-        return 0;
+  } else if (type == 0x2d) {
+    if (a->args[0] < 0 || a->args[0] > 256 || a->args[1] < 0 ||
+        a->args[1] > 256 || a->args[2] < 0 || a->args[2] > 64 ||
+        d3_Scenes[a->args[2]].dirty) {
+      ch_RemoveAction(a);
+      return 0;
     }
-    prev = before->prev;
-    before->prev = a;
-    a->prev = prev;
-    a->next = before;
-    if (prev)
-        prev->next = a;
-    else
-        CH_ACTIONS(before->ch) = a;
-    a->func = ch_ActDefs[type].func;
-    a->ch = ch;
-    a->type = type;
-    a->count = 0;
-    va_start(args, type);
-    for (i = 0; i < ch_ActDefs[a->type].nargs; i++)
-        a->args[i] = va_arg(args, int);
-    if (type == 0x33) {
-        if (!a->args[0] && a->args[1] != -1 || a->args[0] && a->args[1] == -1) {
-            err_Message("ch_InsertAction(): move2universe: invalid combination of ids and universeindex");
-            ch_RemoveAction(a);
-            return 0;
-        }
-    } else if (type == 0x2d) {
-        if (a->args[0] < 0 || a->args[0] > 256 || a->args[1] < 0 || a->args[1] > 256 || a->args[2] < 0
-            || a->args[2] > 64 || d3_Scenes[a->args[2]].dirty) {
-            ch_RemoveAction(a);
-            return 0;
-        }
-        if (ch->scene->hmap && (a->args[0] > d3_Scenes[a->args[2]].mapSize
-                                || a->args[1] > d3_Scenes[a->args[2]].mapSize)) {
-            ch_RemoveAction(before);
-            return 0;
-        }
-    } else if (type == 0)
-        a->args[0] = arg0;
-    a->started = 0;
-    ch_CheckQueue(ch, a);
-    return a;
+    if (ch->scene->hmap && (a->args[0] > d3_Scenes[a->args[2]].mapSize ||
+                            a->args[1] > d3_Scenes[a->args[2]].mapSize)) {
+      ch_RemoveAction(before);
+      return 0;
+    }
+  } else if (type == 0)
+    a->args[0] = arg0;
+  a->started = 0;
+  ch_CheckQueue(ch, a);
+  return a;
 }
 /* 0x404a80, puts the character on the ground (force: also when the ground type is 0 or 0xd); returns the ground
    type (0: none) */
 
-int ch_PlaceOnGround(CHARACTER *ch, int force)
-{
-    D3SM *h;
-    D3OBJECT *obj;
-    D3VECTOR4 pos;
-    int x, z;
-    float y;
-    int type;
+int ch_PlaceOnGround(CHARACTER *ch, int force) {
+  D3SM *h;
+  D3OBJECT *obj;
+  D3VECTOR4 pos;
+  int x, z;
+  float y;
+  int type;
 
-    h = ch_GetHMap(ch);
-    obj = ch->obj;
-    type = 0;
-    if (h) {
-        pos.x = obj->pos.x;
-        pos.y = obj->pos.y;
-        pos.z = obj->pos.z;
-        if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
-            type = h->entries[h->size * z + x].type;
-            if (force || type != 0 && type != 0xd) {
-                if (ch->scene->map)
-                    map_Pick(ch->scene->map, &pos.v, 1, &x, &z, &y);
-                if (!d3t_SceneIndex(ch->scene))
-                    pos.y = y + 3.0f;
-                else
-                    pos.y = y;
-                d3_SetObjectPos(obj, &pos.v);
-            }
-        }
+  h = ch_GetHMap(ch);
+  obj = ch->obj;
+  type = 0;
+  if (h) {
+    pos.x = obj->pos.x;
+    pos.y = obj->pos.y;
+    pos.z = obj->pos.z;
+    if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
+      type = h->entries[h->size * z + x].type;
+      if (force || type != 0 && type != 0xd) {
+        if (ch->scene->map)
+          map_Pick(ch->scene->map, &pos.v, 1, &x, &z, &y);
+        if (!d3t_SceneIndex(ch->scene))
+          pos.y = y + 3.0f;
+        else
+          pos.y = y;
+        d3_SetObjectPos(obj, &pos.v);
+      }
     }
-    return type;
+  }
+  return type;
 }
 /* 0x404b90, runs the first action of the queue */
 
-int ch_UpdateAction(CHARACTER *ch)
-{
-    CHACTION *a;
-    D3ANIMSLOT *s;
+int ch_UpdateAction(CHARACTER *ch) {
+  CHACTION *a;
+  D3ANIMSLOT *s;
 
-    if (!CH_ACTIONS(ch))
-        return 0;
-    a = CH_ACTIONS(ch);
-    if (a && a->ch && a->func) {
-        a->func(a);
-        a->count++;
-        if (a->func2 && (s = ch->slot) && !ch->next && CH_FRAME(ch) != s->flags.b[0]
-            && s->frame >= a->func2Frame) {
-            a->func2(a);
-            CH_FRAME(ch) = ch->slot->flags.b[0];
-        }
+  if (!CH_ACTIONS(ch))
+    return 0;
+  a = CH_ACTIONS(ch);
+  if (a && a->ch && a->func) {
+    a->func(a);
+    a->count++;
+    if (a->func2 && (s = ch->slot) && !ch->next &&
+        CH_FRAME(ch) != s->flags.b[0] && s->frame >= a->func2Frame) {
+      a->func2(a);
+      CH_FRAME(ch) = ch->slot->flags.b[0];
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x404c20, pauses (pause non-zero) or resumes the character's current animation slot */
 
-void ch_PauseAnim(CHARACTER *ch, int pause)
-{
-    if (CH_ACTIONS(ch) && ch->slot) {
-        if (pause) {
-            d3anim_PauseAnim(&ch->obj->material->surf[0], ch->slot->data->name);
-            ch->flags.all |= 4;
-        } else {
-            d3anim_PlayAnim(&ch->obj->material->surf[0], ch->slot->data->name, 1);
-            ch->flags.all &= ~4;
-        }
+void ch_PauseAnim(CHARACTER *ch, int pause) {
+  if (CH_ACTIONS(ch) && ch->slot) {
+    if (pause) {
+      d3anim_PauseAnim(&ch->obj->material->surf[0], ch->slot->data->name);
+      ch->flags.all |= 4;
+    } else {
+      d3anim_PlayAnim(&ch->obj->material->surf[0], ch->slot->data->name, 1);
+      ch->flags.all &= ~4;
     }
+  }
 }
 /* 0x404c80, camera position and angles for view 0..3 relative to the character */
 
-void ch_GetCamera(CHARACTER *ch, int view, D3VECTOR4 *pos, D3VECTOR *rot)
-{
-    if (!ch)
-        return;
-    switch (view) {
-    case 0:
-        pos->x = -3.0f;
-        pos->y = 63.0f;
-        pos->z = 36.0f;
-        rot->y = 3.1415927f;
-        rot->x = 0.0f;
-        rot->z = 0.0f;
-        break;
-    case 1:
-        pos->x = -10.0f;
-        pos->y = 63.0f;
-        pos->z = -14.0f;
-        rot->x = 0.08726647f;
-        rot->y = 0.0f;
-        rot->z = 0.0f;
-        break;
-    case 2:
-        pos->x = 10.0f;
-        pos->y = 63.0f;
-        pos->z = -14.0f;
-        rot->x = 0.08726647f;
-        rot->y = 0.0f;
-        rot->z = 0.0f;
-        break;
-    case 3:
-        pos->x = 0.0f;
-        pos->y = 65.0f;
-        pos->z = 0.0f;
-        rot->y = 0.0f;
-        rot->x = 0.0f;
-        rot->z = 0.0f;
-        break;
-    }
-    if (ch->flags.bytes.lo & 0x10)
-        pos->y -= 15.0;
-    d3_LocalToWorld(ch->obj, &pos->v, &pos->v);
-    rot->x += ch->obj->rotation.x;
-    rot->y += ch->obj->rotation.y;
-    rot->z += ch->obj->rotation.z;
+void ch_GetCamera(CHARACTER *ch, int view, D3VECTOR4 *pos, D3VECTOR *rot) {
+  if (!ch)
+    return;
+  switch (view) {
+  case 0:
+    pos->x = -3.0f;
+    pos->y = 63.0f;
+    pos->z = 36.0f;
+    rot->y = 3.1415927f;
+    rot->x = 0.0f;
+    rot->z = 0.0f;
+    break;
+  case 1:
+    pos->x = -10.0f;
+    pos->y = 63.0f;
+    pos->z = -14.0f;
+    rot->x = 0.08726647f;
+    rot->y = 0.0f;
+    rot->z = 0.0f;
+    break;
+  case 2:
+    pos->x = 10.0f;
+    pos->y = 63.0f;
+    pos->z = -14.0f;
+    rot->x = 0.08726647f;
+    rot->y = 0.0f;
+    rot->z = 0.0f;
+    break;
+  case 3:
+    pos->x = 0.0f;
+    pos->y = 65.0f;
+    pos->z = 0.0f;
+    rot->y = 0.0f;
+    rot->x = 0.0f;
+    rot->z = 0.0f;
+    break;
+  }
+  if (ch->flags.bytes.lo & 0x10)
+    pos->y -= 15.0;
+  d3_LocalToWorld(ch->obj, &pos->v, &pos->v);
+  rot->x += ch->obj->rotation.x;
+  rot->y += ch->obj->rotation.y;
+  rot->z += ch->obj->rotation.z;
 }
 /* 0x404d80, puts d3_Camera at the character's view 0..3 (ch_GetCamera) */
 
-void ch_SetCamera(CHARACTER *ch, int view)
-{
-    D3VECTOR rot;
-    D3VECTOR4 pos;
+void ch_SetCamera(CHARACTER *ch, int view) {
+  D3VECTOR rot;
+  D3VECTOR4 pos;
 
-    ch_GetCamera(ch, view, &pos, &rot);
-    d3_SetObjectRot(d3_Camera, &rot);
-    d3_SetObjectPos(d3_Camera, &pos.v);
+  ch_GetCamera(ch, view, &pos, &rot);
+  d3_SetObjectRot(d3_Camera, &rot);
+  d3_SetObjectPos(d3_Camera, &pos.v);
 }
 /* 0x404dd0, moves d3_Camera over time to the character's view 0..3 (ch_GetCamera) */
 
-void ch_MoveCamera(CHARACTER *ch, int view, int time)
-{
-    D3VECTOR rot;
-    D3VECTOR4 pos;
+void ch_MoveCamera(CHARACTER *ch, int view, int time) {
+  D3VECTOR rot;
+  D3VECTOR4 pos;
 
-    if (ch) {
-        ch_GetCamera(ch, view, &pos, &rot);
-        d3anim_FreePath(d3_Camera);
-        d3t_CamMoving = 0;
-        d3t_CamMove = 0;
-        d3t_PlaceObjectV(d3_Camera, &pos.v, &rot, time, 0x28);
-    }
+  if (ch) {
+    ch_GetCamera(ch, view, &pos, &rot);
+    d3anim_FreePath(d3_Camera);
+    d3t_CamMoving = 0;
+    d3t_CamMove = 0;
+    d3t_PlaceObjectV(d3_Camera, &pos.v, &rot, time, 0x28);
+  }
 }
 /* 0x404e40, a random number in 0..n-1 (0 when n is 0), the pick of ch_FindDummy */
 
-int ch_Random(unsigned short n)
-{
-    int r = 0;
+int ch_Random(unsigned short n) {
+  int r = 0;
 
-    if (n)
-        r = rand() % n;
-    return r;
+  if (n)
+    r = rand() % n;
+  return r;
 }
 /* 0x404e60, saves the ground types of a scene's height map */
 
-void ch_SaveGround(struct D3SM *hmap)
-{
-    D3SM *h = hmap;
-    int *buf;
-    int i, j;
+void ch_SaveGround(struct D3SM *hmap) {
+  D3SM *h = hmap;
+  int *buf;
+  int i, j;
 
-    if (d3_Scenes[0].hmap == hmap)
-        buf = ch_Ground0;
-    else if (d3_DefaultScene->hmap == hmap)
-        buf = ch_Ground1;
-    else
-        return;
-    for (i = 0; i < h->size; i++)
-        for (j = 0; j < h->size; j++)
-            buf[h->size * j + i] = h->entries[h->size * j + i].type;
+  if (d3_Scenes[0].hmap == hmap)
+    buf = ch_Ground0;
+  else if (d3_DefaultScene->hmap == hmap)
+    buf = ch_Ground1;
+  else
+    return;
+  for (i = 0; i < h->size; i++)
+    for (j = 0; j < h->size; j++)
+      buf[h->size * j + i] = h->entries[h->size * j + i].type;
 }
 /* 0x404ed0, writes the saved ground types of the changed rectangle back into the height map */
 
-void ch_RestoreGround(struct D3SM *hmap)
-{
-    D3SM *h = hmap;
-    int *buf;
-    int i, j;
+void ch_RestoreGround(struct D3SM *hmap) {
+  D3SM *h = hmap;
+  int *buf;
+  int i, j;
 
-    if (d3_Scenes[0].hmap == hmap)
-        buf = ch_Ground0;
-    else if (d3_DefaultScene->hmap == hmap)
-        buf = ch_Ground1;
-    else
-        return;
-    ch_DirtyX0 = max(0, ch_DirtyX0);
-    if (h->size < ch_DirtyX1)
-        ch_DirtyX1 = h->size;
-    ch_DirtyZ0 = max(0, ch_DirtyZ0);
-    if (h->size < ch_DirtyZ1)
-        ch_DirtyZ1 = h->size;
-    for (i = ch_DirtyX0; i < ch_DirtyX1; i++)
-        for (j = ch_DirtyZ0; j < ch_DirtyZ1; j++)
-            h->entries[h->size * j + i].type = buf[h->size * j + i];
-    ch_DirtyX0 = h->size;
-    ch_DirtyX1 = 0;
-    ch_DirtyZ0 = h->size;
-    ch_DirtyZ1 = 0;
+  if (d3_Scenes[0].hmap == hmap)
+    buf = ch_Ground0;
+  else if (d3_DefaultScene->hmap == hmap)
+    buf = ch_Ground1;
+  else
+    return;
+  ch_DirtyX0 = max(0, ch_DirtyX0);
+  if (h->size < ch_DirtyX1)
+    ch_DirtyX1 = h->size;
+  ch_DirtyZ0 = max(0, ch_DirtyZ0);
+  if (h->size < ch_DirtyZ1)
+    ch_DirtyZ1 = h->size;
+  for (i = ch_DirtyX0; i < ch_DirtyX1; i++)
+    for (j = ch_DirtyZ0; j < ch_DirtyZ1; j++)
+      h->entries[h->size * j + i].type = buf[h->size * j + i];
+  ch_DirtyX0 = h->size;
+  ch_DirtyX1 = 0;
+  ch_DirtyZ0 = h->size;
+  ch_DirtyZ1 = 0;
 }
 /* 0x404fc0, sets the ground type of a diamond of radius r around (x, z) */
 
-int ch_SetGroundDiamond(int x, int z, unsigned char scene, int type, int r)
-{
-    D3SM *h;
-    int i = 0;
-    int d, xx, zz, x1, z1;
+int ch_SetGroundDiamond(int x, int z, unsigned char scene, int type, int r) {
+  D3SM *h;
+  int i = 0;
+  int d, xx, zz, x1, z1;
 
-    h = d3_Scenes[scene].hmap;
-    if (d3_Scenes[0].hmap != h && d3_DefaultScene->hmap != h)
-        return 0;
-    if (!h)
-        return 0;
-    for (; i < h->size; i++) {
-        if (i >= r)
-            break;
-        z1 = min(h->size - 2, z + i);
-        for (zz = max(1, z - i); zz <= z1; zz++) {
-            d = i - abs(z - zz);
-            x1 = min(h->size - 2, x + d);
-            for (xx = max(1, x - d); xx <= x1; xx++)
-                if (zz >= 1 && zz < h->size - 1 && xx >= 1 && xx < h->size - 1)
-                    h->entries[h->size * zz + xx].type = type;
-        }
+  h = d3_Scenes[scene].hmap;
+  if (d3_Scenes[0].hmap != h && d3_DefaultScene->hmap != h)
+    return 0;
+  if (!h)
+    return 0;
+  for (; i < h->size; i++) {
+    if (i >= r)
+      break;
+    z1 = min(h->size - 2, z + i);
+    for (zz = max(1, z - i); zz <= z1; zz++) {
+      d = i - abs(z - zz);
+      x1 = min(h->size - 2, x + d);
+      for (xx = max(1, x - d); xx <= x1; xx++)
+        if (zz >= 1 && zz < h->size - 1 && xx >= 1 && xx < h->size - 1)
+          h->entries[h->size * zz + xx].type = type;
     }
-    if (x - r < ch_DirtyX0)
-        ch_DirtyX0 = x - r;
-    if (x + r > ch_DirtyX1)
-        ch_DirtyX1 = x + r + 1;
-    if (z - r < ch_DirtyZ0)
-        ch_DirtyZ0 = z - r;
-    if (z + r > ch_DirtyZ1)
-        ch_DirtyZ1 = z + r + 1;
-    return 1;
+  }
+  if (x - r < ch_DirtyX0)
+    ch_DirtyX0 = x - r;
+  if (x + r > ch_DirtyX1)
+    ch_DirtyX1 = x + r + 1;
+  if (z - r < ch_DirtyZ0)
+    ch_DirtyZ0 = z - r;
+  if (z + r > ch_DirtyZ1)
+    ch_DirtyZ1 = z + r + 1;
+  return 1;
 }
 /* 0x405160, a random free map vertex near pos */
 
-int ch_RandomNear(D3VECTOR *pos, D3VECTOR *out)
-{
-    D3SM *h = d3_DefaultScene->hmap;
-    int x, z;
-    float y;
-    int nx, nz;
+int ch_RandomNear(D3VECTOR *pos, D3VECTOR *out) {
+  D3SM *h = d3_DefaultScene->hmap;
+  int x, z;
+  float y;
+  int nx, nz;
 
-    if (!h)
-        return 0;
-    d3_GetHeightAt(h, pos, &x, &z, &y);
-    nx = util_Random(10) - 4 + x;
-    nz = util_Random(10) - 4 + z;
-    if (h->size - 2 < nx)
-        nx = h->size - 2;
-    if (nx < 2)
-        nx = 2;
-    if (h->size - 2 < nz)
-        nz = h->size - 2;
-    if (nz < 2)
-        nz = 2;
-    if (ch_FindFreeCell(h, pos, pos, nx, nz, &nx, &nz, 600, 0))
-        d3sm_GetVertex(h, nx, nz, out);
-    else
-        d3sm_GetVertex(h, x, z, out);
-    return 1;
+  if (!h)
+    return 0;
+  d3_GetHeightAt(h, pos, &x, &z, &y);
+  nx = util_Random(10) - 4 + x;
+  nz = util_Random(10) - 4 + z;
+  if (h->size - 2 < nx)
+    nx = h->size - 2;
+  if (nx < 2)
+    nx = 2;
+  if (h->size - 2 < nz)
+    nz = h->size - 2;
+  if (nz < 2)
+    nz = 2;
+  if (ch_FindFreeCell(h, pos, pos, nx, nz, &nx, &nz, 600, 0))
+    d3sm_GetVertex(h, nx, nz, out);
+  else
+    d3sm_GetVertex(h, x, z, out);
+  return 1;
 }
 /* 0x405260, up to 16 other characters of the same scene within dist of ch */
 
-int ch_FindNear(CHARACTER *ch, CHARACTER **out, float dist)
-{
-    int i, n = 0;
-    CHARACTER *o;
+int ch_FindNear(CHARACTER *ch, CHARACTER **out, float dist) {
+  int i, n = 0;
+  CHARACTER *o;
 
-    for (i = 0; i < CH_MAX; i++) {
-        if (n >= 16)
-            break;
-        o = ch_List[i];
-        if (o && ch != o && ch->scene == o->scene && ch->group == o->group
-            && (!CH_ACTIONS(o) || CH_ACTIONS(o)->type != '-')
-            && (o->obj->type != 1 || o->lowPolyBody && o->lowPolyBody->type != 1)
-            && d3_VecEqual(&ch->obj->pos, &o->obj->pos, dist))
-            out[n++] = ch_List[i];
-    }
-    return n;
+  for (i = 0; i < CH_MAX; i++) {
+    if (n >= 16)
+      break;
+    o = ch_List[i];
+    if (o && ch != o && ch->scene == o->scene && ch->group == o->group &&
+        (!CH_ACTIONS(o) || CH_ACTIONS(o)->type != '-') &&
+        (o->obj->type != 1 || o->lowPolyBody && o->lowPolyBody->type != 1) &&
+        d3_VecEqual(&ch->obj->pos, &o->obj->pos, dist))
+      out[n++] = ch_List[i];
+  }
+  return n;
 }
 /* 0x405310, per frame: runs the characters' actions */
 
-int ch_Update(void)
-{
-    int i;
-    CHACTION *act;
-    D3SM *h;
-    int x, z;
-    float y;
-    D3VECTOR4 pos;
-    CHARACTER *found[32];
+int ch_Update(void) {
+  int i;
+  CHACTION *act;
+  D3SM *h;
+  int x, z;
+  float y;
+  D3VECTOR4 pos;
+  CHARACTER *found[32];
 
-    ch_Time = d3_Time;
-    ch_StepSounds = 0;
-    if (!ch_Enabled)
-        return 0;
-    if (ch_Saved0 != d3_DefaultScene || ch_Saved1 != d3_DefaultScene) {
-        if (d3_Scenes[0].hmap && ch_Saved0 != d3_DefaultScene) {
-            ch_SaveGround(d3_Scenes[0].hmap);
-            ch_Saved0 = d3_DefaultScene;
-        }
-        if (d3_DefaultScene && d3_CurrentScene && d3_DefaultScene->hmap && ch_Saved1 != d3_DefaultScene) {
-            ch_SaveGround(d3_DefaultScene->hmap);
-            ch_Saved1 = d3_DefaultScene;
-        }
+  ch_Time = d3_Time;
+  ch_StepSounds = 0;
+  if (!ch_Enabled)
+    return 0;
+  if (ch_Saved0 != d3_DefaultScene || ch_Saved1 != d3_DefaultScene) {
+    if (d3_Scenes[0].hmap && ch_Saved0 != d3_DefaultScene) {
+      ch_SaveGround(d3_Scenes[0].hmap);
+      ch_Saved0 = d3_DefaultScene;
     }
-    for (i = 0; i < CH_MAX; i++) {
-        if (ch_List[i] && !(ch_List[i]->flags.all & 4)) {
-            act = CH_ACTIONS(ch_List[i]);
-            ch_CheckAniMorph(ch_List[i]);
-            if (act) {
-                if ((ch_List[i]->flags.all & 0x2000) && ch_List[i]->slot) {
-                    d3_ReleaseTexture(&ch_List[i]->obj->material->surf[0], ch_List[i]->slot->data->name);
-                    ch_List[i]->slot = 0;
-                    ch_List[i]->flags.all &= ~0x2000;
-                }
-                ch_UpdateAction(ch_List[i]);
-            } else if (ch_List[i]->scene == d3_DefaultScene && !(ch_List[i]->flags.all & 0x32)
-                       && !(ch_List[i]->flags.all & 0x8000) && !ch_List[i]->transport) {
-                if (ch_FindNear(ch_List[i], found, 20.0f)) {
-                    h = ch_GetHMap(ch_List[i]);
-                    ch_RandomNear(&ch_List[i]->obj->pos, &pos.v);
-                    if (d3_GetHeightAt(h, &pos.v, &x, &z, &y))
-                        ch_AddAction(ch_List[i], 0x2d, x, z, d3_CurrentScene);
-                }
-            } else
-                ch_List[i]->flags.all &= ~8;
-            if (ch_List[i]->transport)
-                ch_PlaceTransport(ch_List[i], 0);
-            if (ch_List[i]->lowPolyBody)
-                ch_UpdateLowPoly(ch_List[i]);
-            if (!act && d3_DefaultScene == ch_List[i]->scene && d3_CurrentScene && !ch_List[i]->slot
-                && (ch_List[i]->flags.all & 0x1000) && !(ch_List[i]->flags.all & 2)
-                && !(ch_List[i]->obj->material->flags & 0x40)) {
-                if (ch_List[i]->flags.all & 0x10) {
-                    ch_AttachAni(ch_List[i], "sitzend/sitz_newnoise", 0);
-                    if (ch_List[i]->slot) {
-                        ch_List[i]->slot->flags.b[0] = 0;
-                        ch_List[i]->slot->flags.b[1] &= ~0x10;
-                        ch_List[i]->flags.all |= 0x2000;
-                    } else
-                        ch_List[i]->flags.all &= ~0x1000;
-                } else {
-                    ch_AttachAni(ch_List[i], "stehen/stehen_newnoise", 0);
-                    if (ch_List[i]->slot) {
-                        ch_List[i]->slot->flags.b[0] = 0;
-                        ch_List[i]->slot->flags.b[1] &= ~0x10;
-                        ch_List[i]->flags.all |= 0x2000;
-                    } else
-                        ch_List[i]->flags.all &= ~0x1000;
-                }
-            }
-            if (ch_List[i] && ch_List[i]->scene != ch_List[i]->obj->scene)
-                err_Message("ch_Update(): invalid c->universe!");
-        }
+    if (d3_DefaultScene && d3_CurrentScene && d3_DefaultScene->hmap &&
+        ch_Saved1 != d3_DefaultScene) {
+      ch_SaveGround(d3_DefaultScene->hmap);
+      ch_Saved1 = d3_DefaultScene;
     }
-    ch_UpdateFades();
-    ch_LastUpdate = d3_Time;
-    return 1;
+  }
+  for (i = 0; i < CH_MAX; i++) {
+    if (ch_List[i] && !(ch_List[i]->flags.all & 4)) {
+      act = CH_ACTIONS(ch_List[i]);
+      ch_CheckAniMorph(ch_List[i]);
+      if (act) {
+        if ((ch_List[i]->flags.all & 0x2000) && ch_List[i]->slot) {
+          d3_ReleaseTexture(&ch_List[i]->obj->material->surf[0],
+                            ch_List[i]->slot->data->name);
+          ch_List[i]->slot = 0;
+          ch_List[i]->flags.all &= ~0x2000;
+        }
+        ch_UpdateAction(ch_List[i]);
+      } else if (ch_List[i]->scene == d3_DefaultScene &&
+                 !(ch_List[i]->flags.all & 0x32) &&
+                 !(ch_List[i]->flags.all & 0x8000) && !ch_List[i]->transport) {
+        if (ch_FindNear(ch_List[i], found, 20.0f)) {
+          h = ch_GetHMap(ch_List[i]);
+          ch_RandomNear(&ch_List[i]->obj->pos, &pos.v);
+          if (d3_GetHeightAt(h, &pos.v, &x, &z, &y))
+            ch_AddAction(ch_List[i], 0x2d, x, z, d3_CurrentScene);
+        }
+      } else
+        ch_List[i]->flags.all &= ~8;
+      if (ch_List[i]->transport)
+        ch_PlaceTransport(ch_List[i], 0);
+      if (ch_List[i]->lowPolyBody)
+        ch_UpdateLowPoly(ch_List[i]);
+      if (!act && d3_DefaultScene == ch_List[i]->scene && d3_CurrentScene &&
+          !ch_List[i]->slot && (ch_List[i]->flags.all & 0x1000) &&
+          !(ch_List[i]->flags.all & 2) &&
+          !(ch_List[i]->obj->material->flags & 0x40)) {
+        if (ch_List[i]->flags.all & 0x10) {
+          ch_AttachAni(ch_List[i], "sitzend/sitz_newnoise", 0);
+          if (ch_List[i]->slot) {
+            ch_List[i]->slot->flags.b[0] = 0;
+            ch_List[i]->slot->flags.b[1] &= ~0x10;
+            ch_List[i]->flags.all |= 0x2000;
+          } else
+            ch_List[i]->flags.all &= ~0x1000;
+        } else {
+          ch_AttachAni(ch_List[i], "stehen/stehen_newnoise", 0);
+          if (ch_List[i]->slot) {
+            ch_List[i]->slot->flags.b[0] = 0;
+            ch_List[i]->slot->flags.b[1] &= ~0x10;
+            ch_List[i]->flags.all |= 0x2000;
+          } else
+            ch_List[i]->flags.all &= ~0x1000;
+        }
+      }
+      if (ch_List[i] && ch_List[i]->scene != ch_List[i]->obj->scene)
+        err_Message("ch_Update(): invalid c->universe!");
+    }
+  }
+  ch_UpdateFades();
+  ch_LastUpdate = d3_Time;
+  return 1;
 }
 /* 0x405610, stops the current action and drops the queued ones */
 
-int ch_StopActions(CHARACTER *ch)
-{
-    CHACTION *a;
+int ch_StopActions(CHARACTER *ch) {
+  CHACTION *a;
 
-    if (!ch)
-        return 0;
-    a = CH_ACTIONS(ch);
-    if (!a)
-        return 0;
-    a->stop = 1;
-    while (a->next)
-        ch_RemoveAction(a->next);
-    if (ch->flags.all & 0x10)
-        ch_StandUp(ch, "sitzend/aufstehen");
-    return 1;
+  if (!ch)
+    return 0;
+  a = CH_ACTIONS(ch);
+  if (!a)
+    return 0;
+  a->stop = 1;
+  while (a->next)
+    ch_RemoveAction(a->next);
+  if (ch->flags.all & 0x10)
+    ch_StandUp(ch, "sitzend/aufstehen");
+  return 1;
 }
 /* 0x405670, declares an action type once: its function, name and argument count */
 
-int ch_DeclareAction(int id, CHACTFUNC func, char flags, char *name, int nargs)
-{
-    if (id > 63)
-        return 0;
-    if (ch_ActDefs[id].func) {
-        err_Message("ch_DeclareAction:Function already declared!");
-        return 0;
-    }
-    ch_ActDefs[id].func = func;
-    ch_ActDefs[id].flags = flags;
-    ch_ActDefs[id].nargs = nargs;
-    strcpy(ch_ActDefs[id].name, name);
-    return 1;
+int ch_DeclareAction(int id, CHACTFUNC func, char flags, char *name,
+                     int nargs) {
+  if (id > 63)
+    return 0;
+  if (ch_ActDefs[id].func) {
+    err_Message("ch_DeclareAction:Function already declared!");
+    return 0;
+  }
+  ch_ActDefs[id].func = func;
+  ch_ActDefs[id].flags = flags;
+  ch_ActDefs[id].nargs = nargs;
+  strcpy(ch_ActDefs[id].name, name);
+  return 1;
 }
 /* 0x4056e0, action callback: plays the animation a->u.name a->args[0] times (-1: until stopped) */
 
-void ch_ActPlay(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    D3ANIMSLOT *s;
+void ch_ActPlay(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  D3ANIMSLOT *s;
 
-    if (a->stop && (s = ch->slot) && s->flags.b[0] > 2)
-        s->flags.b[0] = 2;
-    if (!a->count) {
-        if (a->args[0] == -1)
-            ch->flags.all |= 2;
-        ch_SetNextAnim(ch, a->u.name, max(1, a->args[0]));
-    } else if (a->stop || a->args[0] != -1) {
-        if (a->args[0] == -1)
-            ch->flags.all &= ~2;
-        if (ch_AnimDone(ch)) {
-            ch_RemoveAction(a);
-            ch_CheckAniMorph(ch);
-        }
+  if (a->stop && (s = ch->slot) && s->flags.b[0] > 2)
+    s->flags.b[0] = 2;
+  if (!a->count) {
+    if (a->args[0] == -1)
+      ch->flags.all |= 2;
+    ch_SetNextAnim(ch, a->u.name, max(1, a->args[0]));
+  } else if (a->stop || a->args[0] != -1) {
+    if (a->args[0] == -1)
+      ch->flags.all &= ~2;
+    if (ch_AnimDone(ch)) {
+      ch_RemoveAction(a);
+      ch_CheckAniMorph(ch);
     }
-    if (ch->slot && a->speed != 0.0f)
-        ch->slot->speed = a->speed;
+  }
+  if (ch->slot && a->speed != 0.0f)
+    ch->slot->speed = a->speed;
 }
 /* 0x4057a0, queues the animation name n times */
 
-int ch_QueueAnim(CHARACTER *ch, char *name, int n)
-{
-    CHACTION *a = ch_NewAction(ch);
+int ch_QueueAnim(CHARACTER *ch, char *name, int n) {
+  CHACTION *a = ch_NewAction(ch);
 
-    if (!a)
-        return 0;
-    a->args[0] = n;
-    a->ch = ch;
-    a->count = 0;
-    a->func = (CHACTFUNC)ch_ActPlay;
-    a->type = 0x2e;
-    a->speed = 1.0f;
-    a->next = 0;
-    a->started = 0;
-    strcpy(a->u.name, name);
-    return 1;
+  if (!a)
+    return 0;
+  a->args[0] = n;
+  a->ch = ch;
+  a->count = 0;
+  a->func = (CHACTFUNC)ch_ActPlay;
+  a->type = 0x2e;
+  a->speed = 1.0f;
+  a->next = 0;
+  a->started = 0;
+  strcpy(a->u.name, name);
+  return 1;
 }
 
 /* ---- 0x405810..0x406e40 (worker ch3) ---- */
 
 /* 0x405810, queues the animation name n times at the given speed */
-CHACTION *ch_QueueAnimSpeed(CHARACTER *ch, char *name, int n, float speed)
-{
-    CHACTION *a = ch_NewAction(ch);
+CHACTION *ch_QueueAnimSpeed(CHARACTER *ch, char *name, int n, float speed) {
+  CHACTION *a = ch_NewAction(ch);
 
-    if (!a)
-        return 0;
-    a->args[0] = n;
-    a->func = (CHACTFUNC)ch_ActPlay;
-    a->type = 0x2e;
-    a->speed = 1.0f;
-    a->next = 0;
-    a->started = 0;
-    strcpy(a->u.name, name);
-    a->speed = speed;
-    return a;
+  if (!a)
+    return 0;
+  a->args[0] = n;
+  a->func = (CHACTFUNC)ch_ActPlay;
+  a->type = 0x2e;
+  a->speed = 1.0f;
+  a->next = 0;
+  a->started = 0;
+  strcpy(a->u.name, name);
+  a->speed = speed;
+  return a;
 }
 /* 0x405870, action callback: sits down with the animation a->u.name */
 
-void ch_ActSitDown(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    int cur;
+void ch_ActSitDown(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  int cur;
 
-    if (!a->count) {
-        if (a->u.name[0] && !ch->obj->info->slots[0].data) {
-            ch->flags.all |= 2;
-            if (a->scriptAction.flags & 1) {
-                ch->sitSlot = ch->slot = ch_AttachAni(a->ch, a->u.name, 1);
-                d3anim_SetFrame(ch->obj, ch->slot, -1);
-            } else
-                ch->sitSlot = ch->slot = ch_AttachAni(a->ch, a->u.name, 1);
-        }
-        if (ch->slot) {
-            ch->slot->flags.b[0] = 1;
-            ch->slot->rootFlags &= ~3;
-            ch->slot->flags.b[1] |= 0x10;
-        }
-    } else if (ch_ActAnim(a) == -1) {
-        cur = d3_CurrentScene;
-        d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
-        a->ch->flags.all |= 0x10;
-        a->ch->flags.all &= ~2;
-        d3if_SelectScene(cur, 1);
-        ch_RemoveAction(a);
+  if (!a->count) {
+    if (a->u.name[0] && !ch->obj->info->slots[0].data) {
+      ch->flags.all |= 2;
+      if (a->scriptAction.flags & 1) {
+        ch->sitSlot = ch->slot = ch_AttachAni(a->ch, a->u.name, 1);
+        d3anim_SetFrame(ch->obj, ch->slot, -1);
+      } else
+        ch->sitSlot = ch->slot = ch_AttachAni(a->ch, a->u.name, 1);
     }
+    if (ch->slot) {
+      ch->slot->flags.b[0] = 1;
+      ch->slot->rootFlags &= ~3;
+      ch->slot->flags.b[1] |= 0x10;
+    }
+  } else if (ch_ActAnim(a) == -1) {
+    cur = d3_CurrentScene;
+    d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
+    a->ch->flags.all |= 0x10;
+    a->ch->flags.all &= ~2;
+    d3if_SelectScene(cur, 1);
+    ch_RemoveAction(a);
+  }
 }
 /* 0x405970, queues the sit-down action (type 0x2f) with the animation name */
 
-CHACTION *ch_SitDown(CHARACTER *ch, char *name)
-{
-    CHACTION *a = ch_NewAction(ch);
+CHACTION *ch_SitDown(CHARACTER *ch, char *name) {
+  CHACTION *a = ch_NewAction(ch);
 
-    if (!a)
-        return 0;
-    a->ch = ch;
-    a->count = 0;
-    a->func = (CHACTFUNC)ch_ActSitDown;
-    a->type = 0x2f;
-    a->next = 0;
-    a->started = 0;
-    strcpy(a->u.name, name);
-    return a;
+  if (!a)
+    return 0;
+  a->ch = ch;
+  a->count = 0;
+  a->func = (CHACTFUNC)ch_ActSitDown;
+  a->type = 0x2f;
+  a->next = 0;
+  a->started = 0;
+  strcpy(a->u.name, name);
+  return a;
 }
 /* 0x4059c0, drops the sitting animation */
 
-void ch_ReleaseSit(CHARACTER *ch)
-{
-    if (ch->flags.all & 0x10) {
-        if (ch->sitSlot) {
-            if (!ch->obj->info)
-                ch_InflateModel(ch);
-            if (ch->sitSlot->data)
-                d3_ReleaseTexture(&ch->obj->material->surf[0], ch->sitSlot->data->name);
-            ch->sitSlot = 0;
-        }
-        ch->flags.all &= ~0x10;
+void ch_ReleaseSit(CHARACTER *ch) {
+  if (ch->flags.all & 0x10) {
+    if (ch->sitSlot) {
+      if (!ch->obj->info)
+        ch_InflateModel(ch);
+      if (ch->sitSlot->data)
+        d3_ReleaseTexture(&ch->obj->material->surf[0], ch->sitSlot->data->name);
+      ch->sitSlot = 0;
     }
+    ch->flags.all &= ~0x10;
+  }
 }
 /* 0x405a20, action callback: stands up with the animation a->u.name */
 
-void ch_ActStandUp(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
+void ch_ActStandUp(CHACTION *a) {
+  CHARACTER *ch = a->ch;
 
-    if ((ch->slot || ch->morph) && !(a->started & 1)) {
-        a->count = -1;
-        return;
+  if ((ch->slot || ch->morph) && !(a->started & 1)) {
+    a->count = -1;
+    return;
+  }
+  a->started |= 1;
+  if (!a->count) {
+    if (!(ch->flags.all & 0x10)) {
+      ch_RemoveAction(a);
+      return;
     }
-    a->started |= 1;
-    if (!a->count) {
-        if (!(ch->flags.all & 0x10)) {
-            ch_RemoveAction(a);
-            return;
-        }
-        ch->slot = ch_AttachAni(ch, a->u.name, 1);
-        if (!ch->slot) {
-            ch_RemoveAction(a);
-            return;
-        }
-        ch->slot->flags.b[0] = 1;
-        ch->slot->rootFlags &= ~3;
-        ch->slot->flags.b[1] |= 0x10;
-    } else if (ch_ActAnim(a) == -1) {
-        ch_ReleaseSit(ch);
-        ch_RemoveAction(a);
+    ch->slot = ch_AttachAni(ch, a->u.name, 1);
+    if (!ch->slot) {
+      ch_RemoveAction(a);
+      return;
     }
+    ch->slot->flags.b[0] = 1;
+    ch->slot->rootFlags &= ~3;
+    ch->slot->flags.b[1] |= 0x10;
+  } else if (ch_ActAnim(a) == -1) {
+    ch_ReleaseSit(ch);
+    ch_RemoveAction(a);
+  }
 }
 /* 0x405ad0, queues the stand-up action (type 0x30) for a sitting character; 0 if it is not seated */
 
-int ch_StandUp(CHARACTER *ch, char *name)
-{
-    CHACTION *a;
+int ch_StandUp(CHARACTER *ch, char *name) {
+  CHACTION *a;
 
-    if (!(ch->flags.all & 0x10))
-        return 0;
-    a = ch_NewAction(ch);
-    if (!a)
-        return 0;
-    a->ch = ch;
-    a->count = 0;
-    a->func = (CHACTFUNC)ch_ActStandUp;
-    a->type = 0x30;
-    a->next = 0;
-    a->started = 0;
-    strcpy(a->u.name, name);
-    return 1;
+  if (!(ch->flags.all & 0x10))
+    return 0;
+  a = ch_NewAction(ch);
+  if (!a)
+    return 0;
+  a->ch = ch;
+  a->count = 0;
+  a->func = (CHACTFUNC)ch_ActStandUp;
+  a->type = 0x30;
+  a->next = 0;
+  a->started = 0;
+  strcpy(a->u.name, name);
+  return 1;
 }
 /* 0x405b30, action callback: walks to the gate object name2 in the action's target scene, then moves there */
 
-void ch_ActUsingGate(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    CHACTION *b;
-    int cur, scene;
-    D3OBJECT *obj;
-    struct D3SM *h;
-    int x, z;
-    float y;
-    D3VECTOR4 pos;
-    char buf[0x200];
+void ch_ActUsingGate(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  CHACTION *b;
+  int cur, scene;
+  D3OBJECT *obj;
+  struct D3SM *h;
+  int x, z;
+  float y;
+  D3VECTOR4 pos;
+  char buf[0x200];
 
-    if (a->count)
-        return;
-    cur = d3_CurrentScene;
-    scene = d3t_SceneIndex(ch->scene);
-    if (scene == a->u.obj.scene) {
-        ch_RemoveAction(a);
-        return;
-    }
-    d3if_SelectScene(scene, 1);
-    obj = d3_FindObject(0, 0x120, 0, a->u.obj.name2);
-    if (obj) {
-        h = d3_Scenes[scene].hmap;
-        d3_PointToWorld(obj, &obj->pos, &pos.v);
-        if (d3_GetHeightAt(h, &pos.v, &x, &z, &y))
-            ch_InsertAction(ch, a, 0x2d, x, z, scene);
-        else
-            sprintf(buf, "UsingGate: d3sm_3D2SuperMap() failed... scene:%s   object:%s", ch->scene, obj);
-    }
-    d3if_SelectScene(cur, 1);
-    if (ch->obj->type != 1)
-        ch_InsertAction(ch, a, 0x38, 0);
-    b = ch_InsertAction(ch, a, 0x33, a->u.obj.scene, a->u.obj.group, a->moveScriptGroup);
-    strcpy(b->u.name, a->u.name);
-    ch_InsertAction(ch, b, 0x38, 1);
+  if (a->count)
+    return;
+  cur = d3_CurrentScene;
+  scene = d3t_SceneIndex(ch->scene);
+  if (scene == a->u.obj.scene) {
     ch_RemoveAction(a);
+    return;
+  }
+  d3if_SelectScene(scene, 1);
+  obj = d3_FindObject(0, 0x120, 0, a->u.obj.name2);
+  if (obj) {
+    h = d3_Scenes[scene].hmap;
+    d3_PointToWorld(obj, &obj->pos, &pos.v);
+    if (d3_GetHeightAt(h, &pos.v, &x, &z, &y))
+      ch_InsertAction(ch, a, 0x2d, x, z, scene);
+    else
+      sprintf(buf,
+              "UsingGate: d3sm_3D2SuperMap() failed... scene:%s   object:%s",
+              ch->scene, obj);
+  }
+  d3if_SelectScene(cur, 1);
+  if (ch->obj->type != 1)
+    ch_InsertAction(ch, a, 0x38, 0);
+  b = ch_InsertAction(ch, a, 0x33, a->u.obj.scene, a->u.obj.group,
+                      a->moveScriptGroup);
+  strcpy(b->u.name, a->u.name);
+  ch_InsertAction(ch, b, 0x38, 1);
+  ch_RemoveAction(a);
 }
 /* 0x405cb0, queues a walk to the gate object and the move to the scene/group/scriptGroup it carries */
 
-CHACTION *ch_UseGate(CHARACTER *ch, char *name, char *gate, int scene, int group, int scriptGroup)
-{
-    CHACTION *a = ch_NewAction(ch);
+CHACTION *ch_UseGate(CHARACTER *ch, char *name, char *gate, int scene,
+                     int group, int scriptGroup) {
+  CHACTION *a = ch_NewAction(ch);
 
-    if (!a)
-        return 0;
-    a->func = (CHACTFUNC)ch_ActUsingGate;
-    a->type = 0x34;
-    strcpy(a->u.obj.name, name);
-    strcpy(a->u.obj.name2, gate);
-    a->u.obj.scene = scene;
-    a->u.obj.group = group;
-    if (a->moveScriptGroup == -1)
-        err_Message("ch_UseGate: room_id == ID_NONE");
-    a->moveScriptGroup = scriptGroup;
-    return a;
+  if (!a)
+    return 0;
+  a->func = (CHACTFUNC)ch_ActUsingGate;
+  a->type = 0x34;
+  strcpy(a->u.obj.name, name);
+  strcpy(a->u.obj.name2, gate);
+  a->u.obj.scene = scene;
+  a->u.obj.group = group;
+  if (a->moveScriptGroup == -1)
+    err_Message("ch_UseGate: room_id == ID_NONE");
+  a->moveScriptGroup = scriptGroup;
+  return a;
 }
 /* 0x405d40, action callback: plays a->u.name and takes the object name2 at frame args[0] */
 
-void ch_ActTakingObject(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    char buf[0x100];
+void ch_ActTakingObject(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  char buf[0x100];
 
-    if (!a->count) {
-        if (a->u.name[0])
-            a->u.obj.takeAnim = ch_SetNextAnim(ch, a->u.name, 1);
-        else {
-            ch_SetHandObject(ch, a->args[2], a->u.obj.name2);
-            ch_RemoveAction(a);
-            return;
-        }
+  if (!a->count) {
+    if (a->u.name[0])
+      a->u.obj.takeAnim = ch_SetNextAnim(ch, a->u.name, 1);
+    else {
+      ch_SetHandObject(ch, a->args[2], a->u.obj.name2);
+      ch_RemoveAction(a);
+      return;
     }
-    if (a->args[0] != 99999999) {
-        if (ch->next)
-            return;
-        if (ch->slot && ch->slot->frame >= a->args[0]) {
-            ch_SetHandObject(a->ch, a->args[2], a->u.obj.name2);
-            a->args[0] = 99999999;
-        }
-    }
+  }
+  if (a->args[0] != 99999999) {
     if (ch->next)
-        return;
-    if (!ch_AnimDone(ch))
-        return;
-    if (a->args[0] != 99999999) {
-        sprintf(buf, "ch_TakingObject(): object not taken yet (should be in frame:%i)!", a->args[0]);
-        ch_SetHandObject(a->ch, a->args[2], a->u.obj.name2);
+      return;
+    if (ch->slot && ch->slot->frame >= a->args[0]) {
+      ch_SetHandObject(a->ch, a->args[2], a->u.obj.name2);
+      a->args[0] = 99999999;
     }
-    if (ch->next)
-        sprintf(buf, "ch_TakingObject(): c->NextAnim still valid %s!\n", ch->next->name);
-    ch_CheckAniMorph(ch);
-    ch_RemoveAction(a);
+  }
+  if (ch->next)
+    return;
+  if (!ch_AnimDone(ch))
+    return;
+  if (a->args[0] != 99999999) {
+    sprintf(buf,
+            "ch_TakingObject(): object not taken yet (should be in frame:%i)!",
+            a->args[0]);
+    ch_SetHandObject(a->ch, a->args[2], a->u.obj.name2);
+  }
+  if (ch->next)
+    sprintf(buf, "ch_TakingObject(): c->NextAnim still valid %s!\n",
+            ch->next->name);
+  ch_CheckAniMorph(ch);
+  ch_RemoveAction(a);
 }
 /* 0x405e70, queues the take-object action (type 0x31): the animation name, and the object's model name */
 
-int ch_TakeObject(CHARACTER *ch, char *name, D3OBJECT *obj, int frame)
-{
-    CHACTION *a = ch_NewAction(ch);
+int ch_TakeObject(CHARACTER *ch, char *name, D3OBJECT *obj, int frame) {
+  CHACTION *a = ch_NewAction(ch);
 
-    if (a) {
-        a->ch = ch;
-        a->args[0] = frame;
-        a->count = 0;
-        a->func = (CHACTFUNC)ch_ActTakingObject;
-        a->type = 0x31;
-        a->next = 0;
-        a->started = 0;
-        a->args[1] = 0;
-        a->args[2] = 2;
-        strcpy(a->u.name, name);
-        if (obj && obj->material && obj->material->surf[0].mesh) {
-            strcpy(a->u.obj.name2, obj->material->surf[0].mesh->name);
-            return 1;
-        }
-        ch_RemoveAction(a);
-    }
-    return 0;
-}
-/* 0x405f10, queues the take-object action (type 0x31) for the left hand (args[2] = 1): the animation name and the object's model name */
-
-int ch_TakeObject1(CHARACTER *ch, char *name, D3OBJECT *obj, int frame)
-{
-    CHACTION *a = ch_NewAction(ch);
-
-    if (a) {
-        a->ch = ch;
-        a->args[0] = frame;
-        a->count = 0;
-        a->func = (CHACTFUNC)ch_ActTakingObject;
-        a->type = 0x31;
-        a->next = 0;
-        a->started = 0;
-        a->args[1] = 0;
-        a->args[2] = 1;
-        strcpy(a->u.name, name);
-        if (obj && obj->material && obj->material->surf[0].mesh) {
-            strcpy(a->u.obj.name2, obj->material->surf[0].mesh->name);
-            return 1;
-        }
-        ch_RemoveAction(a);
-    }
-    return 0;
-}
-/* 0x405fb0, action callback: plays a->u.name and drops the object at frame args[0] */
-
-void ch_ActDroppingObject(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    char buf[0x100];
-
-    if (!a->count) {
-        if (!ch->rightHand) {
-            ch_RemoveAction(a);
-            return;
-        }
-        if (a->u.name[0])
-            a->u.obj.dropAnim = ch_SetNextAnim(ch, a->u.name, 1);
-        if (ch->next)
-            return;
-        ch_SetHandObject(a->ch, a->args[2], 0);
-        ch_RemoveAction(a);
-        a = 0;
-    }
-    if (!a)
-        return;
-    if (ch->next)
-        return;
-    if (ch->slot && ch->slot->frame >= a->args[0]) {
-        ch_SetHandObject(a->ch, a->args[2], 0);
-        a->args[0] = 99999999;
-    }
-    if (ch->next)
-        return;
-    if (!ch_AnimDone(ch))
-        return;
-    if (a->args[0] != 99999999) {
-        ch_SetHandObject(a->ch, a->args[2], 0);
-        sprintf(buf, "ch_DroppingObject(): object not dropped yet (should be in frame:%i)!", a->args[0]);
-    }
-    ch_CheckAniMorph(ch);
-    ch_RemoveAction(a);
-}
-/* 0x4060d0, queues the drop-object action (type 0x32) for the right hand (args[2] = 2): the animation name and the object's model name */
-
-int ch_DropObject(CHARACTER *ch, char *name, char *obj, int frame)
-{
-    CHACTION *a = ch_NewAction(ch);
-
-    if (!a)
-        return 0;
+  if (a) {
     a->ch = ch;
     a->args[0] = frame;
     a->count = 0;
-    a->func = (CHACTFUNC)ch_ActDroppingObject;
-    a->type = 0x32;
+    a->func = (CHACTFUNC)ch_ActTakingObject;
+    a->type = 0x31;
     a->next = 0;
     a->started = 0;
     a->args[1] = 0;
     a->args[2] = 2;
-    if (name)
-        strcpy(a->u.name, name);
-    else
-        a->u.name[0] = 0;
-    if (obj)
-        strcpy(a->u.obj.name2, obj);
-    else
-        a->u.obj.name2[0] = 0;
-    return 1;
+    strcpy(a->u.name, name);
+    if (obj && obj->material && obj->material->surf[0].mesh) {
+      strcpy(a->u.obj.name2, obj->material->surf[0].mesh->name);
+      return 1;
+    }
+    ch_RemoveAction(a);
+  }
+  return 0;
 }
-/* 0x406170, queues the drop-object action (type 0x32) for the left hand (args[2] = 1): the animation name and the object's model name */
+/* 0x405f10, queues the take-object action (type 0x31) for the left hand (args[2] = 1): the animation name and the object's model name */
 
-int ch_DropObject1(CHARACTER *ch, char *name, char *obj, int frame)
-{
-    CHACTION *a = ch_NewAction(ch);
+int ch_TakeObject1(CHARACTER *ch, char *name, D3OBJECT *obj, int frame) {
+  CHACTION *a = ch_NewAction(ch);
 
-    if (!a)
-        return 0;
+  if (a) {
     a->ch = ch;
     a->args[0] = frame;
     a->count = 0;
-    a->func = (CHACTFUNC)ch_ActDroppingObject;
-    a->type = 0x32;
+    a->func = (CHACTFUNC)ch_ActTakingObject;
+    a->type = 0x31;
     a->next = 0;
     a->started = 0;
     a->args[1] = 0;
     a->args[2] = 1;
-    if (name)
-        strcpy(a->u.name, name);
-    else
-        a->u.name[0] = 0;
-    if (obj)
-        strcpy(a->u.obj.name2, obj);
-    else
-        a->u.obj.name2[0] = 0;
-    return 1;
+    strcpy(a->u.name, name);
+    if (obj && obj->material && obj->material->surf[0].mesh) {
+      strcpy(a->u.obj.name2, obj->material->surf[0].mesh->name);
+      return 1;
+    }
+    ch_RemoveAction(a);
+  }
+  return 0;
+}
+/* 0x405fb0, action callback: plays a->u.name and drops the object at frame args[0] */
+
+void ch_ActDroppingObject(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  char buf[0x100];
+
+  if (!a->count) {
+    if (!ch->rightHand) {
+      ch_RemoveAction(a);
+      return;
+    }
+    if (a->u.name[0])
+      a->u.obj.dropAnim = ch_SetNextAnim(ch, a->u.name, 1);
+    if (ch->next)
+      return;
+    ch_SetHandObject(a->ch, a->args[2], 0);
+    ch_RemoveAction(a);
+    a = 0;
+  }
+  if (!a)
+    return;
+  if (ch->next)
+    return;
+  if (ch->slot && ch->slot->frame >= a->args[0]) {
+    ch_SetHandObject(a->ch, a->args[2], 0);
+    a->args[0] = 99999999;
+  }
+  if (ch->next)
+    return;
+  if (!ch_AnimDone(ch))
+    return;
+  if (a->args[0] != 99999999) {
+    ch_SetHandObject(a->ch, a->args[2], 0);
+    sprintf(
+        buf,
+        "ch_DroppingObject(): object not dropped yet (should be in frame:%i)!",
+        a->args[0]);
+  }
+  ch_CheckAniMorph(ch);
+  ch_RemoveAction(a);
+}
+/* 0x4060d0, queues the drop-object action (type 0x32) for the right hand (args[2] = 2): the animation name and the object's model name */
+
+int ch_DropObject(CHARACTER *ch, char *name, char *obj, int frame) {
+  CHACTION *a = ch_NewAction(ch);
+
+  if (!a)
+    return 0;
+  a->ch = ch;
+  a->args[0] = frame;
+  a->count = 0;
+  a->func = (CHACTFUNC)ch_ActDroppingObject;
+  a->type = 0x32;
+  a->next = 0;
+  a->started = 0;
+  a->args[1] = 0;
+  a->args[2] = 2;
+  if (name)
+    strcpy(a->u.name, name);
+  else
+    a->u.name[0] = 0;
+  if (obj)
+    strcpy(a->u.obj.name2, obj);
+  else
+    a->u.obj.name2[0] = 0;
+  return 1;
+}
+/* 0x406170, queues the drop-object action (type 0x32) for the left hand (args[2] = 1): the animation name and the object's model name */
+
+int ch_DropObject1(CHARACTER *ch, char *name, char *obj, int frame) {
+  CHACTION *a = ch_NewAction(ch);
+
+  if (!a)
+    return 0;
+  a->ch = ch;
+  a->args[0] = frame;
+  a->count = 0;
+  a->func = (CHACTFUNC)ch_ActDroppingObject;
+  a->type = 0x32;
+  a->next = 0;
+  a->started = 0;
+  a->args[1] = 0;
+  a->args[2] = 1;
+  if (name)
+    strcpy(a->u.name, name);
+  else
+    a->u.name[0] = 0;
+  if (obj)
+    strcpy(a->u.obj.name2, obj);
+  else
+    a->u.obj.name2[0] = 0;
+  return 1;
 }
 /* 0x406210, action callback: turns towards the object args[0] */
 
-void ch_ActTurnTo(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    D3OBJECT *obj = (D3OBJECT *)a->args[0];
-    float ang;
-    D3VECTOR rot, from, to;
-    D3VECTOR4 target;
+void ch_ActTurnTo(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  D3OBJECT *obj = (D3OBJECT *)a->args[0];
+  float ang;
+  D3VECTOR rot, from, to;
+  D3VECTOR4 target;
 
-    d3_PointToWorld(obj, &obj->pos, &target.v);
-    rot.y = (ang = d3_YawTo(ch->obj, &target.v));
-    rot.x = 0.0f;
-    rot.z = 0.0f;
-    d3_UnwrapAngles(&rot, &ch->obj->rotation, &from, &to);
-    rot.x += ch->obj->rotation.x;
-    rot.y += ch->obj->rotation.y;
-    rot.z += ch->obj->rotation.z;
-    ch_InsertAction(ch, a, 7, (int)(ang * 57.295776f), 0);
-    ch_RemoveAction(a);
+  d3_PointToWorld(obj, &obj->pos, &target.v);
+  rot.y = (ang = d3_YawTo(ch->obj, &target.v));
+  rot.x = 0.0f;
+  rot.z = 0.0f;
+  d3_UnwrapAngles(&rot, &ch->obj->rotation, &from, &to);
+  rot.x += ch->obj->rotation.x;
+  rot.y += ch->obj->rotation.y;
+  rot.z += ch->obj->rotation.z;
+  ch_InsertAction(ch, a, 7, (int)(ang * 57.295776f), 0);
+  ch_RemoveAction(a);
 }
 /* 0x4062d0, action callback: plays a->u.name once */
 
-void ch_ActPlayOnce(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    D3ANIMSLOT *s;
+void ch_ActPlayOnce(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  D3ANIMSLOT *s;
 
-    if (!a->count) {
-        ch->slot = ch_AttachAni(ch, a->u.name, 1);
-        if (ch->slot) {
-            ch->flags.all |= 2;
-            ch->slot->flags.b[0] = 1;
-            ch->slot->rootFlags &= ~3;
-            ch->slot->flags.b[1] |= 0x10;
-        } else
-            ch_RemoveAction(a);
-    } else if ((s = ch->slot) && (s->flags.b[1] & 0x20))
-        ch_RemoveAction(a);
+  if (!a->count) {
+    ch->slot = ch_AttachAni(ch, a->u.name, 1);
+    if (ch->slot) {
+      ch->flags.all |= 2;
+      ch->slot->flags.b[0] = 1;
+      ch->slot->rootFlags &= ~3;
+      ch->slot->flags.b[1] |= 0x10;
+    } else
+      ch_RemoveAction(a);
+  } else if ((s = ch->slot) && (s->flags.b[1] & 0x20))
+    ch_RemoveAction(a);
 }
 /* 0x406340, d3_ForEachObject callback: collects the dummy objects characters walk to */
 
-char ch_FindDummyCB(D3OBJECT *obj, CHOBJLIST *list)
-{
-    char names[15][0x40] = {
-        "dummy_WAIT",
-        "dummy_FEGEN1",
-        "dummy_FEGEN2",
-        "dummy_FEGEN3",
-        "dummy_FEGEN4",
-        "dummy_PAUSE",
-        "dummy_PAUSE2",
-        "dummy_AUSGANG"     /* sic, no comma */
-        "dummy_LAUFEN1",
-        "dummy_LAUFEN2",
-        "dummy_LAUFEN3",
-        "dummy_LAUFEN4",
-        "dummy_STEHPLATZ_01",
-        "dummy_STEHPLATZ_02",
-        "dummy_STEHPLATZ_03"
-    };
-    int i;
+char ch_FindDummyCB(D3OBJECT *obj, CHOBJLIST *list) {
+  char names[15][0x40] = {"dummy_WAIT",
+                          "dummy_FEGEN1",
+                          "dummy_FEGEN2",
+                          "dummy_FEGEN3",
+                          "dummy_FEGEN4",
+                          "dummy_PAUSE",
+                          "dummy_PAUSE2",
+                          "dummy_AUSGANG" /* sic, no comma */
+                          "dummy_LAUFEN1",
+                          "dummy_LAUFEN2",
+                          "dummy_LAUFEN3",
+                          "dummy_LAUFEN4",
+                          "dummy_STEHPLATZ_01",
+                          "dummy_STEHPLATZ_02",
+                          "dummy_STEHPLATZ_03"};
+  int i;
 
-    for (i = 0; i < 15; i++) {
-        if (names[i][0] && strstr(obj->name, names[i])) {
-            list->objs[list->n] = obj;
-            list->n++;
-            break;
-        }
+  for (i = 0; i < 15; i++) {
+    if (names[i][0] && strstr(obj->name, names[i])) {
+      list->objs[list->n] = obj;
+      list->n++;
+      break;
     }
-    return list->n < 32;
+  }
+  return list->n < 32;
 }
 /* 0x406790, a random dummy object of the default scene */
 
-D3OBJECT *ch_FindDummy(void)
-{
-    CHOBJLIST list;
+D3OBJECT *ch_FindDummy(void) {
+  CHOBJLIST list;
 
-    memset(&list, 0, sizeof(list));
-    d3_ForEachObject(d3_DefaultScene, 0, 0x100, (D3OBJECTCB)ch_FindDummyCB, &list);
-    if (!list.n)
-        return 0;
-    return list.objs[(unsigned short)ch_Random((unsigned short)list.n)];
+  memset(&list, 0, sizeof(list));
+  d3_ForEachObject(d3_DefaultScene, 0, 0x100, (D3OBJECTCB)ch_FindDummyCB,
+                   &list);
+  if (!list.n)
+    return 0;
+  return list.objs[(unsigned short)ch_Random((unsigned short)list.n)];
 }
 /* 0x4067f0, action callback: moves the character to scene args[0] (ids args[1], args[2]) */
 
-void ch_ActMove2Universe(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    int cur;
-    D3OBJECT *obj;
-    D3VECTOR4 pos;
-    char name[0x80];
+void ch_ActMove2Universe(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  int cur;
+  D3OBJECT *obj;
+  D3VECTOR4 pos;
+  char name[0x80];
 
-    if (a->args[0] < 0) {
-        err_Message("ch_Move2Universe(): Invalid universe (<0)!");
-        ch_RemoveAction(a);
-        return;
-    }
-    if (!a->args[0] && a->args[1] != -1 || a->args[0] && a->args[1] == -1) {
-        if (!a->args[0] && a->args[1] != -1)
-            err_Message("ch_Move2Universe(): invalid combination of ids and universeindex (Action->Data[0]==0 && Action->Data[1]!=CH_ID_NONE)");
-        else
-            err_Message("ch_Move2Universe(): invalid combination of ids and universeindex (Action->Data[0]!=0 && Action->Data[1]==CH_ID_NONE)");
-        ch_RemoveAction(a);
-        return;
-    }
-    if (!ch_MoveToScene(ch, &d3_Scenes[a->args[0]])) {
-        err_Message("ch_Move2Universe(): Could not change universe...");
-        ch_RemoveAction(a);
-        return;
-    }
-    cur = d3_CurrentScene;
-    d3if_SelectScene(a->args[0], 1);
-    if (!a->args[0] && ch_CurrentGroup == ch->group)
-        d3if_SelectTextureSet(ch->obj, &ch->obj->material->surf[0], 0, 0);
-    else if (ch_CurrentGroup == ch->group)
-        d3if_SelectTextureSet(ch->obj, &ch->obj->material->surf[0], ch->texSet, 1);
-    ch_ReleaseSit(ch);
-    if (a->move.hasPos)
-        ch_SetPos(ch, &a->move.pos, 0);
-    else {
-        if (a->u.name[0])
-            strcpy(name, a->u.name);
-        else
-            strcpy(name, "dummy_EINGANG");
-        obj = d3_FindObject(0, 0x100, 0, name);
-        if (!obj)
-            obj = d3_FindObject(0, 0x100, 0, "dummy_EINGANG");
-        if (!obj)
-            obj = d3_FindObject(0, 0x100, 0, "dummy_EINGANG");
-        if (obj) {
-            d3_PointToWorld(obj, &obj->pos, &pos.v);
-            ch_SetPos(ch, &pos.v, 0);
-        }
-    }
-    ch->group = a->args[1];
-    ch->scriptGroup = a->args[2];
-    ch->pos.x = 0;
-    ch->pos.y = 0;
-    ch->pos.z = 0;
-    ch_SetVisible(ch, 1);
-    if (cur == a->args[0]) {
-        if (ch->group != -1 && ch_CurrentGroup != ch->group || ch_CurrentScriptGroup != -1 && ch_CurrentScriptGroup != ch->scriptGroup)
-            ch_SetVisible(ch, 0);
-    }
-    if (a->next && a->next->type == 0x38)
-        ch_SetVisible(ch, 0);
-    d3if_SelectScene(cur, 1);
+  if (a->args[0] < 0) {
+    err_Message("ch_Move2Universe(): Invalid universe (<0)!");
     ch_RemoveAction(a);
+    return;
+  }
+  if (!a->args[0] && a->args[1] != -1 || a->args[0] && a->args[1] == -1) {
+    if (!a->args[0] && a->args[1] != -1)
+      err_Message(
+          "ch_Move2Universe(): invalid combination of ids and universeindex "
+          "(Action->Data[0]==0 && Action->Data[1]!=CH_ID_NONE)");
+    else
+      err_Message(
+          "ch_Move2Universe(): invalid combination of ids and universeindex "
+          "(Action->Data[0]!=0 && Action->Data[1]==CH_ID_NONE)");
+    ch_RemoveAction(a);
+    return;
+  }
+  if (!ch_MoveToScene(ch, &d3_Scenes[a->args[0]])) {
+    err_Message("ch_Move2Universe(): Could not change universe...");
+    ch_RemoveAction(a);
+    return;
+  }
+  cur = d3_CurrentScene;
+  d3if_SelectScene(a->args[0], 1);
+  if (!a->args[0] && ch_CurrentGroup == ch->group)
+    d3if_SelectTextureSet(ch->obj, &ch->obj->material->surf[0], 0, 0);
+  else if (ch_CurrentGroup == ch->group)
+    d3if_SelectTextureSet(ch->obj, &ch->obj->material->surf[0], ch->texSet, 1);
+  ch_ReleaseSit(ch);
+  if (a->move.hasPos)
+    ch_SetPos(ch, &a->move.pos, 0);
+  else {
+    if (a->u.name[0])
+      strcpy(name, a->u.name);
+    else
+      strcpy(name, "dummy_EINGANG");
+    obj = d3_FindObject(0, 0x100, 0, name);
+    if (!obj)
+      obj = d3_FindObject(0, 0x100, 0, "dummy_EINGANG");
+    if (!obj)
+      obj = d3_FindObject(0, 0x100, 0, "dummy_EINGANG");
+    if (obj) {
+      d3_PointToWorld(obj, &obj->pos, &pos.v);
+      ch_SetPos(ch, &pos.v, 0);
+    }
+  }
+  ch->group = a->args[1];
+  ch->scriptGroup = a->args[2];
+  ch->pos.x = 0;
+  ch->pos.y = 0;
+  ch->pos.z = 0;
+  ch_SetVisible(ch, 1);
+  if (cur == a->args[0]) {
+    if (ch->group != -1 && ch_CurrentGroup != ch->group ||
+        ch_CurrentScriptGroup != -1 && ch_CurrentScriptGroup != ch->scriptGroup)
+      ch_SetVisible(ch, 0);
+  }
+  if (a->next && a->next->type == 0x38)
+    ch_SetVisible(ch, 0);
+  d3if_SelectScene(cur, 1);
+  ch_RemoveAction(a);
 }
 /* 0x406a70, keeps the character on the ground; returns the ground type under it */
 
-int ch_FollowGround(CHACTION *a)
-{
-    D3SM *h;
-    CHARACTER *ch;
-    D3OBJECT *obj;
-    int type;
-    int x, z;
-    float y, y2;
-    D3VECTOR4 pos;
+int ch_FollowGround(CHACTION *a) {
+  D3SM *h;
+  CHARACTER *ch;
+  D3OBJECT *obj;
+  int type;
+  int x, z;
+  float y, y2;
+  D3VECTOR4 pos;
 
-    h = ch_GetHMap(a->ch);
-    ch = a->ch;
-    type = 0;
-    obj = ch->obj;
-    if (h) {
-        pos.x = obj->pos.x;
-        pos.y = obj->pos.y;
-        pos.z = obj->pos.z;
-        if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
-            type = h->entries[h->size * z + x].type;
-            if (type && type != 13 || ch->scene->map) {
-                obj = ch->obj;
-                if (ch->scene->map) {
-                    map_Pick(ch->scene->map, &obj->pos, 1, &x, &z, &y2);
-                    if (!type || type == 13 || !(y2 - y < -5.0))
-                        y = y2;
-                }
-                if (!d3t_SceneIndex(ch->scene))
-                    y += 3.0f;
-                obj->pos.y += (y - obj->pos.y) * 0.25f;
-                d3_SetObjectPos(obj, &obj->pos);
-            }
+  h = ch_GetHMap(a->ch);
+  ch = a->ch;
+  type = 0;
+  obj = ch->obj;
+  if (h) {
+    pos.x = obj->pos.x;
+    pos.y = obj->pos.y;
+    pos.z = obj->pos.z;
+    if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
+      type = h->entries[h->size * z + x].type;
+      if (type && type != 13 || ch->scene->map) {
+        obj = ch->obj;
+        if (ch->scene->map) {
+          map_Pick(ch->scene->map, &obj->pos, 1, &x, &z, &y2);
+          if (!type || type == 13 || !(y2 - y < -5.0))
+            y = y2;
         }
+        if (!d3t_SceneIndex(ch->scene))
+          y += 3.0f;
+        obj->pos.y += (y - obj->pos.y) * 0.25f;
+        d3_SetObjectPos(obj, &obj->pos);
+      }
     }
-    return type;
+  }
+  return type;
 }
 /* 0x406bc0, every step-th point of path (always the first and the last) into out; returns the count */
 
-int ch_ThinPath(CHARACTER *ch, PATHOUT *path, CHPATHPT *out, D3SM *map)
-{
-    int n = 0;
-    int i = 1;
-    int step;
-    int x, z;
+int ch_ThinPath(CHARACTER *ch, PATHOUT *path, CHPATHPT *out, D3SM *map) {
+  int n = 0;
+  int i = 1;
+  int step;
+  int x, z;
 
-    if (ch && (ch->kind & 0x10))
-        step = 2;
-    else {
-        step = (int)(12.0f / map->cell.x + 0.5f);
-        if (step < 1)
-            step = 1;
-    }
-    for (; i < path->count; i += step) {
-        x = path->xy[i * 2];
-        z = path->xy[i * 2 + 1];
-        out[n].x = x;
-        out[n].z = z;
-        n++;
-    }
-    if (i != path->count - 1) {
-        out[n].x = path->xy[(path->count - 1) * 2];
-        out[n].z = path->xy[(path->count - 1) * 2 + 1];
-        n++;
-    }
-    return n;
+  if (ch && (ch->kind & 0x10))
+    step = 2;
+  else {
+    step = (int)(12.0f / map->cell.x + 0.5f);
+    if (step < 1)
+      step = 1;
+  }
+  for (; i < path->count; i += step) {
+    x = path->xy[i * 2];
+    z = path->xy[i * 2 + 1];
+    out[n].x = x;
+    out[n].z = z;
+    n++;
+  }
+  if (i != path->count - 1) {
+    out[n].x = path->xy[(path->count - 1) * 2];
+    out[n].z = path->xy[(path->count - 1) * 2 + 1];
+    n++;
+  }
+  return n;
 }
 /* 0x406c60, creates the object name in a hand of the character (name 0: removes it) */
 
-void ch_SetHandObject(CHARACTER *ch, int hand, char *name)
-{
-    D3OBJECT **slot = 0;
-    int cur;
-    D3VECTOR4 pos = {0.0f, 0.0f, 0.0f, 0.0f};
-    D3VECTOR rot = {0.0f, 0.0f, 0.0f};
+void ch_SetHandObject(CHARACTER *ch, int hand, char *name) {
+  D3OBJECT **slot = 0;
+  int cur;
+  D3VECTOR4 pos = {0.0f, 0.0f, 0.0f, 0.0f};
+  D3VECTOR rot = {0.0f, 0.0f, 0.0f};
 
-    if (hand == 1)
-        slot = &ch->leftHand;
-    else if (hand == 2)
-        slot = &ch->rightHand;
-    else if (hand == 3)
-        slot = &ch->headObject;
-    if (name) {
-        cur = d3_CurrentScene;
-        d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
-        if (*slot) {
-            d3if_Delete(*slot);
-            *slot = 0;
-        }
-        *slot = d3_CreateObject(ch->obj, &pos.v, &rot, name);
-        if (!*slot) {
-            d3if_SelectScene(cur, 1);
-            return;
-        }
-        (*slot)->stateFlags |= 0xc;
-        (*slot)->objectFlags &= ~2;
-        (*slot)->flags &= ~4;
-        (*slot)->kind = 5;
-        d3_RelightObject(*slot);
-        if (hand == 1)
-            d3_AttachToBone(*slot, "d3_LeftHand");
-        else if (hand == 2)
-            d3_AttachToBone(*slot, "d3_RightHand");
-        else if (hand == 3)
-            d3_AttachToBone(*slot, "d3_Head");
-        d3if_SelectScene(cur, 1);
-    } else {
-        cur = d3_CurrentScene;
-        d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
-        if (*slot) {
-            d3if_Delete(*slot);
-            *slot = 0;
-        }
-        d3if_SelectScene(cur, 1);
+  if (hand == 1)
+    slot = &ch->leftHand;
+  else if (hand == 2)
+    slot = &ch->rightHand;
+  else if (hand == 3)
+    slot = &ch->headObject;
+  if (name) {
+    cur = d3_CurrentScene;
+    d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
+    if (*slot) {
+      d3if_Delete(*slot);
+      *slot = 0;
     }
+    *slot = d3_CreateObject(ch->obj, &pos.v, &rot, name);
+    if (!*slot) {
+      d3if_SelectScene(cur, 1);
+      return;
+    }
+    (*slot)->stateFlags |= 0xc;
+    (*slot)->objectFlags &= ~2;
+    (*slot)->flags &= ~4;
+    (*slot)->kind = 5;
+    d3_RelightObject(*slot);
+    if (hand == 1)
+      d3_AttachToBone(*slot, "d3_LeftHand");
+    else if (hand == 2)
+      d3_AttachToBone(*slot, "d3_RightHand");
+    else if (hand == 3)
+      d3_AttachToBone(*slot, "d3_Head");
+    d3if_SelectScene(cur, 1);
+  } else {
+    cur = d3_CurrentScene;
+    d3if_SelectScene(d3t_SceneIndex(ch->scene), 1);
+    if (*slot) {
+      d3if_Delete(*slot);
+      *slot = 0;
+    }
+    d3if_SelectScene(cur, 1);
+  }
 }
 
 /* ---- 0x406e40..0x408690 (worker ch4) ---- */
 
 /* 0x406e40, plays an animation action once and removes it when it fails */
-void ch_ActAnimOnce(CHACTION *a)
-{
-    if (ch_ActAnim(a) == -1)
-        ch_RemoveAction(a);
+void ch_ActAnimOnce(CHACTION *a) {
+  if (ch_ActAnim(a) == -1)
+    ch_RemoveAction(a);
 }
 /* 0x406e60, turn action: args[0] degrees (args[1]: relative to the z axis), plays "dreh_90_*" and turns
    @deep deep s48: c2dag: the slot block is one 63-node region (no 81 cut); fchs (h 12) / fstp v.z (h 10)
@@ -2374,126 +2355,124 @@ void ch_ActAnimOnce(CHACTION *a)
    positions: draft 54..102 (frame 0xc4 / 0xd4); v.z = -v.z moved to every line of the slot block: 18..110.
    Left: the 4-ins position of fchs / fstp v.z (the original before or dl,8 / push eax, ours after). */
 
-void ch_ActTurn(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    float angle;
-    D3ANIMFLAGS f;
-    D3ANIMSLOT *s;
-    D3ANIMKEY keys[2];
+void ch_ActTurn(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  float angle;
+  D3ANIMFLAGS f;
+  D3ANIMSLOT *s;
+  D3ANIMKEY keys[2];
 
-    if ((ch->slot || ch->morph) && !a->u.turn.started) {
-        a->count = -1;
-        return;
-    }
-    if (!a->count) {
-        angle = a->args[0] * 0.017453292f;
-        if (a->args[1]) {
-            D3VECTOR4 dir;
+  if ((ch->slot || ch->morph) && !a->u.turn.started) {
+    a->count = -1;
+    return;
+  }
+  if (!a->count) {
+    angle = a->args[0] * 0.017453292f;
+    if (a->args[1]) {
+      D3VECTOR4 dir;
 
-            d3_DirToWorld(ch->obj, &d3_ZAxis.v, &dir.v);
-            angle = -d3_VecAngle(&d3_ZAxis.v, &dir.v) - angle;
-            if (angle > 3.1415927f)
-                angle -= 6.2831855f;
-            else if (angle < -3.1415927f)
-                angle += 6.2831855f;
-        } else {
-            a->rot.x = 0.0f;
-            a->rot.y = angle;
-            a->rot.z = 0.0f;
-            a->rot.x = ch->obj->rotation.x;
-            a->rot.y = angle + ch->obj->rotation.y;
-            a->rot.z = ch->obj->rotation.z;
-        }
-        if (!(angle >= 0.2)) {
-            if (angle < -0.2)
-                ch->slot = ch_AttachAni(a->ch, "bewegung/dreh_90_rechts", 1);
-        } else
-            ch->slot = ch_AttachAni(a->ch, "bewegung/dreh_90_links", 1);
-        a->u.turn.started = 1;
-        if (ch->slot) {
-            D3VECTOR4 v;
+      d3_DirToWorld(ch->obj, &d3_ZAxis.v, &dir.v);
+      angle = -d3_VecAngle(&d3_ZAxis.v, &dir.v) - angle;
+      if (angle > 3.1415927f)
+        angle -= 6.2831855f;
+      else if (angle < -3.1415927f)
+        angle += 6.2831855f;
+    } else {
+      a->rot.x = 0.0f;
+      a->rot.y = angle;
+      a->rot.z = 0.0f;
+      a->rot.x = ch->obj->rotation.x;
+      a->rot.y = angle + ch->obj->rotation.y;
+      a->rot.z = ch->obj->rotation.z;
+    }
+    if (!(angle >= 0.2)) {
+      if (angle < -0.2)
+        ch->slot = ch_AttachAni(a->ch, "bewegung/dreh_90_rechts", 1);
+    } else
+      ch->slot = ch_AttachAni(a->ch, "bewegung/dreh_90_links", 1);
+    a->u.turn.started = 1;
+    if (ch->slot) {
+      D3VECTOR4 v;
 
-            s = ch->slot;
-            v.y = s->data->frames[s->data->nframes - 1].turn.y;
-            v.x = -s->data->frames[s->data->nframes - 1].turn.x;
-            v.z = s->data->frames[s->data->nframes - 1].turn.z;
-            memset(&f, 0, sizeof(f));
-            f.b[1] |= 0x14;
-            f.b[8] |= 2;
-            f.b[1] |= 8;
-            keys[0].time = s->data->frames[s->data->nframes - 1].time - 30;
-            keys[0].rot.x = 0.0f;
-            keys[0].rot.y = 0.0f;
-            keys[0].rot.z = 0.0f;
-            keys[0].pos.x = 0.0f;
-            keys[0].pos.y = 0.0f;
-            keys[0].pos.z = 0.0f;
-            keys[1].pos.x = 0.0f;
-            keys[1].pos.y = 0.0f;
-            keys[1].pos.z = 0.0f;
-            v.y = angle - v.y;
-            v.z = -v.z;
-            keys[1].rot.x = v.x;
-            keys[1].rot.y = v.y;
-            keys[1].rot.z = v.z;
-            ch->turnAnim = d3anim_CreatePath(a->ch->obj, f, 2, keys);
-        } else {
-            keys[0].time = 8;
-            memset(&f, 0, sizeof(f));
-            f.b[1] |= 0x14;
-            f.b[8] |= 2;
-            f.b[1] |= 8;
-            keys[0].rot.x = 0.0f;
-            keys[0].rot.y = 0.0f;
-            keys[0].rot.z = 0.0f;
-            keys[0].pos.x = 0.0f;
-            keys[0].pos.y = 0.0f;
-            keys[0].pos.z = 0.0f;
-            keys[1].rot.x = 0.0f;
-            keys[1].rot.z = 0.0f;
-            keys[1].pos.x = 0.0f;
-            keys[1].pos.y = 0.0f;
-            keys[1].pos.z = 0.0f;
-            keys[1].rot.y = angle;
-            ch->turnAnim = d3anim_CreatePath(a->ch->obj, f, 2, keys);
-        }
-        return;
+      s = ch->slot;
+      v.y = s->data->frames[s->data->nframes - 1].turn.y;
+      v.x = -s->data->frames[s->data->nframes - 1].turn.x;
+      v.z = s->data->frames[s->data->nframes - 1].turn.z;
+      memset(&f, 0, sizeof(f));
+      f.b[1] |= 0x14;
+      f.b[8] |= 2;
+      f.b[1] |= 8;
+      keys[0].time = s->data->frames[s->data->nframes - 1].time - 30;
+      keys[0].rot.x = 0.0f;
+      keys[0].rot.y = 0.0f;
+      keys[0].rot.z = 0.0f;
+      keys[0].pos.x = 0.0f;
+      keys[0].pos.y = 0.0f;
+      keys[0].pos.z = 0.0f;
+      keys[1].pos.x = 0.0f;
+      keys[1].pos.y = 0.0f;
+      keys[1].pos.z = 0.0f;
+      v.y = angle - v.y;
+      v.z = -v.z;
+      keys[1].rot.x = v.x;
+      keys[1].rot.y = v.y;
+      keys[1].rot.z = v.z;
+      ch->turnAnim = d3anim_CreatePath(a->ch->obj, f, 2, keys);
+    } else {
+      keys[0].time = 8;
+      memset(&f, 0, sizeof(f));
+      f.b[1] |= 0x14;
+      f.b[8] |= 2;
+      f.b[1] |= 8;
+      keys[0].rot.x = 0.0f;
+      keys[0].rot.y = 0.0f;
+      keys[0].rot.z = 0.0f;
+      keys[0].pos.x = 0.0f;
+      keys[0].pos.y = 0.0f;
+      keys[0].pos.z = 0.0f;
+      keys[1].rot.x = 0.0f;
+      keys[1].rot.z = 0.0f;
+      keys[1].pos.x = 0.0f;
+      keys[1].pos.y = 0.0f;
+      keys[1].pos.z = 0.0f;
+      keys[1].rot.y = angle;
+      ch->turnAnim = d3anim_CreatePath(a->ch->obj, f, 2, keys);
     }
-    if (ch->turnAnim && ch->turnAnim->flags.b[1] & 0x20) {
-        d3anim_FreePath(ch->obj);
-        ch->turnAnim = 0;
-        if (!ch->slot) {
-            ch_RemoveAction(a);
-            a = 0;
-        }
+    return;
+  }
+  if (ch->turnAnim && ch->turnAnim->flags.b[1] & 0x20) {
+    d3anim_FreePath(ch->obj);
+    ch->turnAnim = 0;
+    if (!ch->slot) {
+      ch_RemoveAction(a);
+      a = 0;
     }
-    if (ch->slot && ch->slot->flags.b[1] & 0x20) {
-        d3_ReleaseTexture(&a->ch->obj->material->surf[0], (char *)ch->slot->data);
-        d3_SetObjectRot(a->ch->obj, &a->rot);
-        d3anim_FreePath(a->ch->obj);
-        ch->turnAnim = 0;
-        ch_RemoveAction(a);
-    } else if (!ch->slot && !ch->turnAnim && a)
-        ch_RemoveAction(a);
+  }
+  if (ch->slot && ch->slot->flags.b[1] & 0x20) {
+    d3_ReleaseTexture(&a->ch->obj->material->surf[0], (char *)ch->slot->data);
+    d3_SetObjectRot(a->ch->obj, &a->rot);
+    d3anim_FreePath(a->ch->obj);
+    ch->turnAnim = 0;
+    ch_RemoveAction(a);
+  } else if (!ch->slot && !ch->turnAnim && a)
+    ch_RemoveAction(a);
 }
 /* 0x407200, up to 16 other characters of the same scene within 300 units of ch */
 
-int ch_FindNear300(CHARACTER *ch, CHARACTER **out)
-{
-    int i, n = 0;
-    CHARACTER *o;
+int ch_FindNear300(CHARACTER *ch, CHARACTER **out) {
+  int i, n = 0;
+  CHARACTER *o;
 
-    for (i = 0; i < CH_MAX; i++) {
-        if (n >= 16)
-            break;
-        o = ch_List[i];
-        if (o && ch != o && ch->scene == o->scene && ch->group == o->group
-            && (o->obj->type != 1 || o->lowPolyBody && o->lowPolyBody->type != 1)
-            && d3_VecEqual(&ch->obj->pos, &o->obj->pos, 300.0f))
-            out[n++] = ch_List[i];
-    }
-    return n;
+  for (i = 0; i < CH_MAX; i++) {
+    if (n >= 16)
+      break;
+    o = ch_List[i];
+    if (o && ch != o && ch->scene == o->scene && ch->group == o->group &&
+        (o->obj->type != 1 || o->lowPolyBody && o->lowPolyBody->type != 1) &&
+        d3_VecEqual(&ch->obj->pos, &o->obj->pos, 300.0f))
+      out[n++] = ch_List[i];
+  }
+  return n;
 }
 /* 0x4072a0, finds a walkable cell (type not 0 or 0xd) near x/z, searching rings of growing radius up to max;
    flags & 1 or 0x10: the one with the shortest way from -> cell -> to (0x10: x/z itself if walkable)
@@ -2517,138 +2496,131 @@ int ch_FindNear300(CHARACTER *ch, CHARACTER **out)
    bounds min(1,z-r)/min(h->size-1,..) and the type tests are identical. Needs slotmap/vargen. Readability
    already clean (grade readable). */
 
+char ch_FindFreeCell(D3SM *h, D3VECTOR *from, D3VECTOR *to, int x, int z,
+                     int *px, int *pz, int max, int flags) {
+  int r = 0;
+  float best = 1e11f;
+  D3VECTOR4
+  p[3]; /* from, to (or the vertex of x/z), the candidate cell's vertex */
+  int t, d, zi, xi, zmax, xmax;
+  float dist, dx, dy, dz;
 
-char ch_FindFreeCell(D3SM *h, D3VECTOR *from, D3VECTOR *to, int x, int z, int *px, int *pz, int max, int flags)
-{
-    int r = 0;
-    float best = 1e11f;
-    D3VECTOR4 p[3];                 /* from, to (or the vertex of x/z), the candidate cell's vertex */
-    int t, d, zi, xi, zmax, xmax;
-    float dist, dx, dy, dz;
-
-    if (h && h->entries && px && pz) {
-        if (flags & 0x10) {
-            t = h->entries[h->size * z + x].type;
-            if (t && t != 0xd) {
-                *px = x;
-                *pz = z;
-                return 1;
-            }
-            p[1].x = to->x;
-            p[1].y = to->y;
-            p[1].z = to->z;
-        } else
-            d3sm_GetVertex(h, x, z, &p[1].v);
-        p[0].x = from->x;
-        p[0].y = from->y;
-        p[0].z = from->z;
-        *px = -1;
-        *pz = -1;
-        if (!(flags & 1) && !(flags & 0x10)) {
-            for (; r < h->size; r++) {
-                if (r >= max)
-                    break;
-                zmax = min(h->size - 1, r + z);
-                for (zi = max(1, z - r); zi <= zmax; zi++) {
-                    d = r - abs(z - zi);
-                    xmax = min(h->size - 1, d + x);
-                    for (xi = max(0, x - d); xi <= xmax; xi++) {
-                        if (zi >= 0 && zi < h->size && xi >= 0 && xi < h->size
-                            && (t = h->entries[h->size * zi + xi].type) && t != 0xd) {
-                            *px = xi;
-                            *pz = zi;
-                            return 1;
-                        }
-                    }
-                }
-            }
-        } else {
-            for (; r < h->size; r++) {
-                if (r >= max)
-                    break;
-                zmax = min(h->size - 1, r + z);
-                for (zi = max(1, z - r); zi <= zmax; zi++) {
-                    d = r - abs(z - zi);
-                    xmax = min(h->size - 1, d + x);
-                    for (xi = max(0, x - d); xi <= xmax; xi++) {
-                        if (zi >= 0 && zi < h->size && xi >= 0 && xi < h->size
-                            && (t = h->entries[h->size * zi + xi].type) && t != 0xd
-                            && d3sm_GetVertex(h, xi, zi, &p[2].v)) {
-                            dx = p[0].x - p[2].x;
-                            dy = p[0].y - p[2].y;
-                            dz = p[0].z - p[2].z;
-                            dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
-                            dx = p[1].x - p[2].x;
-                            dy = p[1].y - p[2].y;
-                            dz = p[1].z - p[2].z;
-                            dist += (float)sqrt(dx * dx + dy * dy + dz * dz);
-                            if (dist < best) {
-                                best = dist;
-                                *px = xi;
-                                *pz = zi;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (*px != -1 || *pz != -1)
-            return 1;
+  if (h && h->entries && px && pz) {
+    if (flags & 0x10) {
+      t = h->entries[h->size * z + x].type;
+      if (t && t != 0xd) {
         *px = x;
         *pz = z;
+        return 1;
+      }
+      p[1].x = to->x;
+      p[1].y = to->y;
+      p[1].z = to->z;
+    } else
+      d3sm_GetVertex(h, x, z, &p[1].v);
+    p[0].x = from->x;
+    p[0].y = from->y;
+    p[0].z = from->z;
+    *px = -1;
+    *pz = -1;
+    if (!(flags & 1) && !(flags & 0x10)) {
+      for (; r < h->size; r++) {
+        if (r >= max)
+          break;
+        zmax = min(h->size - 1, r + z);
+        for (zi = max(1, z - r); zi <= zmax; zi++) {
+          d = r - abs(z - zi);
+          xmax = min(h->size - 1, d + x);
+          for (xi = max(0, x - d); xi <= xmax; xi++) {
+            if (zi >= 0 && zi < h->size && xi >= 0 && xi < h->size &&
+                (t = h->entries[h->size * zi + xi].type) && t != 0xd) {
+              *px = xi;
+              *pz = zi;
+              return 1;
+            }
+          }
+        }
+      }
+    } else {
+      for (; r < h->size; r++) {
+        if (r >= max)
+          break;
+        zmax = min(h->size - 1, r + z);
+        for (zi = max(1, z - r); zi <= zmax; zi++) {
+          d = r - abs(z - zi);
+          xmax = min(h->size - 1, d + x);
+          for (xi = max(0, x - d); xi <= xmax; xi++) {
+            if (zi >= 0 && zi < h->size && xi >= 0 && xi < h->size &&
+                (t = h->entries[h->size * zi + xi].type) && t != 0xd &&
+                d3sm_GetVertex(h, xi, zi, &p[2].v)) {
+              dx = p[0].x - p[2].x;
+              dy = p[0].y - p[2].y;
+              dz = p[0].z - p[2].z;
+              dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
+              dx = p[1].x - p[2].x;
+              dy = p[1].y - p[2].y;
+              dz = p[1].z - p[2].z;
+              dist += (float)sqrt(dx * dx + dy * dy + dz * dz);
+              if (dist < best) {
+                best = dist;
+                *px = xi;
+                *pz = zi;
+              }
+            }
+          }
+        }
+      }
     }
-    return 0;
+    if (*px != -1 || *pz != -1)
+      return 1;
+    *px = x;
+    *pz = z;
+  }
+  return 0;
 }
 /* 0x407690, allocates the path map's origin / cell-size node (0x14 bytes, "ch_map") */
 
-void *ch_MapAlloc(float cellSize)
-{
-    CHMAPNODE *p = mem_Alloc(sizeof(CHMAPNODE), "ch_map");
+void *ch_MapAlloc(float cellSize) {
+  CHMAPNODE *p = mem_Alloc(sizeof(CHMAPNODE), "ch_map");
 
-    p->cellSize = cellSize;
-    return p;
+  p->cellSize = cellSize;
+  return p;
 }
 /* 0x4076b0, frees a path map node allocated by ch_MapAlloc */
 
-void ch_MapFree(void *p)
-{
-    mem_Free(p);
-}
+void ch_MapFree(void *p) { mem_Free(p); }
 /* 0x4076c0, copies the vector src to dst */
 
-void ch_CopyVec(D3VECTOR *dst, D3VECTOR *src)
-{
-    dst->x = src->x;
-    dst->y = src->y;
-    dst->z = src->z;
+void ch_CopyVec(D3VECTOR *dst, D3VECTOR *src) {
+  dst->x = src->x;
+  dst->y = src->y;
+  dst->z = src->z;
 }
 /* 0x4076e0, height map cell nearest to pos */
 
-int ch_PosToCell(D3SM *h, D3VECTOR *pos, int *x, int *z)
-{
-    D3VECTOR4 d;
-    float f;
+int ch_PosToCell(D3SM *h, D3VECTOR *pos, int *x, int *z) {
+  D3VECTOR4 d;
+  float f;
 
-    d.x = pos->x - h->origin.x;
-    d.z = pos->z - h->origin.z;
-    f = 1.0f / h->cell.x;
-    d.x *= f;
-    d.z *= f;
-    *x = (int)(d.x + 0.5);
-    *z = (int)(d.z + 0.5);
-    return 1;
+  d.x = pos->x - h->origin.x;
+  d.z = pos->z - h->origin.z;
+  f = 1.0f / h->cell.x;
+  d.x *= f;
+  d.z *= f;
+  *x = (int)(d.x + 0.5);
+  *z = (int)(d.z + 0.5);
+  return 1;
 }
 /* 0x407740, converts cell x/z of map h to the cell of map to */
 
-int ch_CellToCell(D3SM *h, int x, int z, D3SM *to, int *px, int *pz)
-{
-    D3VECTOR4 v;
+int ch_CellToCell(D3SM *h, int x, int z, D3SM *to, int *px, int *pz) {
+  D3VECTOR4 v;
 
-    if (d3sm_GetVertex(h, x, z, &v.v)) {
-        ch_PosToCell(to, &v.v, px, pz);
-        return 1;
-    }
-    return 0;
+  if (d3sm_GetVertex(h, x, z, &v.v)) {
+    ch_PosToCell(to, &v.v, px, pz);
+    return 1;
+  }
+  return 0;
 }
 /* 0x407790, the character's cells in ch_PathMap (transport, body, the next path cells), then a corner
    cell for each diagonal step
@@ -2668,77 +2640,77 @@ int ch_CellToCell(D3SM *h, int x, int z, D3SM *to, int *px, int *pz)
    1 (41), n = 1; if (t) n = 2 (72). flip.py --want 'mov ebp, ecx / add ebp, edi': 279 mutants, no hit;
    climb 3 rounds: nothing. */
 
-int ch_GetWaypoints(D3SM *h, CHARACTER *ch, CHWAYPT *out)
-{
-    CHACTION *a;
-    CHWAYPT *start = out;
-    CHWAYPT *p;
-    int x, z, i, n;
-    CHPATHPT *c;
+int ch_GetWaypoints(D3SM *h, CHARACTER *ch, CHWAYPT *out) {
+  CHACTION *a;
+  CHWAYPT *start = out;
+  CHWAYPT *p;
+  int x, z, i, n;
+  CHPATHPT *c;
 
-    a = CH_ACTIONS(ch);
-    if (ch->transport) {
-        ch_PosToCell(ch_PathMap, &ch->transport->obj->pos, &out->x, &out->z);
-        out->flags = 8;
-        out++;
-    }
-    ch_PosToCell(ch_PathMap, &ch->obj->pos, &x, &z);
-    out->x = x;
-    out->z = z;
-    out->flags = 1;
+  a = CH_ACTIONS(ch);
+  if (ch->transport) {
+    ch_PosToCell(ch_PathMap, &ch->transport->obj->pos, &out->x, &out->z);
+    out->flags = 8;
     out++;
-    if (a && a->type == '-' && a->u.walk.path && a->u.walk.retryAt == -1) {
-        for (i = a->u.walk.cur, n = i + (ch->transport ? 2 : 1); i < n && i < a->u.walk.pathLen; i++) {
-            c = &a->u.walk.path[i];
-            ch_CellToCell(h, c->x, c->z, ch_PathMap, &out->x, &out->z);
-            out->flags = 2;
-            out++;
-        }
+  }
+  ch_PosToCell(ch_PathMap, &ch->obj->pos, &x, &z);
+  out->x = x;
+  out->z = z;
+  out->flags = 1;
+  out++;
+  if (a && a->type == '-' && a->u.walk.path && a->u.walk.retryAt == -1) {
+    for (i = a->u.walk.cur, n = i + (ch->transport ? 2 : 1);
+         i < n && i < a->u.walk.pathLen; i++) {
+      c = &a->u.walk.path[i];
+      ch_CellToCell(h, c->x, c->z, ch_PathMap, &out->x, &out->z);
+      out->flags = 2;
+      out++;
     }
-    out->flags = 0;
-    for (p = start; p->flags; p++) {
-        if (p->flags & 4 || !p[1].flags || p[1].flags & 4)
-            break;
-        if (p[1].x > p->x && p[1].z < p->z) {
-            out->flags = p->flags | 4;
-            out->x = p->x + 1;
-            out->z = p->z;
-            out++;
-            out->flags = p->flags | 4;
-            out->x = p->x;
-            out->z = p->z - 1;
-            out++;
-        } else if (p[1].x > p->x && p[1].z > p->z) {
-            out->flags = p->flags | 4;
-            out->x = p->x + 1;
-            out->z = p->z;
-            out++;
-            out->flags = p->flags | 4;
-            out->x = p->x;
-            out->z = p->z + 1;
-            out++;
-        } else if (p[1].x < p->x && p[1].z > p->z) {
-            out->flags = p->flags | 4;
-            out->x = p->x - 1;
-            out->z = p->z;
-            out++;
-            out->flags = p->flags | 4;
-            out->x = p->x;
-            out->z = p->z + 1;
-            out++;
-        } else if (p[1].x < p->x && p[1].z < p->z) {
-            out->flags = p->flags | 4;
-            out->x = p->x - 1;
-            out->z = p->z;
-            out++;
-            out->flags = p->flags | 4;
-            out->x = p->x;
-            out->z = p->z - 1;
-            out++;
-        }
+  }
+  out->flags = 0;
+  for (p = start; p->flags; p++) {
+    if (p->flags & 4 || !p[1].flags || p[1].flags & 4)
+      break;
+    if (p[1].x > p->x && p[1].z < p->z) {
+      out->flags = p->flags | 4;
+      out->x = p->x + 1;
+      out->z = p->z;
+      out++;
+      out->flags = p->flags | 4;
+      out->x = p->x;
+      out->z = p->z - 1;
+      out++;
+    } else if (p[1].x > p->x && p[1].z > p->z) {
+      out->flags = p->flags | 4;
+      out->x = p->x + 1;
+      out->z = p->z;
+      out++;
+      out->flags = p->flags | 4;
+      out->x = p->x;
+      out->z = p->z + 1;
+      out++;
+    } else if (p[1].x < p->x && p[1].z > p->z) {
+      out->flags = p->flags | 4;
+      out->x = p->x - 1;
+      out->z = p->z;
+      out++;
+      out->flags = p->flags | 4;
+      out->x = p->x;
+      out->z = p->z + 1;
+      out++;
+    } else if (p[1].x < p->x && p[1].z < p->z) {
+      out->flags = p->flags | 4;
+      out->x = p->x - 1;
+      out->z = p->z;
+      out++;
+      out->flags = p->flags | 4;
+      out->x = p->x;
+      out->z = p->z - 1;
+      out++;
     }
-    out->flags = 0;
-    return 1;
+  }
+  out->flags = 0;
+  return 1;
 }
 /* 0x4079b0, walk actions: checks the next path cells against the nearby characters others[0..n-1] and,
    if one blocks the way, marks them in the ground map and searches a new path around them ("ch:GetNewPath"
@@ -2761,237 +2733,241 @@ int ch_GetWaypoints(D3SM *h, CHARACTER *ch, CHWAYPT *out)
    table, fixes both). Size left: (1) the transport ternary: the original loads walk.cur in BOTH arms
    (mov... */
 
-int ch_GetNewPath(CHARACTER *ch, int n, CHARACTER **others)
-{
-    int res = 0;
-    CHACTION *a = CH_ACTIONS(ch);
-    int scene = d3t_SceneIndex(ch->scene);
-    D3SM *h;
-    int steps, cx, cz, tx, tz, bx, bz, gx, gz;
-    int i, j, k, r, e, last, nrest, cnt, m;
-    float y, d, dx, dy, dz;
-    CHACTION *oa;
-    CHWAYPT wp[32];
-    CHPATHPT *p;
-    unsigned char *q;
-    unsigned char rest[0x800];
+int ch_GetNewPath(CHARACTER *ch, int n, CHARACTER **others) {
+  int res = 0;
+  CHACTION *a = CH_ACTIONS(ch);
+  int scene = d3t_SceneIndex(ch->scene);
+  D3SM *h;
+  int steps, cx, cz, tx, tz, bx, bz, gx, gz;
+  int i, j, k, r, e, last, nrest, cnt, m;
+  float y, d, dx, dy, dz;
+  CHACTION *oa;
+  CHWAYPT wp[32];
+  CHPATHPT *p;
+  unsigned char *q;
+  unsigned char rest[0x800];
 
-    if (a->type != '-')
-        return -1;
-    h = ch_GetHMap(ch);
-    ch_CopyVec(&ch_PathMap->origin.v, &h->origin.v);
-    steps = (int)(50.0f / h->cell.x + 0.5);
-    if (steps > 10)
-        steps = 10;
-    k = a->u.walk.cur;
-    if (d3_DefaultScene[scene].map)
-        ch_PathMap->cell.x = 60.0f;
-    else
-        ch_PathMap->cell.x = 60.0f;
-    p = &a->u.walk.path[k];
-    ch_CellToCell(h, p->x, p->z, ch_PathMap, &cx, &cz);
-    if (ch->transport)
-        ch_PosToCell(ch_PathMap, &ch->transport->obj->pos, &tx, &tz);
-    ch_PosToCell(ch_PathMap, &ch->obj->pos, &bx, &bz);
-    for (i = 0; i < n; i++) {
-        if (res & 1)
+  if (a->type != '-')
+    return -1;
+  h = ch_GetHMap(ch);
+  ch_CopyVec(&ch_PathMap->origin.v, &h->origin.v);
+  steps = (int)(50.0f / h->cell.x + 0.5);
+  if (steps > 10)
+    steps = 10;
+  k = a->u.walk.cur;
+  if (d3_DefaultScene[scene].map)
+    ch_PathMap->cell.x = 60.0f;
+  else
+    ch_PathMap->cell.x = 60.0f;
+  p = &a->u.walk.path[k];
+  ch_CellToCell(h, p->x, p->z, ch_PathMap, &cx, &cz);
+  if (ch->transport)
+    ch_PosToCell(ch_PathMap, &ch->transport->obj->pos, &tx, &tz);
+  ch_PosToCell(ch_PathMap, &ch->obj->pos, &bx, &bz);
+  for (i = 0; i < n; i++) {
+    if (res & 1)
+      break;
+    oa = CH_ACTIONS(others[i]);
+    for (k = 0; k < 16; k++)
+      if (ch->contacts[k].ch == others[i] && ch->contacts[k].flags & 1)
+        break;
+    ch_GetWaypoints(h, others[i], wp);
+    for (j = 0; j < 32; j++) {
+      if (!wp[j].flags)
+        break;
+      if (wp[j].flags & 2) {
+        if (wp[j].x == cx && wp[j].z == cz) {
+          res = 1;
+          break;
+        }
+      } else if (wp[j].flags & 1) {
+        if (wp[j].x == bx && wp[j].z == bz) {
+          res = 5;
+          break;
+        }
+        if (wp[j].x == cx && wp[j].z == cz) {
+          if (!oa || oa->type != '-' || oa->u.walk.retryAt != -1) {
+            res = 5;
             break;
-        oa = CH_ACTIONS(others[i]);
-        for (k = 0; k < 16; k++)
-            if (ch->contacts[k].ch == others[i] && ch->contacts[k].flags & 1)
-                break;
-        ch_GetWaypoints(h, others[i], wp);
-        for (j = 0; j < 32; j++) {
-            if (!wp[j].flags)
-                break;
-            if (wp[j].flags & 2) {
-                if (wp[j].x == cx && wp[j].z == cz) {
-                    res = 1;
-                    break;
-                }
-            } else if (wp[j].flags & 1) {
-                if (wp[j].x == bx && wp[j].z == bz) {
-                    res = 5;
-                    break;
-                }
-                if (wp[j].x == cx && wp[j].z == cz) {
-                    if (!oa || oa->type != '-' || oa->u.walk.retryAt != -1) {
-                        res = 5;
-                        break;
-                    }
-                    for (k = 0; k < 16 && ch->contacts[k].ch; k++)
-                        if (others[i]->contacts[k].ch == ch && others[i]->contacts[k].flags & 2)
-                            goto linked;
-                    dx = ch->obj->pos.x - others[i]->obj->pos.x;
-                    dy = ch->obj->pos.y - others[i]->obj->pos.y;
-                    dz = ch->obj->pos.z - others[i]->obj->pos.z;
-                    d = sqrt(dx * dx + dy * dy + dz * dz);
-                    ch->speedScale = d = (float)(d * 0.01f) * 0.5f;
-                    ch->speedScale = min(1.0f, d);
-                    res = 2;
-                    break;
-                linked:
-                    res = 1;
-                    break;
-                }
-                if (oa && oa->type == '-' && oa->u.walk.retryAt == -1)
-                    continue;
-                if (wp[j].x == tx && wp[j].z == tz) {
-                    res = 1;
-                    break;
-                }
-            } else if (wp[j].flags & 8) {
-                if (wp[j].x == cx && wp[j].z == cz) {
-                    if (!oa || oa->type != '-' || oa->u.walk.retryAt != -1) {
-                        res = 5;
-                        break;
-                    }
-                    for (k = 0; k < 16 && ch->contacts[k].ch; k++)
-                        if (others[i]->contacts[k].ch == ch && others[i]->contacts[k].flags & 2) {
-                            res = 1;
-                            goto next;
-                        }
-                    dx = ch->obj->pos.x - others[i]->transport->obj->pos.x;
-                    dy = ch->obj->pos.y - others[i]->transport->obj->pos.y;
-                    dz = ch->obj->pos.z - others[i]->transport->obj->pos.z;
-                    d = sqrt(dx * dx + dy * dy + dz * dz);
-                    ch->speedScale = d = (float)(d * 0.01f) * 0.5f;
-                    ch->speedScale = min(1.0f, d);
-                    res = 2;
-                } else if (wp[j].x == tx && wp[j].z == tz) {
-                    res = 1;
-                    break;
-                }
+          }
+          for (k = 0; k < 16 && ch->contacts[k].ch; k++)
+            if (others[i]->contacts[k].ch == ch &&
+                others[i]->contacts[k].flags & 2)
+              goto linked;
+          dx = ch->obj->pos.x - others[i]->obj->pos.x;
+          dy = ch->obj->pos.y - others[i]->obj->pos.y;
+          dz = ch->obj->pos.z - others[i]->obj->pos.z;
+          d = sqrt(dx * dx + dy * dy + dz * dz);
+          ch->speedScale = d = (float)(d * 0.01f) * 0.5f;
+          ch->speedScale = min(1.0f, d);
+          res = 2;
+          break;
+        linked:
+          res = 1;
+          break;
+        }
+        if (oa && oa->type == '-' && oa->u.walk.retryAt == -1)
+          continue;
+        if (wp[j].x == tx && wp[j].z == tz) {
+          res = 1;
+          break;
+        }
+      } else if (wp[j].flags & 8) {
+        if (wp[j].x == cx && wp[j].z == cz) {
+          if (!oa || oa->type != '-' || oa->u.walk.retryAt != -1) {
+            res = 5;
+            break;
+          }
+          for (k = 0; k < 16 && ch->contacts[k].ch; k++)
+            if (others[i]->contacts[k].ch == ch &&
+                others[i]->contacts[k].flags & 2) {
+              res = 1;
+              goto next;
             }
-        next:
-            ;
+          dx = ch->obj->pos.x - others[i]->transport->obj->pos.x;
+          dy = ch->obj->pos.y - others[i]->transport->obj->pos.y;
+          dz = ch->obj->pos.z - others[i]->transport->obj->pos.z;
+          d = sqrt(dx * dx + dy * dy + dz * dz);
+          ch->speedScale = d = (float)(d * 0.01f) * 0.5f;
+          ch->speedScale = min(1.0f, d);
+          res = 2;
+        } else if (wp[j].x == tx && wp[j].z == tz) {
+          res = 1;
+          break;
         }
+      }
+    next:;
     }
-    if (res) {
-        memset(ch->contacts, 0, 16 * sizeof(CHCONTACT));
-        for (i = 0; i < n; i++) {
-            ch->contacts[i].ch = others[i];
-            ch->contacts[i].flags = res;
-        }
-        if (res & 1) {
-            int sx, fz, len;
+  }
+  if (res) {
+    memset(ch->contacts, 0, 16 * sizeof(CHCONTACT));
+    for (i = 0; i < n; i++) {
+      ch->contacts[i].ch = others[i];
+      ch->contacts[i].flags = res;
+    }
+    if (res & 1) {
+      int sx, fz, len;
 
-            if (ch->speedScale < 0.5)
-                ch->speedScale = 0.5f;
-            for (i = 0; i < n; i++) {
-                oa = CH_ACTIONS(others[i]);
-                if (oa && oa->type == '-' && oa->u.walk.path && oa->u.walk.retryAt == -1) {
-                    r = steps;
-                    if (r > 3)
-                        r = 3;
-                    if (others[i]->transport)
-                        e = max(1, oa->u.walk.cur - 2);
-                    else
-                        e = max(1, oa->u.walk.cur);
-                    for (k = e; k < e + 2 && k < oa->u.walk.pathLen; k++) {
-                        gx = oa->u.walk.path[k].x;
-                        gz = oa->u.walk.path[k].z;
-                        if (k == oa->u.walk.pathLen - 1)
-                            ch_SetGroundDiamond(gx, gz, scene, 0xd, r);
-                        else
-                            ch_SetGroundDiamond(gx, gz, scene, 1, r);
-                    }
-                }
-            }
-            for (i = 0; i < n; i++) {
-                oa = CH_ACTIONS(others[i]);
-                if (oa && oa->type == '-' && oa->u.walk.path && oa->u.walk.retryAt == -1) {
-                    if (d3_GetHeightAt(h, &others[i]->obj->pos, &gx, &gz, &y))
-                        ch_SetGroundDiamond(gx, gz, scene, 0, steps);
-                    if (others[i]->transport && d3_GetHeightAt(h, &others[i]->transport->obj->pos, &gx, &gz, &y))
-                        ch_SetGroundDiamond(gx, gz, scene, 0, steps * 2);
-                } else {
-                    if (d3_GetHeightAt(h, &others[i]->obj->pos, &gx, &gz, &y)) {
-                        r = min(9, steps);
-                        if (oa && oa->u.walk.retryAt != -1)
-                            ch_SetGroundDiamond(gx, gz, scene, 0, r);
-                        else
-                            ch_SetGroundDiamond(gx, gz, scene, 0xd, r);
-                    }
-                    if (others[i]->transport && d3_GetHeightAt(h, &others[i]->transport->obj->pos, &gx, &gz, &y))
-                        ch_SetGroundDiamond(gx, gz, scene, 0xd, steps * 2);
-                }
-            }
-            a = CH_ACTIONS(ch);
-            if (d3_GetHeightAt(h, &a->ch->obj->pos, &sx, &cx, &y)) {
-                last = min(a->u.walk.cur + 16, a->u.walk.pathLen - 1);
-                nrest = 0;
-                q = rest + 1;
-                for (k = last + 1; k < a->u.walk.pathLen; k++) {
-                    q[-1] = a->u.walk.path[k].x;
-                    q[0] = a->u.walk.path[k].z;
-                    nrest++;
-                    q += 2;
-                }
-                gx = a->u.walk.path[last].x;
-                gz = a->u.walk.path[last].z;
-                m = ch->scene == d3_Scenes || d3_Terrain ? 5 : 2;
-                if (!ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, gx, gz, &cz, &fz, steps * m,
-                                     a->u.walk.flags | 1)) {
-                    ch_RestoreGround(h);
-                    return -1;
-                }
-                gx = cz;
-                gz = fz;
-                ch_Path.xy = ch_PathBuf;
-                ch_Path.max = 0x200;
-                if (h->entries[h->size * cx + sx].type == 0xd) {
-                    m = ch->scene == d3_Scenes || d3_Terrain ? 5 : 2;
-                    if (ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, sx, cx, &cz, &fz, steps * m,
-                                        a->u.walk.flags | 1)) {
-                        sx = cz;
-                        cx = fz;
-                    }
-                }
-                if (path_Find(&ch_Path, h, sx, cx, gx, gz, ch->pathType) == 0xffff) {
-                    ch_RestoreGround(h);
-                    return -1;
-                }
-                cnt = ch_Path.count;
-                if (a->u.walk.path) {
-                    mem_Free(a->u.walk.path);
-                    a->u.walk.path = 0;
-                }
-                a->u.walk.path = mem_Alloc((cnt + nrest) * 2, "ch:GetNewPath");
-                len = ch_ThinPath(ch, &ch_Path, a->u.walk.path, h);
-                for (k = 0; k < nrest; k++) {
-                    a->u.walk.path[len + k].x = rest[k * 2];
-                    a->u.walk.path[len + k].z = rest[k * 2 + 1];
-                }
-                a->u.walk.pathLen = len + nrest;
-                a->u.walk.cur = 0;
-                a->u.walk.prevCell = -1;
-                gx = a->u.walk.path[a->u.walk.pathLen - 1].x;
-                gz = a->u.walk.path[a->u.walk.pathLen - 1].z;
-                d3sm_GetVertex(h, gx, gz, &a->u.walk.end);
-                a->u.walk.end.x += ch_PathOffset.x;
-                a->u.walk.end.y += ch_PathOffset.y;
-                a->u.walk.end.z += ch_PathOffset.z;
-                if (a->u.walk.pathLen >= 2
-                    && a->u.walk.path[a->u.walk.pathLen - 1].x
-                       == a->u.walk.path[a->u.walk.pathLen - 2].x
-                    && a->u.walk.path[a->u.walk.pathLen - 1].z
-                       == a->u.walk.path[a->u.walk.pathLen - 2].z)
-                    a->u.walk.pathLen--;
-                ch_RestoreGround(h);
-                ch->contactSteps = 4;
-                if (sx == gx && cx == gz)
-                    return -2;
-                return len;
-            }
+      if (ch->speedScale < 0.5)
+        ch->speedScale = 0.5f;
+      for (i = 0; i < n; i++) {
+        oa = CH_ACTIONS(others[i]);
+        if (oa && oa->type == '-' && oa->u.walk.path &&
+            oa->u.walk.retryAt == -1) {
+          r = steps;
+          if (r > 3)
+            r = 3;
+          if (others[i]->transport)
+            e = max(1, oa->u.walk.cur - 2);
+          else
+            e = max(1, oa->u.walk.cur);
+          for (k = e; k < e + 2 && k < oa->u.walk.pathLen; k++) {
+            gx = oa->u.walk.path[k].x;
+            gz = oa->u.walk.path[k].z;
+            if (k == oa->u.walk.pathLen - 1)
+              ch_SetGroundDiamond(gx, gz, scene, 0xd, r);
+            else
+              ch_SetGroundDiamond(gx, gz, scene, 1, r);
+          }
         }
+      }
+      for (i = 0; i < n; i++) {
+        oa = CH_ACTIONS(others[i]);
+        if (oa && oa->type == '-' && oa->u.walk.path &&
+            oa->u.walk.retryAt == -1) {
+          if (d3_GetHeightAt(h, &others[i]->obj->pos, &gx, &gz, &y))
+            ch_SetGroundDiamond(gx, gz, scene, 0, steps);
+          if (others[i]->transport &&
+              d3_GetHeightAt(h, &others[i]->transport->obj->pos, &gx, &gz, &y))
+            ch_SetGroundDiamond(gx, gz, scene, 0, steps * 2);
+        } else {
+          if (d3_GetHeightAt(h, &others[i]->obj->pos, &gx, &gz, &y)) {
+            r = min(9, steps);
+            if (oa && oa->u.walk.retryAt != -1)
+              ch_SetGroundDiamond(gx, gz, scene, 0, r);
+            else
+              ch_SetGroundDiamond(gx, gz, scene, 0xd, r);
+          }
+          if (others[i]->transport &&
+              d3_GetHeightAt(h, &others[i]->transport->obj->pos, &gx, &gz, &y))
+            ch_SetGroundDiamond(gx, gz, scene, 0xd, steps * 2);
+        }
+      }
+      a = CH_ACTIONS(ch);
+      if (d3_GetHeightAt(h, &a->ch->obj->pos, &sx, &cx, &y)) {
+        last = min(a->u.walk.cur + 16, a->u.walk.pathLen - 1);
+        nrest = 0;
+        q = rest + 1;
+        for (k = last + 1; k < a->u.walk.pathLen; k++) {
+          q[-1] = a->u.walk.path[k].x;
+          q[0] = a->u.walk.path[k].z;
+          nrest++;
+          q += 2;
+        }
+        gx = a->u.walk.path[last].x;
+        gz = a->u.walk.path[last].z;
+        m = ch->scene == d3_Scenes || d3_Terrain ? 5 : 2;
+        if (!ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, gx, gz, &cz,
+                             &fz, steps * m, a->u.walk.flags | 1)) {
+          ch_RestoreGround(h);
+          return -1;
+        }
+        gx = cz;
+        gz = fz;
+        ch_Path.xy = ch_PathBuf;
+        ch_Path.max = 0x200;
+        if (h->entries[h->size * cx + sx].type == 0xd) {
+          m = ch->scene == d3_Scenes || d3_Terrain ? 5 : 2;
+          if (ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, sx, cx, &cz,
+                              &fz, steps * m, a->u.walk.flags | 1)) {
+            sx = cz;
+            cx = fz;
+          }
+        }
+        if (path_Find(&ch_Path, h, sx, cx, gx, gz, ch->pathType) == 0xffff) {
+          ch_RestoreGround(h);
+          return -1;
+        }
+        cnt = ch_Path.count;
+        if (a->u.walk.path) {
+          mem_Free(a->u.walk.path);
+          a->u.walk.path = 0;
+        }
+        a->u.walk.path = mem_Alloc((cnt + nrest) * 2, "ch:GetNewPath");
+        len = ch_ThinPath(ch, &ch_Path, a->u.walk.path, h);
+        for (k = 0; k < nrest; k++) {
+          a->u.walk.path[len + k].x = rest[k * 2];
+          a->u.walk.path[len + k].z = rest[k * 2 + 1];
+        }
+        a->u.walk.pathLen = len + nrest;
+        a->u.walk.cur = 0;
+        a->u.walk.prevCell = -1;
+        gx = a->u.walk.path[a->u.walk.pathLen - 1].x;
+        gz = a->u.walk.path[a->u.walk.pathLen - 1].z;
+        d3sm_GetVertex(h, gx, gz, &a->u.walk.end);
+        a->u.walk.end.x += ch_PathOffset.x;
+        a->u.walk.end.y += ch_PathOffset.y;
+        a->u.walk.end.z += ch_PathOffset.z;
+        if (a->u.walk.pathLen >= 2 &&
+            a->u.walk.path[a->u.walk.pathLen - 1].x ==
+                a->u.walk.path[a->u.walk.pathLen - 2].x &&
+            a->u.walk.path[a->u.walk.pathLen - 1].z ==
+                a->u.walk.path[a->u.walk.pathLen - 2].z)
+          a->u.walk.pathLen--;
+        ch_RestoreGround(h);
+        ch->contactSteps = 4;
+        if (sx == gx && cx == gz)
+          return -2;
+        return len;
+      }
     }
-    return 0;
+  }
+  return 0;
 }
 /* 0x408490, walk actions: finds a path from the character to the target character ("ch:GetNewPath"?) */
 
-int ch_PathToTarget(CHACTION *a)
-{
+int ch_PathToTarget(CHACTION *a) {
+  /* clang-format off */
     CHARACTER *ch = a->ch;
     D3SM *h = ch_GetHMap(ch);
     int cx, cz, gx, gz, ox, oz;
@@ -3035,6 +3011,7 @@ int ch_PathToTarget(CHACTION *a)
     a->u.walk.tpos.y = t->obj->pos.y;
     a->u.walk.tpos.z = t->obj->pos.z;
     return 1;
+  /* clang-format on */
 }
 
 /* ---- 0x408690..0x40a900 (worker ch5) ---- */
@@ -3048,556 +3025,556 @@ int ch_PathToTarget(CHACTION *a)
    store -> load (the aggregate counts as aliased), which int t[2] / int t[3] without the cast do not have
    (int t[3] + separate y: order right, frame 0x78). Moving the two stores (19 positions): no better. Open:
    which 12-byte form leaves the load free (a typed record of the game? an array of a union?). */
-int ch_InitWalk(CHACTION *a, D3SM *h)
-{
-    CHARACTER *ch = a->ch;
-    int x, z, t[2];             /* t: target cell x, z */
-    float y;
-    D3ANIMDATA *ad;
-    char name[0x60];
+int ch_InitWalk(CHACTION *a, D3SM *h) {
+  CHARACTER *ch = a->ch;
+  int x, z, t[2]; /* t: target cell x, z */
+  float y;
+  D3ANIMDATA *ad;
+  char name[0x60];
 
-    if (ch->morph) {
-        sprintf(name, "morph_%i", ch);
-        d3_ReleaseTexture(&ch->obj->material->surf[0], name);
-        ad = d3_FindAnim(name);
-        d3anim_Release(ad, 1);
-        ch->morph = 0;
-    }
-    d3t_ReleaseObjectTextures(ch->obj);
-    ch->next = 0;
+  if (ch->morph) {
+    sprintf(name, "morph_%i", ch);
+    d3_ReleaseTexture(&ch->obj->material->surf[0], name);
+    ad = d3_FindAnim(name);
+    d3anim_Release(ad, 1);
     ch->morph = 0;
-    ch->slot = 0;
-    ch->speedScale = 1.0f;
-    a->ch->flags.all &= ~8;
-    a->u.walk.path = 0;
-    a->u.walk.started = 0;
-    a->u.walk.retryAt = -1;
-    memset(ch->contacts, 0, sizeof ch->contacts);
-    t[0] = a->args[0];
-    t[1] = a->args[1];
-    if (d3t_SceneIndex(ch->scene) != a->args[2]) {
-        ch_RemoveAction(a);
-        return 0;
+  }
+  d3t_ReleaseObjectTextures(ch->obj);
+  ch->next = 0;
+  ch->morph = 0;
+  ch->slot = 0;
+  ch->speedScale = 1.0f;
+  a->ch->flags.all &= ~8;
+  a->u.walk.path = 0;
+  a->u.walk.started = 0;
+  a->u.walk.retryAt = -1;
+  memset(ch->contacts, 0, sizeof ch->contacts);
+  t[0] = a->args[0];
+  t[1] = a->args[1];
+  if (d3t_SceneIndex(ch->scene) != a->args[2]) {
+    ch_RemoveAction(a);
+    return 0;
+  }
+  if (a->u.walk.flags & CH_WALK_TARGET)
+    a->u.walk.target = ch_FindByName(a->u.walk.tname);
+  if (!d3_GetHeightAt(h, &a->ch->obj->pos, &x, &z, &y)) {
+    if (ch_MarkWalkErrors)
+      a->ch->flags.bytes.lo |= 8;
+    if (a->u.walk.path) {
+      mem_Free(a->u.walk.path);
+      a->u.walk.path = 0;
     }
-    if (a->u.walk.flags & CH_WALK_TARGET)
-        a->u.walk.target = ch_FindByName(a->u.walk.tname);
-    if (!d3_GetHeightAt(h, &a->ch->obj->pos, &x, &z, &y)) {
-        if (ch_MarkWalkErrors)
-            a->ch->flags.bytes.lo |= 8;
-        if (a->u.walk.path) {
-            mem_Free(a->u.walk.path);
-            a->u.walk.path = 0;
-        }
-        ch_RemoveAction(a);
-        return 0;
+    ch_RemoveAction(a);
+    return 0;
+  }
+  if (x < 1)
+    x = 1;
+  else if (x > h->size - 2)
+    x = h->size - 2;
+  if (z < 1)
+    z = 1;
+  else if (z > h->size - 2)
+    z = h->size - 2;
+  if (ch->kind & 4)
+    a->u.walk.flags &= ~CH_WALK_DEST;
+  if (a->u.walk.flags & CH_WALK_DEST)
+    ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, t[0], t[1], &t[1], &t[0],
+                    8, a->u.walk.flags);
+  else
+    ch_FindFreeCell(h, &ch->obj->pos, &ch->obj->pos, t[0], t[1], &t[1], &t[0],
+                    8, a->u.walk.flags);
+  ch_Path.xy = ch_PathBuf;
+  ch_Path.max = 0x200;
+  if (path_Find(&ch_Path, h, x, z, t[1], t[0], ch->pathType) == 0xffff) {
+    a->ch->pathState = 0;
+    if (ch_MarkWalkErrors)
+      a->ch->flags.bytes.lo |= 8;
+    if (a->u.walk.path) {
+      mem_Free(a->u.walk.path);
+      a->u.walk.path = 0;
     }
-    if (x < 1)
-        x = 1;
-    else if (x > h->size - 2)
-        x = h->size - 2;
-    if (z < 1)
-        z = 1;
-    else if (z > h->size - 2)
-        z = h->size - 2;
-    if (ch->kind & 4)
-        a->u.walk.flags &= ~CH_WALK_DEST;
-    if (a->u.walk.flags & CH_WALK_DEST)
-        ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, t[0], t[1], &t[1], &t[0], 8, a->u.walk.flags);
-    else
-        ch_FindFreeCell(h, &ch->obj->pos, &ch->obj->pos, t[0], t[1], &t[1], &t[0], 8, a->u.walk.flags);
-    ch_Path.xy = ch_PathBuf;
-    ch_Path.max = 0x200;
-    if (path_Find(&ch_Path, h, x, z, t[1], t[0], ch->pathType) == 0xffff) {
-        a->ch->pathState = 0;
-        if (ch_MarkWalkErrors)
-            a->ch->flags.bytes.lo |= 8;
-        if (a->u.walk.path) {
-            mem_Free(a->u.walk.path);
-            a->u.walk.path = 0;
-        }
-        if (a->u.walk.fail)
-            a->u.walk.fail(a);
-        ch_RemoveAction(a);
-        return 0;
-    }
-    a->u.walk.path = mem_Alloc(ch_Path.count * 2, "ch_t:waypoints");
-    a->u.walk.pathLen = ch_ThinPath(ch, &ch_Path, a->u.walk.path, h);
-    a->u.walk.cur = 0;
-    a->u.walk.prevCell = -1;
-    d3sm_GetVertex(h, a->u.walk.path[0].x, a->u.walk.path[0].z, &a->u.walk.end);
-    a->u.walk.end.x += ch_PathOffset.x;
+    if (a->u.walk.fail)
+      a->u.walk.fail(a);
+    ch_RemoveAction(a);
+    return 0;
+  }
+  a->u.walk.path = mem_Alloc(ch_Path.count * 2, "ch_t:waypoints");
+  a->u.walk.pathLen = ch_ThinPath(ch, &ch_Path, a->u.walk.path, h);
+  a->u.walk.cur = 0;
+  a->u.walk.prevCell = -1;
+  d3sm_GetVertex(h, a->u.walk.path[0].x, a->u.walk.path[0].z, &a->u.walk.end);
+  a->u.walk.end.x += ch_PathOffset.x;
+  a->u.walk.end.y += ch_PathOffset.y;
+  a->u.walk.end.z += ch_PathOffset.z;
+  if (a->u.walk.flags & CH_WALK_TARGET) {
+    a->u.walk.tpos.x = a->u.walk.target->pos.x;
+    a->u.walk.tpos.y = a->u.walk.target->pos.y;
+    a->u.walk.tpos.z = a->u.walk.target->pos.z;
+  } else {
+    d3sm_GetVertex(h, t[1], t[0], &a->u.walk.tpos);
+    a->u.walk.end.x += ch_PathOffset.x; /* sic: end, not tpos */
     a->u.walk.end.y += ch_PathOffset.y;
     a->u.walk.end.z += ch_PathOffset.z;
-    if (a->u.walk.flags & CH_WALK_TARGET) {
-        a->u.walk.tpos.x = a->u.walk.target->pos.x;
-        a->u.walk.tpos.y = a->u.walk.target->pos.y;
-        a->u.walk.tpos.z = a->u.walk.target->pos.z;
-    } else {
-        d3sm_GetVertex(h, t[1], t[0], &a->u.walk.tpos);
-        a->u.walk.end.x += ch_PathOffset.x;     /* sic: end, not tpos */
-        a->u.walk.end.y += ch_PathOffset.y;
-        a->u.walk.end.z += ch_PathOffset.z;
-        if ((a->u.walk.flags & CH_WALK_DEST) && !d3_VecEqual(&a->u.walk.tpos, &a->u.walk.dest, 30.0f)) {
-            a->u.walk.dest.x = a->u.walk.tpos.x;
-            a->u.walk.dest.y = a->u.walk.tpos.y;
-            a->u.walk.dest.z = a->u.walk.tpos.z;
-        }
+    if ((a->u.walk.flags & CH_WALK_DEST) &&
+        !d3_VecEqual(&a->u.walk.tpos, &a->u.walk.dest, 30.0f)) {
+      a->u.walk.dest.x = a->u.walk.tpos.x;
+      a->u.walk.dest.y = a->u.walk.tpos.y;
+      a->u.walk.dest.z = a->u.walk.tpos.z;
     }
-    a->u.walk.started = 0;
-    return 1;
+  }
+  a->u.walk.started = 0;
+  return 1;
 }
 /* 0x408ab0, plays a step sound for the ground type when the walk animation reaches a step frame */
 
-void ch_WalkSound(CHACTION *a, int ground)
-{
-    CHARACTER *ch = a->ch;
-    void *snd;
-    char name[0x80];
+void ch_WalkSound(CHACTION *a, int ground) {
+  CHARACTER *ch = a->ch;
+  void *snd;
+  char name[0x80];
 
-    if (ch->slot && ch_SndLib && d3_DefaultScene == ch->scene && ch_CurrentGroup == ch->group
-        && ch->slot->frame != a->u.walk.lastframe) {
-        if (ch->slot->frame == 4 || ch->slot->frame == 12 || ch->slot->frame == 18
-            || ch->slot->frame == 24) {
-            if ((ch->kind & 1) && ch_StepSounds < 3 && d3t_SceneIndex(ch->scene)) {
-                if (ch->scene->map) {
-                    strcpy(name, "Normal_s");
-                    if (ground == 6 || ground == 11)
-                        strcpy(name, "Stein_s");
-                    else if (ground == 3)
-                        strcpy(name, "Erde_s");
-                    else if (ground == 4)
-                        strcpy(name, "Wiese_s");
-                    else if (ground == 8)
-                        strcpy(name, "Stein_s");
-                    else if (ground == 10)
-                        strcpy(name, "Pfuetze_s");
-                    snd = sb_GetSample(ch_SndLib, name);
-                } else
-                    snd = sb_GetSample(ch_SndLib, ch_StepSample);
-                if (snd) {
-                    d3snd_PlayAt(snd, ch->obj, 40, 500.0f);
-                    ch_StepSounds++;
-                }
-            }
-            a->u.walk.lastframe = ch->slot->frame;
+  if (ch->slot && ch_SndLib && d3_DefaultScene == ch->scene &&
+      ch_CurrentGroup == ch->group && ch->slot->frame != a->u.walk.lastframe) {
+    if (ch->slot->frame == 4 || ch->slot->frame == 12 ||
+        ch->slot->frame == 18 || ch->slot->frame == 24) {
+      if ((ch->kind & 1) && ch_StepSounds < 3 && d3t_SceneIndex(ch->scene)) {
+        if (ch->scene->map) {
+          strcpy(name, "Normal_s");
+          if (ground == 6 || ground == 11)
+            strcpy(name, "Stein_s");
+          else if (ground == 3)
+            strcpy(name, "Erde_s");
+          else if (ground == 4)
+            strcpy(name, "Wiese_s");
+          else if (ground == 8)
+            strcpy(name, "Stein_s");
+          else if (ground == 10)
+            strcpy(name, "Pfuetze_s");
+          snd = sb_GetSample(ch_SndLib, name);
+        } else
+          snd = sb_GetSample(ch_SndLib, ch_StepSample);
+        if (snd) {
+          d3snd_PlayAt(snd, ch->obj, 40, 500.0f);
+          ch_StepSounds++;
         }
+      }
+      a->u.walk.lastframe = ch->slot->frame;
     }
+  }
 }
 /* 0x408cb0, starts the walk animation; its speed follows the cell size of the height map */
 
-int ch_StartWalkAnim(CHACTION *a, D3SM *h)
-{
-    CHARACTER *ch = a->ch;
-    float f;
-    D3ANIMSLOT *s;
-    D3ANIMDATA *ad;
-    char name[0x60];
+int ch_StartWalkAnim(CHACTION *a, D3SM *h) {
+  CHARACTER *ch = a->ch;
+  float f;
+  D3ANIMSLOT *s;
+  D3ANIMDATA *ad;
+  char name[0x60];
 
-    ch->next = 0;
-    if (ch->morph) {
-        sprintf(name, "morph_%i", ch);
-        d3_ReleaseTexture(&ch->obj->material->surf[0], name);
-        ad = d3_FindAnim(name);
-        d3anim_Release(ad, 1);
-        ch->morph = 0;
+  ch->next = 0;
+  if (ch->morph) {
+    sprintf(name, "morph_%i", ch);
+    d3_ReleaseTexture(&ch->obj->material->surf[0], name);
+    ad = d3_FindAnim(name);
+    d3anim_Release(ad, 1);
+    ch->morph = 0;
+  }
+  d3t_ReleaseObjectTextures(ch->obj);
+  if (!ch->obj->info)
+    ch_InflateModel(ch);
+  if (ch->transport)
+    s = ch_AttachAni(ch, "bewegung/karren_ziehen", 1);
+  else
+    s = ch_AttachAni(ch, "bewegung/gehen", 1);
+  if (!(ch->slot = s)) {
+    if (ch_MarkWalkErrors)
+      a->ch->flags.bytes.lo |= 8;
+    if (a->u.walk.path) {
+      mem_Free(a->u.walk.path);
+      a->u.walk.path = 0;
     }
-    d3t_ReleaseObjectTextures(ch->obj);
-    if (!ch->obj->info)
-        ch_InflateModel(ch);
-    if (ch->transport)
-        s = ch_AttachAni(ch, "bewegung/karren_ziehen", 1);
-    else
-        s = ch_AttachAni(ch, "bewegung/gehen", 1);
-    if (!(ch->slot = s)) {
-        if (ch_MarkWalkErrors)
-            a->ch->flags.bytes.lo |= 8;
-        if (a->u.walk.path) {
-            mem_Free(a->u.walk.path);
-            a->u.walk.path = 0;
-        }
-        ch_RemoveAction(a);
-        return 0;
-    }
-    s->unk6d_4 = 0;
-    s = ch->slot;
-    s->turnHi = 0;
-    s->turnLo = 1;
-    if (ch->kind & 8)
-        ch->slot->stopRadius = 30.0f;
-    else if (ch->kind & 0x10)
-        ch->slot->stopRadius = 60.0f;
-    else
-        ch->slot->stopRadius = 15.0f;
-    f = 50.0f / h->cell.x;
-    f = min(2.0f, f);
-    ch->slot->stopRadius *= f;
-    ch->slot->play = 1;
-    ch->slot->stopped = 0;
-    ch->slot->stopAtPos = 1;
-    ch->slot->finished = 0;
-    a->u.walk.started = 1;
-    return 1;
+    ch_RemoveAction(a);
+    return 0;
+  }
+  s->unk6d_4 = 0;
+  s = ch->slot;
+  s->turnHi = 0;
+  s->turnLo = 1;
+  if (ch->kind & 8)
+    ch->slot->stopRadius = 30.0f;
+  else if (ch->kind & 0x10)
+    ch->slot->stopRadius = 60.0f;
+  else
+    ch->slot->stopRadius = 15.0f;
+  f = 50.0f / h->cell.x;
+  f = min(2.0f, f);
+  ch->slot->stopRadius *= f;
+  ch->slot->play = 1;
+  ch->slot->stopped = 0;
+  ch->slot->stopAtPos = 1;
+  ch->slot->finished = 0;
+  a->u.walk.started = 1;
+  return 1;
 }
 /* 0x408e60, walk actions: avoids other characters, then takes the next path cell; 0 when the walk ends */
 
-int ch_NextWaypoint(CHACTION *a, D3SM *h)
-{
-    CHARACTER *ch = a->ch;
-    int n, r;
-    float speed, f, dx, dy, dz;
-    D3OBJECT *o;
-    CHARACTER *others[16];
+int ch_NextWaypoint(CHACTION *a, D3SM *h) {
+  CHARACTER *ch = a->ch;
+  int n, r;
+  float speed, f, dx, dy, dz;
+  D3OBJECT *o;
+  CHARACTER *others[16];
 
-    if (ch->contactSteps < 1 && (ch->kind & 1) && (!ch->slot || !ch->slot->stopped)
-        && (d3_DefaultScene == ch->scene || ch->scene == d3_Scenes)) {
-        if (n = ch_FindNear300(ch, others)) {
-            r = ch_GetNewPath(ch, n, others);
-            if (r > 0) {
-                if (ch->slot) {
-                    if (ch->kind & 8)
-                        speed = 30.0f;
-                    else if (ch->kind & 0x10)
-                        speed = 30.0f;
-                    else
-                        speed = 15.0f;
-                    if (ch->scene->map)
-                        speed *= 3.0;
-                    f = 50.0f / h->cell.x;
-                    ch->slot->stopRadius = speed * min(2.0f, f);
-                    ch->slot->play = 1;
-                    ch->slot->stopped = 0;
-                    ch->slot->stopAtPos = 1;
-                    ch->slot->finished = 0;
-                    o = a->ch->obj;
-                    dx = o->pos.x - a->u.walk.end.x;
-                    dy = o->pos.y - a->u.walk.end.y;
-                    dz = o->pos.z - a->u.walk.end.z;
-                    f = (float)sqrt(dx * dx + dy * dy + dz * dz);
-                    a->u.walk.dist = f;
-                }
-            } else if (r == -1) {
-                if (ch->slot)
-                    ch->slot->speed = 0.01f;
-                a->u.walk.retryAt = ch_Time;
-                return 0;
-            } else if (r == -2) {
-                ch_StopAnim(ch);
-                if (ch_MarkWalkErrors)
-                    a->ch->flags.bytes.lo |= 8;
-                if (a->u.walk.path) {
-                    mem_Free(a->u.walk.path);
-                    a->u.walk.path = 0;
-                }
-                ch_RemoveAction(a);
-                return 0;
-            }
-        }
-    }
-    if (!a->u.walk.cur || (ch->slot && ch->slot->stopped)) {
-        if ((a->u.walk.flags & CH_WALK_TARGET) && a->u.walk.cur % 4 == 0
-            && !d3_VecEqual(&a->u.walk.tpos, &a->u.walk.target->obj->pos, 70.0f))
-            ch_PathToTarget(a);
-        a->u.walk.cur++;
-        if (ch->contactSteps > 0 && !--ch->contactSteps)
-            memset(ch->contacts, 0, sizeof ch->contacts);
-        if (a->u.walk.cur >= a->u.walk.pathLen) {
-            if (a->u.walk.path) {
-                mem_Free(a->u.walk.path);
-                a->u.walk.path = 0;
-            }
-            if (a->u.walk.flags & CH_WALK_DEST) {
-                if (ch->scene == d3_Scenes && a->u.walk.retries > 4)
-                    a->u.walk.flags &= ~CH_WALK_DEST;
-                if (!d3_VecEqual(&ch->obj->pos, &a->u.walk.dest, 5.0f)) {
-                    a->u.walk.end.x = a->u.walk.dest.x;
-                    a->u.walk.end.y = a->u.walk.dest.y;
-                    a->u.walk.end.z = a->u.walk.dest.z;
-                    ch->slot->stopPos.x = a->u.walk.end.x;
-                    ch->slot->stopPos.y = a->u.walk.end.y;
-                    ch->slot->stopPos.z = a->u.walk.end.z;
-                    o = a->ch->obj;
-                    dx = o->pos.x - a->u.walk.end.x;
-                    dy = o->pos.y - a->u.walk.end.y;
-                    dz = o->pos.z - a->u.walk.end.z;
-                    a->u.walk.angle = -1.0f;
-                    f = (float)sqrt(dx * dx + dy * dy + dz * dz);
-                    a->u.walk.dist = f;
-                    ch->slot->stopRadius = 5.0f;
-                    ch->slot->play = 1;
-                    ch->slot->stopped = 0;
-                    ch->slot->finished = 0;
-                    a->u.walk.retries++;
-                    return 0;
-                }
-                d3_SetObjectPos(ch->obj, &a->u.walk.dest);
-                ch_PlaceOnGround(ch, 1);
-            }
-            ch_StopAnim(ch);
-            if (ch_MarkWalkErrors)
-                a->ch->flags.bytes.lo |= 8;
-            ch_RemoveAction(a);
-            return 0;
-        }
-        d3sm_GetVertex(h, a->u.walk.path[a->u.walk.cur].x,
-                       a->u.walk.path[a->u.walk.cur].z, &a->u.walk.end);
-        a->u.walk.end.x += ch_PathOffset.x;
-        a->u.walk.end.y += ch_PathOffset.y;
-        a->u.walk.end.z += ch_PathOffset.z;
-        a->u.walk.angle = d3_YawTo(ch->obj, &a->u.walk.end);
-        o = a->ch->obj;
-        dx = o->pos.x - a->u.walk.end.x;
-        dy = o->pos.y - a->u.walk.end.y;
-        dz = o->pos.z - a->u.walk.end.z;
-        f = (float)sqrt(dx * dx + dy * dy + dz * dz);
-        a->u.walk.dist = f;
+  if (ch->contactSteps < 1 && (ch->kind & 1) &&
+      (!ch->slot || !ch->slot->stopped) &&
+      (d3_DefaultScene == ch->scene || ch->scene == d3_Scenes)) {
+    if (n = ch_FindNear300(ch, others)) {
+      r = ch_GetNewPath(ch, n, others);
+      if (r > 0) {
         if (ch->slot) {
-            if (a->u.walk.cur >= a->u.walk.pathLen - 1 && a->u.walk.pathLen > 1) {
-                if (ch->kind & 8)
-                    speed = 24.0f;
-                else if (ch->kind & 0x10)
-                    speed = 64.0f;
-                else
-                    speed = 8.0f;
-            } else {
-                if (ch->kind & 8)
-                    speed = 45.0f;
-                else if (ch->kind & 0x10)
-                    speed = 75.0f;
-                else
-                    speed = 15.0f;
-            }
-            if (ch->scene->map)
-                speed *= 3.0;
-            ch->slot->stopPos.x = a->u.walk.end.x;
-            ch->slot->stopPos.y = a->u.walk.end.y;
-            ch->slot->stopPos.z = a->u.walk.end.z;
-            ch->slot->stopRadius = speed;
-            ch->slot->play = 1;
-            ch->slot->stopped = 0;
-            ch->slot->finished = 0;
+          if (ch->kind & 8)
+            speed = 30.0f;
+          else if (ch->kind & 0x10)
+            speed = 30.0f;
+          else
+            speed = 15.0f;
+          if (ch->scene->map)
+            speed *= 3.0;
+          f = 50.0f / h->cell.x;
+          ch->slot->stopRadius = speed * min(2.0f, f);
+          ch->slot->play = 1;
+          ch->slot->stopped = 0;
+          ch->slot->stopAtPos = 1;
+          ch->slot->finished = 0;
+          o = a->ch->obj;
+          dx = o->pos.x - a->u.walk.end.x;
+          dy = o->pos.y - a->u.walk.end.y;
+          dz = o->pos.z - a->u.walk.end.z;
+          f = (float)sqrt(dx * dx + dy * dy + dz * dz);
+          a->u.walk.dist = f;
         }
+      } else if (r == -1) {
+        if (ch->slot)
+          ch->slot->speed = 0.01f;
+        a->u.walk.retryAt = ch_Time;
+        return 0;
+      } else if (r == -2) {
+        ch_StopAnim(ch);
+        if (ch_MarkWalkErrors)
+          a->ch->flags.bytes.lo |= 8;
+        if (a->u.walk.path) {
+          mem_Free(a->u.walk.path);
+          a->u.walk.path = 0;
+        }
+        ch_RemoveAction(a);
+        return 0;
+      }
     }
-    return 1;
+  }
+  if (!a->u.walk.cur || (ch->slot && ch->slot->stopped)) {
+    if ((a->u.walk.flags & CH_WALK_TARGET) && a->u.walk.cur % 4 == 0 &&
+        !d3_VecEqual(&a->u.walk.tpos, &a->u.walk.target->obj->pos, 70.0f))
+      ch_PathToTarget(a);
+    a->u.walk.cur++;
+    if (ch->contactSteps > 0 && !--ch->contactSteps)
+      memset(ch->contacts, 0, sizeof ch->contacts);
+    if (a->u.walk.cur >= a->u.walk.pathLen) {
+      if (a->u.walk.path) {
+        mem_Free(a->u.walk.path);
+        a->u.walk.path = 0;
+      }
+      if (a->u.walk.flags & CH_WALK_DEST) {
+        if (ch->scene == d3_Scenes && a->u.walk.retries > 4)
+          a->u.walk.flags &= ~CH_WALK_DEST;
+        if (!d3_VecEqual(&ch->obj->pos, &a->u.walk.dest, 5.0f)) {
+          a->u.walk.end.x = a->u.walk.dest.x;
+          a->u.walk.end.y = a->u.walk.dest.y;
+          a->u.walk.end.z = a->u.walk.dest.z;
+          ch->slot->stopPos.x = a->u.walk.end.x;
+          ch->slot->stopPos.y = a->u.walk.end.y;
+          ch->slot->stopPos.z = a->u.walk.end.z;
+          o = a->ch->obj;
+          dx = o->pos.x - a->u.walk.end.x;
+          dy = o->pos.y - a->u.walk.end.y;
+          dz = o->pos.z - a->u.walk.end.z;
+          a->u.walk.angle = -1.0f;
+          f = (float)sqrt(dx * dx + dy * dy + dz * dz);
+          a->u.walk.dist = f;
+          ch->slot->stopRadius = 5.0f;
+          ch->slot->play = 1;
+          ch->slot->stopped = 0;
+          ch->slot->finished = 0;
+          a->u.walk.retries++;
+          return 0;
+        }
+        d3_SetObjectPos(ch->obj, &a->u.walk.dest);
+        ch_PlaceOnGround(ch, 1);
+      }
+      ch_StopAnim(ch);
+      if (ch_MarkWalkErrors)
+        a->ch->flags.bytes.lo |= 8;
+      ch_RemoveAction(a);
+      return 0;
+    }
+    d3sm_GetVertex(h, a->u.walk.path[a->u.walk.cur].x,
+                   a->u.walk.path[a->u.walk.cur].z, &a->u.walk.end);
+    a->u.walk.end.x += ch_PathOffset.x;
+    a->u.walk.end.y += ch_PathOffset.y;
+    a->u.walk.end.z += ch_PathOffset.z;
+    a->u.walk.angle = d3_YawTo(ch->obj, &a->u.walk.end);
+    o = a->ch->obj;
+    dx = o->pos.x - a->u.walk.end.x;
+    dy = o->pos.y - a->u.walk.end.y;
+    dz = o->pos.z - a->u.walk.end.z;
+    f = (float)sqrt(dx * dx + dy * dy + dz * dz);
+    a->u.walk.dist = f;
+    if (ch->slot) {
+      if (a->u.walk.cur >= a->u.walk.pathLen - 1 && a->u.walk.pathLen > 1) {
+        if (ch->kind & 8)
+          speed = 24.0f;
+        else if (ch->kind & 0x10)
+          speed = 64.0f;
+        else
+          speed = 8.0f;
+      } else {
+        if (ch->kind & 8)
+          speed = 45.0f;
+        else if (ch->kind & 0x10)
+          speed = 75.0f;
+        else
+          speed = 15.0f;
+      }
+      if (ch->scene->map)
+        speed *= 3.0;
+      ch->slot->stopPos.x = a->u.walk.end.x;
+      ch->slot->stopPos.y = a->u.walk.end.y;
+      ch->slot->stopPos.z = a->u.walk.end.z;
+      ch->slot->stopRadius = speed;
+      ch->slot->play = 1;
+      ch->slot->stopped = 0;
+      ch->slot->finished = 0;
+    }
+  }
+  return 1;
 }
 /* 0x4093d0, walk actions: turns the character towards the next path cell; a->u.walk.angle < 0 left,
    > 0 right; 0: checks that the character did not walk past the cell */
 
-void ch_WalkRotate(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    D3OBJECT *o;
-    float ang, r, step;
-    double rot;
-    D3VECTOR4 d, p;
-    char buf[0x100];
+void ch_WalkRotate(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  D3OBJECT *o;
+  float ang, r, step;
+  double rot;
+  D3VECTOR4 d, p;
+  char buf[0x100];
 
-    if (a->u.walk.angle < 0.0f) {
-        o = ch->obj;
-        ang = d3_YawTo(o, &a->u.walk.end);
-        rot = o->rotation.y;
-        a->u.walk.angle = ang;
-        if (!(ang <= 0.04 && ang >= -0.04)) {
-            step = (ch_Time - ch_LastUpdate) / 1.1f;
-            if (ch->kind & 8)
-                step *= 0.4f;
-            else if (ch->kind & 0x10)
-                step *= 1.4f;
-            if (fabs(ang) > 2.0943952f && !(ch->kind & 8))
-                ch->speedScale = 0.4f;
-            if (fabs(ang) > 1.5707964f)
-                step *= 0.19999999f;
-            else if (fabs(ang) > 1.0471976f)
-                step *= 0.14f;
-            else if (fabs(ang) > 0.5235988f)
-                step *= 0.06f;
-            else
-                step *= 0.04f;
-            r = rot - step;
-            r = (float)fmod(r, 6.2831855f);
-            if (r < 0.0)
-                r += 6.2831855f;
-            if (r < ang + o->rotation.y) {
-                r = ang + o->rotation.y;
-                a->u.walk.angle = 0.0f;
-            }
-        } else {
-            r = ang + o->rotation.y;
-            a->u.walk.angle = 0.0f;
-        }
-        d3_SetObjectRotXYZ(o, o->rotation.x, r, o->rotation.z);
-    } else if (a->u.walk.angle > 0.0f) {
-        o = ch->obj;
-        ang = d3_YawTo(o, &a->u.walk.end);
-        rot = o->rotation.y;
-        a->u.walk.angle = ang;
-        if (!(ang <= 0.04 && ang >= -0.04)) {
-            step = (ch_Time - ch_LastUpdate) / 1.1f;
-            if (ch->kind & 8)
-                step *= 0.4f;
-            else if (ch->kind & 0x10)
-                step *= 0.8f;
-            if (fabs(ang) > 2.0943952f && !(ch->kind & 8))
-                ch->speedScale = 0.4f;
-            if (fabs(ang) > 1.5707964f)
-                step *= 0.19999999f;
-            else if (fabs(ang) > 1.0471976f)
-                step *= 0.14f;
-            else if (fabs(ang) > 0.5235988f)
-                step *= 0.06f;
-            else
-                step *= 0.04f;
-            r = rot + step;
-            r = (float)fmod(r, 6.2831855f);
-            if (r < 0.0)
-                r += 6.2831855f;
-            if (r > ang + o->rotation.y) {
-                r = ang + o->rotation.y;
-                a->u.walk.angle = 0.0f;
-            }
-        } else {
-            r = ang + o->rotation.y;
-            a->u.walk.angle = 0.0f;
-        }
-        d3_SetObjectRotXYZ(o, o->rotation.x, r, o->rotation.z);
+  if (a->u.walk.angle < 0.0f) {
+    o = ch->obj;
+    ang = d3_YawTo(o, &a->u.walk.end);
+    rot = o->rotation.y;
+    a->u.walk.angle = ang;
+    if (!(ang <= 0.04 && ang >= -0.04)) {
+      step = (ch_Time - ch_LastUpdate) / 1.1f;
+      if (ch->kind & 8)
+        step *= 0.4f;
+      else if (ch->kind & 0x10)
+        step *= 1.4f;
+      if (fabs(ang) > 2.0943952f && !(ch->kind & 8))
+        ch->speedScale = 0.4f;
+      if (fabs(ang) > 1.5707964f)
+        step *= 0.19999999f;
+      else if (fabs(ang) > 1.0471976f)
+        step *= 0.14f;
+      else if (fabs(ang) > 0.5235988f)
+        step *= 0.06f;
+      else
+        step *= 0.04f;
+      r = rot - step;
+      r = (float)fmod(r, 6.2831855f);
+      if (r < 0.0)
+        r += 6.2831855f;
+      if (r < ang + o->rotation.y) {
+        r = ang + o->rotation.y;
+        a->u.walk.angle = 0.0f;
+      }
     } else {
-        o = ch->obj;
-        p.x = o->pos.x;
-        p.y = o->pos.y;
-        p.z = o->pos.z;
-        d.x = p.x - a->u.walk.end.x;
-        d.y = p.y - a->u.walk.end.y;
-        d.z = p.z - a->u.walk.end.z;
-        if ((float)sqrt(d.x * d.x + d.y * d.y + d.z * d.z) > a->u.walk.dist * 1.4) {
-            if (a->u.walk.cur >= a->u.walk.pathLen - 1)
-                ch_SetPos(ch, &a->u.walk.end, 0);
-            if (ch->slot)
-                ch->slot->stopped = 1;
-            sprintf(buf, "ch_WalkOnPathRotation(): Have missed my treshhold... %s [%f %f]", a->ch->obj,
-                    a->u.walk.end.x, a->u.walk.end.z);
-        }
+      r = ang + o->rotation.y;
+      a->u.walk.angle = 0.0f;
     }
+    d3_SetObjectRotXYZ(o, o->rotation.x, r, o->rotation.z);
+  } else if (a->u.walk.angle > 0.0f) {
+    o = ch->obj;
+    ang = d3_YawTo(o, &a->u.walk.end);
+    rot = o->rotation.y;
+    a->u.walk.angle = ang;
+    if (!(ang <= 0.04 && ang >= -0.04)) {
+      step = (ch_Time - ch_LastUpdate) / 1.1f;
+      if (ch->kind & 8)
+        step *= 0.4f;
+      else if (ch->kind & 0x10)
+        step *= 0.8f;
+      if (fabs(ang) > 2.0943952f && !(ch->kind & 8))
+        ch->speedScale = 0.4f;
+      if (fabs(ang) > 1.5707964f)
+        step *= 0.19999999f;
+      else if (fabs(ang) > 1.0471976f)
+        step *= 0.14f;
+      else if (fabs(ang) > 0.5235988f)
+        step *= 0.06f;
+      else
+        step *= 0.04f;
+      r = rot + step;
+      r = (float)fmod(r, 6.2831855f);
+      if (r < 0.0)
+        r += 6.2831855f;
+      if (r > ang + o->rotation.y) {
+        r = ang + o->rotation.y;
+        a->u.walk.angle = 0.0f;
+      }
+    } else {
+      r = ang + o->rotation.y;
+      a->u.walk.angle = 0.0f;
+    }
+    d3_SetObjectRotXYZ(o, o->rotation.x, r, o->rotation.z);
+  } else {
+    o = ch->obj;
+    p.x = o->pos.x;
+    p.y = o->pos.y;
+    p.z = o->pos.z;
+    d.x = p.x - a->u.walk.end.x;
+    d.y = p.y - a->u.walk.end.y;
+    d.z = p.z - a->u.walk.end.z;
+    if ((float)sqrt(d.x * d.x + d.y * d.y + d.z * d.z) > a->u.walk.dist * 1.4) {
+      if (a->u.walk.cur >= a->u.walk.pathLen - 1)
+        ch_SetPos(ch, &a->u.walk.end, 0);
+      if (ch->slot)
+        ch->slot->stopped = 1;
+      sprintf(buf,
+              "ch_WalkOnPathRotation(): Have missed my treshhold... %s [%f %f]",
+              a->ch->obj, a->u.walk.end.x, a->u.walk.end.z);
+    }
+  }
 }
 /* 0x4097d0, action callback 0x2d: walks along the path to the cell args[0], args[1] in scene args[2] */
 
-void ch_ActWalk(CHACTION *a)
-{
-    D3SM *h = ch_GetHMap(a->ch);
-    CHARACTER *ch = a->ch;
-    int ground;
-    float f;
-    char name[0x100];
+void ch_ActWalk(CHACTION *a) {
+  D3SM *h = ch_GetHMap(a->ch);
+  CHARACTER *ch = a->ch;
+  int ground;
+  float f;
+  char name[0x100];
 
-    if (a->u.walk.flags & CH_WALK_ARRIVED) {
-        if (!ch->morph || ch->morph->finished)
-            ch_RemoveAction(a);
+  if (a->u.walk.flags & CH_WALK_ARRIVED) {
+    if (!ch->morph || ch->morph->finished)
+      ch_RemoveAction(a);
+    return;
+  }
+  if (a->stop) {
+    sprintf(name, "%s_%s", "bewegung/gehen", ch->body);
+    vfs_ToSlashes(name);
+    if (ch->slot)
+      d3_ReleaseTexture(&a->ch->obj->material->surf[0], (char *)ch->slot->data);
+    ch->slot = 0;
+    ch_FollowGround(a);
+    if (ch_MarkWalkErrors)
+      a->ch->flags.bytes.lo |= 8;
+    if (a->u.walk.path) {
+      mem_Free(a->u.walk.path);
+      a->u.walk.path = 0;
+    }
+    ch_RemoveAction(a);
+    return;
+  }
+  if (a->u.walk.retryAt != -1) {
+    if (ch_Time < a->u.walk.retryAt + 225)
+      return;
+    if (ch->slot)
+      ch->slot->speed = 1.0f;
+    a->u.walk.retryAt = -1;
+  }
+  if (a->u.walk.flags & CH_WALK_RESTART) {
+    a->u.walk.flags &= ~CH_WALK_RESTART;
+    a->count = 0;
+  }
+  if (!a->count) {
+    if (ch->scene->dirty) {
+      ch_RemoveAction(a);
+      return;
+    }
+    if (!ch_InitWalk(a, h))
+      return;
+  }
+  if (a->u.walk.flags & CH_WALK_STOPANIM) {
+    if (ch->slot && ch->slot->finished) {
+      d3_ReleaseTexture(&ch->obj->material->surf[0], (char *)ch->slot->data);
+      d3anim_FreePath(ch->obj);
+      ch->turnAnim = 0;
+      a->u.walk.flags &= ~CH_WALK_STOPANIM;
+    } else if (ch->slot)
+      return;
+    else
+      a->u.walk.flags &= ~CH_WALK_STOPANIM;
+  }
+  if (!a->u.walk.started) {
+    if (ch->slot && ch->slot->finished) {
+      if (!ch_StartWalkAnim(a, h))
+        return;
+    } else if (!ch->slot) {
+      if (!ch_StartWalkAnim(a, h))
         return;
     }
-    if (a->stop) {
-        sprintf(name, "%s_%s", "bewegung/gehen", ch->body);
-        vfs_ToSlashes(name);
-        if (ch->slot)
-            d3_ReleaseTexture(&a->ch->obj->material->surf[0], (char *)ch->slot->data);
-        ch->slot = 0;
-        ch_FollowGround(a);
-        if (ch_MarkWalkErrors)
-            a->ch->flags.bytes.lo |= 8;
-        if (a->u.walk.path) {
-            mem_Free(a->u.walk.path);
-            a->u.walk.path = 0;
-        }
-        ch_RemoveAction(a);
-        return;
+  }
+  if (!a->u.walk.started && !ch->slot) {
+    if (ch_MarkWalkErrors)
+      a->ch->flags.bytes.lo |= 8;
+    if (a->u.walk.path) {
+      mem_Free(a->u.walk.path);
+      a->u.walk.path = 0;
     }
-    if (a->u.walk.retryAt != -1) {
-        if (ch_Time < a->u.walk.retryAt + 225)
-            return;
-        if (ch->slot)
-            ch->slot->speed = 1.0f;
-        a->u.walk.retryAt = -1;
+    ch_RemoveAction(a);
+    return;
+  }
+  if (!a->u.walk.started && ch->slot)
+    return;
+  ground = ch_FollowGround(a);
+  ch_WalkSound(a, ground);
+  if (ch->speedScale < 1.0)
+    ch->speedScale += 0.01f;
+  if (a->u.walk.path && !ch_NextWaypoint(a, h))
+    return;
+  if (!a->u.walk.path && (a->u.walk.flags & CH_WALK_DEST) && ch->slot &&
+      ch->slot->stopped) {
+    ch_StopAnim(ch);
+    if (ch_MarkWalkErrors)
+      a->ch->flags.all |= 8;
+    a->u.walk.flags |= CH_WALK_ARRIVED;
+    d3_SetObjectPos(ch->obj, &a->u.walk.dest);
+    ch_PlaceOnGround(ch, d3_CurrentScene != 0);
+    return;
+  }
+  ch_WalkRotate(a);
+  if (ground && ground != 13 && ch->slot) {
+    f = 0.7f;
+    if (ch->group == -1 && ch->obj->owner)
+      f = cm_SpeedFactor;
+    if (ch->kind & 8) {
+      if (ground == 11 || ground == 6)
+        ch->slot->speed = ch->walkSpeed * ch->speedScale * f * 1.9f;
+      else
+        ch->slot->speed = ch->walkSpeed * ch->speedScale * f * 1.7f;
+    } else {
+      if (ground == 11 || ground == 6)
+        ch->slot->speed = ch->walkSpeed * ch->speedScale * f * 2.5f;
+      else
+        ch->slot->speed = ch->walkSpeed * ch->speedScale * f * 2.2f;
     }
-    if (a->u.walk.flags & CH_WALK_RESTART) {
-        a->u.walk.flags &= ~CH_WALK_RESTART;
-        a->count = 0;
-    }
-    if (!a->count) {
-        if (ch->scene->dirty) {
-            ch_RemoveAction(a);
-            return;
-        }
-        if (!ch_InitWalk(a, h))
-            return;
-    }
-    if (a->u.walk.flags & CH_WALK_STOPANIM) {
-        if (ch->slot && ch->slot->finished) {
-            d3_ReleaseTexture(&ch->obj->material->surf[0], (char *)ch->slot->data);
-            d3anim_FreePath(ch->obj);
-            ch->turnAnim = 0;
-            a->u.walk.flags &= ~CH_WALK_STOPANIM;
-        } else if (ch->slot)
-            return;
-        else
-            a->u.walk.flags &= ~CH_WALK_STOPANIM;
-    }
-    if (!a->u.walk.started) {
-        if (ch->slot && ch->slot->finished) {
-            if (!ch_StartWalkAnim(a, h))
-                return;
-        } else if (!ch->slot) {
-            if (!ch_StartWalkAnim(a, h))
-                return;
-        }
-    }
-    if (!a->u.walk.started && !ch->slot) {
-        if (ch_MarkWalkErrors)
-            a->ch->flags.bytes.lo |= 8;
-        if (a->u.walk.path) {
-            mem_Free(a->u.walk.path);
-            a->u.walk.path = 0;
-        }
-        ch_RemoveAction(a);
-        return;
-    }
-    if (!a->u.walk.started && ch->slot)
-        return;
-    ground = ch_FollowGround(a);
-    ch_WalkSound(a, ground);
-    if (ch->speedScale < 1.0)
-        ch->speedScale += 0.01f;
-    if (a->u.walk.path && !ch_NextWaypoint(a, h))
-        return;
-    if (!a->u.walk.path && (a->u.walk.flags & CH_WALK_DEST) && ch->slot && ch->slot->stopped) {
-        ch_StopAnim(ch);
-        if (ch_MarkWalkErrors)
-            a->ch->flags.all |= 8;
-        a->u.walk.flags |= CH_WALK_ARRIVED;
-        d3_SetObjectPos(ch->obj, &a->u.walk.dest);
-        ch_PlaceOnGround(ch, d3_CurrentScene != 0);
-        return;
-    }
-    ch_WalkRotate(a);
-    if (ground && ground != 13 && ch->slot) {
-        f = 0.7f;
-        if (ch->group == -1 && ch->obj->owner)
-            f = cm_SpeedFactor;
-        if (ch->kind & 8) {
-            if (ground == 11 || ground == 6)
-                ch->slot->speed = ch->walkSpeed * ch->speedScale * f * 1.9f;
-            else
-                ch->slot->speed = ch->walkSpeed * ch->speedScale * f * 1.7f;
-        } else {
-            if (ground == 11 || ground == 6)
-                ch->slot->speed = ch->walkSpeed * ch->speedScale * f * 2.5f;
-            else
-                ch->slot->speed = ch->walkSpeed * ch->speedScale * f * 2.2f;
-        }
-    }
+  }
 }
 /* 0x409bd0, action callback 0x3a: walks along the cells of a->u.walk.path (0x100 cells, filled by the caller;
    empty cells are skipped) to the cell args[0], args[1] in scene args[2]; both turn branches scale by
    0.19999999f (the original's constant is 0x3e4ccccc, not 0.2f) */
 
-void ch_ActWalkCells(CHACTION *a)
-{
+void ch_ActWalkCells(CHACTION *a) {
+  /* clang-format off */
     D3SM *h = ch_GetHMap(a->ch);
     CHARACTER *ch = a->ch;
     int x, z, i, n, ground, restart;
@@ -3932,295 +3909,288 @@ next:
                 ch->slot->speed = (f * ch->walkSpeed) * ch->speedScale * 2.2f;
         }
     }
+  /* clang-format on */
 }
 
 /* ---- 0x40a900..0x40b8a0 (worker ch6) ---- */
 /* The TU ends at 0x40b580; the script builtins after it are in evtc.c. */
 
 /* 0x40a900, queues a walk to the object's position */
-CHACTION *ch_WalkToObject(CHARACTER *ch, D3OBJECT *obj)
-{
-    CHACTION *a = 0;
-    struct D3SM *h;
-    int x, z;
-    float y;
-    D3VECTOR4 pos;
+CHACTION *ch_WalkToObject(CHARACTER *ch, D3OBJECT *obj) {
+  CHACTION *a = 0;
+  struct D3SM *h;
+  int x, z;
+  float y;
+  D3VECTOR4 pos;
 
-    d3_PointToWorld(obj, &obj->pos, &pos.v);
-    h = obj->scene->hmap;
-    if (!h)
-        h = ch_GetSceneHMap(obj->scene);
-    if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
-        a = ch_AddAction(ch, 0x2d, x, z, d3t_SceneIndex(obj->scene));
-        if (a) {
-            a->u.walk.flags |= CH_WALK_DEST;
-            a->u.walk.dest.x = pos.x;
-            a->u.walk.dest.y = pos.y;
-            a->u.walk.dest.z = pos.z;
-        }
+  d3_PointToWorld(obj, &obj->pos, &pos.v);
+  h = obj->scene->hmap;
+  if (!h)
+    h = ch_GetSceneHMap(obj->scene);
+  if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
+    a = ch_AddAction(ch, 0x2d, x, z, d3t_SceneIndex(obj->scene));
+    if (a) {
+      a->u.walk.flags |= CH_WALK_DEST;
+      a->u.walk.dest.x = pos.x;
+      a->u.walk.dest.y = pos.y;
+      a->u.walk.dest.z = pos.z;
     }
-    return a;
+  }
+  return a;
 }
 /* 0x40a9c0, action callback 0x39: walks to a random dummy object if the character is in scene args[0] */
 
-void ch_ActWalk2RndDummy(CHACTION *a)
-{
-    struct D3SM *h;
-    int cur, scene;
-    D3OBJECT *obj;
-    CHACTION *w;
-    int x, z;
-    float y;
-    D3VECTOR4 pos;
+void ch_ActWalk2RndDummy(CHACTION *a) {
+  struct D3SM *h;
+  int cur, scene;
+  D3OBJECT *obj;
+  CHACTION *w;
+  int x, z;
+  float y;
+  D3VECTOR4 pos;
 
-    if (!a->count) {
-        h = ch_GetHMap(a->ch);
-        cur = d3_CurrentScene;
-        scene = d3t_SceneIndex(a->ch->scene);
-        if (scene != a->args[0]) {
-            ch_RemoveAction(a);
-            return;
-        }
-        d3if_SelectScene(scene, 1);
-        obj = ch_FindDummy();
-        if (obj && h) {
-            d3_PointToWorld(obj, &obj->pos, &pos.v);
-            if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
-                w = ch_InsertAction(a->ch, a, 0x2d, x, z, scene);
-                w->u.walk.flags |= CH_WALK_DEST;
-                w->u.walk.dest.x = pos.x;
-                w->u.walk.dest.y = pos.y;
-                w->u.walk.dest.z = pos.z;
-                strcpy(w->why, "Walk2RndDummy");
-            }
-        }
-        ch_RemoveAction(a);
-        d3if_SelectScene(cur, 1);
+  if (!a->count) {
+    h = ch_GetHMap(a->ch);
+    cur = d3_CurrentScene;
+    scene = d3t_SceneIndex(a->ch->scene);
+    if (scene != a->args[0]) {
+      ch_RemoveAction(a);
+      return;
     }
+    d3if_SelectScene(scene, 1);
+    obj = ch_FindDummy();
+    if (obj && h) {
+      d3_PointToWorld(obj, &obj->pos, &pos.v);
+      if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
+        w = ch_InsertAction(a->ch, a, 0x2d, x, z, scene);
+        w->u.walk.flags |= CH_WALK_DEST;
+        w->u.walk.dest.x = pos.x;
+        w->u.walk.dest.y = pos.y;
+        w->u.walk.dest.z = pos.z;
+        strcpy(w->why, "Walk2RndDummy");
+      }
+    }
+    ch_RemoveAction(a);
+    d3if_SelectScene(cur, 1);
+  }
 }
 /* 0x40aaf0, queues a walk to the object, then a turn to the object's direction */
 
-void ch_WalkToObjectTurn(CHARACTER *ch, D3OBJECT *obj)
-{
-    struct D3SM *h;
-    CHACTION *a;
-    int x, z;
-    float y, ang;
-    D3VECTOR4 pos, dir;
+void ch_WalkToObjectTurn(CHARACTER *ch, D3OBJECT *obj) {
+  struct D3SM *h;
+  CHACTION *a;
+  int x, z;
+  float y, ang;
+  D3VECTOR4 pos, dir;
 
-    h = ch_GetHMap(ch);
-    d3_PointToWorld(obj, &obj->pos, &pos.v);
-    d3_DirToWorld(obj, &d3_ZAxis.v, &dir.v);
-    ang = d3_VecAngle(&d3_ZAxis.v, &dir.v);
-    if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
-        a = ch_AddAction(ch, 0x2d, x, z, d3t_SceneIndex(obj->scene));
-        a->u.walk.flags |= CH_WALK_DEST;
-        a->u.walk.dest.x = pos.x;
-        a->u.walk.dest.y = pos.y;
-        a->u.walk.dest.z = pos.z;
-        ch_AddAction(ch, 7, (int)(-ang * 180.0 / 3.1415927f), 1);
-    }
+  h = ch_GetHMap(ch);
+  d3_PointToWorld(obj, &obj->pos, &pos.v);
+  d3_DirToWorld(obj, &d3_ZAxis.v, &dir.v);
+  ang = d3_VecAngle(&d3_ZAxis.v, &dir.v);
+  if (d3_GetHeightAt(h, &pos.v, &x, &z, &y)) {
+    a = ch_AddAction(ch, 0x2d, x, z, d3t_SceneIndex(obj->scene));
+    a->u.walk.flags |= CH_WALK_DEST;
+    a->u.walk.dest.x = pos.x;
+    a->u.walk.dest.y = pos.y;
+    a->u.walk.dest.z = pos.z;
+    ch_AddAction(ch, 7, (int)(-ang * 180.0 / 3.1415927f), 1);
+  }
 }
 /* 0x40abd0, action callback 0x37: shows (args[0] != 0) or hides the character */
 
-void ch_ActSetVisible(CHACTION *a)
-{
-    if (!a->count) {
-        ch_SetVisible(a->ch, a->args[0]);
-        ch_RemoveAction(a);
-    }
+void ch_ActSetVisible(CHACTION *a) {
+  if (!a->count) {
+    ch_SetVisible(a->ch, a->args[0]);
+    ch_RemoveAction(a);
+  }
 }
 /* 0x40ac00, action callback 0x38: fades the character in (args[0] != 0) or out over 50 time units */
 
-void ch_ActFade(CHACTION *a)
-{
-    CHARACTER *ch = a->ch;
-    D3TEXFLAGS f;
-    float t;
-    CHARACTER *others[32];
-    D3TEXFLAGS g;
+void ch_ActFade(CHACTION *a) {
+  CHARACTER *ch = a->ch;
+  D3TEXFLAGS f;
+  float t;
+  CHARACTER *others[32];
+  D3TEXFLAGS g;
 
-    if (!a->count) {
-        if (!ch->obj->info)
-            goto done;
-        if (ch_CurrentGroup != ch->group || ch_CurrentScriptGroup != ch->scriptGroup) {
-            if (ch->group != -1)
-                ch_SetVisible(ch, 0);
-            else
-                ch_SetVisible(ch, a->args[0]);
-            goto done;
-        }
-        ch_SetVisible(ch, 1);
-        memset(&g, 0, sizeof(g));
-        g.b[2] &= 0xfe;
-        g.b[0] = 0xff;
-        d3_SetObjectAlpha(ch->obj, ch->obj->info, g);
-        if (ch->transport)
-            d3_SetObjectAlpha(ch->transport->obj, ch->transport->obj->info, g);
-        if (ch->lowPolyBody)
-            d3_SetObjectAlpha(ch->lowPolyBody, ch->lowPolyBody->info, g);
-        CHACT_FSTART(a) = (float)(ch_Time - 1);
-        ch->flags.all = ch->flags.all & ~CH_NOFADE | 0x40;
+  if (!a->count) {
+    if (!ch->obj->info)
+      goto done;
+    if (ch_CurrentGroup != ch->group ||
+        ch_CurrentScriptGroup != ch->scriptGroup) {
+      if (ch->group != -1)
+        ch_SetVisible(ch, 0);
+      else
+        ch_SetVisible(ch, a->args[0]);
+      goto done;
     }
-    t = a->args[0] ? ((float)ch_Time - CHACT_FSTART(a)) * 0.02f : 1.0f - ((float)ch_Time - CHACT_FSTART(a)) * 0.02f;
-    if (!(t > 0.0f))
-        t = 0.0f;
-    else if (!(t < 1.0f))
-        t = 1.0f;
-    if (ch->scene == d3_DefaultScene && a->args[0] && !(ch->flags.all & CH_NOFADE) && t < 0.1
-        && ch_FindNear(ch, others, 30.0f)) {
-        CHACT_FSTART(a) = (float)(ch_Time - 1);
-        others[0]->flags.all |= CH_NOFADE;
-        ch_InsertAction(ch, a, 0x3b, 75);
-        return;
-    }
-    t *= 255.0f;
-    memset(&f, 0, sizeof(f));
+    ch_SetVisible(ch, 1);
+    memset(&g, 0, sizeof(g));
+    g.b[2] &= 0xfe;
+    g.b[0] = 0xff;
+    d3_SetObjectAlpha(ch->obj, ch->obj->info, g);
+    if (ch->transport)
+      d3_SetObjectAlpha(ch->transport->obj, ch->transport->obj->info, g);
+    if (ch->lowPolyBody)
+      d3_SetObjectAlpha(ch->lowPolyBody, ch->lowPolyBody->info, g);
+    CHACT_FSTART(a) = (float)(ch_Time - 1);
+    ch->flags.all = ch->flags.all & ~CH_NOFADE | 0x40;
+  }
+  t = a->args[0] ? ((float)ch_Time - CHACT_FSTART(a)) * 0.02f
+                 : 1.0f - ((float)ch_Time - CHACT_FSTART(a)) * 0.02f;
+  if (!(t > 0.0f))
+    t = 0.0f;
+  else if (!(t < 1.0f))
+    t = 1.0f;
+  if (ch->scene == d3_DefaultScene && a->args[0] &&
+      !(ch->flags.all & CH_NOFADE) && t < 0.1 &&
+      ch_FindNear(ch, others, 30.0f)) {
+    CHACT_FSTART(a) = (float)(ch_Time - 1);
+    others[0]->flags.all |= CH_NOFADE;
+    ch_InsertAction(ch, a, 0x3b, 75);
+    return;
+  }
+  t *= 255.0f;
+  memset(&f, 0, sizeof(f));
+  f.b[2] &= 0xfe;
+  f.b[0] = (unsigned char)t;
+  if (t != 255.0f && t != 0.0f) {
+    d3_SetObjectAlpha(ch->obj, ch->obj->info, f);
+    if (ch->transport)
+      d3_SetObjectAlpha(ch->transport->obj, ch->transport->obj->info, f);
+    if (ch->lowPolyBody)
+      d3_SetObjectAlpha(ch->lowPolyBody, ch->lowPolyBody->info, f);
+  }
+  if (t == 0.0f || t == 255.0f) {
+    ch->flags.fading = 0;
     f.b[2] &= 0xfe;
-    f.b[0] = (unsigned char)t;
-    if (t != 255.0f && t != 0.0f) {
-        d3_SetObjectAlpha(ch->obj, ch->obj->info, f);
-        if (ch->transport)
-            d3_SetObjectAlpha(ch->transport->obj, ch->transport->obj->info, f);
-        if (ch->lowPolyBody)
-            d3_SetObjectAlpha(ch->lowPolyBody, ch->lowPolyBody->info, f);
-    }
-    if (t == 0.0f || t == 255.0f) {
-        ch->flags.fading = 0;
-        f.b[2] &= 0xfe;
-        f.b[0] = 0xff;
-        d3_SetObjectAlpha(ch->obj, ch->obj->info, f);
-        if (ch->transport)
-            d3_SetObjectAlpha(ch->transport->obj, ch->transport->obj->info, f);
-        if (ch->lowPolyBody)
-            d3_SetObjectAlpha(ch->lowPolyBody, ch->lowPolyBody->info, f);
-        if (t == 0.0f)
-            ch_SetVisible(ch, 0);
-        else if (t == 255.0f)
-            ch_SetVisible(ch, 1);
-    done:
-        ch_RemoveAction(a);
-    }
+    f.b[0] = 0xff;
+    d3_SetObjectAlpha(ch->obj, ch->obj->info, f);
+    if (ch->transport)
+      d3_SetObjectAlpha(ch->transport->obj, ch->transport->obj->info, f);
+    if (ch->lowPolyBody)
+      d3_SetObjectAlpha(ch->lowPolyBody, ch->lowPolyBody->info, f);
+    if (t == 0.0f)
+      ch_SetVisible(ch, 0);
+    else if (t == 255.0f)
+      ch_SetVisible(ch, 1);
+  done:
+    ch_RemoveAction(a);
+  }
 }
 /* 0x40af50, action callback 0x3b: waits args[0] milliseconds */
 
-void ch_ActWait(CHACTION *a)
-{
-    if (!a->count)
-        a->args[1] = d3_Time;
-    if (d3_Time > (unsigned long)(a->args[1] + a->args[0]) || a->stop)
-        ch_RemoveAction(a);
+void ch_ActWait(CHACTION *a) {
+  if (!a->count)
+    a->args[1] = d3_Time;
+  if (d3_Time > (unsigned long)(a->args[1] + a->args[0]) || a->stop)
+    ch_RemoveAction(a);
 }
 /* 0x40af90, drops the character's current group and its script group (-1: none) and the two saved
    scenes; main_StartGame calls it when it starts a game */
 
-void ch_Reset(void)
-{
-    ch_CurrentScriptGroup = ch_CurrentGroup = -1;
-    ch_Saved1 = ch_Saved0 = 0;
+void ch_Reset(void) {
+  ch_CurrentScriptGroup = ch_CurrentGroup = -1;
+  ch_Saved1 = ch_Saved0 = 0;
 }
 /* 0x40afb0, allocates the action queue and declares the actions */
 
-int ch_Open(void)
-{
-    ch_Queue = mem_Alloc(CH_QUEUE * sizeof(CHACTION), "ch:Open:ActionQueue");
-    if (!ch_Queue)
-        return 0;
-    memset(ch_ActDefs, 0, sizeof(ch_ActDefs));
-    memset(ch_List, 0, sizeof(ch_List));
-    ch_DeclareAction(7, (CHACTFUNC)ch_ActTurn, 1, "bewegung/dreh_90_rechts", 2);
-    ch_DeclareAction(0, (CHACTFUNC)ch_ActAnimOnce, 1, ch_EmptyName, 0);
-    ch_DeclareAction(0x17, (CHACTFUNC)ch_ActPlay, 1, ch_EmptyName, 0);
-    ch_DeclareAction(0x2d, (CHACTFUNC)ch_ActWalk, 1, "bewegung/gehen", 3);
-    ch_DeclareAction(0x3a, (CHACTFUNC)ch_ActWalkCells, 1, "bewegung/gehen", 3);
-    ch_DeclareAction(0x39, (CHACTFUNC)ch_ActWalk2RndDummy, 1, ch_EmptyName, 1);
-    ch_DeclareAction(0x2e, (CHACTFUNC)ch_ActPlay, 1, ch_EmptyName, 1);
-    ch_DeclareAction(0x2f, (CHACTFUNC)ch_ActSitDown, 1, ch_EmptyName, 0);
-    ch_DeclareAction(0x30, (CHACTFUNC)ch_ActStandUp, 1, ch_EmptyName, 0);
-    ch_DeclareAction(0x31, (CHACTFUNC)ch_ActTakingObject, 1, ch_EmptyName, 0);
-    ch_DeclareAction(0x32, (CHACTFUNC)ch_ActDroppingObject, 1, ch_EmptyName, 0);
-    ch_DeclareAction(0x33, (CHACTFUNC)ch_ActMove2Universe, 1, ch_EmptyName, 3);
-    ch_DeclareAction(0x35, (CHACTFUNC)ch_ActTurnTo, 1, ch_EmptyName, 1);
-    ch_DeclareAction(0x36, (CHACTFUNC)ch_ActPlayOnce, 1, ch_EmptyName, 0);
-    ch_DeclareAction(0x37, (CHACTFUNC)ch_ActSetVisible, 1, ch_EmptyName, 1);
-    ch_DeclareAction(0x38, (CHACTFUNC)ch_ActFade, 1, ch_EmptyName, 1);
-    ch_DeclareAction(0x3b, (CHACTFUNC)ch_ActWait, 1, ch_EmptyName, 1);
-    ch_DeclareAction(0x34, (CHACTFUNC)ch_ActUsingGate, 1, ch_EmptyName, 5);
-    memset(ch_Fades, 0, sizeof(ch_Fades));
-    ch_PathMap = ch_MapAlloc(60.0f);
-    return 1;
+int ch_Open(void) {
+  ch_Queue = mem_Alloc(CH_QUEUE * sizeof(CHACTION), "ch:Open:ActionQueue");
+  if (!ch_Queue)
+    return 0;
+  memset(ch_ActDefs, 0, sizeof(ch_ActDefs));
+  memset(ch_List, 0, sizeof(ch_List));
+  ch_DeclareAction(7, (CHACTFUNC)ch_ActTurn, 1, "bewegung/dreh_90_rechts", 2);
+  ch_DeclareAction(0, (CHACTFUNC)ch_ActAnimOnce, 1, ch_EmptyName, 0);
+  ch_DeclareAction(0x17, (CHACTFUNC)ch_ActPlay, 1, ch_EmptyName, 0);
+  ch_DeclareAction(0x2d, (CHACTFUNC)ch_ActWalk, 1, "bewegung/gehen", 3);
+  ch_DeclareAction(0x3a, (CHACTFUNC)ch_ActWalkCells, 1, "bewegung/gehen", 3);
+  ch_DeclareAction(0x39, (CHACTFUNC)ch_ActWalk2RndDummy, 1, ch_EmptyName, 1);
+  ch_DeclareAction(0x2e, (CHACTFUNC)ch_ActPlay, 1, ch_EmptyName, 1);
+  ch_DeclareAction(0x2f, (CHACTFUNC)ch_ActSitDown, 1, ch_EmptyName, 0);
+  ch_DeclareAction(0x30, (CHACTFUNC)ch_ActStandUp, 1, ch_EmptyName, 0);
+  ch_DeclareAction(0x31, (CHACTFUNC)ch_ActTakingObject, 1, ch_EmptyName, 0);
+  ch_DeclareAction(0x32, (CHACTFUNC)ch_ActDroppingObject, 1, ch_EmptyName, 0);
+  ch_DeclareAction(0x33, (CHACTFUNC)ch_ActMove2Universe, 1, ch_EmptyName, 3);
+  ch_DeclareAction(0x35, (CHACTFUNC)ch_ActTurnTo, 1, ch_EmptyName, 1);
+  ch_DeclareAction(0x36, (CHACTFUNC)ch_ActPlayOnce, 1, ch_EmptyName, 0);
+  ch_DeclareAction(0x37, (CHACTFUNC)ch_ActSetVisible, 1, ch_EmptyName, 1);
+  ch_DeclareAction(0x38, (CHACTFUNC)ch_ActFade, 1, ch_EmptyName, 1);
+  ch_DeclareAction(0x3b, (CHACTFUNC)ch_ActWait, 1, ch_EmptyName, 1);
+  ch_DeclareAction(0x34, (CHACTFUNC)ch_ActUsingGate, 1, ch_EmptyName, 5);
+  memset(ch_Fades, 0, sizeof(ch_Fades));
+  ch_PathMap = ch_MapAlloc(60.0f);
+  return 1;
 }
 /* 0x40b1a0, frees the walk paths, the characters and the action queue */
 
-void ch_Close(void)
-{
-    int i;
+void ch_Close(void) {
+  int i;
 
-    if (ch_PathMap)
-        ch_MapFree(ch_PathMap);
-    if (ch_Queue) {
-        for (i = 0; i < CH_QUEUE; i++) {
-            if (ch_Queue[i].type == '-' && ch_Queue[i].u.walk.path) {
-                CHPATHPT **p = &ch_Queue[i].u.walk.path;
+  if (ch_PathMap)
+    ch_MapFree(ch_PathMap);
+  if (ch_Queue) {
+    for (i = 0; i < CH_QUEUE; i++) {
+      if (ch_Queue[i].type == '-' && ch_Queue[i].u.walk.path) {
+        CHPATHPT **p = &ch_Queue[i].u.walk.path;
 
-                mem_Free(*p);
-                *p = 0;
-            }
-        }
+        mem_Free(*p);
+        *p = 0;
+      }
     }
-    for (i = 0; i < CH_MAX; i++)
-        if (ch_List[i])
-            ch_Delete(ch_List[i]);
-    if (ch_Queue) {
-        mem_Free(ch_Queue);
-        ch_Queue = 0;
-    }
+  }
+  for (i = 0; i < CH_MAX; i++)
+    if (ch_List[i])
+      ch_Delete(ch_List[i]);
+  if (ch_Queue) {
+    mem_Free(ch_Queue);
+    ch_Queue = 0;
+  }
 }
 /* 0x40b240, deletes every live character and empties ch_List (ls_LoadGame clears the old game with it) */
 
-void ch_DeleteAll(void)
-{
-    int i;
+void ch_DeleteAll(void) {
+  int i;
 
-    for (i = 0; i < CH_MAX; i++) {
-        if (ch_List[i]) {
-            ch_Delete(ch_List[i]);
-            ch_List[i] = 0;
-        }
+  for (i = 0; i < CH_MAX; i++) {
+    if (ch_List[i]) {
+      ch_Delete(ch_List[i]);
+      ch_List[i] = 0;
     }
+  }
 }
 /* 0x40b270, a cleared queue entry appended to the character's queue */
 
-CHACTION *ch_NewAction(CHARACTER *ch)
-{
-    CHACTION *a, *p;
+CHACTION *ch_NewAction(CHARACTER *ch) {
+  CHACTION *a, *p;
 
-    a = ch_GetFreeQueueEntry();
-    if (!a) {
-        err_Message("ch_InsertAction(): Could not ch_GetFreeQueueEntry()");
-        return 0;
-    }
-    memset(a, 0, sizeof(*a));
-    if (!CH_ACTIONS(ch))
-        CH_ACTIONS(ch) = a;
-    else {
-        for (p = CH_ACTIONS(ch); p->next; p = p->next)
-            ;
-        p->next = a;
-        a->prev = p;
-    }
-    a->ch = ch;
-    a->count = 0;
-    a->func = 0;
-    a->next = 0;
-    a->started = 0;
-    ch_CheckQueue(ch, a);
-    return a;
+  a = ch_GetFreeQueueEntry();
+  if (!a) {
+    err_Message("ch_InsertAction(): Could not ch_GetFreeQueueEntry()");
+    return 0;
+  }
+  memset(a, 0, sizeof(*a));
+  if (!CH_ACTIONS(ch))
+    CH_ACTIONS(ch) = a;
+  else {
+    for (p = CH_ACTIONS(ch); p->next; p = p->next)
+      ;
+    p->next = a;
+    a->prev = p;
+  }
+  a->ch = ch;
+  a->count = 0;
+  a->func = 0;
+  a->next = 0;
+  a->started = 0;
+  ch_CheckQueue(ch, a);
+  return a;
 }
 /* 0x40b2f0, appends action type to the character's queue; the action's arguments follow */
 
-CHACTION *ch_AddAction(CHARACTER *ch, unsigned int type, ...)
-{
+CHACTION *ch_AddAction(CHARACTER *ch, unsigned int type, ...) {
+  /* clang-format off */
     CHACTION *a;
     int i;
     va_list args;
@@ -4253,61 +4223,61 @@ CHACTION *ch_AddAction(CHARACTER *ch, unsigned int type, ...)
     if (a->func == (CHACTFUNC)ch_ActAnimOnce)
         a->args[0] = a->type;
     return a;
+  /* clang-format on */
 }
 /* 0x40b400, like ch_AddAction, with func2 called at the animation frame "frame"; no queue check */
 
-CHACTION *ch_AddActionCB(CHARACTER *ch, CHACTCB func2, unsigned char frame, unsigned int type, ...)
-{
-    CHACTION *a;
-    int i;
-    va_list args;
+CHACTION *ch_AddActionCB(CHARACTER *ch, CHACTCB func2, unsigned char frame,
+                         unsigned int type, ...) {
+  CHACTION *a;
+  int i;
+  va_list args;
 
-    if (!ch)
-        return 0;
-    if (!ch_ActDefs[type].func)
-        type = 0;
-    a = ch_NewAction(ch);
-    if (!a)
-        return 0;
-    a->func = ch_ActDefs[type].func;
-    a->type = type;
-    a->ch = ch;
-    a->count = 0;
-    va_start(args, type);
-    for (i = 0; i < ch_ActDefs[a->type].nargs; i++)
-        a->args[i] = va_arg(args, int);
-    a->next = 0;
-    a->started = 0;
-    a->func2 = func2;
-    a->func2Frame = frame;
-    if (a->func == (CHACTFUNC)ch_ActAnimOnce)
-        a->args[0] = a->type;
-    return a;
+  if (!ch)
+    return 0;
+  if (!ch_ActDefs[type].func)
+    type = 0;
+  a = ch_NewAction(ch);
+  if (!a)
+    return 0;
+  a->func = ch_ActDefs[type].func;
+  a->type = type;
+  a->ch = ch;
+  a->count = 0;
+  va_start(args, type);
+  for (i = 0; i < ch_ActDefs[a->type].nargs; i++)
+    a->args[i] = va_arg(args, int);
+  a->next = 0;
+  a->started = 0;
+  a->func2 = func2;
+  a->func2Frame = frame;
+  if (a->func == (CHACTFUNC)ch_ActAnimOnce)
+    a->args[0] = a->type;
+  return a;
 }
 /* 0x40b4d0, drops the frame callbacks of all actions of characters in the scene */
 
-void ch_ClearSceneCallbacks(D3SCENE *scene)
-{
-    int i;
+void ch_ClearSceneCallbacks(D3SCENE *scene) {
+  int i;
 
-    for (i = 0; i < CH_QUEUE; i++) {
-        if (ch_Queue[i].type && ch_Queue[i].func && ch_Queue[i].ch && ch_Queue[i].ch->scene == scene
-            && ch_Queue[i].func2)
-            ch_Queue[i].func2 = 0;
-    }
+  for (i = 0; i < CH_QUEUE; i++) {
+    if (ch_Queue[i].type && ch_Queue[i].func && ch_Queue[i].ch &&
+        ch_Queue[i].ch->scene == scene && ch_Queue[i].func2)
+      ch_Queue[i].func2 = 0;
+  }
 }
 /* 0x40b530, attaches the sitting animation at its last frame */
 
-void ch_SetSitAnim(CHARACTER *ch, char *name)
-{
-    D3ANIMSLOT *s;
+void ch_SetSitAnim(CHARACTER *ch, char *name) {
+  D3ANIMSLOT *s;
 
-    ch->sitSlot = s = ch_AttachAni(ch, name, 1);
-    ch->slot = 0;
-    if (s) {
-        d3anim_SetFrame(ch->obj, s, -1);
-        ch->sitSlot->flags.b[0] = 1;
-        ch->sitSlot->rootFlags &= ~3;   /* the sit animation must not move the character */
-        ch->sitSlot->flags.b[1] |= 0x10;
-    }
+  ch->sitSlot = s = ch_AttachAni(ch, name, 1);
+  ch->slot = 0;
+  if (s) {
+    d3anim_SetFrame(ch->obj, s, -1);
+    ch->sitSlot->flags.b[0] = 1;
+    ch->sitSlot->rootFlags &=
+        ~3; /* the sit animation must not move the character */
+    ch->sitSlot->flags.b[1] |= 0x10;
+  }
 }

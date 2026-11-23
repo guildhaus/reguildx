@@ -9,6 +9,8 @@
 #define DATA_VIEWS_H
 
 /* d3_Scenes */
+/* clang-format off */
 #define ai_MapRefs               (d3_Scenes[0].map)  /* 0xfd7c4c, the town scene's terrain map */
+/* clang-format on */
 
 #endif

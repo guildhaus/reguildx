@@ -22,361 +22,342 @@ table of 8 ints, then the strings "RCPID" .. "alchemy_data.ini"). Starts at 0x4e
 #include "mem.h"
 #include "tr.h"
 
-
 extern char ch_EmptyName[];  /* 0x631090, the shared empty string "" (ch.c) */
-extern AICHAR ai_Chars[768];   /* 0x770b80, the characters (f3gmt.c) */
+extern AICHAR ai_Chars[768]; /* 0x770b80, the characters (f3gmt.c) */
 
+/* clang-format off */
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: the function masks its argument to 16 bits (0x42ec00: test si,si; and esi,0xffff) and the shuffler passes the count through mov cx,WORD PTR ds:0x6f0e28 (0x4eadd8), so this TU's callers were compiled against the 16-bit parameter and result; every calling unit declares it so) */
+/* clang-format on */
 
 /* 0x4eaa50, the character the alchemist object p (building kind 0x1e) belongs to: the character with the id of the record at +0x65; 0 when p is another kind or has no record */
-AICHAR *ahm_OwnerChar(AIBLD *p)
-{
-    AIBLD *o = p;
+AICHAR *ahm_OwnerChar(AIBLD *p) {
+  AIBLD *o = p;
 
-    if (ai_BTypes[o->type].kind == 0x1e && o->ahm != 0)
-        return gm_FindChar(o->ahm->id);
-    return 0;
+  if (ai_BTypes[o->type].kind == 0x1e && o->ahm != 0)
+    return gm_FindChar(o->ahm->id);
+  return 0;
 }
 /* 0x4eaa90, the number of the places in use (the six AHMSLOT at +0xc of the record) of the object of the character c (0x4eaad0), 0 when it has none */
 
-int ahm_UsedSlots(AICHAR *c)
-{
-    int n, i;
-    AHMSLOT *p;
+int ahm_UsedSlots(AICHAR *c) {
+  int n, i;
+  AHMSLOT *p;
 
-    if (ahm_HasRecord(c) == 0)
-        return 0;
-    n = 0;
-    p = c->bld->ahm->slots;
-    for (i = 6; i != 0; i--) {
-        if (p->id != 0)
-            n++;
-        p++;
-    }
-    return n;
+  if (ahm_HasRecord(c) == 0)
+    return 0;
+  n = 0;
+  p = c->bld->ahm->slots;
+  for (i = 6; i != 0; i--) {
+    if (p->id != 0)
+      n++;
+    p++;
+  }
+  return n;
 }
 /* 0x4eaad0, 1 when the character c (flag 4 of +0x1cc) has an object (+0x16c) of the building kind 0x1e with a record at +0x65 */
 
-int ahm_HasRecord(AICHAR *c)
-{
-    AICHAR *ch = c;
+int ahm_HasRecord(AICHAR *c) {
+  AICHAR *ch = c;
 
-    if ((ch->flags1cc & 4) != 0 && ch->bld != 0) {
-        if (ai_BTypes[ch->bld->type].kind == 0x1e)
-            return ch->bld->ahm != 0;
-        return 0;
-    }
+  if ((ch->flags1cc & 4) != 0 && ch->bld != 0) {
+    if (ai_BTypes[ch->bld->type].kind == 0x1e)
+      return ch->bld->ahm != 0;
     return 0;
+  }
+  return 0;
 }
 /* 0x4eab20, the share (byte / 252) number i (0 .. 3) of the record of the character c's object (+8 .. +0xb); -1.0 when it has none */
 
-float ahm_Share(AICHAR *c, int i)
-{
-    if (ahm_HasRecord(c) != 0) {
-        if (i == 0)
-            return (float)(c)->bld->ahm->share[0] * 0.003968254f;
-        if (i == 1)
-            return (float)(c)->bld->ahm->share[1] * 0.003968254f;
-        if (i == 2)
-            return (float)(c)->bld->ahm->share[2] * 0.003968254f;
-        if (i == 3)
-            return (float)(c)->bld->ahm->share[3] * 0.003968254f;
-    }
-    return -1.0f;
+float ahm_Share(AICHAR *c, int i) {
+  if (ahm_HasRecord(c) != 0) {
+    if (i == 0)
+      return (float)(c)->bld->ahm->share[0] * 0.003968254f;
+    if (i == 1)
+      return (float)(c)->bld->ahm->share[1] * 0.003968254f;
+    if (i == 2)
+      return (float)(c)->bld->ahm->share[2] * 0.003968254f;
+    if (i == 3)
+      return (float)(c)->bld->ahm->share[3] * 0.003968254f;
+  }
+  return -1.0f;
 }
 /* 0x4eabd0, the place of c's record with the id (a forwarding function to 0x4eabe0) */
 
-AHMSLOT *ahm_SlotOf(AICHAR *c, int id)
-{
-    return ahm_FindSlot(c, id);
-}
+AHMSLOT *ahm_SlotOf(AICHAR *c, int id) { return ahm_FindSlot(c, id); }
 /* 0x4eabe0, the place of the record of the character c with the good id; 0 when there is none */
 
-AHMSLOT *ahm_FindSlot(AICHAR *c, int id)
-{
-    int i;
+AHMSLOT *ahm_FindSlot(AICHAR *c, int id) {
+  int i;
 
-    if (ahm_HasRecord(c) != 0) {
-        for (i = 0; i < 6; i++) {
-            if (c->bld->ahm->slots[i].id == id)
-                return c->bld->ahm->slots + i;
-        }
+  if (ahm_HasRecord(c) != 0) {
+    for (i = 0; i < 6; i++) {
+      if (c->bld->ahm->slots[i].id == id)
+        return c->bld->ahm->slots + i;
     }
-    return 0;
+  }
+  return 0;
 }
 /* 0x4eac20, 1 when the number of the places in use (ahm_UsedSlots) is below the limit (the share 2 times the six places) */
 
-int ahm_HasFreeSlot(AICHAR *c)
-{
-    int n;
+int ahm_HasFreeSlot(AICHAR *c) {
+  int n;
 
-    if (ahm_HasRecord(c) == 0)
-        return 0;
-    n = ahm_UsedSlots(c);
-    return (int)(ahm_Share(c, 2) * 6.0f) > n;
+  if (ahm_HasRecord(c) == 0)
+    return 0;
+  n = ahm_UsedSlots(c);
+  return (int)(ahm_Share(c, 2) * 6.0f) > n;
 }
 /* 0x4eac60, fills the three steps ai_WalkSteps from the shuffled table ai_PlayerPrototypes (the entries in turn) with the running positions (x, y) on a 25 x 25 grid;
    when the table has been walked through once it is shuffled again (ahm_ShufflePlayers) */
 
-void ahm_FillSteps(void)
-{
-    int k;
+void ahm_FillSteps(void) {
+  int k;
 
-    if (ai_PlayerPrototypeCount != 0) {
-        for (k = 0; k < 3; k++) {
-            ai_WalkSteps[k].grid = ai_PlayerPrototypes[ai_WalkIndex++ % ai_PlayerPrototypeCount];
-            ai_WalkSteps[k].on = 1;
-            ai_WalkSteps[k].y = ai_WalkY;
-            ai_WalkSteps[k].x = ai_WalkX;
-            ai_WalkY = (ai_WalkDY + ai_WalkY) % 0x19;
-            ai_WalkX = (ai_WalkDX + ai_WalkX) % 0x19;
-        }
-        if (ai_WalkIndex >= ai_PlayerPrototypeCount)
-            ahm_ShufflePlayers(1);
+  if (ai_PlayerPrototypeCount != 0) {
+    for (k = 0; k < 3; k++) {
+      ai_WalkSteps[k].grid =
+          ai_PlayerPrototypes[ai_WalkIndex++ % ai_PlayerPrototypeCount];
+      ai_WalkSteps[k].on = 1;
+      ai_WalkSteps[k].y = ai_WalkY;
+      ai_WalkSteps[k].x = ai_WalkX;
+      ai_WalkY = (ai_WalkDY + ai_WalkY) % 0x19;
+      ai_WalkX = (ai_WalkDX + ai_WalkX) % 0x19;
     }
+    if (ai_WalkIndex >= ai_PlayerPrototypeCount)
+      ahm_ShufflePlayers(1);
+  }
 }
 /* 0x4ead20, seeds the generator (init: from the time) and shuffles the table; with init the walk is restarted: start positions random on the grid, the steps taken
    from the table 0x60f1b0 */
 
-void ahm_ShufflePlayers(int init)
-{
-    unsigned int t;
+void ahm_ShufflePlayers(int init) {
+  unsigned int t;
 
-    if (init != 0)
-        ai_WalkSeed.seed16 = (unsigned short)(timeGetTime() % 0x7fff) + 1;
-    srand(ai_WalkSeed.seed & 0xffff);
-    ahm_ShuffleTable();
-    if (init != 0) {
-        ai_WalkX = util_Random(0x19);
-        ai_WalkDX = ahm_Tab[util_Random(8)];
-        ai_WalkY = util_Random(0x19);
-        t = util_Random(8);
-        ai_WalkIndex = 0;
-        ai_WalkDY = ahm_Tab[t];
-    }
+  if (init != 0)
+    ai_WalkSeed.seed16 = (unsigned short)(timeGetTime() % 0x7fff) + 1;
+  srand(ai_WalkSeed.seed & 0xffff);
+  ahm_ShuffleTable();
+  if (init != 0) {
+    ai_WalkX = util_Random(0x19);
+    ai_WalkDX = ahm_Tab[util_Random(8)];
+    ai_WalkY = util_Random(0x19);
+    t = util_Random(8);
+    ai_WalkIndex = 0;
+    ai_WalkDY = ahm_Tab[t];
+  }
 }
 /* 0x4eadc0, shuffles the player prototype table (2 * count random swaps of two entries) */
 
-void ahm_ShuffleTable(void)
-{
-    AHMGRID t;
-    int n, i, j;
+void ahm_ShuffleTable(void) {
+  AHMGRID t;
+  int n, i, j;
 
-    for (n = ai_PlayerPrototypeCount * 2; n > 0; n--) {
-        i = util_Random(ai_PlayerPrototypeCount);
-        j = util_Random(ai_PlayerPrototypeCount);
-        if (i != j) {
-            t = ai_PlayerPrototypes[i];
-            ai_PlayerPrototypes[i] = ai_PlayerPrototypes[j];
-            ai_PlayerPrototypes[j] = t;
-        }
+  for (n = ai_PlayerPrototypeCount * 2; n > 0; n--) {
+    i = util_Random(ai_PlayerPrototypeCount);
+    j = util_Random(ai_PlayerPrototypeCount);
+    if (i != j) {
+      t = ai_PlayerPrototypes[i];
+      ai_PlayerPrototypes[i] = ai_PlayerPrototypes[j];
+      ai_PlayerPrototypes[j] = t;
     }
+  }
 }
 /* 0x4eae60, the entry of the recipe prototype table (ai_RecipePrototypes, count ai_RecipePrototypeCount) with the id; 0 when there is none */
 
-AHMGRID *ahm_FindRecipe(int id)
-{
-    int i;
+AHMGRID *ahm_FindRecipe(int id) {
+  int i;
 
-    for (i = 0; i < ai_RecipePrototypeCount; i++) {
-        if (ai_RecipePrototypes[i].rcp.id == id)
-            return &ai_RecipePrototypes[i];
-    }
-    return 0;
+  for (i = 0; i < ai_RecipePrototypeCount; i++) {
+    if (ai_RecipePrototypes[i].rcp.id == id)
+      return &ai_RecipePrototypes[i];
+  }
+  return 0;
 }
 /* 0x4eaea0, a random entry of the recipe prototype table the character c has no place for yet (a random start and a step that is not a multiple of the count); 0 when
    c may not take more (ahm_HasFreeSlot) */
 
-AHMGRID *ahm_RandomRecipe(AICHAR *c)
-{
-    unsigned int step, pos, k, r;
+AHMGRID *ahm_RandomRecipe(AICHAR *c) {
+  unsigned int step, pos, k, r;
 
-    if (ahm_HasFreeSlot(c) != 0) {
-        step = (util_Random(ai_RecipePrototypeCount & 0xffff) + 1);
-        r = (int)step % ai_RecipePrototypeCount;
-        while (r == 0) {
-            step++;
-            r = (int)step % ai_RecipePrototypeCount;
-        }
-        pos = util_Random(ai_RecipePrototypeCount);
-        k = ai_RecipePrototypeCount;
-        while (k != 0) {
-            if (ahm_SlotOf(c, ai_RecipePrototypes[pos].rcp.id) == 0)
-                return &ai_RecipePrototypes[pos];
-            k--;
-            pos = (int)(pos + step) % ai_RecipePrototypeCount;
-        }
+  if (ahm_HasFreeSlot(c) != 0) {
+    step = (util_Random(ai_RecipePrototypeCount & 0xffff) + 1);
+    r = (int)step % ai_RecipePrototypeCount;
+    while (r == 0) {
+      step++;
+      r = (int)step % ai_RecipePrototypeCount;
     }
-    return 0;
+    pos = util_Random(ai_RecipePrototypeCount);
+    k = ai_RecipePrototypeCount;
+    while (k != 0) {
+      if (ahm_SlotOf(c, ai_RecipePrototypes[pos].rcp.id) == 0)
+        return &ai_RecipePrototypes[pos];
+      k--;
+      pos = (int)(pos + step) % ai_RecipePrototypeCount;
+    }
+  }
+  return 0;
 }
 /* 0x4eaf50, the research time of the recipe g for the character c, in tenths of minutes (0x3840 = the 1440 minutes of a day times 10): one to two days by the
    recipe's ATTR0 (the float at +4, 0 .. 1: 14400 * (2 - ATTR0)), reduced by up to half by the share 0 (the alchemist's skill) */
 
-int ahm_ResearchTime(AICHAR *c, AHMGRID *g)
-{
-    int a, b;
+int ahm_ResearchTime(AICHAR *c, AHMGRID *g) {
+  int a, b;
 
-    a = (int)((1.0f - g->rcp.a) * -14400.0f);
-    b = 0x3840 - a;
-    return b - (int)(ahm_Share(c, 0) * b * 0.5f);
+  a = (int)((1.0f - g->rcp.a) * -14400.0f);
+  b = 0x3840 - a;
+  return b - (int)(ahm_Share(c, 0) * b * 0.5f);
 }
 /* 0x4eafa0, the research time in minutes (ahm_ResearchTime / 10): the amount the research event 0x95 (0x56d2d0) counts down by the elapsed minutes (0x4fe280) */
 
-int ahm_ResearchMinutes(AICHAR *c, AHMGRID *g)
-{
-    return (int)(ahm_ResearchTime(c, g) * 0.1f);
+int ahm_ResearchMinutes(AICHAR *c, AHMGRID *g) {
+  return (int)(ahm_ResearchTime(c, g) * 0.1f);
 }
 /* 0x4eafd0, the progress the character c makes researching the recipe g in *cap minutes (*cap gets the minutes used): ahm_ResearchTime * (1 - share 2 / 2) * (1 - the
    value of the character's place of g) is the time t the rest of the place needs; min(*cap, t) are used and the progress they are worth ((used / t) * (1 - value)) is
    returned; 0.0 when the place is full / not there / nothing is left */
 
-float ahm_ResearchProgress(AICHAR *c, AHMGRID *g, int *cap)
-{
-    float s2;
-    AHMSLOT *slot;
-    int n, b, t, m;
+float ahm_ResearchProgress(AICHAR *c, AHMGRID *g, int *cap) {
+  float s2;
+  AHMSLOT *slot;
+  int n, b, t, m;
 
-    s2 = ahm_Share(c, 2);
-    slot = ahm_SlotOf(c, g->rcp.id);
-    if (slot == 0)
-        return 0.0f;
-    if (slot->v >= 1.0f)
-        return 0.0f;
-    n = *cap;
-    if (n <= 0)
-        return 0.0f;
-    b = ahm_ResearchTime(c, g);
-    t = (int)(b * (1.0f - s2 * 0.5f) * (1.0f - slot->v));
-    if (t <= 0)
-        return 0.0f;
-    m = n < t ? n : t;
-    *cap = m;
-    return ((float)m / t) * (1.0f - slot->v);
+  s2 = ahm_Share(c, 2);
+  slot = ahm_SlotOf(c, g->rcp.id);
+  if (slot == 0)
+    return 0.0f;
+  if (slot->v >= 1.0f)
+    return 0.0f;
+  n = *cap;
+  if (n <= 0)
+    return 0.0f;
+  b = ahm_ResearchTime(c, g);
+  t = (int)(b * (1.0f - s2 * 0.5f) * (1.0f - slot->v));
+  if (t <= 0)
+    return 0.0f;
+  m = n < t ? n : t;
+  *cap = m;
+  return ((float)m / t) * (1.0f - slot->v);
 }
 /* 0x4eb0b0, the progress the character c makes training the share i in *cap minutes (*cap gets the minutes used): 14400 * (1 - share) is the time the rest of the
    share needs; returns (used / time) * (1 - share), 0.0 when the share is not in [0, 1) */
 
-float ahm_ShareProgress(AICHAR *c, int i, int *cap)
-{
-    float f;
-    int t, m;
+float ahm_ShareProgress(AICHAR *c, int i, int *cap) {
+  float f;
+  int t, m;
 
-    f = ahm_Share(c, i);
-    if (f < 0.0f || f >= 1.0f)
-        return 0.0f;
-    t = (int)(14400.0f * (1.0f - f));
-    m = *cap < t ? *cap : t;
-    *cap = m;
-    return (float)m / t * (1.0f - f);
+  f = ahm_Share(c, i);
+  if (f < 0.0f || f >= 1.0f)
+    return 0.0f;
+  t = (int)(14400.0f * (1.0f - f));
+  m = *cap < t ? *cap : t;
+  *cap = m;
+  return (float)m / t * (1.0f - f);
 }
 /* 0x4eb130, the factor of the place with the good id of the character c: 1.0 + share 1 * the value of the place; 1.0 when it has no place */
 
-float ahm_PlaceFactor(AICHAR *c, int id)
-{
-    AHMSLOT *slot;
+float ahm_PlaceFactor(AICHAR *c, int id) {
+  AHMSLOT *slot;
 
-    slot = ahm_FindSlot(c, id);
-    if (ahm_HasRecord(c) == 0)
-        return 1.0f;
-    if (slot == 0)
-        return 1.0f;
-    return ahm_Share(c, 1) * slot->v + 1.0f;
+  slot = ahm_FindSlot(c, id);
+  if (ahm_HasRecord(c) == 0)
+    return 1.0f;
+  if (slot == 0)
+    return 1.0f;
+  return ahm_Share(c, 1) * slot->v + 1.0f;
 }
 /* 0x4eb180, the research state of the object o: the first research event (kinds 4, 0x95 .. 0x97) of the event list 0x53e400 (1, 3, *(o + 1)) decides: 4 (only with
    flag: *a = 0, *f = 0.0), 1 (the share of the research done in *f, 0 .. 1), 2 / 3 (the same, with the recipe / share id (+0xb0) in *a); 0 when there is none.
    The clamp is max(min(share, 1), 0) written out (each operand evaluated twice, as a MIN / MAX macro pair expands); the share lives in a stack slot,
    case 0x95 in its own variable (the original keeps it in the dead `a` argument slot, 0x96 / 0x97 in the `o` slot). */
 
-int ahm_ResearchState(AIBLD *o, int *a, float *f, int flag)
-{
-    AIJOB *ev;
-    float s, v;
+int ahm_ResearchState(AIBLD *o, int *a, float *f, int flag) {
+  AIJOB *ev;
+  float s, v;
 
-    ev = he_FindEvent(1, 3, o->id);
-    while (ev != 0) {
-        switch (ev->kind) {
-        default:
-            ev = he_NextEvent();
-            break;
-        case 0x95:
-            s = ((float)ev->recipeTotal - (float)ev->recipeLeft) / (float)ev->recipeTotal;
-            *f = s;
-            *f = (1.0f < s ? 1.0f : s) > 0.0f ? (1.0f < s ? 1.0f : s) : 0.0f;
-            return 1;
-        case 0x96:
-            v = ((float)ev->ahmResearchStart - (float)ev->ahmResearchAmount) / (float)ev->ahmResearchStart;
-            *f = v;
-            *f = (1.0f < v ? 1.0f : v) > 0.0f ? (1.0f < v ? 1.0f : v) : 0.0f;
-            *a = ev->ahmResearchId;
-            return 2;
-        case 0x97:
-            v = ((float)ev->ahmResearchStart - (float)ev->ahmResearchAmount) / (float)ev->ahmResearchStart;
-            *f = v;
-            *f = (1.0f < v ? 1.0f : v) > 0.0f ? (1.0f < v ? 1.0f : v) : 0.0f;
-            *a = ev->ahmResearchId;
-            return 3;
-        case 4:
-            if (flag == 0)
-                return 0;
-            *f = 0.0f;
-            *a = 0;
-            return 4;
-        }
+  ev = he_FindEvent(1, 3, o->id);
+  while (ev != 0) {
+    switch (ev->kind) {
+    default:
+      ev = he_NextEvent();
+      break;
+    case 0x95:
+      s = ((float)ev->recipeTotal - (float)ev->recipeLeft) /
+          (float)ev->recipeTotal;
+      *f = s;
+      *f = (1.0f < s ? 1.0f : s) > 0.0f ? (1.0f < s ? 1.0f : s) : 0.0f;
+      return 1;
+    case 0x96:
+      v = ((float)ev->ahmResearchStart - (float)ev->ahmResearchAmount) /
+          (float)ev->ahmResearchStart;
+      *f = v;
+      *f = (1.0f < v ? 1.0f : v) > 0.0f ? (1.0f < v ? 1.0f : v) : 0.0f;
+      *a = ev->ahmResearchId;
+      return 2;
+    case 0x97:
+      v = ((float)ev->ahmResearchStart - (float)ev->ahmResearchAmount) /
+          (float)ev->ahmResearchStart;
+      *f = v;
+      *f = (1.0f < v ? 1.0f : v) > 0.0f ? (1.0f < v ? 1.0f : v) : 0.0f;
+      *a = ev->ahmResearchId;
+      return 3;
+    case 4:
+      if (flag == 0)
+        return 0;
+      *f = 0.0f;
+      *a = 0;
+      return 4;
     }
-    return 0;
+  }
+  return 0;
 }
 /* 0x4eb410, restarts the research events (kinds 0x95 .. 0x97) of the object o: the due clock (+0x52) is set to the game clock ai_Time and the event is told
    (0x4c4c60, -2) */
 
-void ahm_RescheduleResearch(AIBLD *o)
-{
-    AIJOB *ev;
+void ahm_RescheduleResearch(AIBLD *o) {
+  AIJOB *ev;
 
-    ev = he_FindEvent(1, 3, o->id);
-    while (ev != 0) {
-        if (0x95 <= ev->kind && ev->kind <= 0x97) {
-            ev->end = ai_Time;
-            cm_SendExSetHE(-2, ev);
-        }
-        ev = he_NextEvent();
+  ev = he_FindEvent(1, 3, o->id);
+  while (ev != 0) {
+    if (0x95 <= ev->kind && ev->kind <= 0x97) {
+      ev->end = ai_Time;
+      cm_SendExSetHE(-2, ev);
     }
+    ev = he_NextEvent();
+  }
 }
 /* 0x4eb480, loads the prototype tables at start: with mode 0 from "/gamedata/ai/alchemy.dfn" (ahm_LoadDfn), else from "alchemy_data.ini" and then written back
    to the .dfn (ahm_SaveDfn); every load restarts the walk (ahm_ShufflePlayers); 0 when the ini load failed, else 1 */
 
-int ahm_LoadPrototypes(int mode)
-{
-    if (mode != 0) {
-        if (ahm_LoadIni() != 0) {
-            ahm_ShufflePlayers(1);
-            return ahm_SaveDfn();
-        }
-        return 0;
+int ahm_LoadPrototypes(int mode) {
+  if (mode != 0) {
+    if (ahm_LoadIni() != 0) {
+      ahm_ShufflePlayers(1);
+      return ahm_SaveDfn();
     }
-    if (ahm_LoadDfn() != 0)
-        ahm_ShufflePlayers(1);
-    return 1;
+    return 0;
+  }
+  if (ahm_LoadDfn() != 0)
+    ahm_ShufflePlayers(1);
+  return 1;
 }
 
 /* unlinked; the mask zeroes 0 and below, the cap is 0xfc (the original's cmp eax,0xfc / jl) */
-static __inline int ahm_ClampAttr(char *s)
-{
-    int v;
+static __inline int ahm_ClampAttr(char *s) {
+  int v;
 
-    v = atoi(s);
-    v = v & ((v <= 0) - 1);
-    if (v >= 0xfc)
-        v = 0xfc;
-    return v;
+  v = atoi(s);
+  v = v & ((v <= 0) - 1);
+  if (v >= 0xfc)
+    v = 0xfc;
+  return v;
 }
 
 /* unlinked; the original evaluates atof(s) again at every use (the min/max are macros) and does it in double (the constants are QWORDs,
    only the store to the float table field narrows) */
 #define ahm_min(a, b) (((a) < (b)) ? (a) : (b))
 #define ahm_max(a, b) (((a) > (b)) ? (a) : (b))
-static __inline double ahm_ClampShare(char *s)
-{
-    return ahm_min(ahm_max(atof(s) * 0.01, 0.0), 1.0);
+static __inline double ahm_ClampShare(char *s) {
+  return ahm_min(ahm_max(atof(s) * 0.01, 0.0), 1.0);
 }
 
 /* 0x4eb4c0, reads the player and recipe prototypes from "alchemy_data.ini" (next to the exe): [MAIN_PLAYER_SPECS] NUM_OF_PLAYER_PROTOTYPES, then [PLR_%li] ATTR0 .. ATTR3
@@ -386,194 +367,196 @@ static __inline double ahm_ClampShare(char *s)
    in double, re-evaluating atof (0x4eb8d7 .. is four atof calls per check).
    @original the cleanup sits inside the recipe-alloc test, before the recipe loop (0x4eb83b), and every failure jumps into it (fail: frees both tables,
    fail2: the player alloc failed, only the recipe table); the gotos reproduce that block order, a cleanup after the loops is placed last by VC6. */
-int ahm_LoadIni(void)
-{
-    char ini[260], buf[256], sec[256], *p;
-    int i, n;
+int ahm_LoadIni(void) {
+  char ini[260], buf[256], sec[256], *p;
+  int i, n;
 
-    GetModuleFileNameA((HMODULE)main_Instance, ini, 0x104);
-    p = strrchr(ini, '\\');
-    p[1] = 0;
-    strcat(ini, "alchemy_data.ini");
-    GetPrivateProfileStringA("MAIN_PLAYER_SPECS", "NUM_OF_PLAYER_PROTOTYPES", ch_EmptyName, buf, 0x100, ini);
-    ai_PlayerPrototypeCount = atoi(buf);
-    if (ai_PlayerPrototypeCount <= 0)
-        goto fail;
+  GetModuleFileNameA((HMODULE)main_Instance, ini, 0x104);
+  p = strrchr(ini, '\\');
+  p[1] = 0;
+  strcat(ini, "alchemy_data.ini");
+  GetPrivateProfileStringA("MAIN_PLAYER_SPECS", "NUM_OF_PLAYER_PROTOTYPES",
+                           ch_EmptyName, buf, 0x100, ini);
+  ai_PlayerPrototypeCount = atoi(buf);
+  if (ai_PlayerPrototypeCount <= 0)
+    goto fail;
+  if (ai_PlayerPrototypes != 0) {
+    mem_Free(ai_PlayerPrototypes);
+    ai_PlayerPrototypes = 0;
+  }
+  ai_PlayerPrototypes =
+      mem_Alloc(ai_PlayerPrototypeCount * 12, "ahm_AllocPlayerPrototypes");
+  if (ai_PlayerPrototypes == 0)
+    goto fail2;
+  for (i = 0; i < ai_PlayerPrototypeCount; i++) {
+    sprintf(sec, "PLR_%li", i);
+    GetPrivateProfileStringA(sec, "ATTR0", "42", buf, 0x100, ini);
+    ai_PlayerPrototypes[i].plr.attr[0] = ahm_ClampAttr(buf);
+    GetPrivateProfileStringA(sec, "ATTR1", "42", buf, 0x100, ini);
+    ai_PlayerPrototypes[i].plr.attr[1] = ahm_ClampAttr(buf);
+    GetPrivateProfileStringA(sec, "ATTR2", "42", buf, 0x100, ini);
+    ai_PlayerPrototypes[i].plr.attr[2] = ahm_ClampAttr(buf);
+    GetPrivateProfileStringA(sec, "ATTR3", "42", buf, 0x100, ini);
+    ai_PlayerPrototypes[i].plr.attr[3] = ahm_ClampAttr(buf);
+    GetPrivateProfileStringA(sec, "ATTR4", "20", buf, 0x100, ini);
+    n = atoi(buf);
+    ai_PlayerPrototypes[i].plr.attr[4] = (unsigned char)min(max(n, 0x12), 0x1e);
+    GetPrivateProfileStringA(sec, "ATTR5", "ob_NULL", buf, 0x100, ini);
+    ai_PlayerPrototypes[i].plr.id = ahm_ObjectId(buf);
+  }
+  GetPrivateProfileStringA("MAIN_RECIPES_SPECS", "NUM_OF_RECIPES_PROTOTYPES",
+                           ch_EmptyName, buf, 0x100, ini);
+  ai_RecipePrototypeCount = atoi(buf);
+  if (ai_RecipePrototypeCount <= 0)
+    goto fail;
+  if (ai_RecipePrototypes != 0) {
+    mem_Free(ai_RecipePrototypes);
+    ai_RecipePrototypes = 0;
+  }
+  ai_RecipePrototypes =
+      mem_Alloc(ai_RecipePrototypeCount * 12, "ahm_AllocRecipePrototypes");
+  if (ai_RecipePrototypes == 0) {
+  fail:
     if (ai_PlayerPrototypes != 0) {
-        mem_Free(ai_PlayerPrototypes);
-        ai_PlayerPrototypes = 0;
+      mem_Free(ai_PlayerPrototypes);
+      ai_PlayerPrototypes = 0;
     }
-    ai_PlayerPrototypes = mem_Alloc(ai_PlayerPrototypeCount * 12, "ahm_AllocPlayerPrototypes");
-    if (ai_PlayerPrototypes == 0)
-        goto fail2;
-    for (i = 0; i < ai_PlayerPrototypeCount; i++) {
-        sprintf(sec, "PLR_%li", i);
-        GetPrivateProfileStringA(sec, "ATTR0", "42", buf, 0x100, ini);
-        ai_PlayerPrototypes[i].plr.attr[0] = ahm_ClampAttr(buf);
-        GetPrivateProfileStringA(sec, "ATTR1", "42", buf, 0x100, ini);
-        ai_PlayerPrototypes[i].plr.attr[1] = ahm_ClampAttr(buf);
-        GetPrivateProfileStringA(sec, "ATTR2", "42", buf, 0x100, ini);
-        ai_PlayerPrototypes[i].plr.attr[2] = ahm_ClampAttr(buf);
-        GetPrivateProfileStringA(sec, "ATTR3", "42", buf, 0x100, ini);
-        ai_PlayerPrototypes[i].plr.attr[3] = ahm_ClampAttr(buf);
-        GetPrivateProfileStringA(sec, "ATTR4", "20", buf, 0x100, ini);
-        n = atoi(buf);
-        ai_PlayerPrototypes[i].plr.attr[4] = (unsigned char)min(max(n, 0x12), 0x1e);
-        GetPrivateProfileStringA(sec, "ATTR5", "ob_NULL", buf, 0x100, ini);
-        ai_PlayerPrototypes[i].plr.id = ahm_ObjectId(buf);
-    }
-    GetPrivateProfileStringA("MAIN_RECIPES_SPECS", "NUM_OF_RECIPES_PROTOTYPES", ch_EmptyName, buf, 0x100, ini);
-    ai_RecipePrototypeCount = atoi(buf);
-    if (ai_RecipePrototypeCount <= 0)
-        goto fail;
+  fail2:
     if (ai_RecipePrototypes != 0) {
-        mem_Free(ai_RecipePrototypes);
-        ai_RecipePrototypes = 0;
+      mem_Free(ai_RecipePrototypes);
+      ai_RecipePrototypes = 0;
     }
-    ai_RecipePrototypes = mem_Alloc(ai_RecipePrototypeCount * 12, "ahm_AllocRecipePrototypes");
-    if (ai_RecipePrototypes == 0) {
-fail:
-        if (ai_PlayerPrototypes != 0) {
-            mem_Free(ai_PlayerPrototypes);
-            ai_PlayerPrototypes = 0;
-        }
-fail2:
-        if (ai_RecipePrototypes != 0) {
-            mem_Free(ai_RecipePrototypes);
-            ai_RecipePrototypes = 0;
-        }
-        ai_RecipePrototypeCount = 0;
-        ai_PlayerPrototypeCount = 0;
-        return 0;
-    }
-    for (i = 0; i < ai_RecipePrototypeCount; i++) {
-        sprintf(sec, "RCP_%li", i);
-        GetPrivateProfileStringA(sec, "ATTR0", "50", buf, 0x100, ini);
-        ai_RecipePrototypes[i].rcp.a = ahm_ClampShare(buf);
-        GetPrivateProfileStringA(sec, "ATTR1", "25", buf, 0x100, ini);
-        ai_RecipePrototypes[i].rcp.b = ahm_ClampShare(buf);
-        GetPrivateProfileStringA(sec, "RCPID", "ob_NULL", buf, 0x100, ini);
-        ai_RecipePrototypes[i].rcp.id = ahm_ObjectId(buf);
-    }
-    return 1;
+    ai_RecipePrototypeCount = 0;
+    ai_PlayerPrototypeCount = 0;
+    return 0;
+  }
+  for (i = 0; i < ai_RecipePrototypeCount; i++) {
+    sprintf(sec, "RCP_%li", i);
+    GetPrivateProfileStringA(sec, "ATTR0", "50", buf, 0x100, ini);
+    ai_RecipePrototypes[i].rcp.a = ahm_ClampShare(buf);
+    GetPrivateProfileStringA(sec, "ATTR1", "25", buf, 0x100, ini);
+    ai_RecipePrototypes[i].rcp.b = ahm_ClampShare(buf);
+    GetPrivateProfileStringA(sec, "RCPID", "ob_NULL", buf, 0x100, ini);
+    ai_RecipePrototypes[i].rcp.id = ahm_ObjectId(buf);
+  }
+  return 1;
 }
 /* 0x4eba80, reads the prototypes from "/gamedata/ai/alchemy.dfn" (the magic 0x61486d52, the counts 1 .. 100, the player entries (5 bytes + the id) and the recipe
    entries (3 ints)); 1 when all was read, else the tables are freed and 0 */
 
-int ahm_LoadDfn(void)
-{
-    void *f;
-    int magic, i;
+int ahm_LoadDfn(void) {
+  void *f;
+  int magic, i;
 
-    f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "rb", vfs_Root);
-    if (f != 0) {
-        if (0 < vfs_fread(&magic, 4, 1, f) && magic == 0x61486d52 && 0 < vfs_fread(&ai_PlayerPrototypeCount, 4, 1, f) &&
-            ai_PlayerPrototypeCount >= 1 && ai_PlayerPrototypeCount <= 0x64) {
-            if (ai_PlayerPrototypes != 0) {
-                mem_Free(ai_PlayerPrototypes);
-                ai_PlayerPrototypes = 0;
-            }
-            ai_PlayerPrototypes = mem_Alloc(ai_PlayerPrototypeCount * 12, "ahm_AllocPlayerPrototypes");
-            if (ai_PlayerPrototypes != 0) {
-                for (i = 0; i < ai_PlayerPrototypeCount; i++) {
-                    if (vfs_fread(&ai_PlayerPrototypes[i].plr.attr[0], 1, 1, f) <= 0 ||
-                        vfs_fread(&ai_PlayerPrototypes[i].plr.attr[1], 1, 1, f) <= 0 ||
-                        vfs_fread(&ai_PlayerPrototypes[i].plr.attr[2], 1, 1, f) <= 0 ||
-                        vfs_fread(&ai_PlayerPrototypes[i].plr.attr[3], 1, 1, f) <= 0 ||
-                        vfs_fread(&ai_PlayerPrototypes[i].plr.attr[4], 1, 1, f) <= 0 ||
-                        vfs_fread(&ai_PlayerPrototypes[i].plr.id, 4, 1, f) <= 0)
-                        goto bad;
-                }
-                if (0 < vfs_fread(&ai_RecipePrototypeCount, 4, 1, f) && ai_RecipePrototypeCount >= 1 && ai_RecipePrototypeCount <= 0x64) {
-                    if (ai_RecipePrototypes != 0) {
-                        mem_Free(ai_RecipePrototypes);
-                        ai_RecipePrototypes = 0;
-                    }
-                    ai_RecipePrototypes = mem_Alloc(ai_RecipePrototypeCount * 12, "ahm_AllocRecipePrototypes");
-                    if (ai_RecipePrototypes != 0) {
-                        for (i = 0; i < ai_RecipePrototypeCount; i++) {
-                            if (vfs_fread(&ai_RecipePrototypes[i].rcp.id, 4, 1, f) <= 0 ||
-                                vfs_fread(&ai_RecipePrototypes[i].rcp.a, 4, 1, f) <= 0 ||
-                                vfs_fread(&ai_RecipePrototypes[i].rcp.b, 4, 1, f) <= 0)
-                                goto bad;
-                        }
-                        vfs_fclose(f);
-                        return 1;
-                    }
-                }
-            }
-        }
-bad:
-        vfs_fclose(f);
-    }
-    if (ai_PlayerPrototypes != 0) {
+  f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "rb", vfs_Root);
+  if (f != 0) {
+    if (0 < vfs_fread(&magic, 4, 1, f) && magic == 0x61486d52 &&
+        0 < vfs_fread(&ai_PlayerPrototypeCount, 4, 1, f) &&
+        ai_PlayerPrototypeCount >= 1 && ai_PlayerPrototypeCount <= 0x64) {
+      if (ai_PlayerPrototypes != 0) {
         mem_Free(ai_PlayerPrototypes);
         ai_PlayerPrototypes = 0;
+      }
+      ai_PlayerPrototypes =
+          mem_Alloc(ai_PlayerPrototypeCount * 12, "ahm_AllocPlayerPrototypes");
+      if (ai_PlayerPrototypes != 0) {
+        for (i = 0; i < ai_PlayerPrototypeCount; i++) {
+          if (vfs_fread(&ai_PlayerPrototypes[i].plr.attr[0], 1, 1, f) <= 0 ||
+              vfs_fread(&ai_PlayerPrototypes[i].plr.attr[1], 1, 1, f) <= 0 ||
+              vfs_fread(&ai_PlayerPrototypes[i].plr.attr[2], 1, 1, f) <= 0 ||
+              vfs_fread(&ai_PlayerPrototypes[i].plr.attr[3], 1, 1, f) <= 0 ||
+              vfs_fread(&ai_PlayerPrototypes[i].plr.attr[4], 1, 1, f) <= 0 ||
+              vfs_fread(&ai_PlayerPrototypes[i].plr.id, 4, 1, f) <= 0)
+            goto bad;
+        }
+        if (0 < vfs_fread(&ai_RecipePrototypeCount, 4, 1, f) &&
+            ai_RecipePrototypeCount >= 1 && ai_RecipePrototypeCount <= 0x64) {
+          if (ai_RecipePrototypes != 0) {
+            mem_Free(ai_RecipePrototypes);
+            ai_RecipePrototypes = 0;
+          }
+          ai_RecipePrototypes = mem_Alloc(ai_RecipePrototypeCount * 12,
+                                          "ahm_AllocRecipePrototypes");
+          if (ai_RecipePrototypes != 0) {
+            for (i = 0; i < ai_RecipePrototypeCount; i++) {
+              if (vfs_fread(&ai_RecipePrototypes[i].rcp.id, 4, 1, f) <= 0 ||
+                  vfs_fread(&ai_RecipePrototypes[i].rcp.a, 4, 1, f) <= 0 ||
+                  vfs_fread(&ai_RecipePrototypes[i].rcp.b, 4, 1, f) <= 0)
+                goto bad;
+            }
+            vfs_fclose(f);
+            return 1;
+          }
+        }
+      }
     }
-    if (ai_RecipePrototypes != 0) {
-        mem_Free(ai_RecipePrototypes);
-        ai_RecipePrototypes = 0;
-    }
-    ai_RecipePrototypeCount = 0;
-    ai_PlayerPrototypeCount = 0;
-    return 0;
+  bad:
+    vfs_fclose(f);
+  }
+  if (ai_PlayerPrototypes != 0) {
+    mem_Free(ai_PlayerPrototypes);
+    ai_PlayerPrototypes = 0;
+  }
+  if (ai_RecipePrototypes != 0) {
+    mem_Free(ai_RecipePrototypes);
+    ai_RecipePrototypes = 0;
+  }
+  ai_RecipePrototypeCount = 0;
+  ai_PlayerPrototypeCount = 0;
+  return 0;
 }
 /* 0x4ebd60, writes the prototypes to "/gamedata/ai/alchemy.dfn" in the format 0x4eba80 reads; 1 when all was written */
 
-int ahm_SaveDfn(void)
-{
-    void *f;
-    int magic, i;
+int ahm_SaveDfn(void) {
+  void *f;
+  int magic, i;
 
-    magic = 0x61486d52;
-    f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "wb", vfs_Root);
-    if (f != 0) {
-        if (vfs_fwrite(&magic, 4, 1, f) > 0 && vfs_fwrite(&ai_PlayerPrototypeCount, 4, 1, f) > 0) {
-            for (i = 0; i < ai_PlayerPrototypeCount; i++) {
-                if (vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[0], 1, 1, f) <= 0 ||
-                    vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[1], 1, 1, f) <= 0 ||
-                    vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[2], 1, 1, f) <= 0 ||
-                    vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[3], 1, 1, f) <= 0 ||
-                    vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[4], 1, 1, f) <= 0 ||
-                    vfs_fwrite(&ai_PlayerPrototypes[i].plr.id, 4, 1, f) <= 0)
-                    goto bad;
-            }
-            if (vfs_fwrite(&ai_RecipePrototypeCount, 4, 1, f) > 0) {
-                for (i = 0; i < ai_RecipePrototypeCount; i++) {
-                    if (vfs_fwrite(&ai_RecipePrototypes[i].rcp.id, 4, 1, f) <= 0 ||
-                        vfs_fwrite(&ai_RecipePrototypes[i].rcp.a, 4, 1, f) <= 0 ||
-                        vfs_fwrite(&ai_RecipePrototypes[i].rcp.b, 4, 1, f) <= 0)
-                        goto bad;
-                }
-                vfs_fclose(f);
-                return 1;
-            }
+  magic = 0x61486d52;
+  f = vfs_Tfopen("/gamedata/ai/alchemy.dfn", "wb", vfs_Root);
+  if (f != 0) {
+    if (vfs_fwrite(&magic, 4, 1, f) > 0 &&
+        vfs_fwrite(&ai_PlayerPrototypeCount, 4, 1, f) > 0) {
+      for (i = 0; i < ai_PlayerPrototypeCount; i++) {
+        if (vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[0], 1, 1, f) <= 0 ||
+            vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[1], 1, 1, f) <= 0 ||
+            vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[2], 1, 1, f) <= 0 ||
+            vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[3], 1, 1, f) <= 0 ||
+            vfs_fwrite(&ai_PlayerPrototypes[i].plr.attr[4], 1, 1, f) <= 0 ||
+            vfs_fwrite(&ai_PlayerPrototypes[i].plr.id, 4, 1, f) <= 0)
+          goto bad;
+      }
+      if (vfs_fwrite(&ai_RecipePrototypeCount, 4, 1, f) > 0) {
+        for (i = 0; i < ai_RecipePrototypeCount; i++) {
+          if (vfs_fwrite(&ai_RecipePrototypes[i].rcp.id, 4, 1, f) <= 0 ||
+              vfs_fwrite(&ai_RecipePrototypes[i].rcp.a, 4, 1, f) <= 0 ||
+              vfs_fwrite(&ai_RecipePrototypes[i].rcp.b, 4, 1, f) <= 0)
+            goto bad;
         }
-bad:
         vfs_fclose(f);
+        return 1;
+      }
     }
-    return 0;
+  bad:
+    vfs_fclose(f);
+  }
+  return 0;
 }
 /* 0x4ebf50, the object id of the name without its "ob_" prefix (0x4fe900; the tail call) */
 
-int ahm_ObjectId(char *name)
-{
-    return gm_FindObjectProto(name + 3);
-}
+int ahm_ObjectId(char *name) { return gm_FindObjectProto(name + 3); }
 /* 0x4ebf60, frees the prototype tables and clears the counts */
 
-void ahm_FreePrototypes(void)
-{
-    if (ai_PlayerPrototypes != 0) {
-        mem_Free(ai_PlayerPrototypes);
-        ai_PlayerPrototypes = 0;
-    }
-    if (ai_RecipePrototypes != 0) {
-        mem_Free(ai_RecipePrototypes);
-        ai_RecipePrototypes = 0;
-    }
-    ai_RecipePrototypeCount = 0;
-    ai_PlayerPrototypeCount = 0;
+void ahm_FreePrototypes(void) {
+  if (ai_PlayerPrototypes != 0) {
+    mem_Free(ai_PlayerPrototypes);
+    ai_PlayerPrototypes = 0;
+  }
+  if (ai_RecipePrototypes != 0) {
+    mem_Free(ai_RecipePrototypes);
+    ai_RecipePrototypes = 0;
+  }
+  ai_RecipePrototypeCount = 0;
+  ai_PlayerPrototypeCount = 0;
 }
 /* 0x4ebfb0, writes the walk state to the save file f (the save game 0x5190b0 in ls.c calls it): the five ints 0x6f0dc8 .. 0x6f0dd8, the seed word 0x6f0ddc
    (2 bytes), then the three steps (flag, x, y, the player-prototype view of the grid entry: five attribute bytes + its id); 1 when all was written, 0 when a
@@ -583,135 +566,128 @@ void ahm_FreePrototypes(void)
    every pointer spelling (char* byte offsets, AHMSTEP *p with a pointer or an index loop) re-centred it at +0x14, so the index is the original's source
    shape (notes/vc6-matching.md, the struct-array loop lesson). Q1..Q7 pass. */
 
-int ahm_SaveWalk(void *f)
-{
-    int i;
+int ahm_SaveWalk(void *f) {
+  int i;
 
-    if (vfs_fwrite(&ai_WalkX, 4, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&ai_WalkDX, 4, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&ai_WalkY, 4, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&ai_WalkDY, 4, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&ai_WalkIndex, 4, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&ai_WalkSeed, 2, 1, f) <= 0)
-        return 0;
-    for (i = 0; i < 3; i++) {
-        if (vfs_fwrite(&ai_WalkSteps[i].on, 4, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&ai_WalkSteps[i].x, 4, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&ai_WalkSteps[i].y, 4, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[0], 1, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[1], 1, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[2], 1, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[3], 1, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[4], 1, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.id, 4, 1, f) <= 0)
-            return 0;
-    }
-    return 1;
+  if (vfs_fwrite(&ai_WalkX, 4, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&ai_WalkDX, 4, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&ai_WalkY, 4, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&ai_WalkDY, 4, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&ai_WalkIndex, 4, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&ai_WalkSeed, 2, 1, f) <= 0)
+    return 0;
+  for (i = 0; i < 3; i++) {
+    if (vfs_fwrite(&ai_WalkSteps[i].on, 4, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&ai_WalkSteps[i].x, 4, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&ai_WalkSteps[i].y, 4, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[0], 1, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[1], 1, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[2], 1, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[3], 1, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.attr[4], 1, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&ai_WalkSteps[i].grid.plr.id, 4, 1, f) <= 0)
+      return 0;
+  }
+  return 1;
 }
 /* 0x4ec140, reads the walk state written by ahm_SaveWalk (0x4ebfb0, the load game 0x51c950 in ls.c calls it from version 0x10049) and reshuffles the table
    without restarting the walk (ahm_ShufflePlayers(0)); 1 when all was read, 0 when a read failed */
 
+int ahm_LoadWalk(void *f) {
+  int i;
 
-int ahm_LoadWalk(void *f)
-{
-    int i;
-
-    if (ls_Read(&ai_WalkX, 4, 1, f) == 0)
-        return 0;
-    if (ls_Read(&ai_WalkDX, 4, 1, f) == 0)
-        return 0;
-    if (ls_Read(&ai_WalkY, 4, 1, f) == 0)
-        return 0;
-    if (ls_Read(&ai_WalkDY, 4, 1, f) == 0)
-        return 0;
-    if (ls_Read(&ai_WalkIndex, 4, 1, f) == 0)
-        return 0;
-    if (ls_Read(&ai_WalkSeed, 2, 1, f) == 0)
-        return 0;
-    for (i = 0; i < 3; i++) {
-        if (ls_Read(&ai_WalkSteps[i].on, 4, 1, f) == 0)
-            return 0;
-        if (ls_Read(&ai_WalkSteps[i].x, 4, 1, f) == 0)
-            return 0;
-        if (ls_Read(&ai_WalkSteps[i].y, 4, 1, f) == 0)
-            return 0;
-        if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[0], 1, 1, f) == 0)
-            return 0;
-        if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[1], 1, 1, f) == 0)
-            return 0;
-        if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[2], 1, 1, f) == 0)
-            return 0;
-        if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[3], 1, 1, f) == 0)
-            return 0;
-        if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[4], 1, 1, f) == 0)
-            return 0;
-        if (ls_Read(&ai_WalkSteps[i].grid.plr.id, 4, 1, f) == 0)
-            return 0;
-    }
-    ahm_ShufflePlayers(0);
-    return 1;
+  if (ls_Read(&ai_WalkX, 4, 1, f) == 0)
+    return 0;
+  if (ls_Read(&ai_WalkDX, 4, 1, f) == 0)
+    return 0;
+  if (ls_Read(&ai_WalkY, 4, 1, f) == 0)
+    return 0;
+  if (ls_Read(&ai_WalkDY, 4, 1, f) == 0)
+    return 0;
+  if (ls_Read(&ai_WalkIndex, 4, 1, f) == 0)
+    return 0;
+  if (ls_Read(&ai_WalkSeed, 2, 1, f) == 0)
+    return 0;
+  for (i = 0; i < 3; i++) {
+    if (ls_Read(&ai_WalkSteps[i].on, 4, 1, f) == 0)
+      return 0;
+    if (ls_Read(&ai_WalkSteps[i].x, 4, 1, f) == 0)
+      return 0;
+    if (ls_Read(&ai_WalkSteps[i].y, 4, 1, f) == 0)
+      return 0;
+    if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[0], 1, 1, f) == 0)
+      return 0;
+    if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[1], 1, 1, f) == 0)
+      return 0;
+    if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[2], 1, 1, f) == 0)
+      return 0;
+    if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[3], 1, 1, f) == 0)
+      return 0;
+    if (ls_Read(&ai_WalkSteps[i].grid.plr.attr[4], 1, 1, f) == 0)
+      return 0;
+    if (ls_Read(&ai_WalkSteps[i].grid.plr.id, 4, 1, f) == 0)
+      return 0;
+  }
+  ahm_ShufflePlayers(0);
+  return 1;
 }
 /* 0x4ec2d0, the step number i (0 .. 2) of 0x6f0de0; 0 for others */
 
-
-AHMSTEP *ahm_WalkStep(int i)
-{
-    if (i >= 0 && i < 3)
-        return &ai_WalkSteps[i];
-    return 0;
+AHMSTEP *ahm_WalkStep(int i) {
+  if (i >= 0 && i < 3)
+    return &ai_WalkSteps[i];
+  return 0;
 }
 /* 0x4ec2f0, clears the step p (its flag) */
 
-void ahm_ClearStep(AHMSTEP *p)
-{
-    int i;
+void ahm_ClearStep(AHMSTEP *p) {
+  int i;
 
-    i = 0;
-    do {
-        if (&ai_WalkSteps[i] == p) {
-            ai_WalkSteps[i].on = 0;
-            return;
-        }
-        i++;
-    } while (i < 3);
+  i = 0;
+  do {
+    if (&ai_WalkSteps[i] == p) {
+      ai_WalkSteps[i].on = 0;
+      return;
+    }
+    i++;
+  } while (i < 3);
 }
 /* 0x4ec320, the value of the walk step p (as ahm_LoadIni stored them), used by the tutorial results window (0x57bf00 passes it to the text builder
    0x5176d0): the four attribute bytes (each / 252 = 0x5ecee0) squared and added, plus the two values of the recipe entry of the step's id (ahm_FindRecipe)
    when there is one, both times 500 (0x5ed098), as an int shifted by 5. The two sums are added, not chosen (the 0.0 at 0x5eb788 is the FPU value the
    branch does or does not replace). */
 
-int ahm_StepValue(AHMSTEP *s)
-{
-    float v, sum, x;
-    AHMGRID *g;
+int ahm_StepValue(AHMSTEP *s) {
+  float v, sum, x;
+  AHMGRID *g;
 
-    v = 0.0f;
-    g = ahm_FindRecipe(s->grid.plr.id);
-    x = (float)s->grid.plr.attr[0] * 0.003968254f;
-    sum = x * x;
-    x = (float)s->grid.plr.attr[1] * 0.003968254f;
-    sum += x * x;
-    x = (float)s->grid.plr.attr[2] * 0.003968254f;
-    sum += x * x;
-    x = (float)s->grid.plr.attr[3] * 0.003968254f;
-    sum += x * x;
-    if (g != 0)
-        v = g->rcp.b + g->rcp.a;
-    v = v * 500.0f;
-    return (int)(v + sum * 500.0f) << 5;
+  v = 0.0f;
+  g = ahm_FindRecipe(s->grid.plr.id);
+  x = (float)s->grid.plr.attr[0] * 0.003968254f;
+  sum = x * x;
+  x = (float)s->grid.plr.attr[1] * 0.003968254f;
+  sum += x * x;
+  x = (float)s->grid.plr.attr[2] * 0.003968254f;
+  sum += x * x;
+  x = (float)s->grid.plr.attr[3] * 0.003968254f;
+  sum += x * x;
+  if (g != 0)
+    v = g->rcp.b + g->rcp.a;
+  v = v * 500.0f;
+  return (int)(v + sum * 500.0f) << 5;
 }
 /* 0x4ec3d0, the value of the alchemist object p (the same formula as ahm_StepValue, for a whole building): the four shares of its record squared and added,
    plus the recipe value of each of its six places (ahm_FindRecipe) added to the place's value, both sums times 500 (0x5ed098), as an int shifted by 5. Used
@@ -720,56 +696,54 @@ int ahm_StepValue(AHMSTEP *s)
    VC6 factor them into (sum + sum2) * 500 and left an extra fxch; sum2 = 0.0f is assigned before the ahm_OwnerChar call, as the original clears the slot
    before the call. */
 
-int ahm_ObjectValue(AIBLD *p)
-{
-    AIBLD *o = p;
-    AHMREC *rec;
-    AICHAR *c;
-    float s, sum, sum2, v;
-    AHMGRID *g;
-    int i;
+int ahm_ObjectValue(AIBLD *p) {
+  AIBLD *o = p;
+  AHMREC *rec;
+  AICHAR *c;
+  float s, sum, sum2, v;
+  AHMGRID *g;
+  int i;
 
-    sum2 = 0.0f;
-    c = ahm_OwnerChar(p);
-    if (c == 0)
-        return -1;
-    rec = o->ahm;
-    s = ahm_Share(c, 0);
-    sum = s * s;
-    s = ahm_Share(c, 1);
-    sum = s * s + sum;
-    s = ahm_Share(c, 2);
-    sum = s * s + sum;
-    s = ahm_Share(c, 3);
-    sum = s * s + sum;
-    for (i = 0; i < 6; i++) {
-        g = ahm_FindRecipe(rec->slots[i].id);
-        if (g != 0)
-            sum2 = g->rcp.a + rec->slots[i].v + sum2;
-    }
-    v = sum2 * 500.0f;
-    v = v + sum * 500.0f;
-    return (int)v << 5;
+  sum2 = 0.0f;
+  c = ahm_OwnerChar(p);
+  if (c == 0)
+    return -1;
+  rec = o->ahm;
+  s = ahm_Share(c, 0);
+  sum = s * s;
+  s = ahm_Share(c, 1);
+  sum = s * s + sum;
+  s = ahm_Share(c, 2);
+  sum = s * s + sum;
+  s = ahm_Share(c, 3);
+  sum = s * s + sum;
+  for (i = 0; i < 6; i++) {
+    g = ahm_FindRecipe(rec->slots[i].id);
+    if (g != 0)
+      sum2 = g->rcp.a + rec->slots[i].v + sum2;
+  }
+  v = sum2 * 500.0f;
+  v = v + sum * 500.0f;
+  return (int)v << 5;
 }
 /* 0x4ec490, posts the type 99 message (0x4c6170) that makes the alchemist building o (kind 0x1e) create its owner character from the walk step s: o's id, the
    step's prototype entry, the step's name indexes x / y and the +8 of the recipe entry whose id is the prototype's place id (ahm_FindRecipe); -1 when there is no
    such recipe entry. The prototype is copied with its union assignment: that is what makes VC6 hold the entry's address in a register (lea [s+4]). */
 
-int ahm_SendCreateAlchemist(AIBLD *o, AHMSTEP *s)
-{
-    AIBLD *obj = o;
-    AHMGRID *g;
-    AHMCREATEMSG m;
+int ahm_SendCreateAlchemist(AIBLD *o, AHMSTEP *s) {
+  AIBLD *obj = o;
+  AHMGRID *g;
+  AHMCREATEMSG m;
 
-    g = ahm_FindRecipe(s->grid.plr.id);
-    if (g == 0)
-        return -1;
-    m.building = obj->id;
-    m.proto = s->grid;
-    m.x = s->x;
-    m.y = s->y;
-    m.value = g->rcp.b;
-    return cm_SendCreateAlchemist(&m);
+  g = ahm_FindRecipe(s->grid.plr.id);
+  if (g == 0)
+    return -1;
+  m.building = obj->id;
+  m.proto = s->grid;
+  m.x = s->x;
+  m.y = s->y;
+  m.value = g->rcp.b;
+  return cm_SendCreateAlchemist(&m);
 }
 
 #define AHM_ZERO6(m) memset(m, 0, 24)
@@ -778,405 +752,392 @@ int ahm_SendCreateAlchemist(AIBLD *o, AHMSTEP *s)
    of ai_Chars (or one of kind 0xf), its start values, the age and the four skills of the player prototype, the names m->x / m->y, the relations
    to all others random -0x20 .. 0x1f; the building's record ("ahm_AllocAhmInfo") gets the character, the shares and the first place with its
    value, and the building's place object (kind 6) is emptied and gets the place's good. Returns the character id or 0xffff. */
-int ahm_CreateAlchemist(AHMCREATEMSG *m)
-{
-    AIBLD *o;
-    AICHAR *c;
-    AIOBJ *g;
-    AIOBJ *place;
-    int n, i, j;
-    float v;
+int ahm_CreateAlchemist(AHMCREATEMSG *m) {
+  AIBLD *o;
+  AICHAR *c;
+  AIOBJ *g;
+  AIOBJ *place;
+  int n, i, j;
+  float v;
 
-    gm_FindById(&o, 0, 0, m->building);
-    if (o == 0)
-        return 0xffff;
-    if (ai_BTypes[o->type].kind != 0x1e)
-        return 0xffff;
+  gm_FindById(&o, 0, 0, m->building);
+  if (o == 0)
+    return 0xffff;
+  if (ai_BTypes[o->type].kind != 0x1e)
+    return 0xffff;
+  for (n = 0; n < 0x300; n++)
+    if (ai_Chars[n].id == 0xffff)
+      break;
+  if (n == 0x300) {
     for (n = 0; n < 0x300; n++)
-        if (ai_Chars[n].id == 0xffff)
-            break;
-    if (n == 0x300) {
-        for (n = 0; n < 0x300; n++)
-            if (ai_Chars[n].kind == 0x0f)
-                break;
-        if (n == 0x300)
-            return 0xffff;
-    }
-    if (ai_Chars[n].kind == 0x0f)
-        ai_CharCount--;
-    c = &ai_Chars[n];
-    memset(c, 0, sizeof(AICHAR));
-    ai_Chars[n].netId = -1;
-    ai_Chars[n].id = 0xffff;
-    for (i = 0; i < 8; i++)
-        ai_Chars[n].relatives[i] = -1;
-    c->bld2 = o;
-    c->bld = o;
-    ai_CharCount++;
-    c->id = (unsigned short)n;
-    c->netId = ai_NextObjectId;
-    c->kind = 0;
-    c->v1f0 = 0;
-    c->partner = -1;
-    c->b215 = 0;
-    c->b216 = 0;
-    c->b217 = 0;
-    c->mask = 1;
-    ai_NextObjectId++;
-    c->mood3Rate = 1.0f;
-    c->health = 100;
-    c->age = m->proto.plr.attr[4];
-    c->jobId = 0x52;
-    c->officeKind = 0;
-    c->title = 0;
-    c->ownName[0] = 0;
-    c->v190 = 4;
-    c->money = 0;
-    c->level = 1;
-    c->picture = -1;
-    c->partyId = -1;
-    c->w050 = 0x7fff;
-    for (i = 0; i < 5; i++)
-        c->skills[i] = (unsigned char)(util_Random(0x40) + 0x54);
-    c->sex = 0;
-    strcpy(c->first, txt_Ptrs[TXT_ALCHEMIST_FIRST_NAMES + m->x]);
-    strcpy(c->family, txt_Ptrs[TXT_ALCHEMIST_FAMILY_NAMES + m->y]);
-    c->f01c = 1000.0f;
-    v = util_RandomSq();
-    c->f020 = 12.0f;
-    c->f014 = v * 7.0f + 30.0f - 2.0f;
-    c->f010 = c->f01c * 0.33f + (float)util_Random((int)(c->f01c * 0.2f)) - c->f01c * 0.1f;
-    c->f018 = c->f01c;
-    for (j = 0; j < 0x300; j++) {
-        ai_Relations[j][c->id] = (signed char)util_Random(0x40) - 0x20;
-        ai_RelationMemory[j][c->id] = 0;
-        ai_Relations[c->id][j] = (signed char)util_Random(0x40) - 0x20;
-        ai_RelationMemory[c->id][j] = 0;
-    }
-    g = gm_Query(o->objList, 1, 0, 0x24b);
-    gm_PlaceOnStage(c->netId, o->id, g != 0 ? g->objId : -1, 0, 0);
-    gm_ChooseHeadIcon(c);
-    if (o->ahm == 0)
-        o->ahm = mem_Alloc(sizeof(AHMREC), "ahm_AllocAhmInfo");
-    memset(o->ahm, 0, sizeof(AHMREC));
-    o->ahm->id = c->netId;
-    o->ahm->value = ((float)m->proto.plr.attr[3] * 0.003968254f + 1.0f) * 0.5f;
-    o->ahm->share[0] = m->proto.plr.attr[0];
-    o->ahm->share[1] = m->proto.plr.attr[1];
-    o->ahm->share[2] = m->proto.plr.attr[2];
-    o->ahm->share[3] = m->proto.plr.attr[3];
-    o->ahm->slots[0].id = m->proto.plr.id;
-    place = gm_Query(o->objList, 2, 6, 0, 0xff);
-    if (place != 0) {
-        while (place->items != 0)
-            gm_RemoveObject(&place->list, *place->items);
-    }
-    o->ahm->slots[0].v = m->value;
-    if (place != 0)
-        gm_AddObjekt(place->objId, m->proto.plr.id, 2);
-    gm_RefreshGoodsLists(ai_OwnPlayer);
-    c->flags1cc |= 4;
-    return c->id;
+      if (ai_Chars[n].kind == 0x0f)
+        break;
+    if (n == 0x300)
+      return 0xffff;
+  }
+  if (ai_Chars[n].kind == 0x0f)
+    ai_CharCount--;
+  c = &ai_Chars[n];
+  memset(c, 0, sizeof(AICHAR));
+  ai_Chars[n].netId = -1;
+  ai_Chars[n].id = 0xffff;
+  for (i = 0; i < 8; i++)
+    ai_Chars[n].relatives[i] = -1;
+  c->bld2 = o;
+  c->bld = o;
+  ai_CharCount++;
+  c->id = (unsigned short)n;
+  c->netId = ai_NextObjectId;
+  c->kind = 0;
+  c->v1f0 = 0;
+  c->partner = -1;
+  c->b215 = 0;
+  c->b216 = 0;
+  c->b217 = 0;
+  c->mask = 1;
+  ai_NextObjectId++;
+  c->mood3Rate = 1.0f;
+  c->health = 100;
+  c->age = m->proto.plr.attr[4];
+  c->jobId = 0x52;
+  c->officeKind = 0;
+  c->title = 0;
+  c->ownName[0] = 0;
+  c->v190 = 4;
+  c->money = 0;
+  c->level = 1;
+  c->picture = -1;
+  c->partyId = -1;
+  c->w050 = 0x7fff;
+  for (i = 0; i < 5; i++)
+    c->skills[i] = (unsigned char)(util_Random(0x40) + 0x54);
+  c->sex = 0;
+  strcpy(c->first, txt_Ptrs[TXT_ALCHEMIST_FIRST_NAMES + m->x]);
+  strcpy(c->family, txt_Ptrs[TXT_ALCHEMIST_FAMILY_NAMES + m->y]);
+  c->f01c = 1000.0f;
+  v = util_RandomSq();
+  c->f020 = 12.0f;
+  c->f014 = v * 7.0f + 30.0f - 2.0f;
+  c->f010 = c->f01c * 0.33f + (float)util_Random((int)(c->f01c * 0.2f)) -
+            c->f01c * 0.1f;
+  c->f018 = c->f01c;
+  for (j = 0; j < 0x300; j++) {
+    ai_Relations[j][c->id] = (signed char)util_Random(0x40) - 0x20;
+    ai_RelationMemory[j][c->id] = 0;
+    ai_Relations[c->id][j] = (signed char)util_Random(0x40) - 0x20;
+    ai_RelationMemory[c->id][j] = 0;
+  }
+  g = gm_Query(o->objList, 1, 0, 0x24b);
+  gm_PlaceOnStage(c->netId, o->id, g != 0 ? g->objId : -1, 0, 0);
+  gm_ChooseHeadIcon(c);
+  if (o->ahm == 0)
+    o->ahm = mem_Alloc(sizeof(AHMREC), "ahm_AllocAhmInfo");
+  memset(o->ahm, 0, sizeof(AHMREC));
+  o->ahm->id = c->netId;
+  o->ahm->value = ((float)m->proto.plr.attr[3] * 0.003968254f + 1.0f) * 0.5f;
+  o->ahm->share[0] = m->proto.plr.attr[0];
+  o->ahm->share[1] = m->proto.plr.attr[1];
+  o->ahm->share[2] = m->proto.plr.attr[2];
+  o->ahm->share[3] = m->proto.plr.attr[3];
+  o->ahm->slots[0].id = m->proto.plr.id;
+  place = gm_Query(o->objList, 2, 6, 0, 0xff);
+  if (place != 0) {
+    while (place->items != 0)
+      gm_RemoveObject(&place->list, *place->items);
+  }
+  o->ahm->slots[0].v = m->value;
+  if (place != 0)
+    gm_AddObjekt(place->objId, m->proto.plr.id, 2);
+  gm_RefreshGoodsLists(ai_OwnPlayer);
+  c->flags1cc |= 4;
+  return c->id;
 }
 /* 0x4ec940, the message 'SsCa' (cm_SendCommand) of the character c with the id and the value v clamped to 0 .. 1; -1 when c has no object (0x4eaad0) */
 
-int ahm_SendSetShare(AICHAR *c, int id, float v)
-{
-    AHMORDER m;
+int ahm_SendSetShare(AICHAR *c, int id, float v) {
+  AHMORDER m;
 
-    if (ahm_HasRecord(c) == 0)
-        return -1;
-    AHM_ZERO6(&m);
-    m.charId = c->netId;
-    m.tag = AHM_CMD_SET_SHARE;
-    m.id = id;
-    m.value.f = min(max(v, 0.0f), 1.0f);
-    return cm_SendCommand(&m);
+  if (ahm_HasRecord(c) == 0)
+    return -1;
+  AHM_ZERO6(&m);
+  m.charId = c->netId;
+  m.tag = AHM_CMD_SET_SHARE;
+  m.id = id;
+  m.value.f = min(max(v, 0.0f), 1.0f);
+  return cm_SendCommand(&m);
 }
 /* 0x4eca00, the 'SsCa' handler: sets the share m->id (0 .. 3) of the record rec (+8 .. +0xb) to the value m->value.f times 252 (the inverse of 0x4eab20); 0 for
    another number */
 
-int ahm_SetShare(AHMORDER *m, AHMREC *rec)
-{
-    AHMREC *r = rec;
+int ahm_SetShare(AHMORDER *m, AHMREC *rec) {
+  AHMREC *r = rec;
 
-    switch (m->id) {
-    case 0:
-        r->share[0] = (char)(int)(m->value.f * 252.0f);
-        return 1;
-    case 1:
-        r->share[1] = (char)(int)(m->value.f * 252.0f);
-        return 1;
-    case 2:
-        r->share[2] = (char)(int)(m->value.f * 252.0f);
-        return 1;
-    case 3:
-        r->share[3] = (char)(int)(m->value.f * 252.0f);
-        return 1;
-    default:
-        return 0;
-    }
+  switch (m->id) {
+  case 0:
+    r->share[0] = (char)(int)(m->value.f * 252.0f);
+    return 1;
+  case 1:
+    r->share[1] = (char)(int)(m->value.f * 252.0f);
+    return 1;
+  case 2:
+    r->share[2] = (char)(int)(m->value.f * 252.0f);
+    return 1;
+  case 3:
+    r->share[3] = (char)(int)(m->value.f * 252.0f);
+    return 1;
+  default:
+    return 0;
+  }
 }
 /* 0x4ecaa0, the message 'Rdaa' (cm_SendCommand) of the character c with the table entry of id: its id and +8; -1 when c has no object or no free place (0x4eac20) or the entry does not exist */
 
-int ahm_SendAddPlace(AICHAR *c, int id)
-{
-    AHMGRID *g;
-    AHMORDER m;
+int ahm_SendAddPlace(AICHAR *c, int id) {
+  AHMGRID *g;
+  AHMORDER m;
 
-    if (ahm_HasRecord(c) == 0)
-        return -1;
-    if (ahm_HasFreeSlot(c) == 0)
-        return -1;
-    g = ahm_FindRecipe(id);
-    if (g == 0)
-        return -1;
-    AHM_ZERO6(&m);
-    m.charId = c->netId;
-    m.tag = AHM_CMD_ADD_PLACE;
-    m.id = g->rcp.id;
-    m.value.i = g->w[2];
-    return cm_SendCommand(&m);
+  if (ahm_HasRecord(c) == 0)
+    return -1;
+  if (ahm_HasFreeSlot(c) == 0)
+    return -1;
+  g = ahm_FindRecipe(id);
+  if (g == 0)
+    return -1;
+  AHM_ZERO6(&m);
+  m.charId = c->netId;
+  m.tag = AHM_CMD_ADD_PLACE;
+  m.id = g->rcp.id;
+  m.value.i = g->w[2];
+  return cm_SendCommand(&m);
 }
 /* 0x4ecb30, puts the order m (+8 the id, +0x10 the value) into the first free place of the record rec (6 pairs at +0xc) of the object o (+0x5d the list); 0 when all are in use */
 
-int ahm_AddPlace(AHMORDER *m, AHMREC *rec, AIBLD *o)
-{
-    AIBLD *obj = o;
-    AHMREC *r = rec;
-    int i;
-    AIOBJ *sp;
-    AHMSLOT *q;
+int ahm_AddPlace(AHMORDER *m, AHMREC *rec, AIBLD *o) {
+  AIBLD *obj = o;
+  AHMREC *r = rec;
+  int i;
+  AIOBJ *sp;
+  AHMSLOT *q;
 
-    q = r->slots;
-    i = 0;
-    do {
-        if (q->id == 0) {
-            sp = gm_Query(obj->objList, 2, 6, 0, 0xff);
-            if (net_Conn.s != INVALID_SOCKET)   /* a network game: the server's id counter wins */
-                ai_NextObjectId = m->nextObjectId;
-            r->slots[i].id = m->id;
-            r->slots[i].v = m->value.f;
-            if (sp != 0)
-                gm_AddObjekt(sp->objId, m->id, 2);
-            gm_RefreshGoodsLists(ai_OwnPlayer);
-            return 1;
-        }
-        i++;
-        q++;
-    } while (i < 6);
-    return 0;
+  q = r->slots;
+  i = 0;
+  do {
+    if (q->id == 0) {
+      sp = gm_Query(obj->objList, 2, 6, 0, 0xff);
+      if (net_Conn.s !=
+          INVALID_SOCKET) /* a network game: the server's id counter wins */
+        ai_NextObjectId = m->nextObjectId;
+      r->slots[i].id = m->id;
+      r->slots[i].v = m->value.f;
+      if (sp != 0)
+        gm_AddObjekt(sp->objId, m->id, 2);
+      gm_RefreshGoodsLists(ai_OwnPlayer);
+      return 1;
+    }
+    i++;
+    q++;
+  } while (i < 6);
+  return 0;
 }
 /* 0x4ecbc0, removes the place of the id m->id from the record rec and from the list of the object o; 0 when there is none */
 
-int ahm_RemovePlace(AHMORDER *m, AHMREC *rec, AIBLD *o)
-{
-    AIBLD *obj = o;
-    AHMREC *r = rec;
-    int i;
-    AIOBJ *sp;
-    AHMSLOT *q;
+int ahm_RemovePlace(AHMORDER *m, AHMREC *rec, AIBLD *o) {
+  AIBLD *obj = o;
+  AHMREC *r = rec;
+  int i;
+  AIOBJ *sp;
+  AHMSLOT *q;
 
-    q = r->slots;
-    i = 0;
-    do {
-        if (q->id == m->id) {
-            sp = gm_Query(obj->objList, 2, 6, 0, 0xff);
-            if (sp != 0)
-                gm_RemoveObject(&sp->list, m->id);
-            r->slots[i].id = 0;
-            r->slots[i].v = 0.0f;
-            return 1;
-        }
-        i++;
-        q++;
-    } while (i < 6);
-    return 0;
+  q = r->slots;
+  i = 0;
+  do {
+    if (q->id == m->id) {
+      sp = gm_Query(obj->objList, 2, 6, 0, 0xff);
+      if (sp != 0)
+        gm_RemoveObject(&sp->list, m->id);
+      r->slots[i].id = 0;
+      r->slots[i].v = 0.0f;
+      return 1;
+    }
+    i++;
+    q++;
+  } while (i < 6);
+  return 0;
 }
 /* 0x4ecc30, the message 'cRSa' (0x4c61b0) of the character c for the place id with the value v clamped to 0 .. 1; -1 when c has no object or no such place (0x4eabe0) */
 
-int ahm_SendSetPlaceValue(AICHAR *c, int id, float v)
-{
-    AHMORDER m;
+int ahm_SendSetPlaceValue(AICHAR *c, int id, float v) {
+  AHMORDER m;
 
-    if (ahm_HasRecord(c) == 0)
-        return -1;
-    if (ahm_SlotOf(c, id) == 0)
-        return -1;
-    AHM_ZERO6(&m);
-    m.charId = c->netId;
-    m.tag = AHM_CMD_SET_PLACE;
-    m.id = id;
-    m.value.f = min(max(v, 0.0f), 1.0f);
-    return cm_SendCommand(&m);
+  if (ahm_HasRecord(c) == 0)
+    return -1;
+  if (ahm_SlotOf(c, id) == 0)
+    return -1;
+  AHM_ZERO6(&m);
+  m.charId = c->netId;
+  m.tag = AHM_CMD_SET_PLACE;
+  m.id = id;
+  m.value.f = min(max(v, 0.0f), 1.0f);
+  return cm_SendCommand(&m);
 }
 /* 0x4ecd10, the 'cRSa' handler: sets the value of the place m->id in the record rec to m->value.f; 0 when there is none */
 
-int ahm_SetPlaceValue(AHMORDER *m, AHMREC *rec)
-{
-    AHMREC *r = rec;
-    int i;
+int ahm_SetPlaceValue(AHMORDER *m, AHMREC *rec) {
+  AHMREC *r = rec;
+  int i;
 
-    for (i = 0; i < 6; i++) {
-        if (r->slots[i].id == m->id) {
-            r->slots[i].v = m->value.f;
-            return 1;
-        }
+  for (i = 0; i < 6; i++) {
+    if (r->slots[i].id == m->id) {
+      r->slots[i].v = m->value.f;
+      return 1;
     }
-    return 0;
+  }
+  return 0;
 }
 /* 0x4ecd50, the message 'SmSa' (0x4c61b0) of the character c with the value v; -1 when c has no object */
 
-int ahm_SendAddValue(AICHAR *c, float v)
-{
-    AHMORDER m;
+int ahm_SendAddValue(AICHAR *c, float v) {
+  AHMORDER m;
 
-    if (ahm_HasRecord(c) == 0)
-        return -1;
-    AHM_ZERO6(&m);
-    m.tag = AHM_CMD_ADD_VALUE;
-    m.charId = c->netId;
-    m.value.f = v;
-    return cm_SendCommand(&m);
+  if (ahm_HasRecord(c) == 0)
+    return -1;
+  AHM_ZERO6(&m);
+  m.tag = AHM_CMD_ADD_VALUE;
+  m.charId = c->netId;
+  m.value.f = v;
+  return cm_SendCommand(&m);
 }
 /* 0x4ecdb0, the 'SmSa' handler: adds m->value.f to the value at +4 of the record rec, clamped to 0 .. 1 (the windows.h min / max macros on the sum in a local; the 0.0f / 1.0f are the pooled literals ai_FloatZero / ai_FloatOne) */
 
-int ahm_AddValue(AHMORDER *m, AHMREC *rec)
-{
-    AHMREC *r = rec;
-    float f;
+int ahm_AddValue(AHMORDER *m, AHMREC *rec) {
+  AHMREC *r = rec;
+  float f;
 
-    f = m->value.f + r->value;
-    f = min(max(f, 0.0f), 1.0f);
-    r->value = f;
-    return 1;
+  f = m->value.f + r->value;
+  f = min(max(f, 0.0f), 1.0f);
+  r->value = f;
+  return 1;
 }
 /* 0x4ece10, the message 'ErFi' (cm_SendCommand) of the character c; -1 when c has no object */
 
-int ahm_SendDelete(AICHAR *c)
-{
-    AHMORDER m;
+int ahm_SendDelete(AICHAR *c) {
+  AHMORDER m;
 
-    if (ahm_HasRecord(c) == 0)
-        return -1;
-    AHM_ZERO6(&m);
-    m.tag = AHM_CMD_DELETE;
-    m.charId = c->netId;
-    return cm_SendCommand(&m);
+  if (ahm_HasRecord(c) == 0)
+    return -1;
+  AHM_ZERO6(&m);
+  m.tag = AHM_CMD_DELETE;
+  m.charId = c->netId;
+  return cm_SendCommand(&m);
 }
 /* 0x4ece60, the 'ErFi' handler (the order m unread): deletes the alchemist of the record rec (+0 the character id): clears its object pointers, removes the places from the list of the object o, zeroes the record; 0 when the character is gone */
 
-int ahm_DeleteAlchemist(AHMORDER *m, AHMREC *rec, AIBLD *o)
-{
-    AICHAR *c;
-    AIOBJ *sp;
-    AHMSLOT *q;
-    int i;
+int ahm_DeleteAlchemist(AHMORDER *m, AHMREC *rec, AIBLD *o) {
+  AICHAR *c;
+  AIOBJ *sp;
+  AHMSLOT *q;
+  int i;
 
-    c = gm_FindChar(rec->id);
-    if (c != 0) {
-        sp = gm_Query(o->objList, 2, 6, 0, 0xff);
-        c->bld2 = 0;
-        c->bld = 0;
-        q = rec->slots;
-        for (i = 6; i != 0; i--) {
-            if (q->id != 0) {
-                if (sp != 0)
-                    gm_RemoveObject(&sp->list, q->id);
-                q->id = 0;
-                q->v = 0.0f;
-            }
-            q++;
-        }
-        memset(rec, 0, sizeof(AHMREC));
-        gm_KillSpieler(c->id, 1);
-        return 1;
+  c = gm_FindChar(rec->id);
+  if (c != 0) {
+    sp = gm_Query(o->objList, 2, 6, 0, 0xff);
+    c->bld2 = 0;
+    c->bld = 0;
+    q = rec->slots;
+    for (i = 6; i != 0; i--) {
+      if (q->id != 0) {
+        if (sp != 0)
+          gm_RemoveObject(&sp->list, q->id);
+        q->id = 0;
+        q->v = 0.0f;
+      }
+      q++;
     }
-    return 0;
+    memset(rec, 0, sizeof(AHMREC));
+    gm_KillSpieler(c->id, 1);
+    return 1;
+  }
+  return 0;
 }
 /* 0x4ecf10, writes the record of the object o (+0x65; a blank one with id -1 when it has none) to the file f: id (4), float (4), 4 shares (1 each), 6 places (2 x 4); 1 when all was written */
 
+int ahm_WriteRecord(void *f, AIBLD *o) {
+  AIBLD *obj = o;
+  AHMREC *r;
+  AHMREC blank;
+  int i;
 
-int ahm_WriteRecord(void *f, AIBLD *o)
-{
-    AIBLD *obj = o;
-    AHMREC *r;
-    AHMREC blank;
-    int i;
-
-    r = obj->ahm;
-    memset(&blank, 0, 0x3c);
-    blank.id = -1;
-    if (r == 0)
-        r = &blank;
-    if (vfs_fwrite(&r->id, 4, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&r->value, 4, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&r->share[0], 1, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&r->share[1], 1, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&r->share[2], 1, 1, f) <= 0)
-        return 0;
-    if (vfs_fwrite(&r->share[3], 1, 1, f) <= 0)
-        return 0;
-    for (i = 0; i < 6; i++) {
-        if (vfs_fwrite(&r->slots[i].id, 4, 1, f) <= 0)
-            return 0;
-        if (vfs_fwrite(&r->slots[i].v, 4, 1, f) <= 0)
-            return 0;
-    }
-    return 1;
+  r = obj->ahm;
+  memset(&blank, 0, 0x3c);
+  blank.id = -1;
+  if (r == 0)
+    r = &blank;
+  if (vfs_fwrite(&r->id, 4, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&r->value, 4, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&r->share[0], 1, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&r->share[1], 1, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&r->share[2], 1, 1, f) <= 0)
+    return 0;
+  if (vfs_fwrite(&r->share[3], 1, 1, f) <= 0)
+    return 0;
+  for (i = 0; i < 6; i++) {
+    if (vfs_fwrite(&r->slots[i].id, 4, 1, f) <= 0)
+      return 0;
+    if (vfs_fwrite(&r->slots[i].v, 4, 1, f) <= 0)
+      return 0;
+  }
+  return 1;
 }
 /* 0x4ed040, reads the record of 0x4ecf10 from the file f into the object o (+0x65, allocated when missing); 1 when all was read */
 
-int ahm_ReadRecord(void *f, AIBLD *o)
-{
-    AIBLD *obj = o;
-    AHMREC rec;
-    int i;
+int ahm_ReadRecord(void *f, AIBLD *o) {
+  AIBLD *obj = o;
+  AHMREC rec;
+  int i;
 
-    if (ls_Read(&rec.id, 4, 1, f) == 0)
-        return 0;
-    if (ls_Read(&rec.value, 4, 1, f) == 0)
-        return 0;
-    if (ls_Read(&rec.share[0], 1, 1, f) == 0)
-        return 0;
-    if (ls_Read(&rec.share[1], 1, 1, f) == 0)
-        return 0;
-    if (ls_Read(&rec.share[2], 1, 1, f) == 0)
-        return 0;
-    if (ls_Read(&rec.share[3], 1, 1, f) == 0)
-        return 0;
-    for (i = 0; i < 6; i++) {
-        if (ls_Read(&rec.slots[i].id, 4, 1, f) == 0)
-            return 0;
-        if (ls_Read(&rec.slots[i].v, 4, 1, f) == 0)
-            return 0;
-    }
-    if (obj->ahm == 0)
-        obj->ahm = mem_Alloc(0x3c, "ahm_AllocAhmInfo");
-    *obj->ahm = rec;
-    return 1;
+  if (ls_Read(&rec.id, 4, 1, f) == 0)
+    return 0;
+  if (ls_Read(&rec.value, 4, 1, f) == 0)
+    return 0;
+  if (ls_Read(&rec.share[0], 1, 1, f) == 0)
+    return 0;
+  if (ls_Read(&rec.share[1], 1, 1, f) == 0)
+    return 0;
+  if (ls_Read(&rec.share[2], 1, 1, f) == 0)
+    return 0;
+  if (ls_Read(&rec.share[3], 1, 1, f) == 0)
+    return 0;
+  for (i = 0; i < 6; i++) {
+    if (ls_Read(&rec.slots[i].id, 4, 1, f) == 0)
+      return 0;
+    if (ls_Read(&rec.slots[i].v, 4, 1, f) == 0)
+      return 0;
+  }
+  if (obj->ahm == 0)
+    obj->ahm = mem_Alloc(0x3c, "ahm_AllocAhmInfo");
+  *obj->ahm = rec;
+  return 1;
 }
 
 extern AICHAR ai_Chars[768];
 extern struct AIBTYPE *ai_BTypes;
 extern signed char ai_Relations[768][768];
 extern signed char ai_RelationMemory[768][768];
-int ahm_Tab[8] = { 1, 3, 7, 11, 13, 17, 19, 21 };  /* 0x60f1b0 */
-int ai_WalkX = 0;  /* 0x6f0dc8 */
-int ai_WalkDX = 0;  /* 0x6f0dcc */
-int ai_WalkY = 0;  /* 0x6f0dd0 */
-int ai_WalkDY = 0;  /* 0x6f0dd4 */
-int ai_WalkIndex = 0;  /* 0x6f0dd8 */
-AHMSEED ai_WalkSeed = {0};  /* 0x6f0ddc */
-AHMSTEP ai_WalkSteps[3] = {0};  /* 0x6f0de0 */
-int ai_PlayerPrototypeCount = 0;  /* 0x6f0e28 */
-AHMGRID * ai_PlayerPrototypes = 0;  /* 0x6f0e2c */
-int ai_RecipePrototypeCount = 0;  /* 0x6f0e30 */
-AHMGRID * ai_RecipePrototypes = 0;  /* 0x6f0e34 */
+int ahm_Tab[8] = {1, 3, 7, 11, 13, 17, 19, 21}; /* 0x60f1b0 */
+int ai_WalkX = 0;                               /* 0x6f0dc8 */
+int ai_WalkDX = 0;                              /* 0x6f0dcc */
+int ai_WalkY = 0;                               /* 0x6f0dd0 */
+int ai_WalkDY = 0;                              /* 0x6f0dd4 */
+int ai_WalkIndex = 0;                           /* 0x6f0dd8 */
+AHMSEED ai_WalkSeed = {0};                      /* 0x6f0ddc */
+AHMSTEP ai_WalkSteps[3] = {0};                  /* 0x6f0de0 */
+int ai_PlayerPrototypeCount = 0;                /* 0x6f0e28 */
+AHMGRID *ai_PlayerPrototypes = 0;               /* 0x6f0e2c */
+int ai_RecipePrototypeCount = 0;                /* 0x6f0e30 */
+AHMGRID *ai_RecipePrototypes = 0;               /* 0x6f0e34 */
 extern AICHAR ai_Chars[768];
 extern struct AIBTYPE *ai_BTypes;
 extern signed char ai_Relations[768][768];

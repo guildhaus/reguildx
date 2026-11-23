@@ -26,8 +26,11 @@
 #include "d3_pose.h"
 extern unsigned char d3_MipSkip;
 
-struct TSTEXTURE; struct TSTEXTURE *tex_Create(char *name, int size, char hicol, D3TEXFLAGS flags, unsigned char f0, unsigned char f6a,
-                 int npal, const unsigned char *pal, char mips);                              /* 0x461230 */
+struct TSTEXTURE;
+struct TSTEXTURE *tex_Create(char *name, int size, char hicol, D3TEXFLAGS flags,
+                             unsigned char f0, unsigned char f6a, int npal,
+                             const unsigned char *pal,
+                             char mips); /* 0x461230 */
 
 extern int d3s_EdgeX[4];
 extern int d3s_EdgeY[4];
@@ -39,123 +42,128 @@ extern int d3s_XL;
 extern int d3s_XR;
 extern int d3s_CL;
 extern int d3s_Area;
-extern unsigned char * d3s_Dst;
-extern D3SMENTRY * d3s_SpanRow;
+extern unsigned char *d3s_Dst;
+extern D3SMENTRY *d3s_SpanRow;
 extern int d3s_ShadowRadius;
 extern char d3s_Byte;
-extern unsigned short * d3s_Dst16;
+extern unsigned short *d3s_Dst16;
 extern int d3s_SpanLen;
 extern int d3s_Fill;
-extern int dd_PitchPixels;                      /* 0x14661a0 */
-extern int dd_Pitch;                       /* 0x1463588 */
-extern void *dd_Surface;                 /* 0x1463590 */
-unsigned int d3s_CacheCount = 0;  /* 0x633db8 */
-unsigned int d3s_CacheAge = 0;  /* 0x633dbc */
-extern D3SCENT * d3s_Cache;
-unsigned int d3s_Count = 0;  /* 0x633dc0 */
-unsigned int d3s_MaxPolys = 0;  /* 0x633dc4 */
-int d3s_MaxPolys2 = 0;  /* 0x633dc8 */
-int d3s_ShadowMapSize = 0;  /* 0x633dcc */
-extern int d3s_ShadowMapSize;              /* 0x633dcc, cells per side of the object shadow map */
+extern int dd_PitchPixels;       /* 0x14661a0 */
+extern int dd_Pitch;             /* 0x1463588 */
+extern void *dd_Surface;         /* 0x1463590 */
+unsigned int d3s_CacheCount = 0; /* 0x633db8 */
+unsigned int d3s_CacheAge = 0;   /* 0x633dbc */
+extern D3SCENT *d3s_Cache;
+unsigned int d3s_Count = 0;    /* 0x633dc0 */
+unsigned int d3s_MaxPolys = 0; /* 0x633dc4 */
+int d3s_MaxPolys2 = 0;         /* 0x633dc8 */
+int d3s_ShadowMapSize = 0;     /* 0x633dcc */
+extern int
+    d3s_ShadowMapSize; /* 0x633dcc, cells per side of the object shadow map */
 extern const unsigned char d3s_Palette[];
-extern float * d3s_Verts;
-extern float * d3s_UVs;
+extern float *d3s_Verts;
+extern float *d3s_UVs;
 extern char d3s_Enabled;
-D3SCENT * d3s_Cache = 0;  /* 0x633dd0 */
-char d3s_LodTexSize;  /* 0xfb91d8, 1: the shadow texture size follows the mesh LOD */
+D3SCENT *d3s_Cache = 0; /* 0x633dd0 */
+char
+    d3s_LodTexSize; /* 0xfb91d8, 1: the shadow texture size follows the mesh LOD */
 extern unsigned char d3s_ShadowMips;
 extern unsigned int d3s_TexSize;
-unsigned int d3s_MaxTexSize;  /* 0xfb91dc */
-D3OBJECT *d3s_Lights[4];                    /* 0xfb91e0 */
-char d3s_Enabled;  /* 0xfb91f0 */
-float d3s_QuadUV[6];  /* 0xfb9200 */
-float * d3s_UVs;  /* 0xfb9218 */
-unsigned char d3s_ShadowMips;  /* 0xfb921c, mip flag of the cached shadow textures */
-int d3s_NumVerts;  /* 0xfb9220 */
-float d3s_QuadUV2[6];  /* 0xfb9240 */
-extern D3OBJECT *d3s_Lights[4];             /* 0xfb91e0 */
-extern unsigned int d3s_NumLights;          /* 0xfb9264 */
-void d3sm_Destroy(struct D3SM *h);          /* 0x45ef60 */
+unsigned int d3s_MaxTexSize; /* 0xfb91dc */
+D3OBJECT *d3s_Lights[4];     /* 0xfb91e0 */
+char d3s_Enabled;            /* 0xfb91f0 */
+float d3s_QuadUV[6];         /* 0xfb9200 */
+float *d3s_UVs;              /* 0xfb9218 */
+unsigned char
+    d3s_ShadowMips;   /* 0xfb921c, mip flag of the cached shadow textures */
+int d3s_NumVerts;     /* 0xfb9220 */
+float d3s_QuadUV2[6]; /* 0xfb9240 */
+extern D3OBJECT *d3s_Lights[4];    /* 0xfb91e0 */
+extern unsigned int d3s_NumLights; /* 0xfb9264 */
+void d3sm_Destroy(struct D3SM *h); /* 0x45ef60 */
 
 /* float to int with fistp (current rounding mode) */
-__inline void d3s_FtoI(int *dst, float f)
-{
+__inline void d3s_FtoI(int *dst, float f) {
+  /* clang-format off */
     __asm fld f
     __asm mov edx, dst
     __asm fistp dword ptr [edx]
+  /* clang-format on */
 }
 
 /* 64-bit fixed point helpers (inline asm): (a * b) >> 14, (a * b) >> 16 and (a << 16) / b */
-__inline int d3s_MulShr14(int a, int b)
-{
+__inline int d3s_MulShr14(int a, int b){
+    /* clang-format off */
     __asm mov eax, a
     __asm mov edx, b
     __asm imul edx
     __asm shrd eax, edx, 14
+    /* clang-format on */
 }
 
-__inline int d3s_MulShr16(int a, int b)
-{
+__inline int d3s_MulShr16(int a, int b){
+    /* clang-format off */
     __asm mov eax, a
     __asm mov edx, b
     __asm imul edx
     __asm shrd eax, edx, 16
+    /* clang-format on */
 }
 
-__inline int d3s_ShlDiv16(int a, int b)
-{
+__inline int d3s_ShlDiv16(int a, int b) {
+  /* clang-format off */
     __asm mov eax, a
     __asm mov ebx, b
     __asm mov edx, eax
     __asm sar edx, 16
     __asm shl eax, 16
     __asm idiv ebx
+  /* clang-format on */
 }
 /* 0x459d80, x slope (d3s_SlopeR) and the x at the first pixel row of the edge from vertex a to vertex b */
-void d3s_RightEdge(int a, int b)
-{
-    int dy = d3s_EdgeY[b] - d3s_EdgeY[a];
+void d3s_RightEdge(int a, int b) {
+  int dy = d3s_EdgeY[b] - d3s_EdgeY[a];
 
-    if (dy < 0x10000)
-        d3s_SlopeR = d3s_MulShr14(d3s_EdgeX[b] - d3s_EdgeX[a], 0x40000000 / dy);
-    else
-        d3s_SlopeR = d3s_ShlDiv16(d3s_EdgeX[b] - d3s_EdgeX[a], dy);
-    d3s_XR = d3s_EdgeX[a]
-        + d3s_MulShr16(((d3s_EdgeY[a] + 0xffff) & 0xffff0000) - d3s_EdgeY[a], d3s_SlopeR);
+  if (dy < 0x10000)
+    d3s_SlopeR = d3s_MulShr14(d3s_EdgeX[b] - d3s_EdgeX[a], 0x40000000 / dy);
+  else
+    d3s_SlopeR = d3s_ShlDiv16(d3s_EdgeX[b] - d3s_EdgeX[a], dy);
+  d3s_XR = d3s_EdgeX[a] +
+           d3s_MulShr16(((d3s_EdgeY[a] + 0xffff) & 0xffff0000) - d3s_EdgeY[a],
+                        d3s_SlopeR);
 }
 /* 0x459e50, as d3s_RightEdge with a second interpolated value (d3s_EdgeC, slope d3s_SlopeC, start d3s_CL) */
 
-void d3s_LeftEdgeColor(int a, int b)
-{
-    int dy = d3s_EdgeY[b] - d3s_EdgeY[a];
-    int q, d;
+void d3s_LeftEdgeColor(int a, int b) {
+  int dy = d3s_EdgeY[b] - d3s_EdgeY[a];
+  int q, d;
 
-    if (dy < 0x10000) {
-        q = 0x40000000 / dy;
-        d3s_SlopeL = d3s_MulShr14(d3s_EdgeX[b] - d3s_EdgeX[a], q);
-        d3s_SlopeC = d3s_MulShr14(d3s_EdgeC[b] - d3s_EdgeC[a], q);
-    } else {
-        d3s_SlopeL = d3s_ShlDiv16(d3s_EdgeX[b] - d3s_EdgeX[a], dy);
-        d3s_SlopeC = d3s_ShlDiv16(d3s_EdgeC[b] - d3s_EdgeC[a], dy);
-    }
-    d = ((d3s_EdgeY[a] + 0xffff) & 0xffff0000) - d3s_EdgeY[a];
-    d3s_XL = d3s_EdgeX[a] + d3s_MulShr16(d, d3s_SlopeL);
-    d3s_CL = d3s_EdgeC[a] + d3s_MulShr16(d, d3s_SlopeC);
+  if (dy < 0x10000) {
+    q = 0x40000000 / dy;
+    d3s_SlopeL = d3s_MulShr14(d3s_EdgeX[b] - d3s_EdgeX[a], q);
+    d3s_SlopeC = d3s_MulShr14(d3s_EdgeC[b] - d3s_EdgeC[a], q);
+  } else {
+    d3s_SlopeL = d3s_ShlDiv16(d3s_EdgeX[b] - d3s_EdgeX[a], dy);
+    d3s_SlopeC = d3s_ShlDiv16(d3s_EdgeC[b] - d3s_EdgeC[a], dy);
+  }
+  d = ((d3s_EdgeY[a] + 0xffff) & 0xffff0000) - d3s_EdgeY[a];
+  d3s_XL = d3s_EdgeX[a] + d3s_MulShr16(d, d3s_SlopeL);
+  d3s_CL = d3s_EdgeC[a] + d3s_MulShr16(d, d3s_SlopeC);
 }
 /* 0x459f90, writes v into the first dword of n consecutive 0x1c byte entries */
 
-void d3s_MarkSpan(int v, int n, D3SMENTRY *p)
-{
-    for (; n > 0; n--) {
-        p->type = v;
-        p++;
-    }
+void d3s_MarkSpan(int v, int n, D3SMENTRY *p) {
+  for (; n > 0; n--) {
+    p->type = v;
+    p++;
+  }
 }
 
 /* the span loop of d3s_DrawSpans: one byte per pixel from the 16.16 value u, which grows by step; the carry of the
    low half is carried into the next add (adc), the byte is the middle of the value (ror 16) */
-__inline void d3s_Span(unsigned int u, int n, unsigned char *dst, int step)
-{
+__inline void d3s_Span(unsigned int u, int n, unsigned char *dst, int step) {
+  /* clang-format off */
     __asm mov eax, u
     __asm mov edx, n
     __asm mov ebx, dst
@@ -168,78 +176,80 @@ __inline void d3s_Span(unsigned int u, int n, unsigned char *dst, int step)
     __asm inc ebx
     __asm dec edx
     __asm jne d3s_span_loop
+  /* clang-format on */
 }
 
 /* 0x459fb0, steps down the rows of a triangle (rows of w pixels) along the edges d3s_XL / d3s_XR (left /
    right x with slopes d3s_SlopeL / d3s_SlopeR). Fills the byte buffer with the interpolated value (flags & 2) and
    marks the span (flags & 5: value 0xb for the border when flags & 1 is clear), widening it by d3s_ShadowRadius rows
    and pixels around. */
-void d3s_DrawSpans(int rows, int w, unsigned char flags, char top, int y0)
-{
-    int x0, row, j, t, span, k;
-    int fill2, fill1, lastx;
-    D3SMENTRY *base;
-    char drawn, marked;
+void d3s_DrawSpans(int rows, int w, unsigned char flags, char top, int y0) {
+  int x0, row, j, t, span, k;
+  int fill2, fill1, lastx;
+  D3SMENTRY *base;
+  char drawn, marked;
 
-    fill2 = 0;
-    fill1 = 0;
-    drawn = 0;
-    marked = (flags & 5) != 0;
-    if (marked && !(flags & 1))
-        fill2 = fill1 = 0xb;
-    lastx = -1;
-    row = 0;
-    if (rows > 0) {
-        do {
-            x0 = d3s_XL + 0xffff >> 16;
-            if ((d3s_SpanLen = (d3s_XR + 0xffff >> 16) - x0) > 0) {
-                lastx = x0;
-                span = d3s_SpanLen;
-                base = d3s_SpanRow;
-                if (flags & 2)
-                    d3s_Span(d3s_CL + d3s_MulShr16((x0 << 16) - d3s_XL, d3s_Area), d3s_SpanLen, d3s_Dst + x0, d3s_Area);
-                if (marked) {
-                    if ((k = d3s_ShadowRadius) > 0) {
-                        d3s_MarkSpan(fill1, min(d3s_SpanLen + k * 2, w - x0),
-                                      d3s_SpanRow + max(x0 - k, 0));
-                        if (top && !drawn) {
-                            j = d3s_ShadowRadius;
-                            if (j > 0) {
-                                do {
-                                    if (row - j + y0 > 0) {
-                                        t = d3s_ShadowRadius - j;
-                                        d3s_MarkSpan(fill1, min(d3s_SpanLen + t * 2, w - x0),
-                                                      d3s_SpanRow + (max(x0 - t, 0) - j * w));
-                                    }
-                                    j--;
-                                } while (j > 0);
-                            }
-                            drawn = 1;
-                        }
-                    }
-                    d3s_MarkSpan(fill2, d3s_SpanLen, d3s_SpanRow + x0);
-                }
-            }
-            d3s_XL += d3s_SlopeL;
-            d3s_XR += d3s_SlopeR;
-            d3s_CL += d3s_SlopeC;
-            d3s_Dst += w;
-            d3s_SpanRow += w;
-            row++;
-        } while (row < rows);
-        if (lastx >= 0 && marked) {
-            j = d3s_ShadowRadius;
-            if (j > 0) {
+  fill2 = 0;
+  fill1 = 0;
+  drawn = 0;
+  marked = (flags & 5) != 0;
+  if (marked && !(flags & 1))
+    fill2 = fill1 = 0xb;
+  lastx = -1;
+  row = 0;
+  if (rows > 0) {
+    do {
+      x0 = d3s_XL + 0xffff >> 16;
+      if ((d3s_SpanLen = (d3s_XR + 0xffff >> 16) - x0) > 0) {
+        lastx = x0;
+        span = d3s_SpanLen;
+        base = d3s_SpanRow;
+        if (flags & 2)
+          d3s_Span(d3s_CL + d3s_MulShr16((x0 << 16) - d3s_XL, d3s_Area),
+                   d3s_SpanLen, d3s_Dst + x0, d3s_Area);
+        if (marked) {
+          if ((k = d3s_ShadowRadius) > 0) {
+            d3s_MarkSpan(fill1, min(d3s_SpanLen + k * 2, w - x0),
+                         d3s_SpanRow + max(x0 - k, 0));
+            if (top && !drawn) {
+              j = d3s_ShadowRadius;
+              if (j > 0) {
                 do {
-                    if (j + rows + y0 <= w) {
-                        t = d3s_ShadowRadius - j;
-                        d3s_MarkSpan(fill1, min(span + t * 2, w - lastx), base + (max(lastx - t, 0) + j * w));
-                    }
-                    j--;
+                  if (row - j + y0 > 0) {
+                    t = d3s_ShadowRadius - j;
+                    d3s_MarkSpan(fill1, min(d3s_SpanLen + t * 2, w - x0),
+                                 d3s_SpanRow + (max(x0 - t, 0) - j * w));
+                  }
+                  j--;
                 } while (j > 0);
+              }
+              drawn = 1;
             }
+          }
+          d3s_MarkSpan(fill2, d3s_SpanLen, d3s_SpanRow + x0);
         }
+      }
+      d3s_XL += d3s_SlopeL;
+      d3s_XR += d3s_SlopeR;
+      d3s_CL += d3s_SlopeC;
+      d3s_Dst += w;
+      d3s_SpanRow += w;
+      row++;
+    } while (row < rows);
+    if (lastx >= 0 && marked) {
+      j = d3s_ShadowRadius;
+      if (j > 0) {
+        do {
+          if (j + rows + y0 <= w) {
+            t = d3s_ShadowRadius - j;
+            d3s_MarkSpan(fill1, min(span + t * 2, w - lastx),
+                         base + (max(lastx - t, 0) + j * w));
+          }
+          j--;
+        } while (j > 0);
+      }
     }
+  }
 }
 /* 0x45a2e0, a shadow triangle: edges from the three points p (x, y pairs), colours c, radius pixels / rows around
    @deep s47: the two edge loops as plain for (i = 0; i < 3; i++) loops (no i = 0 at the top, minY and t
@@ -263,138 +273,148 @@ void d3s_DrawSpans(int rows, int w, unsigned char flags, char top, int y0)
    over b (region-based spill?), e.g. with toyasm.py on a reduced edge-choice + two-call tail (tiebreak:
    insensitive) */
 
-void d3s_ShadowTriangle(float *p, unsigned char *c, unsigned char *dst, int pitch, unsigned char flags, D3SMENTRY *base, int radius)
-{
-    int i, t, b, d, e, y, n, l;
-    int minY;
-    int left;
-    float area;
+void d3s_ShadowTriangle(float *p, unsigned char *c, unsigned char *dst,
+                        int pitch, unsigned char flags, D3SMENTRY *base,
+                        int radius) {
+  int i, t, b, d, e, y, n, l;
+  int minY;
+  int left;
+  float area;
 
-    minY = pitch << 16;
-    t = -1;
-    if (p[0] * p[5] + ((p[2] * p[1] + (p[3] * p[4] - p[2] * p[5])) - p[0] * p[3]) - p[4] * p[1] > 0.0) {
-        for (i = 0; i < 3; i++) {
-            d3s_EdgeX[i] = (int)(p[4 - i * 2] * 65536.0f);
-            d3s_EdgeY[i] = (int)(p[5 - i * 2] * 65536.0f);
-            d3s_EdgeC[i] = c[2 - i] << 16;
-            if (d3s_EdgeY[i] <= minY) {
-                minY = d3s_EdgeY[i];
-                t = i;
-            }
-        }
-    } else {
-        for (i = 0; i < 3; i++) {
-            d3s_EdgeX[i] = (int)(p[i * 2] * 65536.0f);
-            d3s_EdgeY[i] = (int)(p[i * 2 + 1] * 65536.0f);
-            d3s_EdgeC[i] = c[i] << 16;
-            if (d3s_EdgeY[i] <= minY) {
-                minY = d3s_EdgeY[i];
-                t = i;
-            }
-        }
+  minY = pitch << 16;
+  t = -1;
+  if (p[0] * p[5] +
+          ((p[2] * p[1] + (p[3] * p[4] - p[2] * p[5])) - p[0] * p[3]) -
+          p[4] * p[1] >
+      0.0) {
+    for (i = 0; i < 3; i++) {
+      d3s_EdgeX[i] = (int)(p[4 - i * 2] * 65536.0f);
+      d3s_EdgeY[i] = (int)(p[5 - i * 2] * 65536.0f);
+      d3s_EdgeC[i] = c[2 - i] << 16;
+      if (d3s_EdgeY[i] <= minY) {
+        minY = d3s_EdgeY[i];
+        t = i;
+      }
     }
-    if (t != -1) {
-        if (base == 0)
-            flags &= 2;
-        if (dst == 0)
-            flags &= 5;
-        if (flags != 0) {
-            e = d3_TriEdge[t][0];
-            if (d3s_EdgeY[e] == minY) {
-                b = d3_TriEdge[t][1];
-                d = e;
-                e = d3_TriEdge[e][0];
-                l = t;
+  } else {
+    for (i = 0; i < 3; i++) {
+      d3s_EdgeX[i] = (int)(p[i * 2] * 65536.0f);
+      d3s_EdgeY[i] = (int)(p[i * 2 + 1] * 65536.0f);
+      d3s_EdgeC[i] = c[i] << 16;
+      if (d3s_EdgeY[i] <= minY) {
+        minY = d3s_EdgeY[i];
+        t = i;
+      }
+    }
+  }
+  if (t != -1) {
+    if (base == 0)
+      flags &= 2;
+    if (dst == 0)
+      flags &= 5;
+    if (flags != 0) {
+      e = d3_TriEdge[t][0];
+      if (d3s_EdgeY[e] == minY) {
+        b = d3_TriEdge[t][1];
+        d = e;
+        e = d3_TriEdge[e][0];
+        l = t;
+      } else {
+        l = d3_TriEdge[t][1];
+        if (d3s_EdgeY[l] == minY) {
+          b = d3_TriEdge[l][1];
+          d = t;
+        } else {
+          b = l;
+          d = t;
+          l = t;
+        }
+      }
+      area = (p[0] - p[2]) * (p[5] - p[3]) - (p[4] - p[2]) * (p[1] - p[3]);
+      if (area == 0.0f)
+        d3s_Area = 0;
+      else
+        d3s_FtoI(&d3s_Area, 65536.0f / area *
+                                ((float)(c[0] - c[1]) * (p[5] - p[3]) -
+                                 (float)(c[2] - c[1]) * (p[1] - p[3])));
+      if (d3s_EdgeY[b] - d3s_EdgeY[l] > 0) {
+        d3s_LeftEdgeColor(l, b);
+        if (d3s_EdgeY[e] - d3s_EdgeY[d] > 0) {
+          d3s_RightEdge(d, e);
+          y = minY + 0xffff >> 16;
+          d3s_Dst = dst + y * pitch;
+          d3s_SpanRow = base + y * pitch;
+          d3s_ShadowRadius = radius;
+          left = d3s_EdgeY[b] < d3s_EdgeY[e];
+          n = ((left ? d3s_EdgeY[b] : d3s_EdgeY[e]) + 0xffff >> 16) - y;
+          d3s_DrawSpans(n, pitch, flags, 1, y);
+          if (d3s_EdgeY[b] != d3s_EdgeY[e]) {
+            if (left) {
+              d3s_LeftEdgeColor(b, e);
+              i = (d3s_EdgeY[e] + 0xffff >> 16) - (d3s_EdgeY[b] + 0xffff >> 16);
             } else {
-                l = d3_TriEdge[t][1];
-                if (d3s_EdgeY[l] == minY) {
-                    b = d3_TriEdge[l][1];
-                    d = t;
-                } else {
-                    b = l;
-                    d = t;
-                    l = t;
-                }
+              d3s_RightEdge(e, b);
+              i = (d3s_EdgeY[b] + 0xffff >> 16) - (d3s_EdgeY[e] + 0xffff >> 16);
             }
-            area = (p[0] - p[2]) * (p[5] - p[3]) - (p[4] - p[2]) * (p[1] - p[3]);
-            if (area == 0.0f)
-                d3s_Area = 0;
-            else
-                d3s_FtoI(&d3s_Area, 65536.0f / area * ((float)(c[0] - c[1]) * (p[5] - p[3]) - (float)(c[2] - c[1]) * (p[1] - p[3])));
-            if (d3s_EdgeY[b] - d3s_EdgeY[l] > 0) {
-                d3s_LeftEdgeColor(l, b);
-                if (d3s_EdgeY[e] - d3s_EdgeY[d] > 0) {
-                    d3s_RightEdge(d, e);
-                    y = minY + 0xffff >> 16;
-                    d3s_Dst = dst + y * pitch;
-                    d3s_SpanRow = base + y * pitch;
-                    d3s_ShadowRadius = radius;
-                    left = d3s_EdgeY[b] < d3s_EdgeY[e];
-                    n = ((left ? d3s_EdgeY[b] : d3s_EdgeY[e]) + 0xffff >> 16) - y;
-                    d3s_DrawSpans(n, pitch, flags, 1, y);
-                    if (d3s_EdgeY[b] != d3s_EdgeY[e]) {
-                        if (left) {
-                            d3s_LeftEdgeColor(b, e);
-                            i = (d3s_EdgeY[e] + 0xffff >> 16) - (d3s_EdgeY[b] + 0xffff >> 16);
-                        } else {
-                            d3s_RightEdge(e, b);
-                            i = (d3s_EdgeY[b] + 0xffff >> 16) - (d3s_EdgeY[e] + 0xffff >> 16);
-                        }
-                        d3s_DrawSpans(i, pitch, flags, 0, y + n);
-                    }
-                }
-            }
+            d3s_DrawSpans(i, pitch, flags, 0, y + n);
+          }
         }
+      }
     }
+  }
 }
 /* 0x45a670, the left edge slope and start from vertex a to b (16.16) */
 
-void d3s_LeftEdge(int a, int b)
-{
-    int dy = d3s_EdgeY[b] - d3s_EdgeY[a];
+void d3s_LeftEdge(int a, int b) {
+  int dy = d3s_EdgeY[b] - d3s_EdgeY[a];
 
-    if (dy < 0x10000)
-        d3s_SlopeL = d3s_MulShr14(d3s_EdgeX[b] - d3s_EdgeX[a], 0x40000000 / dy);
-    else
-        d3s_SlopeL = d3s_ShlDiv16(d3s_EdgeX[b] - d3s_EdgeX[a], dy);
-    d3s_XL = d3s_EdgeX[a] + d3s_MulShr16((d3s_EdgeY[a] + 0xffff & 0xffff0000) - d3s_EdgeY[a], d3s_SlopeL);
+  if (dy < 0x10000)
+    d3s_SlopeL = d3s_MulShr14(d3s_EdgeX[b] - d3s_EdgeX[a], 0x40000000 / dy);
+  else
+    d3s_SlopeL = d3s_ShlDiv16(d3s_EdgeX[b] - d3s_EdgeX[a], dy);
+  d3s_XL = d3s_EdgeX[a] +
+           d3s_MulShr16((d3s_EdgeY[a] + 0xffff & 0xffff0000) - d3s_EdgeY[a],
+                        d3s_SlopeL);
 }
 /* 0x45a740, fills n scanlines between d3s_XL and d3s_XR with d3s_Fill */
 
-void d3s_FillRows(int n)
-{
-    int x, i;
-    char *p;
+void d3s_FillRows(int n) {
+  int x, i;
+  char *p;
 
-    if (d3s_Byte) {
-        for (i = 0; i < n; i++) {
-            x = d3s_XL + 0xffff >> 16;
-            if ((d3s_SpanLen = (d3s_XR + 0xffff >> 16) - x) > 0) {
-                p = (char *)(d3s_Dst + x);
-                __asm mov edi, p
-                __asm mov ecx, d3s_SpanLen
-                __asm mov eax, d3s_Fill
-                __asm rep stosb
-            }
-            d3s_XL += d3s_SlopeL;
-            d3s_XR += d3s_SlopeR;
-            d3s_Dst += dd_Pitch;
-        }
-    } else {
-        for (i = 0; i < n; i++) {
-            x = d3s_XL + 0xffff >> 16;
-            if ((d3s_SpanLen = (d3s_XR + 0xffff >> 16) - x) > 0) {
-                p = (char *)(d3s_Dst16 + x);
-                __asm mov edi, p
-                __asm mov ecx, d3s_SpanLen
-                __asm mov eax, d3s_Fill
-                __asm rep stosw
-            }
-            d3s_XL += d3s_SlopeL;
-            d3s_XR += d3s_SlopeR;
-            d3s_Dst16 += dd_PitchPixels;
-        }
+  if (d3s_Byte) {
+    for (i = 0; i < n; i++) {
+      x = d3s_XL + 0xffff >> 16;
+      if ((d3s_SpanLen = (d3s_XR + 0xffff >> 16) - x) > 0) {
+        p = (char *)(d3s_Dst + x);
+        /* clang-format off */
+        __asm mov edi, p
+        __asm mov ecx, d3s_SpanLen
+        __asm mov eax, d3s_Fill
+        __asm rep stosb
+        /* clang-format on */
+      }
+      d3s_XL += d3s_SlopeL;
+      d3s_XR += d3s_SlopeR;
+      d3s_Dst += dd_Pitch;
     }
+  } else {
+    for (i = 0; i < n; i++) {
+      x = d3s_XL + 0xffff >> 16;
+      if ((d3s_SpanLen = (d3s_XR + 0xffff >> 16) - x) > 0) {
+        p = (char *)(d3s_Dst16 + x);
+        /* clang-format off */
+        __asm mov edi, p
+        __asm mov ecx, d3s_SpanLen
+        __asm mov eax, d3s_Fill
+        __asm rep stosw
+        /* clang-format on */
+      }
+      d3s_XL += d3s_SlopeL;
+      d3s_XR += d3s_SlopeR;
+      d3s_Dst16 += dd_PitchPixels;
+    }
+  }
 }
 /* 0x45a880, draws one polygon of the shadow mesh into the shadow texture (bpp bits per pixel, its low byte; defined old
    style with int bpp, called through the unsigned char prototype below)
@@ -419,213 +439,216 @@ void d3s_FillRows(int n)
    eax,[dd_Pitch] memory-operand forms at +0x1dc/+0x1fe; the two FillRows tails pop add esp,8 then add
    esp,4 where ours merges add esp,0xc. */
 
-void d3s_ShadowPoly(poly, bpp, size)
-D3TRI *poly;
+void d3s_ShadowPoly(poly, bpp, size) D3TRI *poly;
 int bpp;
 int size;
 {
-    int i, top, ymin;
-    int a, b, c, y, n;
-    int left;
+  int i, top, ymin;
+  int a, b, c, y, n;
+  int left;
 
-    size <<= 16;
-    ymin = size;
-    if ((poly->v[0]->shadowU - poly->v[1]->shadowU) * (poly->v[0]->shadowV - poly->v[2]->shadowV) < (poly->v[0]->shadowU - poly->v[2]->shadowU) * (poly->v[0]->shadowV - poly->v[1]->shadowV)) {
-        if (!(poly->drawFlags & 4))
-            return;
-        top = bpp;
-        for (i = 0; i < 3; i++) {
-            d3s_EdgeX[i] = (int)(poly->v[2 - i]->shadowU * 65536.0f);
-            d3s_EdgeY[i] = (int)(poly->v[2 - i]->shadowV * 65536.0f);
-            if (d3s_EdgeY[i] <= ymin) {
-                ymin = d3s_EdgeY[i];
-                top = i;
-            }
-        }
-    } else {
-        top = bpp;
-        for (i = 0; i < 3; i++) {
-            d3s_EdgeX[i] = (int)(poly->v[i]->shadowU * 65536.0f);
-            d3s_EdgeY[i] = (int)(poly->v[i]->shadowV * 65536.0f);
-            if (d3s_EdgeY[i] <= ymin) {
-                ymin = d3s_EdgeY[i];
-                top = i;
-            }
-        }
-    }
+  size <<= 16;
+  ymin = size;
+  if ((poly->v[0]->shadowU - poly->v[1]->shadowU) *
+          (poly->v[0]->shadowV - poly->v[2]->shadowV) <
+      (poly->v[0]->shadowU - poly->v[2]->shadowU) *
+          (poly->v[0]->shadowV - poly->v[1]->shadowV)) {
+    if (!(poly->drawFlags & 4))
+      return;
+    top = bpp;
     for (i = 0; i < 3; i++) {
-        if (d3s_EdgeX[i] < 0 || d3s_EdgeX[i] > size - 1 || d3s_EdgeY[i] < 0 || d3s_EdgeY[i] > size - 1)
-            return;
+      d3s_EdgeX[i] = (int)(poly->v[2 - i]->shadowU * 65536.0f);
+      d3s_EdgeY[i] = (int)(poly->v[2 - i]->shadowV * 65536.0f);
+      if (d3s_EdgeY[i] <= ymin) {
+        ymin = d3s_EdgeY[i];
+        top = i;
+      }
     }
+  } else {
+    top = bpp;
+    for (i = 0; i < 3; i++) {
+      d3s_EdgeX[i] = (int)(poly->v[i]->shadowU * 65536.0f);
+      d3s_EdgeY[i] = (int)(poly->v[i]->shadowV * 65536.0f);
+      if (d3s_EdgeY[i] <= ymin) {
+        ymin = d3s_EdgeY[i];
+        top = i;
+      }
+    }
+  }
+  for (i = 0; i < 3; i++) {
+    if (d3s_EdgeX[i] < 0 || d3s_EdgeX[i] > size - 1 || d3s_EdgeY[i] < 0 ||
+        d3s_EdgeY[i] > size - 1)
+      return;
+  }
+  a = d3_TriEdge[top][0];
+  if (d3s_EdgeY[a] == ymin) {
+    b = d3_TriEdge[top][1];
+    c = top;
+    top = a;
     a = d3_TriEdge[top][0];
-    if (d3s_EdgeY[a] == ymin) {
-        b = d3_TriEdge[top][1];
-        c = top;
-        top = a;
-        a = d3_TriEdge[top][0];
+  } else {
+    c = d3_TriEdge[top][1];
+    if (d3s_EdgeY[c] == ymin) {
+      b = d3_TriEdge[c][1];
     } else {
-        c = d3_TriEdge[top][1];
-        if (d3s_EdgeY[c] == ymin) {
-            b = d3_TriEdge[c][1];
+      b = c;
+      c = top;
+    }
+  }
+  if (d3s_EdgeY[b] - d3s_EdgeY[c] > 0) {
+    d3s_LeftEdge(c, b);
+    if (d3s_EdgeY[a] - d3s_EdgeY[top] > 0) {
+      d3s_RightEdge(top, a);
+      d3s_Byte = (unsigned char)bpp <= 8;
+      y = ymin + 0xffff >> 16;
+      if (d3s_Byte) {
+        d3s_Dst = (unsigned char *)dd_Surface + y * dd_Pitch;
+        d3s_Fill = 1;
+      } else {
+        d3s_Fill = 0xffff;
+        d3s_Dst16 = (unsigned short *)dd_Surface + y * dd_PitchPixels;
+      }
+      left = d3s_EdgeY[b] < d3s_EdgeY[a];
+      n = (left ? d3s_EdgeY[b] + 0xffff : d3s_EdgeY[a] + 0xffff) >> 16;
+      d3s_FillRows(n - y);
+      if (d3s_EdgeY[b] != d3s_EdgeY[a]) {
+        if (left) {
+          d3s_LeftEdge(b, a);
+          d3s_FillRows((d3s_EdgeY[a] + 0xffff >> 16) -
+                       (d3s_EdgeY[b] + 0xffff >> 16));
         } else {
-            b = c;
-            c = top;
+          d3s_RightEdge(a, b);
+          d3s_FillRows((d3s_EdgeY[b] + 0xffff >> 16) -
+                       (d3s_EdgeY[a] + 0xffff >> 16));
         }
+      }
     }
-    if (d3s_EdgeY[b] - d3s_EdgeY[c] > 0) {
-        d3s_LeftEdge(c, b);
-        if (d3s_EdgeY[a] - d3s_EdgeY[top] > 0) {
-            d3s_RightEdge(top, a);
-            d3s_Byte = (unsigned char)bpp <= 8;
-            y = ymin + 0xffff >> 16;
-            if (d3s_Byte) {
-                d3s_Dst = (unsigned char *)dd_Surface + y * dd_Pitch;
-                d3s_Fill = 1;
-            } else {
-                d3s_Fill = 0xffff;
-                d3s_Dst16 = (unsigned short *)dd_Surface + y * dd_PitchPixels;
-            }
-            left = d3s_EdgeY[b] < d3s_EdgeY[a];
-            n = (left ? d3s_EdgeY[b] + 0xffff : d3s_EdgeY[a] + 0xffff) >> 16;
-            d3s_FillRows(n - y);
-            if (d3s_EdgeY[b] != d3s_EdgeY[a]) {
-                if (left) {
-                    d3s_LeftEdge(b, a);
-                    d3s_FillRows((d3s_EdgeY[a] + 0xffff >> 16) - (d3s_EdgeY[b] + 0xffff >> 16));
-                } else {
-                    d3s_RightEdge(a, b);
-                    d3s_FillRows((d3s_EdgeY[b] + 0xffff >> 16) - (d3s_EdgeY[a] + 0xffff >> 16));
-                }
-            }
-        }
-    }
+  }
 }
 /* 0x45ab60, allocates n shadow texture cache entries */
 
-void d3s_CacheInit(int n, int age)
-{
-    d3s_CacheCount = n;
-    d3s_CacheAge = age;
-    d3s_Cache = mem_Alloc(n * 0x14, "d3s:Cache");
+void d3s_CacheInit(int n, int age) {
+  d3s_CacheCount = n;
+  d3s_CacheAge = age;
+  d3s_Cache = mem_Alloc(n * 0x14, "d3s:Cache");
 }
 /* 0x45ab90, frees the shadow texture cache */
 
-void d3s_CacheFree(void)
-{
-    d3s_CacheAge = 0;
-    d3s_CacheCount = 0;
-    mem_Free(d3s_Cache);
-    d3s_Cache = 0;
+void d3s_CacheFree(void) {
+  d3s_CacheAge = 0;
+  d3s_CacheCount = 0;
+  mem_Free(d3s_Cache);
+  d3s_Cache = 0;
 }
 /* 0x45abc0, gives the cache entry c to slot, (re)creating its texture if size or flag differ */
 
-struct TSTEXTURE *d3s_CacheBind(D3SCENT *c, D3MESHSUB *slot, signed char flag, int size, unsigned int time)
-{
-    D3TEXFLAGS f;
+struct TSTEXTURE *d3s_CacheBind(D3SCENT *c, D3MESHSUB *slot, signed char flag,
+                                int size, unsigned int time) {
+  D3TEXFLAGS f;
 
-    c->time = time;
-    slot->cache = c;
-    if (c->size > 0 && c->owner)
-        *c->owner = 0;
-    c->owner = (void **)slot;
-    if (c->size != size || c->flag != flag) {
-        if (c->tex)
-            tex_Release(c->tex);
-        c->size = size;
-        c->flag = flag;
-        memset(&f, 0, sizeof(f));
-        f.b[0] = 0x7f;
-        f.b[2] |= 2;
-        c->tex = tex_Create("*shadow", size, 1, f, 0, 0, 2, d3s_Palette, flag);
-    }
-    return c->tex;
+  c->time = time;
+  slot->cache = c;
+  if (c->size > 0 && c->owner)
+    *c->owner = 0;
+  c->owner = (void **)slot;
+  if (c->size != size || c->flag != flag) {
+    if (c->tex)
+      tex_Release(c->tex);
+    c->size = size;
+    c->flag = flag;
+    memset(&f, 0, sizeof(f));
+    f.b[0] = 0x7f;
+    f.b[2] |= 2;
+    c->tex = tex_Create("*shadow", size, 1, f, 0, 0, 2, d3s_Palette, flag);
+  }
+  return c->tex;
 }
 /* 0x45ac60, a texture of size for slot: a free entry, the oldest of the same kind, or any other of the flag */
 
-struct TSTEXTURE *d3s_CacheTexture(D3MESHSUB *slot, signed char flag, int size, unsigned int time, D3SCENT **unused)
-{
-    D3SCENT *c, *best;
-    unsigned int i, oldest;
+struct TSTEXTURE *d3s_CacheTexture(D3MESHSUB *slot, signed char flag, int size,
+                                   unsigned int time, D3SCENT **unused) {
+  D3SCENT *c, *best;
+  unsigned int i, oldest;
 
-    best = 0;
-    oldest = time;
-    for (i = 0, c = d3s_Cache; i < d3s_CacheCount; i++, c++) {
-        if (c->size == size && c->flag == flag && c->time < oldest) {
-            oldest = c->time;
-            best = c;
-        }
-        if (c->size == 0)
-            return d3s_CacheBind(c, slot, flag, size, time);
+  best = 0;
+  oldest = time;
+  for (i = 0, c = d3s_Cache; i < d3s_CacheCount; i++, c++) {
+    if (c->size == size && c->flag == flag && c->time < oldest) {
+      oldest = c->time;
+      best = c;
     }
-    if (best && time - oldest > d3s_CacheAge)
-        return d3s_CacheBind(best, slot, flag, size, time);
-    best = 0;
-    oldest = time;
-    for (i = 0, c = d3s_Cache; i < d3s_CacheCount; i++, c++) {
-        if (c->size > 0 && c->flag == flag && c->time < oldest) {
-            oldest = c->time;
-            best = c;
-        }
+    if (c->size == 0)
+      return d3s_CacheBind(c, slot, flag, size, time);
+  }
+  if (best && time - oldest > d3s_CacheAge)
+    return d3s_CacheBind(best, slot, flag, size, time);
+  best = 0;
+  oldest = time;
+  for (i = 0, c = d3s_Cache; i < d3s_CacheCount; i++, c++) {
+    if (c->size > 0 && c->flag == flag && c->time < oldest) {
+      oldest = c->time;
+      best = c;
     }
-    if (best && time - oldest > 1)
-        return d3s_CacheBind(best, slot, flag, size, time);
-    return 0;
+  }
+  if (best && time - oldest > 1)
+    return d3s_CacheBind(best, slot, flag, size, time);
+  return 0;
 }
 /* 0x45ad80, sets up the shadow system (texture sizes, poly buffers, cache, lights) */
 
-void d3_InitShadows(unsigned int size, unsigned int maxsize, int ncache, int age, char mips, int polys, int mapsize)
-{
-    if (maxsize >= d3d_UsedCard.info.maxw)
-        maxsize = d3d_UsedCard.info.maxw;
-    d3s_MaxTexSize = maxsize;
-    d3s_TexSize = size;
-    if (size >= maxsize)
-        d3s_TexSize = maxsize;
-    d3s_MaxPolys2 = polys;
-    d3s_MaxPolys = polys * polys;
-    d3s_ShadowMapSize = mapsize;
-    d3s_UVs = mem_Alloc(d3s_MaxPolys * 0x30, "d3s:BuildingPolyBuffer(Shadow)");
-    d3s_NumUVs = 0;
-    d3s_Verts = mem_Alloc((d3s_MaxPolys >> 4) * 600, "d3s:BuildingPointBuffer(Shadow)");
-    d3s_Enabled = 1;
-    d3s_LodTexSize = 1;
-    d3s_NumVerts = 0;
-    d3s_QuadUV[0] = 0.0f;
-    d3s_QuadUV[1] = 1.0f;
-    d3s_QuadUV[2] = 1.0f;
-    d3s_QuadUV[3] = 1.0f;
-    d3s_QuadUV[4] = 0.0f;
-    d3s_QuadUV[5] = 0.0f;
-    d3s_QuadUV2[0] = 1.0f;
-    d3s_QuadUV2[1] = 1.0f;
-    d3s_QuadUV2[2] = 1.0f;
-    d3s_QuadUV2[3] = 0.0f;
-    d3s_QuadUV2[4] = 0.0f;
-    d3s_QuadUV2[5] = 0.0f;
-    d3s_ShadowMips = mips;
-    d3s_CacheInit(ncache, age);
-    d3s_NumLights = 0;
-    memset(d3s_Lights, 0, 16);
+void d3_InitShadows(unsigned int size, unsigned int maxsize, int ncache,
+                    int age, char mips, int polys, int mapsize) {
+  if (maxsize >= d3d_UsedCard.info.maxw)
+    maxsize = d3d_UsedCard.info.maxw;
+  d3s_MaxTexSize = maxsize;
+  d3s_TexSize = size;
+  if (size >= maxsize)
+    d3s_TexSize = maxsize;
+  d3s_MaxPolys2 = polys;
+  d3s_MaxPolys = polys * polys;
+  d3s_ShadowMapSize = mapsize;
+  d3s_UVs = mem_Alloc(d3s_MaxPolys * 0x30, "d3s:BuildingPolyBuffer(Shadow)");
+  d3s_NumUVs = 0;
+  d3s_Verts =
+      mem_Alloc((d3s_MaxPolys >> 4) * 600, "d3s:BuildingPointBuffer(Shadow)");
+  d3s_Enabled = 1;
+  d3s_LodTexSize = 1;
+  d3s_NumVerts = 0;
+  d3s_QuadUV[0] = 0.0f;
+  d3s_QuadUV[1] = 1.0f;
+  d3s_QuadUV[2] = 1.0f;
+  d3s_QuadUV[3] = 1.0f;
+  d3s_QuadUV[4] = 0.0f;
+  d3s_QuadUV[5] = 0.0f;
+  d3s_QuadUV2[0] = 1.0f;
+  d3s_QuadUV2[1] = 1.0f;
+  d3s_QuadUV2[2] = 1.0f;
+  d3s_QuadUV2[3] = 0.0f;
+  d3s_QuadUV2[4] = 0.0f;
+  d3s_QuadUV2[5] = 0.0f;
+  d3s_ShadowMips = mips;
+  d3s_CacheInit(ncache, age);
+  d3s_NumLights = 0;
+  memset(d3s_Lights, 0, 16);
 }
 /* 0x45aee0, shuts the shadow system down */
 
-void d3_ExitShadows(void)
-{
-    d3s_MaxTexSize = 0;
-    d3s_TexSize = 0;
-    d3s_MaxPolys2 = 0;
-    d3s_MaxPolys = 0;
-    d3s_NumUVs = 0;
-    mem_Free(d3s_UVs);
-    d3s_UVs = 0;
-    d3s_NumVerts = 0;
-    mem_Free(d3s_Verts);
-    d3s_Verts = 0;
-    d3s_CacheFree();
-    if (d3sm_Shadow) {
-        d3sm_Destroy(d3sm_Shadow);
-        d3sm_Shadow = 0;
-    }
+void d3_ExitShadows(void) {
+  d3s_MaxTexSize = 0;
+  d3s_TexSize = 0;
+  d3s_MaxPolys2 = 0;
+  d3s_MaxPolys = 0;
+  d3s_NumUVs = 0;
+  mem_Free(d3s_UVs);
+  d3s_UVs = 0;
+  d3s_NumVerts = 0;
+  mem_Free(d3s_Verts);
+  d3s_Verts = 0;
+  d3s_CacheFree();
+  if (d3sm_Shadow) {
+    d3sm_Destroy(d3sm_Shadow);
+    d3sm_Shadow = 0;
+  }
 }
 /* 0x45af50, the shadow mesh over the part rect of a terrain with 8x8 blocks, each block sampled at its own lod
    @deep match-deep 45: ai_FloatOne fixed (M10). headers sample: insensitive. Read: the original's edi
@@ -646,184 +669,193 @@ void d3_ExitShadows(void)
    or call found in the hunks read; the original's slot map (rect in ebp, buf in ebx, uv reloaded from
    memory, the hoisted products in float slots) is what a deep round needs */
 
-char d3s_TerrainShadowMesh(D3FLMAP *g, int *rect, float *uv, D3SURF *buf, struct TSTEXTURE *tex, unsigned long color)
-{
-    D3VECTOR4 o, p;
-    float d[4];
-    float cx, cy, cz;
-    unsigned char *heights, *mip, *mp;
-    unsigned int stride, step, rowskip;
-    int x, z, zend, xend, xi, zi, k, r, nrows, ncx;
-    int bz, bz1, bx, bx0, bx1, nz;
-    float vcur, ucur, fstep, cxs, czs, fxc, vtop, vbot, ul, ur;
-    float *pos, *uvp;
-    D3VERTEX *vert, *vp, *tr, *bl, *br, *trow, *brow;
-    D3TRI *poly;
-    char drew;
-    unsigned char lod;
+char d3s_TerrainShadowMesh(D3FLMAP *g, int *rect, float *uv, D3SURF *buf,
+                           struct TSTEXTURE *tex, unsigned long color) {
+  D3VECTOR4 o, p;
+  float d[4];
+  float cx, cy, cz;
+  unsigned char *heights, *mip, *mp;
+  unsigned int stride, step, rowskip;
+  int x, z, zend, xend, xi, zi, k, r, nrows, ncx;
+  int bz, bz1, bx, bx0, bx1, nz;
+  float vcur, ucur, fstep, cxs, czs, fxc, vtop, vbot, ul, ur;
+  float *pos, *uvp;
+  D3VERTEX *vert, *vp, *tr, *bl, *br, *trow, *brow;
+  D3TRI *poly;
+  char drew;
+  unsigned char lod;
 
-    o.x = g->orgx;
-    o.y = g->orgy;
-    o.z = g->orgz;
-    cx = g->scale;
-    cy = g->hscale;
-    heights = g->height;
-    cz = g->negScale;
-    stride = g->size;
-    bz1 = rect[3] / g->n;
-    drew = 0;
-    bx1 = rect[1] / g->n;
-    bx0 = rect[0] / g->n;
-    vcur = uv[2];
-    z = rect[2];
-    for (bz = z / g->n, nz = bz + 1; bz <= bz1; bz++, nz++) {
-        if (bz == bz1)
-            zend = rect[3];
+  o.x = g->orgx;
+  o.y = g->orgy;
+  o.z = g->orgz;
+  cx = g->scale;
+  cy = g->hscale;
+  heights = g->height;
+  cz = g->negScale;
+  stride = g->size;
+  bz1 = rect[3] / g->n;
+  drew = 0;
+  bx1 = rect[1] / g->n;
+  bx0 = rect[0] / g->n;
+  vcur = uv[2];
+  z = rect[2];
+  for (bz = z / g->n, nz = bz + 1; bz <= bz1; bz++, nz++) {
+    if (bz == bz1)
+      zend = rect[3];
+    else
+      zend = nz * g->n;
+    x = rect[0];
+    ucur = uv[0];
+    for (bx = bx0; bx <= bx1;) {
+      if (bz >= 0 && bz < 8 && bx >= 0 && bx < 8 &&
+          (lod = g->tiles[bz][bx].lodLevel) > 0) {
+        step = lod;
+        rowskip = stride / step;
+        fstep = (float)step;
+        drew = 1;
+        mip = g->divide[step >> 1];
+        d[1] = fstep * uv[1];
+        d[3] = fstep * uv[3];
+        cxs = cx * fstep;
+        czs = fstep * cz;
+        if (bx == bx1)
+          xend = rect[1];
         else
-            zend = nz * g->n;
-        x = rect[0];
-        ucur = uv[0];
-        for (bx = bx0; bx <= bx1; ) {
-            if (bz >= 0 && bz < 8 && bx >= 0 && bx < 8 && (lod = g->tiles[bz][bx].lodLevel) > 0) {
-                step = lod;
-                rowskip = stride / step;
-                fstep = (float)step;
-                drew = 1;
-                mip = g->divide[step >> 1];
-                d[1] = fstep * uv[1];
-                d[3] = fstep * uv[3];
-                cxs = cx * fstep;
-                czs = fstep * cz;
-                if (bx == bx1)
-                    xend = rect[1];
-                else
-                    xend = (bx + 1) * g->n;
-                p.x = (float)x * cx + o.x;
-                poly = buf->tris + buf->ntris;
-                pos = d3s_Verts + d3s_NumVerts * 6;
-                p.y = o.y + 1.0f;
-                vert = buf->keys + buf->nkeys;
-                uvp = d3s_UVs + d3s_NumUVs * 6;
-                p.z = (float)z * cz + o.z;
-                vp = vert;
-                for (zi = z; zi <= zend; zi += step) {
-                    for (xi = x, fxc = p.x; xi <= xend; xi += step) {
-                        pos[0] = fxc;
-                        pos[1] = (float)heights[zi * stride + xi] * cy + p.y;
-                        pos[2] = p.z;
-                        vp->specular = color;
-                        vp->srcPos = pos;
-                        pos += 6;
-                        vp++;
-                        d3s_NumVerts++;
-                        buf->nkeys++;
-                        fxc += cxs;
-                    }
-                    p.z += czs;
-                }
-                nrows = (zend - z) / step;
-                vtop = vcur;
-                ncx = (xend - x) / step;
-                mp = mip + x / step + z / step * rowskip;
-                for (r = 0, trow = vert + 1, brow = vert + (ncx + 1); r < nrows; r++) {
-                    ul = ucur;
-                    tr = trow;
-                    bl = brow;
-                    for (k = 0; k < ncx; k++) {
-                        vbot = d[3] + vtop;
-                        br = bl + 1;
-                        poly->v[2] = bl;
-                        if (mp[k] & 0x80) {
-                            poly->v[1] = tr;
-                            uvp[3] = vtop;
-                            ur = ul + d[1];
-                            poly[1].v[1] = br;
-                            poly[1].v[0] = tr;
-                            poly[1].v[2] = bl;
-                            uvp[10] = ul;
-                            uvp[6] = ur;
-                            uvp[9] = vbot;
-                        } else {
-                            poly->v[1] = br;
-                            uvp[3] = vbot;
-                            poly[1].v[0] = tr - 1;
-                            poly[1].v[1] = tr;
-                            poly[1].v[2] = br;
-                            uvp[9] = vtop;
-                            ur = ul + d[1];
-                            uvp[6] = ul;
-                            uvp[10] = ur;
-                        }
-                        poly[1].drawFlags &= 0xfd;
-                        poly->drawFlags &= 0xfd;
-                        poly[1].uv = uvp + 6;
-                        poly[1].zofs = -1.0f;
-                        poly->zofs = -1.0f;
-                        poly->v[0] = tr - 1;
-                        poly->uv = uvp;
-                        poly[1].tex = tex;
-                        poly->tex = tex;
-                        uvp[1] = vtop;
-                        poly += 2;
-                        uvp[2] = ur;
-                        uvp[0] = ul;
-                        uvp[4] = ul;
-                        uvp[5] = vbot;
-                        bl++;
-                        uvp[7] = vtop;
-                        tr++;
-                        uvp[8] = ur;
-                        uvp[11] = vbot;
-                        d3s_NumUVs += 2;
-                        uvp += 12;
-                        buf->ntris += 2;
-                        ul = ur;
-                    }
-                    mp += rowskip;
-                    vtop += d[3];
-                    brow += ncx + 1;
-                    trow += ncx + 1;
-                }
-            }
-            bx++;
-            ucur = (float)(bx * g->n - x) * uv[1] + ucur;
-            x = (x + g->n) / g->n * g->n;
+          xend = (bx + 1) * g->n;
+        p.x = (float)x * cx + o.x;
+        poly = buf->tris + buf->ntris;
+        pos = d3s_Verts + d3s_NumVerts * 6;
+        p.y = o.y + 1.0f;
+        vert = buf->keys + buf->nkeys;
+        uvp = d3s_UVs + d3s_NumUVs * 6;
+        p.z = (float)z * cz + o.z;
+        vp = vert;
+        for (zi = z; zi <= zend; zi += step) {
+          for (xi = x, fxc = p.x; xi <= xend; xi += step) {
+            pos[0] = fxc;
+            pos[1] = (float)heights[zi * stride + xi] * cy + p.y;
+            pos[2] = p.z;
+            vp->specular = color;
+            vp->srcPos = pos;
+            pos += 6;
+            vp++;
+            d3s_NumVerts++;
+            buf->nkeys++;
+            fxc += cxs;
+          }
+          p.z += czs;
         }
-        vcur = (float)(nz * g->n - z) * uv[3] + vcur;
-        z = (z + g->n) / g->n * g->n;
+        nrows = (zend - z) / step;
+        vtop = vcur;
+        ncx = (xend - x) / step;
+        mp = mip + x / step + z / step * rowskip;
+        for (r = 0, trow = vert + 1, brow = vert + (ncx + 1); r < nrows; r++) {
+          ul = ucur;
+          tr = trow;
+          bl = brow;
+          for (k = 0; k < ncx; k++) {
+            vbot = d[3] + vtop;
+            br = bl + 1;
+            poly->v[2] = bl;
+            if (mp[k] & 0x80) {
+              poly->v[1] = tr;
+              uvp[3] = vtop;
+              ur = ul + d[1];
+              poly[1].v[1] = br;
+              poly[1].v[0] = tr;
+              poly[1].v[2] = bl;
+              uvp[10] = ul;
+              uvp[6] = ur;
+              uvp[9] = vbot;
+            } else {
+              poly->v[1] = br;
+              uvp[3] = vbot;
+              poly[1].v[0] = tr - 1;
+              poly[1].v[1] = tr;
+              poly[1].v[2] = br;
+              uvp[9] = vtop;
+              ur = ul + d[1];
+              uvp[6] = ul;
+              uvp[10] = ur;
+            }
+            poly[1].drawFlags &= 0xfd;
+            poly->drawFlags &= 0xfd;
+            poly[1].uv = uvp + 6;
+            poly[1].zofs = -1.0f;
+            poly->zofs = -1.0f;
+            poly->v[0] = tr - 1;
+            poly->uv = uvp;
+            poly[1].tex = tex;
+            poly->tex = tex;
+            uvp[1] = vtop;
+            poly += 2;
+            uvp[2] = ur;
+            uvp[0] = ul;
+            uvp[4] = ul;
+            uvp[5] = vbot;
+            bl++;
+            uvp[7] = vtop;
+            tr++;
+            uvp[8] = ur;
+            uvp[11] = vbot;
+            d3s_NumUVs += 2;
+            uvp += 12;
+            buf->ntris += 2;
+            ul = ur;
+          }
+          mp += rowskip;
+          vtop += d[3];
+          brow += ncx + 1;
+          trow += ncx + 1;
+        }
+      }
+      bx++;
+      ucur = (float)(bx * g->n - x) * uv[1] + ucur;
+      x = (x + g->n) / g->n * g->n;
     }
-    return drew;
+    vcur = (float)(nz * g->n - z) * uv[3] + vcur;
+    z = (z + g->n) / g->n * g->n;
+  }
+  return drew;
 }
 
-
 #ifdef _MSC_VER
+/* clang-format off */
 void d3s_ShadowPoly(D3TRI *poly, unsigned char bpp, int size);  /* 0x45a880, @original: defined above old style with int bpp (it reads the whole slot as its first top index, the low byte for d3s_Byte); d3s_Project calls it through this prototype, pushing the byte unwidened (mov al,[tex+0x7c]; push eax). VC6 takes both without a warning; not standard C (a prototype must match the definition's promoted types), and no conforming spelling keeps the bytes: an int prototype makes d3s_Project widen the byte (127 -> 146 ins; an argument cast or mask changes nothing), an unsigned char definition reads the slot with movzx (d3s_ShadowPoly shape -> draft, 141 -> 205 ins) */
+/* clang-format on */
 #else
 void d3s_ShadowPoly(D3TRI *poly, int bpp, int size);
 #endif
 
-void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);                          /* 0x458810 */
-unsigned char d3_ClipBox(void *box, float *zmin, float *zmax);                                           /* 0x439650 */
-char dd_FillSurface(LPDIRECTDRAWSURFACE4 surf, RECT *rect, DWORD color);                         /* 0x41e0a0 */
-void * dd_LockSurfaceFlags(LPDIRECTDRAWSURFACE4 surf, DWORD flags);                               /* 0x41de30 */
-void dd_UnlockSurface(LPDIRECTDRAWSURFACE4 surf);                                       /* 0x41e740 */
-void d3d_BuildMipmaps(LPDIRECTDRAWSURFACE4 tex, DDSURFACEDESC2 *ddsd);                                /* 0x4371d0 */
-struct TSTEXTURE; void ts_CacheFetch(struct TSTEXTURE *tex, int npal, const unsigned char *pal);                                     /* 0x45f8d0 */
+void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in,
+                   struct D3VECTOR *out);                      /* 0x458810 */
+unsigned char d3_ClipBox(void *box, float *zmin, float *zmax); /* 0x439650 */
+char dd_FillSurface(LPDIRECTDRAWSURFACE4 surf, RECT *rect,
+                    DWORD color); /* 0x41e0a0 */
+void *dd_LockSurfaceFlags(LPDIRECTDRAWSURFACE4 surf,
+                          DWORD flags);           /* 0x41de30 */
+void dd_UnlockSurface(LPDIRECTDRAWSURFACE4 surf); /* 0x41e740 */
+void d3d_BuildMipmaps(LPDIRECTDRAWSURFACE4 tex,
+                      DDSURFACEDESC2 *ddsd); /* 0x4371d0 */
+struct TSTEXTURE;
+void ts_CacheFetch(struct TSTEXTURE *tex, int npal,
+                   const unsigned char *pal); /* 0x45f8d0 */
 
-const float d3s_Dist[2] = { 60.0f, 200.0f };  /* 0x5ebbd8 */
-const unsigned char d3s_Palette[] = { 0, 0, 0, 0xff, 0xff, 0xff, 0, 0 };  /* 0x5ebbe0, palette */
-extern int d3_FrameCount;          /* 0x63343c */
-extern unsigned char d3_Hardware;                    /* 0x633450 */
-extern const D3VECTOR4 d3_ZAxis;             /* 0x5ebb74 */
+const float d3s_Dist[2] = {60.0f, 200.0f}; /* 0x5ebbd8 */
+const unsigned char d3s_Palette[] = {0,    0,    0, 0xff,
+                                     0xff, 0xff, 0, 0}; /* 0x5ebbe0, palette */
+extern int d3_FrameCount;                               /* 0x63343c */
+extern unsigned char d3_Hardware;                       /* 0x633450 */
+extern const D3VECTOR4 d3_ZAxis;                        /* 0x5ebb74 */
 
-float * d3s_Verts;  /* 0xfb9258, 6 floats each */
-int d3s_NumUVs;  /* 0xfb925c */
-unsigned int d3s_TexSize;  /* 0xfb9260 */
-unsigned int d3s_NumLights;                 /* 0xfb9264 */
-char d3s_Byte;  /* 0xfb9268 */
-int d3s_ShadowRadius;  /* 0xfb926c, rows / pixels the marked span widens around the shadow */
-D3SMENTRY * d3s_SpanRow;  /* 0xfb9270, current row of the span buffer */
-extern unsigned char * d3s_Dst;
+float *d3s_Verts;           /* 0xfb9258, 6 floats each */
+int d3s_NumUVs;             /* 0xfb925c */
+unsigned int d3s_TexSize;   /* 0xfb9260 */
+unsigned int d3s_NumLights; /* 0xfb9264 */
+char d3s_Byte;              /* 0xfb9268 */
+int d3s_ShadowRadius; /* 0xfb926c, rows / pixels the marked span widens around the shadow */
+D3SMENTRY *d3s_SpanRow; /* 0xfb9270, current row of the span buffer */
+extern unsigned char *d3s_Dst;
 extern int d3s_EdgeC[3];
 extern int d3s_SlopeC;
 extern int d3s_SlopeL;
@@ -832,7 +864,7 @@ extern int d3s_SlopeR;
 extern int d3s_XL;
 extern int d3s_XR;
 extern int d3s_SpanLen;
-extern unsigned short * d3s_Dst16;
+extern unsigned short *d3s_Dst16;
 extern int d3s_Area;
 extern int d3s_Fill;
 
@@ -859,259 +891,262 @@ extern int d3s_Fill;
    nz in slots [0x10] [0x18] [0x1c] [0x20] against ours [0x14] [0x1c] [0x18] [0x10] (slots hunks
    0x45b519..0x45b86e), and a few reloads of rect / cell / origin through the stack (the 66 / 61 / 169 / 87
    / 48 'code' hunks are the same statements with these registers) */
-char d3s_MeshFromMap(int *rect, int stride, unsigned char *map, float *origin, float *cell, float *uv,
-                     D3SURF *buf, struct TSTEXTURE *tex, unsigned long color)
-{
-    D3VERTEX *v, *row;
-    D3TRI *p;
-    float *pos, *t;
-    float add, xs, ys, x, z, u, w, a, b, c;
-    int nx, nz, i, k, n, x0, z0;
-    int steep;
+char d3s_MeshFromMap(int *rect, int stride, unsigned char *map, float *origin,
+                     float *cell, float *uv, D3SURF *buf, struct TSTEXTURE *tex,
+                     unsigned long color) {
+  D3VERTEX *v, *row;
+  D3TRI *p;
+  float *pos, *t;
+  float add, xs, ys, x, z, u, w, a, b, c;
+  int nx, nz, i, k, n, x0, z0;
+  int steep;
 
-    x0 = rect[0];
-    nx = rect[1] - x0;
-    z0 = rect[2];
-    nz = rect[3] - z0;
-    p = &buf->tris[buf->ntris];
-    row = &buf->keys[buf->nkeys];
-    pos = &d3s_Verts[d3s_NumVerts * 6];
-    t = &d3s_UVs[d3s_NumUVs * 6];
-    add = d3d_ZEnabled ? 2.0f : 1.0f;
-    xs = x0 * cell[0] + origin[0];
-    ys = add + origin[1];
-    z = z0 * cell[2] + origin[2];
-    v = row;
-    for (k = z0, map += z0 * stride; k <= rect[3]; k++, map += stride) {
-        x = xs;
-        for (i = rect[0]; i <= rect[1]; i++, v++) {
-            pos[1] = (map[i] + add) * cell[1] + ys;
-            pos[0] = x;
-            pos[2] = z;
-            v->specular = color;
-            v->srcPos = pos;
-            pos += 6;
-            d3s_NumVerts++;
-            buf->nkeys++;
-            x += cell[0];
-        }
-        z += cell[2];
+  x0 = rect[0];
+  nx = rect[1] - x0;
+  z0 = rect[2];
+  nz = rect[3] - z0;
+  p = &buf->tris[buf->ntris];
+  row = &buf->keys[buf->nkeys];
+  pos = &d3s_Verts[d3s_NumVerts * 6];
+  t = &d3s_UVs[d3s_NumUVs * 6];
+  add = d3d_ZEnabled ? 2.0f : 1.0f;
+  xs = x0 * cell[0] + origin[0];
+  ys = add + origin[1];
+  z = z0 * cell[2] + origin[2];
+  v = row;
+  for (k = z0, map += z0 * stride; k <= rect[3]; k++, map += stride) {
+    x = xs;
+    for (i = rect[0]; i <= rect[1]; i++, v++) {
+      pos[1] = (map[i] + add) * cell[1] + ys;
+      pos[0] = x;
+      pos[2] = z;
+      v->specular = color;
+      v->srcPos = pos;
+      pos += 6;
+      d3s_NumVerts++;
+      buf->nkeys++;
+      x += cell[0];
     }
-    w = uv[2];
-    for (k = nz; k > 0; k--, row += nx + 1) {
-        u = uv[0];
-        for (i = 0; i < nx; i++) {
-            p->v[0] = &row[i];
-            a = row[i].srcPos[1];
-            p->v[1] = &row[i + 1];
-            b = row[i + 1].srcPos[1];
-            p->v[2] = &row[i + nx + 1];
-            c = row[i + nx + 1].srcPos[1];
-            p->uv = t;
-            p->tex = tex;
-            p->zofs = -1.0f;
-            steep = fabs(a - b) > 25.0f || fabs(a - c) > 25.0f ? 1 : 0;
-            p->drawFlags = (steep << 1 ^ p->drawFlags) & 2 ^ p->drawFlags;
-            t[0] = u;
-            t[1] = w;
-            t[2] = u + uv[1];
-            t[3] = w;
-            t[4] = u;
-            t[5] = w + uv[3];
-            d3s_NumUVs++;
-            buf->ntris++;
-            p++;
-            t += 6;
-            p->v[0] = &row[i + 1];
-            p->v[1] = &row[i + nx + 2];
-            a = row[i + nx + 2].srcPos[1];
-            p->v[2] = &row[i + nx + 1];
-            p->uv = t;
-            p->tex = tex;
-            p->zofs = -1.0f;
-            steep = fabs(a - b) > 25.0f || fabs(a - c) > 25.0f ? 1 : 0;
-            p->drawFlags = (steep << 1 ^ p->drawFlags) & 2 ^ p->drawFlags;
-            t[0] = u + uv[1];
-            t[1] = w;
-            t[2] = u + uv[1];
-            t[3] = w + uv[3];
-            t[4] = u;
-            t[5] = w + uv[3];
-            d3s_NumUVs++;
-            buf->ntris++;
-            p++;
-            t += 6;
-            u += uv[1];
-        }
-        w += uv[3];
+    z += cell[2];
+  }
+  w = uv[2];
+  for (k = nz; k > 0; k--, row += nx + 1) {
+    u = uv[0];
+    for (i = 0; i < nx; i++) {
+      p->v[0] = &row[i];
+      a = row[i].srcPos[1];
+      p->v[1] = &row[i + 1];
+      b = row[i + 1].srcPos[1];
+      p->v[2] = &row[i + nx + 1];
+      c = row[i + nx + 1].srcPos[1];
+      p->uv = t;
+      p->tex = tex;
+      p->zofs = -1.0f;
+      steep = fabs(a - b) > 25.0f || fabs(a - c) > 25.0f ? 1 : 0;
+      p->drawFlags = (steep << 1 ^ p->drawFlags) & 2 ^ p->drawFlags;
+      t[0] = u;
+      t[1] = w;
+      t[2] = u + uv[1];
+      t[3] = w;
+      t[4] = u;
+      t[5] = w + uv[3];
+      d3s_NumUVs++;
+      buf->ntris++;
+      p++;
+      t += 6;
+      p->v[0] = &row[i + 1];
+      p->v[1] = &row[i + nx + 2];
+      a = row[i + nx + 2].srcPos[1];
+      p->v[2] = &row[i + nx + 1];
+      p->uv = t;
+      p->tex = tex;
+      p->zofs = -1.0f;
+      steep = fabs(a - b) > 25.0f || fabs(a - c) > 25.0f ? 1 : 0;
+      p->drawFlags = (steep << 1 ^ p->drawFlags) & 2 ^ p->drawFlags;
+      t[0] = u + uv[1];
+      t[1] = w;
+      t[2] = u + uv[1];
+      t[3] = w + uv[3];
+      t[4] = u;
+      t[5] = w + uv[3];
+      d3s_NumUVs++;
+      buf->ntris++;
+      p++;
+      t += 6;
+      u += uv[1];
     }
-    return 1;
+    w += uv[3];
+  }
+  return 1;
 }
 
 /* 0x45b8d0, adds the shadow of slot to the shadow object. The slot copies are parenthesized: VC6 then copies the
    floats through the FPU as the original does (likely a macro's parentheses); v0, du and dv start from the shared
    ai_FloatZero / ai_FloatOne objects as in the original */
 
-char d3s_AddShadow(D3MESHSUB *slot, D3FLMAP *grid)
-{
-    D3SURF *buf;
-    D3TRI *p;
-    D3VERTEX *v;
-    float *pos;
-    float u0, v0, du, dv, fw, fh;
-    float uv[4];
-    int rect[4];
-    int x0, x1, z0, z1, w, h, n;
-    union { unsigned long d; D3COLOR c; } col;
-    char ok = 0;
-    struct TSTEXTURE *tex;
+char d3s_AddShadow(D3MESHSUB *slot, D3FLMAP *grid) {
+  D3SURF *buf;
+  D3TRI *p;
+  D3VERTEX *v;
+  float *pos;
+  float u0, v0, du, dv, fw, fh;
+  float uv[4];
+  int rect[4];
+  int x0, x1, z0, z1, w, h, n;
+  union {
+    unsigned long d;
+    D3COLOR c;
+  } col;
+  char ok = 0;
+  struct TSTEXTURE *tex;
 
-    buf = &d3s_Object->material->surf[0];
-    tex = (slot->tex);
-    col.c.r = (unsigned char)slot->light->lightColor.x;
-    col.c.g = (unsigned char)slot->light->lightColor.y;
-    col.c.b = (unsigned char)slot->light->lightColor.z;
-    col.c.a = (unsigned char)(slot->light->power * 0.5f);
-    if (d3s_Enabled && slot->map && slot->size && !slot->simple) {
-        if (slot->ix0 >= slot->size || slot->ix1 < 0 || slot->iz0 >= slot->size || slot->iz1 < 0
-            || slot->ix1 - slot->ix0 <= 0 || slot->iz1 - slot->iz0 <= 0)
-            return 0;
-        x0 = (slot->ix0);
-        x1 = (slot->ix1);
-        z0 = (slot->iz0);
-        z1 = (slot->iz1);
-        v0 = 0.0f;
-        u0 = 0.0f;
-        du = 1.0f / (x1 - x0);
-        dv = 1.0f / (z1 - z0);
-        if (x0 < 0) {
-            u0 = -x0 / (float)(x1 - x0);
-            x0 = 0;
-        }
-        if (x1 >= slot->size)
-            x1 = slot->size - 1;
-        if (z0 < 0) {
-            v0 = -z0 / (float)(z1 - z0);
-            z0 = 0;
-        }
-        if (z1 >= slot->size)
-            z1 = slot->size - 1;
-        w = x1 - x0;
-        h = z1 - z0;
-        if ((h << 1) * w + buf->ntris < d3s_MaxPolys * 2) {
-            n = (h + 1) * (w + 1);
-            if (buf->nkeys + n < (d3s_MaxPolys >> 4) * 25) {
-                uv[0] = u0;
-                uv[1] = du;
-                uv[2] = v0;
-                uv[3] = dv;
-                rect[0] = x0;
-                rect[1] = x1;
-                rect[2] = z0;
-                rect[3] = z1;
-                if (grid) {
-                    if (buf->nkeys + (w / grid->n + 1) * h + (h / grid->n + 1) * w + n
-                        < (d3s_MaxPolys >> 4) * 25)
-                        ok = d3s_TerrainShadowMesh(grid, rect, uv, buf, tex, col.d);
-                } else
-                    ok = d3s_MeshFromMap(rect, slot->size, slot->map, &slot->origin.x, &slot->cell.x, uv, buf,
-                                         tex, col.d);
-            }
-        }
-        return ok;
-    } else if (buf->ntris < d3s_MaxPolys * 2 - 2) {
-        p = &buf->tris[buf->ntris];
-        v = &buf->keys[buf->nkeys];
-        pos = &d3s_Verts[d3s_NumVerts * 6];
-        p->v[0] = v;
-        p->uv = d3s_QuadUV;
-        p->v[2] = v + 2;
-        p->tex = tex;
-        p->v[1] = v + 1;
-        p++;
-        p->v[1] = v + 3;
-        p->v[2] = v + 2;
-        p->v[0] = v + 1;
-        p->uv = d3s_QuadUV2;
-        p->tex = tex;
-        buf->ntris += 2;
-        v->srcPos = pos;
-        pos[0] = (slot->x0);
-        pos[1] = (slot->y);
-        pos[2] = (slot->z1);
-        v->color = col.d;
-        v->specular = col.d;
-        pos += 6;
-        v++;
-        v->srcPos = pos;
-        pos[0] = (slot->x1);
-        pos[1] = (slot->y);
-        pos[2] = (slot->z1);
-        v->color = col.d;
-        v->specular = col.d;
-        pos += 6;
-        v++;
-        v->srcPos = pos;
-        pos[0] = (slot->x0);
-        pos[1] = (slot->y);
-        pos[2] = (slot->z0);
-        v->color = col.d;
-        v->specular = col.d;
-        pos += 6;
-        v++;
-        v->srcPos = pos;
-        pos[0] = (slot->x1);
-        pos[1] = (slot->y);
-        pos[2] = (slot->z0);
-        v->color = col.d;
-        v->specular = col.d;
-        buf->nkeys += 4;
-        ok = 1;
-        d3s_NumVerts += 4;
+  buf = &d3s_Object->material->surf[0];
+  tex = (slot->tex);
+  col.c.r = (unsigned char)slot->light->lightColor.x;
+  col.c.g = (unsigned char)slot->light->lightColor.y;
+  col.c.b = (unsigned char)slot->light->lightColor.z;
+  col.c.a = (unsigned char)(slot->light->power * 0.5f);
+  if (d3s_Enabled && slot->map && slot->size && !slot->simple) {
+    if (slot->ix0 >= slot->size || slot->ix1 < 0 || slot->iz0 >= slot->size ||
+        slot->iz1 < 0 || slot->ix1 - slot->ix0 <= 0 ||
+        slot->iz1 - slot->iz0 <= 0)
+      return 0;
+    x0 = (slot->ix0);
+    x1 = (slot->ix1);
+    z0 = (slot->iz0);
+    z1 = (slot->iz1);
+    v0 = 0.0f;
+    u0 = 0.0f;
+    du = 1.0f / (x1 - x0);
+    dv = 1.0f / (z1 - z0);
+    if (x0 < 0) {
+      u0 = -x0 / (float)(x1 - x0);
+      x0 = 0;
+    }
+    if (x1 >= slot->size)
+      x1 = slot->size - 1;
+    if (z0 < 0) {
+      v0 = -z0 / (float)(z1 - z0);
+      z0 = 0;
+    }
+    if (z1 >= slot->size)
+      z1 = slot->size - 1;
+    w = x1 - x0;
+    h = z1 - z0;
+    if ((h << 1) * w + buf->ntris < d3s_MaxPolys * 2) {
+      n = (h + 1) * (w + 1);
+      if (buf->nkeys + n < (d3s_MaxPolys >> 4) * 25) {
+        uv[0] = u0;
+        uv[1] = du;
+        uv[2] = v0;
+        uv[3] = dv;
+        rect[0] = x0;
+        rect[1] = x1;
+        rect[2] = z0;
+        rect[3] = z1;
+        if (grid) {
+          if (buf->nkeys + (w / grid->n + 1) * h + (h / grid->n + 1) * w + n <
+              (d3s_MaxPolys >> 4) * 25)
+            ok = d3s_TerrainShadowMesh(grid, rect, uv, buf, tex, col.d);
+        } else
+          ok = d3s_MeshFromMap(rect, slot->size, slot->map, &slot->origin.x,
+                               &slot->cell.x, uv, buf, tex, col.d);
+      }
     }
     return ok;
+  } else if (buf->ntris < d3s_MaxPolys * 2 - 2) {
+    p = &buf->tris[buf->ntris];
+    v = &buf->keys[buf->nkeys];
+    pos = &d3s_Verts[d3s_NumVerts * 6];
+    p->v[0] = v;
+    p->uv = d3s_QuadUV;
+    p->v[2] = v + 2;
+    p->tex = tex;
+    p->v[1] = v + 1;
+    p++;
+    p->v[1] = v + 3;
+    p->v[2] = v + 2;
+    p->v[0] = v + 1;
+    p->uv = d3s_QuadUV2;
+    p->tex = tex;
+    buf->ntris += 2;
+    v->srcPos = pos;
+    pos[0] = (slot->x0);
+    pos[1] = (slot->y);
+    pos[2] = (slot->z1);
+    v->color = col.d;
+    v->specular = col.d;
+    pos += 6;
+    v++;
+    v->srcPos = pos;
+    pos[0] = (slot->x1);
+    pos[1] = (slot->y);
+    pos[2] = (slot->z1);
+    v->color = col.d;
+    v->specular = col.d;
+    pos += 6;
+    v++;
+    v->srcPos = pos;
+    pos[0] = (slot->x0);
+    pos[1] = (slot->y);
+    pos[2] = (slot->z0);
+    v->color = col.d;
+    v->specular = col.d;
+    pos += 6;
+    v++;
+    v->srcPos = pos;
+    pos[0] = (slot->x1);
+    pos[1] = (slot->y);
+    pos[2] = (slot->z0);
+    v->color = col.d;
+    v->specular = col.d;
+    buf->nkeys += 4;
+    ok = 1;
+    d3s_NumVerts += 4;
+  }
+  return ok;
 }
 /* 0x45bcd0, height of the ground below obj (a shadow of a parent, or the bottom of its box) */
 
-float d3s_GetGround(D3OBJECT *obj, D3SURF *info, D3OBJECT *light)
-{
-    float y;
-    D3VECTOR4 pos;
-    D3OBJECT *p;
-    D3VERTEX *box;
-    int i;
-    char found;
+float d3s_GetGround(D3OBJECT *obj, D3SURF *info, D3OBJECT *light) {
+  float y;
+  D3VECTOR4 pos;
+  D3OBJECT *p;
+  D3VERTEX *box;
+  int i;
+  char found;
 
-    y = 0.0f;
-    found = 0;
-    d3_PointToWorld(obj, &obj->pos, &pos.v);
-    if (obj->parent) {
-        p = obj->parent;
-        while (p) {
-            if ((p->objectFlags & 4) && p->material) {
-                for (i = 0; i < 4 && !found; i++) {
-                    if (p->material->sub[i].tex
-                        && p->material->sub[i].dir.x * p->material->sub[i].dir.x
-                           + p->material->sub[i].dir.y * p->material->sub[i].dir.y
-                           + p->material->sub[i].dir.z * p->material->sub[i].dir.z > 0.0f) {
-                        y = p->material->sub[i].y;
-                        found = 1;
-                    }
-                }
-            }
-            p = p->parent;
+  y = 0.0f;
+  found = 0;
+  d3_PointToWorld(obj, &obj->pos, &pos.v);
+  if (obj->parent) {
+    p = obj->parent;
+    while (p) {
+      if ((p->objectFlags & 4) && p->material) {
+        for (i = 0; i < 4 && !found; i++) {
+          if (p->material->sub[i].tex &&
+              p->material->sub[i].dir.x * p->material->sub[i].dir.x +
+                      p->material->sub[i].dir.y * p->material->sub[i].dir.y +
+                      p->material->sub[i].dir.z * p->material->sub[i].dir.z >
+                  0.0f) {
+            y = p->material->sub[i].y;
+            found = 1;
+          }
         }
+      }
+      p = p->parent;
     }
-    if (!found && obj->material) {
-        if (obj->objectFlags & 0x20)
-            return pos.y - info->mesh->radius + obj->material->groundOffset;
-        box = info->mesh->GetBox(obj, info, &obj->material->worldMatrix);
-        y = 1e10f;
-        for (i = 8; i; i--, box++)
-            y = min(y, box->y);
-        y += obj->material->groundOffset;
-    }
-    return y;
+  }
+  if (!found && obj->material) {
+    if (obj->objectFlags & 0x20)
+      return pos.y - info->mesh->radius + obj->material->groundOffset;
+    box = info->mesh->GetBox(obj, info, &obj->material->worldMatrix);
+    y = 1e10f;
+    for (i = 8; i; i--, box++)
+      y = min(y, box->y);
+    y += obj->material->groundOffset;
+  }
+  return y;
 }
 /* 0x45be10, projects the mesh along the light onto the ground and renders the shadow texture
    @deep 282 -> 127 ins this session: slot->dir copied per field (x, y, z: the original's interleaved
@@ -1139,411 +1174,413 @@ float d3s_GetGround(D3OBJECT *obj, D3SURF *info, D3OBJECT *light)
    +0x6d3 load in another order; mh in ebp at +0x3f6 where ours keeps [esp+0x4c]; the head schedule
    (d3s_Count++ before the dir copy). */
 
-void d3s_Project(D3OBJECT *obj, D3SURF *info, D3SURF *mesh, D3FLMAP *t, D3VECTOR *ldir,
-                 D3VECTOR *lpos, D3OBJECT *light, D3MESHSUB *slot)
-{
-    struct TSTEXTURE *tex = slot->tex;
-    D3VECTOR pos;                   /* the object's position, then the light-to-vertex vector */
-    D3VERTEX *v;
-    D3TRI *p;
-    float y, f, inv, x0, x1, z0, z1, sx, sz;
-    int i, k, size, mh, m;
-    int cx0, cx1, cz0, cz1;
+void d3s_Project(D3OBJECT *obj, D3SURF *info, D3SURF *mesh, D3FLMAP *t,
+                 D3VECTOR *ldir, D3VECTOR *lpos, D3OBJECT *light,
+                 D3MESHSUB *slot) {
+  struct TSTEXTURE *tex = slot->tex;
+  D3VECTOR pos; /* the object's position, then the light-to-vertex vector */
+  D3VERTEX *v;
+  D3TRI *p;
+  float y, f, inv, x0, x1, z0, z1, sx, sz;
+  int i, k, size, mh, m;
+  int cx0, cx1, cz0, cz1;
 
-    d3s_Count++;
-    slot->dir.x = ldir->x;
-    slot->dir.y = ldir->y;
-    slot->dir.z = ldir->z;
-    y = d3s_GetGround(obj, info, light);
-    z0 = 1e10f;
-    x0 = 1e10f;
-    z1 = -1e10f;
-    x1 = -1e10f;
-    if (slot->simple) {
-        d3_PointToWorld(obj, &obj->pos, &pos);
-        y += 3.0f;
-        x0 = pos.x - 16.0f;
-        x1 = pos.x + 16.0f;
-        z0 = pos.z - 16.0f;
-        z1 = pos.z + 16.0f;
+  d3s_Count++;
+  slot->dir.x = ldir->x;
+  slot->dir.y = ldir->y;
+  slot->dir.z = ldir->z;
+  y = d3s_GetGround(obj, info, light);
+  z0 = 1e10f;
+  x0 = 1e10f;
+  z1 = -1e10f;
+  x1 = -1e10f;
+  if (slot->simple) {
+    d3_PointToWorld(obj, &obj->pos, &pos);
+    y += 3.0f;
+    x0 = pos.x - 16.0f;
+    x1 = pos.x + 16.0f;
+    z0 = pos.z - 16.0f;
+    z1 = pos.z + 16.0f;
+  } else {
+    mesh->mesh->Transform(obj, mesh, &obj->material->worldMatrix);
+    obj->state |= 0x10;
+    v = mesh->keys;
+    if (light->objectFlags & 0x10) {
+      inv = -ldir->y;
+      for (i = 0; i < mesh->nkeys; i++, v++) {
+        f = (v->y - y) * (1.0f / inv);
+        v->x = f * ldir->x + v->x;
+        v->y = f * ldir->y + v->y;
+        v->z = f * ldir->z + v->z;
+        z0 = min(z0, v->z);
+        z1 = max(z1, v->z);
+        x0 = min(x0, v->x);
+        x1 = max(x1, v->x);
+      }
     } else {
-        mesh->mesh->Transform(obj, mesh, &obj->material->worldMatrix);
-        obj->state |= 0x10;
-        v = mesh->keys;
-        if (light->objectFlags & 0x10) {
-            inv = -ldir->y;
-            for (i = 0; i < mesh->nkeys; i++, v++) {
-                f = (v->y - y) * (1.0f / inv);
-                v->x = f * ldir->x + v->x;
-                v->y = f * ldir->y + v->y;
-                v->z = f * ldir->z + v->z;
-                z0 = min(z0, v->z);
-                z1 = max(z1, v->z);
-                x0 = min(x0, v->x);
-                x1 = max(x1, v->x);
-            }
-        } else {
-            for (i = 0; i < mesh->nkeys; i++, v++) {
-                pos.x = lpos->x - v->x;
-                pos.y = lpos->y - v->y;
-                pos.z = lpos->z - v->z;
-                f = -((lpos->y - y) / pos.y);
-                v->x = pos.x * f + lpos->x;
-                v->y = pos.y * f + lpos->y;
-                v->z = f * pos.z + lpos->z;
-                z0 = min(z0, v->z);
-                z1 = max(z1, v->z);
-                x0 = min(x0, v->x);
-                x1 = max(x1, v->x);
-            }
-        }
+      for (i = 0; i < mesh->nkeys; i++, v++) {
+        pos.x = lpos->x - v->x;
+        pos.y = lpos->y - v->y;
+        pos.z = lpos->z - v->z;
+        f = -((lpos->y - y) / pos.y);
+        v->x = pos.x * f + lpos->x;
+        v->y = pos.y * f + lpos->y;
+        v->z = f * pos.z + lpos->z;
+        z0 = min(z0, v->z);
+        z1 = max(z1, v->z);
+        x0 = min(x0, v->x);
+        x1 = max(x1, v->x);
+      }
     }
-    if (fabs(x1) > 16384.0f || fabs(x0) > 16384.0f || fabs(z1) > 16384.0f || fabs(z0) > 16384.0f
-        || fabs(x1 - x0) > 16384.0f || fabs(z1 - z0) > 16384.0f)
-        return;
-    slot->bz0 = -1;
-    slot->map = 0;
-    slot->size = 0;
-    if (d3s_Enabled) {
-        if (t && !slot->simple) {
-            slot->ix0 = (int)((x0 - t->orgx) / t->scale);
-            slot->ix1 = (int)((x1 - t->orgx) / t->scale + 1.0);
-            slot->iz0 = (int)((z1 - t->orgz) / t->negScale);
-            slot->iz1 = (int)((z0 - t->orgz) / t->negScale + 1.0);
-            size = t->size;
-            if (slot->ix0 < size && slot->ix1 > 0 && slot->iz0 < size && slot->iz1 > 0) {
-                mh = 0;
-                cx0 = max(0, slot->ix0);
-                cx1 = min(size - 1, slot->ix1);
-                cz0 = max(0, slot->iz0);
-                cz1 = min(size - 1, slot->iz1);
-                slot->bx0 = cx0 / t->n;
-                slot->bx1 = cx1 / t->n;
-                slot->bz0 = cz0 / t->n;
-                slot->bz1 = cz1 / t->n;
-                for (k = slot->bz0; k <= slot->bz1; k++)
-                    for (i = slot->bx0; i <= slot->bx1; i++)
-                        mh = max(mh, t->tiles[k][i].lodLevel);
-                slot->maxh = mh;
-                if (mh > 1) {
-                    m = ~(mh - 1);
-                    slot->ix0 &= m;
-                    if (slot->ix1 & mh - 1)
-                        slot->ix1 = slot->ix1 + mh & m;
-                    slot->iz0 &= m;
-                    if (slot->iz1 & mh - 1)
-                        slot->iz1 = slot->iz1 + mh & m;
-                }
-                slot->map = t->height;
-                slot->size = t->size;
-                slot->cell.x = t->scale;
-                slot->cell.y = t->hscale;
-                slot->cell.z = t->negScale;
-                slot->origin.x = t->orgx;
-                slot->origin.y = t->orgy;
-                slot->origin.z = t->orgz;
-                x0 = slot->ix0 * t->scale + t->orgx;
-                x1 = slot->ix1 * t->scale + t->orgx;
-                z0 = slot->iz0 * t->negScale + t->orgz;
-                z1 = slot->iz1 * t->negScale + t->orgz;
-            }
-        } else if (d3sm_Shadow && !slot->simple) {
-            slot->ix0 = (int)((x0 - d3sm_Shadow->origin.x) / d3sm_Shadow->cell.x);
-            slot->ix1 = (int)((x1 - d3sm_Shadow->origin.x) / d3sm_Shadow->cell.x + 1.0);
-            slot->iz0 = (int)((z1 - d3sm_Shadow->origin.z) / d3sm_Shadow->cell.z);
-            slot->iz1 = (int)((z0 - d3sm_Shadow->origin.z) / d3sm_Shadow->cell.z + 1.0);
-            if (slot->ix0 < d3sm_Shadow->size && slot->ix1 > 0 && slot->iz0 < d3sm_Shadow->size && slot->iz1 > 0) {
-                slot->map = d3sm_Shadow->data;
-                slot->size = d3sm_Shadow->size;
-                slot->cell.x = d3sm_Shadow->cell.x;
-                slot->cell.y = d3sm_Shadow->cell.y;
-                slot->cell.z = d3sm_Shadow->cell.z;
-                slot->origin.x = d3sm_Shadow->origin.x;
-                slot->origin.y = d3sm_Shadow->origin.y;
-                slot->origin.z = d3sm_Shadow->origin.z;
-                x0 = slot->ix0 * d3sm_Shadow->cell.x + d3sm_Shadow->origin.x;
-                x1 = slot->ix1 * d3sm_Shadow->cell.x + d3sm_Shadow->origin.x;
-                z0 = slot->iz0 * d3sm_Shadow->cell.z + d3sm_Shadow->origin.z;
-                z1 = slot->iz1 * d3sm_Shadow->cell.z + d3sm_Shadow->origin.z;
-            }
+  }
+  if (fabs(x1) > 16384.0f || fabs(x0) > 16384.0f || fabs(z1) > 16384.0f ||
+      fabs(z0) > 16384.0f || fabs(x1 - x0) > 16384.0f ||
+      fabs(z1 - z0) > 16384.0f)
+    return;
+  slot->bz0 = -1;
+  slot->map = 0;
+  slot->size = 0;
+  if (d3s_Enabled) {
+    if (t && !slot->simple) {
+      slot->ix0 = (int)((x0 - t->orgx) / t->scale);
+      slot->ix1 = (int)((x1 - t->orgx) / t->scale + 1.0);
+      slot->iz0 = (int)((z1 - t->orgz) / t->negScale);
+      slot->iz1 = (int)((z0 - t->orgz) / t->negScale + 1.0);
+      size = t->size;
+      if (slot->ix0 < size && slot->ix1 > 0 && slot->iz0 < size &&
+          slot->iz1 > 0) {
+        mh = 0;
+        cx0 = max(0, slot->ix0);
+        cx1 = min(size - 1, slot->ix1);
+        cz0 = max(0, slot->iz0);
+        cz1 = min(size - 1, slot->iz1);
+        slot->bx0 = cx0 / t->n;
+        slot->bx1 = cx1 / t->n;
+        slot->bz0 = cz0 / t->n;
+        slot->bz1 = cz1 / t->n;
+        for (k = slot->bz0; k <= slot->bz1; k++)
+          for (i = slot->bx0; i <= slot->bx1; i++)
+            mh = max(mh, t->tiles[k][i].lodLevel);
+        slot->maxh = mh;
+        if (mh > 1) {
+          m = ~(mh - 1);
+          slot->ix0 &= m;
+          if (slot->ix1 & mh - 1)
+            slot->ix1 = slot->ix1 + mh & m;
+          slot->iz0 &= m;
+          if (slot->iz1 & mh - 1)
+            slot->iz1 = slot->iz1 + mh & m;
         }
+        slot->map = t->height;
+        slot->size = t->size;
+        slot->cell.x = t->scale;
+        slot->cell.y = t->hscale;
+        slot->cell.z = t->negScale;
+        slot->origin.x = t->orgx;
+        slot->origin.y = t->orgy;
+        slot->origin.z = t->orgz;
+        x0 = slot->ix0 * t->scale + t->orgx;
+        x1 = slot->ix1 * t->scale + t->orgx;
+        z0 = slot->iz0 * t->negScale + t->orgz;
+        z1 = slot->iz1 * t->negScale + t->orgz;
+      }
+    } else if (d3sm_Shadow && !slot->simple) {
+      slot->ix0 = (int)((x0 - d3sm_Shadow->origin.x) / d3sm_Shadow->cell.x);
+      slot->ix1 =
+          (int)((x1 - d3sm_Shadow->origin.x) / d3sm_Shadow->cell.x + 1.0);
+      slot->iz0 = (int)((z1 - d3sm_Shadow->origin.z) / d3sm_Shadow->cell.z);
+      slot->iz1 =
+          (int)((z0 - d3sm_Shadow->origin.z) / d3sm_Shadow->cell.z + 1.0);
+      if (slot->ix0 < d3sm_Shadow->size && slot->ix1 > 0 &&
+          slot->iz0 < d3sm_Shadow->size && slot->iz1 > 0) {
+        slot->map = d3sm_Shadow->data;
+        slot->size = d3sm_Shadow->size;
+        slot->cell.x = d3sm_Shadow->cell.x;
+        slot->cell.y = d3sm_Shadow->cell.y;
+        slot->cell.z = d3sm_Shadow->cell.z;
+        slot->origin.x = d3sm_Shadow->origin.x;
+        slot->origin.y = d3sm_Shadow->origin.y;
+        slot->origin.z = d3sm_Shadow->origin.z;
+        x0 = slot->ix0 * d3sm_Shadow->cell.x + d3sm_Shadow->origin.x;
+        x1 = slot->ix1 * d3sm_Shadow->cell.x + d3sm_Shadow->origin.x;
+        z0 = slot->iz0 * d3sm_Shadow->cell.z + d3sm_Shadow->origin.z;
+        z1 = slot->iz1 * d3sm_Shadow->cell.z + d3sm_Shadow->origin.z;
+      }
     }
-    slot->x0 = x0;
-    slot->x1 = x1;
-    slot->z0 = z0;
-    slot->z1 = z1;
-    slot->y = y;
-    if (!slot->simple) {
-        sx = (float)tex->size / (x1 - x0);
-        sz = (float)tex->size / (z1 - z0);
-        v = mesh->keys;
-        for (i = 0; i < mesh->nkeys; i++, v++) {
-            v->shadowU = (v->x - x0) * sx;
-            v->shadowV = (v->z - z0) * sz;
-        }
-        if (!tex->surf && d3_Hardware)
-            ts_CacheFetch(tex, 2, d3s_Palette);
-        if (tex->surf) {
-            dd_FillSurface(tex->surf, 0, 0);
-            dd_Surface = dd_LockSurfaceFlags(tex->surf, 0x20);
-            for (i = 0, p = mesh->tris; i < mesh->ntris; i++, p++)
-                d3s_ShadowPoly(p, tex->bpp, tex->size);
-            dd_UnlockSurface(tex->surf);
-            dd_Surface = 0;
-            if (slot->cache->flag)
-                d3d_BuildMipmaps(tex->surf, 0);
-        }
+  }
+  slot->x0 = x0;
+  slot->x1 = x1;
+  slot->z0 = z0;
+  slot->z1 = z1;
+  slot->y = y;
+  if (!slot->simple) {
+    sx = (float)tex->size / (x1 - x0);
+    sz = (float)tex->size / (z1 - z0);
+    v = mesh->keys;
+    for (i = 0; i < mesh->nkeys; i++, v++) {
+      v->shadowU = (v->x - x0) * sx;
+      v->shadowV = (v->z - z0) * sz;
     }
+    if (!tex->surf && d3_Hardware)
+      ts_CacheFetch(tex, 2, d3s_Palette);
+    if (tex->surf) {
+      dd_FillSurface(tex->surf, 0, 0);
+      dd_Surface = dd_LockSurfaceFlags(tex->surf, 0x20);
+      for (i = 0, p = mesh->tris; i < mesh->ntris; i++, p++)
+        d3s_ShadowPoly(p, tex->bpp, tex->size);
+      dd_UnlockSurface(tex->surf);
+      dd_Surface = 0;
+      if (slot->cache->flag)
+        d3d_BuildMipmaps(tex->surf, 0);
+    }
+  }
 }
 /* 0x45c620, updates the shadow of obj cast by light */
 
-char d3s_Update(D3OBJECT *obj, D3OBJECT *light, D3FLMAP *t)
-{
-    D3MESHSUB *slot = 0;
-    D3SURF *info, *mesh;
-    D3VECTOR4 ldir, lpos, opos;
-    D3TEXFLAGS f;
-    unsigned int size, n;
-    int i, j, k;
-    float eps, dist;
-    char redo;
-    unsigned char mh;
+char d3s_Update(D3OBJECT *obj, D3OBJECT *light, D3FLMAP *t) {
+  D3MESHSUB *slot = 0;
+  D3SURF *info, *mesh;
+  D3VECTOR4 ldir, lpos, opos;
+  D3TEXFLAGS f;
+  unsigned int size, n;
+  int i, j, k;
+  float eps, dist;
+  char redo;
+  unsigned char mh;
 
-    if (!d3s_TexSize || obj->type >= 5 || !(obj->objectFlags & 4) || !obj->material || !(light->objectFlags & 4)
-        || d3s_Object->material->surf[0].ntris >= d3s_MaxPolys * 2 - 2
-        || light->lightParams.y == 0.0)
-        return 0;
-    for (k = 0; k < 4; k++) {
-        if (obj->material->sub[k].tex && obj->material->sub[k].light == light) {
-            slot = &obj->material->sub[k];
-            break;
-        }
-    }
-    if (k == 4) {
-        for (k = 0; k < 4; k++)
-            if (!obj->material->sub[k].tex)
-                goto found;
-        return 0;
-found:
-        slot = &obj->material->sub[k];
-        slot->light = light;
-        slot->map = 0;
-        slot->size = 0;
-        slot->maxh = 0;
-        slot->bz0 = -1;
-        slot->simple = obj->objectFlags >> 3 & 1;
-        slot->dir.x = 0;
-        slot->dir.y = 0;
-        slot->dir.z = 0;
-        if (slot->simple) {
-            f.all = 0;
-            f.b[0] = 0x7f;
-            f.b[2] |= 2;
-            slot->tex = tex_Load("Schatten", f, 0, 0);
-            if (slot->tex && !slot->tex->surf)
-                tex_Reload(slot->tex, 0);
-        } else {
-            size = d3s_TexSize;
-            if (obj->info->mesh && d3s_LodTexSize) {
-                dist = obj->info->mesh->diagonal;
-                for (n = 0; n < 2 && !(dist < d3s_Dist[n]); n++)
-                    size *= 2;
-                size = min(size, d3s_MaxTexSize);
-            }
-            slot->tex = d3s_CacheTexture(slot, d3s_ShadowMips, size, d3_FrameCount, &slot->cache);
-        }
-    }
-    if (!slot || !slot->tex)
-        return 0;
-    if (slot->cache)
-        slot->cache->time = d3_FrameCount;
-    mesh = obj->info;
-    info = mesh;
-    if (obj->material->surf[3].ntris > 0 && obj->material->surf[3].nkeys > 0)
-        mesh = &obj->material->surf[3];
-    d3_PointToWorld(light, &light->pos, &lpos.v);
-    if (light->objectFlags & 0x10) {
-        eps = 0.01f;
-        d3_DirToWorld(light, &d3_ZAxis.v, &ldir.v);
-    } else {
-        eps = 1.0f;
-        d3_PointToWorld(obj, &obj->pos, &opos.v);
-        ldir.x = opos.x - lpos.x;
-        ldir.y = opos.y - lpos.y;
-        ldir.z = opos.z - lpos.z;
-    }
-    redo = !d3_VecEqual(&ldir.v, &slot->dir, eps) || info->active ? 1 : 0;
-    if (t) {
-        if (!redo) {
-            j = slot->bz0;
-            if (j != -1 && !slot->simple) {
-                mh = 0;
-                for (; j <= slot->bz1; j++)
-                    for (i = slot->bx0; i <= slot->bx1; i++)
-                        mh = max(mh, t->tiles[j][i].lodLevel);
-                if (!mh)
-                    return 0;
-                if (mh != slot->maxh)
-                    redo = 1;
-            }
-        }
-    }
-    if (redo)
-        d3s_Project(obj, info, mesh, t, &ldir.v, &lpos.v, light, slot);
-    if (d3s_AddShadow(slot, d3_Terrain))
-        d3s_Object->state |= 4;
+  if (!d3s_TexSize || obj->type >= 5 || !(obj->objectFlags & 4) ||
+      !obj->material || !(light->objectFlags & 4) ||
+      d3s_Object->material->surf[0].ntris >= d3s_MaxPolys * 2 - 2 ||
+      light->lightParams.y == 0.0)
     return 0;
+  for (k = 0; k < 4; k++) {
+    if (obj->material->sub[k].tex && obj->material->sub[k].light == light) {
+      slot = &obj->material->sub[k];
+      break;
+    }
+  }
+  if (k == 4) {
+    for (k = 0; k < 4; k++)
+      if (!obj->material->sub[k].tex)
+        goto found;
+    return 0;
+  found:
+    slot = &obj->material->sub[k];
+    slot->light = light;
+    slot->map = 0;
+    slot->size = 0;
+    slot->maxh = 0;
+    slot->bz0 = -1;
+    slot->simple = obj->objectFlags >> 3 & 1;
+    slot->dir.x = 0;
+    slot->dir.y = 0;
+    slot->dir.z = 0;
+    if (slot->simple) {
+      f.all = 0;
+      f.b[0] = 0x7f;
+      f.b[2] |= 2;
+      slot->tex = tex_Load("Schatten", f, 0, 0);
+      if (slot->tex && !slot->tex->surf)
+        tex_Reload(slot->tex, 0);
+    } else {
+      size = d3s_TexSize;
+      if (obj->info->mesh && d3s_LodTexSize) {
+        dist = obj->info->mesh->diagonal;
+        for (n = 0; n < 2 && !(dist < d3s_Dist[n]); n++)
+          size *= 2;
+        size = min(size, d3s_MaxTexSize);
+      }
+      slot->tex = d3s_CacheTexture(slot, d3s_ShadowMips, size, d3_FrameCount,
+                                   &slot->cache);
+    }
+  }
+  if (!slot || !slot->tex)
+    return 0;
+  if (slot->cache)
+    slot->cache->time = d3_FrameCount;
+  mesh = obj->info;
+  info = mesh;
+  if (obj->material->surf[3].ntris > 0 && obj->material->surf[3].nkeys > 0)
+    mesh = &obj->material->surf[3];
+  d3_PointToWorld(light, &light->pos, &lpos.v);
+  if (light->objectFlags & 0x10) {
+    eps = 0.01f;
+    d3_DirToWorld(light, &d3_ZAxis.v, &ldir.v);
+  } else {
+    eps = 1.0f;
+    d3_PointToWorld(obj, &obj->pos, &opos.v);
+    ldir.x = opos.x - lpos.x;
+    ldir.y = opos.y - lpos.y;
+    ldir.z = opos.z - lpos.z;
+  }
+  redo = !d3_VecEqual(&ldir.v, &slot->dir, eps) || info->active ? 1 : 0;
+  if (t) {
+    if (!redo) {
+      j = slot->bz0;
+      if (j != -1 && !slot->simple) {
+        mh = 0;
+        for (; j <= slot->bz1; j++)
+          for (i = slot->bx0; i <= slot->bx1; i++)
+            mh = max(mh, t->tiles[j][i].lodLevel);
+        if (!mh)
+          return 0;
+        if (mh != slot->maxh)
+          redo = 1;
+      }
+    }
+  }
+  if (redo)
+    d3s_Project(obj, info, mesh, t, &ldir.v, &lpos.v, light, slot);
+  if (d3s_AddShadow(slot, d3_Terrain))
+    d3s_Object->state |= 4;
+  return 0;
 }
 /* 0x45c9c0, d3_ForEachObject callback: collects up to 4 shadow casting lights */
 
-char d3s_LightCB(D3OBJECT *obj, void *ctx)
-{
-    if (obj->objectFlags & 4)
-        d3s_Lights[d3s_NumLights++] = obj;
-    return d3s_NumLights < 4;
+char d3s_LightCB(D3OBJECT *obj, void *ctx) {
+  if (obj->objectFlags & 4)
+    d3s_Lights[d3s_NumLights++] = obj;
+  return d3s_NumLights < 4;
 }
 /* 0x45c9f0, collects the shadow casting lights into d3s_Lights */
 
-void d3s_CollectLights(void)
-{
-    d3s_NumLights = 0;
-    d3_ForEachObject(d3_DefaultScene, 0, 0x10, d3s_LightCB, 0);
+void d3s_CollectLights(void) {
+  d3s_NumLights = 0;
+  d3_ForEachObject(d3_DefaultScene, 0, 0x10, d3s_LightCB, 0);
 }
 /* 0x45ca20, updates obj's shadow slots against every collected light (d3s_Lights), when obj's
    objectFlags bit 2 (shadow mode) asks for a shadow */
 
-void d3s_UpdateObject(D3OBJECT *obj)
-{
-    unsigned int i;
+void d3s_UpdateObject(D3OBJECT *obj) {
+  unsigned int i;
 
-    if (obj->objectFlags & 4) {
-        for (i = 0; i < d3s_NumLights; i++)
-            d3s_Update(obj, d3s_Lights[i], d3_Terrain);
-    }
+  if (obj->objectFlags & 4) {
+    for (i = 0; i < d3s_NumLights; i++)
+      d3s_Update(obj, d3s_Lights[i], d3_Terrain);
+  }
 }
 /* 0x45ca60, makes the shadows of obj: projects its box along each shadow light onto the ground, and updates
    the shadow of every light whose projected box is on screen */
 
-void d3s_UpdateObjectAt(D3OBJECT *obj)
-{
-    D3OBJECT *light;
-    D3SURF *info;
-    D3VERTEX *verts, *box;
-    D3VECTOR4 d;                        /* the light's ray through a corner, then the point relative to the camera */
-    D3VECTOR4 lpos, ldir;
-    D3VECTOR4 p;                        /* the corner projected onto the ground */
-    float y, f;
-    unsigned int i;
-    int k;
+void d3s_UpdateObjectAt(D3OBJECT *obj) {
+  D3OBJECT *light;
+  D3SURF *info;
+  D3VERTEX *verts, *box;
+  D3VECTOR4
+  d; /* the light's ray through a corner, then the point relative to the camera */
+  D3VECTOR4 lpos, ldir;
+  D3VECTOR4 p; /* the corner projected onto the ground */
+  float y, f;
+  unsigned int i;
+  int k;
 
-    obj->flags &= ~2;
-    if (!(obj->stateFlags & 0x80))
-        d3_UpdateWorldMatrix(obj, obj->state & 0x80 ? 0 : d3_Camera, 0);
-    for (i = 0; i < d3s_NumLights; i++) {
-        info = obj->info;
-        light = d3s_Lights[i];
-        if (!info)
-            return;
-        d3_PointToWorld(light, &light->pos, &lpos.v);
-        d3_DirToWorld(light, &d3_ZAxis.v, &ldir.v);
-        y = d3s_GetGround(obj, info, light);
-        verts = info->mesh->GetBox(obj, info, &obj->material->worldMatrix);
-        for (k = 8, box = verts; k; k--, box++) {
-            if (light->objectFlags & 0x10) {
-                f = -((box->y - y) / ldir.y);
-                p.x = ldir.x * f + box->x;
-                p.y = ldir.y * f + box->y;
-                p.z = ldir.z * f + box->z;
-            } else {
-                d.x = lpos.x - box->x;
-                d.y = lpos.y - box->y;
-                d.z = lpos.z - box->z;
-                f = -((lpos.y - y) / d.y);
-                p.x = d.x * f + lpos.x;
-                p.y = d.y * f + lpos.y;
-                p.z = d.z * f + lpos.z;
-            }
-            d.x = p.x - d3_Camera->pos.x;
-            d.y = p.y - d3_Camera->pos.y;
-            d.z = p.z - d3_Camera->pos.z;
-            box->x = d.x * d3_Camera->matrix._11 + d.y * d3_Camera->matrix._21 + d.z * d3_Camera->matrix._31 + d3_Camera->matrix._41;
-            box->y = d.x * d3_Camera->matrix._12 + d.y * d3_Camera->matrix._22 + d.z * d3_Camera->matrix._32 + d3_Camera->matrix._42;
-            box->z = d.x * d3_Camera->matrix._13 + d.y * d3_Camera->matrix._23 + d.z * d3_Camera->matrix._33 + d3_Camera->matrix._43;
-        }
-        if (!(d3_ClipBox(verts, 0, 0) & 0x40)) {
-            obj->flags |= 2;
-            d3s_Update(obj, light, d3_Terrain);
-        }
+  obj->flags &= ~2;
+  if (!(obj->stateFlags & 0x80))
+    d3_UpdateWorldMatrix(obj, obj->state & 0x80 ? 0 : d3_Camera, 0);
+  for (i = 0; i < d3s_NumLights; i++) {
+    info = obj->info;
+    light = d3s_Lights[i];
+    if (!info)
+      return;
+    d3_PointToWorld(light, &light->pos, &lpos.v);
+    d3_DirToWorld(light, &d3_ZAxis.v, &ldir.v);
+    y = d3s_GetGround(obj, info, light);
+    verts = info->mesh->GetBox(obj, info, &obj->material->worldMatrix);
+    for (k = 8, box = verts; k; k--, box++) {
+      if (light->objectFlags & 0x10) {
+        f = -((box->y - y) / ldir.y);
+        p.x = ldir.x * f + box->x;
+        p.y = ldir.y * f + box->y;
+        p.z = ldir.z * f + box->z;
+      } else {
+        d.x = lpos.x - box->x;
+        d.y = lpos.y - box->y;
+        d.z = lpos.z - box->z;
+        f = -((lpos.y - y) / d.y);
+        p.x = d.x * f + lpos.x;
+        p.y = d.y * f + lpos.y;
+        p.z = d.z * f + lpos.z;
+      }
+      d.x = p.x - d3_Camera->pos.x;
+      d.y = p.y - d3_Camera->pos.y;
+      d.z = p.z - d3_Camera->pos.z;
+      box->x = d.x * d3_Camera->matrix._11 + d.y * d3_Camera->matrix._21 +
+               d.z * d3_Camera->matrix._31 + d3_Camera->matrix._41;
+      box->y = d.x * d3_Camera->matrix._12 + d.y * d3_Camera->matrix._22 +
+               d.z * d3_Camera->matrix._32 + d3_Camera->matrix._42;
+      box->z = d.x * d3_Camera->matrix._13 + d.y * d3_Camera->matrix._23 +
+               d.z * d3_Camera->matrix._33 + d3_Camera->matrix._43;
     }
+    if (!(d3_ClipBox(verts, 0, 0) & 0x40)) {
+      obj->flags |= 2;
+      d3s_Update(obj, light, d3_Terrain);
+    }
+  }
 }
 /* 0x45cc90, frees the texture of slot and clears the cache entry that owned it */
 
-void d3s_FreeSlot(D3MESHSUB *slot)
-{
-    D3SCENT *c;
+void d3s_FreeSlot(D3MESHSUB *slot) {
+  D3SCENT *c;
 
-    if (slot->tex) {
-        if (c = slot->cache) {
-            c->owner = 0;
-            c->tex = 0;
-            c->size = 0;
-        }
-        tex_Release(slot->tex);
-        slot->tex = 0;
-        slot->cache = 0;
+  if (slot->tex) {
+    if (c = slot->cache) {
+      c->owner = 0;
+      c->tex = 0;
+      c->size = 0;
     }
+    tex_Release(slot->tex);
+    slot->tex = 0;
+    slot->cache = 0;
+  }
 }
 /* 0x45ccd0, frees the four shadow slots of obj and forgets their lights and directions */
 
-void d3s_FreeShadows(D3OBJECT *obj)
-{
-    int i;
+void d3s_FreeShadows(D3OBJECT *obj) {
+  int i;
 
-    if ((obj->objectFlags & 4) && obj->material) {
-        for (i = 0; i < 4; i++) {
-            if (obj->material->sub[i].tex) {
-                d3s_FreeSlot(&obj->material->sub[i]);
-                obj->material->sub[i].light = 0;
-                obj->material->sub[i].dir.x = 0;
-                obj->material->sub[i].dir.y = 0;
-                obj->material->sub[i].dir.z = 0;
-            }
-        }
+  if ((obj->objectFlags & 4) && obj->material) {
+    for (i = 0; i < 4; i++) {
+      if (obj->material->sub[i].tex) {
+        d3s_FreeSlot(&obj->material->sub[i]);
+        obj->material->sub[i].light = 0;
+        obj->material->sub[i].dir.x = 0;
+        obj->material->sub[i].dir.y = 0;
+        obj->material->sub[i].dir.z = 0;
+      }
     }
+  }
 }
 /* 0x45cd60, d3_ForEachObject callback: frees the shadows of obj cast by light */
 
-char d3s_FreeLightCB(D3OBJECT *obj, D3OBJECT *light)
-{
-    int i;
+char d3s_FreeLightCB(D3OBJECT *obj, D3OBJECT *light) {
+  int i;
 
-    if ((obj->objectFlags & 4) && obj->material) {
-        for (i = 0; i < 4; i++) {
-            if (obj->material->sub[i].tex && obj->material->sub[i].light == light) {
-                d3s_FreeSlot(&obj->material->sub[i]);
-                obj->material->sub[i].light = 0;
-                obj->material->sub[i].dir.x = 0;
-                obj->material->sub[i].dir.y = 0;
-                obj->material->sub[i].dir.z = 0;
-            }
-        }
+  if ((obj->objectFlags & 4) && obj->material) {
+    for (i = 0; i < 4; i++) {
+      if (obj->material->sub[i].tex && obj->material->sub[i].light == light) {
+        d3s_FreeSlot(&obj->material->sub[i]);
+        obj->material->sub[i].light = 0;
+        obj->material->sub[i].dir.x = 0;
+        obj->material->sub[i].dir.y = 0;
+        obj->material->sub[i].dir.z = 0;
+      }
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x45ce00, drops the light direction of every shadow slot of obj (its mesh's four D3MESHSUBs (sub)), so no
    shadow is drawn until d3s_Update refills them; only for an object that casts shadows (objectFlags bit 2) */
 
-void d3s_ResetShadows(D3OBJECT *obj)
-{
-    int i;
+void d3s_ResetShadows(D3OBJECT *obj) {
+  int i;
 
-    if ((obj->objectFlags & 4) && obj->material) {
-        for (i = 0; i < 4; i++) {
-            if (obj->material->sub[i].tex) {
-                obj->material->sub[i].dir.x = 0;
-                obj->material->sub[i].dir.y = 0;
-                obj->material->sub[i].dir.z = 0;
-            }
-        }
+  if ((obj->objectFlags & 4) && obj->material) {
+    for (i = 0; i < 4; i++) {
+      if (obj->material->sub[i].tex) {
+        obj->material->sub[i].dir.x = 0;
+        obj->material->sub[i].dir.y = 0;
+        obj->material->sub[i].dir.z = 0;
+      }
     }
+  }
 }

@@ -13,7 +13,12 @@
 #include "cmdump.h"
 #include "d2.h"
 #include "d3.h"
-struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3SKY *s, int first, char *tex, D3TEXFLAGS flags, float scale, float offset, float vscale, float voffset);  /* 0x45d880 */
+struct D3SKYLAYER;
+struct D3SKY;
+struct D3SKYLAYER *d3sky_CreateLayer(struct D3SKY *s, int first, char *tex,
+                                     D3TEXFLAGS flags, float scale,
+                                     float offset, float vscale,
+                                     float voffset); /* 0x45d880 */
 #include "d3_tools.h"
 #include "d3_quad.h"
 #include "d3_light.h"
@@ -25,7 +30,6 @@ struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3S
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 extern GAPDATA full_data_602568[];
-
 
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
@@ -69,120 +73,132 @@ extern GAPDATA full_data_602568[];
 #include "gv.h"
 #include "poker.h"
 #include "gfx.h"
-#define CM_KEEPER_FLAG 0x800000     /* flags1c8 bit 23 (he.c HE_LOVER_FLAG: has a keeper; f3gm.c ORD_F1C8_ANEW): message 0x19
-                                       may not set it on a character that has it */
-typedef struct CMCUTTYPEMSG {      /* 0x7c bytes, the data of the system message 0x11 cm_RunSceneParty sends (cm_SendExSysMessage) */
-    int party;                      /* 0x00, the party's id (G28REC.id) */
-    char text[0x78];                /* 0x04, "cut_type:%i" with the scene kind */
+#define CM_KEEPER_FLAG                                                                               \
+  0x800000 /* flags1c8 bit 23 (he.c HE_LOVER_FLAG: has a keeper; f3gm.c ORD_F1C8_ANEW): message 0x19 \
+              may not set it on a character that has it */
+typedef struct
+    CMCUTTYPEMSG { /* 0x7c bytes, the data of the system message 0x11 cm_RunSceneParty sends (cm_SendExSysMessage) */
+  int party;       /* 0x00, the party's id (G28REC.id) */
+  char text[0x78]; /* 0x04, "cut_type:%i" with the scene kind */
 } CMCUTTYPEMSG;
-typedef struct CMFIELD {            /* the head of one field of a field block (G17FIELDS.buf); its values follow at 0x04 */
-    signed char size;               /* 0x00, a value's size: 1, 2 or 4 bytes */
-    signed char n;                  /* 0x01, the values */
-    unsigned short offset;          /* 0x02, the field's offset in the record */
-    int values[1];                  /* 0x04, the values */
+typedef struct
+    CMFIELD { /* the head of one field of a field block (G17FIELDS.buf); its values follow at 0x04 */
+  signed char size;      /* 0x00, a value's size: 1, 2 or 4 bytes */
+  signed char n;         /* 0x01, the values */
+  unsigned short offset; /* 0x02, the field's offset in the record */
+  int values[1];         /* 0x04, the values */
 } CMFIELD;
-typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of cm_Grenades */
-    D3OBJECT *obj;                  /* the object "ob_BOMBE", 0 = a free slot */
-    D3PATH *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
-    int x, y;                       /* 0x08, the target cell */
+typedef struct
+    CMGRENADE {  /* 0x10 bytes, one of the 32 thrown bombs of cm_Grenades */
+  D3OBJECT *obj; /* the object "ob_BOMBE", 0 = a free slot */
+  D3PATH *anim;  /* 0x04, its flight path (d3anim_CreatePath) */
+  int x, y;      /* 0x08, the target cell */
 } CMGRENADE;
 
 /* dcp unit split: the declarations of cm before the moved functions */
 
-char ai_CharKindNames[10][24] = { "DUMMY_NPC", "MEISTER_NPC", "POLITICIAN_NPC", "AI_NPC", "NPC", "PLAYER", "REMOTE_PLAYER", "RELATIVE_PLAYER", "USED_PLAYER", "INVISIBLE_NPC" };  /* 0x60eae0, the names of the NPC kinds */
+char ai_CharKindNames[10][24] = {
+    "DUMMY_NPC",   "MEISTER_NPC",  "POLITICIAN_NPC", "AI_NPC",
+    "NPC",         "PLAYER",       "REMOTE_PLAYER",  "RELATIVE_PLAYER",
+    "USED_PLAYER", "INVISIBLE_NPC"}; /* 0x60eae0, the names of the NPC kinds */
 
 /* 0x4e58e0, the debug dump of a person (log of the cutscenes): one line of tab separated fields (time, +4, id, the name of the kind (0x60eae0, 24 bytes each) ...) */
 
-void ai_DumpPersonHead(AICHAR *c, char *buf)
-{
-    AICHAR *p;
-    char *name;
+void ai_DumpPersonHead(AICHAR *c, char *buf) {
+  AICHAR *p;
+  char *name;
 
-    p = c;
-    if (p->kind >= 10)
-        name = "%i\t%i\t%i\t%s\t%s\t%i\t%s\t%i\t%s\t%s\t%s\t%s\t";
-    else
-        name = ai_CharKindNames[p->kind];
-    sprintf(buf, "%i\t%i\t%i\t%s\t%s\t%i\t%s\t%i\t%s\t%s\t%s\t%s\t", ai_Time.year, p->netId, p->id, name, p->name, p->health,
-            txt_Ptrs[TXT_SEX_NAMES + p->sex], p->age, txt_Ptrs[TXT_FAITH_NAMES + p->faith], txt_Ptrs[TXT_HONOUR_TITLES + p->level], txt_Ptrs[TXT_JOB_NAMES + p->jobId],
-            txt_Ptrs[TXT_TITLE_NAMES + (unsigned char)p->title]);
+  p = c;
+  if (p->kind >= 10)
+    name = "%i\t%i\t%i\t%s\t%s\t%i\t%s\t%i\t%s\t%s\t%s\t%s\t";
+  else
+    name = ai_CharKindNames[p->kind];
+  sprintf(buf, "%i\t%i\t%i\t%s\t%s\t%i\t%s\t%i\t%s\t%s\t%s\t%s\t", ai_Time.year,
+          p->netId, p->id, name, p->name, p->health,
+          txt_Ptrs[TXT_SEX_NAMES + p->sex], p->age,
+          txt_Ptrs[TXT_FAITH_NAMES + p->faith],
+          txt_Ptrs[TXT_HONOUR_TITLES + p->level],
+          txt_Ptrs[TXT_JOB_NAMES + p->jobId],
+          txt_Ptrs[TXT_TITLE_NAMES + (unsigned char)p->title]);
 }
 /* 0x4e5980, the debug dump of the floats +0x10 .. +0x20 (the 6th "%5.2f" gets the int +0x24 as the original does), the word +0x28 and the bit fields of +0x2c */
 
-void ai_DumpPersonStats(AICHAR *c, char *buf)
-{
-    AICHAR *p;
-    unsigned int v;
+void ai_DumpPersonStats(AICHAR *c, char *buf) {
+  AICHAR *p;
+  unsigned int v;
 
-    p = c;
-    sprintf(buf, "%5.2f\t %5.2f\t %5.2f\t %5.2f\t %5.2f\t %5.2f\t %i\t", p->f010, p->f014, p->f018, p->f01c, p->f020, p->v024, p->w028);
-    v = p->ailments;
-    sprintf(buf + strlen(buf), "%i\t %i\t %i\t %i\t %i\t %i\t %i\t %i\t %i\t", v & 0xf, (v >> 4) & 0xf, (v >> 8) & 0xf, (v >> 0xc) & 3, (v >> 0xe) & 7, (v >> 0x11) & 7,
-            (v >> 0x14) & 7, (v >> 0x17) & 3, (v >> 0x19) & 0xf);
+  p = c;
+  sprintf(buf, "%5.2f\t %5.2f\t %5.2f\t %5.2f\t %5.2f\t %5.2f\t %i\t", p->f010,
+          p->f014, p->f018, p->f01c, p->f020, p->v024, p->w028);
+  v = p->ailments;
+  sprintf(buf + strlen(buf), "%i\t %i\t %i\t %i\t %i\t %i\t %i\t %i\t %i\t",
+          v & 0xf, (v >> 4) & 0xf, (v >> 8) & 0xf, (v >> 0xc) & 3,
+          (v >> 0xe) & 7, (v >> 0x11) & 7, (v >> 0x14) & 7, (v >> 0x17) & 3,
+          (v >> 0x19) & 0xf);
 }
 /* 0x4e5a40, the five bytes +0x80 .. +0x84 of a person as a tab separated line */
 
-void ai_DumpPersonSkills(AICHAR *c, char *buf)
-{
-    AICHAR *p;
+void ai_DumpPersonSkills(AICHAR *c, char *buf) {
+  AICHAR *p;
 
-    p = c;
-    sprintf(buf, "%i\t%i\t%i\t%i\t%i\t", p->skills[0], p->skills[1], p->skills[2], p->skills[3], p->skills[4]);
+  p = c;
+  sprintf(buf, "%i\t%i\t%i\t%i\t%i\t", p->skills[0], p->skills[1], p->skills[2],
+          p->skills[3], p->skills[4]);
 }
 /* 0x4e5a90, the four names (0x143ab0c) of the bytes +0x166 .. +0x169 of a person */
 
-void ai_DumpPersonOffices(AICHAR *c, char *buf)
-{
-    AICHAR *p;
+void ai_DumpPersonOffices(AICHAR *c, char *buf) {
+  AICHAR *p;
 
-    p = c;
-    sprintf(buf, "%s\t%s\t%s\t%s\t", txt_Ptrs[TXT_OFFICE_NAMES + p->officeKind], txt_Ptrs[TXT_OFFICE_NAMES + p->prevOffice], txt_Ptrs[TXT_OFFICE_NAMES + p->appliedOffice],
-            txt_Ptrs[TXT_OFFICE_NAMES + p->secondOffice]);
+  p = c;
+  sprintf(buf, "%s\t%s\t%s\t%s\t", txt_Ptrs[TXT_OFFICE_NAMES + p->officeKind],
+          txt_Ptrs[TXT_OFFICE_NAMES + p->prevOffice],
+          txt_Ptrs[TXT_OFFICE_NAMES + p->appliedOffice],
+          txt_Ptrs[TXT_OFFICE_NAMES + p->secondOffice]);
 }
 /* 0x4e5af0, the debug dump of a person's money fields (v190, money, spent198, wage, v1a0, v1a4), then its goods value (0x509e60) and its worth (0x50a640) */
 
-void ai_DumpPersonMoney(AICHAR *c, char *buf)
-{
-    AICHAR *p;
+void ai_DumpPersonMoney(AICHAR *c, char *buf) {
+  AICHAR *p;
 
-    p = c;
-    sprintf(buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\t%i\t", p->v190, p->money, p->spent198, p->wage, p->v1a0, p->v1a4, gm_GetGoodsValue(c), gm_GetWorth(p->id));
+  p = c;
+  sprintf(buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\t%i\t", p->v190, p->money,
+          p->spent198, p->wage, p->v1a0, p->v1a4, gm_GetGoodsValue(c),
+          gm_GetWorth(p->id));
 }
 /* 0x4e5b50, the debug dump of the 8 relatives of a person (the ids at +0x5c): "%i\t%s" of each one's netId and name, -1 and 0x143b3f4 (TXT_NO_RELATIVE) when it does not exist */
 
-void ai_DumpPersonRelatives(AICHAR *c, char *buf)
-{
-    char tmp[0x100];
-    int *p;
-    AICHAR *o;
-    int i;
+void ai_DumpPersonRelatives(AICHAR *c, char *buf) {
+  char tmp[0x100];
+  int *p;
+  AICHAR *o;
+  int i;
 
-    p = c->relatives;
-    for (i = 8; i != 0; i--) {
-        o = gm_FindChar(*p);
-        if (o != 0)
-            sprintf(tmp, "%i\t%s", o->netId, o->name);
-        else
-            sprintf(tmp, "%i\t%s", -1, txt_Ptrs[TXT_NO_RELATIVE]);
-        strcat(buf, tmp);
-        p++;
-    }
+  p = c->relatives;
+  for (i = 8; i != 0; i--) {
+    o = gm_FindChar(*p);
+    if (o != 0)
+      sprintf(tmp, "%i\t%s", o->netId, o->name);
+    else
+      sprintf(tmp, "%i\t%s", -1, txt_Ptrs[TXT_NO_RELATIVE]);
+    strcat(buf, tmp);
+    p++;
+  }
 }
 /* 0x4e5bf0, the debug dump of a person (one line made by 0x4e58e0, 0x4e5980, 0x4e5a40, 0x4e5a90, 0x4e5af0 and 0x4e5b50 in a 0x1fb8 byte buffer; the end of the cut_ code) */
 
-void ai_DebugDumpPerson(AICHAR *c)
-{
-    char buf[0x1fb8];
-    AICHAR *p;
+void ai_DebugDumpPerson(AICHAR *c) {
+  char buf[0x1fb8];
+  AICHAR *p;
 
-    p = c;
-    if (p != 0 && p->id != 0xffff) {
-        memset(buf, 0, sizeof(buf));
-        ai_DumpPersonHead(c, buf + strlen(buf));
-        ai_DumpPersonStats(c, buf + strlen(buf));
-        ai_DumpPersonSkills(c, buf + strlen(buf));
-        ai_DumpPersonOffices(c, buf + strlen(buf));
-        ai_DumpPersonMoney(c, buf + strlen(buf));
-        ai_DumpPersonRelatives(c, buf + strlen(buf));
-    }
+  p = c;
+  if (p != 0 && p->id != 0xffff) {
+    memset(buf, 0, sizeof(buf));
+    ai_DumpPersonHead(c, buf + strlen(buf));
+    ai_DumpPersonStats(c, buf + strlen(buf));
+    ai_DumpPersonSkills(c, buf + strlen(buf));
+    ai_DumpPersonOffices(c, buf + strlen(buf));
+    ai_DumpPersonMoney(c, buf + strlen(buf));
+    ai_DumpPersonRelatives(c, buf + strlen(buf));
+  }
 }

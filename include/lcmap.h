@@ -2,6 +2,7 @@
 #ifndef LCMAP_H
 #define LCMAP_H
 
-extern const unsigned __int64 ai_KindMaskTable[10];  /* 0x5eed18, ten 64-bit building kind masks (no reader) */
+extern const unsigned __int64 ai_KindMaskTable
+    [10]; /* 0x5eed18, ten 64-bit building kind masks (no reader) */
 
 #endif

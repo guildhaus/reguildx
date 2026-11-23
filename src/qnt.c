@@ -13,391 +13,403 @@
 
 /* 0x4206d0, quantizes the w x h RGB image to ncolors (octree, optional error diffusion): writes the
    palette indices to out and the 256-entry palette (3 x 256 bytes, planar) to pal; 0 on out of memory */
-int qnt_Quantize(unsigned char *rgb, unsigned char *out, int w, int h, int ncolors, int dither, unsigned char *pal)
-{
-    if (!qnt_Inited) {
-        qnt_Inited = 1;
-        qnt_InitTables();
-    }
-    if (!qnt_Alloc()) {
-        qnt_Free();
-        return 0;
-    }
-    if (!qnt_Build(rgb, w * h)) {
-        qnt_Free();
-        return 0;
-    }
-    qnt_Reduce(ncolors);
-    qnt_MakePalette(0, 0);
-    if (!qnt_Map(rgb, out, w, h, dither)) {
-        qnt_Free();
-        return 0;
-    }
+int qnt_Quantize(unsigned char *rgb, unsigned char *out, int w, int h,
+                 int ncolors, int dither, unsigned char *pal) {
+  if (!qnt_Inited) {
+    qnt_Inited = 1;
+    qnt_InitTables();
+  }
+  if (!qnt_Alloc()) {
     qnt_Free();
-    qnt_GetPalette(pal);
-    return 1;
+    return 0;
+  }
+  if (!qnt_Build(rgb, w * h)) {
+    qnt_Free();
+    return 0;
+  }
+  qnt_Reduce(ncolors);
+  qnt_MakePalette(0, 0);
+  if (!qnt_Map(rgb, out, w, h, dither)) {
+    qnt_Free();
+    return 0;
+  }
+  qnt_Free();
+  qnt_GetPalette(pal);
+  return 1;
 }
 /* 0x420780, copies the palette the last quantization built, planar R / G / B, 256 bytes each */
 
-void qnt_GetPalette(unsigned char *pal)
-{
-    int i;
+void qnt_GetPalette(unsigned char *pal) {
+  int i;
 
-    for (i = 0; i < 256; i++) {
-        pal[i] = qnt_Pal[0][i];
-        pal[i + 256] = qnt_Pal[1][i];
-        pal[i + 512] = qnt_Pal[2][i];
-    }
+  for (i = 0; i < 256; i++) {
+    pal[i] = qnt_Pal[0][i];
+    pal[i + 256] = qnt_Pal[1][i];
+    pal[i + 512] = qnt_Pal[2][i];
+  }
 }
 /* 0x4207c0, qnt_R / G / B: the 8 bits of a channel spread to their bit positions in the octree node
    index (the three tables are or-ed into the finest-level index): bits 7..3 go to r 14/11/8/5/2,
    g 13/10/7/4/1, b 12/9/6/3/0 */
 
-void qnt_InitTables(void)
-{
-    int i;
+void qnt_InitTables(void) {
+  int i;
 
-    for (i = 0; i < 256; i++) {
-        qnt_R[i] = (i & 0x80) << 7 | (i & 0x40) << 5 | (i & 0x20) << 3 | (i & 0x10) << 1 | (i & 8) >> 1;
-        qnt_G[i] = (i & 0x80) << 6 | (i & 0x40) << 4 | (i & 0x20) << 2 | (i & 0x10) | (i & 8) >> 2;
-        qnt_B[i] = (i & 0x80) << 5 | (i & 0x40) << 3 | (i & 0x20) << 1 | (i & 0x10) >> 1 | (i & 8) >> 3;
-    }
-    for (i = -255; i <= 255; i++)
-        qnt_Closest.squares[i + 255] = i * i;
-    qnt_SqPtr = &qnt_Closest.squares[255];
+  for (i = 0; i < 256; i++) {
+    qnt_R[i] = (i & 0x80) << 7 | (i & 0x40) << 5 | (i & 0x20) << 3 |
+               (i & 0x10) << 1 | (i & 8) >> 1;
+    qnt_G[i] = (i & 0x80) << 6 | (i & 0x40) << 4 | (i & 0x20) << 2 |
+               (i & 0x10) | (i & 8) >> 2;
+    qnt_B[i] = (i & 0x80) << 5 | (i & 0x40) << 3 | (i & 0x20) << 1 |
+               (i & 0x10) >> 1 | (i & 8) >> 3;
+  }
+  for (i = -255; i <= 255; i++)
+    qnt_Closest.squares[i + 255] = i * i;
+  qnt_SqPtr = &qnt_Closest.squares[255];
 }
 /* 0x420870, allocates the six octree levels (8^n nodes of 0x18 bytes); 0 on failure */
 
-int qnt_Alloc(void)
-{
-    int i;
+int qnt_Alloc(void) {
+  int i;
 
-    qnt_Level[0] = calloc(sizeof(QNODE), 1);
-    qnt_Level[1] = calloc(sizeof(QNODE), 8);
-    qnt_Level[2] = calloc(sizeof(QNODE), 64);
-    qnt_Level[3] = calloc(sizeof(QNODE), 512);
-    qnt_Level[4] = calloc(sizeof(QNODE), 4096);
-    qnt_Level[5] = calloc(sizeof(QNODE), 32768);
-    for (i = 0; i <= 5; i++)
-        if (!qnt_Level[i])
-            return 0;
-    qnt_Colors = 0;
-    return 1;
+  qnt_Level[0] = calloc(sizeof(QNODE), 1);
+  qnt_Level[1] = calloc(sizeof(QNODE), 8);
+  qnt_Level[2] = calloc(sizeof(QNODE), 64);
+  qnt_Level[3] = calloc(sizeof(QNODE), 512);
+  qnt_Level[4] = calloc(sizeof(QNODE), 4096);
+  qnt_Level[5] = calloc(sizeof(QNODE), 32768);
+  for (i = 0; i <= 5; i++)
+    if (!qnt_Level[i])
+      return 0;
+  qnt_Colors = 0;
+  return 1;
 }
 /* 0x420900, frees the octree levels, the node heap and qnt_UnusedBuffer (a buffer this build never allocates) */
 
-void qnt_Free(void)
-{
-    if (qnt_Level[0])
-        free(qnt_Level[0]);
-    if (qnt_Level[1])
-        free(qnt_Level[1]);
-    if (qnt_Level[2])
-        free(qnt_Level[2]);
-    if (qnt_Level[3])
-        free(qnt_Level[3]);
-    if (qnt_Level[4])
-        free(qnt_Level[4]);
-    if (qnt_Level[5])
-        free(qnt_Level[5]);
-    if (qnt_Heap)
-        free(qnt_Heap);
-    if (qnt_UnusedBuffer)
-        free(qnt_UnusedBuffer);
+void qnt_Free(void) {
+  if (qnt_Level[0])
+    free(qnt_Level[0]);
+  if (qnt_Level[1])
+    free(qnt_Level[1]);
+  if (qnt_Level[2])
+    free(qnt_Level[2]);
+  if (qnt_Level[3])
+    free(qnt_Level[3]);
+  if (qnt_Level[4])
+    free(qnt_Level[4]);
+  if (qnt_Level[5])
+    free(qnt_Level[5]);
+  if (qnt_Heap)
+    free(qnt_Heap);
+  if (qnt_UnusedBuffer)
+    free(qnt_UnusedBuffer);
 }
 /* 0x420990, counts the n pixels into the finest level, sums their colors up to the root and puts every
    leaf into the min-heap on its pixel total (heapified bottom-up) */
 
-int qnt_Build(unsigned char *rgb, unsigned int n)
-{
-    unsigned int i, j, c, idx;
-    int lvl;
+int qnt_Build(unsigned char *rgb, unsigned int n) {
+  unsigned int i, j, c, idx;
+  int lvl;
 
-    qnt_Heap = malloc(0x20004);
-    if (!qnt_Heap)
-        return 0;
-    for (; n > 0; n--) {
-        qnt_Level[5][qnt_R[rgb[0]] + qnt_G[rgb[1]] + qnt_B[rgb[2]]].count++;
-        rgb += 3;
+  qnt_Heap = malloc(0x20004);
+  if (!qnt_Heap)
+    return 0;
+  for (; n > 0; n--) {
+    qnt_Level[5][qnt_R[rgb[0]] + qnt_G[rgb[1]] + qnt_B[rgb[2]]].count++;
+    rgb += 3;
+  }
+  qnt_HeapCount = 0;
+  for (i = 0; i < 0x8000; i++) {
+    c = qnt_Level[5][i].count;
+    if (c) {
+      qnt_HeapCount++;
+      qnt_Heap[qnt_HeapCount].level = 5;
+      qnt_Heap[qnt_HeapCount].node = i;
+      qnt_Level[5][i].total = c;
+      j = i >> 2;
+      qnt_Level[5][i].r =
+          (((((j & 0x1000 | i & 0x800) >> 2 | i & 0x100) >> 2 | i & 0x20) >> 1 |
+            (i & 4) << 1) +
+           4) *
+          c;
+      qnt_Level[5][i].g = ((((j & 0x800 | i & 0x400) >> 2 | i & 0x80) >> 2 |
+                            (i & 2) << 2 | i & 0x10) +
+                           4) *
+                          c;
+      qnt_Level[5][i].b = ((((j & 0x400 | i & 0x200) >> 2 | i & 0x40) >> 1 |
+                            ((i & 1) << 2 | i & 8) << 1) +
+                           4) *
+                          c;
+      idx = i;
+      for (lvl = 4; lvl >= 0; lvl--) {
+        j = idx & 7;
+        idx >>= 3;
+        qnt_Level[lvl][idx].total += c;
+        qnt_Level[lvl][idx].mask |= 1 << j;
+      }
     }
-    qnt_HeapCount = 0;
-    for (i = 0; i < 0x8000; i++) {
-        c = qnt_Level[5][i].count;
-        if (c) {
-            qnt_HeapCount++;
-            qnt_Heap[qnt_HeapCount].level = 5;
-            qnt_Heap[qnt_HeapCount].node = i;
-            qnt_Level[5][i].total = c;
-            j = i >> 2;
-            qnt_Level[5][i].r = (((((j & 0x1000 | i & 0x800) >> 2 | i & 0x100) >> 2 | i & 0x20) >> 1 | (i & 4) << 1) + 4) * c;
-            qnt_Level[5][i].g = ((((j & 0x800 | i & 0x400) >> 2 | i & 0x80) >> 2 | (i & 2) << 2 | i & 0x10) + 4) * c;
-            qnt_Level[5][i].b = ((((j & 0x400 | i & 0x200) >> 2 | i & 0x40) >> 1 | ((i & 1) << 2 | i & 8) << 1) + 4) * c;
-            idx = i;
-            for (lvl = 4; lvl >= 0; lvl--) {
-                j = idx & 7;
-                idx >>= 3;
-                qnt_Level[lvl][idx].total += c;
-                qnt_Level[lvl][idx].mask |= 1 << j;
-            }
-        }
-    }
-    i = qnt_HeapCount;
-    if (qnt_HeapCount > 0)
-        do
-            qnt_Sift(i);
-        while (--i);
-    return 1;
+  }
+  i = qnt_HeapCount;
+  if (qnt_HeapCount > 0)
+    do
+      qnt_Sift(i);
+    while (--i);
+  return 1;
 }
 /* 0x420b90, sift-down of heap entry k (heap on the nodes' total, 1-based) */
 
-void qnt_Sift(unsigned int k)
-{
-    unsigned char level;
-    unsigned int node;
-    unsigned int half, v, j;
+void qnt_Sift(unsigned int k) {
+  unsigned char level;
+  unsigned int node;
+  unsigned int half, v, j;
 
-    level = qnt_Heap[k].level;
-    node = qnt_Heap[k].node;
-    half = qnt_HeapCount >> 1;
-    v = qnt_Level[level][node].total;
-    while (k <= half) {
-        j = k * 2;
-        if (j < qnt_HeapCount && QTOTAL(qnt_Heap[j]) > QTOTAL(qnt_Heap[j + 1]))
-            j++;
-        if (v <= QTOTAL(qnt_Heap[j]))
-            break;
-        qnt_Heap[k] = qnt_Heap[j];
-        k = j;
-    }
-    qnt_Heap[k].level = level;
-    qnt_Heap[k].node = node;
+  level = qnt_Heap[k].level;
+  node = qnt_Heap[k].node;
+  half = qnt_HeapCount >> 1;
+  v = qnt_Level[level][node].total;
+  while (k <= half) {
+    j = k * 2;
+    if (j < qnt_HeapCount && QTOTAL(qnt_Heap[j]) > QTOTAL(qnt_Heap[j + 1]))
+      j++;
+    if (v <= QTOTAL(qnt_Heap[j]))
+      break;
+    qnt_Heap[k] = qnt_Heap[j];
+    k = j;
+  }
+  qnt_Heap[k].level = level;
+  qnt_Heap[k].node = node;
 }
 /* 0x420c90, merges the leaf with the fewest pixels into its parent until only ncolors leaves are left */
 
-void qnt_Reduce(unsigned int ncolors)
-{
-    unsigned char lvl, plvl;
-    unsigned int idx;
-    unsigned int pidx;
+void qnt_Reduce(unsigned int ncolors) {
+  unsigned char lvl, plvl;
+  unsigned int idx;
+  unsigned int pidx;
 
-    while (qnt_HeapCount > ncolors) {
-        lvl = qnt_Heap[1].level;
-        idx = qnt_Heap[1].node;
-        plvl = lvl - 1;
-        pidx = idx >> 3;
-        if (qnt_Level[plvl][pidx].count) {
-            qnt_Heap[1] = qnt_Heap[qnt_HeapCount];
-            qnt_HeapCount--;
-        } else {
-            qnt_Heap[1].level = plvl;
-            qnt_Heap[1].node = pidx;
-        }
-        qnt_Level[plvl][pidx].count += qnt_Level[lvl][idx].count;
-        qnt_Level[plvl][pidx].r += qnt_Level[lvl][idx].r;
-        qnt_Level[plvl][pidx].g += qnt_Level[lvl][idx].g;
-        qnt_Level[plvl][pidx].b += qnt_Level[lvl][idx].b;
-        qnt_Level[plvl][pidx].mask &= ~(1 << (idx & 7));
-        qnt_Sift(1);
+  while (qnt_HeapCount > ncolors) {
+    lvl = qnt_Heap[1].level;
+    idx = qnt_Heap[1].node;
+    plvl = lvl - 1;
+    pidx = idx >> 3;
+    if (qnt_Level[plvl][pidx].count) {
+      qnt_Heap[1] = qnt_Heap[qnt_HeapCount];
+      qnt_HeapCount--;
+    } else {
+      qnt_Heap[1].level = plvl;
+      qnt_Heap[1].node = pidx;
     }
+    qnt_Level[plvl][pidx].count += qnt_Level[lvl][idx].count;
+    qnt_Level[plvl][pidx].r += qnt_Level[lvl][idx].r;
+    qnt_Level[plvl][pidx].g += qnt_Level[lvl][idx].g;
+    qnt_Level[plvl][pidx].b += qnt_Level[lvl][idx].b;
+    qnt_Level[plvl][pidx].mask &= ~(1 << (idx & 7));
+    qnt_Sift(1);
+  }
 }
 /* 0x420db0, walks the reduced octree (children first) and gives every node that kept pixels the next
    palette index with its mean color */
 
-void qnt_MakePalette(int idx, int lvl)
-{
-    int i;
-    unsigned int c, g, b;
+void qnt_MakePalette(int idx, int lvl) {
+  int i;
+  unsigned int c, g, b;
 
-    if (qnt_Level[lvl][idx].mask) {
-        for (i = 7; i >= 0; i--)
-            if (qnt_Level[lvl][idx].mask & (1 << i))
-                qnt_MakePalette(i + idx * 8, lvl + 1);
-    }
-    if (qnt_Level[lvl][idx].count) {
-        qnt_Level[lvl][idx].index = qnt_Colors;
-        c = qnt_Level[lvl][idx].count;
-        g = qnt_Level[lvl][idx].g;
-        b = qnt_Level[lvl][idx].b;
-        qnt_Pal[0][qnt_Colors] = (qnt_Level[lvl][idx].r + (c >> 1)) / c;
-        qnt_Pal[1][qnt_Colors] = ((c >> 1) + g) / c;
-        qnt_Pal[2][qnt_Colors++] = ((c >> 1) + b) / c;
-    }
+  if (qnt_Level[lvl][idx].mask) {
+    for (i = 7; i >= 0; i--)
+      if (qnt_Level[lvl][idx].mask & (1 << i))
+        qnt_MakePalette(i + idx * 8, lvl + 1);
+  }
+  if (qnt_Level[lvl][idx].count) {
+    qnt_Level[lvl][idx].index = qnt_Colors;
+    c = qnt_Level[lvl][idx].count;
+    g = qnt_Level[lvl][idx].g;
+    b = qnt_Level[lvl][idx].b;
+    qnt_Pal[0][qnt_Colors] = (qnt_Level[lvl][idx].r + (c >> 1)) / c;
+    qnt_Pal[1][qnt_Colors] = ((c >> 1) + g) / c;
+    qnt_Pal[2][qnt_Colors++] = ((c >> 1) + b) / c;
+  }
 }
 /* 0x420e70, maps the image to palette indices: without dither through a lookup table over the 5-bit
    colors (qnt_Nearest per entry), with dither by error diffusion (err0 / err1 rows, cache). The statements
    follow the public DL1 quantizer's quantize_image (clamp / cl its range table, lim / dm its dither limit) */
 
-int qnt_Map(unsigned char *rgb, unsigned char *out, int w, int h, int dither)
-{
-    int e2;
-    int cnt;
-    unsigned char *lut;
-    unsigned int i, n;
-    unsigned char *clamp, *cl;
-    short *cache, *err0, *err1, *cur, *prev;
-    signed char *lim, *dm;
-    int flip, y, x, dir, k, r, g, b;
+int qnt_Map(unsigned char *rgb, unsigned char *out, int w, int h, int dither) {
+  int e2;
+  int cnt;
+  unsigned char *lut;
+  unsigned int i, n;
+  unsigned char *clamp, *cl;
+  short *cache, *err0, *err1, *cur, *prev;
+  signed char *lim, *dm;
+  int flip, y, x, dir, k, r, g, b;
 
-    if (!dither) {
-        n = w * h;
-        lut = malloc(0x8000);
-        if (lut) {
-            for (i = 0; i < 0x8000; i++)
-                if (qnt_Level[5][i].count)
-                    lut[i] = qnt_Nearest((unsigned char)(i >> 7) & 0x80 | (unsigned char)((i & 4) << 1)
-                                             | (unsigned char)(i >> 1) & 0x10 | (unsigned char)(i >> 3) & 0x20
-                                             | (unsigned char)(i >> 5) & 0x40,
-                                         (unsigned char)(i >> 6) & 0x80 | (unsigned char)(i >> 4) & 0x40
-                                             | (unsigned char)(i >> 2) & 0x20 | (unsigned char)((i & 2) << 2)
-                                             | (unsigned char)i & 0x10,
-                                         (unsigned char)(((i & 1) << 2 | i & 8) << 1) | (unsigned char)(i >> 1) & 0x20
-                                             | (unsigned char)(i >> 3) & 0x40 | (unsigned char)(i >> 5) & 0x80);
-            for (i = 0; i < n; i++) {
-                out[i] = lut[qnt_R[rgb[0]] + qnt_B[rgb[2]] + qnt_G[rgb[1]]];
-                rgb += 3;
-            }
-            free(lut);
-            return 1;
-        }
-    } else {
-        flip = 0;
-        cnt = w * 3 + 6;
-        clamp = malloc(0x300);
-        cl = clamp + 0x100;
-        cache = malloc(0x10000);
-        err0 = malloc(cnt * sizeof(short));
-        err1 = malloc(cnt * sizeof(short));
-        lim = malloc(0x200);
-        if (clamp) {
-            if (cache && err0 && err1 && lim) {
-                for (k = 0; k < cnt; k++)
-                    err0[k] = 0;
-                memset(cache, 0xff, 0x10000);
-                dm = lim + 256;
-                for (k = 0; k < 256; k++) {
-                    clamp[k] = 0;
-                    clamp[k + 256] = k;
-                    clamp[k + 512] = 255;
-                }
-                for (k = 0; k < 256; k++) {
-                    lim[k] = -20;
-                    lim[k + 256] = 20;
-                }
-                for (k = -20; k <= 20; k++)
-                    dm[k] = k;
-                for (y = 0; y < h; y++) {
-                    if (flip) {
-                        dir = -1;
-                        rgb += w * 3 - 3;
-                        out += w - 1;
-                        prev = err1 + 3;
-                        cur = err0 + w * 3;
-                    } else {
-                        dir = 1;
-                        prev = err0 + 3;
-                        cur = err1 + w * 3;
-                    }
-                    cur[2] = 0;
-                    cur[1] = 0;
-                    cur[0] = 0;
-                    for (x = 0; x < w; x++) {
-                        r = cl[rgb[0] + (prev[0] + 8 >> 4)];
-                        g = cl[rgb[1] + (prev[1] + 8 >> 4)];
-                        b = cl[rgb[2] + (prev[2] + 8 >> 4)];
-                        k = ((r & 0xf8) << 5 | g & 0xf8) << 2 | b >> 3;
-                        if (cache[k] < 0)
-                            cache[k] = qnt_Nearest(r, g, b);
-                        *out = (unsigned char)cache[k];
-                        r = dm[r - qnt_Pal[0][cache[k]]];
-                        g = dm[g - qnt_Pal[1][cache[k]]];
-                        b = dm[b - qnt_Pal[2][cache[k]]];
-                        /* r, g, b are the clamped errors now; each goes to the neighbours with the weights 3, 5, 7
-                           (of 16) through the running sums e + 2e, + 2e, + 2e */
-                        cur[-3] = r;
-                        e2 = r + r;
-                        r += e2;
-                        cur[3] += r;
-                        r += e2;
-                        cur[0] += r;
-                        e2 += r;
-                        prev[3] += e2;
-                        cur[-2] = g;
-                        e2 = g + g;
-                        g += e2;
-                        cur[4] += g;
-                        g += e2;
-                        cur[1] += g;
-                        e2 += g;
-                        prev[4] += e2;
-                        cur[-1] = b;
-                        e2 = b + b;
-                        b += e2;
-                        cur[5] += b;
-                        b += e2;
-                        cur[2] += b;
-                        e2 += b;
-                        prev[5] += e2;
-                        prev += 3;
-                        cur -= 3;
-                        rgb += dir * 3;
-                        out += dir;
-                    }
-                    if (y % 2 == 1) {
-                        rgb += (w + 1) * 3;
-                        out += w + 1;
-                    }
-                    flip = !flip;
-                }
-                free(clamp);
-                free(cache);
-                free(err0);
-                free(err1);
-                free(lim);
-                return 1;
-            }
-            free(clamp);
-        }
-        if (cache)
-            free(cache);
-        if (err0)
-            free(err0);
-        if (err1)
-            free(err1);
-        if (lim)
-            free(lim);
+  if (!dither) {
+    n = w * h;
+    lut = malloc(0x8000);
+    if (lut) {
+      for (i = 0; i < 0x8000; i++)
+        if (qnt_Level[5][i].count)
+          lut[i] = qnt_Nearest(
+              (unsigned char)(i >> 7) & 0x80 | (unsigned char)((i & 4) << 1) |
+                  (unsigned char)(i >> 1) & 0x10 |
+                  (unsigned char)(i >> 3) & 0x20 |
+                  (unsigned char)(i >> 5) & 0x40,
+              (unsigned char)(i >> 6) & 0x80 | (unsigned char)(i >> 4) & 0x40 |
+                  (unsigned char)(i >> 2) & 0x20 |
+                  (unsigned char)((i & 2) << 2) | (unsigned char)i & 0x10,
+              (unsigned char)(((i & 1) << 2 | i & 8) << 1) |
+                  (unsigned char)(i >> 1) & 0x20 |
+                  (unsigned char)(i >> 3) & 0x40 |
+                  (unsigned char)(i >> 5) & 0x80);
+      for (i = 0; i < n; i++) {
+        out[i] = lut[qnt_R[rgb[0]] + qnt_B[rgb[2]] + qnt_G[rgb[1]]];
+        rgb += 3;
+      }
+      free(lut);
+      return 1;
     }
-    return 0;
+  } else {
+    flip = 0;
+    cnt = w * 3 + 6;
+    clamp = malloc(0x300);
+    cl = clamp + 0x100;
+    cache = malloc(0x10000);
+    err0 = malloc(cnt * sizeof(short));
+    err1 = malloc(cnt * sizeof(short));
+    lim = malloc(0x200);
+    if (clamp) {
+      if (cache && err0 && err1 && lim) {
+        for (k = 0; k < cnt; k++)
+          err0[k] = 0;
+        memset(cache, 0xff, 0x10000);
+        dm = lim + 256;
+        for (k = 0; k < 256; k++) {
+          clamp[k] = 0;
+          clamp[k + 256] = k;
+          clamp[k + 512] = 255;
+        }
+        for (k = 0; k < 256; k++) {
+          lim[k] = -20;
+          lim[k + 256] = 20;
+        }
+        for (k = -20; k <= 20; k++)
+          dm[k] = k;
+        for (y = 0; y < h; y++) {
+          if (flip) {
+            dir = -1;
+            rgb += w * 3 - 3;
+            out += w - 1;
+            prev = err1 + 3;
+            cur = err0 + w * 3;
+          } else {
+            dir = 1;
+            prev = err0 + 3;
+            cur = err1 + w * 3;
+          }
+          cur[2] = 0;
+          cur[1] = 0;
+          cur[0] = 0;
+          for (x = 0; x < w; x++) {
+            r = cl[rgb[0] + (prev[0] + 8 >> 4)];
+            g = cl[rgb[1] + (prev[1] + 8 >> 4)];
+            b = cl[rgb[2] + (prev[2] + 8 >> 4)];
+            k = ((r & 0xf8) << 5 | g & 0xf8) << 2 | b >> 3;
+            if (cache[k] < 0)
+              cache[k] = qnt_Nearest(r, g, b);
+            *out = (unsigned char)cache[k];
+            r = dm[r - qnt_Pal[0][cache[k]]];
+            g = dm[g - qnt_Pal[1][cache[k]]];
+            b = dm[b - qnt_Pal[2][cache[k]]];
+            /* r, g, b are the clamped errors now; each goes to the neighbours with the weights 3, 5, 7
+               (of 16) through the running sums e + 2e, + 2e, + 2e */
+            cur[-3] = r;
+            e2 = r + r;
+            r += e2;
+            cur[3] += r;
+            r += e2;
+            cur[0] += r;
+            e2 += r;
+            prev[3] += e2;
+            cur[-2] = g;
+            e2 = g + g;
+            g += e2;
+            cur[4] += g;
+            g += e2;
+            cur[1] += g;
+            e2 += g;
+            prev[4] += e2;
+            cur[-1] = b;
+            e2 = b + b;
+            b += e2;
+            cur[5] += b;
+            b += e2;
+            cur[2] += b;
+            e2 += b;
+            prev[5] += e2;
+            prev += 3;
+            cur -= 3;
+            rgb += dir * 3;
+            out += dir;
+          }
+          if (y % 2 == 1) {
+            rgb += (w + 1) * 3;
+            out += w + 1;
+          }
+          flip = !flip;
+        }
+        free(clamp);
+        free(cache);
+        free(err0);
+        free(err1);
+        free(lim);
+        return 1;
+      }
+      free(clamp);
+    }
+    if (cache)
+      free(cache);
+    if (err0)
+      free(err0);
+    if (err1)
+      free(err1);
+    if (lim)
+      free(lim);
+  }
+  return 0;
 }
 /* 0x421410, palette index with the smallest squared RGB distance to the 5-bit color (r, g, b) */
 
-int qnt_Nearest(unsigned int r, unsigned int g, unsigned int b)
-{
-    unsigned int i, d, best;
-    int bi;
+int qnt_Nearest(unsigned int r, unsigned int g, unsigned int b) {
+  unsigned int i, d, best;
+  int bi;
 
-    r = (r & 0xf8) + 4;
-    g = (g & 0xf8) + 4;
-    b = (b & 0xf8) + 4;
-    best = 200000;
-    for (i = 0; i < qnt_HeapCount; i++) {
-        d = qnt_SqPtr[qnt_Pal[0][i] - r] + qnt_SqPtr[qnt_Pal[1][i] - g] + qnt_SqPtr[qnt_Pal[2][i] - b];
-        if (d < best) {
-            best = d;
-            bi = i;
-        }
+  r = (r & 0xf8) + 4;
+  g = (g & 0xf8) + 4;
+  b = (b & 0xf8) + 4;
+  best = 200000;
+  for (i = 0; i < qnt_HeapCount; i++) {
+    d = qnt_SqPtr[qnt_Pal[0][i] - r] + qnt_SqPtr[qnt_Pal[1][i] - g] +
+        qnt_SqPtr[qnt_Pal[2][i] - b];
+    if (d < best) {
+      best = d;
+      bi = i;
     }
-    return bi;
+  }
+  return bi;
 }
 
-unsigned short qnt_G[256] = {0};  /* 0x631228 */
-unsigned char qnt_Pal[3][256] = {0};  /* 0x631428, the palette built so far: [0] red, [1] green, [2] blue (DL1's palette[3][256]) */
-int qnt_Colors = 0;  /* 0x631728 */
-QCLOSEST qnt_Closest = {0};  /* 0x631730, DL1's c_info; squares[255] (0x631b34) is where qnt_SqPtr points */
-unsigned short qnt_B[256] = {0};  /* 0x631f38 */
-int * qnt_SqPtr = 0;  /* 0x632138 */
-unsigned short qnt_R[256] = {0};  /* 0x632140, r bits spread to octree index positions */
-QNODE * qnt_Level[6] = {0};  /* 0x632340 */
-unsigned int qnt_HeapCount = 0;  /* 0x632358 */
-int qnt_Inited = 0;  /* 0x63235c */
-QHEAP * qnt_Heap = 0;  /* 0x632360, 1-based min-heap on total */
-void * qnt_UnusedBuffer = 0;  /* 0x632364, a heap buffer only qnt_Free refers to (it frees it; nothing in the binary allocates it) */
+unsigned short qnt_G[256] = {0}; /* 0x631228 */
+unsigned char qnt_Pal[3][256] = {
+    0}; /* 0x631428, the palette built so far: [0] red, [1] green, [2] blue (DL1's palette[3][256]) */
+int qnt_Colors = 0; /* 0x631728 */
+QCLOSEST qnt_Closest = {
+    0}; /* 0x631730, DL1's c_info; squares[255] (0x631b34) is where qnt_SqPtr points */
+unsigned short qnt_B[256] = {0}; /* 0x631f38 */
+int *qnt_SqPtr = 0;              /* 0x632138 */
+unsigned short qnt_R[256] = {
+    0}; /* 0x632140, r bits spread to octree index positions */
+QNODE *qnt_Level[6] = {0};      /* 0x632340 */
+unsigned int qnt_HeapCount = 0; /* 0x632358 */
+int qnt_Inited = 0;             /* 0x63235c */
+QHEAP *qnt_Heap = 0;            /* 0x632360, 1-based min-heap on total */
+void *qnt_UnusedBuffer =
+    0; /* 0x632364, a heap buffer only qnt_Free refers to (it frees it; nothing in the binary allocates it) */

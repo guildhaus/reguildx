@@ -41,11 +41,10 @@ extern float gm_DayStartHours[];
 extern float gm_DayEndHours[];
 #include "d2_types.h"
 
-
 extern struct D2OBJ *d2_Objs;
 extern D2VIEW d2_Views[];
 extern D2WIN d2_Wins[];
-extern char * cm_FieldObject;
+extern char *cm_FieldObject;
 extern struct D2PIC *d2_Pics;
 extern unsigned char kb_Last;
 
@@ -61,50 +60,16 @@ extern int di_MaxX;
 extern int di_MaxY;
 extern int di_MinX;
 extern int di_MinY;
-extern int d3t_BoxCornerIdx;  /* 0x5f3418 (d3_tools.c) */
-extern int init_TerrainDivide;  /* 0x6f1c2c (f3init.h) */
+extern int d3t_BoxCornerIdx;   /* 0x5f3418 (d3_tools.c) */
+extern int init_TerrainDivide; /* 0x6f1c2c (f3init.h) */
 extern int gm_TreeNodeCount;
-
-
 
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 extern int d2_ClickedId;
 
-
-
-
 extern int d2_ClickedId;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 extern struct AIBTYPE *ai_BTypes;
 
@@ -112,37 +77,19 @@ extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 
-
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 
-
-
-
-
-
-
-
-
 extern unsigned char kb_Last;
-
-
 
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-
 
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern GAPDATA full_data_602568[];
 extern int ai_EspionageAmountCB(struct AICHAR *ch, int unused);
-
-
-
-
-
-
 
 extern int ai_DebugHotkeys;
 extern unsigned char kb_Last;
@@ -152,9 +99,8 @@ extern GAPDATA full_data_602568[];
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2PIC *d2_Pics;
 
-
-
-extern int ai_DebugHotkeys;  /* 0x6f2450, a debug switch (no writer in the exe): set, the '-' key opens the mistress window in the study (ai_StudyContact) and the enter key posts the tavern message 0x74 (ai_TavernContact) */
+extern int
+    ai_DebugHotkeys; /* 0x6f2450, a debug switch (no writer in the exe): set, the '-' key opens the mistress window in the study (ai_StudyContact) and the enter key posts the tavern message 0x74 (ai_TavernContact) */
 extern unsigned char kb_Last;
 
 extern int d2_LastWindow;
@@ -167,15 +113,6 @@ extern struct AIBLD *ai_MarketBuilding;
 extern int ai_PermsDirty;
 extern struct AIBLD *sv_SelectedObject;
 
-
-
-
-
-
-
-
-
-
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 
@@ -184,7 +121,6 @@ extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2PIC *d2_Pics;
-
 
 extern int d2_LastWindow;
 extern struct D2PIC *d2_Pics;
@@ -205,8 +141,6 @@ extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2OBJ *d2_Objs;
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
-
-
 
 extern int d2_ClickedId;
 extern unsigned char ai_OwnPlayer;
@@ -215,12 +149,9 @@ extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2OBJ *d2_Objs;
 
-
 #include "ai_types.h"
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-
-
 
 extern struct AIBTYPE *ai_BTypes;
 
@@ -233,9 +164,6 @@ extern char ch_EmptyName[1];
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 
-
-
-
 extern unsigned char kb_Last;
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
@@ -243,41 +171,20 @@ extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2PIC *d2_Pics;
 
-
-
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-
-
-
-
-
-
-
-
 
 extern struct AIBTYPE *ai_BTypes;
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 
-
 extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 
-
-
-
 extern int d2_ClickedId;
 extern int d2_LastWindow;
-
-
-
-
-
-
-
 
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
@@ -287,7 +194,6 @@ extern int d2_ClickedId;
 extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2PIC *d2_Pics;
-
 
 extern int d2_ClickedId;
 extern int d2_LastWindow;
@@ -295,17 +201,11 @@ extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2PIC *d2_Pics;
 extern GAPDATA full_data_602568[];
 
-
-
-
-
 extern unsigned char kb_Last;
 extern unsigned char ai_OwnPlayer;
 extern int d2_ClickedId;
 
-
 extern int d2_ClickedId;
-
 
 extern struct AIBTYPE *ai_BTypes;
 extern int d2_ClickedId;
@@ -317,34 +217,17 @@ extern struct D2OBJ *d2_Objs;
 extern GAPDATA full_data_602568[];
 extern struct AICHAR *ai_SceneChars[32];
 
-
 extern struct AICHAR *ai_SceneChars[32];
 extern int d2_ClickedId;
 
-
-
-
-
-
-
-
-
-
 extern int d2_ClickedId;
 
-
-extern char * cm_FieldObject;
+extern char *cm_FieldObject;
 extern int d2_ClickedId;
 
-
-extern char * cm_FieldObject;
+extern char *cm_FieldObject;
 extern GAPDATA full_data_627978[];
 
-
-
-
-
-
 extern int d2_ClickedId;
 
 extern int d2_ClickedId;
@@ -354,19 +237,6 @@ extern int d2_ClickedId;
 
 extern struct AICHAR *ai_SceneChars[32];
 extern int d2_ClickedId;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 extern int ai_MapSize;
 extern unsigned char ai_OwnPlayer;
@@ -387,8 +257,6 @@ extern int ai_MapScrollEnabled;
 extern D2VIEW d2_Views[];
 #include "am_types.h"
 extern char ch_EmptyName[1];
-
-
 
 extern char ch_EmptyName[1];
 extern int ai_DomizilCount;
@@ -434,10 +302,8 @@ extern struct D2SURF *rt_MapSurface;
 extern char ch_EmptyName[1];
 extern int ai_EspionageAmountCB(struct AICHAR *ch, int unused);
 extern D3OBJECT *ai_PickedObject;
-extern char * cm_FieldObject;
+extern char *cm_FieldObject;
 extern struct D2OBJ *d2_Objs;
-
-
 
 extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
@@ -454,7 +320,6 @@ extern int d2_LastWindow;
 extern struct D2WIN *d2_LastWindowPtr;
 extern struct D2OBJ *d2_Objs;
 
-
 extern int d2_ClickedId;
 extern GAPDATA full_data_625380[];
 extern GAPDATA full_data_62bdc8[];
@@ -465,8 +330,7 @@ extern unsigned char ai_OwnPlayer;
 extern int d2_LastWindow;
 extern GAPDATA full_data_602568[];
 extern struct D2OBJ *d2_Objs;
-extern char * cm_FieldObject;
-
+extern char *cm_FieldObject;
 
 extern struct AIBTYPE *ai_BTypes;
 extern signed char ai_Relations[768][768];
@@ -478,7 +342,7 @@ extern struct D2OBJ *d2_Objs;
 extern int sv_FrameMask;
 extern unsigned char ai_OwnPlayer;
 #include "gv_types.h"
-#include "ai_bld.h"                /* AIBLD, AIBTYPE */
+#include "ai_bld.h" /* AIBLD, AIBTYPE */
 extern GAPDATA full_data_5fe7d0[];
 
 extern int d2_ClickedId;
@@ -511,21 +375,14 @@ extern struct D2PIC *d2_Pics;
 extern int sv_FrameMask;
 extern GAPDATA full_data_60d224[];
 extern unsigned char ai_OwnPlayer;
-extern char * cm_FieldObject;
+extern char *cm_FieldObject;
 extern signed char ai_Relations[768][768];
 
 int sprintf(char *buf, const char *fmt, ...); /* 0x5de652, the CRT's sprintf */
 
-struct AMTREC;  /* file-scope tag for the prototypes below */
+struct AMTREC; /* file-scope tag for the prototypes below */
 
-
-struct AITIME;  /* f3gm.h typedef; file-scope tag for the gm_AddTime prototype */
-
-
-
-
-
-
+struct AITIME; /* f3gm.h typedef; file-scope tag for the gm_AddTime prototype */
 
 #include "ls.h"
 #include "f3init.h"
@@ -574,164 +431,299 @@ struct AITIME;  /* f3gm.h typedef; file-scope tag for the gm_AddTime prototype *
 #include "menu.h"
 #include "sv.h"
 #include "sv_quickjump.h"
+/* clang-format off */
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
+/* clang-format on */
 
 /* dcp unit split: the declarations of lc before the moved functions */
-struct D3VECTOR; int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps); void d2_CentreViewWindows(int view);
-float gm_GoodsPrice(unsigned id, unsigned char p);   /* 0x5089c0, the price (ai.h / cm.h / rt.h: float) */
-void gm_FormatAmount(int v, unsigned char k, char *out);  /* 0x508a80, above its first call (line 1119) */
-int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
-void d2_SetPointerSprite(int a, int pic); struct AIOBJ *gm_Query(void *list, int n, ...);
-struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void);
-int cm_SendLongMessage(struct AIMSG *msg); void *cm_GetSlotValue(int h);
-void snd_PlayFavourComment(void); void d2_CloseView(int view);
+struct D3VECTOR;
+int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);
+void d2_CentreViewWindows(int view);
+float gm_GoodsPrice(
+    unsigned id,
+    unsigned char p); /* 0x5089c0, the price (ai.h / cm.h / rt.h: float) */
+void gm_FormatAmount(
+    int v, unsigned char k,
+    char *out); /* 0x508a80, above its first call (line 1119) */
+int d2_SetForm(int view, int n);
+int io_PrintText(intptr_t fmt, ...);
+void d2_SetPointerSprite(int a, int pic);
 struct AIOBJ *gm_Query(void *list, int n, ...);
-void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3, struct AIBLD *param_4); char *itoa(int, char *, int);
-int gm_BuildingGoodsList(struct AIBLD *b, struct AIRECIPE *out, int kind); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win); struct AICHAR; struct D3VECTOR; int d2_WinOpenPic(short x, short y, int pic, int win);
-struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void);
-int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
-int ls_GetLanguage(); int d2_CountPointerItems(); void cm_BeginFieldBlock(void *o, int id);
-int cm_AddFieldValue(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldValues(void); void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input, unsigned char side, AIBLD *bld); void d2_MoveObj(short x, short y, int obj);
-void d2_SetPointerItem(int id, int amount); void d2_ClearPointerItems(void);
-int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int flags, int win);  /* 0x46a960 (d2.h) */
-int d2_RemoveWindow(int win);                                   /* 0x472ce0 (d2.h) */
+struct AIJOB *he_FindEvent(int n, ...);
+struct AIJOB *he_NextEvent(void);
+int cm_SendLongMessage(struct AIMSG *msg);
+void *cm_GetSlotValue(int h);
+void snd_PlayFavourComment(void);
+void d2_CloseView(int view);
+struct AIOBJ *gm_Query(void *list, int n, ...);
+void ai_LayoutProdGoodsList(int param_1, int param_2, int param_3,
+                            struct AIBLD *param_4);
+char *itoa(int, char *, int);
+int gm_BuildingGoodsList(struct AIBLD *b, struct AIRECIPE *out, int kind);
+int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags,
+                         int win);
+struct AICHAR;
+struct D3VECTOR;
+int d2_WinOpenPic(short x, short y, int pic, int win);
+struct AIJOB *he_FindEvent(int n, ...);
+struct AIJOB *he_NextEvent(void);
+int d2_SetForm(int view, int n);
+int io_PrintText(intptr_t fmt, ...);
+int ls_GetLanguage();
+int d2_CountPointerItems();
+void cm_BeginFieldBlock(void *o, int id);
+int cm_AddFieldValue(unsigned char size, unsigned char n, unsigned short field,
+                     void *v);
+int cm_SendFieldValues(void);
+void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input,
+                     unsigned char side, AIBLD *bld);
+void d2_MoveObj(short x, short y, int obj);
+void d2_SetPointerItem(int id, int amount);
+void d2_ClearPointerItems(void);
+int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic,
+                     unsigned int flags, int win); /* 0x46a960 (d2.h) */
+int d2_RemoveWindow(int win);                      /* 0x472ce0 (d2.h) */
 struct GMSTOCK *gm_FindGoods(int p, unsigned id);
 struct D3OBJECT;
-struct D3OBJECT * d3_FindObject(struct D3OBJECT *a, int flags, struct D3OBJECT *c, char *name); /* 0x449690 (d3_interface.c, d3.h) */
-D3OBJECT *sv_RegisterNamePlate(char *name, char *text, int b);         /* 0x52e1c0 (sv.c) */
-int ai_OpenTransport(struct AIBLD *rec);                                   /* 0x5af1a0, below */
-char *strstr(); struct AIBLD *gm_BuildQuery(int n, ...); struct AIBLD *gm_BuildNext(void);
+struct D3OBJECT *
+d3_FindObject(struct D3OBJECT *a, int flags, struct D3OBJECT *c,
+              char *name); /* 0x449690 (d3_interface.c, d3.h) */
+D3OBJECT *sv_RegisterNamePlate(char *name, char *text,
+                               int b);   /* 0x52e1c0 (sv.c) */
+int ai_OpenTransport(struct AIBLD *rec); /* 0x5af1a0, below */
+char *strstr();
+struct AIBLD *gm_BuildQuery(int n, ...);
+struct AIBLD *gm_BuildNext(void);
 struct D3OBJECT;
 struct D3VECTOR;
-void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out); /* 0x458a20 (d3_pose.c) */
-struct AIBLD *gm_BuildQuery(int n, ...);                  /* 0x501190 (f3gm.c) */
-struct AIBLD *gm_BuildNext(void);                         /* 0x501030 (f3gm.c) */
-int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps); /* 0x453e80 (d3_vec.c) */
-int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);  /* 0x453e80 */
+void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in,
+                     struct D3VECTOR *out); /* 0x458a20 (d3_pose.c) */
+struct AIBLD *gm_BuildQuery(int n, ...);    /* 0x501190 (f3gm.c) */
+struct AIBLD *gm_BuildNext(void);           /* 0x501030 (f3gm.c) */
+int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b,
+                float eps); /* 0x453e80 (d3_vec.c) */
+int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b,
+                float eps); /* 0x453e80 */
 char d3if_ShowTree(struct D3OBJECT *obj, char show);
-char d3_ForEachObject(struct D3SCENE *scene, struct D3OBJECT *obj, unsigned int mask, char (*cb)(struct D3OBJECT *, void *), void *ctx);  /* 0x438d40 (d3.h) */
-char d3if_ShowTree(struct D3OBJECT *obj, char show);                /* 0x447300 (d3_interface.c) */
-char d3if_SelectScene(int index, char keep);  /* 0x4478e0 (d3_interface.c) */
-void d3_LocalToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);  /* 0x458c10 (d3_pose.c) */
-void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);    /* 0x458810 (d3_pose.c) */
-float d3_VecAngle(const struct D3VECTOR *a, struct D3VECTOR *b);      /* 0x4539f0 (d3_vec.c) */
-extern const struct D3VECTOR4 d3_ZAxis;                          /* 0x5ebb74, (0, 0, 1) */
-struct AIBLD *gm_BuildQuery(int n, ...); struct AIBLD *gm_BuildNext(void); int gm_MayTakeJob(int k, int c);
-char *strupr(char *); int sprintf(char *buf, const char *fmt, ...);
+char d3_ForEachObject(struct D3SCENE *scene, struct D3OBJECT *obj,
+                      unsigned int mask, char (*cb)(struct D3OBJECT *, void *),
+                      void *ctx); /* 0x438d40 (d3.h) */
+char d3if_ShowTree(struct D3OBJECT *obj,
+                   char show);               /* 0x447300 (d3_interface.c) */
+char d3if_SelectScene(int index, char keep); /* 0x4478e0 (d3_interface.c) */
+void d3_LocalToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in,
+                     struct D3VECTOR *out); /* 0x458c10 (d3_pose.c) */
+void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in,
+                   struct D3VECTOR *out); /* 0x458810 (d3_pose.c) */
+float d3_VecAngle(const struct D3VECTOR *a,
+                  struct D3VECTOR *b);  /* 0x4539f0 (d3_vec.c) */
+extern const struct D3VECTOR4 d3_ZAxis; /* 0x5ebb74, (0, 0, 1) */
+struct AIBLD *gm_BuildQuery(int n, ...);
+struct AIBLD *gm_BuildNext(void);
+int gm_MayTakeJob(int k, int c);
+char *strupr(char *);
+int sprintf(char *buf, const char *fmt, ...);
 void d3t_InflateObjectTree(D3OBJECT *obj);
 struct D3OBJECT;
-char d3if_Delete(struct D3OBJECT *obj);  /* 0x447190, d3_interface.h */
-int gm_BuildingKindCost(struct AICHAR *c, int kind); void txt_Format(char *out, intptr_t id0, ...);
-void sv_SetStatusText(char *s);  /* 0x52e330, sv.h */
-extern char ai_DataPath[];  /* 0x75dca0, the data path (am.h) */
-int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
-int d2_WinOpenPic(short x, short y, int pic, int win);
-void d2_CloseView(int view); int cm_SendLongMessage(struct AIMSG *msg);
+char d3if_Delete(struct D3OBJECT *obj); /* 0x447190, d3_interface.h */
+int gm_BuildingKindCost(struct AICHAR *c, int kind);
 void txt_Format(char *out, intptr_t id0, ...);
-int gm_CharCurrency(struct AICHAR *c, signed char p); int gm_MayTakeJob(int k, int c);
-unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c); void init_ShowBuildingScene(struct AIBLD *b, int slot); void init_FinishBuildingScene(struct AIBLD *b, struct AIOBJ *o);
-int d3t_PlaceObjectV(struct D3OBJECT *camera, struct D3VECTOR *pos, struct D3VECTOR *dir, int unk, char flags); void init_AfterTownLoad(void);
-void ai_ChooseCoatOfArms(void); void snd_StartMarketAmbience(void); void snd_StopMarketAmbience(void);
+void sv_SetStatusText(char *s); /* 0x52e330, sv.h */
+extern char ai_DataPath[];      /* 0x75dca0, the data path (am.h) */
+int d2_SetForm(int view, int n);
+int io_PrintText(intptr_t fmt, ...);
+int d2_WinOpenPic(short x, short y, int pic, int win);
+void d2_CloseView(int view);
+int cm_SendLongMessage(struct AIMSG *msg);
+void txt_Format(char *out, intptr_t id0, ...);
+int gm_CharCurrency(struct AICHAR *c, signed char p);
+int gm_MayTakeJob(int k, int c);
+unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o,
+                           struct AICHAR *c);
+void init_ShowBuildingScene(struct AIBLD *b, int slot);
+void init_FinishBuildingScene(struct AIBLD *b, struct AIOBJ *o);
+int d3t_PlaceObjectV(struct D3OBJECT *camera, struct D3VECTOR *pos,
+                     struct D3VECTOR *dir, int unk, char flags);
+void init_AfterTownLoad(void);
+void ai_ChooseCoatOfArms(void);
+void snd_StartMarketAmbience(void);
+void snd_StopMarketAmbience(void);
 void d2_CopyCaption(char *caption);
 struct AIBLD;
 int gm_IsType10(struct AIBLD *b);
 void ai_TechEffectsWindow(AIBLD *bld);
 float gm_ItemPrice(int item, unsigned char n);
-void cm_BeginGroup(const char *s); int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_SendMoveGoods(int a, int b, unsigned char c, int d); struct AIFIN *gm_PlayerRecord(struct AICHAR *c);
-int cm_SendLongMessage(struct AIMSG *msg); int cm_EndGroup(const char *s); void cm_SendMoneyDelta(int a, int b);
-char *strupr(char *); void gm_CloseTechTree(void);
+void cm_BeginGroup(const char *s);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d);
+int cm_SendMoveGoods(int a, int b, unsigned char c, int d);
+struct AIFIN *gm_PlayerRecord(struct AICHAR *c);
+int cm_SendLongMessage(struct AIMSG *msg);
+int cm_EndGroup(const char *s);
+void cm_SendMoneyDelta(int a, int b);
+char *strupr(char *);
+void gm_CloseTechTree(void);
 void ai_GameFrame(void);
 void lc_PlayerInJail(void);
-extern RTNODE gm_TreeNodes[64];    /* 0x76fde0, f3gmt.c */
-extern int ai_Difficulty;          /* 0x6f23fc, the game difficulty 0 .. 4 (ai.h) */
+extern RTNODE gm_TreeNodes[64]; /* 0x76fde0, f3gmt.c */
+extern int ai_Difficulty; /* 0x6f23fc, the game difficulty 0 .. 4 (ai.h) */
 int gm_BuildKindObjects(struct AIBLD *b);
 char *itoa(int, char *, int);
 int ai_SearchResourceWindow(AIBLD *bld);
 int ai_ExtractResourceWindow(AIBLD *bld);
 void ob_HandleBepflanzung(AIBLD *bld);
 void ai_HandlePickedPlant(AIBLD *bld, struct G15PLANT *plants);
-struct AIOBJ *gm_QueryNext(void); void txt_Format(char *out, intptr_t id0, ...);
+struct AIOBJ *gm_QueryNext(void);
+void txt_Format(char *out, intptr_t id0, ...);
 void gm_SendMoneyDelta(int a, int b);
 int d2_WinOpenPic(short x, short y, int pic, int win);
 void ai_TalentWindow(struct AIBLD *bld, struct AIOBJ *room, int talent);
 void ai_PamphletWindow(struct AIBLD *bld);
-#define PF_KIND67   0x100000             /* the partner filter's one-of bits (AMOUNTCFG.mode, ai_PassesPartnerFilter): kind 6 / 7 */
-#define PF_KIND5    0x200000             /* kind 5 */
-#define PF_SERVANT  0x400000             /* not kind 5, working for a master (ai_WorksForMaster) */
-#define PF_KIND0    0x800000             /* kind 0 */
-#define PF_ONE_OF   0xf00000             /* one of these must hold */
-void ai_FeastWindow(AIBLD *bld, AIOBJ *table); void ai_DenounceWindow(AIBLD *bld);
+#define PF_KIND67                                                              \
+  0x100000 /* the partner filter's one-of bits (AMOUNTCFG.mode, ai_PassesPartnerFilter): kind 6 / 7 */
+#define PF_KIND5 0x200000 /* kind 5 */
+#define PF_SERVANT                                                             \
+  0x400000 /* not kind 5, working for a master (ai_WorksForMaster) */
+#define PF_KIND0 0x800000  /* kind 0 */
+#define PF_ONE_OF 0xf00000 /* one of these must hold */
+void ai_FeastWindow(AIBLD *bld, AIOBJ *table);
+void ai_DenounceWindow(AIBLD *bld);
 struct AICHAR *gm_FindChar(int id);
-int cm_SendRelations(int a, int b, int c, int d); void cm_SendMoneyDelta(int a, int b);
+int cm_SendRelations(int a, int b, int c, int d);
+void cm_SendMoneyDelta(int a, int b);
 float gm_TitlePeriodServed(int n, struct AITIME *out);
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);
-float gm_AddHealth(unsigned short id, int d); int ai_TutorialOff(); void ai_EvidenceBookWindow(struct AIBLD *bld);
-void d2_CreateScrollButtons(); int d2_RemoveWindowObjects();
-int gm_GetWorth(unsigned short id); int gm_ConvertMoney(int a, unsigned char k); struct AIFIN *gm_PlayerRecord(struct AICHAR *c);
-typedef struct LCDUELBTN {              /* an action button of the dice game window */
-    int obj;                            /* 0x000, its window object, -1 while the action is not allowed (ai_DuelAcceptAction) */
-    int kind;                           /* 0x004, the action: 2 another die, 3 stop, 4 answer (AGDUEL.kind1) */
-    int unused;                         /* 0x008, set to 0, never read */
-    char text[0x100];                   /* 0x00c, its caption (0x1880 / 0x1881 with the raise amount, 0x1882) */
+float gm_AddHealth(unsigned short id, int d);
+int ai_TutorialOff();
+void ai_EvidenceBookWindow(struct AIBLD *bld);
+void d2_CreateScrollButtons();
+int d2_RemoveWindowObjects();
+int gm_GetWorth(unsigned short id);
+int gm_ConvertMoney(int a, unsigned char k);
+struct AIFIN *gm_PlayerRecord(struct AICHAR *c);
+typedef struct LCDUELBTN { /* an action button of the dice game window */
+  int obj; /* 0x000, its window object, -1 while the action is not allowed (ai_DuelAcceptAction) */
+  int kind; /* 0x004, the action: 2 another die, 3 stop, 4 answer (AGDUEL.kind1) */
+  int unused; /* 0x008, set to 0, never read */
+  char text
+      [0x100]; /* 0x00c, its caption (0x1880 / 0x1881 with the raise amount, 0x1882) */
 } LCDUELBTN;
-int cm_SendTableRequest(G17TABLEMSG *p); void cm_BeginGroup(const char *s); int cm_EndGroup(const char *s); struct AIBLD *gm_BuildQuery(int n, ...);
+int cm_SendTableRequest(G17TABLEMSG *p);
+void cm_BeginGroup(const char *s);
+int cm_EndGroup(const char *s);
+struct AIBLD *gm_BuildQuery(int n, ...);
 struct AIBLD *gm_BuildNext(void);
-void cm_SendScriptMessage(void *p); void cm_SendProofExecuted(int a, int b);
+void cm_SendScriptMessage(void *p);
+void cm_SendProofExecuted(int a, int b);
 void d2_SetBackgroundTexture();
-struct D3OBJECT * d3if_Pick(float x, float y, int flags, int mask); int gm_SumListAmounts(void *list, unsigned char p);
+struct D3OBJECT *d3if_Pick(float x, float y, int flags, int mask);
+int gm_SumListAmounts(void *list, unsigned char p);
 int gm_PlayerFactor(int a, unsigned char k);
-void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2); void d2_RadioClear(int g); int d2_CreateRadioGroup(int n, ...);
-void ai_BardWindow(void); void ai_NoticeBoardWindow(void);
-void cm_BeginGroup(const char *s); void cm_SendScriptMessage(void *p); void cm_SendProofExecuted(int a, int b);
+void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6,
+                            int a7, char *jump, char *text2);
+void d2_RadioClear(int g);
+int d2_CreateRadioGroup(int n, ...);
+void ai_BardWindow(void);
+void ai_NoticeBoardWindow(void);
+void cm_BeginGroup(const char *s);
+void cm_SendScriptMessage(void *p);
+void cm_SendProofExecuted(int a, int b);
 void d2_SetBackgroundTexture();
-char d3if_ShowTree(struct D3OBJECT *obj, char show); int ls_GetLanguage(); struct D3OBJECT * d3if_Pick(float x, float y, int flags, int mask);
+char d3if_ShowTree(struct D3OBJECT *obj, char show);
+int ls_GetLanguage();
+struct D3OBJECT *d3if_Pick(float x, float y, int flags, int mask);
 struct AIBLD *gm_BuildNext(void);
-typedef struct CREDITROW {          /* a row of the new credit window (ai_NewCreditWindow): an offer and its object */
-    ORDCREDIT offer;                /* 0x00, the bank's offer (gm_GetCreditOffers) */
-    int obj;                        /* 0x0c, the row's window object (d2_GetWinObj) */
-    int index;                      /* 0x10, the offer's slot in the bank's credits[] */
+typedef struct
+    CREDITROW { /* a row of the new credit window (ai_NewCreditWindow): an offer and its object */
+  ORDCREDIT offer; /* 0x00, the bank's offer (gm_GetCreditOffers) */
+  int obj;         /* 0x0c, the row's window object (d2_GetWinObj) */
+  int index;       /* 0x10, the offer's slot in the bank's credits[] */
 } CREDITROW;
-struct AICHAR *gm_FindChar(int id); void txt_Format(char *out, intptr_t id0, ...);
-struct AIFIN *gm_PlayerRecord(struct AICHAR *c); void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6, int a7, char *jump, char *text2);
-void d2_RadioClear(int g); int d2_CreateRadioGroup(int n, ...); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);
-int d2_RemoveWindow(); int gm_SumSlotAmounts(void *list, unsigned char i);
-void gm_SortCharsByName(int n, int *ids, int flag); void d2_AddPointerItem(int id, int amount); void d2_ClearPointerItems(void); int d2_CountPointerItems();
-void d2_EndInputEdit(void); void d2_ScrollWindowBy(); void d2_MoveObj(short x, short y, int obj);
-int d2_WinOpenInputIcon(int x, int y, int icon, unsigned char flags, int win); void d2_CopyCaption(char *caption);
-int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void); void cm_BeginFieldBlock(void *o, int id);
-char *itoa(int, char *, int); void cm_BeginGroup(const char *s); int cm_EndGroup(const char *s);
-int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f); int cm_SendMoveGoods(int a, int b, unsigned char c, int d); int gm_ConvertMoney(int a, unsigned char k);
-typedef struct CREDITLISTROW {      /* a row of the credit list window (ai_CreditListWindow) */
-    int child;                      /* 0x0, the row's child window (d2_CreateChildWindow), -1: none */
-    int pic;                        /* 0x4, its frame picture 0x75a (d2_WinOpenPic), -1: none; the radio group selects it */
-    AIJOB *loan;                   /* 0x8, the loan it shows (gm_CreditEvents) */
+struct AICHAR *gm_FindChar(int id);
+void txt_Format(char *out, intptr_t id0, ...);
+struct AIFIN *gm_PlayerRecord(struct AICHAR *c);
+void he_MessageBoxQuickjump(int a1, int a2, char *text, int fl, int a5, int a6,
+                            int a7, char *jump, char *text2);
+void d2_RadioClear(int g);
+int d2_CreateRadioGroup(int n, ...);
+int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags,
+                         int win);
+int d2_RemoveWindow();
+int gm_SumSlotAmounts(void *list, unsigned char i);
+void gm_SortCharsByName(int n, int *ids, int flag);
+void d2_AddPointerItem(int id, int amount);
+void d2_ClearPointerItems(void);
+int d2_CountPointerItems();
+void d2_EndInputEdit(void);
+void d2_ScrollWindowBy();
+void d2_MoveObj(short x, short y, int obj);
+int d2_WinOpenInputIcon(int x, int y, int icon, unsigned char flags, int win);
+void d2_CopyCaption(char *caption);
+int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field,
+                     void *v);
+int cm_SendFieldDeltas(void);
+void cm_BeginFieldBlock(void *o, int id);
+char *itoa(int, char *, int);
+void cm_BeginGroup(const char *s);
+int cm_EndGroup(const char *s);
+int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f);
+int cm_SendMoveGoods(int a, int b, unsigned char c, int d);
+int gm_ConvertMoney(int a, unsigned char k);
+typedef struct
+    CREDITLISTROW { /* a row of the credit list window (ai_CreditListWindow) */
+  int child; /* 0x0, the row's child window (d2_CreateChildWindow), -1: none */
+  int pic; /* 0x4, its frame picture 0x75a (d2_WinOpenPic), -1: none; the radio group selects it */
+  AIJOB *loan; /* 0x8, the loan it shows (gm_CreditEvents) */
 } CREDITLISTROW;
-int gm_SumSlotAmounts(void *list, unsigned char i); int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
-void gm_SortCharsByName(int n, int *ids, int flag); int d2_RemoveWindow();
-void d2_MoveObj(short x, short y, int obj); int d2_WinOpenInputIcon(int x, int y, int icon, unsigned char flags, int win);
-int gm_SumListAmounts(void *list, unsigned char p); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void);
-unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct AICHAR *c);
-char d3_DeflateScene(unsigned int flags); char d3_InflateScene(unsigned int flags); void init_SetCharacterAnimations(struct AIBLD *b);
-void init_ShowBuildingScene(struct AIBLD *b, int slot); void init_FinishBuildingScene(struct AIBLD *b, struct AIOBJ *o); 
+int gm_SumSlotAmounts(void *list, unsigned char i);
+int gm_ConvertMoney(int a, unsigned char k);
+int gm_PlayerFactor(int a, unsigned char k);
+void gm_SortCharsByName(int n, int *ids, int flag);
+int d2_RemoveWindow();
+void d2_MoveObj(short x, short y, int obj);
+int d2_WinOpenInputIcon(int x, int y, int icon, unsigned char flags, int win);
+int gm_SumListAmounts(void *list, unsigned char p);
+struct AIJOB *he_FindEvent(int n, ...);
+struct AIJOB *he_NextEvent(void);
+unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o,
+                           struct AICHAR *c);
+char d3_DeflateScene(unsigned int flags);
+char d3_InflateScene(unsigned int flags);
+void init_SetCharacterAnimations(struct AIBLD *b);
+void init_ShowBuildingScene(struct AIBLD *b, int slot);
+void init_FinishBuildingScene(struct AIBLD *b, struct AIOBJ *o);
 int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);
-void snd_UnloadBuildingVoices(void); void init_AfterTownLoad(void); 
-void ai_AlchemistLabContact(struct AIBLD *rec, struct AIOBJ *room); void ai_CannonContact(struct AIBLD *rec, struct AIOBJ *room); void ai_CabinetContact(struct AIBLD *rec, struct AIOBJ *room); void ai_ProductionContact(struct AIBLD *building, struct AIOBJ *arg);
-int gm_GetWorth(unsigned short id); void d2_ClearPaintbox(void);
-int ai_ShowBuildingRows(AICHAR *ch, int max, int *ctrls);  /* 0x5bd470, defined below */
-int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win, int form);  /* 0x5bd330, defined below */
+void snd_UnloadBuildingVoices(void);
+void init_AfterTownLoad(void);
+void ai_AlchemistLabContact(struct AIBLD *rec, struct AIOBJ *room);
+void ai_CannonContact(struct AIBLD *rec, struct AIOBJ *room);
+void ai_CabinetContact(struct AIBLD *rec, struct AIOBJ *room);
+void ai_ProductionContact(struct AIBLD *building, struct AIOBJ *arg);
+int gm_GetWorth(unsigned short id);
+void d2_ClearPaintbox(void);
+int ai_ShowBuildingRows(AICHAR *ch, int max,
+                        int *ctrls); /* 0x5bd470, defined below */
+int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win,
+                    int form); /* 0x5bd330, defined below */
 typedef struct SVSAVEDVIEW {
-    D3VECTOR4 pos;
-    D3VECTOR rot;
+  D3VECTOR4 pos;
+  D3VECTOR rot;
 } SVSAVEDVIEW;
-void init_LoadBuildingScene(int k); void d3fl_SetDetail(unsigned int n);
-void ai_GraveyardContact(struct AIBLD *rec); void ai_GypsyProductionContact(struct AIBLD *building); void ai_GraveyardFogContact(struct AIBLD *rec);
-void ai_GraveyardSeanceContact(struct AIBLD *rec); void ai_GypsyContact(struct AIBLD *building); void ai_TheatreContact(struct AIBLD *building); void ai_CurseContact(struct AIBLD *buildingArg);
+void init_LoadBuildingScene(int k);
+void d3fl_SetDetail(unsigned int n);
+void ai_GraveyardContact(struct AIBLD *rec);
+void ai_GypsyProductionContact(struct AIBLD *building);
+void ai_GraveyardFogContact(struct AIBLD *rec);
+void ai_GraveyardSeanceContact(struct AIBLD *rec);
+void ai_GypsyContact(struct AIBLD *building);
+void ai_TheatreContact(struct AIBLD *building);
+void ai_CurseContact(struct AIBLD *buildingArg);
 void ai_GraveyardTradeContact(struct AIBLD *rec);
-typedef struct LCSALEROW {          /* a row of ai_BuyBuildingWindow's list: a building offered for sale */
-    int control;                    /* 0x0, the row's text control (d2_GetWinObj) */
-    AIJOB *sale;                    /* 0x4, the building's sale event (kind 0x1b) */
-    AIBLD *bld;                     /* 0x8, the building */
-    int flags;                      /* 0xc, its flags5aw when the row was built (a change rebuilds the list) */
+typedef struct
+    LCSALEROW { /* a row of ai_BuyBuildingWindow's list: a building offered for sale */
+  int control; /* 0x0, the row's text control (d2_GetWinObj) */
+  AIJOB *sale; /* 0x4, the building's sale event (kind 0x1b) */
+  AIBLD *bld;  /* 0x8, the building */
+  int flags; /* 0xc, its flags5aw when the row was built (a change rebuilds the list) */
 } LCSALEROW;
 void ai_OpenAmountKindMenu(void);
 void ai_OpenAgendaMenu(void);
@@ -739,117 +731,186 @@ int amt_GetFirstOffice(unsigned int k, struct AMTREC *out);
 int amt_ExecuteShareMessage(struct AICHAR *c, struct G8REQ *m);
 int amt_ExecutePriceMessage(struct AICHAR *c, struct G8REQ *m);
 int amt_ExecuteMayorPowerMessage(struct AICHAR *c, struct G8REQ *m);
-struct AIOBJ *gm_Query(void *list, int n, ...); int gm_GetWorth(unsigned short id);
-void d2_SetPointerSprite(int a, int pic); int d2_SetForm(int view, int n);
-int io_PrintText(intptr_t fmt, ...); int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
-int cm_SendMoveGoods(int a, int b, unsigned char c, int d); int cm_SendRelations(int a, int b, int c, int d); void txt_Format(char *out, intptr_t id0, ...);
-void d2_CloseView(int view); int _ftol();
-int gv_CulpritGuilt(int c); int gm_GetWorth(unsigned short id);
-int ai_InventoryHas(struct AICHAR *ch, int id); void d2_SetPointerSprite(int a, int pic); 
-int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
-void cm_BeginFieldBlock(void *o, int id); int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
-int gv_RetireCrimesOf(int p, int n); int cm_SendMoveGoods(int a, int b, unsigned char c, int d);
+struct AIOBJ *gm_Query(void *list, int n, ...);
+int gm_GetWorth(unsigned short id);
+void d2_SetPointerSprite(int a, int pic);
+int d2_SetForm(int view, int n);
+int io_PrintText(intptr_t fmt, ...);
+int gm_ConvertMoney(int a, unsigned char k);
+int gm_PlayerFactor(int a, unsigned char k);
+int cm_SendMoveGoods(int a, int b, unsigned char c, int d);
+int cm_SendRelations(int a, int b, int c, int d);
 void txt_Format(char *out, intptr_t id0, ...);
-void d2_CloseView(int view); int _ftol();
+void d2_CloseView(int view);
+int _ftol();
+int gv_CulpritGuilt(int c);
+int gm_GetWorth(unsigned short id);
+int ai_InventoryHas(struct AICHAR *ch, int id);
+void d2_SetPointerSprite(int a, int pic);
+int d2_SetForm(int view, int n);
+int io_PrintText(intptr_t fmt, ...);
+void cm_BeginFieldBlock(void *o, int id);
+int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field,
+                      void *v);
+int cm_SendFieldDeltas(void);
+int gv_RetireCrimesOf(int p, int n);
+int cm_SendMoveGoods(int a, int b, unsigned char c, int d);
+void txt_Format(char *out, intptr_t id0, ...);
+void d2_CloseView(int view);
+int _ftol();
 void ai_Top5Window();
-int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d); int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field, void *v); struct AICHAR *gm_FindChar(int id); int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);
+int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d);
+int cm_AddFieldDelta(unsigned char size, unsigned char n, unsigned short field,
+                     void *v);
+struct AICHAR *gm_FindChar(int id);
+int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);
 void gm_DonationTop5(unsigned *ids, int *sc);
 int d2_RemoveWindowObjects();
 void cm_SendMoneyDelta(int a, int b);
-int cm_SendObject1b5(int owner, G17B7 value); void *cm_GetSlotValue(int h); int cm_SendGroupState(); int cm_FlushSendQueue();
-int cm_ReceiveMessages(); int cm_ExecCommands(); int cm_SendLongMessage(struct AIMSG *msg);
+int cm_SendObject1b5(int owner, G17B7 value);
+void *cm_GetSlotValue(int h);
+int cm_SendGroupState();
+int cm_FlushSendQueue();
+int cm_ReceiveMessages();
+int cm_ExecCommands();
+int cm_SendLongMessage(struct AIMSG *msg);
 char *itoa(int, char *, int);
-int amt_GetFirstOffice(unsigned int k, struct AMTREC *out); void cm_BeginGroup(const char *s); int cm_EndGroup(const char *s);
+int amt_GetFirstOffice(unsigned int k, struct AMTREC *out);
+void cm_BeginGroup(const char *s);
+int cm_EndGroup(const char *s);
 void snd_PlayFavourComment(void);
 struct AIJOB *he_NextEvent(void);
-struct AIBLD *gm_BuildQuery(int n, ...); int d2_CreateRadioGroup(int n, ...); void d2_RadioAdd(int g, int obj);
-void d2_RadioClear(int g); int cm_SendMoveObject(int a, int b, int c); void cm_SendDeleteObject(int id);
-void d2_CreateScrollButtons(); void d2_ClearInput(void);
-int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out);
+struct AIBLD *gm_BuildQuery(int n, ...);
+int d2_CreateRadioGroup(int n, ...);
+void d2_RadioAdd(int g, int obj);
+void d2_RadioClear(int g);
+int cm_SendMoveObject(int a, int b, int c);
+void cm_SendDeleteObject(int id);
+void d2_CreateScrollButtons();
+void d2_ClearInput(void);
+int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo,
+                          float hi, int *out);
 void cm_SendMessage5b(int a, int b, int c);
 float gm_GetSkill(struct AICHAR *c, int skill);
 void cm_RequestChrMoveToUniverse(int a, int b, int c, const char *s);
-char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py);
+char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz,
+                    float *py);
 int io_PrintText(intptr_t fmt, ...);
-int d2_SetForm(int view, int n); int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);
-void d2_CloseView(int view); void d2_ScrollWindowBy();
-int ls_Read(void *buf, int size, int count, struct VFSFILE *f); void * mem_Alloc(int size, char *tag);
-int d2_WinOpenPic(short x, short y, int pic, int win); int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out); 
+int d2_SetForm(int view, int n);
+int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags,
+                         int win);
+void d2_CloseView(int view);
+void d2_ScrollWindowBy();
+int ls_Read(void *buf, int size, int count, struct VFSFILE *f);
+void *mem_Alloc(int size, char *tag);
+int d2_WinOpenPic(short x, short y, int pic, int win);
+int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out);
 int gm_Opinion(int a, int b);
 #pragma pack(push, 1)
-typedef struct G9DOMIZILROW {           /* a row of the Domizil personnel book: 0x5aa0d0 creates its controls,
-                                           0x5aa1f0 / 0x5aa520 fill them, ai_DomizilFreeRow frees them */
-    int x;                              /* 0x00, the row's position (0x5aa0d0's arguments) */
-    int y;                              /* 0x04 */
-    AICHAR *ch;                      /* 0x08, the character record it shows */
-    int pic;                            /* 0x0c, the picture control (d2_WinOpenPic, 0x5aa0d0) */
-    int slider;                         /* 0x10, the value slider (d2_WinOpenSlider, 0x5aa1f0) */
-    int text;                           /* 0x14, the text control (0x5aa1f0 / 0x5aa520) */
-    int name;                           /* 0x18, the name control (0x5aa0d0) */
-    int icon;                           /* 0x1c, the character's icon control (d2_WinOpenPic, 0x5aa1f0) */
-    unsigned char state;                /* 0x20, 0: vacant, 1: a character, 2: a hire running (ai_FillVacantPersonnelRow) */
-    char pad21[3];                      /* 0x21 .. 0x23 */
-    int title;                          /* 0x24, the title rank of the character the row was filled with (ai_PersonnelBook
-                                           refills a row whose character or title changed); cleared by 0x5aa0d0 */
-    int ctrl28[6];                      /* 0x28 .. 0x3f, the six entries' controls (their roles are not recovered:
-                                           the book window creates them, its body is not written yet) */
-    int ctrl40[6];                      /* 0x40 .. 0x57, the second control of each entry */
-    int view;                           /* 0x58, the view (d2_CurrentView, 0x5aa0d0) */
+typedef struct
+    G9DOMIZILROW { /* a row of the Domizil personnel book: 0x5aa0d0 creates its controls,
+                      0x5aa1f0 / 0x5aa520 fill them, ai_DomizilFreeRow frees them */
+  int x;           /* 0x00, the row's position (0x5aa0d0's arguments) */
+  int y;           /* 0x04 */
+  AICHAR *ch; /* 0x08, the character record it shows */
+  int pic;    /* 0x0c, the picture control (d2_WinOpenPic, 0x5aa0d0) */
+  int slider; /* 0x10, the value slider (d2_WinOpenSlider, 0x5aa1f0) */
+  int text;   /* 0x14, the text control (0x5aa1f0 / 0x5aa520) */
+  int name;   /* 0x18, the name control (0x5aa0d0) */
+  int icon;   /* 0x1c, the character's icon control (d2_WinOpenPic, 0x5aa1f0) */
+  unsigned char
+      state; /* 0x20, 0: vacant, 1: a character, 2: a hire running (ai_FillVacantPersonnelRow) */
+  char pad21[3]; /* 0x21 .. 0x23 */
+  int title; /* 0x24, the title rank of the character the row was filled with (ai_PersonnelBook
+                refills a row whose character or title changed); cleared by 0x5aa0d0 */
+  int ctrl28
+      [6]; /* 0x28 .. 0x3f, the six entries' controls (their roles are not recovered:
+              the book window creates them, its body is not written yet) */
+  int ctrl40[6]; /* 0x40 .. 0x57, the second control of each entry */
+  int view;      /* 0x58, the view (d2_CurrentView, 0x5aa0d0) */
 } G9DOMIZILROW;
 #pragma pack(pop)
 struct AIBLD *gm_ObjectBuilding(struct AIOBJ *o);
 void d2_RadioSelect(int g, int sel);
-void gm_FreeObject(struct AIOBJ *obj); int gm_LevelPayout(int v, int kind);
+void gm_FreeObject(struct AIOBJ *obj);
+int gm_LevelPayout(int v, int kind);
 #pragma pack(push, 1)
 #pragma pack(pop)
-typedef struct LCCARTROW {              /* 0xf0 bytes, a cart row of the transport window (ai_TransportWindow's 16) */
-    AIOBJ *cart;                        /* 0x00, the cart, 0: a free row */
-    AIJOB *job;                         /* 0x04, its running transport order (event 0xf, AIJOB.u.id the cart's objId) */
-    int selected;                       /* 0x08, picked for the buttons (a click on the cart picture toggles it) */
-    int pic;                            /* 0x0c, the cart picture (0x4ae + the cart's kind) */
-    int win;                            /* 0x10, the child window its goods sit in */
-    int slider;                         /* 0x14, the fill bar (AIOBJ.fill) */
-    int escortPic;                      /* 0x18, the escort picture 0x5e8 + AIOBJ.escort, its caption the escort's fee */
-    int label;                          /* 0x1c, the route label (patrol on / off text); a click edits the route */
-    AIRECIPE goods;                     /* 0x20, not read by the window */
-    int goodsCtl[3];                    /* 0xd8, per goods slot its input icon (the goods' icon + 0xdf), -1: none */
-    int goodsPic[3];                    /* 0xe4, per goods slot its stock slider, -1: none */
+typedef struct
+    LCCARTROW { /* 0xf0 bytes, a cart row of the transport window (ai_TransportWindow's 16) */
+  AIOBJ *cart; /* 0x00, the cart, 0: a free row */
+  AIJOB *
+      job; /* 0x04, its running transport order (event 0xf, AIJOB.u.id the cart's objId) */
+  int selected; /* 0x08, picked for the buttons (a click on the cart picture toggles it) */
+  int pic;       /* 0x0c, the cart picture (0x4ae + the cart's kind) */
+  int win;       /* 0x10, the child window its goods sit in */
+  int slider;    /* 0x14, the fill bar (AIOBJ.fill) */
+  int escortPic; /* 0x18, the escort picture 0x5e8 + AIOBJ.escort, its caption the escort's fee */
+  int label; /* 0x1c, the route label (patrol on / off text); a click edits the route */
+  AIRECIPE goods; /* 0x20, not read by the window */
+  int goodsCtl
+      [3]; /* 0xd8, per goods slot its input icon (the goods' icon + 0xdf), -1: none */
+  int goodsPic[3]; /* 0xe4, per goods slot its stock slider, -1: none */
 } LCCARTROW;
 #pragma pack(push, 1)
-typedef struct AIWINDOWROW {            /* the row record the window page functions take (ai_BlackmailContactWindow builds it) */
-    int win;                            /* 0x00, the window, -1 none */
-    int pageA;                          /* 0x04, the page of the pictures */
-    int pageB;                          /* 0x08, the page of the text */
-    int pageC;                          /* 0x0c, the page of the balance bar */
-    int entry;                          /* 0x10, the page entry index */
-    int record;                         /* 0x14, the gv table record id */
+typedef struct
+    AIWINDOWROW { /* the row record the window page functions take (ai_BlackmailContactWindow builds it) */
+  int win;        /* 0x00, the window, -1 none */
+  int pageA;      /* 0x04, the page of the pictures */
+  int pageB;      /* 0x08, the page of the text */
+  int pageC;      /* 0x0c, the page of the balance bar */
+  int entry;      /* 0x10, the page entry index */
+  int record;     /* 0x14, the gv table record id */
 } AIWINDOWROW;
 #pragma pack(pop)
 void ai_ShowWindowRow(AIWINDOWROW *row);
-int gv_HeldCrimesOf(int culprit, int *out, unsigned short t);  /* 0x4f3fe0, gv.h's prototype (gv.h is not included yet: Open: head) */
-void gv_SortCrimesByLaw(int n, CRIME *r);  /* 0x4f4390, gv.h's prototype (gv.h is not included yet: Open: head) */
-int gv_RankCulpritsAll(int *ids, int *open, int *total, unsigned short t);  /* 0x4f3dd0, gv.h's prototype (gv.h is not included yet: Open: head) */
+int gv_HeldCrimesOf(
+    int culprit, int *out,
+    unsigned short
+        t); /* 0x4f3fe0, gv.h's prototype (gv.h is not included yet: Open: head) */
+void gv_SortCrimesByLaw(
+    int n,
+    CRIME *
+        r); /* 0x4f4390, gv.h's prototype (gv.h is not included yet: Open: head) */
+int gv_RankCulpritsAll(
+    int *ids, int *open, int *total,
+    unsigned short
+        t); /* 0x4f3dd0, gv.h's prototype (gv.h is not included yet: Open: head) */
 void ai_RightAlignedText(char *text, int x, int y, int w, int font);
 int ai_BribeAmountCB(AICHAR *ch, int n);
-int gv_HeldCrimeCount(int culprit, unsigned short t);  /* 0x4f4130, gv.h's prototype (gv.h is not included yet: Open: head) */
-const G11REC *hmt_GetRecord(unsigned short k);                    /* 0x4ac1e0, hmt.h's prototypes (hmt.h is not included yet: Open: head) */
-unsigned short hmt_RecordTextId(unsigned short k, unsigned short n); /* 0x4ac1a0 */
-int hmt_GetPrice(struct AICHAR *p);                         /* 0x4ac200 */
+int gv_HeldCrimeCount(
+    int culprit,
+    unsigned short
+        t); /* 0x4f4130, gv.h's prototype (gv.h is not included yet: Open: head) */
+const G11REC *hmt_GetRecord(
+    unsigned short
+        k); /* 0x4ac1e0, hmt.h's prototypes (hmt.h is not included yet: Open: head) */
+unsigned short hmt_RecordTextId(unsigned short k,
+                                unsigned short n);               /* 0x4ac1a0 */
+int hmt_GetPrice(struct AICHAR *p);                              /* 0x4ac200 */
 void hmt_ApplyRecord(struct AICHAR *p, int d, unsigned short k); /* 0x4ac2f0 */
-int ai_EvalFest(AIGRP *g, int send);   /* 0x494ac0, am.h's prototype (am.h is not included yet: Open: head) */
-typedef struct LCTRAINROW {             /* 0xc bytes, a row of the training window (ai_TrainingWindow keeps three) */
-    int pic;                            /* 0x00, the training's picture (0x762 + the row), interactive */
-    int frame;                          /* 0x04, the row's frame picture 0x74c */
-    int window;                         /* 0x08, the row's child window (font 0x54) */
+int ai_EvalFest(
+    AIGRP *g,
+    int send); /* 0x494ac0, am.h's prototype (am.h is not included yet: Open: head) */
+typedef struct
+    LCTRAINROW { /* 0xc bytes, a row of the training window (ai_TrainingWindow keeps three) */
+  int pic;    /* 0x00, the training's picture (0x762 + the row), interactive */
+  int frame;  /* 0x04, the row's frame picture 0x74c */
+  int window; /* 0x08, the row's child window (font 0x54) */
 } LCTRAINROW;
-int d2_WinOpenInput(int x, int y, int w, int h, unsigned char flags, int win);  /* 0x46a360, d2.h's prototype (d2.h is not included yet: Open: head) */
-void * d2_SetFont(int font); void d2_FillPaintbox(int x, int y, int w, int h);
+int d2_WinOpenInput(
+    int x, int y, int w, int h, unsigned char flags,
+    int win); /* 0x46a360, d2.h's prototype (d2.h is not included yet: Open: head) */
+void *d2_SetFont(int font);
+void d2_FillPaintbox(int x, int y, int w, int h);
 void d2_RadioSelect(int g, int sel);
-int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg, int unused);
+int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg,
+                           int unused);
 
 /* dcp unit split: the definitions of lc the functions of lcamt use */
 void ai_LayoutProdGoodsList(int view, int part, int pointer, struct AIBLD *bld);
-void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input, unsigned char side, AIBLD *bld);
+void ai_ShowProdSlot(int view, int part, LCPRODSLOT *slot, int input,
+                     unsigned char side, AIBLD *bld);
 void lc_PlayerInJail(void);
 int ai_SearchResourceWindow(AIBLD *bld);
 int ai_ExtractResourceWindow(AIBLD *bld);
@@ -859,7 +920,8 @@ void *ai_ProdSetting(AIBLD *bld);
 void ai_SetSettingWeight(struct AIBLD *bld, int good, unsigned char weight);
 void ai_RefreshProdSetting(AIBLD *b);
 void ai_SetSettingFactor(struct AIBLD *bld, float factor);
-void ai_ShowTributeClaimNews(struct AICHAR *collectorRec, struct AICHAR *payerRec);
+void ai_ShowTributeClaimNews(struct AICHAR *collectorRec,
+                             struct AICHAR *payerRec);
 void ai_TalentWindow(struct AIBLD *bld, struct AIOBJ *room, int talent);
 void ai_EvidenceBookWindow(AIBLD *bld);
 int ai_BribeAmountCB(AICHAR *ch, int n);
@@ -878,61 +940,57 @@ void ai_ChooseCoatOfArms(void);
    *out = the larger of from and min(money, steps * 10000 + from); returns 1, else 0. The original computes the
    min twice (once for the comparison and once for the value) */
 
-int ai_AmountLimit(int from, int money, int steps, int *out)
-{
-    int limit;
+int ai_AmountLimit(int from, int money, int steps, int *out) {
+  int limit;
 
-    if (from < 1 || steps < 1)
-        return 0;
-    limit = steps * 10000 + from;
-    if ((money < limit ? money : limit) > from)
-        limit = money < limit ? money : limit;
-    else
-        limit = from;
-    *out = limit;
-    return 1;
+  if (from < 1 || steps < 1)
+    return 0;
+  limit = steps * 10000 + from;
+  if ((money < limit ? money : limit) > from)
+    limit = money < limit ? money : limit;
+  else
+    limit = from;
+  *out = limit;
+  return 1;
 }
 /* 0x5bd0c0, a centred text control of width w in the current window (128 B): sets the font, and when the window
    has flags draws the text box (d2_DrawTextBox, centred on x, flags 8) and paints the measured bounds, then
    creates the centred text control (d2_CreateWinText) at x - w / 2 with its width and font */
 
-void ai_CentredText(char *text, int x, int y, int w, int font)
-{
-    int ctrl;
+void ai_CentredText(char *text, int x, int y, int w, int font) {
+  int ctrl;
 
-    d2_SetFont(font);
-    if (d2_Wins[d2_LastWindow].surf2 != 0) {
-        d2_DrawTextBox(x - w / 2, y, w, 0x140, 0, text, 8);
-        d2_FillPaintbox(d2_TextLeft, d2_TextTop, d2_TextDrawnW, d2_TextDrawnH);
-    }
-    ctrl = d2_CreateWinText(x - w / 2, y, text, d2_LastWindow);
-    d2_Objs[ctrl].centred = 1;
-    d2_Objs[ctrl].w = w;
-    d2_SetObjFont(ctrl, font);
+  d2_SetFont(font);
+  if (d2_Wins[d2_LastWindow].surf2 != 0) {
+    d2_DrawTextBox(x - w / 2, y, w, 0x140, 0, text, 8);
+    d2_FillPaintbox(d2_TextLeft, d2_TextTop, d2_TextDrawnW, d2_TextDrawnH);
+  }
+  ctrl = d2_CreateWinText(x - w / 2, y, text, d2_LastWindow);
+  d2_Objs[ctrl].centred = 1;
+  d2_Objs[ctrl].w = w;
+  d2_SetObjFont(ctrl, font);
 }
 /* 0x5bd190, a right-aligned text control of width w in the current window (96 B): creates it at x - w
    (d2_CreateWinText), sets its right alignment and its width, then its font */
 
-void ai_RightAlignedText(char *text, int x, int y, int w, int font)
-{
-    int ctrl;
+void ai_RightAlignedText(char *text, int x, int y, int w, int font) {
+  int ctrl;
 
-    ctrl = d2_CreateWinText(x - w, y, text, d2_LastWindow);
-    d2_Objs[ctrl].rightAligned = 1;
-    d2_Objs[ctrl].w = w;
-    d2_SetObjFont(ctrl, font);
+  ctrl = d2_CreateWinText(x - w, y, text, d2_LastWindow);
+  d2_Objs[ctrl].rightAligned = 1;
+  d2_Objs[ctrl].w = w;
+  d2_SetObjFont(ctrl, font);
 }
 /* 0x5bd1f0, a left-aligned text control of width w at x, y in the current window (96 B): creates it
    (d2_CreateWinText), clears its right alignment, sets its width, then its font */
 
-void ai_LeftAlignedText(char *text, int x, int y, int w, int font)
-{
-    int ctrl;
+void ai_LeftAlignedText(char *text, int x, int y, int w, int font) {
+  int ctrl;
 
-    ctrl = d2_CreateWinText(x, y, text, d2_LastWindow);
-    d2_Objs[ctrl].rightAligned = 0;
-    d2_Objs[ctrl].w = w;
-    d2_SetObjFont(ctrl, font);
+  ctrl = d2_CreateWinText(x, y, text, d2_LastWindow);
+  d2_Objs[ctrl].rightAligned = 0;
+  d2_Objs[ctrl].w = w;
+  d2_SetObjFont(ctrl, font);
 }
 
 /* 0x5bd250, the pictures and text block of a window row (192 B): with the window set, the gv record (0x4f2720
@@ -940,58 +998,60 @@ void ai_LeftAlignedText(char *text, int x, int y, int w, int font)
    0x4731d0 (0x526); with an entry at most 4 the text page gets "$C$Z%s" (0x62a578, entry + 0x16b7) and
    0x52eb50 (0, 6, the player's character, the entry, 0x4df) */
 
-void ai_ShowWindowRow(AIWINDOWROW *row)
-{
-    int i;
-    AIDEC pos;
+void ai_ShowWindowRow(AIWINDOWROW *row) {
+  int i;
+  AIDEC pos;
 
-    if (row->win != -1) {
-        if (gv_GetTableRecord(row->record, &pos) != 0 &&
-            pos.cur != 0 && pos.guilt != 0) {
-            d2_SetForm(row->win, row->pageA);
-            for (i = 0; i < pos.guilt; i++)
-                d2_WinOpenPic(i * 0x10 + 5, 5, 0x526, d2_LastWindow);
-        }
-        if (row->entry <= 4) {
-            d2_SetForm(row->win, row->pageB);
-            io_PrintText((intptr_t)"$C$Z%s", row->entry + 0x16b7);
-            d2_SetForm(row->win, row->pageC);
-            sv_DrawBalanceBar(0, 6, &ai_Chars[ai_PlayerId], row->entry, 0x4df);
-        }
+  if (row->win != -1) {
+    if (gv_GetTableRecord(row->record, &pos) != 0 && pos.cur != 0 &&
+        pos.guilt != 0) {
+      d2_SetForm(row->win, row->pageA);
+      for (i = 0; i < pos.guilt; i++)
+        d2_WinOpenPic(i * 0x10 + 5, 5, 0x526, d2_LastWindow);
     }
+    if (row->entry <= 4) {
+      d2_SetForm(row->win, row->pageB);
+      io_PrintText((intptr_t)"$C$Z%s", row->entry + 0x16b7);
+      d2_SetForm(row->win, row->pageC);
+      sv_DrawBalanceBar(0, 6, &ai_Chars[ai_PlayerId], row->entry, 0x4df);
+    }
+  }
 }
 /* 0x5bd330, the loan rows of the money lender's info window (316 B): the loans of the character ch (gm_CreditEvents),
    at most max (capped at 9), each a row of rows in the form form of win: the frame picture 0x75a centred in the
    window, a child window (font 0x56, left margin 0x10) over it with the text 0x1f41 (the loan's bank, amount,
    interest and due date) when the bank is found; returns the number of rows */
 
-int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win, int form)
-{
-    AIJOB *loans[9];
-    int n;
-    int w;
-    int i;
-    int bank;
+int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win,
+                    int form) {
+  AIJOB *loans[9];
+  int n;
+  int w;
+  int i;
+  int bank;
 
-    if (max >= 9)
-        max = 9;
-    n = gm_CreditEvents(ch->id, 0, loans);
-    w = d2_Pics[0x75a].w;
-    if (n >= max)
-        n = max;
-    for (i = 0; i < n; i++) {
-        d2_SetForm(win, form);
-        rows[i].pic = d2_WinOpenPic((d2_LastWindowPtr->w - w) >> 1, i * 0x80, 0x75a, d2_LastWindow);
-        rows[i].child = d2_CreateChildWindow((d2_LastWindowPtr->w - w) >> 1, i * 0x80 + 4, w, 0x72, 0x10,
-                                             d2_LastWindow);
-        rows[i].loan = loans[i];
-        d2_Wins[rows[i].child].font = 0x56;
-        d2_Wins[rows[i].child].ml = 0x10;
-        bank = (int)gm_FindBuildingById(rows[i].loan->bldId);
-        if (bank != 0)
-            io_PrintText(0x1f41, bank, rows[i].loan->loanAmount, rows[i].loan->loanInterest, &rows[i].loan->loanDue);
-    }
-    return n;
+  if (max >= 9)
+    max = 9;
+  n = gm_CreditEvents(ch->id, 0, loans);
+  w = d2_Pics[0x75a].w;
+  if (n >= max)
+    n = max;
+  for (i = 0; i < n; i++) {
+    d2_SetForm(win, form);
+    rows[i].pic = d2_WinOpenPic((d2_LastWindowPtr->w - w) >> 1, i * 0x80, 0x75a,
+                                d2_LastWindow);
+    rows[i].child =
+        d2_CreateChildWindow((d2_LastWindowPtr->w - w) >> 1, i * 0x80 + 4, w,
+                             0x72, 0x10, d2_LastWindow);
+    rows[i].loan = loans[i];
+    d2_Wins[rows[i].child].font = 0x56;
+    d2_Wins[rows[i].child].ml = 0x10;
+    bank = (int)gm_FindBuildingById(rows[i].loan->bldId);
+    if (bank != 0)
+      io_PrintText(0x1f41, bank, rows[i].loan->loanAmount,
+                   rows[i].loan->loanInterest, &rows[i].loan->loanDue);
+  }
+  return n;
 }
 /* 0x5bd470, the building rows of the character ch (362 B), the stats panel's building page and the money lender's
    first page: with a ctrls array (max entries, set to -1 first) per building of ch (gm_BuildQuery(1, 4, id)) that
@@ -1000,41 +1060,40 @@ int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win, int form)
    room in ctrls the picture becomes clickable (style 3, the building as its user record) and is kept there;
    returns the number of buildings */
 
-int ai_ShowBuildingRows(AICHAR *ch, int max, int *ctrls)
-{
-    char text[0x100];
-    int filled;
-    int n;
-    int value;
-    int pic;
-    int y;
-    AIBLD *bld;
+int ai_ShowBuildingRows(AICHAR *ch, int max, int *ctrls) {
+  char text[0x100];
+  int filled;
+  int n;
+  int value;
+  int pic;
+  int y;
+  AIBLD *bld;
 
-    filled = 0;
-    if (max > 0 && ctrls != 0) {
-        filled = 1;
-        memset(ctrls, -1, max * 4);
+  filled = 0;
+  if (max > 0 && ctrls != 0) {
+    filled = 1;
+    memset(ctrls, -1, max * 4);
+  }
+  n = 0;
+  for (bld = gm_BuildQuery(1, 4, ch->id); bld != 0; bld = gm_BuildNext()) {
+    if ((bld->flags5a & 1) == 0) {
+      value = gm_EquipmentValue(bld, bld->level);
+      y = n << 6;
+      pic = d2_WinOpenPic(0x20, y, bld->type + 0x427, d2_LastWindow);
+      txt_Format(text, (intptr_t)"%G", bld);
+      d2_CreateWinText(0x80, y, text, d2_LastWindow);
+      txt_Format(text, (intptr_t)"%T", value);
+      d2_CreateWinText(0x80, y + 0x1b, text, d2_LastWindow);
+      if (filled == 1 && n < max) {
+        d2_Objs[pic].interactive = 1;
+        d2_Objs[pic].style = 3;
+        d2_Objs[pic].user = bld;
+        ctrls[n] = pic;
+      }
+      n++;
     }
-    n = 0;
-    for (bld = gm_BuildQuery(1, 4, ch->id); bld != 0; bld = gm_BuildNext()) {
-        if ((bld->flags5a & 1) == 0) {
-            value = gm_EquipmentValue(bld, bld->level);
-            y = n << 6;
-            pic = d2_WinOpenPic(0x20, y, bld->type + 0x427, d2_LastWindow);
-            txt_Format(text, (intptr_t)"%G", bld);
-            d2_CreateWinText(0x80, y, text, d2_LastWindow);
-            txt_Format(text, (intptr_t)"%T", value);
-            d2_CreateWinText(0x80, y + 0x1b, text, d2_LastWindow);
-            if (filled == 1 && n < max) {
-                d2_Objs[pic].interactive = 1;
-                d2_Objs[pic].style = 3;
-                d2_Objs[pic].user = bld;
-                ctrls[n] = pic;
-            }
-            n++;
-        }
-    }
-    return n;
+  }
+  return n;
 }
 /* 0x5bd5e0, the rows of the special-amount list (1374 B, ai_SpecialAmountListWindow for the kinds 0 / 7): lays out
    the n rows in columns by n (1 .. 3: one column of n, 4 .. 6: two, 7 / 8: three; a column of three spaced 0xca
@@ -1045,134 +1104,144 @@ int ai_ShowBuildingRows(AICHAR *ch, int max, int *ctrls)
    name ("%1N5"); a character other than viewer and not of kind 6 gets the liking slider (gm_Liking of the viewer,
    0 for kind 7); a viewer of kind 6 marks its partner with the picture 0x6d3; returns 0 */
 
-int ai_ShowAmountRows(int win, int kind, AMOUNTCFG *filter, int n, LCAMOUNTROW *rows, AICHAR *viewer)
-{
-    int cols[3];
-    int col;
-    int colY;
-    char text[0x100];
-    int ncols;
-    int step;
-    int i;
-    int j;
-    int off;
-    int x;
-    int y;
-    int left;
-    LCAMOUNTROW *row;
+int ai_ShowAmountRows(int win, int kind, AMOUNTCFG *filter, int n,
+                      LCAMOUNTROW *rows, AICHAR *viewer) {
+  int cols[3];
+  int col;
+  int colY;
+  char text[0x100];
+  int ncols;
+  int step;
+  int i;
+  int j;
+  int off;
+  int x;
+  int y;
+  int left;
+  LCAMOUNTROW *row;
 
-    cols[0] = -1;
-    cols[1] = -1;
-    cols[2] = -1;
-    ncols = 0;
-    step = 0;
-    switch (n) {
-    case 1:
-        ncols = 1;
-        step = 0x80;
-        cols[0] = 1;
-        break;
-    case 2:
-        ncols = 1;
-        step = 0x80;
-        cols[0] = 2;
-        break;
-    case 3:
-        ncols = 1;
-        step = 0x80;
-        cols[0] = 3;
-        break;
-    case 4:
-        ncols = 2;
-        step = 0x40;
-        cols[0] = 2;
-        cols[1] = 2;
-        break;
-    case 5:
-        ncols = 2;
-        step = 0x40;
-        cols[0] = 3;
-        cols[1] = 2;
-        break;
-    case 6:
-        ncols = 2;
-        step = 0x40;
-        cols[0] = 3;
-        cols[1] = 3;
-        break;
-    case 7:
-        ncols = 3;
-        cols[2] = 2;
-        cols[1] = 2;
-        cols[0] = 3;
-        break;
-    case 8:
-        ncols = 3;
-        cols[2] = 3;
-        cols[1] = 2;
-        cols[0] = 3;
-        break;
+  cols[0] = -1;
+  cols[1] = -1;
+  cols[2] = -1;
+  ncols = 0;
+  step = 0;
+  switch (n) {
+  case 1:
+    ncols = 1;
+    step = 0x80;
+    cols[0] = 1;
+    break;
+  case 2:
+    ncols = 1;
+    step = 0x80;
+    cols[0] = 2;
+    break;
+  case 3:
+    ncols = 1;
+    step = 0x80;
+    cols[0] = 3;
+    break;
+  case 4:
+    ncols = 2;
+    step = 0x40;
+    cols[0] = 2;
+    cols[1] = 2;
+    break;
+  case 5:
+    ncols = 2;
+    step = 0x40;
+    cols[0] = 3;
+    cols[1] = 2;
+    break;
+  case 6:
+    ncols = 2;
+    step = 0x40;
+    cols[0] = 3;
+    cols[1] = 3;
+    break;
+  case 7:
+    ncols = 3;
+    cols[2] = 2;
+    cols[1] = 2;
+    cols[0] = 3;
+    break;
+  case 8:
+    ncols = 3;
+    cols[2] = 3;
+    cols[1] = 2;
+    cols[0] = 3;
+    break;
+  }
+  i = 0;
+  for (col = 0; col < ncols; col++) {
+    for (j = 0; j < cols[col] && i < n; j++, i++) {
+      rows[i].y = col * 0x80 + step;
+      if (cols[col] == 3)
+        rows[i].x = j * 0xca;
+      else if (cols[col] == 2)
+        rows[i].x = j * 0xca + 0x65;
+      else
+        rows[i].x = 0xca;
     }
-    i = 0;
-    for (col = 0; col < ncols; col++) {
-        for (j = 0; j < cols[col] && i < n; j++, i++) {
-            rows[i].y = col * 0x80 + step;
-            if (cols[col] == 3)
-                rows[i].x = j * 0xca;
-            else if (cols[col] == 2)
-                rows[i].x = j * 0xca + 0x65;
-            else
-                rows[i].x = 0xca;
-        }
+  }
+  for (i = 0; i < n; i++) {
+    row = &rows[i];
+    x = row->x + 0x65;
+    y = row->y + 0x23;
+    left = x - d2_Pics[0x5da].w / 2;
+    row->ctl[0] = d2_WinOpenPic(left, y, 0x5da, d2_LastWindow);
+    if (row->rec == 0)
+      continue;
+    if (row->rec->kind == 6 || row->rec->kind == 7 || row->rec->kind == 5)
+      d2_WinOpenPic(left - 0x20, y, row->rec->ref54, d2_LastWindow);
+    row->portrait = d2_WinOpenPic(x - d2_Pics[row->rec->picture].w / 2 - 3,
+                                  y + 1, row->rec->picture, d2_LastWindow);
+    d2_WinOpenPic(left + 3, y + 3, row->icons[0], d2_LastWindow);
+    if (row->icons[1] != 0)
+      d2_WinOpenPic(left + 3, d2_Pics[0x5da].h + y - 0x13, row->icons[1],
+                    d2_LastWindow);
+    if (row->icons[2] != 0)
+      d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, y + 3, row->icons[2],
+                    d2_LastWindow);
+    d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, d2_Pics[0x5da].h + y - 0x13,
+                  row->icons[3], d2_LastWindow);
+    if (kind == 7) {
+      txt_Format(text, (intptr_t)"%s %1N7",
+                 (row->rec->sex ? 0x11e : 0x114) + row->rec->level,
+                 row->rec->id);
+      ai_CentredText(text, x, row->y, 0xca, 0x56);
+      txt_Format(text, (intptr_t)"%s",
+                 (row->rec->sex ? 0x27b : 0x253) + row->rec->secondOffice);
+      ai_CentredText(text, x, row->y + 0xf, 0xca, 0x56);
+    } else {
+      txt_Format(text, (intptr_t)"%s %1N7",
+                 (row->rec->sex ? 0x11e : 0x114) + row->rec->level,
+                 row->rec->id);
+      ai_CentredText(text, x, row->y, 0xca, 0x56);
+      txt_Format(text, (intptr_t)"%1N5", row->rec->id);
+      ai_CentredText(text, x, row->y + 0xf, 0xca, 0x56);
     }
-    for (i = 0; i < n; i++) {
-        row = &rows[i];
-        x = row->x + 0x65;
-        y = row->y + 0x23;
-        left = x - d2_Pics[0x5da].w / 2;
-        row->ctl[0] = d2_WinOpenPic(left, y, 0x5da, d2_LastWindow);
-        if (row->rec == 0)
-            continue;
-        if (row->rec->kind == 6 || row->rec->kind == 7 || row->rec->kind == 5)
-            d2_WinOpenPic(left - 0x20, y, row->rec->ref54, d2_LastWindow);
-        row->portrait = d2_WinOpenPic(x - d2_Pics[row->rec->picture].w / 2 - 3, y + 1, row->rec->picture,
-                                         d2_LastWindow);
-        d2_WinOpenPic(left + 3, y + 3, row->icons[0], d2_LastWindow);
-        if (row->icons[1] != 0)
-            d2_WinOpenPic(left + 3, d2_Pics[0x5da].h + y - 0x13, row->icons[1], d2_LastWindow);
-        if (row->icons[2] != 0)
-            d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, y + 3, row->icons[2], d2_LastWindow);
-        d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, d2_Pics[0x5da].h + y - 0x13, row->icons[3], d2_LastWindow);
-        if (kind == 7) {
-            txt_Format(text, (intptr_t)"%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->level, row->rec->id);
-            ai_CentredText(text, x, row->y, 0xca, 0x56);
-            txt_Format(text, (intptr_t)"%s", (row->rec->sex ? 0x27b : 0x253) + row->rec->secondOffice);
-            ai_CentredText(text, x, row->y + 0xf, 0xca, 0x56);
-        } else {
-            txt_Format(text, (intptr_t)"%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->level, row->rec->id);
-            ai_CentredText(text, x, row->y, 0xca, 0x56);
-            txt_Format(text, (intptr_t)"%1N5", row->rec->id);
-            ai_CentredText(text, x, row->y + 0xf, 0xca, 0x56);
-        }
-        if (row->rec != viewer && row->rec->kind != 6) {
-            row->ctl[1] = d2_WinOpenSlider(x - 0x23, d2_Pics[0x5da].h + y + 5, 0x40, 0, 100, 0x75, 0x442,
-                                              d2_LastWindow);
-            if (row->rec->kind == 7)
-                d2_SetObjValue(row->ctl[1], 0, 100, 0, 1);
-            else
-                d2_SetObjValue(row->ctl[1], 0, 100, (int)gm_Liking(viewer->id, row->rec->id, 1));
-            d2_SetObjEnabled(row->ctl[1], 1);
-            d2_Objs[row->ctl[1]].interactive = 1;
-        }
-        if (viewer != 0 && viewer->kind == 6 && row->rec->partner == viewer->netId)
-            d2_WinOpenPic(d2_Pics[0x5da].w + left, y, 0x6d3, d2_LastWindow);
-        if (filter == 0 || ai_PassesPartnerFilter(ai_PlayerId, row->rec->id, filter, 0) != 0) {
-            d2_Objs[row->ctl[0]].interactive = 1;
-            d2_Objs[row->ctl[0]].style = 3;
-            d2_Objs[row->ctl[0]].user = row->rec;
-        }
+    if (row->rec != viewer && row->rec->kind != 6) {
+      row->ctl[1] = d2_WinOpenSlider(x - 0x23, d2_Pics[0x5da].h + y + 5, 0x40,
+                                     0, 100, 0x75, 0x442, d2_LastWindow);
+      if (row->rec->kind == 7)
+        d2_SetObjValue(row->ctl[1], 0, 100, 0, 1);
+      else
+        d2_SetObjValue(row->ctl[1], 0, 100,
+                       (int)gm_Liking(viewer->id, row->rec->id, 1));
+      d2_SetObjEnabled(row->ctl[1], 1);
+      d2_Objs[row->ctl[1]].interactive = 1;
     }
-    return 0;
+    if (viewer != 0 && viewer->kind == 6 && row->rec->partner == viewer->netId)
+      d2_WinOpenPic(d2_Pics[0x5da].w + left, y, 0x6d3, d2_LastWindow);
+    if (filter == 0 ||
+        ai_PassesPartnerFilter(ai_PlayerId, row->rec->id, filter, 0) != 0) {
+      d2_Objs[row->ctl[0]].interactive = 1;
+      d2_Objs[row->ctl[0]].style = 3;
+      d2_Objs[row->ctl[0]].user = row->rec;
+    }
+  }
+  return 0;
 }
 /* 0x5bdb60, the seat rows of the special-amount list (1633 B, ai_SpecialAmountListWindow for the kinds 1 .. 6 and 8;
    the seats as offices is a reasoned guess): the kind places the rows on fixed seats (1 .. 3: four, 4 .. 6: six,
@@ -1182,181 +1251,197 @@ int ai_ShowAmountRows(int win, int kind, AMOUNTCFG *filter, int n, LCAMOUNTROW *
    0x400: 0x24, 0x200: 0x23); a vacant row shows the picture 0x4fb and the text 0x253 + its office, its frame
    disabled; returns 0 */
 
-int ai_ShowOfficeRows(int win, int kind, AMOUNTCFG *filter, int n, LCAMOUNTROW *rows, AICHAR *viewer)
-{
-    int valid;
-    int left;
-    int i;
-    char text[0x100];
-    int x;
-    int y;
-    int office;
-    unsigned int flags;
+int ai_ShowOfficeRows(int win, int kind, AMOUNTCFG *filter, int n,
+                      LCAMOUNTROW *rows, AICHAR *viewer) {
+  int valid;
+  int left;
+  int i;
+  char text[0x100];
+  int x;
+  int y;
+  int office;
+  unsigned int flags;
 
-    if (kind == 1 || kind == 2 || kind == 3) {
-        rows[0].x = 0xca;
-        rows[1].x = 0xca;
-        rows[2].x = 0x65;
-        rows[3].x = 0x12f;
-        rows[0].y = 0;
-        rows[1].y = 0x80;
-        rows[2].y = 0x100;
-        rows[3].y = 0x100;
-        valid = 1;
-    } else if (kind == 4 || kind == 5 || kind == 6) {
-        rows[0].x = 0xca;
-        rows[1].x = 0x65;
-        rows[2].x = 0x12f;
-        rows[3].x = 0;
-        rows[4].x = 0xca;
-        rows[5].x = 0x194;
-        rows[0].y = 0;
-        rows[1].y = 0x80;
-        rows[2].y = 0x80;
-        rows[3].y = 0x100;
-        rows[4].y = 0x100;
-        rows[5].y = 0x100;
-        valid = 1;
-    } else if (kind == 8) {
-        rows[0].x = 0x12f;
-        rows[1].x = 0x65;
-        rows[2].x = 0xca;
-        rows[3].x = 0x12f;
-        rows[4].x = 0x65;
-        rows[0].y = 0;
-        rows[1].y = 0;
-        rows[2].y = 0x80;
-        rows[3].y = 0x100;
-        rows[4].y = 0x100;
-        valid = 1;
+  if (kind == 1 || kind == 2 || kind == 3) {
+    rows[0].x = 0xca;
+    rows[1].x = 0xca;
+    rows[2].x = 0x65;
+    rows[3].x = 0x12f;
+    rows[0].y = 0;
+    rows[1].y = 0x80;
+    rows[2].y = 0x100;
+    rows[3].y = 0x100;
+    valid = 1;
+  } else if (kind == 4 || kind == 5 || kind == 6) {
+    rows[0].x = 0xca;
+    rows[1].x = 0x65;
+    rows[2].x = 0x12f;
+    rows[3].x = 0;
+    rows[4].x = 0xca;
+    rows[5].x = 0x194;
+    rows[0].y = 0;
+    rows[1].y = 0x80;
+    rows[2].y = 0x80;
+    rows[3].y = 0x100;
+    rows[4].y = 0x100;
+    rows[5].y = 0x100;
+    valid = 1;
+  } else if (kind == 8) {
+    rows[0].x = 0x12f;
+    rows[1].x = 0x65;
+    rows[2].x = 0xca;
+    rows[3].x = 0x12f;
+    rows[4].x = 0x65;
+    rows[0].y = 0;
+    rows[1].y = 0;
+    rows[2].y = 0x80;
+    rows[3].y = 0x100;
+    rows[4].y = 0x100;
+    valid = 1;
+  } else {
+    valid = 0;
+  }
+  for (i = 0; i < n && valid; i++) {
+    x = rows[i].x + 0x65;
+    y = rows[i].y + 0x23;
+    left = x - d2_Pics[0x5da].w / 2;
+    rows[i].ctl[0] = d2_WinOpenPic(left, y, 0x5da, d2_LastWindow);
+    rows[i].ctl[1] = -1;
+    if (rows[i].rec != 0) {
+      if (rows[i].rec->kind == 6 || rows[i].rec->kind == 7 ||
+          rows[i].rec->kind == 5)
+        d2_WinOpenPic(left - 0x20, y, rows[i].rec->ref54, d2_LastWindow);
+      rows[i].portrait =
+          d2_WinOpenPic(x - d2_Pics[rows[i].rec->picture].w / 2 - 3, y + 1,
+                        rows[i].rec->picture, d2_LastWindow);
+      d2_WinOpenPic(left + 3, y + 3, rows[i].icons[0], d2_LastWindow);
+      if (rows[i].icons[1] != 0)
+        d2_WinOpenPic(left + 3, d2_Pics[0x5da].h + y - 0x13, rows[i].icons[1],
+                      d2_LastWindow);
+      if (rows[i].icons[2] != 0)
+        d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, y + 3, rows[i].icons[2],
+                      d2_LastWindow);
+      d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, d2_Pics[0x5da].h + y - 0x13,
+                    rows[i].icons[3], d2_LastWindow);
+      if (kind != 8) {
+        txt_Format(text, (intptr_t)"%s %1N7",
+                   (rows[i].rec->sex ? 0x11e : 0x114) + rows[i].rec->level,
+                   rows[i].rec->id);
+        ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
+        txt_Format(text, (intptr_t)"%1N5", rows[i].rec->id);
+        ai_CentredText(text, x, rows[i].y + 0xf, 0xca, 0x56);
+      } else {
+        flags = rows[i].rec->flags1cc;
+        if (flags & 0x1000)
+          office = 0x26;
+        else if (flags & 0x2000)
+          office = 0x27;
+        else if (flags & 0x800)
+          office = 0x25;
+        else if (flags & 0x400)
+          office = 0x24;
+        else
+          office = (flags & 0x200) ? 0x23 : 0;
+        txt_Format(text, (intptr_t)"%1N7", rows[i].rec->id);
+        ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
+        txt_Format(text, (intptr_t)"%s",
+                   (rows[i].rec->sex ? 0x27b : 0x253) + office);
+        ai_CentredText(text, x, rows[i].y + 0xf, 0xca, 0x56);
+      }
+      if (rows[i].rec != viewer && rows[i].rec->kind != 6) {
+        rows[i].ctl[1] =
+            d2_WinOpenSlider(x - 0x23, d2_Pics[0x5da].h + y + 5, 0x40, 0, 100,
+                             0x75, 0x442, d2_LastWindow);
+        if (rows[i].rec->kind == 7)
+          d2_SetObjValue(rows[i].ctl[1], 0, 100, 0, 1);
+        else
+          d2_SetObjValue(rows[i].ctl[1], 0, 100,
+                         (int)gm_Liking(viewer->id, rows[i].rec->id, 1));
+        d2_SetObjEnabled(rows[i].ctl[1], 1);
+        d2_Objs[rows[i].ctl[1]].interactive = 1;
+      }
+      if (viewer != 0 && viewer->kind == 6 &&
+          rows[i].rec->partner == viewer->netId)
+        d2_WinOpenPic(d2_Pics[0x5da].w + left, y, 0x6d3, d2_LastWindow);
+      if (filter == 0 || ai_PassesPartnerFilter(ai_PlayerId, rows[i].rec->id,
+                                                filter, 0) != 0) {
+        d2_Objs[rows[i].ctl[0]].interactive = 1;
+        d2_Objs[rows[i].ctl[0]].style = 3;
+        d2_Objs[rows[i].ctl[0]].user = rows[i].rec;
+      }
     } else {
-        valid = 0;
+      d2_WinOpenPic(x - d2_Pics[0x4fb].w / 2 - 3, y + 1, 0x4fb, d2_LastWindow);
+      txt_Format(text, (intptr_t)"%s", rows[i].office + 0x253);
+      ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
+      d2_Objs[rows[i].ctl[0]].interactive = 1;
+      d2_Objs[rows[i].ctl[0]].user = 0;
+      d2_SetObjEnabled(rows[i].ctl[0], 0);
     }
-    for (i = 0; i < n && valid; i++) {
-        x = rows[i].x + 0x65;
-        y = rows[i].y + 0x23;
-        left = x - d2_Pics[0x5da].w / 2;
-        rows[i].ctl[0] = d2_WinOpenPic(left, y, 0x5da, d2_LastWindow);
-        rows[i].ctl[1] = -1;
-        if (rows[i].rec != 0) {
-            if (rows[i].rec->kind == 6 || rows[i].rec->kind == 7 || rows[i].rec->kind == 5)
-                d2_WinOpenPic(left - 0x20, y, rows[i].rec->ref54, d2_LastWindow);
-            rows[i].portrait = d2_WinOpenPic(x - d2_Pics[rows[i].rec->picture].w / 2 - 3, y + 1, rows[i].rec->picture,
-                                             d2_LastWindow);
-            d2_WinOpenPic(left + 3, y + 3, rows[i].icons[0], d2_LastWindow);
-            if (rows[i].icons[1] != 0)
-                d2_WinOpenPic(left + 3, d2_Pics[0x5da].h + y - 0x13, rows[i].icons[1], d2_LastWindow);
-            if (rows[i].icons[2] != 0)
-                d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, y + 3, rows[i].icons[2], d2_LastWindow);
-            d2_WinOpenPic(d2_Pics[0x5da].w + left - 0x10, d2_Pics[0x5da].h + y - 0x13, rows[i].icons[3], d2_LastWindow);
-            if (kind != 8) {
-                txt_Format(text, (intptr_t)"%s %1N7", (rows[i].rec->sex ? 0x11e : 0x114) + rows[i].rec->level, rows[i].rec->id);
-                ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
-                txt_Format(text, (intptr_t)"%1N5", rows[i].rec->id);
-                ai_CentredText(text, x, rows[i].y + 0xf, 0xca, 0x56);
-            } else {
-                flags = rows[i].rec->flags1cc;
-                if (flags & 0x1000)
-                    office = 0x26;
-                else if (flags & 0x2000)
-                    office = 0x27;
-                else if (flags & 0x800)
-                    office = 0x25;
-                else if (flags & 0x400)
-                    office = 0x24;
-                else
-                    office = (flags & 0x200) ? 0x23 : 0;
-                txt_Format(text, (intptr_t)"%1N7", rows[i].rec->id);
-                ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
-                txt_Format(text, (intptr_t)"%s", (rows[i].rec->sex ? 0x27b : 0x253) + office);
-                ai_CentredText(text, x, rows[i].y + 0xf, 0xca, 0x56);
-            }
-            if (rows[i].rec != viewer && rows[i].rec->kind != 6) {
-                rows[i].ctl[1] = d2_WinOpenSlider(x - 0x23, d2_Pics[0x5da].h + y + 5, 0x40, 0, 100, 0x75, 0x442,
-                                                  d2_LastWindow);
-                if (rows[i].rec->kind == 7)
-                    d2_SetObjValue(rows[i].ctl[1], 0, 100, 0, 1);
-                else
-                    d2_SetObjValue(rows[i].ctl[1], 0, 100, (int)gm_Liking(viewer->id, rows[i].rec->id, 1));
-                d2_SetObjEnabled(rows[i].ctl[1], 1);
-                d2_Objs[rows[i].ctl[1]].interactive = 1;
-            }
-            if (viewer != 0 && viewer->kind == 6 && rows[i].rec->partner == viewer->netId)
-                d2_WinOpenPic(d2_Pics[0x5da].w + left, y, 0x6d3, d2_LastWindow);
-            if (filter == 0 || ai_PassesPartnerFilter(ai_PlayerId, rows[i].rec->id, filter, 0) != 0) {
-                d2_Objs[rows[i].ctl[0]].interactive = 1;
-                d2_Objs[rows[i].ctl[0]].style = 3;
-                d2_Objs[rows[i].ctl[0]].user = rows[i].rec;
-            }
-        } else {
-            d2_WinOpenPic(x - d2_Pics[0x4fb].w / 2 - 3, y + 1, 0x4fb, d2_LastWindow);
-            txt_Format(text, (intptr_t)"%s", rows[i].office + 0x253);
-            ai_CentredText(text, x, rows[i].y, 0xca, 0x56);
-            d2_Objs[rows[i].ctl[0]].interactive = 1;
-            d2_Objs[rows[i].ctl[0]].user = 0;
-            d2_SetObjEnabled(rows[i].ctl[0], 0);
-        }
-    }
-    return 0;
+  }
+  return 0;
 }
 
 int amt_HasColumn7Holder();
-void d2_SetObjWidth(int obj, short w); int amt_GetColumnOffices(int col, int max, struct AMTREC *out);
+void d2_SetObjWidth(int obj, short w);
+int amt_GetColumnOffices(int col, int max, struct AMTREC *out);
 
-#define LC_LOVER_FLAG 0x800000  /* AICHAR.flags1c8 bit 23: has a keeper (he.c HE_LOVER_FLAG, cm.c CM_KEEPER_FLAG) */
+#define LC_LOVER_FLAG                                                          \
+  0x800000 /* AICHAR.flags1c8 bit 23: has a keeper (he.c HE_LOVER_FLAG, cm.c CM_KEEPER_FLAG) */
 
 /* 0x5be1d0, the four corner icons of a special-amount row (477 B): the faith (0x6c9 / 0x6ca), the lover (0x6cc: a
    kept character (LC_LOVER_FLAG) of the other sex whose pair event 0x6f the player keeps), the
    crimes (0x6cd: gv_HeldCrimeCount against the player, else 0x6ce: a crime event 0x18 the player was told of about
    the character), and the pair event 0x45 with the player (0x6cb) or else the health (gm_CharacterHealth below
    100 / 350 / 650: 0x6d2 / 0x6d1 / 0x6d0, else 0x6cf); returns 1, 0 for a row without a character */
-int ai_AmountRowStatus(LCAMOUNTROW *row)
-{
-    AIJOB *ev;
-    float health;
+int ai_AmountRowStatus(LCAMOUNTROW *row) {
+  AIJOB *ev;
+  float health;
 
-    if (row->rec == 0)
-        return 0;
-    row->icons[0] = row->rec->faith ? 0x6c9 : 0x6ca;
-    row->icons[1] = 0;
-    if (ai_Chars[ai_PlayerId].sex != row->rec->sex && (row->rec->flags1c8 & LC_LOVER_FLAG) != 0) {
-        for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
-            if (ev->partner1 == ai_Chars[ai_PlayerId].netId && row->rec->netId == ev->partner2) {
-                row->icons[1] = 0x6cc;
-                break;
-            }
-        }
+  if (row->rec == 0)
+    return 0;
+  row->icons[0] = row->rec->faith ? 0x6c9 : 0x6ca;
+  row->icons[1] = 0;
+  if (ai_Chars[ai_PlayerId].sex != row->rec->sex &&
+      (row->rec->flags1c8 & LC_LOVER_FLAG) != 0) {
+    for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
+      if (ev->partner1 == ai_Chars[ai_PlayerId].netId &&
+          row->rec->netId == ev->partner2) {
+        row->icons[1] = 0x6cc;
+        break;
+      }
     }
-    row->icons[2] = 0;
-    if (gv_HeldCrimeCount(row->rec->netId, ai_PlayerId) > 0) {
-        row->icons[2] = 0x6cd;
-    } else {
-        for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
-            if (ev->chr == ai_PlayerId && row->rec->netId == ev->id4) {
-                row->icons[2] = 0x6ce;
-                break;
-            }
-        }
+  }
+  row->icons[2] = 0;
+  if (gv_HeldCrimeCount(row->rec->netId, ai_PlayerId) > 0) {
+    row->icons[2] = 0x6cd;
+  } else {
+    for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
+      if (ev->chr == ai_PlayerId && row->rec->netId == ev->id4) {
+        row->icons[2] = 0x6ce;
+        break;
+      }
     }
-    row->icons[3] = 0;
-    for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
-        if (ev->partner1 == ai_Chars[ai_PlayerId].netId && row->rec->netId == ev->partner2) {
-            row->icons[3] = 0x6cb;
-            break;
-        }
+  }
+  row->icons[3] = 0;
+  for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
+    if (ev->partner1 == ai_Chars[ai_PlayerId].netId &&
+        row->rec->netId == ev->partner2) {
+      row->icons[3] = 0x6cb;
+      break;
     }
-    if (row->icons[3] == 0) {
-        health = gm_CharacterHealth(row->rec);
-        if (health < 100.0f)
-            row->icons[3] = 0x6d2;
-        else if (health < 350.0f)
-            row->icons[3] = 0x6d1;
-        else if (health < 650.0f)
-            row->icons[3] = 0x6d0;
-        else
-            row->icons[3] = 0x6cf;
-    }
-    return 1;
+  }
+  if (row->icons[3] == 0) {
+    health = gm_CharacterHealth(row->rec);
+    if (health < 100.0f)
+      row->icons[3] = 0x6d2;
+    else if (health < 350.0f)
+      row->icons[3] = 0x6d1;
+    else if (health < 650.0f)
+      row->icons[3] = 0x6d0;
+    else
+      row->icons[3] = 0x6cf;
+  }
+  return 1;
 }
 /* 0x5be3b0, one row of a special-amount list at (x, y) in the current window (872 B): the frame picture 0x5da; for
    a character the portrait, the corner icons of ai_AmountRowStatus, the title and name ("%s %1N7", only with titled
@@ -1365,52 +1450,59 @@ int ai_AmountRowStatus(LCAMOUNTROW *row)
    row is pickable, and the family picture (AICHAR.ref54) of the kinds 5 .. 7; a vacant row shows the picture
    0x4fb; returns 0 */
 
-int ai_AmountRow(int x, int y, int win, int font, LCAMOUNTROW *row, int titled)
-{
-    char text[0x100];
-    int frameY;
-    int cx;
+int ai_AmountRow(int x, int y, int win, int font, LCAMOUNTROW *row,
+                 int titled) {
+  char text[0x100];
+  int frameY;
+  int cx;
 
-    cx = d2_Pics[0x5da].w / 2 + x;
-    frameY = y + 0x1c;
-    row->ctl[0] = d2_WinOpenPic(x, frameY, 0x5da, d2_LastWindow);
-    row->ctl[1] = -1;
-    if (row->rec != 0) {
-        row->portrait = d2_WinOpenPic(cx - d2_Pics[row->rec->picture].w / 2 - 3, y + 0x1d, row->rec->picture,
-                                      d2_LastWindow);
-        d2_WinOpenPic(x + 3, y + 0x1f, row->icons[0], d2_LastWindow);
-        if (row->icons[1] != 0)
-            d2_WinOpenPic(x + 3, d2_Pics[0x5da].h + y + 9, row->icons[1], d2_LastWindow);
-        if (row->icons[2] != 0)
-            d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, y + 0x1f, row->icons[2], d2_LastWindow);
-        d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, d2_Pics[0x5da].h + y + 9, row->icons[3], d2_LastWindow);
-        if (row->rec->level != 0 && titled != 0)
-            txt_Format(text, (intptr_t)"%s %1N7", (row->rec->sex ? 0x11e : 0x114) + row->rec->level, row->rec->id);
-        else
-            txt_Format(text, (intptr_t)"%1N7", row->rec->id);
-        ai_CentredText(text, cx, row->y, 0xca, font);
-        txt_Format(text, (intptr_t)"%1N5", row->rec->id);
-        ai_CentredText(text, cx, row->y + 0xe, 0xca, font);
-        if (row->rec->kind != 6) {
-            row->ctl[1] = d2_WinOpenSlider(cx - 0x23, d2_Pics[0x5da].h + y + 0x1e, 0x40, 0, 100, 0x75, 0x442,
-                                           d2_LastWindow);
-            if (row->rec->kind == 7)
-                d2_SetObjValue(row->ctl[1], 0, 100, 0, 1);
-            else
-                d2_SetObjValue(row->ctl[1], 0, 100, (int)gm_Liking(ai_PlayerId, row->rec->id, 1));
-            d2_SetObjEnabled(row->ctl[1], 0);
-        }
-        if (row->pickable != 0) {
-            d2_Objs[row->ctl[0]].interactive = 1;
-            d2_Objs[row->ctl[0]].style = 3;
-            d2_Objs[row->ctl[0]].user = row->rec;
-        }
-        if (row->rec->kind == 5 || row->rec->kind == 6 || row->rec->kind == 7)
-            d2_WinOpenPic(x - 0x20, frameY, row->rec->ref54, d2_LastWindow);
-    } else {
-        d2_WinOpenPic(cx - d2_Pics[0x4fb].w / 2 - 3, y + 0x1d, 0x4fb, d2_LastWindow);
+  cx = d2_Pics[0x5da].w / 2 + x;
+  frameY = y + 0x1c;
+  row->ctl[0] = d2_WinOpenPic(x, frameY, 0x5da, d2_LastWindow);
+  row->ctl[1] = -1;
+  if (row->rec != 0) {
+    row->portrait = d2_WinOpenPic(cx - d2_Pics[row->rec->picture].w / 2 - 3,
+                                  y + 0x1d, row->rec->picture, d2_LastWindow);
+    d2_WinOpenPic(x + 3, y + 0x1f, row->icons[0], d2_LastWindow);
+    if (row->icons[1] != 0)
+      d2_WinOpenPic(x + 3, d2_Pics[0x5da].h + y + 9, row->icons[1],
+                    d2_LastWindow);
+    if (row->icons[2] != 0)
+      d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, y + 0x1f, row->icons[2],
+                    d2_LastWindow);
+    d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, d2_Pics[0x5da].h + y + 9,
+                  row->icons[3], d2_LastWindow);
+    if (row->rec->level != 0 && titled != 0)
+      txt_Format(text, (intptr_t)"%s %1N7",
+                 (row->rec->sex ? 0x11e : 0x114) + row->rec->level,
+                 row->rec->id);
+    else
+      txt_Format(text, (intptr_t)"%1N7", row->rec->id);
+    ai_CentredText(text, cx, row->y, 0xca, font);
+    txt_Format(text, (intptr_t)"%1N5", row->rec->id);
+    ai_CentredText(text, cx, row->y + 0xe, 0xca, font);
+    if (row->rec->kind != 6) {
+      row->ctl[1] = d2_WinOpenSlider(cx - 0x23, d2_Pics[0x5da].h + y + 0x1e,
+                                     0x40, 0, 100, 0x75, 0x442, d2_LastWindow);
+      if (row->rec->kind == 7)
+        d2_SetObjValue(row->ctl[1], 0, 100, 0, 1);
+      else
+        d2_SetObjValue(row->ctl[1], 0, 100,
+                       (int)gm_Liking(ai_PlayerId, row->rec->id, 1));
+      d2_SetObjEnabled(row->ctl[1], 0);
     }
-    return 0;
+    if (row->pickable != 0) {
+      d2_Objs[row->ctl[0]].interactive = 1;
+      d2_Objs[row->ctl[0]].style = 3;
+      d2_Objs[row->ctl[0]].user = row->rec;
+    }
+    if (row->rec->kind == 5 || row->rec->kind == 6 || row->rec->kind == 7)
+      d2_WinOpenPic(x - 0x20, frameY, row->rec->ref54, d2_LastWindow);
+  } else {
+    d2_WinOpenPic(cx - d2_Pics[0x4fb].w / 2 - 3, y + 0x1d, 0x4fb,
+                  d2_LastWindow);
+  }
+  return 0;
 }
 /* 0x5be720, one compact special-amount row at (x, y) in the current window (734 B, ai_AmountRow without the texts):
    the frame picture 0x5da; for a character the portrait, the corner icons (ai_AmountRowStatus), the liking slider of
@@ -1419,60 +1511,62 @@ int ai_AmountRow(int x, int y, int win, int font, LCAMOUNTROW *row, int titled)
    family picture (AICHAR.ref54) of the kinds 5 .. 7 left of it; a vacant row shows the picture 0x4fb; win is
    not read (the pictures go to d2_LastWindow); returns 0 */
 
-int ai_DrawAmountRow(int x, int y, int win, LCAMOUNTROW *row)
-{
-    int cx;
+int ai_DrawAmountRow(int x, int y, int win, LCAMOUNTROW *row) {
+  int cx;
 
-    cx = d2_Pics[0x5da].w / 2 + x;
-    row->ctl[0] = d2_WinOpenPic(x, y, 0x5da, d2_LastWindow);
-    row->ctl[1] = -1;
-    if (row->rec != 0) {
-        row->portrait = d2_WinOpenPic(cx - d2_Pics[row->rec->picture].w / 2 - 3, y + 1, row->rec->picture,
-                                      d2_LastWindow);
-        d2_WinOpenPic(x + 3, y + 3, row->icons[0], d2_LastWindow);
-        if (row->icons[1] != 0)
-            d2_WinOpenPic(x + 3, d2_Pics[0x5da].h + y - 0x13, row->icons[1], d2_LastWindow);
-        if (row->icons[2] != 0)
-            d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, y + 3, row->icons[2], d2_LastWindow);
-        d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, d2_Pics[0x5da].h + y - 0x13, row->icons[3], d2_LastWindow);
-        if (row->rec->kind != 6) {
-            row->ctl[1] = d2_WinOpenSlider(cx - 0x23, d2_Pics[0x5da].h + y + 2, 0x40, 0, 100, 0x75, 0x442,
-                                           d2_LastWindow);
-            if (row->rec->kind == 7)
-                d2_SetObjValue(row->ctl[1], 0, 100, 0, 1);
-            else
-                d2_SetObjValue(row->ctl[1], 0, 100, (int)gm_Liking(ai_PlayerId, row->rec->id, 1));
-            d2_SetObjEnabled(row->ctl[1], 0);
-        }
-        if (row->rec->partner == ai_Chars[ai_PlayerId].netId)
-            d2_WinOpenPic(d2_Pics[0x5da].w + x, y, 0x6d3, d2_LastWindow);
-        if (row->pickable != 0) {
-            d2_Objs[row->ctl[0]].interactive = 1;
-            d2_Objs[row->ctl[0]].style = 3;
-            d2_Objs[row->ctl[0]].user = row->rec;
-        }
-        if (row->rec->kind == 5 || row->rec->kind == 6 || row->rec->kind == 7)
-            d2_WinOpenPic(x - 0x20, y, row->rec->ref54, d2_LastWindow);
-    } else {
-        d2_WinOpenPic(cx - d2_Pics[0x4fb].w / 2 - 3, y + 1, 0x4fb, d2_LastWindow);
+  cx = d2_Pics[0x5da].w / 2 + x;
+  row->ctl[0] = d2_WinOpenPic(x, y, 0x5da, d2_LastWindow);
+  row->ctl[1] = -1;
+  if (row->rec != 0) {
+    row->portrait = d2_WinOpenPic(cx - d2_Pics[row->rec->picture].w / 2 - 3,
+                                  y + 1, row->rec->picture, d2_LastWindow);
+    d2_WinOpenPic(x + 3, y + 3, row->icons[0], d2_LastWindow);
+    if (row->icons[1] != 0)
+      d2_WinOpenPic(x + 3, d2_Pics[0x5da].h + y - 0x13, row->icons[1],
+                    d2_LastWindow);
+    if (row->icons[2] != 0)
+      d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, y + 3, row->icons[2],
+                    d2_LastWindow);
+    d2_WinOpenPic(d2_Pics[0x5da].w + x - 0x10, d2_Pics[0x5da].h + y - 0x13,
+                  row->icons[3], d2_LastWindow);
+    if (row->rec->kind != 6) {
+      row->ctl[1] = d2_WinOpenSlider(cx - 0x23, d2_Pics[0x5da].h + y + 2, 0x40,
+                                     0, 100, 0x75, 0x442, d2_LastWindow);
+      if (row->rec->kind == 7)
+        d2_SetObjValue(row->ctl[1], 0, 100, 0, 1);
+      else
+        d2_SetObjValue(row->ctl[1], 0, 100,
+                       (int)gm_Liking(ai_PlayerId, row->rec->id, 1));
+      d2_SetObjEnabled(row->ctl[1], 0);
     }
-    return 0;
+    if (row->rec->partner == ai_Chars[ai_PlayerId].netId)
+      d2_WinOpenPic(d2_Pics[0x5da].w + x, y, 0x6d3, d2_LastWindow);
+    if (row->pickable != 0) {
+      d2_Objs[row->ctl[0]].interactive = 1;
+      d2_Objs[row->ctl[0]].style = 3;
+      d2_Objs[row->ctl[0]].user = row->rec;
+    }
+    if (row->rec->kind == 5 || row->rec->kind == 6 || row->rec->kind == 7)
+      d2_WinOpenPic(x - 0x20, y, row->rec->ref54, d2_LastWindow);
+  } else {
+    d2_WinOpenPic(cx - d2_Pics[0x4fb].w / 2 - 3, y + 1, 0x4fb, d2_LastWindow);
+  }
+  return 0;
 }
 /* 0x5bea00, the special-amount list window over a caller record (79 B): the local 0x50-byte config is
    zeroed and gets +4 = 0x204, +8 = 0x5eed68, +0xc = 0x5eed6c and +0x10 = 6, then 0x5c0970 (the config, the
    second argument, 0, 0) runs the tabbed list; its result is returned */
 
-struct AICHAR *ai_SpecialAmountList(AICHAR *ch, char *text)
-{
-    AMOUNTCFG cfg;
+struct AICHAR *ai_SpecialAmountList(AICHAR *ch, char *text) {
+  AMOUNTCFG cfg;
 
-    (void)ch;
-    memset(&cfg, 0, sizeof(cfg));
-    cfg.mode = 0x204;
-    cfg.kind = 6;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    return ai_SpecialAmountWindow(&cfg, text, 0, 0);
+  (void)ch;
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.mode = 0x204;
+  cfg.kind = 6;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  return ai_SpecialAmountWindow(&cfg, text, 0, 0);
 }
 /* 0x5bea50, the special-amount list window "special\amt2" (1655 B): the caption (the kind's name 0x12b2 + kind, or
    the text 0xa0 with the viewing character), the subcaption caption or caption2, and up to 8 rows: the kind 0 the
@@ -1484,193 +1578,198 @@ struct AICHAR *ai_SpecialAmountList(AICHAR *ch, char *text)
    with it, else pick (character, 0) decides (the window disabled meanwhile); a vacant seat ends the viewing. Returns
    the chosen character record (0: none) */
 
-struct AICHAR *ai_SpecialAmountListWindow(int kind, AMOUNTCFG *filter, char *caption, char *caption2,
-                               int (*pick)(AICHAR *, int))
-{
-    int viewing;
-    LCAMOUNTROW rows[8];
-    AMTREC seats8[5];
-    AMTREC seats[6];
-    AMTREC seats7[6];
-    AICHAR *chosen;
-    AICHAR *viewer;
-    AICHAR *c;
-    AIJOB *ev;
-    float health;
-    int redraw;
-    int win;
-    int n;
-    int i;
-    int hit;
+struct AICHAR *ai_SpecialAmountListWindow(int kind, AMOUNTCFG *filter,
+                                          char *caption, char *caption2,
+                                          int (*pick)(AICHAR *, int)) {
+  int viewing;
+  LCAMOUNTROW rows[8];
+  AMTREC seats8[5];
+  AMTREC seats[6];
+  AMTREC seats7[6];
+  AICHAR *chosen;
+  AICHAR *viewer;
+  AICHAR *c;
+  AIJOB *ev;
+  float health;
+  int redraw;
+  int win;
+  int n;
+  int i;
+  int hit;
 
-    n = 0;
-    chosen = 0;
-    viewer = 0;
-    win = d2_OpenForm(0, 0, "special\\amt2");
-    d2_CentreViewWindows(win);
-    viewing = 0;
-    redraw = 1;
-    do {
-        if (redraw) {
-            d2_SetForm(win, 2);
-            io_PrintText((intptr_t)"$C");
-            if (viewing != 0)
-                io_PrintText(0xa0, viewer->id);
-            else
-                io_PrintText((intptr_t)"$Z$[%s$]", kind + 0x12b2);
-            d2_SetForm(win, 3);
-            io_PrintText((intptr_t)"$C");
-            if (caption != 0)
-                io_PrintText((intptr_t)caption);
-            else if (caption2 != 0)
-                io_PrintText((intptr_t)caption2);
-            d2_SetForm(win, 1);
-            d2_RemoveWindowObjects(d2_LastWindow, 1);
-            for (i = 0; i < 8; i++) {
-                rows[i].rec = 0;
-                rows[i].ctl[0] = -1;
-                rows[i].office = 0;
-            }
-            if (kind == 0) {
-                n = 0;
-                for (i = 0; i < 0x300 && n < 8; i++) {
-                    c = &ai_Chars[i];
-                    if (c->kind == 6 || c->kind == 7 || c->kind == 5)
-                        rows[n++].rec = c;
-                }
-            } else if (kind > 0 && kind < 7) {
-                n = amt_GetColumnOffices(kind, 6, seats);
-                for (i = 0; i < n; i++) {
-                    rows[i].rec = gm_FindChar(seats[i].owner);
-                    rows[i].office = seats[i].kind;
-                }
-            } else if (kind == 7) {
-                n = amt_GetColumn7Offices(0, 6, seats7);
-                for (i = 0; i < n; i++) {
-                    rows[i].rec = gm_FindChar(seats7[i].owner);
-                    rows[i].office = seats7[i].kind;
-                }
-            } else if (kind == 8) {
-                n = amt_GetColumnOffices(kind, 5, seats8);
-                for (i = 0; i < n; i++) {
-                    rows[i].rec = gm_FindChar(seats8[i].owner);
-                    rows[i].office = seats8[i].kind;
-                }
-            } else {
-                n = 0;
-            }
-            if (n == 0) {
-                sv_PopRequest = 1;
-                sv_RunFrame(ai_SpecialAmountListWindow, 0x657c7);
-                d2_CloseView(win);
-                return 0;
-            }
-            for (i = 0; i < n; i++) {
-                /* the corner icons, as ai_AmountRowStatus (written out here: the original has the code in line) */
-                if (rows[i].rec == 0)
-                    continue;
-                rows[i].icons[0] = rows[i].rec->faith ? 0x6c9 : 0x6ca;
-                rows[i].icons[1] = 0;
-                if (ai_Chars[ai_PlayerId].sex != rows[i].rec->sex && (rows[i].rec->flags1c8 & LC_LOVER_FLAG) != 0) {
-                    for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
-                        if (ev->partner1 == ai_Chars[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
-                            rows[i].icons[1] = 0x6cc;
-                            break;
-                        }
-                    }
-                }
-                rows[i].icons[2] = 0;
-                if (gv_HeldCrimeCount(rows[i].rec->netId, ai_PlayerId) > 0) {
-                    rows[i].icons[2] = 0x6cd;
-                } else {
-                    for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
-                        if (ev->chr == ai_PlayerId && rows[i].rec->netId == ev->id4) {
-                            rows[i].icons[2] = 0x6ce;
-                            break;
-                        }
-                    }
-                }
-                rows[i].icons[3] = 0;
-                for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
-                    if (ev->partner1 == ai_Chars[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
-                        rows[i].icons[3] = 0x6cb;
-                        break;
-                    }
-                }
-                if (rows[i].icons[3] == 0) {
-                    health = gm_CharacterHealth(rows[i].rec);
-                    if (health < 100.0f)
-                        rows[i].icons[3] = 0x6d2;
-                    else if (health < 350.0f)
-                        rows[i].icons[3] = 0x6d1;
-                    else if (health < 650.0f)
-                        rows[i].icons[3] = 0x6d0;
-                    else
-                        rows[i].icons[3] = 0x6cf;
-                }
-            }
-            if (kind == 0 || kind == 7)
-                ai_ShowAmountRows(d2_LastWindow, kind, filter, n, rows, viewer ? viewer : &ai_Chars[ai_PlayerId]);
-            else
-                ai_ShowOfficeRows(d2_LastWindow, kind, filter, n, rows, viewer ? viewer : &ai_Chars[ai_PlayerId]);
-            redraw = 0;
+  n = 0;
+  chosen = 0;
+  viewer = 0;
+  win = d2_OpenForm(0, 0, "special\\amt2");
+  d2_CentreViewWindows(win);
+  viewing = 0;
+  redraw = 1;
+  do {
+    if (redraw) {
+      d2_SetForm(win, 2);
+      io_PrintText((intptr_t)"$C");
+      if (viewing != 0)
+        io_PrintText(0xa0, viewer->id);
+      else
+        io_PrintText((intptr_t)"$Z$[%s$]", kind + 0x12b2);
+      d2_SetForm(win, 3);
+      io_PrintText((intptr_t)"$C");
+      if (caption != 0)
+        io_PrintText((intptr_t)caption);
+      else if (caption2 != 0)
+        io_PrintText((intptr_t)caption2);
+      d2_SetForm(win, 1);
+      d2_RemoveWindowObjects(d2_LastWindow, 1);
+      for (i = 0; i < 8; i++) {
+        rows[i].rec = 0;
+        rows[i].ctl[0] = -1;
+        rows[i].office = 0;
+      }
+      if (kind == 0) {
+        n = 0;
+        for (i = 0; i < 0x300 && n < 8; i++) {
+          c = &ai_Chars[i];
+          if (c->kind == 6 || c->kind == 7 || c->kind == 5)
+            rows[n++].rec = c;
         }
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (dm_L.rhold != 0 && viewing == 0) {
-            chosen = 0;
-            viewer = 0;
-            hit = -1;
-            for (i = 0; i < n; i++) {
-                if (rows[i].ctl[1] == d2_PointerObj) {
-                    hit = i;
-                    break;
-                }
-            }
-            if (hit > -1 && hit < n && rows[hit].rec != 0) {
-                viewer = 0;
-                if (rows[hit].rec->id != 0xffff) {
-                    viewing = 1;
-                    viewer = rows[hit].rec;
-                    redraw = 1;
-                } else
-                    redraw = 1;
-            }
-        } else if (dm_L.rhold == 0 && viewing != 0) {
-            viewing = 0;
-            viewer = 0;
-            redraw = 1;
-        } else if (dm_L.lclick != 0 && d2_ClickedId != -1) {
-            chosen = 0;
-            hit = -1;
-            for (i = 0; i < n; i++) {
-                if (rows[i].ctl[0] == d2_PointerObj) {
-                    hit = i;
-                    break;
-                }
-            }
-            if (hit > -1 && hit < n) {
-                c = rows[hit].rec;
-                if (c->id == 0xffff) {
-                    viewer = 0;
-                    viewing = 0;
-                    redraw = 1;
-                } else if (pick == 0) {
-                    sv_PopRequest = 1;
-                    chosen = c;
-                    redraw = 1;
-                } else {
-                    d2_SetViewEnabled(win, 0);
-                    chosen = pick(c, 0) ? c : 0;
-                    d2_SetViewEnabled(win, 1);
-                    redraw = 1;
-                }
-            } else
-                redraw = 1;
+      } else if (kind > 0 && kind < 7) {
+        n = amt_GetColumnOffices(kind, 6, seats);
+        for (i = 0; i < n; i++) {
+          rows[i].rec = gm_FindChar(seats[i].owner);
+          rows[i].office = seats[i].kind;
         }
-    } while (sv_RunFrame(ai_SpecialAmountListWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return chosen;
+      } else if (kind == 7) {
+        n = amt_GetColumn7Offices(0, 6, seats7);
+        for (i = 0; i < n; i++) {
+          rows[i].rec = gm_FindChar(seats7[i].owner);
+          rows[i].office = seats7[i].kind;
+        }
+      } else if (kind == 8) {
+        n = amt_GetColumnOffices(kind, 5, seats8);
+        for (i = 0; i < n; i++) {
+          rows[i].rec = gm_FindChar(seats8[i].owner);
+          rows[i].office = seats8[i].kind;
+        }
+      } else {
+        n = 0;
+      }
+      if (n == 0) {
+        sv_PopRequest = 1;
+        sv_RunFrame(ai_SpecialAmountListWindow, 0x657c7);
+        d2_CloseView(win);
+        return 0;
+      }
+      for (i = 0; i < n; i++) {
+        /* the corner icons, as ai_AmountRowStatus (written out here: the original has the code in line) */
+        if (rows[i].rec == 0)
+          continue;
+        rows[i].icons[0] = rows[i].rec->faith ? 0x6c9 : 0x6ca;
+        rows[i].icons[1] = 0;
+        if (ai_Chars[ai_PlayerId].sex != rows[i].rec->sex &&
+            (rows[i].rec->flags1c8 & LC_LOVER_FLAG) != 0) {
+          for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
+            if (ev->partner1 == ai_Chars[ai_PlayerId].netId &&
+                rows[i].rec->netId == ev->partner2) {
+              rows[i].icons[1] = 0x6cc;
+              break;
+            }
+          }
+        }
+        rows[i].icons[2] = 0;
+        if (gv_HeldCrimeCount(rows[i].rec->netId, ai_PlayerId) > 0) {
+          rows[i].icons[2] = 0x6cd;
+        } else {
+          for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
+            if (ev->chr == ai_PlayerId && rows[i].rec->netId == ev->id4) {
+              rows[i].icons[2] = 0x6ce;
+              break;
+            }
+          }
+        }
+        rows[i].icons[3] = 0;
+        for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
+          if (ev->partner1 == ai_Chars[ai_PlayerId].netId &&
+              rows[i].rec->netId == ev->partner2) {
+            rows[i].icons[3] = 0x6cb;
+            break;
+          }
+        }
+        if (rows[i].icons[3] == 0) {
+          health = gm_CharacterHealth(rows[i].rec);
+          if (health < 100.0f)
+            rows[i].icons[3] = 0x6d2;
+          else if (health < 350.0f)
+            rows[i].icons[3] = 0x6d1;
+          else if (health < 650.0f)
+            rows[i].icons[3] = 0x6d0;
+          else
+            rows[i].icons[3] = 0x6cf;
+        }
+      }
+      if (kind == 0 || kind == 7)
+        ai_ShowAmountRows(d2_LastWindow, kind, filter, n, rows,
+                          viewer ? viewer : &ai_Chars[ai_PlayerId]);
+      else
+        ai_ShowOfficeRows(d2_LastWindow, kind, filter, n, rows,
+                          viewer ? viewer : &ai_Chars[ai_PlayerId]);
+      redraw = 0;
+    }
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (dm_L.rhold != 0 && viewing == 0) {
+      chosen = 0;
+      viewer = 0;
+      hit = -1;
+      for (i = 0; i < n; i++) {
+        if (rows[i].ctl[1] == d2_PointerObj) {
+          hit = i;
+          break;
+        }
+      }
+      if (hit > -1 && hit < n && rows[hit].rec != 0) {
+        viewer = 0;
+        if (rows[hit].rec->id != 0xffff) {
+          viewing = 1;
+          viewer = rows[hit].rec;
+          redraw = 1;
+        } else
+          redraw = 1;
+      }
+    } else if (dm_L.rhold == 0 && viewing != 0) {
+      viewing = 0;
+      viewer = 0;
+      redraw = 1;
+    } else if (dm_L.lclick != 0 && d2_ClickedId != -1) {
+      chosen = 0;
+      hit = -1;
+      for (i = 0; i < n; i++) {
+        if (rows[i].ctl[0] == d2_PointerObj) {
+          hit = i;
+          break;
+        }
+      }
+      if (hit > -1 && hit < n) {
+        c = rows[hit].rec;
+        if (c->id == 0xffff) {
+          viewer = 0;
+          viewing = 0;
+          redraw = 1;
+        } else if (pick == 0) {
+          sv_PopRequest = 1;
+          chosen = c;
+          redraw = 1;
+        } else {
+          d2_SetViewEnabled(win, 0);
+          chosen = pick(c, 0) ? c : 0;
+          d2_SetViewEnabled(win, 1);
+          redraw = 1;
+        }
+      } else
+        redraw = 1;
+    }
+  } while (sv_RunFrame(ai_SpecialAmountListWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return chosen;
 }
 /* 0x5bf0d0, the fill of the special-amount window's family tab (tab 0, 551 B): the characters other than me, alive
    (id != 0xffff) and of a kind below 10 that are one of my relatives (the relation class 4 / 5 for relatives[0],
@@ -1680,96 +1779,97 @@ struct AICHAR *ai_SpecialAmountListWindow(int kind, AMOUNTCFG *filter, char *cap
    its corner icons (ai_AmountRowStatus) and makes it pickable when it passes the partner filter filter
    (ai_PassesPartnerFilter); returns the count */
 
-unsigned int ai_FillFamilyTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter)
-{
-    AICHAR *c;
-    AIJOB *ev;
-    int found;
-    int j;
-    int i;
-    unsigned int n;
-    unsigned int cnt;
+unsigned int ai_FillFamilyTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
+                              AMOUNTCFG *filter) {
+  AICHAR *c;
+  AIJOB *ev;
+  int found;
+  int j;
+  int i;
+  unsigned int n;
+  unsigned int cnt;
 
-    cnt = 0;
-    if (max == 0) {
-        for (i = 0; i < 0x300; i++) {
-            c = &ai_Chars[i];
-            if (c == me || c->id == 0xffff || c->kind >= 10)
-                continue;
-            found = 0;
-            for (j = 0; j < 8; j++) {
-                if (me->relatives[j] == c->netId) {
-                    found = 1;
-                    break;
-                }
-            }
-            if (found || (c->w050 == me->w050 && c->generation == me->generation))
-                cnt++;
-        }
-        for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
-            if (ev->partner1 == me->netId) {
-                cnt++;
-                break;
-            }
-        }
-        return cnt;
-    }
-    memset(rows, 0, max * sizeof(LCAMOUNTROW));
-    n = 0;
+  cnt = 0;
+  if (max == 0) {
     for (i = 0; i < 0x300; i++) {
-        c = &ai_Chars[i];
-        if (n >= max)
-            break;
-        if (c == me || c->id == 0xffff || c->kind >= 10)
-            continue;
-        found = 0;
-        for (j = 0; j < 8; j++) {
-            if (me->relatives[j] == c->netId) {
-                found = 1;
-                break;
-            }
+      c = &ai_Chars[i];
+      if (c == me || c->id == 0xffff || c->kind >= 10)
+        continue;
+      found = 0;
+      for (j = 0; j < 8; j++) {
+        if (me->relatives[j] == c->netId) {
+          found = 1;
+          break;
         }
-        if (found) {
-            rows[n].rec = c;
-            switch (j) {
-            case 0:
-                rows[n].x2c = (c->sex != 0) + 4;
-                break;
-            case 1:
-                rows[n].x2c = 0;
-                break;
-            case 2:
-                rows[n].x2c = 1;
-                break;
-            default:
-                rows[n].x2c = (c->sex != 0) + 6;
-                break;
-            }
-            n++;
-        } else if (c->w050 == me->w050 && c->generation == me->generation) {
-            rows[n].rec = c;
-            rows[n].x2c = (c->sex != 0) + 2;
-            n++;
+      }
+      if (found || (c->w050 == me->w050 && c->generation == me->generation))
+        cnt++;
+    }
+    for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
+      if (ev->partner1 == me->netId) {
+        cnt++;
+        break;
+      }
+    }
+    return cnt;
+  }
+  memset(rows, 0, max * sizeof(LCAMOUNTROW));
+  n = 0;
+  for (i = 0; i < 0x300; i++) {
+    c = &ai_Chars[i];
+    if (n >= max)
+      break;
+    if (c == me || c->id == 0xffff || c->kind >= 10)
+      continue;
+    found = 0;
+    for (j = 0; j < 8; j++) {
+      if (me->relatives[j] == c->netId) {
+        found = 1;
+        break;
+      }
+    }
+    if (found) {
+      rows[n].rec = c;
+      switch (j) {
+      case 0:
+        rows[n].x2c = (c->sex != 0) + 4;
+        break;
+      case 1:
+        rows[n].x2c = 0;
+        break;
+      case 2:
+        rows[n].x2c = 1;
+        break;
+      default:
+        rows[n].x2c = (c->sex != 0) + 6;
+        break;
+      }
+      n++;
+    } else if (c->w050 == me->w050 && c->generation == me->generation) {
+      rows[n].rec = c;
+      rows[n].x2c = (c->sex != 0) + 2;
+      n++;
+    }
+  }
+  if (n < max) {
+    for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
+      if (ev->partner1 == me->netId) {
+        c = gm_FindChar(ev->partner2);
+        if (c != 0 && c->netId != me->relatives[0]) {
+          rows[n].rec = c;
+          rows[n].x2c = (c->sex != 0) + 8;
+          n++;
         }
+        break;
+      }
     }
-    if (n < max) {
-        for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
-            if (ev->partner1 == me->netId) {
-                c = gm_FindChar(ev->partner2);
-                if (c != 0 && c->netId != me->relatives[0]) {
-                    rows[n].rec = c;
-                    rows[n].x2c = (c->sex != 0) + 8;
-                    n++;
-                }
-                break;
-            }
-        }
-    }
-    for (i = 0; i < (int)n; i++) {
-        ai_AmountRowStatus(&rows[i]);
-        rows[i].pickable = ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
-    }
-    return n;
+  }
+  for (i = 0; i < (int)n; i++) {
+    ai_AmountRowStatus(&rows[i]);
+    rows[i].pickable =
+        ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
+  }
+  return n;
 }
 /* 0x5bf300, the fill of the special-amount window's friends tab (tab 1, 488 B): the characters other than me,
    alive and of the kinds 2 .. 7 whom me likes at least 75 (gm_Liking) and who are not me's partner. With max 0 it
@@ -1778,54 +1878,55 @@ unsigned int ai_FillFamilyTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, A
    corner icons (ai_AmountRowStatus) and the partner filter filter (ai_PassesPartnerFilter, pickable); returns the
    count */
 
-unsigned int ai_FillFriendsTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter)
-{
-    unsigned int n;
-    AICHAR *c;
-    AICHAR *t;
-    float like;
-    unsigned int k;
-    int i;
+unsigned int ai_FillFriendsTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
+                               AMOUNTCFG *filter) {
+  unsigned int n;
+  AICHAR *c;
+  AICHAR *t;
+  float like;
+  unsigned int k;
+  int i;
 
-    n = 0;
-    if (max == 0) {
-        for (i = 0; i < 0x300; i++) {
-            c = &ai_Chars[i];
-            if (c != me && c->id != 0xffff && c->kind >= 2 && c->kind <= 7 &&
-                gm_Liking(me->id, c->id, 1) >= 75.0f && c->partner != me->netId)
-                n++;
-        }
-        return n;
-    }
-    memset(rows, 0, max * sizeof(LCAMOUNTROW));
+  n = 0;
+  if (max == 0) {
     for (i = 0; i < 0x300; i++) {
-        c = &ai_Chars[i];
-        if (c == me || c->id == 0xffff || c->kind < 2 || c->kind > 7)
-            continue;
-        like = gm_Liking(me->id, c->id, 1);
-        if (like >= 75.0f && c->partner != me->netId && rows[max - 1].x2c < like) {
-            rows[max - 1].rec = c;
-            rows[max - 1].x2c = (int)like;
-            n++;
-            for (k = max - 1; k != 0; k--) {
-                if (rows[k - 1].x2c < rows[k].x2c) {
-                    t = rows[k - 1].rec;
-                    like = rows[k - 1].x2c;
-                    rows[k - 1].rec = rows[k].rec;
-                    rows[k - 1].x2c = rows[k].x2c;
-                    rows[k].rec = t;
-                    rows[k].x2c = (int)like;
-                }
-            }
-        }
-    }
-    if (n >= max)
-        n = max;
-    for (i = 0; i < (int)n; i++) {
-        ai_AmountRowStatus(&rows[i]);
-        rows[i].pickable = ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
+      c = &ai_Chars[i];
+      if (c != me && c->id != 0xffff && c->kind >= 2 && c->kind <= 7 &&
+          gm_Liking(me->id, c->id, 1) >= 75.0f && c->partner != me->netId)
+        n++;
     }
     return n;
+  }
+  memset(rows, 0, max * sizeof(LCAMOUNTROW));
+  for (i = 0; i < 0x300; i++) {
+    c = &ai_Chars[i];
+    if (c == me || c->id == 0xffff || c->kind < 2 || c->kind > 7)
+      continue;
+    like = gm_Liking(me->id, c->id, 1);
+    if (like >= 75.0f && c->partner != me->netId && rows[max - 1].x2c < like) {
+      rows[max - 1].rec = c;
+      rows[max - 1].x2c = (int)like;
+      n++;
+      for (k = max - 1; k != 0; k--) {
+        if (rows[k - 1].x2c < rows[k].x2c) {
+          t = rows[k - 1].rec;
+          like = rows[k - 1].x2c;
+          rows[k - 1].rec = rows[k].rec;
+          rows[k - 1].x2c = rows[k].x2c;
+          rows[k].rec = t;
+          rows[k].x2c = (int)like;
+        }
+      }
+    }
+  }
+  if (n >= max)
+    n = max;
+  for (i = 0; i < (int)n; i++) {
+    ai_AmountRowStatus(&rows[i]);
+    rows[i].pickable =
+        ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
+  }
+  return n;
 }
 /* 0x5bf4f0, the fill of the special-amount window's enemies tab (tab 2, 501 B): the characters other than me,
    alive and of the kinds 2 .. 7 whom me likes at most 33 (gm_Liking), and me's partner (taken as liking 0). With
@@ -1834,59 +1935,60 @@ unsigned int ai_FillFriendsTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, 
    count (at most max) gets the corner icons (ai_AmountRowStatus) and the partner filter filter
    (ai_PassesPartnerFilter, pickable); returns the count */
 
-unsigned int ai_FillEnemiesTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter)
-{
-    unsigned int n;
-    AICHAR *c;
-    AICHAR *t;
-    float like;
-    unsigned int k;
-    int i;
+unsigned int ai_FillEnemiesTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
+                               AMOUNTCFG *filter) {
+  unsigned int n;
+  AICHAR *c;
+  AICHAR *t;
+  float like;
+  unsigned int k;
+  int i;
 
-    n = 0;
-    if (max == 0) {
-        for (i = 0; i < 0x300; i++) {
-            c = &ai_Chars[i];
-            if (c != me && c->id != 0xffff && c->kind >= 2 && c->kind <= 7 &&
-                (gm_Liking(me->id, c->id, 1) <= 33.0f || c->partner == me->netId))
-                n++;
-        }
-        return n;
-    }
-    memset(rows, 0, max * sizeof(LCAMOUNTROW));
-    for (k = 0; k < max; k++)
-        rows[k].x2c = 100;
+  n = 0;
+  if (max == 0) {
     for (i = 0; i < 0x300; i++) {
-        c = &ai_Chars[i];
-        if (c == me || c->id == 0xffff || c->kind < 2 || c->kind > 7)
-            continue;
-        if (c->partner == me->netId)
-            like = 0.0f;
-        else
-            like = gm_Liking(me->id, c->id, 1);
-        if (like <= 33.0f && like < rows[max - 1].x2c) {
-            rows[max - 1].rec = c;
-            rows[max - 1].x2c = (int)like;
-            n++;
-            for (k = max - 1; k != 0; k--) {
-                if (rows[k - 1].x2c > rows[k].x2c) {
-                    t = rows[k - 1].rec;
-                    like = rows[k - 1].x2c;
-                    rows[k - 1].rec = rows[k].rec;
-                    rows[k - 1].x2c = rows[k].x2c;
-                    rows[k].rec = t;
-                    rows[k].x2c = (int)like;
-                }
-            }
-        }
-    }
-    if (n >= max)
-        n = max;
-    for (i = 0; i < (int)n; i++) {
-        ai_AmountRowStatus(&rows[i]);
-        rows[i].pickable = ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
+      c = &ai_Chars[i];
+      if (c != me && c->id != 0xffff && c->kind >= 2 && c->kind <= 7 &&
+          (gm_Liking(me->id, c->id, 1) <= 33.0f || c->partner == me->netId))
+        n++;
     }
     return n;
+  }
+  memset(rows, 0, max * sizeof(LCAMOUNTROW));
+  for (k = 0; k < max; k++)
+    rows[k].x2c = 100;
+  for (i = 0; i < 0x300; i++) {
+    c = &ai_Chars[i];
+    if (c == me || c->id == 0xffff || c->kind < 2 || c->kind > 7)
+      continue;
+    if (c->partner == me->netId)
+      like = 0.0f;
+    else
+      like = gm_Liking(me->id, c->id, 1);
+    if (like <= 33.0f && like < rows[max - 1].x2c) {
+      rows[max - 1].rec = c;
+      rows[max - 1].x2c = (int)like;
+      n++;
+      for (k = max - 1; k != 0; k--) {
+        if (rows[k - 1].x2c > rows[k].x2c) {
+          t = rows[k - 1].rec;
+          like = rows[k - 1].x2c;
+          rows[k - 1].rec = rows[k].rec;
+          rows[k - 1].x2c = rows[k].x2c;
+          rows[k].rec = t;
+          rows[k].x2c = (int)like;
+        }
+      }
+    }
+  }
+  if (n >= max)
+    n = max;
+  for (i = 0; i < (int)n; i++) {
+    ai_AmountRowStatus(&rows[i]);
+    rows[i].pickable =
+        ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
+  }
+  return n;
 }
 /* 0x5bf6f0, the fill of the special-amount window's lovers tab (tab 3, 195 B): the partners (gm_FindChar) of up to
    four pair events 0x6f of me (AIJOB.partner1 me's netId); with max set it clears max rows of rows and fills the
@@ -1913,31 +2015,31 @@ unsigned int ai_FillEnemiesTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, 
    test (no c) 26 but the store order is wrong, split n++ / nested if = control; climb --base rowp 2
    rounds: nothing. Next: what raises n above max (an n reference the original has, or max's memset refs). */
 
-unsigned int ai_FillLoversTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter)
-{
-    int n;
-    unsigned int i;
-    AICHAR *lovers[4];
-    AICHAR *c;
-    AIJOB *ev;
+unsigned int ai_FillLoversTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
+                              AMOUNTCFG *filter) {
+  int n;
+  unsigned int i;
+  AICHAR *lovers[4];
+  AICHAR *c;
+  AIJOB *ev;
 
-    n = 0;
-    for (ev = he_FindEvent(1, 0, 0x6f); ev != 0 && n < 4; ev = he_NextEvent()) {
-        if (ev->partner1 == me->netId) {
-            c = gm_FindChar(ev->partner2);
-            if (c != 0)
-                lovers[n++] = c;
-        }
+  n = 0;
+  for (ev = he_FindEvent(1, 0, 0x6f); ev != 0 && n < 4; ev = he_NextEvent()) {
+    if (ev->partner1 == me->netId) {
+      c = gm_FindChar(ev->partner2);
+      if (c != 0)
+        lovers[n++] = c;
     }
-    if (max != 0) {
-        memset(rows, 0, max * sizeof(LCAMOUNTROW));
-        for (i = 0; i < (n < max ? n : max); i++, rows++) {
-            rows->rec = lovers[i];
-            ai_AmountRowStatus(rows);
-            rows->pickable = ai_PassesPartnerFilter(me->id, rows->rec->id, filter, 0);
-        }
+  }
+  if (max != 0) {
+    memset(rows, 0, max * sizeof(LCAMOUNTROW));
+    for (i = 0; i < (n < max ? n : max); i++, rows++) {
+      rows->rec = lovers[i];
+      ai_AmountRowStatus(rows);
+      rows->pickable = ai_PassesPartnerFilter(me->id, rows->rec->id, filter, 0);
     }
-    return n;
+  }
+  return n;
 }
 /* 0x5bf7c0, the fill of the special-amount window's wedding tab (tab 4, 717 B): the weddings (the offer events 0x2c)
    me takes part in whose six characters exist (the last guest may be missing). With max 0 it counts their
@@ -1946,116 +2048,117 @@ unsigned int ai_FillLoversTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, A
    id), up to max of them, each with the corner icons (ai_AmountRowStatus) and the partner filter filter
    (ai_PassesPartnerFilter, pickable); returns the count */
 
-unsigned int ai_FillWeddingTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter)
-{
-    AICHAR *guests[6];
-    int roles[6];
-    AIJOB *ev;
-    AICHAR *c;
-    unsigned int n;
-    int j;
-    int soonest;
-    int mine;
-    int k;
+unsigned int ai_FillWeddingTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
+                               AMOUNTCFG *filter) {
+  AICHAR *guests[6];
+  int roles[6];
+  AIJOB *ev;
+  AICHAR *c;
+  unsigned int n;
+  int j;
+  int soonest;
+  int mine;
+  int k;
 
-    soonest = 200;
-    n = 0;
-    if (max == 0) {
-        for (ev = he_FindEvent(1, 0, 0x2c); ev != 0; ev = he_NextEvent()) {
-            mine = 0;
-            c = gm_FindChar(ev->offerWho[0]);
-            if (c == 0)
-                continue;
-            if (c == me)
-                mine = 1;
-            c = gm_FindChar(ev->offerWho[1]);
-            if (c == 0)
-                continue;
-            if (c == me)
-                mine = 1;
-            c = gm_FindChar(ev->offerWho[2]);
-            if (c == 0)
-                continue;
-            if (c == me)
-                mine = 1;
-            c = gm_FindChar(ev->offerWho[3]);
-            if (c == 0)
-                continue;
-            if (c == me)
-                mine = 1;
-            c = gm_FindChar(ev->offerWho[4]);
-            if (c == 0)
-                continue;
-            k = 5;
-            if (c == me)
-                mine = 1;
-            c = gm_FindChar(ev->offerWho[5]);
-            if (c != 0) {
-                k = 6;
-                if (c == me)
-                    mine = 1;
-            }
-            if (mine)
-                n += k;
-        }
-        return n;
-    }
+  soonest = 200;
+  n = 0;
+  if (max == 0) {
     for (ev = he_FindEvent(1, 0, 0x2c); ev != 0; ev = he_NextEvent()) {
-        mine = 0;
-        if (ev->offerAt.clock.year - ai_Time.year > soonest)
-            continue;
-        guests[0] = gm_FindChar(ev->offerWho[0]);
-        if (guests[0] == 0)
-            continue;
-        roles[0] = 0;
-        if (guests[0] == me)
-            mine = 1;
-        guests[1] = gm_FindChar(ev->offerWho[1]);
-        if (guests[1] == 0)
-            continue;
-        roles[1] = 1;
-        if (guests[1] == me)
-            mine = 1;
-        guests[2] = gm_FindChar(ev->offerWho[2]);
-        if (guests[2] == 0)
-            continue;
-        roles[2] = 2;
-        if (guests[2] == me)
-            mine = 1;
-        guests[3] = gm_FindChar(ev->offerWho[3]);
-        if (guests[3] == 0)
-            continue;
-        roles[3] = 3;
-        if (guests[3] == me)
-            mine = 1;
-        guests[4] = gm_FindChar(ev->offerWho[4]);
-        if (guests[4] == 0)
-            continue;
-        roles[4] = 3;
-        if (guests[4] == me)
-            mine = 1;
-        guests[5] = gm_FindChar(ev->offerWho[5]);
-        if (guests[5] != 0) {
-            roles[5] = 4;
-            if (guests[5] == me)
-                mine = 1;
-        }
-        if (!mine)
-            continue;
-        soonest = ev->offerAt.clock.year - ai_Time.year;
-        for (j = 0, k = 0; j < 6 && j < max; j++) {
-            if (guests[j] != 0) {
-                rows[k].rec = guests[j];
-                rows[k].x2c = roles[j];
-                rows[k].x34 = ev->id;
-                ai_AmountRowStatus(&rows[k]);
-                rows[k].pickable = ai_PassesPartnerFilter(me->id, rows[k].rec->id, filter, 0);
-                k++;
-            }
-        }
-        n = k;
+      mine = 0;
+      c = gm_FindChar(ev->offerWho[0]);
+      if (c == 0)
+        continue;
+      if (c == me)
+        mine = 1;
+      c = gm_FindChar(ev->offerWho[1]);
+      if (c == 0)
+        continue;
+      if (c == me)
+        mine = 1;
+      c = gm_FindChar(ev->offerWho[2]);
+      if (c == 0)
+        continue;
+      if (c == me)
+        mine = 1;
+      c = gm_FindChar(ev->offerWho[3]);
+      if (c == 0)
+        continue;
+      if (c == me)
+        mine = 1;
+      c = gm_FindChar(ev->offerWho[4]);
+      if (c == 0)
+        continue;
+      k = 5;
+      if (c == me)
+        mine = 1;
+      c = gm_FindChar(ev->offerWho[5]);
+      if (c != 0) {
+        k = 6;
+        if (c == me)
+          mine = 1;
+      }
+      if (mine)
+        n += k;
     }
     return n;
+  }
+  for (ev = he_FindEvent(1, 0, 0x2c); ev != 0; ev = he_NextEvent()) {
+    mine = 0;
+    if (ev->offerAt.clock.year - ai_Time.year > soonest)
+      continue;
+    guests[0] = gm_FindChar(ev->offerWho[0]);
+    if (guests[0] == 0)
+      continue;
+    roles[0] = 0;
+    if (guests[0] == me)
+      mine = 1;
+    guests[1] = gm_FindChar(ev->offerWho[1]);
+    if (guests[1] == 0)
+      continue;
+    roles[1] = 1;
+    if (guests[1] == me)
+      mine = 1;
+    guests[2] = gm_FindChar(ev->offerWho[2]);
+    if (guests[2] == 0)
+      continue;
+    roles[2] = 2;
+    if (guests[2] == me)
+      mine = 1;
+    guests[3] = gm_FindChar(ev->offerWho[3]);
+    if (guests[3] == 0)
+      continue;
+    roles[3] = 3;
+    if (guests[3] == me)
+      mine = 1;
+    guests[4] = gm_FindChar(ev->offerWho[4]);
+    if (guests[4] == 0)
+      continue;
+    roles[4] = 3;
+    if (guests[4] == me)
+      mine = 1;
+    guests[5] = gm_FindChar(ev->offerWho[5]);
+    if (guests[5] != 0) {
+      roles[5] = 4;
+      if (guests[5] == me)
+        mine = 1;
+    }
+    if (!mine)
+      continue;
+    soonest = ev->offerAt.clock.year - ai_Time.year;
+    for (j = 0, k = 0; j < 6 && j < max; j++) {
+      if (guests[j] != 0) {
+        rows[k].rec = guests[j];
+        rows[k].x2c = roles[j];
+        rows[k].x34 = ev->id;
+        ai_AmountRowStatus(&rows[k]);
+        rows[k].pickable =
+            ai_PassesPartnerFilter(me->id, rows[k].rec->id, filter, 0);
+        k++;
+      }
+    }
+    n = k;
+  }
+  return n;
 }
 /* 0x5bfa90, the fill of the special-amount window's quarrel tab (tab 5, 428 B): while me is in a quarrel
    (AICHAR.flags1c8 0x400) the other side of its insult event 0x47 (role 0), then the characters (id4) of the
@@ -2063,68 +2166,71 @@ unsigned int ai_FillWeddingTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, 
    x2c the role; the crimes up to max rows) and gives each the corner icons (ai_AmountRowStatus) and the partner
    filter filter (ai_PassesPartnerFilter, pickable); returns the count */
 
-unsigned int ai_FillQuarrelTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter)
-{
-    AIJOB *ev;
-    AICHAR *c;
-    unsigned int count;
-    unsigned int n;
-    int i;
+unsigned int ai_FillQuarrelTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
+                               AMOUNTCFG *filter) {
+  AIJOB *ev;
+  AICHAR *c;
+  unsigned int count;
+  unsigned int n;
+  int i;
 
-    count = 0;
-    if (max == 0) {
-        if ((me->flags1c8 & 0x400) != 0) {
-            for (ev = he_FindEvent(1, 0, 0x47); ev != 0; ev = he_NextEvent()) {
-                if (ev->partner1 == me->netId) {
-                    if (gm_FindChar(ev->partner2) != 0)
-                        count = 1;
-                    break;
-                }
-                if (ev->partner2 == me->netId) {
-                    if (gm_FindChar(ev->partner1) != 0)
-                        count = 1;
-                    break;
-                }
-            }
-        }
-        for (ev = he_FindEvent(2, 2, me->id, 0, 0x18); ev != 0; ev = he_NextEvent()) {
-            if (gm_FindChar(ev->id4) != 0)
-                count++;
-        }
-        return count;
-    }
-    n = 0;
-    c = 0;
+  count = 0;
+  if (max == 0) {
     if ((me->flags1c8 & 0x400) != 0) {
-        for (ev = he_FindEvent(1, 0, 0x47); ev != 0; ev = he_NextEvent()) {
-            if (ev->partner1 == me->netId) {
-                c = gm_FindChar(ev->partner2);
-                break;
-            }
-            if (ev->partner2 == me->netId) {
-                c = gm_FindChar(ev->partner1);
-                break;
-            }
+      for (ev = he_FindEvent(1, 0, 0x47); ev != 0; ev = he_NextEvent()) {
+        if (ev->partner1 == me->netId) {
+          if (gm_FindChar(ev->partner2) != 0)
+            count = 1;
+          break;
         }
+        if (ev->partner2 == me->netId) {
+          if (gm_FindChar(ev->partner1) != 0)
+            count = 1;
+          break;
+        }
+      }
     }
+    for (ev = he_FindEvent(2, 2, me->id, 0, 0x18); ev != 0;
+         ev = he_NextEvent()) {
+      if (gm_FindChar(ev->id4) != 0)
+        count++;
+    }
+    return count;
+  }
+  n = 0;
+  c = 0;
+  if ((me->flags1c8 & 0x400) != 0) {
+    for (ev = he_FindEvent(1, 0, 0x47); ev != 0; ev = he_NextEvent()) {
+      if (ev->partner1 == me->netId) {
+        c = gm_FindChar(ev->partner2);
+        break;
+      }
+      if (ev->partner2 == me->netId) {
+        c = gm_FindChar(ev->partner1);
+        break;
+      }
+    }
+  }
+  if (c != 0) {
+    rows[0].rec = c;
+    rows[0].x2c = 0;
+    n = 1;
+  }
+  for (ev = he_FindEvent(2, 2, me->id, 0, 0x18); ev != 0 && n < max;
+       ev = he_NextEvent()) {
+    c = gm_FindChar(ev->id4);
     if (c != 0) {
-        rows[0].rec = c;
-        rows[0].x2c = 0;
-        n = 1;
+      rows[n].rec = c;
+      rows[n].x2c = 1;
+      n++;
     }
-    for (ev = he_FindEvent(2, 2, me->id, 0, 0x18); ev != 0 && n < max; ev = he_NextEvent()) {
-        c = gm_FindChar(ev->id4);
-        if (c != 0) {
-            rows[n].rec = c;
-            rows[n].x2c = 1;
-            n++;
-        }
-    }
-    for (i = 0; i < (int)n; i++) {
-        ai_AmountRowStatus(&rows[i]);
-        rows[i].pickable = ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
-    }
-    return n;
+  }
+  for (i = 0; i < (int)n; i++) {
+    ai_AmountRowStatus(&rows[i]);
+    rows[i].pickable =
+        ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
+  }
+  return n;
 }
 /* 0x5bfc40, the fill of the special-amount window's candidacy tab (tab 6, 335 B): while me applies for an office
    (AICHAR.appliedOffice), the office's applicants (amt_GetOfficeApplicants, up to 6) and up to three other
@@ -2133,45 +2239,49 @@ unsigned int ai_FillQuarrelTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, 
    each with the corner icons (ai_AmountRowStatus) and the partner filter filter (ai_PassesPartnerFilter, pickable);
    returns the rows filled */
 
-unsigned int ai_FillCandidacyTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter)
-{
-    AICHAR *applicants[6];
-    AICHAR *rivals[3];
-    AICHAR *c;
-    int nApplicants;
-    int nRivals;
-    unsigned int i;
-    int j;
+unsigned int ai_FillCandidacyTab(AICHAR *me, unsigned int max,
+                                 LCAMOUNTROW *rows, AMOUNTCFG *filter) {
+  AICHAR *applicants[6];
+  AICHAR *rivals[3];
+  AICHAR *c;
+  int nApplicants;
+  int nRivals;
+  unsigned int i;
+  int j;
 
-    if (me->appliedOffice == 0)
-        return 0;
-    nApplicants = amt_GetOfficeApplicants(me->appliedOffice, 6, applicants);
-    nRivals = 0;
-    for (c = ai_Chars; (intptr_t)c < (intptr_t)&ai_Chars[768]; c++) {  /* a signed compare (jl) in the original */
-        if (nRivals >= 3)
-            break;
-        if (c->id != 0xffff && c->id != me->id && c->appliedOffice == me->appliedOffice)
-            rivals[nRivals++] = c;
-    }
-    if (max == 0)
-        return nRivals + nApplicants;
-    rows[0].x34 = me->appliedOffice;
-    for (i = 0; i < (max < (unsigned int)nApplicants ? max : nApplicants); i++) {
-        rows[i].rec = applicants[i];
-        rows[i].x2c = 0;
-        ai_AmountRowStatus(&rows[i]);
-        rows[i].pickable = ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
-    }
-    for (j = 0; j < nRivals; j++) {
-        if (i >= max)
-            break;
-        rows[i].rec = rivals[j];
-        rows[i].x2c = 1;
-        ai_AmountRowStatus(&rows[i]);
-        rows[i].pickable = ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
-        i++;
-    }
-    return i;
+  if (me->appliedOffice == 0)
+    return 0;
+  nApplicants = amt_GetOfficeApplicants(me->appliedOffice, 6, applicants);
+  nRivals = 0;
+  for (c = ai_Chars; (intptr_t)c < (intptr_t)&ai_Chars[768];
+       c++) { /* a signed compare (jl) in the original */
+    if (nRivals >= 3)
+      break;
+    if (c->id != 0xffff && c->id != me->id &&
+        c->appliedOffice == me->appliedOffice)
+      rivals[nRivals++] = c;
+  }
+  if (max == 0)
+    return nRivals + nApplicants;
+  rows[0].x34 = me->appliedOffice;
+  for (i = 0; i < (max < (unsigned int)nApplicants ? max : nApplicants); i++) {
+    rows[i].rec = applicants[i];
+    rows[i].x2c = 0;
+    ai_AmountRowStatus(&rows[i]);
+    rows[i].pickable =
+        ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
+  }
+  for (j = 0; j < nRivals; j++) {
+    if (i >= max)
+      break;
+    rows[i].rec = rivals[j];
+    rows[i].x2c = 1;
+    ai_AmountRowStatus(&rows[i]);
+    rows[i].pickable =
+        ai_PassesPartnerFilter(me->id, rows[i].rec->id, filter, 0);
+    i++;
+  }
+  return i;
 }
 /* 0x5bfd90, the fill of the special-amount window's office tab (tab 7, 314 B): while me holds an office
    (AICHAR.officeKind), the characters applying (AICHAR.appliedOffice) for one of the open offices me is
@@ -2179,50 +2289,51 @@ unsigned int ai_FillCandidacyTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows
    with them, office by office (LCAMOUNTROW.rec, x34 the office), each with the corner icons (ai_AmountRowStatus)
    and the partner filter filter (ai_PassesPartnerFilter, pickable); returns the count */
 
-unsigned int ai_FillOfficeTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter)
-{
-    int offices[4];
-    AICHAR *c;
-    unsigned int n;
-    int nOffices;
-    int k;
-    int i;
+unsigned int ai_FillOfficeTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
+                              AMOUNTCFG *filter) {
+  int offices[4];
+  AICHAR *c;
+  unsigned int n;
+  int nOffices;
+  int k;
+  int i;
 
-    n = 0;
-    if (me->officeKind == 0)
-        return 0;
-    nOffices = amt_GetEligibleOffices(me, 4, offices);
-    if (nOffices == 0)
-        return 0;
-    if (max == 0) {
-        for (i = 0; i < 768; i++) {
-            if (ai_Chars[i].appliedOffice != 0) {
-                for (k = 0; k < nOffices; k++) {
-                    if (offices[k] == ai_Chars[i].appliedOffice) {
-                        n++;
-                        break;
-                    }
-                }
-            }
-        }
-        return n;
-    }
-    for (k = 0; k < nOffices; k++) {
-        if (n >= max)
+  n = 0;
+  if (me->officeKind == 0)
+    return 0;
+  nOffices = amt_GetEligibleOffices(me, 4, offices);
+  if (nOffices == 0)
+    return 0;
+  if (max == 0) {
+    for (i = 0; i < 768; i++) {
+      if (ai_Chars[i].appliedOffice != 0) {
+        for (k = 0; k < nOffices; k++) {
+          if (offices[k] == ai_Chars[i].appliedOffice) {
+            n++;
             break;
-        for (c = ai_Chars; (intptr_t)c < (intptr_t)&ai_Chars[768]; c++) {
-            if (offices[k] == c->appliedOffice) {
-                rows[n].rec = c;
-                rows[n].x34 = offices[k];
-                ai_AmountRowStatus(&rows[n]);
-                rows[n].pickable = ai_PassesPartnerFilter(me->id, rows[n].rec->id, filter, 0);
-                n++;
-                if (n >= max)
-                    break;
-            }
+          }
         }
+      }
     }
     return n;
+  }
+  for (k = 0; k < nOffices; k++) {
+    if (n >= max)
+      break;
+    for (c = ai_Chars; (intptr_t)c < (intptr_t)&ai_Chars[768]; c++) {
+      if (offices[k] == c->appliedOffice) {
+        rows[n].rec = c;
+        rows[n].x34 = offices[k];
+        ai_AmountRowStatus(&rows[n]);
+        rows[n].pickable =
+            ai_PassesPartnerFilter(me->id, rows[n].rec->id, filter, 0);
+        n++;
+        if (n >= max)
+          break;
+      }
+    }
+  }
+  return n;
 }
 /* 0x5bfed0, prepares a page of the special-amount window (144 B): selects the page param_2 of the view
    param_1, saves the page window's scroll offset, clears its text ("$C") and removes its objects. With the
@@ -2230,35 +2341,33 @@ unsigned int ai_FillOfficeTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, A
    its scroll buttons (0x767) are created, then the page is selected again; returns 0. Without it the saved
    scroll offset is returned. */
 
-int ai_AmountPageSwitch(int view, int page, int scrollPage)
-{
-    int saved;
-    int win;
+int ai_AmountPageSwitch(int view, int page, int scrollPage) {
+  int saved;
+  int win;
 
-    d2_SetForm(view, page);
-    saved = d2_Wins[d2_LastWindow].scrollY;
+  d2_SetForm(view, page);
+  saved = d2_Wins[d2_LastWindow].scrollY;
+  io_PrintText((intptr_t)"$C");
+  d2_RemoveWindowObjects(d2_LastWindow, 1);
+  if (scrollPage != -1) {
+    d2_Wins[d2_LastWindow].scrollY = 0;
+    win = d2_LastWindow;
+    d2_SetForm(view, scrollPage);
     io_PrintText((intptr_t)"$C");
-    d2_RemoveWindowObjects(d2_LastWindow, 1);
-    if (scrollPage != -1) {
-        d2_Wins[d2_LastWindow].scrollY = 0;
-        win = d2_LastWindow;
-        d2_SetForm(view, scrollPage);
-        io_PrintText((intptr_t)"$C");
-        d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
-        d2_SetForm(view, page);
-        return 0;
-    }
-    return saved;
+    d2_CreateScrollButtons(-1, -1, d2_LastWindow, win, 0x767);
+    d2_SetForm(view, page);
+    return 0;
+  }
+  return saved;
 }
 /* 0x5bff80, enables the slider (LCAMOUNTROW.ctl[1], the object of d2_WinOpenSlider that ai_AmountRow makes) of
    every one of the count rows of a special-amount row list */
 
-void ai_EnableAmountRows(int count, LCAMOUNTROW *rows)
-{
-    for (; count > 0; count--) {
-        d2_SetObjEnabled(rows->ctl[1], 1);
-        rows++;
-    }
+void ai_EnableAmountRows(int count, LCAMOUNTROW *rows) {
+  for (; count > 0; count--) {
+    d2_SetObjEnabled(rows->ctl[1], 1);
+    rows++;
+  }
 }
 /* 0x5bffb0, the rows of the special-amount window's family tab (tab 0, 249 B): with n rows, switches to the page
    (ai_AmountPageSwitch view, page, scrollPage), centres the caption txt_Ptrs[0x1690] at the top and draws each
@@ -2266,113 +2375,114 @@ void ai_EnableAmountRows(int count, LCAMOUNTROW *rows)
    aligned beside it; enables the rows' sliders, restores the page's scroll offset and sets its scroll step 0x70;
    returns 1 (0 without rows) */
 
-int ai_ShowFamilyTab(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows)
-{
-    unsigned int i;
-    int half;
-    int y;
-    int saved;
+int ai_ShowFamilyTab(int view, int page, int scrollPage, unsigned int n,
+                     LCAMOUNTROW *rows) {
+  unsigned int i;
+  int half;
+  int y;
+  int saved;
 
-    if (n == 0)
-        return 0;
-    saved = ai_AmountPageSwitch(view, page, scrollPage);
-    half = d2_Wins[d2_LastWindow].w / 2;
-    ai_CentredText(txt_Ptrs[0x1690], half, 8, half * 2, 0x55);
-    for (i = 0; i < n; i++) {
-        y = 0x28 + i * 0x70;
-        rows[i].x = 0x4b;
-        rows[i].y = y;
-        ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
-        ai_RightAlignedText(txt_Ptrs[0x1691 + rows[i].x2c], 0x14a, y + 0x1e, 0xc8, 0x55);
-    }
-    ai_EnableAmountRows(n, rows);
-    d2_Wins[d2_LastWindow].scrollY = saved;
-    d2_Wins[d2_LastWindow].visible = 0x70;
-    return 1;
+  if (n == 0)
+    return 0;
+  saved = ai_AmountPageSwitch(view, page, scrollPage);
+  half = d2_Wins[d2_LastWindow].w / 2;
+  ai_CentredText(txt_Ptrs[0x1690], half, 8, half * 2, 0x55);
+  for (i = 0; i < n; i++) {
+    y = 0x28 + i * 0x70;
+    rows[i].x = 0x4b;
+    rows[i].y = y;
+    ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
+    ai_RightAlignedText(txt_Ptrs[0x1691 + rows[i].x2c], 0x14a, y + 0x1e, 0xc8,
+                        0x55);
+  }
+  ai_EnableAmountRows(n, rows);
+  d2_Wins[d2_LastWindow].scrollY = saved;
+  d2_Wins[d2_LastWindow].visible = 0x70;
+  return 1;
 }
 /* 0x5c00b0, the rows of the special-amount window's friends tab (tab 1, 259 B): with n rows, switches to the page
    (ai_AmountPageSwitch view, page, scrollPage), centres the caption txt_Ptrs[0x169b] at the top and draws each
    row centred (ai_AmountRow, the frame picture 0x5da's width, 0x28 + 0x70 per row, titled); enables the rows'
    sliders, restores the page's scroll offset and sets its scroll step 0x70; returns 1 (0 without rows) */
 
-int ai_ShowFriendsTab(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows)
-{
-    unsigned int i;
-    int half;
-    int y;
-    int saved;
+int ai_ShowFriendsTab(int view, int page, int scrollPage, unsigned int n,
+                      LCAMOUNTROW *rows) {
+  unsigned int i;
+  int half;
+  int y;
+  int saved;
 
-    if (n == 0)
-        return 0;
-    saved = ai_AmountPageSwitch(view, page, scrollPage);
-    half = d2_Wins[d2_LastWindow].w / 2;
-    ai_CentredText(txt_Ptrs[0x169b], half, 8, half * 2, 0x55);
-    for (i = 0; i < n; i++) {
-        y = 0x28 + i * 0x70;
-        rows[i].x = (d2_Wins[d2_LastWindow].w - d2_Pics[0x5da].w) / 2;
-        rows[i].y = y;
-        ai_AmountRow(rows[i].x, y, d2_LastWindow, 0x56, &rows[i], 1);
-    }
-    ai_EnableAmountRows(n, rows);
-    d2_Wins[d2_LastWindow].scrollY = saved;
-    d2_Wins[d2_LastWindow].visible = 0x70;
-    return 1;
+  if (n == 0)
+    return 0;
+  saved = ai_AmountPageSwitch(view, page, scrollPage);
+  half = d2_Wins[d2_LastWindow].w / 2;
+  ai_CentredText(txt_Ptrs[0x169b], half, 8, half * 2, 0x55);
+  for (i = 0; i < n; i++) {
+    y = 0x28 + i * 0x70;
+    rows[i].x = (d2_Wins[d2_LastWindow].w - d2_Pics[0x5da].w) / 2;
+    rows[i].y = y;
+    ai_AmountRow(rows[i].x, y, d2_LastWindow, 0x56, &rows[i], 1);
+  }
+  ai_EnableAmountRows(n, rows);
+  d2_Wins[d2_LastWindow].scrollY = saved;
+  d2_Wins[d2_LastWindow].visible = 0x70;
+  return 1;
 }
 /* 0x5c01c0, the rows of the special-amount window's enemies tab (tab 2, 259 B): with n rows, switches to the page
    (ai_AmountPageSwitch view, page, scrollPage), centres the caption txt_Ptrs[0x169c] at the top and draws each
    row centred (ai_AmountRow, the frame picture 0x5da's width, 0x28 + 0x70 per row, titled); enables the rows'
    sliders, restores the page's scroll offset and sets its scroll step 0x70; returns 1 (0 without rows) */
 
-int ai_ShowEnemiesTab(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows)
-{
-    unsigned int i;
-    int half;
-    int y;
-    int saved;
+int ai_ShowEnemiesTab(int view, int page, int scrollPage, unsigned int n,
+                      LCAMOUNTROW *rows) {
+  unsigned int i;
+  int half;
+  int y;
+  int saved;
 
-    if (n == 0)
-        return 0;
-    saved = ai_AmountPageSwitch(view, page, scrollPage);
-    half = d2_Wins[d2_LastWindow].w / 2;
-    ai_CentredText(txt_Ptrs[0x169c], half, 8, half * 2, 0x55);
-    for (i = 0; i < n; i++) {
-        y = 0x28 + i * 0x70;
-        rows[i].x = (d2_Wins[d2_LastWindow].w - d2_Pics[0x5da].w) / 2;
-        rows[i].y = y;
-        ai_AmountRow(rows[i].x, y, d2_LastWindow, 0x56, &rows[i], 1);
-    }
-    ai_EnableAmountRows(n, rows);
-    d2_Wins[d2_LastWindow].scrollY = saved;
-    d2_Wins[d2_LastWindow].visible = 0x70;
-    return 1;
+  if (n == 0)
+    return 0;
+  saved = ai_AmountPageSwitch(view, page, scrollPage);
+  half = d2_Wins[d2_LastWindow].w / 2;
+  ai_CentredText(txt_Ptrs[0x169c], half, 8, half * 2, 0x55);
+  for (i = 0; i < n; i++) {
+    y = 0x28 + i * 0x70;
+    rows[i].x = (d2_Wins[d2_LastWindow].w - d2_Pics[0x5da].w) / 2;
+    rows[i].y = y;
+    ai_AmountRow(rows[i].x, y, d2_LastWindow, 0x56, &rows[i], 1);
+  }
+  ai_EnableAmountRows(n, rows);
+  d2_Wins[d2_LastWindow].scrollY = saved;
+  d2_Wins[d2_LastWindow].visible = 0x70;
+  return 1;
 }
 /* 0x5c02d0, the rows of the special-amount window's lovers tab (tab 3, 259 B): with n rows, switches to the page
    (ai_AmountPageSwitch view, page, scrollPage), centres the caption txt_Ptrs[0x169d] at the top and draws each
    row centred (ai_AmountRow, the frame picture 0x5da's width, 0x28 + 0x70 per row, titled); enables the rows'
    sliders, restores the page's scroll offset and sets its scroll step 0x70; returns 1 (0 without rows) */
 
-int ai_ShowLoversTab(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows)
-{
-    unsigned int i;
-    int half;
-    int y;
-    int saved;
+int ai_ShowLoversTab(int view, int page, int scrollPage, unsigned int n,
+                     LCAMOUNTROW *rows) {
+  unsigned int i;
+  int half;
+  int y;
+  int saved;
 
-    if (n == 0)
-        return 0;
-    saved = ai_AmountPageSwitch(view, page, scrollPage);
-    half = d2_Wins[d2_LastWindow].w / 2;
-    ai_CentredText(txt_Ptrs[0x169d], half, 8, half * 2, 0x55);
-    for (i = 0; i < n; i++) {
-        y = 0x28 + i * 0x70;
-        rows[i].x = (d2_Wins[d2_LastWindow].w - d2_Pics[0x5da].w) / 2;
-        rows[i].y = y;
-        ai_AmountRow(rows[i].x, y, d2_LastWindow, 0x56, &rows[i], 1);
-    }
-    ai_EnableAmountRows(n, rows);
-    d2_Wins[d2_LastWindow].scrollY = saved;
-    d2_Wins[d2_LastWindow].visible = 0x70;
-    return 1;
+  if (n == 0)
+    return 0;
+  saved = ai_AmountPageSwitch(view, page, scrollPage);
+  half = d2_Wins[d2_LastWindow].w / 2;
+  ai_CentredText(txt_Ptrs[0x169d], half, 8, half * 2, 0x55);
+  for (i = 0; i < n; i++) {
+    y = 0x28 + i * 0x70;
+    rows[i].x = (d2_Wins[d2_LastWindow].w - d2_Pics[0x5da].w) / 2;
+    rows[i].y = y;
+    ai_AmountRow(rows[i].x, y, d2_LastWindow, 0x56, &rows[i], 1);
+  }
+  ai_EnableAmountRows(n, rows);
+  d2_Wins[d2_LastWindow].scrollY = saved;
+  d2_Wins[d2_LastWindow].visible = 0x70;
+  return 1;
 }
 /* 0x5c03e0, the rows of the special-amount window's wedding tab (tab 4, 367 B): with n rows, switches to the page
    (ai_AmountPageSwitch view, page, scrollPage) and centres the heading at the top: the suitor's name (rows[0],
@@ -2381,34 +2491,35 @@ int ai_ShowLoversTab(int view, int page, int scrollPage, unsigned int n, LCAMOUN
    enables the rows' sliders, restores the page's scroll offset and sets its scroll step 0x70; returns 1 (0 without
    rows) */
 
-int ai_ShowWeddingTab(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows)
-{
-    int saved;
-    char name[0x100];
-    unsigned int i;
-    int half;
-    int y;
+int ai_ShowWeddingTab(int view, int page, int scrollPage, unsigned int n,
+                      LCAMOUNTROW *rows) {
+  int saved;
+  char name[0x100];
+  unsigned int i;
+  int half;
+  int y;
 
-    if (n == 0)
-        return 0;
-    saved = ai_AmountPageSwitch(view, page, scrollPage);
-    half = d2_Wins[d2_LastWindow].w / 2;
-    txt_Format(name, (intptr_t)"%1N3", rows[0].rec->id);
-    ai_CentredText(name, half, 8, half * 2, 0x55);
-    ai_CentredText(txt_Ptrs[0x169e], half, 0x20, half * 2, 0x55);
-    txt_Format(name, (intptr_t)"%1N3", rows[1].rec->id);
-    ai_CentredText(name, half, 0x38, half * 2, 0x55);
-    for (i = 0; i < n; i++) {
-        y = 0x52 + i * 0x70;
-        rows[i].x = 0x4b;
-        rows[i].y = y;
-        ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
-        ai_RightAlignedText(txt_Ptrs[0x169f + rows[i].x2c], 0x14a, y + 0x1e, 0xc8, 0x55);
-    }
-    ai_EnableAmountRows(n, rows);
-    d2_Wins[d2_LastWindow].scrollY = saved;
-    d2_Wins[d2_LastWindow].visible = 0x70;
-    return 1;
+  if (n == 0)
+    return 0;
+  saved = ai_AmountPageSwitch(view, page, scrollPage);
+  half = d2_Wins[d2_LastWindow].w / 2;
+  txt_Format(name, (intptr_t)"%1N3", rows[0].rec->id);
+  ai_CentredText(name, half, 8, half * 2, 0x55);
+  ai_CentredText(txt_Ptrs[0x169e], half, 0x20, half * 2, 0x55);
+  txt_Format(name, (intptr_t)"%1N3", rows[1].rec->id);
+  ai_CentredText(name, half, 0x38, half * 2, 0x55);
+  for (i = 0; i < n; i++) {
+    y = 0x52 + i * 0x70;
+    rows[i].x = 0x4b;
+    rows[i].y = y;
+    ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
+    ai_RightAlignedText(txt_Ptrs[0x169f + rows[i].x2c], 0x14a, y + 0x1e, 0xc8,
+                        0x55);
+  }
+  ai_EnableAmountRows(n, rows);
+  d2_Wins[d2_LastWindow].scrollY = saved;
+  d2_Wins[d2_LastWindow].visible = 0x70;
+  return 1;
 }
 /* 0x5c0550, the rows of the special-amount window's quarrel tab (tab 5, 249 B): with n rows, switches to the page
    (ai_AmountPageSwitch view, page, scrollPage), centres the caption txt_Ptrs[0x16a4] at the top and draws each
@@ -2416,29 +2527,30 @@ int ai_ShowWeddingTab(int view, int page, int scrollPage, unsigned int n, LCAMOU
    aligned beside it; enables the rows' sliders, restores the page's scroll offset and sets its scroll step 0x70;
    returns 1 (0 without rows) */
 
-int ai_ShowQuarrelTab(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows)
-{
-    unsigned int i;
-    int half;
-    int y;
-    int saved;
+int ai_ShowQuarrelTab(int view, int page, int scrollPage, unsigned int n,
+                      LCAMOUNTROW *rows) {
+  unsigned int i;
+  int half;
+  int y;
+  int saved;
 
-    if (n == 0)
-        return 0;
-    saved = ai_AmountPageSwitch(view, page, scrollPage);
-    half = d2_Wins[d2_LastWindow].w / 2;
-    ai_CentredText(txt_Ptrs[0x16a4], half, 8, half * 2, 0x55);
-    for (i = 0; i < n; i++) {
-        y = 0x28 + i * 0x70;
-        rows[i].x = 0x4b;
-        rows[i].y = y;
-        ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
-        ai_RightAlignedText(txt_Ptrs[0x16a5 + rows[i].x2c], 0x14a, y + 0x1e, 0xc8, 0x55);
-    }
-    ai_EnableAmountRows(n, rows);
-    d2_Wins[d2_LastWindow].scrollY = saved;
-    d2_Wins[d2_LastWindow].visible = 0x70;
-    return 1;
+  if (n == 0)
+    return 0;
+  saved = ai_AmountPageSwitch(view, page, scrollPage);
+  half = d2_Wins[d2_LastWindow].w / 2;
+  ai_CentredText(txt_Ptrs[0x16a4], half, 8, half * 2, 0x55);
+  for (i = 0; i < n; i++) {
+    y = 0x28 + i * 0x70;
+    rows[i].x = 0x4b;
+    rows[i].y = y;
+    ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
+    ai_RightAlignedText(txt_Ptrs[0x16a5 + rows[i].x2c], 0x14a, y + 0x1e, 0xc8,
+                        0x55);
+  }
+  ai_EnableAmountRows(n, rows);
+  d2_Wins[d2_LastWindow].scrollY = saved;
+  d2_Wins[d2_LastWindow].visible = 0x70;
+  return 1;
 }
 /* 0x5c0650, the rows of the special-amount window's candidacy tab (tab 6, 312 B): with n rows, switches to the page
    (ai_AmountPageSwitch view, page, scrollPage), centres the caption txt_Ptrs[0x16a7] (formatted with the office's
@@ -2446,31 +2558,32 @@ int ai_ShowQuarrelTab(int view, int page, int scrollPage, unsigned int n, LCAMOU
    with its role text txt_Ptrs[0x16a8 + x2c] (applicant or rival) right aligned beside it; enables the rows'
    sliders, restores the page's scroll offset and sets its scroll step 0x70; returns 1 (0 without rows) */
 
-int ai_ShowCandidacyTab(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows)
-{
-    char caption[0x200];
-    unsigned int i;
-    int half;
-    int y;
-    int saved;
+int ai_ShowCandidacyTab(int view, int page, int scrollPage, unsigned int n,
+                        LCAMOUNTROW *rows) {
+  char caption[0x200];
+  unsigned int i;
+  int half;
+  int y;
+  int saved;
 
-    if (n == 0)
-        return 0;
-    saved = ai_AmountPageSwitch(view, page, scrollPage);
-    half = d2_Wins[d2_LastWindow].w / 2;
-    txt_Format(caption, 0x16a7, rows[0].x34 + 0x253);
-    ai_CentredText(caption, half, 8, half * 2, 0x55);
-    for (i = 0; i < n; i++) {
-        y = 0x28 + i * 0x70;
-        rows[i].x = 0x4b;
-        rows[i].y = y;
-        ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
-        ai_RightAlignedText(txt_Ptrs[0x16a8 + rows[i].x2c], 0x14a, y + 0x1e, 0xc8, 0x55);
-    }
-    ai_EnableAmountRows(n, rows);
-    d2_Wins[d2_LastWindow].scrollY = saved;
-    d2_Wins[d2_LastWindow].visible = 0x70;
-    return 1;
+  if (n == 0)
+    return 0;
+  saved = ai_AmountPageSwitch(view, page, scrollPage);
+  half = d2_Wins[d2_LastWindow].w / 2;
+  txt_Format(caption, 0x16a7, rows[0].x34 + 0x253);
+  ai_CentredText(caption, half, 8, half * 2, 0x55);
+  for (i = 0; i < n; i++) {
+    y = 0x28 + i * 0x70;
+    rows[i].x = 0x4b;
+    rows[i].y = y;
+    ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
+    ai_RightAlignedText(txt_Ptrs[0x16a8 + rows[i].x2c], 0x14a, y + 0x1e, 0xc8,
+                        0x55);
+  }
+  ai_EnableAmountRows(n, rows);
+  d2_Wins[d2_LastWindow].scrollY = saved;
+  d2_Wins[d2_LastWindow].visible = 0x70;
+  return 1;
 }
 /* 0x5c0790, the rows of the special-amount window's office tab (tab 7, 277 B): with n rows, switches to the page
    (ai_AmountPageSwitch view, page, scrollPage), centres the caption txt_Ptrs[0x16aa] at the top and draws the rows
@@ -2479,82 +2592,86 @@ int ai_ShowCandidacyTab(int view, int page, int scrollPage, unsigned int n, LCAM
    high; enables the rows' sliders, restores the page's scroll offset and sets its scroll step 0x70; returns 1
    (0 without rows) */
 
-int ai_ShowOfficeTab(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows)
-{
-    unsigned int i;
-    int half;
-    int y;
-    int office;
-    int saved;
+int ai_ShowOfficeTab(int view, int page, int scrollPage, unsigned int n,
+                     LCAMOUNTROW *rows) {
+  unsigned int i;
+  int half;
+  int y;
+  int office;
+  int saved;
 
-    if (n == 0)
-        return 0;
-    saved = ai_AmountPageSwitch(view, page, scrollPage);
-    half = d2_Wins[d2_LastWindow].w / 2;
-    ai_CentredText(txt_Ptrs[0x16aa], half, 8, half * 2, 0x55);
-    y = 0x28;
-    office = 0x28;  /* the original starts the last office at the first row's y (ebp = esi = 0x28) */
-    for (i = 0; i < n; i++) {
-        if (rows[i].x34 != office) {
-            office = rows[i].x34;
-            ai_CentredText(txt_Ptrs[0x253 + office], half, y, half * 2, 0x55);
-            y += 0x19;
-        }
-        rows[i].x = 0x4b;
-        rows[i].y = y;
-        ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
-        y += 0x70;
+  if (n == 0)
+    return 0;
+  saved = ai_AmountPageSwitch(view, page, scrollPage);
+  half = d2_Wins[d2_LastWindow].w / 2;
+  ai_CentredText(txt_Ptrs[0x16aa], half, 8, half * 2, 0x55);
+  y = 0x28;
+  office =
+      0x28; /* the original starts the last office at the first row's y (ebp = esi = 0x28) */
+  for (i = 0; i < n; i++) {
+    if (rows[i].x34 != office) {
+      office = rows[i].x34;
+      ai_CentredText(txt_Ptrs[0x253 + office], half, y, half * 2, 0x55);
+      y += 0x19;
     }
-    ai_EnableAmountRows(n, rows);
-    d2_Wins[d2_LastWindow].scrollY = saved;
-    d2_Wins[d2_LastWindow].visible = 0x70;
-    return 1;
+    rows[i].x = 0x4b;
+    rows[i].y = y;
+    ai_AmountRow(0x4b, y, d2_LastWindow, 0x56, &rows[i], 1);
+    y += 0x70;
+  }
+  ai_EnableAmountRows(n, rows);
+  d2_Wins[d2_LastWindow].scrollY = saved;
+  d2_Wins[d2_LastWindow].visible = 0x70;
+  return 1;
 }
-typedef struct AIAMOUNTTAB {            /* 0x14 bytes, one tab of the special-amount list window's tab table:
-                                           {id, count, control, fill function of the page, row builder} */
-    int id;                             /* +0x00, 0 .. 7 */
-    unsigned int count;                 /* +0x04, the rows of the page */
-    int control;                        /* +0x08, the tab's button (ai_SpecialAmountWindow), -1: none yet */
-    unsigned int (*fill)(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, AMOUNTCFG *filter);
-                                        /* +0x0c, the page fill (ai_FillFamilyTab .. ai_FillOfficeTab) */
-    int (*show)(int view, int page, int scrollPage, unsigned int n, LCAMOUNTROW *rows);
-                                        /* +0x10, the page's rows (ai_ShowFamilyTab .. ai_ShowOfficeTab) */
+typedef struct
+    AIAMOUNTTAB { /* 0x14 bytes, one tab of the special-amount list window's tab table:
+                     {id, count, control, fill function of the page, row builder} */
+  int id;         /* +0x00, 0 .. 7 */
+  unsigned int count; /* +0x04, the rows of the page */
+  int control; /* +0x08, the tab's button (ai_SpecialAmountWindow), -1: none yet */
+  unsigned int (*fill)(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
+                       AMOUNTCFG *filter);
+  /* +0x0c, the page fill (ai_FillFamilyTab .. ai_FillOfficeTab) */
+  int (*show)(int view, int page, int scrollPage, unsigned int n,
+              LCAMOUNTROW *rows);
+  /* +0x10, the page's rows (ai_ShowFamilyTab .. ai_ShowOfficeTab) */
 } AIAMOUNTTAB;
-extern AIAMOUNTTAB ai_AmountTabs[];     /* 0x62d148, the eight tabs */
+extern AIAMOUNTTAB ai_AmountTabs[]; /* 0x62d148, the eight tabs */
 
 /* 0x5c08b0, clears the count and the control of the eight tabs of the special-amount list window (the ids and
    the two handlers stay): the count (+4) and the control (+8) of every tab */
 
-void ai_ClearAmountTabs(void)
-{
-    int *p;
+void ai_ClearAmountTabs(void) {
+  int *p;
 
-    for (p = &ai_AmountTabs[0].control; (intptr_t)p < (intptr_t)&ai_AmountTabs[8].control; p += 5) {
-        p[-1] = 0;
-        p[0] = 0;
-    }
+  for (p = &ai_AmountTabs[0].control;
+       (intptr_t)p < (intptr_t)&ai_AmountTabs[8].control; p += 5) {
+    p[-1] = 0;
+    p[0] = 0;
+  }
 }
 /* 0x5c08d0, the liking sliders of the special-amount list (144 B): for every row (0xe dwords: the character
    at +0, the slider at +8) whose character and slider exist the slider is set to gm_Liking(me's id, the row
    character's id, 1), 0 when me and the row character are both of the kinds 6 / 7; me is the player's
    character, the rows of one tab */
 
-void ai_AmountLikingRows(AICHAR *me, unsigned count, int *rows)
-{
-    AICHAR *chr;
+void ai_AmountLikingRows(AICHAR *me, unsigned count, int *rows) {
+  AICHAR *chr;
 
-    if (me == 0 || me->id == 0xffff)
-        return;
-    for (; count > 0; count--) {
-        chr = (AICHAR *)*rows;
-        if (chr != 0 && chr->id != 0xffff && rows[2] != -1) {
-            if ((me->kind == 6 || me->kind == 7) && (chr->kind == 6 || chr->kind == 7))
-                d2_SetObjValue(rows[2], 0, 100, 0);
-            else
-                d2_SetObjValue(rows[2], 0, 100, (int)gm_Liking(me->id, chr->id, 1));
-        }
-        rows += 0xe;
+  if (me == 0 || me->id == 0xffff)
+    return;
+  for (; count > 0; count--) {
+    chr = (AICHAR *)*rows;
+    if (chr != 0 && chr->id != 0xffff && rows[2] != -1) {
+      if ((me->kind == 6 || me->kind == 7) &&
+          (chr->kind == 6 || chr->kind == 7))
+        d2_SetObjValue(rows[2], 0, 100, 0);
+      else
+        d2_SetObjValue(rows[2], 0, 100, (int)gm_Liking(me->id, chr->id, 1));
     }
+    rows += 0xe;
+  }
 }
 /* 0x5c0970, the tabbed special-amount window "special\amt3" (1972 B): counts the rows of the eight tabs
    (ai_AmountTabs fill with max 0) and opens tab (0 .. 7; else the last one, ai_AmountTab), or the first tab with
@@ -2567,168 +2684,179 @@ void ai_AmountLikingRows(AICHAR *me, unsigned count, int *rows)
    ticks while the page is not scrolled the tabs are counted and the open one refilled again (state 3). Returns
    the chosen character record (0: none) */
 
-struct AICHAR *ai_SpecialAmountWindow(AMOUNTCFG *filter, char *caption, int tab, int (*pick)(AICHAR *, int))
-{
-    LCAMOUNTROW rows[16];
-    int page;
-    int hit;
-    unsigned long refresh;
-    AICHAR *chosen;
-    int state;
-    AICHAR *viewer;
-    int win;
-    unsigned int prev;
-    int i;
-    int k;
-    int step;
-    int rest;
-    int y;
+struct AICHAR *ai_SpecialAmountWindow(AMOUNTCFG *filter, char *caption, int tab,
+                                      int (*pick)(AICHAR *, int)) {
+  LCAMOUNTROW rows[16];
+  int page;
+  int hit;
+  unsigned long refresh;
+  AICHAR *chosen;
+  int state;
+  AICHAR *viewer;
+  int win;
+  unsigned int prev;
+  int i;
+  int k;
+  int step;
+  int rest;
+  int y;
 
-    hit = 0;
-    refresh = d3_Time;
-    ai_ClearAmountTabs();
-    if (tab > -1 && tab < 8)
-        ai_AmountTab = tab;
-    if (ai_AmountTab >= 8)
+  hit = 0;
+  refresh = d3_Time;
+  ai_ClearAmountTabs();
+  if (tab > -1 && tab < 8)
+    ai_AmountTab = tab;
+  if (ai_AmountTab >= 8)
+    ai_AmountTab = 0;
+  for (i = 0; i < 8; i++)
+    ai_AmountTabs[i].count =
+        ai_AmountTabs[i].fill(&ai_Chars[ai_PlayerId], 0, rows, filter);
+  if (ai_AmountTabs[ai_AmountTab].count == 0) {
+    ai_AmountTab = 8;
+    for (i = 0; i < 8; i++) {
+      if (ai_AmountTabs[i].count != 0) {
+        ai_AmountTab = i;
+        break;
+      }
+    }
+  }
+  win = d2_OpenForm(0, 0, "special\\amt3");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 2);
+  page = d2_LastWindow;
+  d2_SetForm(win, 1);
+  io_PrintText((intptr_t)caption);
+  d2_SetForm(win, 4);
+  y = d2_Wins[d2_LastWindow].h - 0x107;
+  step = y / 7;
+  rest = y % 7;
+  y = 0;
+  for (i = 0; i < 8; i++, y += step + (--rest >= 0) + 0x21) {
+    ai_AmountTabs[i].control = d2_WinCreateSlider(
+        (d2_Wins[d2_LastWindow].w - 0xb9) / 2, y, 0xbf,
+        txt_Ptrs[0x1688 + ai_AmountTabs[i].id], d2_LastWindow);
+    d2_SetObjWidth(ai_AmountTabs[i].control, 0xb9);
+  }
+  if (ai_AmountTab < 8) {
+    d2_SetForm(win, 2);
+    ai_AmountTabs[ai_AmountTab].count = ai_AmountTabs[ai_AmountTab].fill(
+        &ai_Chars[ai_PlayerId], 16, rows, filter);
+    ai_AmountTabs[ai_AmountTab].show(win, 2, 3,
+                                     ai_AmountTabs[ai_AmountTab].count, rows);
+  }
+  d2_ClickedId = -1;
+  state = 3;
+  viewer = &ai_Chars[ai_PlayerId];
+  do {
+    if (state == 3) {
+      prev = -1;
+      if (ai_AmountTab >= 8)
         ai_AmountTab = 0;
-    for (i = 0; i < 8; i++)
-        ai_AmountTabs[i].count = ai_AmountTabs[i].fill(&ai_Chars[ai_PlayerId], 0, rows, filter);
-    if (ai_AmountTabs[ai_AmountTab].count == 0) {
+      else
+        prev = ai_AmountTabs[ai_AmountTab].count;
+      for (i = 0; i < 8; i++)
+        ai_AmountTabs[i].count =
+            ai_AmountTabs[i].fill(&ai_Chars[ai_PlayerId], 0, rows, filter);
+      if (ai_AmountTabs[ai_AmountTab].count == 0) {
         ai_AmountTab = 8;
         for (i = 0; i < 8; i++) {
-            if (ai_AmountTabs[i].count != 0) {
-                ai_AmountTab = i;
-                break;
-            }
+          if (ai_AmountTabs[i].count != 0) {
+            ai_AmountTab = i;
+            break;
+          }
         }
+      }
+      for (i = 0; i < 8; i++) {
+        d2_SetObjEnabled(ai_AmountTabs[i].control, ai_AmountTabs[i].count > 0);
+        d2_Objs[ai_AmountTabs[i].control].checked = i == ai_AmountTab;
+      }
+      if (ai_AmountTab < 8) {
+        ai_AmountTabs[ai_AmountTab].count = ai_AmountTabs[ai_AmountTab].fill(
+            &ai_Chars[ai_PlayerId], 16, rows, filter);
+        if (ai_AmountTabs[ai_AmountTab].count != prev)
+          ai_AmountTabs[ai_AmountTab].show(
+              win, 2, 3, ai_AmountTabs[ai_AmountTab].count, rows);
+        else /* the same number of rows: keep the page's scroll offset */
+          ai_AmountTabs[ai_AmountTab].show(
+              win, 2, -1, ai_AmountTabs[ai_AmountTab].count, rows);
+        ai_AmountLikingRows(viewer, ai_AmountTabs[ai_AmountTab].count,
+                            (int *)rows);
+      } else {
+        ai_AmountPageSwitch(win, 2, 3);
+        viewer = &ai_Chars[ai_PlayerId];
+      }
+    } else if (state == 1) {
+      ai_AmountTabs[hit].count =
+          ai_AmountTabs[hit].fill(&ai_Chars[ai_PlayerId], 0, 0, filter);
+      if (ai_AmountTabs[hit].count != 0) {
+        d2_Objs[ai_AmountTabs[ai_AmountTab].control].checked = 0;
+        ai_AmountTab = hit;
+        d2_Objs[ai_AmountTabs[hit].control].checked = 1;
+        ai_AmountTabs[ai_AmountTab].count = ai_AmountTabs[ai_AmountTab].fill(
+            &ai_Chars[ai_PlayerId], 16, rows, filter);
+        ai_AmountTabs[ai_AmountTab].show(
+            win, 2, 3, ai_AmountTabs[ai_AmountTab].count, rows);
+      } else {
+        d2_SetObjEnabled(ai_AmountTabs[hit].control, 0);
+      }
+    } else if (state == 4) {
+      ai_AmountLikingRows(viewer, ai_AmountTabs[ai_AmountTab].count,
+                          (int *)rows);
+    } else if (state == 2) {
+      refresh = 0;
     }
-    win = d2_OpenForm(0, 0, "special\\amt3");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 2);
-    page = d2_LastWindow;
-    d2_SetForm(win, 1);
-    io_PrintText((intptr_t)caption);
-    d2_SetForm(win, 4);
-    y = d2_Wins[d2_LastWindow].h - 0x107;
-    step = y / 7;
-    rest = y % 7;
-    y = 0;
-    for (i = 0; i < 8; i++, y += step + (--rest >= 0) + 0x21) {
-        ai_AmountTabs[i].control = d2_WinCreateSlider((d2_Wins[d2_LastWindow].w - 0xb9) / 2, y, 0xbf,
-                                                      txt_Ptrs[0x1688 + ai_AmountTabs[i].id], d2_LastWindow);
-        d2_SetObjWidth(ai_AmountTabs[i].control, 0xb9);
-    }
-    if (ai_AmountTab < 8) {
-        d2_SetForm(win, 2);
-        ai_AmountTabs[ai_AmountTab].count =
-            ai_AmountTabs[ai_AmountTab].fill(&ai_Chars[ai_PlayerId], 16, rows, filter);
-        ai_AmountTabs[ai_AmountTab].show(win, 2, 3, ai_AmountTabs[ai_AmountTab].count, rows);
-    }
-    d2_ClickedId = -1;
-    state = 3;
-    viewer = &ai_Chars[ai_PlayerId];
-    do {
-        if (state == 3) {
-            prev = -1;
-            if (ai_AmountTab >= 8)
-                ai_AmountTab = 0;
-            else
-                prev = ai_AmountTabs[ai_AmountTab].count;
-            for (i = 0; i < 8; i++)
-                ai_AmountTabs[i].count = ai_AmountTabs[i].fill(&ai_Chars[ai_PlayerId], 0, rows, filter);
-            if (ai_AmountTabs[ai_AmountTab].count == 0) {
-                ai_AmountTab = 8;
-                for (i = 0; i < 8; i++) {
-                    if (ai_AmountTabs[i].count != 0) {
-                        ai_AmountTab = i;
-                        break;
-                    }
-                }
-            }
-            for (i = 0; i < 8; i++) {
-                d2_SetObjEnabled(ai_AmountTabs[i].control, ai_AmountTabs[i].count > 0);
-                d2_Objs[ai_AmountTabs[i].control].checked = i == ai_AmountTab;
-            }
-            if (ai_AmountTab < 8) {
-                ai_AmountTabs[ai_AmountTab].count =
-                    ai_AmountTabs[ai_AmountTab].fill(&ai_Chars[ai_PlayerId], 16, rows, filter);
-                if (ai_AmountTabs[ai_AmountTab].count != prev)
-                    ai_AmountTabs[ai_AmountTab].show(win, 2, 3, ai_AmountTabs[ai_AmountTab].count, rows);
-                else  /* the same number of rows: keep the page's scroll offset */
-                    ai_AmountTabs[ai_AmountTab].show(win, 2, -1, ai_AmountTabs[ai_AmountTab].count, rows);
-                ai_AmountLikingRows(viewer, ai_AmountTabs[ai_AmountTab].count, (int *)rows);
-            } else {
-                ai_AmountPageSwitch(win, 2, 3);
-                viewer = &ai_Chars[ai_PlayerId];
-            }
-        } else if (state == 1) {
-            ai_AmountTabs[hit].count = ai_AmountTabs[hit].fill(&ai_Chars[ai_PlayerId], 0, 0, filter);
-            if (ai_AmountTabs[hit].count != 0) {
-                d2_Objs[ai_AmountTabs[ai_AmountTab].control].checked = 0;
-                ai_AmountTab = hit;
-                d2_Objs[ai_AmountTabs[hit].control].checked = 1;
-                ai_AmountTabs[ai_AmountTab].count =
-                    ai_AmountTabs[ai_AmountTab].fill(&ai_Chars[ai_PlayerId], 16, rows, filter);
-                ai_AmountTabs[ai_AmountTab].show(win, 2, 3, ai_AmountTabs[ai_AmountTab].count, rows);
-            } else {
-                d2_SetObjEnabled(ai_AmountTabs[hit].control, 0);
-            }
-        } else if (state == 4) {
-            ai_AmountLikingRows(viewer, ai_AmountTabs[ai_AmountTab].count, (int *)rows);
-        } else if (state == 2) {
-            refresh = 0;
+    chosen = 0;
+    state = 0;
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (dm_L.rhold != 0 && viewer == &ai_Chars[ai_PlayerId]) {
+      chosen = 0;
+      viewer = 0;
+      k = -1;
+      for (i = 0; i < ai_AmountTabs[ai_AmountTab].count; i++) {
+        if (rows[i].ctl[1] == d2_PointerObj) {
+          k = i;
+          break;
         }
-        chosen = 0;
-        state = 0;
-        if (dm_L.rup != 0) {
+      }
+      if (k > -1 && k < ai_AmountTabs[ai_AmountTab].count && rows[k].rec != 0 &&
+          rows[k].rec->id != 0xffff) {
+        state = 4;
+        viewer = rows[k].rec;
+      }
+    } else if (dm_L.rhold == 0 && viewer != &ai_Chars[ai_PlayerId]) {
+      state = 4;
+      viewer = &ai_Chars[ai_PlayerId];
+    } else if (d2_ClickedId != -1) {
+      for (i = 0; i < 8; i++) {
+        if (ai_AmountTabs[i].control == d2_PointerObj) {
+          state = 1;
+          hit = i;
+          goto next;
+        }
+      }
+      for (i = 0; i < ai_AmountTabs[ai_AmountTab].count; i++) {
+        if (rows[i].ctl[0] == d2_PointerObj) {
+          state = 2;
+          hit = i;
+          if (pick == 0) {
             sv_PopRequest = 1;
-        } else if (dm_L.rhold != 0 && viewer == &ai_Chars[ai_PlayerId]) {
-            chosen = 0;
-            viewer = 0;
-            k = -1;
-            for (i = 0; i < ai_AmountTabs[ai_AmountTab].count; i++) {
-                if (rows[i].ctl[1] == d2_PointerObj) {
-                    k = i;
-                    break;
-                }
-            }
-            if (k > -1 && k < ai_AmountTabs[ai_AmountTab].count && rows[k].rec != 0 && rows[k].rec->id != 0xffff) {
-                state = 4;
-                viewer = rows[k].rec;
-            }
-        } else if (dm_L.rhold == 0 && viewer != &ai_Chars[ai_PlayerId]) {
-            state = 4;
-            viewer = &ai_Chars[ai_PlayerId];
-        } else if (d2_ClickedId != -1) {
-            for (i = 0; i < 8; i++) {
-                if (ai_AmountTabs[i].control == d2_PointerObj) {
-                    state = 1;
-                    hit = i;
-                    goto next;
-                }
-            }
-            for (i = 0; i < ai_AmountTabs[ai_AmountTab].count; i++) {
-                if (rows[i].ctl[0] == d2_PointerObj) {
-                    state = 2;
-                    hit = i;
-                    if (pick == 0) {
-                        sv_PopRequest = 1;
-                        chosen = rows[i].rec;
-                    } else {
-                        d2_SetViewEnabled(win, 0);
-                        chosen = pick(rows[i].rec, 0) ? rows[i].rec : 0;
-                        d2_SetViewEnabled(win, 1);
-                    }
-                }
-            }
-        } else if (refresh <= d3_Time && d2_Wins[page].scrollRemY == 0) {
-            state = 3;
-            refresh = d3_Time + 0xd8;
+            chosen = rows[i].rec;
+          } else {
+            d2_SetViewEnabled(win, 0);
+            chosen = pick(rows[i].rec, 0) ? rows[i].rec : 0;
+            d2_SetViewEnabled(win, 1);
+          }
         }
-next:;
-    } while (sv_RunFrame(ai_SpecialAmountWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return chosen;
+      }
+    } else if (refresh <= d3_Time && d2_Wins[page].scrollRemY == 0) {
+      state = 3;
+      refresh = d3_Time + 0xd8;
+    }
+  next:;
+  } while (sv_RunFrame(ai_SpecialAmountWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return chosen;
 }
 /* 0x5c1130, the special-amount menu "special\amt1" (975 B): the caption (caption, else the text 0xa1), the
    tabbed window's button (the text 0x1687, its object in form 3) and nine picture buttons, each named by its
@@ -2739,90 +2867,91 @@ next:;
    chosen there closes the menu too unless pick decides or cfg->option14 has bit 4; a right release closes it.
    Returns the chosen character record (0: none); prompt is not read */
 
-struct AICHAR *ai_AmountMenu(AMOUNTCFG *cfg, char *caption, char *prompt, int (*pick)(AICHAR *, int))
-{
-    int ctrl;
-    int btn[9];
-    int order[9];
-    int win;
-    AICHAR *r;
-    int i;
-    int hit;
+struct AICHAR *ai_AmountMenu(AMOUNTCFG *cfg, char *caption, char *prompt,
+                             int (*pick)(AICHAR *, int)) {
+  int ctrl;
+  int btn[9];
+  int order[9];
+  int win;
+  AICHAR *r;
+  int i;
+  int hit;
 
-    (void)prompt;
-    order[0] = 0;
-    order[1] = 8;
-    order[2] = 6;
-    order[3] = 4;
-    order[4] = 5;
-    order[5] = 1;
-    order[6] = 2;
-    order[7] = 3;
-    order[8] = 7;
-    win = d2_OpenForm(0, 0, "special\\amt1");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 2);
-    if (caption != 0)
-        io_PrintText((intptr_t)caption);
-    else
-        io_PrintText(0xa1);
-    d2_SetForm(win, 3);
-    ctrl = d2_GetWinObj(win, 3, io_PrintText(0x1687));
-    d2_SetForm(win, 1);
-    btn[0] = d2_WinOpenPic(0x45, 0x3c, 0x589, d2_LastWindow);
-    btn[1] = d2_WinOpenPic(0x10f, 0x25, 0x599, d2_LastWindow);
-    btn[2] = d2_WinOpenPic(0x10f, 0x93, 0x58d, d2_LastWindow);
-    btn[3] = d2_WinOpenPic(0x69, 0xab, 0x590, d2_LastWindow);
-    btn[4] = d2_WinOpenPic(0x1b5, 0xab, 0x58c, d2_LastWindow);
-    btn[5] = d2_WinOpenPic(0x45, 0x125, 0x58a, d2_LastWindow);
-    btn[6] = d2_WinOpenPic(0x10f, 0x125, 0x58f, d2_LastWindow);
-    btn[7] = d2_WinOpenPic(0x1d9, 0x125, 0x58b, d2_LastWindow);
-    btn[8] = d2_WinOpenPic(0x1d9, 0x3c, 0x58e, d2_LastWindow);
-    for (i = 0; i < 9; i++) {
-        if (i != 1 || cfg->lockSecond == 0) {
-            d2_Objs[btn[i]].interactive = 1;
-            d2_Objs[btn[i]].style = 3;
-        }
-        d2_Objs[btn[i]].font = 0x55;
-        ai_CentredText(txt_Ptrs[0x12b2 + order[i]], d2_Objs[btn[i]].x - d2_LastWindowPtr->x + 0x20,
-                       d2_Objs[btn[i]].y - d2_LastWindowPtr->y - 0x19, 200, 0x55);
+  (void)prompt;
+  order[0] = 0;
+  order[1] = 8;
+  order[2] = 6;
+  order[3] = 4;
+  order[4] = 5;
+  order[5] = 1;
+  order[6] = 2;
+  order[7] = 3;
+  order[8] = 7;
+  win = d2_OpenForm(0, 0, "special\\amt1");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 2);
+  if (caption != 0)
+    io_PrintText((intptr_t)caption);
+  else
+    io_PrintText(0xa1);
+  d2_SetForm(win, 3);
+  ctrl = d2_GetWinObj(win, 3, io_PrintText(0x1687));
+  d2_SetForm(win, 1);
+  btn[0] = d2_WinOpenPic(0x45, 0x3c, 0x589, d2_LastWindow);
+  btn[1] = d2_WinOpenPic(0x10f, 0x25, 0x599, d2_LastWindow);
+  btn[2] = d2_WinOpenPic(0x10f, 0x93, 0x58d, d2_LastWindow);
+  btn[3] = d2_WinOpenPic(0x69, 0xab, 0x590, d2_LastWindow);
+  btn[4] = d2_WinOpenPic(0x1b5, 0xab, 0x58c, d2_LastWindow);
+  btn[5] = d2_WinOpenPic(0x45, 0x125, 0x58a, d2_LastWindow);
+  btn[6] = d2_WinOpenPic(0x10f, 0x125, 0x58f, d2_LastWindow);
+  btn[7] = d2_WinOpenPic(0x1d9, 0x125, 0x58b, d2_LastWindow);
+  btn[8] = d2_WinOpenPic(0x1d9, 0x3c, 0x58e, d2_LastWindow);
+  for (i = 0; i < 9; i++) {
+    if (i != 1 || cfg->lockSecond == 0) {
+      d2_Objs[btn[i]].interactive = 1;
+      d2_Objs[btn[i]].style = 3;
     }
-    d2_SetPointerSprite(0, 0);
-    d2_ClickedId = -1;
-    do {
-        if (amt_HasColumn7Holder() == 0) {
-            d2_Objs[btn[8]].interactive = 0;
-            d2_Objs[btn[8]].style = 0;
-        } else {
-            d2_Objs[btn[8]].interactive = 1;
-            d2_Objs[btn[8]].style = 3;
+    d2_Objs[btn[i]].font = 0x55;
+    ai_CentredText(txt_Ptrs[0x12b2 + order[i]],
+                   d2_Objs[btn[i]].x - d2_LastWindowPtr->x + 0x20,
+                   d2_Objs[btn[i]].y - d2_LastWindowPtr->y - 0x19, 200, 0x55);
+  }
+  d2_SetPointerSprite(0, 0);
+  d2_ClickedId = -1;
+  do {
+    if (amt_HasColumn7Holder() == 0) {
+      d2_Objs[btn[8]].interactive = 0;
+      d2_Objs[btn[8]].style = 0;
+    } else {
+      d2_Objs[btn[8]].interactive = 1;
+      d2_Objs[btn[8]].style = 3;
+    }
+    r = 0;
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (d2_ClickedId != -1) {
+      hit = -1;
+      for (i = 0; i < 9; i++) {
+        if (btn[i] == d2_PointerObj) {
+          hit = i;
+          break;
         }
-        r = 0;
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (d2_ClickedId != -1) {
-            hit = -1;
-            for (i = 0; i < 9; i++) {
-                if (btn[i] == d2_PointerObj) {
-                    hit = i;
-                    break;
-                }
-            }
-            if (hit > -1 && hit < 9) {
-                d2_SetViewEnabled(win, 0);
-                r = ai_SpecialAmountListWindow(order[hit], cfg, caption, 0, pick);
-                d2_SetViewEnabled(win, 1);
-            } else if (d2_PointerObj == ctrl) {
-                d2_SetViewEnabled(win, 0);
-                r = ai_SpecialAmountWindow(cfg, caption, -1, pick);
-                d2_SetViewEnabled(win, 1);
-            }
-            if (r != 0 && pick == 0 && (cfg->option14 & 4) == 0)
-                sv_PopRequest = 1;
-        }
-    } while (sv_RunFrame(ai_AmountMenu, 0x657c7) != 0);
-    d2_CloseView(win);
-    return r;
+      }
+      if (hit > -1 && hit < 9) {
+        d2_SetViewEnabled(win, 0);
+        r = ai_SpecialAmountListWindow(order[hit], cfg, caption, 0, pick);
+        d2_SetViewEnabled(win, 1);
+      } else if (d2_PointerObj == ctrl) {
+        d2_SetViewEnabled(win, 0);
+        r = ai_SpecialAmountWindow(cfg, caption, -1, pick);
+        d2_SetViewEnabled(win, 1);
+      }
+      if (r != 0 && pick == 0 && (cfg->option14 & 4) == 0)
+        sv_PopRequest = 1;
+    }
+  } while (sv_RunFrame(ai_AmountMenu, 0x657c7) != 0);
+  d2_CloseView(win);
+  return r;
 }
 /* 0x5c1500, the office list of one amount kind "special\amt2" (1394 B), the callback of the Rathaus office info
    menu (ai_OpenAmountKindMenu): the caption (the kind's name 0x12b2 + kind, or the text 0xa0 with the viewing
@@ -2833,198 +2962,199 @@ struct AICHAR *ai_AmountMenu(AMOUNTCFG *cfg, char *caption, char *prompt, int (*
    right button on a row's slider views the list as that character; a click on a row's frame opens the info box
    of the row's office (ai_AmountInfoWindow, the window disabled meanwhile; a vacant seat ends the viewing) */
 
-void ai_AmountListWindow(int kind)
-{
-    AICHAR *viewer;
-    int viewing;
-    int win;
-    LCAMOUNTROW rows[8];
-    AMTREC seats7[6];
-    AMTREC seats[6];
-    AICHAR *c;
-    AIJOB *ev;
-    float health;
-    int redraw;
-    int n;
-    int i;
-    int hit;
+void ai_AmountListWindow(int kind) {
+  AICHAR *viewer;
+  int viewing;
+  int win;
+  LCAMOUNTROW rows[8];
+  AMTREC seats7[6];
+  AMTREC seats[6];
+  AICHAR *c;
+  AIJOB *ev;
+  float health;
+  int redraw;
+  int n;
+  int i;
+  int hit;
 
-    n = 0;
-    viewer = 0;
-    win = d2_OpenForm(0, 0, "special\\amt2");
-    d2_CentreViewWindows(win);
-    viewing = 0;
-    redraw = 1;
-    do {
-        if (redraw) {
-            d2_SetForm(win, 2);
-            io_PrintText((intptr_t)"$C");
-            if (viewing != 0)
-                io_PrintText(0xa0, viewer->id);
-            else
-                io_PrintText((intptr_t)"$Z$[%s$]", kind + 0x12b2);
-            d2_SetForm(win, 3);
-            io_PrintText((intptr_t)"$C");
-            d2_SetForm(win, 1);
-            d2_RemoveWindowObjects(d2_LastWindow, 1);
-            for (i = 0; i < 8; i++) {
-                rows[i].rec = 0;
-                rows[i].ctl[0] = -1;
-                rows[i].office = 0;
-            }
-            if ((kind > 0 && kind < 7) || kind == 8) {
-                n = amt_GetColumnOffices(kind, 6, seats);
-                for (i = 0; i < n; i++) {
-                    rows[i].rec = gm_FindChar(seats[i].owner);
-                    rows[i].office = seats[i].kind;
-                }
-            } else if (kind == 7) {
-                n = amt_GetColumn7Offices(0, 6, seats7);
-                for (i = 0; i < n; i++) {
-                    rows[i].rec = gm_FindChar(seats7[i].owner);
-                    rows[i].office = seats7[i].kind;
-                }
-            } else {
-                return;
-            }
-            if (n == 0)
-                return;
-            for (i = 0; i < n; i++) {
-                /* the corner icons, as ai_AmountRowStatus (written out here: the original has the code in line) */
-                if (rows[i].rec == 0)
-                    continue;
-                rows[i].icons[0] = rows[i].rec->faith ? 0x6c9 : 0x6ca;
-                rows[i].icons[1] = 0;
-                if (ai_Chars[ai_PlayerId].sex != rows[i].rec->sex && (rows[i].rec->flags1c8 & LC_LOVER_FLAG) != 0) {
-                    for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
-                        if (ev->partner1 == ai_Chars[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
-                            rows[i].icons[1] = 0x6cc;
-                            break;
-                        }
-                    }
-                }
-                rows[i].icons[2] = 0;
-                if (gv_HeldCrimeCount(rows[i].rec->netId, ai_PlayerId) > 0) {
-                    rows[i].icons[2] = 0x6cd;
-                } else {
-                    for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
-                        if (ev->chr == ai_PlayerId && rows[i].rec->netId == ev->id4) {
-                            rows[i].icons[2] = 0x6ce;
-                            break;
-                        }
-                    }
-                }
-                rows[i].icons[3] = 0;
-                for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
-                    if (ev->partner1 == ai_Chars[ai_PlayerId].netId && rows[i].rec->netId == ev->partner2) {
-                        rows[i].icons[3] = 0x6cb;
-                        break;
-                    }
-                }
-                if (rows[i].icons[3] == 0) {
-                    health = gm_CharacterHealth(rows[i].rec);
-                    if (health < 100.0f)
-                        rows[i].icons[3] = 0x6d2;
-                    else if (health < 350.0f)
-                        rows[i].icons[3] = 0x6d1;
-                    else if (health < 650.0f)
-                        rows[i].icons[3] = 0x6d0;
-                    else
-                        rows[i].icons[3] = 0x6cf;
-                }
-            }
-            if (kind == 0 || kind == 7)
-                ai_ShowAmountRows(d2_LastWindow, kind, 0, n, rows, viewer ? viewer : &ai_Chars[ai_PlayerId]);
-            else
-                ai_ShowOfficeRows(d2_LastWindow, kind, 0, n, rows, viewer ? viewer : &ai_Chars[ai_PlayerId]);
-            for (i = 0; i < n; i++) {
-                d2_SetObjEnabled(rows[i].ctl[0], 1);
-                if (rows[i].ctl[1] != -1)
-                    d2_SetObjEnabled(rows[i].ctl[1], 1);
-            }
-            redraw = 0;
+  n = 0;
+  viewer = 0;
+  win = d2_OpenForm(0, 0, "special\\amt2");
+  d2_CentreViewWindows(win);
+  viewing = 0;
+  redraw = 1;
+  do {
+    if (redraw) {
+      d2_SetForm(win, 2);
+      io_PrintText((intptr_t)"$C");
+      if (viewing != 0)
+        io_PrintText(0xa0, viewer->id);
+      else
+        io_PrintText((intptr_t)"$Z$[%s$]", kind + 0x12b2);
+      d2_SetForm(win, 3);
+      io_PrintText((intptr_t)"$C");
+      d2_SetForm(win, 1);
+      d2_RemoveWindowObjects(d2_LastWindow, 1);
+      for (i = 0; i < 8; i++) {
+        rows[i].rec = 0;
+        rows[i].ctl[0] = -1;
+        rows[i].office = 0;
+      }
+      if ((kind > 0 && kind < 7) || kind == 8) {
+        n = amt_GetColumnOffices(kind, 6, seats);
+        for (i = 0; i < n; i++) {
+          rows[i].rec = gm_FindChar(seats[i].owner);
+          rows[i].office = seats[i].kind;
         }
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (dm_L.rhold != 0 && viewing == 0) {
-            viewer = 0;
-            hit = -1;
-            for (i = 0; i < n; i++) {
-                if (rows[i].ctl[1] == d2_PointerObj) {
-                    hit = i;
-                    break;
-                }
-            }
-            if (hit > -1 && hit < n && rows[hit].rec != 0) {
-                viewer = 0;
-                redraw = 1;
-                if (rows[hit].rec->id != 0xffff) {
-                    viewing = 1;
-                    viewer = rows[hit].rec;
-                }
-            }
-        } else if (dm_L.rhold == 0 && viewing != 0) {
-            viewing = 0;
-            viewer = 0;
-            redraw = 1;
-        } else if (dm_L.lclick != 0 && d2_ClickedId != -1) {
-            hit = -1;
-            for (i = 0; i < n; i++) {
-                if (rows[i].ctl[0] == d2_PointerObj) {
-                    hit = i;
-                    break;
-                }
-            }
-            if (hit > -1 && hit < n) {
-                c = rows[hit].rec;
-                if (c == 0 || c->id == 0xffff) {
-                    viewer = 0;
-                    viewing = 0;
-                }
-                d2_SetViewEnabled(win, 0);
-                ai_AmountInfoWindow(rows[hit].office, c);
-                d2_SetViewEnabled(win, 1);
-            }
-            redraw = 1;
+      } else if (kind == 7) {
+        n = amt_GetColumn7Offices(0, 6, seats7);
+        for (i = 0; i < n; i++) {
+          rows[i].rec = gm_FindChar(seats7[i].owner);
+          rows[i].office = seats7[i].kind;
         }
-    } while (sv_RunFrame(ai_AmountListWindow, 0x657c7) != 0);
-    d2_CloseView(win);
+      } else {
+        return;
+      }
+      if (n == 0)
+        return;
+      for (i = 0; i < n; i++) {
+        /* the corner icons, as ai_AmountRowStatus (written out here: the original has the code in line) */
+        if (rows[i].rec == 0)
+          continue;
+        rows[i].icons[0] = rows[i].rec->faith ? 0x6c9 : 0x6ca;
+        rows[i].icons[1] = 0;
+        if (ai_Chars[ai_PlayerId].sex != rows[i].rec->sex &&
+            (rows[i].rec->flags1c8 & LC_LOVER_FLAG) != 0) {
+          for (ev = he_FindEvent(1, 0, 0x6f); ev != 0; ev = he_NextEvent()) {
+            if (ev->partner1 == ai_Chars[ai_PlayerId].netId &&
+                rows[i].rec->netId == ev->partner2) {
+              rows[i].icons[1] = 0x6cc;
+              break;
+            }
+          }
+        }
+        rows[i].icons[2] = 0;
+        if (gv_HeldCrimeCount(rows[i].rec->netId, ai_PlayerId) > 0) {
+          rows[i].icons[2] = 0x6cd;
+        } else {
+          for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
+            if (ev->chr == ai_PlayerId && rows[i].rec->netId == ev->id4) {
+              rows[i].icons[2] = 0x6ce;
+              break;
+            }
+          }
+        }
+        rows[i].icons[3] = 0;
+        for (ev = he_FindEvent(1, 0, 0x45); ev != 0; ev = he_NextEvent()) {
+          if (ev->partner1 == ai_Chars[ai_PlayerId].netId &&
+              rows[i].rec->netId == ev->partner2) {
+            rows[i].icons[3] = 0x6cb;
+            break;
+          }
+        }
+        if (rows[i].icons[3] == 0) {
+          health = gm_CharacterHealth(rows[i].rec);
+          if (health < 100.0f)
+            rows[i].icons[3] = 0x6d2;
+          else if (health < 350.0f)
+            rows[i].icons[3] = 0x6d1;
+          else if (health < 650.0f)
+            rows[i].icons[3] = 0x6d0;
+          else
+            rows[i].icons[3] = 0x6cf;
+        }
+      }
+      if (kind == 0 || kind == 7)
+        ai_ShowAmountRows(d2_LastWindow, kind, 0, n, rows,
+                          viewer ? viewer : &ai_Chars[ai_PlayerId]);
+      else
+        ai_ShowOfficeRows(d2_LastWindow, kind, 0, n, rows,
+                          viewer ? viewer : &ai_Chars[ai_PlayerId]);
+      for (i = 0; i < n; i++) {
+        d2_SetObjEnabled(rows[i].ctl[0], 1);
+        if (rows[i].ctl[1] != -1)
+          d2_SetObjEnabled(rows[i].ctl[1], 1);
+      }
+      redraw = 0;
+    }
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (dm_L.rhold != 0 && viewing == 0) {
+      viewer = 0;
+      hit = -1;
+      for (i = 0; i < n; i++) {
+        if (rows[i].ctl[1] == d2_PointerObj) {
+          hit = i;
+          break;
+        }
+      }
+      if (hit > -1 && hit < n && rows[hit].rec != 0) {
+        viewer = 0;
+        redraw = 1;
+        if (rows[hit].rec->id != 0xffff) {
+          viewing = 1;
+          viewer = rows[hit].rec;
+        }
+      }
+    } else if (dm_L.rhold == 0 && viewing != 0) {
+      viewing = 0;
+      viewer = 0;
+      redraw = 1;
+    } else if (dm_L.lclick != 0 && d2_ClickedId != -1) {
+      hit = -1;
+      for (i = 0; i < n; i++) {
+        if (rows[i].ctl[0] == d2_PointerObj) {
+          hit = i;
+          break;
+        }
+      }
+      if (hit > -1 && hit < n) {
+        c = rows[hit].rec;
+        if (c == 0 || c->id == 0xffff) {
+          viewer = 0;
+          viewing = 0;
+        }
+        d2_SetViewEnabled(win, 0);
+        ai_AmountInfoWindow(rows[hit].office, c);
+        d2_SetViewEnabled(win, 1);
+      }
+      redraw = 1;
+    }
+  } while (sv_RunFrame(ai_AmountListWindow, 0x657c7) != 0);
+  d2_CloseView(win);
 }
 /* 0x5c1a80, the info box of an amount kind (the form "special\amtinfo"): the caption "$Z$[ %s $]$A$Z" over
    the kind's name text (0x253 + kind), the two texts 2 * kind + 0x134b / 0x134c, then the frame pump
    (0x5309a0, this, 0x657c7) with dm_L.rup ending it; closes the view. Both callers also pass a character
    (the row's holder, or 0), which the box does not read */
 
-void ai_AmountInfoWindow(int kind, AICHAR *ch)
-{
-    int win;
+void ai_AmountInfoWindow(int kind, AICHAR *ch) {
+  int win;
 
-    (void)ch;
-    win = d2_OpenForm(0, 0, "special\\amtinfo");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 2);
-    io_PrintText((intptr_t)"$Z$[ %s $]$A$Z", kind + 0x253);
-    d2_SetForm(win, 1);
-    io_PrintText(kind * 2 + 0x134b);
-    io_PrintText(kind * 2 + 0x134c);
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_AmountInfoWindow, 0x657c7) != 0);
-    d2_CloseView(win);
+  (void)ch;
+  win = d2_OpenForm(0, 0, "special\\amtinfo");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 2);
+  io_PrintText((intptr_t)"$Z$[ %s $]$A$Z", kind + 0x253);
+  d2_SetForm(win, 1);
+  io_PrintText(kind * 2 + 0x134b);
+  io_PrintText(kind * 2 + 0x134c);
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_AmountInfoWindow, 0x657c7) != 0);
+  d2_CloseView(win);
 }
-
 
 /* 0x5c1b20, the office info entry of the Rathaus name plate: opens the seven-button amount kind menu
    (ai_AmountKindMenu) with the amount list window (ai_AmountListWindow) as its callback and the
    contact_AMT_INFO name plate text (txt_Ptrs[0x8c]) as its caption, then gives the camera back to the
    player */
 
-void ai_OpenAmountKindMenu(void)
-{
-    ai_AmountKindMenu(ai_AmountListWindow, txt_Ptrs[0x8c], 1);
-    sv_CameraFollow();
+void ai_OpenAmountKindMenu(void) {
+  ai_AmountKindMenu(ai_AmountListWindow, txt_Ptrs[0x8c], 1);
+  sv_CameraFollow();
 }
 /* 0x5c1b40, the seven-button amount kind menu "special\amt1" (686 B): the caption (caption, else the text 0xa2)
    and the picture buttons of the kinds 8, 6, 4, 5, 1, 2, 3 (the pictures 0x599 / 0x58d / 0x590 / 0x58c / 0x58a /
@@ -3032,75 +3162,74 @@ void ai_OpenAmountKindMenu(void)
    with withKind8. A click on a button calls pick with its kind (the menu disabled meanwhile); a right release
    closes the menu */
 
-void ai_AmountKindMenu(void (*pick)(int kind), char *caption, int withKind8)
-{
-    int win;
-    int btn[7];
-    int order[7];
-    int i;
-    int hit;
+void ai_AmountKindMenu(void (*pick)(int kind), char *caption, int withKind8) {
+  int win;
+  int btn[7];
+  int order[7];
+  int i;
+  int hit;
 
-    order[0] = 8;
-    order[1] = 6;
-    order[2] = 4;
-    order[3] = 5;
-    order[4] = 1;
-    order[5] = 2;
-    order[6] = 3;
-    win = d2_OpenForm(0, 0, "special\\amt1");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 2);
-    if (caption != 0)
-        io_PrintText((intptr_t)caption);
-    else
-        io_PrintText(0xa2);
-    d2_SetForm(win, 1);
-    btn[0] = d2_WinOpenPic(0x10f, 0x25, 0x599, d2_LastWindow);
-    btn[1] = d2_WinOpenPic(0x10f, 0x93, 0x58d, d2_LastWindow);
-    btn[2] = d2_WinOpenPic(0x69, 0xab, 0x590, d2_LastWindow);
-    btn[3] = d2_WinOpenPic(0x1b5, 0xab, 0x58c, d2_LastWindow);
-    btn[4] = d2_WinOpenPic(0x45, 0x125, 0x58a, d2_LastWindow);
-    btn[5] = d2_WinOpenPic(0x10f, 0x125, 0x58f, d2_LastWindow);
-    btn[6] = d2_WinOpenPic(0x1d9, 0x125, 0x58b, d2_LastWindow);
-    for (i = 0; i < 7; i++) {
-        if (i != 0 || withKind8 != 0) {
-            d2_Objs[btn[i]].interactive = 1;
-            d2_Objs[btn[i]].style = 3;
-        }
-        d2_Objs[btn[i]].font = 0x55;
-        ai_CentredText(txt_Ptrs[0x12b2 + order[i]], d2_Objs[btn[i]].x - d2_LastWindowPtr->x + 0x20,
-                       d2_Objs[btn[i]].y - d2_LastWindowPtr->y - 0x19, 200, 0x55);
+  order[0] = 8;
+  order[1] = 6;
+  order[2] = 4;
+  order[3] = 5;
+  order[4] = 1;
+  order[5] = 2;
+  order[6] = 3;
+  win = d2_OpenForm(0, 0, "special\\amt1");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 2);
+  if (caption != 0)
+    io_PrintText((intptr_t)caption);
+  else
+    io_PrintText(0xa2);
+  d2_SetForm(win, 1);
+  btn[0] = d2_WinOpenPic(0x10f, 0x25, 0x599, d2_LastWindow);
+  btn[1] = d2_WinOpenPic(0x10f, 0x93, 0x58d, d2_LastWindow);
+  btn[2] = d2_WinOpenPic(0x69, 0xab, 0x590, d2_LastWindow);
+  btn[3] = d2_WinOpenPic(0x1b5, 0xab, 0x58c, d2_LastWindow);
+  btn[4] = d2_WinOpenPic(0x45, 0x125, 0x58a, d2_LastWindow);
+  btn[5] = d2_WinOpenPic(0x10f, 0x125, 0x58f, d2_LastWindow);
+  btn[6] = d2_WinOpenPic(0x1d9, 0x125, 0x58b, d2_LastWindow);
+  for (i = 0; i < 7; i++) {
+    if (i != 0 || withKind8 != 0) {
+      d2_Objs[btn[i]].interactive = 1;
+      d2_Objs[btn[i]].style = 3;
     }
-    d2_SetPointerSprite(0, 0);
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1) {
-            hit = -1;
-            for (i = 0; i < 7; i++) {
-                if (btn[i] == d2_PointerObj) {
-                    hit = i;
-                    break;
-                }
-            }
-            if (pick != 0 && hit > -1 && hit < 7) {
-                d2_SetViewEnabled(win, 0);
-                pick(order[hit]);
-                d2_SetViewEnabled(win, 1);
-            }
+    d2_Objs[btn[i]].font = 0x55;
+    ai_CentredText(txt_Ptrs[0x12b2 + order[i]],
+                   d2_Objs[btn[i]].x - d2_LastWindowPtr->x + 0x20,
+                   d2_Objs[btn[i]].y - d2_LastWindowPtr->y - 0x19, 200, 0x55);
+  }
+  d2_SetPointerSprite(0, 0);
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1) {
+      hit = -1;
+      for (i = 0; i < 7; i++) {
+        if (btn[i] == d2_PointerObj) {
+          hit = i;
+          break;
         }
-    } while (sv_RunFrame(ai_AmountKindMenu, 0x657c7) != 0);
-    d2_CloseView(win);
+      }
+      if (pick != 0 && hit > -1 && hit < 7) {
+        d2_SetViewEnabled(win, 0);
+        pick(order[hit]);
+        d2_SetViewEnabled(win, 1);
+      }
+    }
+  } while (sv_RunFrame(ai_AmountKindMenu, 0x657c7) != 0);
+  d2_CloseView(win);
 }
 /* 0x5c1df0, the agenda entry of the Rathaus name plate: opens the seven-button amount kind menu
    (ai_AmountKindMenu) with the office list (ai_AgendaOfficeList) as its callback and the Tagesordnung
    caption text (txt_Ptrs[0x139c]) as its caption, then gives the camera back to the player */
 
-void ai_OpenAgendaMenu(void)
-{
-    ai_AmountKindMenu(ai_AgendaOfficeList, txt_Ptrs[0x139c], 1);
-    sv_CameraFollow();
+void ai_OpenAgendaMenu(void) {
+  ai_AmountKindMenu(ai_AgendaOfficeList, txt_Ptrs[0x139c], 1);
+  sv_CameraFollow();
 }
 /* 0x5c1e10, the agenda of one office column "special\tagesordnung" (846 B), the callback of the Rathaus agenda
    menu (ai_OpenAgendaMenu): nothing when the column has no offices (amt_GetColumnOffices, up to 6). The window
@@ -3112,119 +3241,120 @@ void ai_OpenAgendaMenu(void)
    0x13a3 with its name) and up to four characters of its group (AICHAR.flags1cc 0x8000 for 0x24, 0x10000
    for 0x25, else 0x4000). An empty page says 0x139d. A right release closes it */
 
-void ai_AgendaOfficeList(int kind)
-{
-    int shown;
-    int n;
-    int count;
-    AICHAR *group[4];
-    AMTREC seats[6];
-    AICHAR *holder;
-    AICHAR *other;
-    AICHAR *c;
-    unsigned int mask;
-    int listed;
-    int found;
-    int type;
-    int win;
-    int view;
-    int i;
-    int m;
+void ai_AgendaOfficeList(int kind) {
+  int shown;
+  int n;
+  int count;
+  AICHAR *group[4];
+  AMTREC seats[6];
+  AICHAR *holder;
+  AICHAR *other;
+  AICHAR *c;
+  unsigned int mask;
+  int listed;
+  int found;
+  int type;
+  int win;
+  int view;
+  int i;
+  int m;
 
-    n = amt_GetColumnOffices(kind, 6, seats);
-    if (n <= 0)
-        return;
-    win = d2_OpenForm(0, 0, "special\\tagesordnung");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 2);
-    view = d2_LastWindow;
-    d2_SetForm(win, 4);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, view, 0x767);
-    d2_SetForm(win, 3);
-    view = d2_LastWindow;
-    d2_SetForm(win, 5);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, view, 0x767);
-    d2_SetForm(win, 1);
-    io_PrintText(kind + 0x13a3);
-    d2_SetForm(win, 2);
-    io_PrintText(0x139e);
-    listed = 0;
+  n = amt_GetColumnOffices(kind, 6, seats);
+  if (n <= 0)
+    return;
+  win = d2_OpenForm(0, 0, "special\\tagesordnung");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 2);
+  view = d2_LastWindow;
+  d2_SetForm(win, 4);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, view, 0x767);
+  d2_SetForm(win, 3);
+  view = d2_LastWindow;
+  d2_SetForm(win, 5);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, view, 0x767);
+  d2_SetForm(win, 1);
+  io_PrintText(kind + 0x13a3);
+  d2_SetForm(win, 2);
+  io_PrintText(0x139e);
+  listed = 0;
+  for (i = 0; i < n; i++) {
+    if (seats[i].state != 2)
+      continue;
+    holder = gm_FindChar(seats[i].owner);
+    other = gm_FindChar(seats[i].x14);
+    if (holder != 0 && other != 0) {
+      listed |= 1;
+      io_PrintText(0x139f, other->id, holder->id,
+                   holder->sex == 0 ? seats[i].kind + 0x253
+                                    : seats[i].kind + 0x27b);
+    }
+  }
+  if (listed == 0)
+    io_PrintText(0x139d);
+  d2_SetForm(win, 3);
+  if (kind < 8) {
+    io_PrintText(0x13a0);
+    shown = 0;
     for (i = 0; i < n; i++) {
-        if (seats[i].state != 2)
-            continue;
-        holder = gm_FindChar(seats[i].owner);
-        other = gm_FindChar(seats[i].x14);
-        if (holder != 0 && other != 0) {
-            listed |= 1;
-            io_PrintText(0x139f, other->id, holder->id, holder->sex == 0 ? seats[i].kind + 0x253 : seats[i].kind + 0x27b);
+      if (seats[i].state != 3)
+        continue;
+      found = 0;
+      shown |= 1;
+      io_PrintText(0x13a1, seats[i].kind + 0x253);
+      count = 0;
+      for (c = ai_Chars; (intptr_t)c < (intptr_t)&ai_Chars[0x300];
+           c++) { /* a signed compare (jl) in the original */
+        if (count >= 4)
+          break;
+        if (c->appliedOffice == seats[i].kind) {
+          found |= 1;
+          io_PrintText((intptr_t)"$A$Z%1N2", c->id);
+          count++;
         }
-    }
-    if (listed == 0)
+      }
+      if (found == 0)
         io_PrintText(0x139d);
-    d2_SetForm(win, 3);
-    if (kind < 8) {
-        io_PrintText(0x13a0);
-        shown = 0;
-        for (i = 0; i < n; i++) {
-            if (seats[i].state != 3)
-                continue;
-            found = 0;
-            shown |= 1;
-            io_PrintText(0x13a1, seats[i].kind + 0x253);
-            count = 0;
-            for (c = ai_Chars; (intptr_t)c < (intptr_t)&ai_Chars[0x300]; c++) {  /* a signed compare (jl) in the original */
-                if (count >= 4)
-                    break;
-                if (c->appliedOffice == seats[i].kind) {
-                    found |= 1;
-                    io_PrintText((intptr_t)"$A$Z%1N2", c->id);
-                    count++;
-                }
-            }
-            if (found == 0)
-                io_PrintText(0x139d);
-        }
-    } else {
-        type = hmt_GetElectionObjType();
-        group[0] = 0;
-        group[1] = 0;
-        group[2] = 0;
-        group[3] = 0;
-        mask = 0;
-        if (type != 0) {
-            if (type == 0x24)
-                mask = 0x8000;
-            else
-                mask = type == 0x25 ? 0x10000 : 0x4000;
-        }
-        m = 0;
-        for (c = ai_Chars; m < 4; c++) {
-            if ((intptr_t)c >= (intptr_t)&ai_Chars[0x300])
-                break;
-            if (c->flags1cc & mask)
-                group[m++] = c;
-        }
-        shown = m;
-        io_PrintText(0x13a2);
-        if (type != 0) {
-            io_PrintText(0x13a3, type + 0x253);
-            for (i = 0; i < m; i++) {
-                if (i == 0)
-                    io_PrintText((intptr_t)"$2A$Z%1N2", group[0]->id);
-                else
-                    io_PrintText((intptr_t)"$A$Z%1N2", group[i]->id);
-            }
-        }
     }
-    if (shown == 0)
-        io_PrintText(0x139d);
-    do {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_OpenAgendaMenu, 0x657c7) != 0);
-    d2_CloseView(win);
+  } else {
+    type = hmt_GetElectionObjType();
+    group[0] = 0;
+    group[1] = 0;
+    group[2] = 0;
+    group[3] = 0;
+    mask = 0;
+    if (type != 0) {
+      if (type == 0x24)
+        mask = 0x8000;
+      else
+        mask = type == 0x25 ? 0x10000 : 0x4000;
+    }
+    m = 0;
+    for (c = ai_Chars; m < 4; c++) {
+      if ((intptr_t)c >= (intptr_t)&ai_Chars[0x300])
+        break;
+      if (c->flags1cc & mask)
+        group[m++] = c;
+    }
+    shown = m;
+    io_PrintText(0x13a2);
+    if (type != 0) {
+      io_PrintText(0x13a3, type + 0x253);
+      for (i = 0; i < m; i++) {
+        if (i == 0)
+          io_PrintText((intptr_t)"$2A$Z%1N2", group[0]->id);
+        else
+          io_PrintText((intptr_t)"$A$Z%1N2", group[i]->id);
+      }
+    }
+  }
+  if (shown == 0)
+    io_PrintText(0x139d);
+  do {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_OpenAgendaMenu, 0x657c7) != 0);
+  d2_CloseView(win);
 }
-
 
 /* 0x5c2160, the law book (657 B): the book 0x111 (criminal law: the model "ob_GESETZBUCH_STRAFRECHT", the laws
    0x11 .. 0x1c, the section text 0x13f8, the info texts from 0x1452), 0x112 (taxes: "ob_GESETZBUCH_STEUERN",
@@ -3236,120 +3366,122 @@ void ai_AgendaOfficeList(int kind)
    AIDEC.valueText the value itself or a name of 0x13dd / 0x13e6 / 0x13ec + it). A right release closes the
    book; the camera goes back to the player */
 
-void ai_OpenLawBook(int book)
-{
-    int base;
-    int start;
-    int split;
-    int page;
-    AIDEC rec;
-    int ctrl[12];
-    char text[0x200];
-    SVBOOK *bk;
-    int section;
-    int end;
-    int n;
-    int i;
-    int hit;
+void ai_OpenLawBook(int book) {
+  int base;
+  int start;
+  int split;
+  int page;
+  AIDEC rec;
+  int ctrl[12];
+  char text[0x200];
+  SVBOOK *bk;
+  int section;
+  int end;
+  int n;
+  int i;
+  int hit;
 
-    switch (book) {
-    case 0x111:
-        bk = sv_OpenBook("ob_GESETZBUCH_STRAFRECHT", "Buch", 2, "Buch\\Gesetzbuch", "Buch\\Gesetzbuch");
-        start = 0x11;
-        end = 0x1d;
-        base = 0x1452;
-        section = 0x13f8;
-        split = 6;
-        break;
-    case 0x112:
-        bk = sv_OpenBook("ob_GESETZBUCH_STEUERN", "Buch", 2, "Buch\\Gesetzbuch", "Buch\\Gesetzbuch");
-        start = 9;
-        end = 0x11;
-        base = 0x142a;
-        section = 0x13f7;
-        split = 4;
-        break;
-    case 0x113:
-        bk = sv_OpenBook("ob_GESETZBUCH_VERFASSUNG", "Buch", 2, "Buch\\Gesetzbuch", "Buch\\Gesetzbuch");
-        start = 0;
-        end = 9;
-        base = 0x13fd;
-        section = 0x13f6;
-        split = 5;
-        break;
-    default:
-        return;
+  switch (book) {
+  case 0x111:
+    bk = sv_OpenBook("ob_GESETZBUCH_STRAFRECHT", "Buch", 2, "Buch\\Gesetzbuch",
+                     "Buch\\Gesetzbuch");
+    start = 0x11;
+    end = 0x1d;
+    base = 0x1452;
+    section = 0x13f8;
+    split = 6;
+    break;
+  case 0x112:
+    bk = sv_OpenBook("ob_GESETZBUCH_STEUERN", "Buch", 2, "Buch\\Gesetzbuch",
+                     "Buch\\Gesetzbuch");
+    start = 9;
+    end = 0x11;
+    base = 0x142a;
+    section = 0x13f7;
+    split = 4;
+    break;
+  case 0x113:
+    bk = sv_OpenBook("ob_GESETZBUCH_VERFASSUNG", "Buch", 2, "Buch\\Gesetzbuch",
+                     "Buch\\Gesetzbuch");
+    start = 0;
+    end = 9;
+    base = 0x13fd;
+    section = 0x13f6;
+    split = 5;
+    break;
+  default:
+    return;
+  }
+  d2_SetForm(bk->views[0], 1);
+  io_PrintText(section);
+  d2_SetForm(bk->views[0], 2);
+  page = bk->views[0];
+  for (n = start, i = 0; n < end; n++, i++) {
+    if (i == split) {
+      d2_SetForm(bk->views[1], 2);
+      page = bk->views[1];
     }
-    d2_SetForm(bk->views[0], 1);
-    io_PrintText(section);
-    d2_SetForm(bk->views[0], 2);
-    page = bk->views[0];
-    for (n = start, i = 0; n < end; n++, i++) {
-        if (i == split) {
-            d2_SetForm(bk->views[1], 2);
-            page = bk->views[1];
+    gv_TableRecordText(text, n);
+    ctrl[i] =
+        d2_GetWinObj(page, 2, io_PrintText((intptr_t)"%it$1>%s$N$0>", text));
+  }
+  d2_SetForm(bk->views[0], 3);
+  io_PrintText(0x1a38, 1);
+  d2_SetForm(bk->views[1], 3);
+  io_PrintText(0x1a38, 2);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      hit = -1;
+      for (i = 0; i < 12; i++) {
+        if (ctrl[i] == d2_PointerObj) {
+          hit = i;
+          break;
         }
-        gv_TableRecordText(text, n);
-        ctrl[i] = d2_GetWinObj(page, 2, io_PrintText((intptr_t)"%it$1>%s$N$0>", text));
+      }
+      if (hit != -1) {
+        gv_GetTableRecord(hit + start, &rec);
+        switch (rec.valueText) {
+        case 0:
+          ai_LawBookInfoWindow(base + hit * 5, rec.cur);
+          break;
+        case 1:
+          ai_LawBookInfoWindow(base + hit * 5, rec.cur + 0x13dd);
+          break;
+        case 2:
+          ai_LawBookInfoWindow(base + hit * 5, rec.cur + 0x13e6);
+          break;
+        case 3:
+          ai_LawBookInfoWindow(base + hit * 5, rec.cur + 0x13ec);
+          break;
+        }
+      }
     }
-    d2_SetForm(bk->views[0], 3);
-    io_PrintText(0x1a38, 1);
-    d2_SetForm(bk->views[1], 3);
-    io_PrintText(0x1a38, 2);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            hit = -1;
-            for (i = 0; i < 12; i++) {
-                if (ctrl[i] == d2_PointerObj) {
-                    hit = i;
-                    break;
-                }
-            }
-            if (hit != -1) {
-                gv_GetTableRecord(hit + start, &rec);
-                switch (rec.valueText) {
-                case 0:
-                    ai_LawBookInfoWindow(base + hit * 5, rec.cur);
-                    break;
-                case 1:
-                    ai_LawBookInfoWindow(base + hit * 5, rec.cur + 0x13dd);
-                    break;
-                case 2:
-                    ai_LawBookInfoWindow(base + hit * 5, rec.cur + 0x13e6);
-                    break;
-                case 3:
-                    ai_LawBookInfoWindow(base + hit * 5, rec.cur + 0x13ec);
-                    break;
-                }
-            }
-        }
-        sv_UpdateBook(bk);
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_OpenLawBook, 0x677c7) != 0);
-    sv_CloseBook(bk);
-    sv_CameraFollow();
+    sv_UpdateBook(bk);
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_OpenLawBook, 0x677c7) != 0);
+  sv_CloseBook(bk);
+  sv_CameraFollow();
 }
 /* 0x5c2410, the law book info box "Gesetze\Gesetzbuch_Info" (176 B): the caption text id + 1 (with the id and
    the law text as arguments) and the body text id + 2 through 0x515960, the pump 0x5309a0 (this, 0x677c7) and
    0x4758f0 (win) */
 
-void ai_LawBookInfoWindow(int textId, int lawText)
-{
-    int win;
+void ai_LawBookInfoWindow(int textId, int lawText) {
+  int win;
 
-    win = d2_OpenForm(0, 0, "Gesetze\\Gesetzbuch_Info");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(textId + 1, textId, lawText);
-    d2_SetForm(win, 2);
-    io_PrintText(textId + 2);
-    do {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_LawBookInfoWindow, 0x677c7) != 0);
-    d2_CloseView(win);
+  win = d2_OpenForm(0, 0, "Gesetze\\Gesetzbuch_Info");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(textId + 1, textId, lawText);
+  d2_SetForm(win, 2);
+  io_PrintText(textId + 2);
+  do {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_LawBookInfoWindow, 0x677c7) != 0);
+  d2_CloseView(win);
 }
 /* 0x5c2490, fills the master letter window's work-settings page (464 B): the order checkbox (text 0x194f, on / off
    0x1951 + bit 0 of the flags), for a building of another class than 5 the three option checkboxes (texts 0x1954 /
@@ -3364,94 +3496,93 @@ void ai_LawBookInfoWindow(int textId, int lawText)
    block (P 15, +30 each) or one checks reference fewer would flip them; the original's parameter may have
    been the four words of AIWORKSET as scalars (flags a parameter candidate). */
 
-void ai_ShowWorkSettingsPage(int win, int *budgetCtrl, int *budget, int *checks, AIBLD *bld, int charId,
-                             AIWORKSET set, int *factorCtrl, G8SETTAIL *setting)
-{
-    int ctrl;
-    unsigned int on;
-    AIBTYPE *type;
+void ai_ShowWorkSettingsPage(int win, int *budgetCtrl, int *budget, int *checks,
+                             AIBLD *bld, int charId, AIWORKSET set,
+                             int *factorCtrl, G8SETTAIL *setting) {
+  int ctrl;
+  unsigned int on;
+  AIBTYPE *type;
 
-    d2_SetForm(win, 1);
-    io_PrintText((intptr_t)"$C");
-    io_PrintText(0x1949);
-    d2_SetForm(win, 2);
-    io_PrintText((intptr_t)"$C$A");
-    on = set.flags & 1;
-    ctrl = d2_GetWinObj(win, 2, io_PrintText(0x194f, 0, charId, on + 0x1951));
-    checks[0] = ctrl;
+  d2_SetForm(win, 1);
+  io_PrintText((intptr_t)"$C");
+  io_PrintText(0x1949);
+  d2_SetForm(win, 2);
+  io_PrintText((intptr_t)"$C$A");
+  on = set.flags & 1;
+  ctrl = d2_GetWinObj(win, 2, io_PrintText(0x194f, 0, charId, on + 0x1951));
+  checks[0] = ctrl;
+  d2_SetObjValue(ctrl, on);
+  checks[1] = -1;
+  checks[2] = -1;
+  checks[3] = -1;
+  type = &ai_BTypes[bld->type];
+  if (type->kind != 5) {
+    on = (set.flags >> 1) & 1;
+    ctrl = d2_GetWinObj(win, 2, io_PrintText(0x1954, 0, charId, on + 0x1955));
+    checks[1] = ctrl;
     d2_SetObjValue(ctrl, on);
-    checks[1] = -1;
-    checks[2] = -1;
-    checks[3] = -1;
-    type = &ai_BTypes[bld->type];
-    if (type->kind != 5) {
-        on = (set.flags >> 1) & 1;
-        ctrl = d2_GetWinObj(win, 2, io_PrintText(0x1954, 0, charId, on + 0x1955));
-        checks[1] = ctrl;
-        d2_SetObjValue(ctrl, on);
-        on = (set.flags >> 2) & 1;
-        ctrl = d2_GetWinObj(win, 2, io_PrintText(0x1957, 0, charId, on + 0x1958));
-        checks[2] = ctrl;
-        d2_SetObjValue(ctrl, on);
-        on = (set.flags >> 3) & 1;
-        ctrl = d2_GetWinObj(win, 2, io_PrintText(0x195a, 0, charId, on + 0x195b));
-        checks[3] = ctrl;
-        d2_SetObjValue(ctrl, on);
-    }
-    ctrl = d2_GetWinObj(win, 2, io_PrintText(0x1953, charId, ai_OwnPlayer));
-    *budgetCtrl = ctrl;
-    d2_SetObjValue(ctrl, 1000, 9000, *budget);
-    if (type->kind != 5 && setting != 0) {
-        io_PrintText(0x42c2);
-        ctrl = d2_WinOpenSlider(100, 300, 200, 0x32, 0x96, 0x7b, 0x1002, d2_LastWindow);
-        *factorCtrl = ctrl;
-        d2_SetObjValue(ctrl, 0x32, 0x96, (int)(setting->factor * 100.0f));
-        return;
-    }
-    *factorCtrl = -1;
+    on = (set.flags >> 2) & 1;
+    ctrl = d2_GetWinObj(win, 2, io_PrintText(0x1957, 0, charId, on + 0x1958));
+    checks[2] = ctrl;
+    d2_SetObjValue(ctrl, on);
+    on = (set.flags >> 3) & 1;
+    ctrl = d2_GetWinObj(win, 2, io_PrintText(0x195a, 0, charId, on + 0x195b));
+    checks[3] = ctrl;
+    d2_SetObjValue(ctrl, on);
+  }
+  ctrl = d2_GetWinObj(win, 2, io_PrintText(0x1953, charId, ai_OwnPlayer));
+  *budgetCtrl = ctrl;
+  d2_SetObjValue(ctrl, 1000, 9000, *budget);
+  if (type->kind != 5 && setting != 0) {
+    io_PrintText(0x42c2);
+    ctrl = d2_WinOpenSlider(100, 300, 200, 0x32, 0x96, 0x7b, 0x1002,
+                            d2_LastWindow);
+    *factorCtrl = ctrl;
+    d2_SetObjValue(ctrl, 0x32, 0x96, (int)(setting->factor * 100.0f));
+    return;
+  }
+  *factorCtrl = -1;
 }
 /* 0x5c26a0, the master letter notice window "berufe\_meisterbrief_1" (176 B): the form on the screen
    (0x52ea30), the master letter caption 0x1949 and the text 0x194e, the pump 0x5309a0 (this, 0x677c7) and
    0x4758f0 (win) */
 
-void ai_MasterLetterNoticeWindow(AIBLD *bld)
-{
-    int win;
+void ai_MasterLetterNoticeWindow(AIBLD *bld) {
+  int win;
 
-    win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_1");
-    d2_SetForm(win, 0);
-    sv_FitForm(d2_LastWindow);
-    d2_CentreViewWindows(win);
-    d2_SetPointerSprite(0, 0);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1949);
-    io_PrintText(0x194e);
-    do {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_MasterLetterNoticeWindow, 0x677c7) != 0);
-    d2_CloseView(win);
+  win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_1");
+  d2_SetForm(win, 0);
+  sv_FitForm(d2_LastWindow);
+  d2_CentreViewWindows(win);
+  d2_SetPointerSprite(0, 0);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1949);
+  io_PrintText(0x194e);
+  do {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_MasterLetterNoticeWindow, 0x677c7) != 0);
+  d2_CloseView(win);
 }
 /* 0x5c2730, the master letter window of the building kinds 5 / 9 "berufe\meisterbrief_1" (124 B; the
    ai_MasterLetterWindow mode 0x40): the 0x5c26a0 body with the single caption 0x195e (0x52ea30 the screen,
    the pump 0x5309a0 (this, 0x677c7), 0x4758f0 win) */
 
-void ai_MasterLetterKindWindow(AIBLD *bld)
-{
-    int win;
+void ai_MasterLetterKindWindow(AIBLD *bld) {
+  int win;
 
-    win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_1");
-    d2_SetForm(win, 0);
-    sv_FitForm(d2_LastWindow);
-    d2_CentreViewWindows(win);
-    d2_SetPointerSprite(0, 0);
-    d2_SetForm(win, 1);
-    io_PrintText(0x195e);
-    do {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_MasterLetterKindWindow, 0x677c7) != 0);
-    d2_CloseView(win);
+  win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_1");
+  d2_SetForm(win, 0);
+  sv_FitForm(d2_LastWindow);
+  d2_CentreViewWindows(win);
+  d2_SetPointerSprite(0, 0);
+  d2_SetForm(win, 1);
+  io_PrintText(0x195e);
+  do {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_MasterLetterKindWindow, 0x677c7) != 0);
+  d2_CloseView(win);
 }
 /* 0x5c27b0, the master letter's hire window "berufe\_meisterbrief_1" (608 B; mode = ai_MasterLetterWindow's mode):
    for the mode 0x10 the texts 0x1949 / 0x194b and the hire button 0x194d, for 0x20 the two buttons of the text
@@ -3460,71 +3591,71 @@ void ai_MasterLetterKindWindow(AIBLD *bld)
    (he_FindEvent 2, 0, 7, 3, its hireJob 0) already runs, shows the text 0x1939 (the type's first job) and closes
    the window; the second button and a right click close it too */
 
-void ai_MasterHireWindow(AIBLD *bld, int mode)
-{
-    int closeButton;
-    int hireButton;
-    AIMSG msg;
-    char text[0x200];
-    int t;
-    AIJOB *job;
-    int win;
+void ai_MasterHireWindow(AIBLD *bld, int mode) {
+  int closeButton;
+  int hireButton;
+  AIMSG msg;
+  char text[0x200];
+  int t;
+  AIJOB *job;
+  int win;
 
-    closeButton = -1;
-    win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_1");
-    d2_SetForm(win, 0);
-    sv_FitForm(d2_LastWindow);
-    d2_CentreViewWindows(win);
-    d2_SetPointerSprite(0, 0);
-    d2_SetForm(win, 1);
-    switch (mode) {
-    case 0x10:
-        io_PrintText(0x1949);
-        io_PrintText(0x194b);
-        hireButton = d2_GetWinObj(win, 1, io_PrintText(0x194d));
-        break;
-    case 0x20:
-        t = io_PrintText(0x1938);
-        hireButton = d2_GetWinObj(win, 1, t);
-        closeButton = d2_GetWinObj(win, 1, t + 1);
-        break;
-    default:
-        d2_CloseView(win);
-        return;
-    }
-    do {
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (d2_ClickedId != -1) {
-            if (d2_PointerObj == hireButton) {
-                for (job = he_FindEvent(2, 0, 7, 3, bld->id); job != 0; job = he_NextEvent())
-                    if (job->hireJob == 0)
-                        break;
-                if (job == 0) {
-                    memset(&msg, 0, sizeof(msg));
-                    msg.type = 7;
-                    msg.flags = 1;
-                    msg.to = ai_Chars[ai_PlayerId].netId;
-                    msg.fromId = bld->id;
-                    msg.time = ai_Time;
-                    msg.hireMaster = 1;
-                    if (gm_IsHomeType(bld) != 0)
-                        msg.hireMasterRoom = -1;
-                    else
-                        msg.hireMasterRoom = sv_PanelShown->objId;
-                    msg.hireTitle = 0;
-                    cm_SendLongMessage(&msg);
-                    txt_Format(text, 0x1939, ai_BTypes[bld->type].jobs[0] + 0x130);
-                    d2_ClearInput();
-                    sv_MessageBox((intptr_t)text, 0);
-                }
-                sv_PopRequest = 1;
-            } else if (d2_PointerObj == closeButton) {
-                sv_PopRequest = 1;
-            }
-        }
-    } while (sv_RunFrame(ai_MasterHireWindow, 0x677c7) != 0);
+  closeButton = -1;
+  win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_1");
+  d2_SetForm(win, 0);
+  sv_FitForm(d2_LastWindow);
+  d2_CentreViewWindows(win);
+  d2_SetPointerSprite(0, 0);
+  d2_SetForm(win, 1);
+  switch (mode) {
+  case 0x10:
+    io_PrintText(0x1949);
+    io_PrintText(0x194b);
+    hireButton = d2_GetWinObj(win, 1, io_PrintText(0x194d));
+    break;
+  case 0x20:
+    t = io_PrintText(0x1938);
+    hireButton = d2_GetWinObj(win, 1, t);
+    closeButton = d2_GetWinObj(win, 1, t + 1);
+    break;
+  default:
     d2_CloseView(win);
+    return;
+  }
+  do {
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (d2_ClickedId != -1) {
+      if (d2_PointerObj == hireButton) {
+        for (job = he_FindEvent(2, 0, 7, 3, bld->id); job != 0;
+             job = he_NextEvent())
+          if (job->hireJob == 0)
+            break;
+        if (job == 0) {
+          memset(&msg, 0, sizeof(msg));
+          msg.type = 7;
+          msg.flags = 1;
+          msg.to = ai_Chars[ai_PlayerId].netId;
+          msg.fromId = bld->id;
+          msg.time = ai_Time;
+          msg.hireMaster = 1;
+          if (gm_IsHomeType(bld) != 0)
+            msg.hireMasterRoom = -1;
+          else
+            msg.hireMasterRoom = sv_PanelShown->objId;
+          msg.hireTitle = 0;
+          cm_SendLongMessage(&msg);
+          txt_Format(text, 0x1939, ai_BTypes[bld->type].jobs[0] + 0x130);
+          d2_ClearInput();
+          sv_MessageBox((intptr_t)text, 0);
+        }
+        sv_PopRequest = 1;
+      } else if (d2_PointerObj == closeButton) {
+        sv_PopRequest = 1;
+      }
+    }
+  } while (sv_RunFrame(ai_MasterHireWindow, 0x677c7) != 0);
+  d2_CloseView(win);
 }
 /* 0x5c2a10, fills the master letter window's goods page (400 B): the title text 0x1949, then one row per slot of
    the production setting (seven, 0x30 pixels apart): the good's picture (d2 style 3, its AIGOOD record as the
@@ -3537,34 +3668,34 @@ void ai_MasterHireWindow(AIBLD *bld, int mode)
    reach its count 4 before y in the walk and y loses win's slot (24 ins); 36 init x increment orders: 3
    codegens; i < 7 as the bound: 8 ins; climb 2 rounds (341 mutants): nothing. */
 
-void ai_ShowSettingGoods(int win, G8SLOT *slots, int *sliders, int *locks)
-{
-    int i;
-    int y;
-    int pic;
+void ai_ShowSettingGoods(int win, G8SLOT *slots, int *sliders, int *locks) {
+  int i;
+  int y;
+  int pic;
 
-    d2_SetForm(win, 1);
-    io_PrintText((intptr_t)"$C");
-    io_PrintText(0x1949);
-    d2_SetForm(win, 2);
-    io_PrintText((intptr_t)"$C");
-    for (i = 0, y = 0xc; y < 0x15c; y += 0x30, i++) {
-        if (slots[i].good != 0) {
-            pic = d2_WinOpenPic(0xf, i * 0x30, slots[i].good + 0xdf, d2_LastWindow);
-            d2_Objs[pic].style = 3;
-            d2_Objs[pic].user = &ai_Goods[slots[i].good];
-            d2_SetObjEnabled(pic, 1);
-            d2_Objs[pic].interactive = 1;
-            d2_Objs[pic].checked = slots[i].lock == 0;
-            locks[i] = pic;
-            sliders[i] = d2_WinOpenSlider(100, y, 200, 0, 0x64, 0x7b, 0x802, d2_LastWindow);
-            d2_SetObjValue(sliders[i], 0, 0x64, slots[i].weight);
-            d2_SetObjEnabled(sliders[i], slots[i].lock == 0);
-        } else {
-            sliders[i] = -1;
-            locks[i] = -1;
-        }
+  d2_SetForm(win, 1);
+  io_PrintText((intptr_t)"$C");
+  io_PrintText(0x1949);
+  d2_SetForm(win, 2);
+  io_PrintText((intptr_t)"$C");
+  for (i = 0, y = 0xc; y < 0x15c; y += 0x30, i++) {
+    if (slots[i].good != 0) {
+      pic = d2_WinOpenPic(0xf, i * 0x30, slots[i].good + 0xdf, d2_LastWindow);
+      d2_Objs[pic].style = 3;
+      d2_Objs[pic].user = &ai_Goods[slots[i].good];
+      d2_SetObjEnabled(pic, 1);
+      d2_Objs[pic].interactive = 1;
+      d2_Objs[pic].checked = slots[i].lock == 0;
+      locks[i] = pic;
+      sliders[i] =
+          d2_WinOpenSlider(100, y, 200, 0, 0x64, 0x7b, 0x802, d2_LastWindow);
+      d2_SetObjValue(sliders[i], 0, 0x64, slots[i].weight);
+      d2_SetObjEnabled(sliders[i], slots[i].lock == 0);
+    } else {
+      sliders[i] = -1;
+      locks[i] = -1;
     }
+  }
 }
 /* 0x5c2b90, the master letter window "berufe\_meisterbrief_2" of a building's master (1609 B .. its switch tables
    0x5c31dc / 0x5c31ec): the building's production setting (ai_FindSettingSlots, else a new one by ai_ProdSetting,
@@ -3576,157 +3707,176 @@ void ai_ShowSettingGoods(int win, G8SLOT *slots, int *sliders, int *locks)
    and the building's work settings (field deltas). The exit writes the chosen budget into the building and adds
    the difference to the master's budget */
 
-void ai_MasterLetterSettings(AIBLD *bld, AICHAR *ch)
-{
-    int hasSetting;
-    G8SLOT *slots;
-    int budget;
-    int budgetCtrl;
-    int factorCtrl;
-    int win;
-    int workTab;
-    int goodsTab;
-    AIWORKSET set;
-    int checks[4];
-    int sliders[7];
-    int locks[7];
-    int i;
+void ai_MasterLetterSettings(AIBLD *bld, AICHAR *ch) {
+  int hasSetting;
+  G8SLOT *slots;
+  int budget;
+  int budgetCtrl;
+  int factorCtrl;
+  int win;
+  int workTab;
+  int goodsTab;
+  AIWORKSET set;
+  int checks[4];
+  int sliders[7];
+  int locks[7];
+  int i;
 
-    hasSetting = 1;
-    workTab = -1;
-    goodsTab = -1;
-    factorCtrl = -1;
-    slots = ai_FindSettingSlots(bld->id);
-    memset(sliders, -1, sizeof(sliders));
-    if (slots == 0 && (slots = ai_ProdSetting(bld)) == 0) {
-        ai_MasterLetterPage = 0;
-        hasSetting = 0;
-    } else {
-        ai_RefreshProdSetting(bld);
-    }
-    win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_2");
-    d2_SetForm(win, 0);
-    sv_FitForm(d2_LastWindow);
-    d2_CentreViewWindows(win);
-    d2_SetPointerSprite(0, 0);
-    budget = gm_ConvertMoney(bld->budget, ai_OwnPlayer);
-    set = ch->workSet;
-    if (ai_MasterLetterPage == 0)
-        ai_ShowWorkSettingsPage(win, &budgetCtrl, &budget, checks, bld, ch->id, ch->workSet, &factorCtrl,
-                                (G8SETTAIL *)slots);
-    else
-        ai_ShowSettingGoods(win, slots, sliders, locks);
-    if (hasSetting) {
-        int tabs[2];
+  hasSetting = 1;
+  workTab = -1;
+  goodsTab = -1;
+  factorCtrl = -1;
+  slots = ai_FindSettingSlots(bld->id);
+  memset(sliders, -1, sizeof(sliders));
+  if (slots == 0 && (slots = ai_ProdSetting(bld)) == 0) {
+    ai_MasterLetterPage = 0;
+    hasSetting = 0;
+  } else {
+    ai_RefreshProdSetting(bld);
+  }
+  win = d2_OpenForm(0, 0, "berufe\\_meisterbrief_2");
+  d2_SetForm(win, 0);
+  sv_FitForm(d2_LastWindow);
+  d2_CentreViewWindows(win);
+  d2_SetPointerSprite(0, 0);
+  budget = gm_ConvertMoney(bld->budget, ai_OwnPlayer);
+  set = ch->workSet;
+  if (ai_MasterLetterPage == 0)
+    ai_ShowWorkSettingsPage(win, &budgetCtrl, &budget, checks, bld, ch->id,
+                            ch->workSet, &factorCtrl, (G8SETTAIL *)slots);
+  else
+    ai_ShowSettingGoods(win, slots, sliders, locks);
+  if (hasSetting) {
+    int tabs[2];
 
-        d2_SetForm(win, 3);
-        sv_ButtonRow(d2_LastWindow, 0, tabs, 2, txt_Ptrs[0xf60], txt_Ptrs[0x4155]);
-        workTab = tabs[0];
-        goodsTab = tabs[1];
+    d2_SetForm(win, 3);
+    sv_ButtonRow(d2_LastWindow, 0, tabs, 2, txt_Ptrs[0xf60], txt_Ptrs[0x4155]);
+    workTab = tabs[0];
+    goodsTab = tabs[1];
+  }
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (dm_L.ldown != 0) {
+      if (ai_MasterLetterPage == 1) {
+        for (i = 0; i < 7; i++)
+          if (d2_PointerObj == sliders[i])
+            break;
+        if (i < 7 && sliders[i] != -1) {
+          d2_ClickedId = -1;
+          ai_SetSettingWeight(bld, slots[i].good, d2_GetObjValue(sliders[i]));
+          for (i = 0; i < 7; i++)
+            if (sliders[i] != -1)
+              d2_SetObjValue(sliders[i], 0, 100, slots[i].weight);
+        }
+      } else if (ai_MasterLetterPage == 0 && factorCtrl != -1 &&
+                 d2_PointerObj == factorCtrl) {
+        ai_SetSettingFactor(bld, d2_GetObjValue(factorCtrl) * 0.01f);
+      }
     }
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (dm_L.ldown != 0) {
-            if (ai_MasterLetterPage == 1) {
-                for (i = 0; i < 7; i++)
-                    if (d2_PointerObj == sliders[i])
-                        break;
-                if (i < 7 && sliders[i] != -1) {
-                    d2_ClickedId = -1;
-                    ai_SetSettingWeight(bld, slots[i].good, d2_GetObjValue(sliders[i]));
-                    for (i = 0; i < 7; i++)
-                        if (sliders[i] != -1)
-                            d2_SetObjValue(sliders[i], 0, 100, slots[i].weight);
-                }
-            } else if (ai_MasterLetterPage == 0 && factorCtrl != -1 && d2_PointerObj == factorCtrl) {
-                ai_SetSettingFactor(bld, d2_GetObjValue(factorCtrl) * 0.01f);
-            }
+    if (dm_L.lclick != 0 && d2_PointerObj != -1) {
+      for (i = 0; i < 7; i++) {
+        if (d2_PointerObj == locks[i]) {
+          slots[i].lock = slots[i].lock == 0;
+          d2_Objs[locks[i]].checked = slots[i].lock == 0;
+          d2_SetObjEnabled(sliders[i], slots[i].lock == 0);
         }
-        if (dm_L.lclick != 0 && d2_PointerObj != -1) {
-            for (i = 0; i < 7; i++) {
-                if (d2_PointerObj == locks[i]) {
-                    slots[i].lock = slots[i].lock == 0;
-                    d2_Objs[locks[i]].checked = slots[i].lock == 0;
-                    d2_SetObjEnabled(sliders[i], slots[i].lock == 0);
-                }
-            }
+      }
+    }
+    if (d2_ClickedId != -1) {
+      if (ai_MasterLetterPage == 1) {
+        if (d2_PointerObj == workTab) {
+          ai_ShowWorkSettingsPage(win, &budgetCtrl, &budget, checks, bld,
+                                  ch->id, set, &factorCtrl, (G8SETTAIL *)slots);
+          ai_MasterLetterPage = 0;
+          d2_PointerObj = -1;
+        } else {
+          for (i = 0; i < 7; i++)
+            if (d2_PointerObj == sliders[i])
+              break;
+          if (i < 7) {
+            ai_SetSettingWeight(bld, slots[i].good, d2_GetObjValue(sliders[i]));
+            for (i = 0; i < 7; i++)
+              if (sliders[i] != -1)
+                d2_SetObjValue(sliders[i], 0, 100, slots[i].weight);
+          }
         }
-        if (d2_ClickedId != -1) {
-            if (ai_MasterLetterPage == 1) {
-                if (d2_PointerObj == workTab) {
-                    ai_ShowWorkSettingsPage(win, &budgetCtrl, &budget, checks, bld, ch->id, set, &factorCtrl,
-                                            (G8SETTAIL *)slots);
-                    ai_MasterLetterPage = 0;
-                    d2_PointerObj = -1;
-                } else {
-                    for (i = 0; i < 7; i++)
-                        if (d2_PointerObj == sliders[i])
-                            break;
-                    if (i < 7) {
-                        ai_SetSettingWeight(bld, slots[i].good, d2_GetObjValue(sliders[i]));
-                        for (i = 0; i < 7; i++)
-                            if (sliders[i] != -1)
-                                d2_SetObjValue(sliders[i], 0, 100, slots[i].weight);
-                    }
-                }
-            } else if (ai_MasterLetterPage == 0) {
-                budget = d2_GetObjValue(budgetCtrl);
-                if (d2_PointerObj == goodsTab) {
-                    ai_ShowSettingGoods(win, slots, sliders, locks);
-                    ai_MasterLetterPage = 1;
-                    d2_PointerObj = -1;
-                } else {
-                    for (i = 0; i < 4; i++) {
-                        if (d2_PointerObj == -1)
-                            break;
-                        if (d2_PointerObj == checks[i]) {
-                            set = ch->workSet;
-                            if (d2_GetObjValue(checks[i]) != 0) {
-                                switch (i) {
-                                case 0: set.flags |= 1; break;
-                                case 1: set.flags |= 2; break;
-                                case 2: set.flags |= 4; break;
-                                case 3: set.flags |= 8; break;
-                                }
-                            } else {
-                                switch (i) {
-                                case 0: set.flags &= ~1; break;
-                                case 1: set.flags &= ~2; break;
-                                case 2: set.flags &= ~4; break;
-                                case 3: set.flags &= ~8; break;
-                                }
-                            }
-                            cm_BeginFieldBlock(ch, ch->netId);
-                            cm_AddFieldDelta(4, 1, (char *)&ch->workSet - cm_FieldObject, &set);
-                            cm_SendFieldDeltas();
-                            cm_BeginFieldBlock(bld, bld->id);
-                            cm_AddFieldDelta(4, 1, (char *)&bld->workSet - cm_FieldObject, &set);
-                            cm_SendFieldDeltas();
-                            ai_ShowWorkSettingsPage(win, &budgetCtrl, &budget, checks, bld, ch->id, set,
-                                                    &factorCtrl, (G8SETTAIL *)slots);
-                            d2_PointerObj = -1;
-                        }
-                    }
-                }
-            }
-        }
-    } while (sv_RunFrame(ai_MasterLetterSettings, 0x677c7) != 0);
-    if (ai_MasterLetterPage == 0)
+      } else if (ai_MasterLetterPage == 0) {
         budget = d2_GetObjValue(budgetCtrl);
-    budget = gm_PlayerFactor(budget, ai_OwnPlayer);
-    cm_BeginFieldBlock(bld, bld->id);
-    cm_AddFieldDelta(4, 1, (char *)&bld->budget - cm_FieldObject, &budget);
-    cm_SendFieldDeltas();
-    {
-        int delta = budget - bld->budget;
-
-        cm_BeginFieldBlock(ch, ch->netId);
-        cm_AddFieldValues(4, 1, (char *)&ch->budget - cm_FieldObject, &delta);
-        cm_SendFieldDeltas();
+        if (d2_PointerObj == goodsTab) {
+          ai_ShowSettingGoods(win, slots, sliders, locks);
+          ai_MasterLetterPage = 1;
+          d2_PointerObj = -1;
+        } else {
+          for (i = 0; i < 4; i++) {
+            if (d2_PointerObj == -1)
+              break;
+            if (d2_PointerObj == checks[i]) {
+              set = ch->workSet;
+              if (d2_GetObjValue(checks[i]) != 0) {
+                switch (i) {
+                case 0:
+                  set.flags |= 1;
+                  break;
+                case 1:
+                  set.flags |= 2;
+                  break;
+                case 2:
+                  set.flags |= 4;
+                  break;
+                case 3:
+                  set.flags |= 8;
+                  break;
+                }
+              } else {
+                switch (i) {
+                case 0:
+                  set.flags &= ~1;
+                  break;
+                case 1:
+                  set.flags &= ~2;
+                  break;
+                case 2:
+                  set.flags &= ~4;
+                  break;
+                case 3:
+                  set.flags &= ~8;
+                  break;
+                }
+              }
+              cm_BeginFieldBlock(ch, ch->netId);
+              cm_AddFieldDelta(4, 1, (char *)&ch->workSet - cm_FieldObject,
+                               &set);
+              cm_SendFieldDeltas();
+              cm_BeginFieldBlock(bld, bld->id);
+              cm_AddFieldDelta(4, 1, (char *)&bld->workSet - cm_FieldObject,
+                               &set);
+              cm_SendFieldDeltas();
+              ai_ShowWorkSettingsPage(win, &budgetCtrl, &budget, checks, bld,
+                                      ch->id, set, &factorCtrl,
+                                      (G8SETTAIL *)slots);
+              d2_PointerObj = -1;
+            }
+          }
+        }
+      }
     }
-    d2_CloseView(win);
+  } while (sv_RunFrame(ai_MasterLetterSettings, 0x677c7) != 0);
+  if (ai_MasterLetterPage == 0)
+    budget = d2_GetObjValue(budgetCtrl);
+  budget = gm_PlayerFactor(budget, ai_OwnPlayer);
+  cm_BeginFieldBlock(bld, bld->id);
+  cm_AddFieldDelta(4, 1, (char *)&bld->budget - cm_FieldObject, &budget);
+  cm_SendFieldDeltas();
+  {
+    int delta = budget - bld->budget;
+
+    cm_BeginFieldBlock(ch, ch->netId);
+    cm_AddFieldValues(4, 1, (char *)&ch->budget - cm_FieldObject, &delta);
+    cm_SendFieldDeltas();
+  }
+  d2_CloseView(win);
 }
 /* 0x5c3200, opens the master letter of the player's building (448 B .. its switch tables 0x5c3360 / 0x5c3374):
    nothing unless the player owns it. The mode: 0x40 for the building classes 5 / 9 (ai_MasterLetterKindWindow),
@@ -3735,60 +3885,60 @@ void ai_MasterLetterSettings(AIBLD *bld, AICHAR *ch)
    the master: ai_MasterHireWindow with that mode); a running master hire event (he_FindEvent 2, 0, 7, 3, its
    hireJob 0) makes it 0x50 (ai_MasterLetterNoticeWindow). sv_CameraFollow after the window */
 
-void ai_MasterLetterWindow(AIBLD *bld)
-{
-    AIBTYPE *type;
-    AICHAR *me;
-    AICHAR *master;
-    AIJOB *job;
-    int mode;
-    int job2;
-    int i;
+void ai_MasterLetterWindow(AIBLD *bld) {
+  AIBTYPE *type;
+  AICHAR *me;
+  AICHAR *master;
+  AIJOB *job;
+  int mode;
+  int job2;
+  int i;
 
-    if (bld == 0 || ai_PlayerId != bld->owner)
-        return;
-    me = &ai_Chars[ai_PlayerId];
-    type = &ai_BTypes[bld->type];
-    master = gm_FindCharacterByMaster(bld);
-    if (type->kind == 5 || type->kind == 9) {
-        mode = 0x40;
-    } else if (master != 0) {
-        mode = 0x30;
-    } else {
-        mode = 0x20;
-        job2 = gm_TitleJob(ai_PlayerId, gm_TitleGroup(type->jobs[0]));
-        if (job2 != 0) {
-            for (i = 0; i < 6; i++) {
-                if (job2 == type->jobs[i]) {
-                    master = me;
-                    mode = 0x10;
-                    break;
-                }
-            }
+  if (bld == 0 || ai_PlayerId != bld->owner)
+    return;
+  me = &ai_Chars[ai_PlayerId];
+  type = &ai_BTypes[bld->type];
+  master = gm_FindCharacterByMaster(bld);
+  if (type->kind == 5 || type->kind == 9) {
+    mode = 0x40;
+  } else if (master != 0) {
+    mode = 0x30;
+  } else {
+    mode = 0x20;
+    job2 = gm_TitleJob(ai_PlayerId, gm_TitleGroup(type->jobs[0]));
+    if (job2 != 0) {
+      for (i = 0; i < 6; i++) {
+        if (job2 == type->jobs[i]) {
+          master = me;
+          mode = 0x10;
+          break;
         }
+      }
     }
-    for (job = he_FindEvent(2, 0, 7, 3, bld->id); job != 0; job = he_NextEvent()) {
-        if (job->hireJob == 0) {
-            mode = 0x50;
-            break;
-        }
+  }
+  for (job = he_FindEvent(2, 0, 7, 3, bld->id); job != 0;
+       job = he_NextEvent()) {
+    if (job->hireJob == 0) {
+      mode = 0x50;
+      break;
     }
-    switch (mode) {
-    case 0x10:
-    case 0x20:
-        ai_MasterHireWindow(bld, mode);
-        break;
-    case 0x30:
-        ai_MasterLetterSettings(bld, master);
-        break;
-    case 0x40:
-        ai_MasterLetterKindWindow(bld);
-        break;
-    case 0x50:
-        ai_MasterLetterNoticeWindow(bld);
-        break;
-    }
-    sv_CameraFollow();
+  }
+  switch (mode) {
+  case 0x10:
+  case 0x20:
+    ai_MasterHireWindow(bld, mode);
+    break;
+  case 0x30:
+    ai_MasterLetterSettings(bld, master);
+    break;
+  case 0x40:
+    ai_MasterLetterKindWindow(bld);
+    break;
+  case 0x50:
+    ai_MasterLetterNoticeWindow(bld);
+    break;
+  }
+  sv_CameraFollow();
 }
 
 int gm_IsUnderAge(unsigned short id);
@@ -3804,110 +3954,115 @@ int gm_IsUnderAge(unsigned short id);
    (not 5, working for a master: ai_WorksForMaster) and 0x800000 (kind 0) one must hold. With cfg->liking me's
    liking of id (gm_Liking) must lie in [likingMin, likingMax]. unused is never read */
 
-int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg, int unused)
-{
-    AICHAR *rel;
-    unsigned int mask;
-    int i;
-    int any;
-    float liking;
+int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg,
+                           int unused) {
+  AICHAR *rel;
+  unsigned int mask;
+  int i;
+  int any;
+  float liking;
 
-    if (me == id)
+  if (me == id)
+    goto reject;
+  if (ai_Chars[id].id == 0xffff)
+    goto reject;
+  if (ai_Chars[id].heldRounds > 0)
+    goto reject;
+  if (&ai_Chars[id] == ai_PlayerChar)
+    goto reject;
+  if (cfg == 0)
+    goto accept;
+  mask = cfg->mode;
+  if (mask == 0)
+    goto accept;
+  if (ai_Chars[id].kind >= 10)
+    goto reject;
+  if (cfg->option14 & 2) {
+    for (i = 0; i < 4; i++)
+      if (id == cfg->ids[i] && cfg->ids[i] != 0xffff)
         goto reject;
-    if (ai_Chars[id].id == 0xffff)
+  }
+  if (mask & 0x3ffff) {
+    if ((mask & 1) && ai_Chars[id].sex == 1)
+      goto reject;
+    if ((mask & 2) && ai_Chars[id].sex == 0)
+      goto reject;
+    if ((mask & 0x1000) && ai_Chars[id].relatives[0] != -1) {
+      rel = gm_FindChar(ai_Chars[id].relatives[0]);
+      if (rel != 0 && rel->health > 0)
         goto reject;
-    if (ai_Chars[id].heldRounds > 0)
+    }
+    if ((cfg->mode & 4) && ai_Chars[id].w050 != ai_Chars[me].w050 &&
+        ai_Chars[id].relatives[0] != ai_Chars[me].netId)
+      goto reject;
+    if (cfg->mode & 8) {
+      if (ai_Chars[id].w050 == ai_Chars[me].w050)
         goto reject;
-    if (&ai_Chars[id] == ai_PlayerChar)
+      if (ai_Chars[id].relatives[0] == ai_Chars[me].netId)
         goto reject;
-    if (cfg == 0)
-        goto accept;
+    }
+    if ((cfg->mode & 0x40) && ai_Chars[id].kind != 1)
+      goto reject;
+    if (cfg->mode & 0x10) {
+      if (ai_Chars[id].title == 0)
+        goto reject;
+      if (ai_Chars[id].kind != 0)
+        goto reject;
+    }
+    if ((cfg->mode & 0x100) && ai_Chars[id].kind != 6 &&
+        ai_Chars[id].kind != 7 && ai_Chars[id].kind != 5 &&
+        ai_Chars[id].officeKind == 0 && ai_Chars[id].secondOffice == 0)
+      goto reject;
+    if ((cfg->mode & 0x200) && gm_IsUnderAge(id) == 0)
+      goto reject;
+    if ((cfg->mode & 0x400) && gm_IsUnderAge(id) != 0)
+      goto reject;
     mask = cfg->mode;
-    if (mask == 0)
-        goto accept;
-    if (ai_Chars[id].kind >= 10)
+    if ((mask & 0x2000) && ai_Chars[id].scene != 0)
+      goto reject;
+    if ((mask & 0x4000) && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7 ||
+                            ai_Chars[id].kind == 5))
+      goto reject;
+    if ((mask & 0x8000) && ai_Chars[id].kind != 6 && ai_Chars[id].kind != 7 &&
+        ai_Chars[id].kind != 5)
+      goto reject;
+    if ((mask & 0x800) && ai_Chars[id].officeKind == 0 &&
+        ai_Chars[id].secondOffice == 0)
+      goto reject;
+    if ((mask & 0x10000) && ai_Chars[id].bld2 == 0)
+      goto reject;
+    if ((mask & 0x20000) && (ai_Chars[id].flags1c8 & 1 << 23))
+      goto reject;
+    if ((mask & 0x20) && (ai_Chars[id].flags1c8 & 0x40000000))
+      goto reject;
+    if ((mask & 0x80) && ai_Chars[id].v1f0 == 0)
+      goto reject;
+    if (!(mask & 0x40000) && (ai_Chars[id].flags1cc & 0x3000))
+      goto reject;
+  }
+  if (mask & PF_ONE_OF) {
+    any = 0;
+    any |= (mask & PF_KIND67) &&
+           (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7);
+    any |= (mask & PF_KIND5) && ai_Chars[id].kind == 5;
+    any |= (mask & PF_SERVANT) && ai_Chars[id].kind != 5 &&
+           ai_WorksForMaster(&ai_Chars[id]);
+    if (!(((cfg->mode & PF_KIND0) && ai_Chars[id].kind == 0) | any))
+      goto reject;
+  }
+  if (cfg->liking != 0) {
+    liking = gm_Liking(me, id, 1);
+    if (!(liking < cfg->likingMin)) {
+      if (liking > cfg->likingMax)
         goto reject;
-    if (cfg->option14 & 2) {
-        for (i = 0; i < 4; i++)
-            if (id == cfg->ids[i] && cfg->ids[i] != 0xffff)
-                goto reject;
-    }
-    if (mask & 0x3ffff) {
-        if ((mask & 1) && ai_Chars[id].sex == 1)
-            goto reject;
-        if ((mask & 2) && ai_Chars[id].sex == 0)
-            goto reject;
-        if ((mask & 0x1000) && ai_Chars[id].relatives[0] != -1) {
-            rel = gm_FindChar(ai_Chars[id].relatives[0]);
-            if (rel != 0 && rel->health > 0)
-                goto reject;
-        }
-        if ((cfg->mode & 4) && ai_Chars[id].w050 != ai_Chars[me].w050 &&
-            ai_Chars[id].relatives[0] != ai_Chars[me].netId)
-            goto reject;
-        if (cfg->mode & 8) {
-            if (ai_Chars[id].w050 == ai_Chars[me].w050)
-                goto reject;
-            if (ai_Chars[id].relatives[0] == ai_Chars[me].netId)
-                goto reject;
-        }
-        if ((cfg->mode & 0x40) && ai_Chars[id].kind != 1)
-            goto reject;
-        if (cfg->mode & 0x10) {
-            if (ai_Chars[id].title == 0)
-                goto reject;
-            if (ai_Chars[id].kind != 0)
-                goto reject;
-        }
-        if ((cfg->mode & 0x100) && ai_Chars[id].kind != 6 && ai_Chars[id].kind != 7 && ai_Chars[id].kind != 5 && ai_Chars[id].officeKind == 0 &&
-            ai_Chars[id].secondOffice == 0)
-            goto reject;
-        if ((cfg->mode & 0x200) && gm_IsUnderAge(id) == 0)
-            goto reject;
-        if ((cfg->mode & 0x400) && gm_IsUnderAge(id) != 0)
-            goto reject;
-        mask = cfg->mode;
-        if ((mask & 0x2000) && ai_Chars[id].scene != 0)
-            goto reject;
-        if ((mask & 0x4000) && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7 || ai_Chars[id].kind == 5))
-            goto reject;
-        if ((mask & 0x8000) && ai_Chars[id].kind != 6 && ai_Chars[id].kind != 7 && ai_Chars[id].kind != 5)
-            goto reject;
-        if ((mask & 0x800) && ai_Chars[id].officeKind == 0 && ai_Chars[id].secondOffice == 0)
-            goto reject;
-        if ((mask & 0x10000) && ai_Chars[id].bld2 == 0)
-            goto reject;
-        if ((mask & 0x20000) && (ai_Chars[id].flags1c8 & 1 << 23))
-            goto reject;
-        if ((mask & 0x20) && (ai_Chars[id].flags1c8 & 0x40000000))
-            goto reject;
-        if ((mask & 0x80) && ai_Chars[id].v1f0 == 0)
-            goto reject;
-        if (!(mask & 0x40000) && (ai_Chars[id].flags1cc & 0x3000))
-            goto reject;
-    }
-    if (mask & PF_ONE_OF) {
-        any = 0;
-        any |= (mask & PF_KIND67) && (ai_Chars[id].kind == 6 || ai_Chars[id].kind == 7);
-        any |= (mask & PF_KIND5) && ai_Chars[id].kind == 5;
-        any |= (mask & PF_SERVANT) && ai_Chars[id].kind != 5 && ai_WorksForMaster(&ai_Chars[id]);
-        if (!(((cfg->mode & PF_KIND0) && ai_Chars[id].kind == 0) | any))
-            goto reject;
-    }
-    if (cfg->liking != 0) {
-        liking = gm_Liking(me, id, 1);
-        if (!(liking < cfg->likingMin)) {
-            if (liking > cfg->likingMax)
-                goto reject;
-        } else
-            return 0;
-    }
-accept:         /* the tests share these two exits (a return at each test duplicates the epilogue: 437 vs 279 instructions) */
-    return 1;
+    } else
+      return 0;
+  }
+accept: /* the tests share these two exits (a return at each test duplicates the epilogue: 437 vs 279 instructions) */
+  return 1;
 reject:
-    return 0;
+  return 0;
 }
-
 
 /* 0x5c37a0, whether the building bld passes the amount menu's building filter cfg for the character me (480 B
    .. its switch table 0x5c3980): no filter passes all, no building or character none, an empty filter (no kind
@@ -3916,81 +4071,82 @@ reject:
    0 any, 1 no owner, 2 an owner, 3 me or none, 4 me, 5 not me, 6 another one, 7 another one not the player; with
    option14 bit 0 an owner listed in cfg->ids fails */
 
-int ai_PassesBuildingFilter(AICHAR *me, AMOUNTCFG *cfg, AIBLD *bld)
-{
-    AIBTYPE *type;
-    unsigned int lo;
-    unsigned int hi;
-    int match;
-    int ownerOk;
-    int listed;
-    int i;
-    unsigned int mask;
-    unsigned int mask0;
+int ai_PassesBuildingFilter(AICHAR *me, AMOUNTCFG *cfg, AIBLD *bld) {
+  AIBTYPE *type;
+  unsigned int lo;
+  unsigned int hi;
+  int match;
+  int ownerOk;
+  int listed;
+  int i;
+  unsigned int mask;
+  unsigned int mask0;
 
-    if (cfg == 0)
-        return 1;
-    if (bld == 0 || me == 0)
-        return 0;
-    mask0 = cfg->classMask[0];
-    if (mask0 == 0 && cfg->classMask[1] == 0 && cfg->kind == 0)
-        return 1;
-    match = 0;
-    ownerOk = 0;
-    listed = 1;
-    type = &ai_BTypes[bld->type];
-    mask = cfg->classMask[1];
-    lo = 0;
-    hi = 0;
-    if (type->kind > 0x1f)
-        hi = 1 << (type->kind - 0x20);
-    else
-        lo = 1 << type->kind;
-    if (mask & 0x80000000) {
-        if (bld->flags5a & 1)
-            return 0;
-        if (bld->object == 0)
-            return 0;
-    }
-    if ((mask0 & lo) || (mask & hi))
-        match = 1;
-    if (cfg->kind == 0)
-        ownerOk = 1;
-    else switch (cfg->kind) {
+  if (cfg == 0)
+    return 1;
+  if (bld == 0 || me == 0)
+    return 0;
+  mask0 = cfg->classMask[0];
+  if (mask0 == 0 && cfg->classMask[1] == 0 && cfg->kind == 0)
+    return 1;
+  match = 0;
+  ownerOk = 0;
+  listed = 1;
+  type = &ai_BTypes[bld->type];
+  mask = cfg->classMask[1];
+  lo = 0;
+  hi = 0;
+  if (type->kind > 0x1f)
+    hi = 1 << (type->kind - 0x20);
+  else
+    lo = 1 << type->kind;
+  if (mask & 0x80000000) {
+    if (bld->flags5a & 1)
+      return 0;
+    if (bld->object == 0)
+      return 0;
+  }
+  if ((mask0 & lo) || (mask & hi))
+    match = 1;
+  if (cfg->kind == 0)
+    ownerOk = 1;
+  else
+    switch (cfg->kind) {
     case 0:
-        ownerOk = 1;
-        break;
+      ownerOk = 1;
+      break;
     case 1:
-        ownerOk = bld->owner == 0xffff;
-        break;
+      ownerOk = bld->owner == 0xffff;
+      break;
     case 2:
-        ownerOk = bld->owner != 0xffff;
-        break;
+      ownerOk = bld->owner != 0xffff;
+      break;
     case 3:
-        ownerOk = bld->owner == me->id || bld->owner == 0xffff;
-        break;
+      ownerOk = bld->owner == me->id || bld->owner == 0xffff;
+      break;
     case 4:
-        ownerOk = bld->owner == me->id;
-        break;
+      ownerOk = bld->owner == me->id;
+      break;
     case 5:
-        ownerOk = bld->owner != me->id;
-        break;
+      ownerOk = bld->owner != me->id;
+      break;
     case 6:
-        ownerOk = bld->owner != me->id && bld->owner != 0xffff;
-        break;
+      ownerOk = bld->owner != me->id && bld->owner != 0xffff;
+      break;
     case 7:
-        ownerOk = bld->owner != me->id && bld->owner != ai_PlayerChar->id && bld->owner != 0xffff;
+      ownerOk = bld->owner != me->id && bld->owner != ai_PlayerChar->id &&
+                bld->owner != 0xffff;
+      break;
+    }
+  if ((cfg->option14 & 1) && bld->owner != 0xffff) {
+    for (i = 0; i < 4; i++) {
+      if (bld->owner == cfg->ids[i] && cfg->ids[i] != 0xffff) {
+        listed = 0;
         break;
+      }
     }
-    if ((cfg->option14 & 1) && bld->owner != 0xffff) {
-        for (i = 0; i < 4; i++) {
-            if (bld->owner == cfg->ids[i] && cfg->ids[i] != 0xffff) {
-                listed = 0;
-                break;
-            }
-        }
-    }
-    return match && ownerOk && listed;
+  }
+  return match && ownerOk && listed;
 }
 /* 0x5c39a0, whether the town map's mark of the building bld passes the request filter cfg for the character me
    (496 B .. its switch table 0x5c3b90; ai_BuildTownMap greys out the marks it fails): no filter passes all, no
@@ -3999,84 +4155,88 @@ int ai_PassesBuildingFilter(AICHAR *me, AMOUNTCFG *cfg, AIBLD *bld)
    bit 63. The class must be one of classMask's bits (or classMask empty); the owner test cfg->kind and the ids of
    option14 bit 0 as in ai_PassesBuildingFilter */
 
-int ai_PassesMapPickFilter(AICHAR *me, AMOUNTCFG *cfg, AIBLD *bld)
-{
-    AIBTYPE *type;
-    unsigned int lo;
-    unsigned int hi;
-    int match;
-    int ownerOk;
-    int listed;
-    int i;
+int ai_PassesMapPickFilter(AICHAR *me, AMOUNTCFG *cfg, AIBLD *bld) {
+  AIBTYPE *type;
+  unsigned int lo;
+  unsigned int hi;
+  int match;
+  int ownerOk;
+  int listed;
+  int i;
 
-    if (cfg == 0)
-        return 1;
-    if (bld == 0 || me == 0)
-        return 0;
-    if (cfg->classMask[0] == 0 && cfg->kind == 0)
-        return 1;
-    type = &ai_BTypes[bld->type];
-    lo = 0;
-    hi = 0;
-    if (type->kind > 0x1f)
-        hi = 1 << (type->kind - 0x20);
-    else
-        lo = 1 << type->kind;
-    if (((ai_BuildingTypeMasks[4] & lo) || (ai_BuildingTypeMasks[5] & hi)) && (cfg->classMask[1] & 0x40000000))
-        return 0;
-    ownerOk = 0;
-    match = 0;
-    listed = 1;
-    if ((cfg->classMask[1] & 0x80000000) && (bld->flags5a & 1))
-        return 0;
-    if ((cfg->classMask[0] == 0 && cfg->classMask[1] == 0) || (lo & cfg->classMask[0]) || (hi & cfg->classMask[1]))
-        match = 1;
-    if (cfg->kind == 0)
-        ownerOk = 1;
-    else switch (cfg->kind) {
+  if (cfg == 0)
+    return 1;
+  if (bld == 0 || me == 0)
+    return 0;
+  if (cfg->classMask[0] == 0 && cfg->kind == 0)
+    return 1;
+  type = &ai_BTypes[bld->type];
+  lo = 0;
+  hi = 0;
+  if (type->kind > 0x1f)
+    hi = 1 << (type->kind - 0x20);
+  else
+    lo = 1 << type->kind;
+  if (((ai_BuildingTypeMasks[4] & lo) || (ai_BuildingTypeMasks[5] & hi)) &&
+      (cfg->classMask[1] & 0x40000000))
+    return 0;
+  ownerOk = 0;
+  match = 0;
+  listed = 1;
+  if ((cfg->classMask[1] & 0x80000000) && (bld->flags5a & 1))
+    return 0;
+  if ((cfg->classMask[0] == 0 && cfg->classMask[1] == 0) ||
+      (lo & cfg->classMask[0]) || (hi & cfg->classMask[1]))
+    match = 1;
+  if (cfg->kind == 0)
+    ownerOk = 1;
+  else
+    switch (cfg->kind) {
     case 0:
-        ownerOk = 1;
-        break;
+      ownerOk = 1;
+      break;
     case 1:
-        ownerOk = bld->owner == 0xffff;
-        break;
+      ownerOk = bld->owner == 0xffff;
+      break;
     case 2:
-        ownerOk = bld->owner != 0xffff;
-        break;
+      ownerOk = bld->owner != 0xffff;
+      break;
     case 3:
-        ownerOk = bld->owner == me->id || bld->owner == 0xffff;
-        break;
+      ownerOk = bld->owner == me->id || bld->owner == 0xffff;
+      break;
     case 4:
-        ownerOk = bld->owner == me->id;
-        break;
+      ownerOk = bld->owner == me->id;
+      break;
     case 5:
-        ownerOk = bld->owner != me->id;
-        break;
+      ownerOk = bld->owner != me->id;
+      break;
     case 6:
-        ownerOk = bld->owner != me->id && bld->owner != 0xffff;
-        break;
+      ownerOk = bld->owner != me->id && bld->owner != 0xffff;
+      break;
     case 7:
-        ownerOk = bld->owner != me->id && bld->owner != ai_PlayerChar->id && bld->owner != 0xffff;
+      ownerOk = bld->owner != me->id && bld->owner != ai_PlayerChar->id &&
+                bld->owner != 0xffff;
+      break;
+    }
+  if ((cfg->option14 & 1) && bld->owner != 0xffff) {
+    for (i = 0; i < 4; i++) {
+      if (bld->owner == cfg->ids[i] && cfg->ids[i] != 0xffff) {
+        listed = 0;
         break;
+      }
     }
-    if ((cfg->option14 & 1) && bld->owner != 0xffff) {
-        for (i = 0; i < 4; i++) {
-            if (bld->owner == cfg->ids[i] && cfg->ids[i] != 0xffff) {
-                listed = 0;
-                break;
-            }
-        }
-    }
-    return match && ownerOk && listed;
+  }
+  return match && ownerOk && listed;
 }
-typedef struct LCPICKROW {         /* 0x20 bytes, one character row of ai_PickBuildingChar */
-    int icon;                      /* 0x00, the row's picture object 0x5db, the click target */
-    int portrait;                  /* 0x04, the character's portrait (AICHAR.picture) */
-    int name;                      /* 0x08, the name text */
-    int bar;                       /* 0x0c, the liking slider (disabled: a bar) */
-    int pad10;
-    int id;                        /* 0x14, the character id */
-    int pad18[2];
+typedef struct
+    LCPICKROW { /* 0x20 bytes, one character row of ai_PickBuildingChar */
+  int icon;     /* 0x00, the row's picture object 0x5db, the click target */
+  int portrait; /* 0x04, the character's portrait (AICHAR.picture) */
+  int name;     /* 0x08, the name text */
+  int bar;      /* 0x0c, the liking slider (disabled: a bar) */
+  int pad10;
+  int id; /* 0x14, the character id */
+  int pad18[2];
 } LCPICKROW;
 
 /* 0x5c3bb0, the character choice of a building, the window "Gesetze\Auswahl2" (1357 B): lists the building's master
@@ -4087,181 +4247,190 @@ typedef struct LCPICKROW {         /* 0x20 bytes, one character row of ai_PickBu
    clickable (or left out when cfg->flags is 0). A click on a row returns its character record, or with a callback cb
    calls cb (the record, bld) and redraws the rows; a right click closes the window. Returns the picked record or 0 */
 
-AICHAR *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption, void (*cb)(AICHAR *, AIBLD *))
-{
-    LCPICKROW rows[16];
-    char text[32];
-    AICHAR *result;
-    int win;
-    int listWin;
-    int radio;
-    int n;
-    int i;
-    int y;
-    int w;
-    int h;
-    int draw;
-    int usable;
-    int shown;
-    int step;
-    int liking;
-    int label;
-    int bar;
-    int sel;
-    AIBTYPE *bt;
+AICHAR *ai_PickBuildingChar(AIBLD *bld, AMOUNTCFG *cfg, char *caption,
+                            void (*cb)(AICHAR *, AIBLD *)) {
+  LCPICKROW rows[16];
+  char text[32];
+  AICHAR *result;
+  int win;
+  int listWin;
+  int radio;
+  int n;
+  int i;
+  int y;
+  int w;
+  int h;
+  int draw;
+  int usable;
+  int shown;
+  int step;
+  int liking;
+  int label;
+  int bar;
+  int sel;
+  AIBTYPE *bt;
 
-    result = 0;
-    radio = -1;
-    n = 0;
-    draw = 1;
-    if (bld == 0)
-        return 0;
-    if (bld->masterId != 0xffff)
-        rows[n++].id = bld->masterId;
-    if (bld->owner != 0xffff && bld->masterId != bld->owner)
-        rows[n++].id = bld->owner;
-    bt = &ai_BTypes[bld->type];
-    if (bt->kind == 1 || bt->kind == 2) {
-        for (i = 0; i < 768; i++) {
-            if (n >= 16)
-                break;
-            if (ai_Chars[i].bld2 == bld && ai_Chars[i].id != bld->masterId && ai_Chars[i].id != bld->owner)
-                rows[n++].id = ai_Chars[i].id;
-        }
+  result = 0;
+  radio = -1;
+  n = 0;
+  draw = 1;
+  if (bld == 0)
+    return 0;
+  if (bld->masterId != 0xffff)
+    rows[n++].id = bld->masterId;
+  if (bld->owner != 0xffff && bld->masterId != bld->owner)
+    rows[n++].id = bld->owner;
+  bt = &ai_BTypes[bld->type];
+  if (bt->kind == 1 || bt->kind == 2) {
+    for (i = 0; i < 768; i++) {
+      if (n >= 16)
+        break;
+      if (ai_Chars[i].bld2 == bld && ai_Chars[i].id != bld->masterId &&
+          ai_Chars[i].id != bld->owner)
+        rows[n++].id = ai_Chars[i].id;
     }
-    if ((bt->kind > 3 && bt->kind < 10) || (bt->kind > 10 && bt->kind < 15) ||
-        bt->kind == 16 || (bt->kind > 17 && bt->kind < 23)) {
-        for (i = 0; i < 768; i++) {
-            if (n >= 16)
-                break;
-            if (ai_Chars[i].bld == bld && ai_Chars[i].id != bld->masterId && ai_Chars[i].id != bld->owner)
-                rows[n++].id = ai_Chars[i].id;
-        }
+  }
+  if ((bt->kind > 3 && bt->kind < 10) || (bt->kind > 10 && bt->kind < 15) ||
+      bt->kind == 16 || (bt->kind > 17 && bt->kind < 23)) {
+    for (i = 0; i < 768; i++) {
+      if (n >= 16)
+        break;
+      if (ai_Chars[i].bld == bld && ai_Chars[i].id != bld->masterId &&
+          ai_Chars[i].id != bld->owner)
+        rows[n++].id = ai_Chars[i].id;
     }
-    win = d2_OpenForm(0, 0, "Gesetze\\Auswahl2");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    if (caption != 0) {
-        d2_SetForm(win, 1);
-        io_PrintText((intptr_t)caption);
-    }
-    if (n > 2) {               /* the list part (2) scrolls by the buttons on the frame part (0) */
-        d2_SetForm(win, 2);
-        listWin = d2_LastWindow;
-        d2_SetForm(win, 0);
-        d2_CreateScrollButtons(-1, -1, d2_LastWindow, listWin, 0x767);
-    }
-    d2_ClickedId = -1;
-    do {
-        if (draw) {
-            d2_SetForm(win, 2);
-            d2_RemoveWindowObjects(d2_LastWindow, 1);
-            w = d2_Pics[0x5db].w;
-            h = d2_Pics[0x5db].h;
-            if (n != 0) {
-            y = 0x1e;
-            for (i = 0; i < n; i++) {
-                usable = 1;
-                shown = 1;
-                if (cfg != 0 && cfg->mode != 0) {
-                    usable = ai_PassesPartnerFilter(ai_PlayerId, (unsigned short)rows[i].id, cfg, (int)bld);
-                    shown = cfg->flags | usable;
-                }
-                if (shown != 0) {
-                    rows[i].icon = d2_WinOpenPic(0x96, y, 0x5db, d2_LastWindow);
-                    if (usable) {
-                        if (radio == -1)
-                            radio = d2_CreateRadioGroup(1, rows[i].icon);
-                        else
-                            d2_RadioAdd(radio, rows[i].icon);
-                    }
-                    liking = (int)gm_Liking(ai_PlayerId, rows[i].id, 1);
-                    rows[i].portrait = d2_WinOpenPic(0x98, y + 1, ai_Chars[rows[i].id].picture, d2_LastWindow);
-                    txt_Format(text, (intptr_t)"%1N3", rows[i].id);
-                    label = d2_CreateWinText(0x96 - (0xa0 - w) / 2, h + y - 0x46, text, d2_LastWindow);
-                    rows[i].name = label;
-                    d2_Objs[label].centred = 1;
-                    d2_Objs[label].w = 0xa0;
-                    d2_SetObjFont(label, 0x56);
-                    d2_Objs[rows[i].icon].interactive = usable;
-                    d2_Objs[rows[i].icon].greyed = usable == 0;
-                    bar = d2_WinOpenSlider(0x8c, h + y + 4, 0x40, 0, 100, 0x75, 0x442, d2_LastWindow);
-                    rows[i].bar = bar;
-                    d2_SetObjValue(bar, 0, 100, liking);
-                    d2_SetObjEnabled(bar, 0);
-                    d2_MoveObj(d2_LastWindowPtr->x - (d2_Objs[bar].w - w) / 2 + 0x96, d2_LastWindowPtr->y + h + y + 4, bar);
-                    step = 0x5a;
-                } else {
-                    step = 0;
-                }
-                y += step;
+  }
+  win = d2_OpenForm(0, 0, "Gesetze\\Auswahl2");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  if (caption != 0) {
+    d2_SetForm(win, 1);
+    io_PrintText((intptr_t)caption);
+  }
+  if (n >
+      2) { /* the list part (2) scrolls by the buttons on the frame part (0) */
+    d2_SetForm(win, 2);
+    listWin = d2_LastWindow;
+    d2_SetForm(win, 0);
+    d2_CreateScrollButtons(-1, -1, d2_LastWindow, listWin, 0x767);
+  }
+  d2_ClickedId = -1;
+  do {
+    if (draw) {
+      d2_SetForm(win, 2);
+      d2_RemoveWindowObjects(d2_LastWindow, 1);
+      w = d2_Pics[0x5db].w;
+      h = d2_Pics[0x5db].h;
+      if (n != 0) {
+        y = 0x1e;
+        for (i = 0; i < n; i++) {
+          usable = 1;
+          shown = 1;
+          if (cfg != 0 && cfg->mode != 0) {
+            usable = ai_PassesPartnerFilter(
+                ai_PlayerId, (unsigned short)rows[i].id, cfg, (int)bld);
+            shown = cfg->flags | usable;
+          }
+          if (shown != 0) {
+            rows[i].icon = d2_WinOpenPic(0x96, y, 0x5db, d2_LastWindow);
+            if (usable) {
+              if (radio == -1)
+                radio = d2_CreateRadioGroup(1, rows[i].icon);
+              else
+                d2_RadioAdd(radio, rows[i].icon);
             }
-            }
-            draw = 0;
+            liking = (int)gm_Liking(ai_PlayerId, rows[i].id, 1);
+            rows[i].portrait = d2_WinOpenPic(
+                0x98, y + 1, ai_Chars[rows[i].id].picture, d2_LastWindow);
+            txt_Format(text, (intptr_t)"%1N3", rows[i].id);
+            label = d2_CreateWinText(0x96 - (0xa0 - w) / 2, h + y - 0x46, text,
+                                     d2_LastWindow);
+            rows[i].name = label;
+            d2_Objs[label].centred = 1;
+            d2_Objs[label].w = 0xa0;
+            d2_SetObjFont(label, 0x56);
+            d2_Objs[rows[i].icon].interactive = usable;
+            d2_Objs[rows[i].icon].greyed = usable == 0;
+            bar = d2_WinOpenSlider(0x8c, h + y + 4, 0x40, 0, 100, 0x75, 0x442,
+                                   d2_LastWindow);
+            rows[i].bar = bar;
+            d2_SetObjValue(bar, 0, 100, liking);
+            d2_SetObjEnabled(bar, 0);
+            d2_MoveObj(d2_LastWindowPtr->x - (d2_Objs[bar].w - w) / 2 + 0x96,
+                       d2_LastWindowPtr->y + h + y + 4, bar);
+            step = 0x5a;
+          } else {
+            step = 0;
+          }
+          y += step;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1) {
-            sel = -1;
-            for (i = 0; i < n; i++) {
-                if (d2_PointerObj == rows[i].icon) {
-                    sel = i;
-                    break;
-                }
-            }
-            if (sel > -1) {
-                result = &ai_Chars[rows[sel].id];
-                if (cb != 0) {
-                    cb(result, bld);
-                    draw = 1;
-                    if (radio != -1)
-                        d2_RadioClear(radio);
-                    radio = -1;
-                } else {
-                    sv_PopRequest = 1;
-                }
-            }
+      }
+      draw = 0;
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1) {
+      sel = -1;
+      for (i = 0; i < n; i++) {
+        if (d2_PointerObj == rows[i].icon) {
+          sel = i;
+          break;
         }
-    } while (sv_RunFrame(ai_PickBuildingChar, 0x677c7) != 0);
-    if (radio != -1)
-        d2_RadioClear(radio);
-    d2_CloseView(win);
-    return result;
+      }
+      if (sel > -1) {
+        result = &ai_Chars[rows[sel].id];
+        if (cb != 0) {
+          cb(result, bld);
+          draw = 1;
+          if (radio != -1)
+            d2_RadioClear(radio);
+          radio = -1;
+        } else {
+          sv_PopRequest = 1;
+        }
+      }
+    }
+  } while (sv_RunFrame(ai_PickBuildingChar, 0x677c7) != 0);
+  if (radio != -1)
+    d2_RadioClear(radio);
+  d2_CloseView(win);
+  return result;
 }
 
 /* unlinked: the selection entry of a building with a research class, an empty stub in this build that returns 0;
    LINK folds it (/OPT:ICF) into sv_ReturnZero, 0x52a040, where the original's tail jump in ai_LawSelectionEntry
    points. Defined above its caller as in the original: VC6 tail-calls it with the class stored over the first
    argument (mov [esp+4],edx; jmp), which it does only for a callee whose body it has seen */
-AICHAR *ai_ResearchSelectionEntry(int cls, AMOUNTCFG *filter, char *text, void (*cb)(AICHAR *, AIBLD *))
-{
-    return 0;
+AICHAR *ai_ResearchSelectionEntry(int cls, AMOUNTCFG *filter, char *text,
+                                  void (*cb)(AICHAR *, AIBLD *)) {
+  return 0;
 }
 
 /* 0x5c4100, the law selection entry of the map pick 0x5b2180: the picked building record; when its kind has a
    research class (0x50b090) it returns the research selection entry of that class (ai_ResearchSelectionEntry, 0
    in this build), else it opens the law selection window 0x5c3bb0 (param_2 the filter, param_3 the caption
    text, param_4 the pick callback) */
-AICHAR *ai_LawSelectionEntry(AIBLD *bld, AMOUNTCFG *filter, char *text, void (*cb)(AICHAR *, AIBLD *))
-{
-    int cls;
+AICHAR *ai_LawSelectionEntry(AIBLD *bld, AMOUNTCFG *filter, char *text,
+                             void (*cb)(AICHAR *, AIBLD *)) {
+  int cls;
 
-    if (bld == 0)
-        return 0;
-    if (gm_ResearchClass(bld->type, &cls) != 0)
-        return ai_ResearchSelectionEntry(cls, filter, text, cb);
-    return ai_PickBuildingChar(bld, filter, text, cb);
+  if (bld == 0)
+    return 0;
+  if (gm_ResearchClass(bld->type, &cls) != 0)
+    return ai_ResearchSelectionEntry(cls, filter, text, cb);
+  return ai_PickBuildingChar(bld, filter, text, cb);
 }
 
-void d2_PlotLine(int x0, int y0, int x1, int y1, unsigned char r, unsigned char g, unsigned char b);  /* 0x4764f0 */
+void d2_PlotLine(int x0, int y0, int x1, int y1, unsigned char r,
+                 unsigned char g, unsigned char b); /* 0x4764f0 */
 
-typedef struct LCFAMILYBOX {        /* 0x10 bytes, one box of the family tree window */
-    unsigned short id;             /* 0x00, the character id, 0xffff: the box is empty */
-    short pad02;
-    int ctrl;                      /* 0x04, the box picture object (d2_WinOpenPic), -1: no character in it */
-    unsigned short x;              /* 0x08, the centre of the box */
-    unsigned short y;              /* 0x0a, the top of the box */
-    int pad0c;
+typedef struct LCFAMILYBOX { /* 0x10 bytes, one box of the family tree window */
+  unsigned short id; /* 0x00, the character id, 0xffff: the box is empty */
+  short pad02;
+  int ctrl; /* 0x04, the box picture object (d2_WinOpenPic), -1: no character in it */
+  unsigned short x; /* 0x08, the centre of the box */
+  unsigned short y; /* 0x0a, the top of the box */
+  int pad0c;
 } LCFAMILYBOX;
 
 /* 0x5c4150, the family tree window "Special\Stammbaum": shows the character netId's parents (the father relatives[1] on the left,
@@ -4308,354 +4477,390 @@ typedef struct LCFAMILYBOX {        /* 0x10 bytes, one box of the family tree wi
    [ebp+8],cx and stores ctrl first (+0x77c, +0x867, +0xa86, +0xb79); the line midpoints end in lea
    ebp,[eax+ebx] vs ours mov esi,eax; ...; add esi,ebx (+0xc68, +0xd52); the loop counters and 4W/5 sit in
    [esp+0x18]/[esp+0x10] swapped. proof stops at the sibling loop's store order (x before ctrl). */
-void ai_FamilyTreeWindow(int netId, unsigned char flags, intptr_t caption, int callId)
-{
-    AICHAR *ch;
-    AICHAR *rel;
-    AICHAR *pick;
-    int win;
-    int draw;
-    int width;
-    int half;
-    int w;
-    int h;
-    int x;
-    short t;
-    int mid;
-    int lo;
-    int hi;
-    int i;
-    int j;
-    int k;
-    int found;
-    int partner;
-    int nSiblings;
-    int nChildren;
-    int siblingX[2];
-    LCFAMILYBOX parents[2];
-    LCFAMILYBOX row[6];             /* the siblings 0, 1, 4, 5, the character 2, its partner 3 */
-    int evenX[4];
-    int oddX[5];
-    LCFAMILYBOX children[5];
-    char rowText[256];
-    char parentText[256];
-    char childText[256];
+void ai_FamilyTreeWindow(int netId, unsigned char flags, intptr_t caption,
+                         int callId) {
+  AICHAR *ch;
+  AICHAR *rel;
+  AICHAR *pick;
+  int win;
+  int draw;
+  int width;
+  int half;
+  int w;
+  int h;
+  int x;
+  short t;
+  int mid;
+  int lo;
+  int hi;
+  int i;
+  int j;
+  int k;
+  int found;
+  int partner;
+  int nSiblings;
+  int nChildren;
+  int siblingX[2];
+  LCFAMILYBOX parents[2];
+  LCFAMILYBOX
+  row[6]; /* the siblings 0, 1, 4, 5, the character 2, its partner 3 */
+  int evenX[4];
+  int oddX[5];
+  LCFAMILYBOX children[5];
+  char rowText[256];
+  char parentText[256];
+  char childText[256];
 
-    if (ai_RunAllows(1) == 0)
-        return;
-    ai_CampaignStep(6, 0, 0, 0);
-    ch = gm_FindChar(netId);
-    if (ch == 0)
-        return;
-    win = d2_OpenForm(0, 0, "Special\\Stammbaum");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 2);
-    if (caption != 0)
-        io_PrintText(caption);
-    else
-        io_PrintText(0x9f);
-    d2_SetForm(win, 1);
-    draw = 1;
-    d2_ClickedId = -1;
-    width = d2_Wins[d2_LastWindow].w;
-    do {
-        if (draw) {
-            k = 0;
-            nChildren = 0;
-            nSiblings = 0;
-            partner = 0;
-            half = width / 2;
-            w = d2_Pics[0x5db].w;
-            h = d2_Pics[0x5db].h;
-            memset(parents, 0xff, sizeof parents);
-            memset(row, 0xff, sizeof row);
-            memset(children, 0xff, sizeof children);
-            draw = 0;
-            row[2].id = ch->id;
-            rel = gm_FindChar(ch->relatives[0]);
-            if (rel != 0 && (ch->flags1c8 & 0x40000) == 0 && (rel->flags1c8 & 0x40000) == 0) {
-                partner = 1;
-                row[3].id = rel->id;
-            }
-            rel = gm_FindChar(ch->relatives[2]);
-            if (rel != 0)
-                parents[1].id = rel->id;
-            rel = gm_FindChar(ch->relatives[1]);
-            if (rel != 0) {
-                parents[0].id = rel->id;
-                for (j = 3; j < 8 && k < 6; j++) {
-                    if (rel->relatives[j] != -1 && rel->relatives[j] != ch->netId) {
-                        pick = gm_FindChar(rel->relatives[j]);
-                        if (pick != 0) {
-                            row[k].id = pick->id;
-                            k++;
-                            nSiblings++;
-                            if (k == 2)
-                                k = 4;
-                        }
-                    }
-                }
-            }
-            for (i = 3; i < 8 && nChildren < 5; i++) {
-                if (ch->relatives[i] != -1) {
-                    rel = gm_FindChar(ch->relatives[i]);
-                    if (rel != 0 && rel->kind < 10) {
-                        children[nChildren].id = rel->id;
-                        nChildren++;
-                    }
-                }
-            }
-            d2_SetForm(win, 1);
-            d2_ClearPaintbox();
-            d2_RemoveWindowObjects(d2_LastWindow, 1);
-
-            /* the parents */
-            parents[0].ctrl = d2_WinOpenPic(half - w - 0x5a, 10, 0x5db, d2_LastWindow);
-            parents[0].x = half - w + w / 2 - 0x5a;
-            parents[0].y = 10;
-            if (parents[0].id != 0xffff) {
-                d2_WinOpenPic(half - w - 0x58, 12, ai_Chars[parents[0].id].picture, d2_LastWindow);
-                d2_Objs[parents[0].ctrl].style = 3;
-                d2_Objs[parents[0].ctrl].user = &ai_Chars[parents[0].id];
-            } else {
-                d2_WinOpenPic(half - w - 0x58, 12, 0x4fb, d2_LastWindow);
-                parents[0].ctrl = -1;
-            }
-            parents[1].ctrl = d2_WinOpenPic(half + 0x5a, 10, 0x5db, d2_LastWindow);
-            parents[1].x = half + w / 2 + 0x5a;
-            parents[1].y = 10;
-            if (parents[1].id != 0xffff) {
-                d2_WinOpenPic(half + 0x5c, 12, ai_Chars[parents[1].id].picture, d2_LastWindow);
-                d2_Objs[parents[1].ctrl].style = 3;
-                d2_Objs[parents[1].ctrl].user = &ai_Chars[parents[1].id];
-            } else {
-                d2_WinOpenPic(half + 0x5c, 12, 0x4fb, d2_LastWindow);
-                parents[1].ctrl = -1;
-            }
-
-            /* the character and its partner */
-            if (partner) {
-                row[2].ctrl = d2_WinOpenPic(half - w - 0x10, 0x96, 0x5db, d2_LastWindow);
-                row[2].x = half - w + w / 2 - 0x10;
-                row[2].y = 0x96;
-                if (row[2].id != 0xffff) {
-                    d2_WinOpenPic(half - w - 0xe, 0x98, ai_Chars[row[2].id].picture, d2_LastWindow);
-                    d2_Objs[row[2].ctrl].style = 3;
-                    d2_Objs[row[2].ctrl].user = &ai_Chars[row[2].id];
-                } else {
-                    d2_WinOpenPic(half - w - 0xe, 0x98, 0x4fb, d2_LastWindow);
-                    row[2].ctrl = -1;
-                }
-                row[3].ctrl = d2_WinOpenPic(half + 0x10, 0x96, 0x5db, d2_LastWindow);
-                row[3].x = half + w / 2 + 0x10;
-                row[3].y = 0x96;
-                if (row[3].id != 0xffff) {
-                    d2_WinOpenPic(half + 0x12, 0x98, ai_Chars[row[3].id].picture, d2_LastWindow);
-                    d2_Objs[row[3].ctrl].style = 3;
-                    d2_Objs[row[3].ctrl].user = &ai_Chars[row[3].id];
-                } else {
-                    d2_WinOpenPic(half + 0x12, 0x98, 0x4fb, d2_LastWindow);
-                    row[3].ctrl = -1;
-                }
-            } else {
-                row[2].ctrl = d2_WinOpenPic(half - w / 2, 0x96, 0x5db, d2_LastWindow);
-                row[2].x = half;
-                row[2].y = 0x96;
-                if (row[2].id != 0xffff) {
-                    d2_WinOpenPic(half - w / 2 + 2, 0x98, ai_Chars[row[2].id].picture, d2_LastWindow);
-                    d2_Objs[row[2].ctrl].style = 3;
-                    d2_Objs[row[2].ctrl].user = &ai_Chars[row[2].id];
-                } else {
-                    d2_WinOpenPic(half - w / 2 + 2, 0x98, 0x4fb, d2_LastWindow);
-                    row[2].ctrl = -1;
-                }
-            }
-
-            /* the siblings, two on each side */
-            if (nSiblings != 0) {
-                siblingX[0] = width / 5 + 0x10;
-                siblingX[1] = width * 4 / 5 - w - 0x10;
-                for (i = 0; i < 2; i++) {
-                    if (row[i].id == 0xffff)
-                        break;
-                    t = siblingX[i];
-                    row[i].ctrl = d2_WinOpenPic(t, 0x96, 0x5db, d2_LastWindow);
-                    row[i].x = w / 2 + t;
-                    row[i].y = 0x96;
-                    d2_WinOpenPic(t + 2, 0x98, ai_Chars[row[i].id].picture, d2_LastWindow);
-                    d2_Objs[row[i].ctrl].style = 3;
-                    d2_Objs[row[i].ctrl].user = &ai_Chars[row[i].id];
-                }
-                siblingX[0] = width / 5 - w - 0x10;
-                siblingX[1] = width * 4 / 5 + 0x10;
-                for (i = 4; i < 6; i++) {
-                    if (row[i].id == 0xffff)
-                        break;
-                    row[i].ctrl = d2_WinOpenPic(siblingX[i - 4], 0x96, 0x5db, d2_LastWindow);
-                    row[i].x = siblingX[i - 4] + w / 2;
-                    row[i].y = 0x96;
-                    d2_WinOpenPic(siblingX[i - 4] + 2, 0x98, ai_Chars[row[i].id].picture, d2_LastWindow);
-                    d2_Objs[row[i].ctrl].style = 3;
-                    d2_Objs[row[i].ctrl].user = &ai_Chars[row[i].id];
-                }
-            }
-
-            /* the lines from the parents down to the middle row */
-            mid = (row[2].y - h - 10) / 2 + h + 10;
-            for (i = 0; i < 2; i++)
-                d2_PlotLine(parents[i].x, parents[i].y + h + 5, parents[i].x, mid, 0x10, 0x10, 0x10);
-            lo = parents[0].x;
-            hi = parents[1].x;
-            for (i = 0; i < 6; i++) {
-                if (row[i].id != 0xffff && i != 3) {
-                    x = row[i].x;
-                    d2_PlotLine(x, row[i].y, x, mid, 0x10, 0x10, 0x10);
-                    if (x < lo)
-                        lo = x;
-                    if (x > hi)
-                        hi = x;
-                }
-            }
-            d2_PlotLine(lo, mid, lo != hi ? hi + 1 : hi, mid, 0x10, 0x10, 0x10);
-
-            /* the children: five places for an odd count, four for an even one */
-            children[0].y = 0x122;
-            if (nChildren != 0) {
-                if (nChildren & 1) {
-                    oddX[0] = half - w / 2;
-                    oddX[1] = oddX[0] - w - 0x28;
-                    oddX[2] = oddX[0] + w + 0x28;
-                    oddX[3] = oddX[1] - w - 0x28;
-                    oddX[4] = oddX[2] + w + 0x28;
-                    for (i = 0; i < 5; i++) {
-                        if (children[i].id == 0xffff)
-                            break;
-                        t = oddX[i];
-                        children[i].ctrl = d2_WinOpenPic(t, 0x122, 0x5db, d2_LastWindow);
-                        children[i].x = w / 2 + t;
-                        children[i].y = 0x122;
-                        d2_WinOpenPic(t + 2, 0x124, ai_Chars[children[i].id].picture, d2_LastWindow);
-                        d2_Objs[children[i].ctrl].style = 3;
-                        d2_Objs[children[i].ctrl].user = &ai_Chars[children[i].id];
-                    }
-                } else {
-                    evenX[0] = half - w - 0x14;
-                    evenX[1] = half + 0x14;
-                    evenX[2] = evenX[0] - w - 0x28;
-                    evenX[3] = evenX[1] + w + 0x28;
-                    for (i = 0; i < 4; i++) {
-                        if (children[i].id == 0xffff)
-                            break;
-                        t = evenX[i];
-                        children[i].ctrl = d2_WinOpenPic(t, 0x122, 0x5db, d2_LastWindow);
-                        children[i].x = w / 2 + t;
-                        children[i].y = 0x122;
-                        d2_WinOpenPic(t + 2, 0x124, ai_Chars[children[i].id].picture, d2_LastWindow);
-                        d2_Objs[children[i].ctrl].style = 3;
-                        d2_Objs[children[i].ctrl].user = &ai_Chars[children[i].id];
-                    }
-                }
-            }
-
-            /* the lines from the character (and its partner) down to the children */
-            lo = row[2].x;
-            hi = row[2].x;
-            if (partner) {
-                hi = row[3].x;
-                for (i = 2; i < 4; i++)
-                    d2_PlotLine(row[i].x, row[i].y + h + 5, row[i].x, (children[0].y - row[2].y - h) / 2 + row[2].y + h, 0x10, 0x10, 0x10);
-                d2_PlotLine(lo, (children[0].y - row[2].y - h) / 2 + row[2].y + h, hi + 1, (children[0].y - row[2].y - h) / 2 + row[2].y + h, 0x10, 0x10, 0x10);
-            }
-            for (i = 0; i < 5; i++) {
-                if (children[i].id != 0xffff) {
-                    x = children[i].x;
-                    d2_PlotLine(x, children[i].y, x, (children[0].y - row[2].y - h) / 2 + row[2].y + h, 0x10, 0x10, 0x10);
-                    if (x < lo)
-                        lo = x;
-                    if (x > hi)
-                        hi = x;
-                }
-            }
-            if (nChildren != 0) {
-                d2_PlotLine(lo, (children[0].y - row[2].y - h) / 2 + row[2].y + h, hi + 1, (children[0].y - row[2].y - h) / 2 + row[2].y + h, 0x10, 0x10, 0x10);
-                if (!partner)
-                    d2_PlotLine(row[2].x, row[2].y + h + 5, row[2].x, (children[0].y - row[2].y - h) / 2 + row[2].y + h, 0x10, 0x10, 0x10);
-            }
-
-            /* the names, the clickable boxes and the mark of the character itself */
-            for (i = 0; i < 6; i++) {
-                if (row[i].id != 0xffff) {
-                    d2_Objs[row[i].ctrl].interactive = (flags & 1) && (flags & 0xc) == 0 || (flags & 0x10) ? 1 : 0;
-                    txt_Format(rowText, (intptr_t)"%1N7", row[i].id);
-                    ai_CentredText(rowText, row[i].x, row[i].y + h + 3, 0x50, 0x56);
-                    if (row[i].id == ch->id)
-                        d2_WinOpenPic(row[i].x - w / 2 - 10, row[i].y - 10, ch->ref54, d2_LastWindow);
-                }
-            }
-            for (i = 0; i < 2; i++) {
-                if (parents[i].id != 0xffff) {
-                    d2_Objs[parents[i].ctrl].interactive = (flags & 4) == 0 && (flags & 8) == 0 ? 1 : 0;
-                    txt_Format(parentText, (intptr_t)"%1N7", parents[i].id);
-                    ai_CentredText(parentText, parents[i].x, parents[i].y + h + 3, 0x50, 0x56);
-                    if (parents[i].id == ch->id)
-                        d2_WinOpenPic(parents[i].x - w / 2 - 10, parents[i].y - 10, ch->ref54, d2_LastWindow);
-                }
-            }
-            for (i = 0; i < 5; i++) {
-                if (children[i].id != 0xffff) {
-                    d2_Objs[children[i].ctrl].interactive = (flags & 1) && (flags & 0xc) == 0
-                        || (flags & 2) && (flags & 8) && ai_Chars[children[i].id].age > 10 ? 1 : 0;
-                    txt_Format(childText, (intptr_t)"%1N7", children[i].id);
-                    ai_CentredText(childText, children[i].x, children[i].y + h + 3, 0x50, 0x56);
-                    if (children[i].id == ch->id)
-                        d2_WinOpenPic(children[i].x - w / 2 - 10, children[i].y - 10, ch->ref54, d2_LastWindow);
-                }
-            }
-        }
-        if (dm_L.rup != 0 && (flags & 8) == 0)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1) {
-            found = -1;
-            pick = 0;
-            for (i = 0; i < 6; i++) {
-                if (d2_PointerObj == row[i].ctrl) {
-                    found = i;
-                    pick = gm_FindChar(ai_Chars[row[i].id].netId);
-                    break;
-                }
-            }
-            for (i = 0; i < 2 && found == -1; i++) {
-                if (d2_PointerObj == parents[i].ctrl) {
-                    found = i;
-                    pick = gm_FindChar(ai_Chars[parents[i].id].netId);
-                    break;
-                }
-            }
-            for (i = 0; i < 5 && found == -1; i++) {
-                if (d2_PointerObj == children[i].ctrl) {
-                    pick = gm_FindChar(ai_Chars[children[i].id].netId);
-                    break;
-                }
-            }
+  if (ai_RunAllows(1) == 0)
+    return;
+  ai_CampaignStep(6, 0, 0, 0);
+  ch = gm_FindChar(netId);
+  if (ch == 0)
+    return;
+  win = d2_OpenForm(0, 0, "Special\\Stammbaum");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 2);
+  if (caption != 0)
+    io_PrintText(caption);
+  else
+    io_PrintText(0x9f);
+  d2_SetForm(win, 1);
+  draw = 1;
+  d2_ClickedId = -1;
+  width = d2_Wins[d2_LastWindow].w;
+  do {
+    if (draw) {
+      k = 0;
+      nChildren = 0;
+      nSiblings = 0;
+      partner = 0;
+      half = width / 2;
+      w = d2_Pics[0x5db].w;
+      h = d2_Pics[0x5db].h;
+      memset(parents, 0xff, sizeof parents);
+      memset(row, 0xff, sizeof row);
+      memset(children, 0xff, sizeof children);
+      draw = 0;
+      row[2].id = ch->id;
+      rel = gm_FindChar(ch->relatives[0]);
+      if (rel != 0 && (ch->flags1c8 & 0x40000) == 0 &&
+          (rel->flags1c8 & 0x40000) == 0) {
+        partner = 1;
+        row[3].id = rel->id;
+      }
+      rel = gm_FindChar(ch->relatives[2]);
+      if (rel != 0)
+        parents[1].id = rel->id;
+      rel = gm_FindChar(ch->relatives[1]);
+      if (rel != 0) {
+        parents[0].id = rel->id;
+        for (j = 3; j < 8 && k < 6; j++) {
+          if (rel->relatives[j] != -1 && rel->relatives[j] != ch->netId) {
+            pick = gm_FindChar(rel->relatives[j]);
             if (pick != 0) {
-                d2_SetViewEnabled(win, 0);
-                if (flags & 0x10)
-                    ai_CharInfoPanel(pick, 0);
-                else if (flags & 8) {
-                    if (ch != pick)
-                        ai_CharInfoPanel(pick, 1);
-                    else
-                        ai_CharInfoPanel(pick, 0);
-                }
-                d2_SetViewEnabled(win, 1);
-            } else {
-                draw = 1;
+              row[k].id = pick->id;
+              k++;
+              nSiblings++;
+              if (k == 2)
+                k = 4;
             }
+          }
         }
-    } while (sv_RunFrame(ai_FamilyTreeWindow, callId) != 0);
-    d2_CloseView(win);
-    ai_CampaignStep(6, 0, 1, 0);
+      }
+      for (i = 3; i < 8 && nChildren < 5; i++) {
+        if (ch->relatives[i] != -1) {
+          rel = gm_FindChar(ch->relatives[i]);
+          if (rel != 0 && rel->kind < 10) {
+            children[nChildren].id = rel->id;
+            nChildren++;
+          }
+        }
+      }
+      d2_SetForm(win, 1);
+      d2_ClearPaintbox();
+      d2_RemoveWindowObjects(d2_LastWindow, 1);
+
+      /* the parents */
+      parents[0].ctrl =
+          d2_WinOpenPic(half - w - 0x5a, 10, 0x5db, d2_LastWindow);
+      parents[0].x = half - w + w / 2 - 0x5a;
+      parents[0].y = 10;
+      if (parents[0].id != 0xffff) {
+        d2_WinOpenPic(half - w - 0x58, 12, ai_Chars[parents[0].id].picture,
+                      d2_LastWindow);
+        d2_Objs[parents[0].ctrl].style = 3;
+        d2_Objs[parents[0].ctrl].user = &ai_Chars[parents[0].id];
+      } else {
+        d2_WinOpenPic(half - w - 0x58, 12, 0x4fb, d2_LastWindow);
+        parents[0].ctrl = -1;
+      }
+      parents[1].ctrl = d2_WinOpenPic(half + 0x5a, 10, 0x5db, d2_LastWindow);
+      parents[1].x = half + w / 2 + 0x5a;
+      parents[1].y = 10;
+      if (parents[1].id != 0xffff) {
+        d2_WinOpenPic(half + 0x5c, 12, ai_Chars[parents[1].id].picture,
+                      d2_LastWindow);
+        d2_Objs[parents[1].ctrl].style = 3;
+        d2_Objs[parents[1].ctrl].user = &ai_Chars[parents[1].id];
+      } else {
+        d2_WinOpenPic(half + 0x5c, 12, 0x4fb, d2_LastWindow);
+        parents[1].ctrl = -1;
+      }
+
+      /* the character and its partner */
+      if (partner) {
+        row[2].ctrl =
+            d2_WinOpenPic(half - w - 0x10, 0x96, 0x5db, d2_LastWindow);
+        row[2].x = half - w + w / 2 - 0x10;
+        row[2].y = 0x96;
+        if (row[2].id != 0xffff) {
+          d2_WinOpenPic(half - w - 0xe, 0x98, ai_Chars[row[2].id].picture,
+                        d2_LastWindow);
+          d2_Objs[row[2].ctrl].style = 3;
+          d2_Objs[row[2].ctrl].user = &ai_Chars[row[2].id];
+        } else {
+          d2_WinOpenPic(half - w - 0xe, 0x98, 0x4fb, d2_LastWindow);
+          row[2].ctrl = -1;
+        }
+        row[3].ctrl = d2_WinOpenPic(half + 0x10, 0x96, 0x5db, d2_LastWindow);
+        row[3].x = half + w / 2 + 0x10;
+        row[3].y = 0x96;
+        if (row[3].id != 0xffff) {
+          d2_WinOpenPic(half + 0x12, 0x98, ai_Chars[row[3].id].picture,
+                        d2_LastWindow);
+          d2_Objs[row[3].ctrl].style = 3;
+          d2_Objs[row[3].ctrl].user = &ai_Chars[row[3].id];
+        } else {
+          d2_WinOpenPic(half + 0x12, 0x98, 0x4fb, d2_LastWindow);
+          row[3].ctrl = -1;
+        }
+      } else {
+        row[2].ctrl = d2_WinOpenPic(half - w / 2, 0x96, 0x5db, d2_LastWindow);
+        row[2].x = half;
+        row[2].y = 0x96;
+        if (row[2].id != 0xffff) {
+          d2_WinOpenPic(half - w / 2 + 2, 0x98, ai_Chars[row[2].id].picture,
+                        d2_LastWindow);
+          d2_Objs[row[2].ctrl].style = 3;
+          d2_Objs[row[2].ctrl].user = &ai_Chars[row[2].id];
+        } else {
+          d2_WinOpenPic(half - w / 2 + 2, 0x98, 0x4fb, d2_LastWindow);
+          row[2].ctrl = -1;
+        }
+      }
+
+      /* the siblings, two on each side */
+      if (nSiblings != 0) {
+        siblingX[0] = width / 5 + 0x10;
+        siblingX[1] = width * 4 / 5 - w - 0x10;
+        for (i = 0; i < 2; i++) {
+          if (row[i].id == 0xffff)
+            break;
+          t = siblingX[i];
+          row[i].ctrl = d2_WinOpenPic(t, 0x96, 0x5db, d2_LastWindow);
+          row[i].x = w / 2 + t;
+          row[i].y = 0x96;
+          d2_WinOpenPic(t + 2, 0x98, ai_Chars[row[i].id].picture,
+                        d2_LastWindow);
+          d2_Objs[row[i].ctrl].style = 3;
+          d2_Objs[row[i].ctrl].user = &ai_Chars[row[i].id];
+        }
+        siblingX[0] = width / 5 - w - 0x10;
+        siblingX[1] = width * 4 / 5 + 0x10;
+        for (i = 4; i < 6; i++) {
+          if (row[i].id == 0xffff)
+            break;
+          row[i].ctrl =
+              d2_WinOpenPic(siblingX[i - 4], 0x96, 0x5db, d2_LastWindow);
+          row[i].x = siblingX[i - 4] + w / 2;
+          row[i].y = 0x96;
+          d2_WinOpenPic(siblingX[i - 4] + 2, 0x98, ai_Chars[row[i].id].picture,
+                        d2_LastWindow);
+          d2_Objs[row[i].ctrl].style = 3;
+          d2_Objs[row[i].ctrl].user = &ai_Chars[row[i].id];
+        }
+      }
+
+      /* the lines from the parents down to the middle row */
+      mid = (row[2].y - h - 10) / 2 + h + 10;
+      for (i = 0; i < 2; i++)
+        d2_PlotLine(parents[i].x, parents[i].y + h + 5, parents[i].x, mid, 0x10,
+                    0x10, 0x10);
+      lo = parents[0].x;
+      hi = parents[1].x;
+      for (i = 0; i < 6; i++) {
+        if (row[i].id != 0xffff && i != 3) {
+          x = row[i].x;
+          d2_PlotLine(x, row[i].y, x, mid, 0x10, 0x10, 0x10);
+          if (x < lo)
+            lo = x;
+          if (x > hi)
+            hi = x;
+        }
+      }
+      d2_PlotLine(lo, mid, lo != hi ? hi + 1 : hi, mid, 0x10, 0x10, 0x10);
+
+      /* the children: five places for an odd count, four for an even one */
+      children[0].y = 0x122;
+      if (nChildren != 0) {
+        if (nChildren & 1) {
+          oddX[0] = half - w / 2;
+          oddX[1] = oddX[0] - w - 0x28;
+          oddX[2] = oddX[0] + w + 0x28;
+          oddX[3] = oddX[1] - w - 0x28;
+          oddX[4] = oddX[2] + w + 0x28;
+          for (i = 0; i < 5; i++) {
+            if (children[i].id == 0xffff)
+              break;
+            t = oddX[i];
+            children[i].ctrl = d2_WinOpenPic(t, 0x122, 0x5db, d2_LastWindow);
+            children[i].x = w / 2 + t;
+            children[i].y = 0x122;
+            d2_WinOpenPic(t + 2, 0x124, ai_Chars[children[i].id].picture,
+                          d2_LastWindow);
+            d2_Objs[children[i].ctrl].style = 3;
+            d2_Objs[children[i].ctrl].user = &ai_Chars[children[i].id];
+          }
+        } else {
+          evenX[0] = half - w - 0x14;
+          evenX[1] = half + 0x14;
+          evenX[2] = evenX[0] - w - 0x28;
+          evenX[3] = evenX[1] + w + 0x28;
+          for (i = 0; i < 4; i++) {
+            if (children[i].id == 0xffff)
+              break;
+            t = evenX[i];
+            children[i].ctrl = d2_WinOpenPic(t, 0x122, 0x5db, d2_LastWindow);
+            children[i].x = w / 2 + t;
+            children[i].y = 0x122;
+            d2_WinOpenPic(t + 2, 0x124, ai_Chars[children[i].id].picture,
+                          d2_LastWindow);
+            d2_Objs[children[i].ctrl].style = 3;
+            d2_Objs[children[i].ctrl].user = &ai_Chars[children[i].id];
+          }
+        }
+      }
+
+      /* the lines from the character (and its partner) down to the children */
+      lo = row[2].x;
+      hi = row[2].x;
+      if (partner) {
+        hi = row[3].x;
+        for (i = 2; i < 4; i++)
+          d2_PlotLine(row[i].x, row[i].y + h + 5, row[i].x,
+                      (children[0].y - row[2].y - h) / 2 + row[2].y + h, 0x10,
+                      0x10, 0x10);
+        d2_PlotLine(lo, (children[0].y - row[2].y - h) / 2 + row[2].y + h,
+                    hi + 1, (children[0].y - row[2].y - h) / 2 + row[2].y + h,
+                    0x10, 0x10, 0x10);
+      }
+      for (i = 0; i < 5; i++) {
+        if (children[i].id != 0xffff) {
+          x = children[i].x;
+          d2_PlotLine(x, children[i].y, x,
+                      (children[0].y - row[2].y - h) / 2 + row[2].y + h, 0x10,
+                      0x10, 0x10);
+          if (x < lo)
+            lo = x;
+          if (x > hi)
+            hi = x;
+        }
+      }
+      if (nChildren != 0) {
+        d2_PlotLine(lo, (children[0].y - row[2].y - h) / 2 + row[2].y + h,
+                    hi + 1, (children[0].y - row[2].y - h) / 2 + row[2].y + h,
+                    0x10, 0x10, 0x10);
+        if (!partner)
+          d2_PlotLine(row[2].x, row[2].y + h + 5, row[2].x,
+                      (children[0].y - row[2].y - h) / 2 + row[2].y + h, 0x10,
+                      0x10, 0x10);
+      }
+
+      /* the names, the clickable boxes and the mark of the character itself */
+      for (i = 0; i < 6; i++) {
+        if (row[i].id != 0xffff) {
+          d2_Objs[row[i].ctrl].interactive =
+              (flags & 1) && (flags & 0xc) == 0 || (flags & 0x10) ? 1 : 0;
+          txt_Format(rowText, (intptr_t)"%1N7", row[i].id);
+          ai_CentredText(rowText, row[i].x, row[i].y + h + 3, 0x50, 0x56);
+          if (row[i].id == ch->id)
+            d2_WinOpenPic(row[i].x - w / 2 - 10, row[i].y - 10, ch->ref54,
+                          d2_LastWindow);
+        }
+      }
+      for (i = 0; i < 2; i++) {
+        if (parents[i].id != 0xffff) {
+          d2_Objs[parents[i].ctrl].interactive =
+              (flags & 4) == 0 && (flags & 8) == 0 ? 1 : 0;
+          txt_Format(parentText, (intptr_t)"%1N7", parents[i].id);
+          ai_CentredText(parentText, parents[i].x, parents[i].y + h + 3, 0x50,
+                         0x56);
+          if (parents[i].id == ch->id)
+            d2_WinOpenPic(parents[i].x - w / 2 - 10, parents[i].y - 10,
+                          ch->ref54, d2_LastWindow);
+        }
+      }
+      for (i = 0; i < 5; i++) {
+        if (children[i].id != 0xffff) {
+          d2_Objs[children[i].ctrl].interactive =
+              (flags & 1) && (flags & 0xc) == 0 ||
+                      (flags & 2) && (flags & 8) &&
+                          ai_Chars[children[i].id].age > 10
+                  ? 1
+                  : 0;
+          txt_Format(childText, (intptr_t)"%1N7", children[i].id);
+          ai_CentredText(childText, children[i].x, children[i].y + h + 3, 0x50,
+                         0x56);
+          if (children[i].id == ch->id)
+            d2_WinOpenPic(children[i].x - w / 2 - 10, children[i].y - 10,
+                          ch->ref54, d2_LastWindow);
+        }
+      }
+    }
+    if (dm_L.rup != 0 && (flags & 8) == 0)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1) {
+      found = -1;
+      pick = 0;
+      for (i = 0; i < 6; i++) {
+        if (d2_PointerObj == row[i].ctrl) {
+          found = i;
+          pick = gm_FindChar(ai_Chars[row[i].id].netId);
+          break;
+        }
+      }
+      for (i = 0; i < 2 && found == -1; i++) {
+        if (d2_PointerObj == parents[i].ctrl) {
+          found = i;
+          pick = gm_FindChar(ai_Chars[parents[i].id].netId);
+          break;
+        }
+      }
+      for (i = 0; i < 5 && found == -1; i++) {
+        if (d2_PointerObj == children[i].ctrl) {
+          pick = gm_FindChar(ai_Chars[children[i].id].netId);
+          break;
+        }
+      }
+      if (pick != 0) {
+        d2_SetViewEnabled(win, 0);
+        if (flags & 0x10)
+          ai_CharInfoPanel(pick, 0);
+        else if (flags & 8) {
+          if (ch != pick)
+            ai_CharInfoPanel(pick, 1);
+          else
+            ai_CharInfoPanel(pick, 0);
+        }
+        d2_SetViewEnabled(win, 1);
+      } else {
+        draw = 1;
+      }
+    }
+  } while (sv_RunFrame(ai_FamilyTreeWindow, callId) != 0);
+  d2_CloseView(win);
+  ai_CampaignStep(6, 0, 1, 0);
 }
 
 void ai_ShowMissions(int owner);
@@ -4670,292 +4875,303 @@ void ai_ShowMissions(int owner);
    powerFlags has 0x20) and with it the profession choice for a jobless child (no event 0x5e and f020 at most the
    age + 4) or the university for one with a profession that has not studied (powerFlags 0x10000), and for the
    player's own character the missions button when it has missions. The right button closes it. */
-void ai_CharInfoPanel(AICHAR *chr, int other)
-{
-    int win;
-    int y;
-    int giftBtn;
-    int professionBtn;
-    int i;
-    int dead;
-    int width;
-    int takeOverBtn;
-    int universityBtn;
-    int missionBtn;
-    GMDATE date;
-    char text[64];
-    int callId;
-    char text1[512];
-    char text2[512];
-    AICHAR *rel;
-    AICHAR *betrothed;
-    AIJOB *ev;
-    int officeBase;
-    int any;
-    int row;
-    int obj;
-    int base;
+void ai_CharInfoPanel(AICHAR *chr, int other) {
+  int win;
+  int y;
+  int giftBtn;
+  int professionBtn;
+  int i;
+  int dead;
+  int width;
+  int takeOverBtn;
+  int universityBtn;
+  int missionBtn;
+  GMDATE date;
+  char text[64];
+  int callId;
+  char text1[512];
+  char text2[512];
+  AICHAR *rel;
+  AICHAR *betrothed;
+  AIJOB *ev;
+  int officeBase;
+  int any;
+  int row;
+  int obj;
+  int base;
 
-    dead = 0;
-    takeOverBtn = -1;
-    missionBtn = -1;
-    giftBtn = -1;
-    universityBtn = -1;
-    professionBtn = -1;
-    callId = sv_FrameMask;
-    win = d2_OpenForm(0, 0, "panel\\info_spieler");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1f53, chr->id);
+  dead = 0;
+  takeOverBtn = -1;
+  missionBtn = -1;
+  giftBtn = -1;
+  universityBtn = -1;
+  professionBtn = -1;
+  callId = sv_FrameMask;
+  win = d2_OpenForm(0, 0, "panel\\info_spieler");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1f53, chr->id);
 
-    /* page 2: the dates, the profession, the offices, the worth, the partner, the faith and the children */
-    d2_SetForm(win, 2);
-    gm_BirthDate(chr, &date);
-    txt_Format(text, (intptr_t)"*%i.%i.%i", date.day, date.month, date.year);
+  /* page 2: the dates, the profession, the offices, the worth, the partner, the faith and the children */
+  d2_SetForm(win, 2);
+  gm_BirthDate(chr, &date);
+  txt_Format(text, (intptr_t)"*%i.%i.%i", date.day, date.month, date.year);
+  io_PrintText((intptr_t)"$3>$L%s$A$0>", text);
+  if (gm_DeathDate(chr, &date) != 0) {
+    txt_Format(text, (intptr_t)"+%i.%i.%i", date.day, date.month, date.year);
     io_PrintText((intptr_t)"$3>$L%s$A$0>", text);
-    if (gm_DeathDate(chr, &date) != 0) {
-        txt_Format(text, (intptr_t)"+%i.%i.%i", date.day, date.month, date.year);
-        io_PrintText((intptr_t)"$3>$L%s$A$0>", text);
-        dead = 1;
+    dead = 1;
+  } else {
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%i$A$0>", 0x1f54,
+                 (int)gm_CharAge(chr->id));
+  }
+  if (chr->jobId != 0) {
+    if (chr->sex)
+      base = 0x18f;
+    else
+      base = 0x130;
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f55, chr->jobId + base);
+  } else if (chr->title != 0) {
+    if (chr->sex)
+      base = 0x230;
+    else
+      base = 0x20d;
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f56, chr->title + base);
+  }
+  officeBase = chr->sex ? 0x27b : 0x253;
+  if (chr->officeKind == 0 && chr->secondOffice == 0) {
+    txt_Format(text, (intptr_t)"%s", "-");
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, text);
+  }
+  if (chr->officeKind != 0 && chr->secondOffice != 0)
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A%s$A$0>", 0x1f57,
+                 chr->officeKind + officeBase, chr->secondOffice + officeBase);
+  else if (chr->officeKind != 0)
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57,
+                 chr->officeKind + officeBase);
+  else if (chr->secondOffice != 0)
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57,
+                 chr->secondOffice + officeBase);
+  if (!dead) {
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%T$A$0>", 0x1f58,
+                 gm_GetWorth(chr->id));
+  } else {
+    gm_GetWorth(chr->id);
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f58, "-");
+  }
+  rel = gm_FindChar(chr->relatives[0]);
+  if (dead) {
+    strcpy(text, "-");
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", txt_Ptrs[0x1f59], text);
+  } else if (rel != 0 && rel->health > 0) {
+    txt_Format(text, 0x1f5f, rel->id);
+    io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
+  } else {
+    ev = he_FindEvent(1, 0, 0x41);
+    while (ev != 0 && ev->partner1 != chr->netId)
+      ev = he_NextEvent();
+    if (ev != 0 && (betrothed = gm_FindChar(ev->partner2)) != 0) {
+      txt_Format(text, 0x1f5e, betrothed->id);
+      io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
+    } else if (rel != 0) {
+      txt_Format(text, 0x1f60, rel->id);
+      io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
     } else {
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%i$A$0>", 0x1f54, (int)gm_CharAge(chr->id));
+      io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, 0x1f5d);
     }
-    if (chr->jobId != 0) {
-        if (chr->sex)
-            base = 0x18f;
-        else
-            base = 0x130;
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f55, chr->jobId + base);
-    } else if (chr->title != 0) {
-        if (chr->sex)
-            base = 0x230;
-        else
-            base = 0x20d;
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f56, chr->title + base);
+  }
+  io_PrintText((intptr_t)"$5<$R%s $0<$3>$L%s$A$0>", 0x488,
+               (ai_Time.year < 0x75 ? 0x486 : 0x483) + chr->faith);
+  io_PrintText((intptr_t)"$5<$R%s$0<", 0x1f5a);
+  any = 0;
+  for (i = 3; i < 8; i++) {
+    rel = gm_FindChar(chr->relatives[i]);
+    if (rel != 0) {
+      any = 1;
+      io_PrintText((intptr_t)"$3>$L%1N1$A$0>", rel->id);
     }
-    officeBase = chr->sex ? 0x27b : 0x253;
-    if (chr->officeKind == 0 && chr->secondOffice == 0) {
-        txt_Format(text, (intptr_t)"%s", "-");
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, text);
-    }
-    if (chr->officeKind != 0 && chr->secondOffice != 0)
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A%s$A$0>", 0x1f57, chr->officeKind + officeBase, chr->secondOffice + officeBase);
-    else if (chr->officeKind != 0)
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, chr->officeKind + officeBase);
-    else if (chr->secondOffice != 0)
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f57, chr->secondOffice + officeBase);
-    if (!dead) {
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%T$A$0>", 0x1f58, gm_GetWorth(chr->id));
-    } else {
-        gm_GetWorth(chr->id);
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f58, "-");
-    }
-    rel = gm_FindChar(chr->relatives[0]);
-    if (dead) {
-        strcpy(text, "-");
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", txt_Ptrs[0x1f59], text);
-    } else if (rel != 0 && rel->health > 0) {
-        txt_Format(text, 0x1f5f, rel->id);
-        io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
-    } else {
-        ev = he_FindEvent(1, 0, 0x41);
-        while (ev != 0 && ev->partner1 != chr->netId)
-            ev = he_NextEvent();
-        if (ev != 0 && (betrothed = gm_FindChar(ev->partner2)) != 0) {
-            txt_Format(text, 0x1f5e, betrothed->id);
-            io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
-        } else if (rel != 0) {
-            txt_Format(text, 0x1f60, rel->id);
-            io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, text);
-        } else {
-            io_PrintText((intptr_t)"$5<$R%s$0<$3>$L%s$A$0>", 0x1f59, 0x1f5d);
-        }
-    }
-    io_PrintText((intptr_t)"$5<$R%s $0<$3>$L%s$A$0>", 0x488, (ai_Time.year < 0x75 ? 0x486 : 0x483) + chr->faith);
-    io_PrintText((intptr_t)"$5<$R%s$0<", 0x1f5a);
-    any = 0;
-    for (i = 3; i < 8; i++) {
-        rel = gm_FindChar(chr->relatives[i]);
-        if (rel != 0) {
-            any = 1;
-            io_PrintText((intptr_t)"$3>$L%1N1$A$0>", rel->id);
-        }
-    }
-    if (!any)
-        io_PrintText((intptr_t)"$3>$L-$A$0>");
+  }
+  if (!any)
+    io_PrintText((intptr_t)"$3>$L-$A$0>");
 
-    /* page 3: the skills and the ailments */
-    row = 0;
-    d2_SetForm(win, 3);
-    width = d2_Wins[d2_LastWindow].w;
-    txt_Format(text, 0x1f61);
-    obj = d2_CreateWinText(0, 1, text, d2_LastWindow);
-    y = 2;
-    d2_Objs[obj].centred = 1;
-    d2_Objs[obj].w = width;
-    for (i = 0; i < 5; i++) {
-        row++;
-        y += 0x18;
-        txt_Format(text, 0x16b7 + i);
-        d2_CreateWinText(10, row * 0x18 + 1, text, d2_LastWindow);
-        sv_DrawBalanceBar(0xaf, y, chr, i, 0x4e5);
-    }
+  /* page 3: the skills and the ailments */
+  row = 0;
+  d2_SetForm(win, 3);
+  width = d2_Wins[d2_LastWindow].w;
+  txt_Format(text, 0x1f61);
+  obj = d2_CreateWinText(0, 1, text, d2_LastWindow);
+  y = 2;
+  d2_Objs[obj].centred = 1;
+  d2_Objs[obj].w = width;
+  for (i = 0; i < 5; i++) {
     row++;
-    txt_Format(text, 0x1f63);
-    obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-    d2_Objs[obj].centred = 1;
-    row++;
-    d2_Objs[obj].w = width;
-    if (chr->ailments != 0) {
-        if (chr->ailments & 0xf) {
-            txt_Format(text, 0x161e);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
-        if (chr->ailments & 0xf0) {
-            txt_Format(text, 0x161f);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
-        if (chr->ailments & 0xf00) {
-            txt_Format(text, 0x1620);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
-        if (chr->ailments & 0x3000) {
-            txt_Format(text, 0x1621);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
-        if (chr->ailments & 0x1c000) {
-            txt_Format(text, 0x1622);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
-        if (chr->ailments & 0xe0000) {
-            txt_Format(text, 0x1623);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
-        if (chr->ailments & 7 << 20) {
-            txt_Format(text, 0x1624);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
-        if (chr->ailments & 0x1800000) {
-            txt_Format(text, 0x1625);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
-        if (chr->ailments & 0x1e000000) {
-            txt_Format(text, 0x1626);
-            obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
-            d2_Objs[obj].centred = 1;
-            row++;
-            d2_Objs[obj].w = width;
-        }
+    y += 0x18;
+    txt_Format(text, 0x16b7 + i);
+    d2_CreateWinText(10, row * 0x18 + 1, text, d2_LastWindow);
+    sv_DrawBalanceBar(0xaf, y, chr, i, 0x4e5);
+  }
+  row++;
+  txt_Format(text, 0x1f63);
+  obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+  d2_Objs[obj].centred = 1;
+  row++;
+  d2_Objs[obj].w = width;
+  if (chr->ailments != 0) {
+    if (chr->ailments & 0xf) {
+      txt_Format(text, 0x161e);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
     }
+    if (chr->ailments & 0xf0) {
+      txt_Format(text, 0x161f);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
+    }
+    if (chr->ailments & 0xf00) {
+      txt_Format(text, 0x1620);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
+    }
+    if (chr->ailments & 0x3000) {
+      txt_Format(text, 0x1621);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
+    }
+    if (chr->ailments & 0x1c000) {
+      txt_Format(text, 0x1622);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
+    }
+    if (chr->ailments & 0xe0000) {
+      txt_Format(text, 0x1623);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
+    }
+    if (chr->ailments & 7 << 20) {
+      txt_Format(text, 0x1624);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
+    }
+    if (chr->ailments & 0x1800000) {
+      txt_Format(text, 0x1625);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
+    }
+    if (chr->ailments & 0x1e000000) {
+      txt_Format(text, 0x1626);
+      obj = d2_CreateWinText(0, row * 0x18 + 10, text, d2_LastWindow);
+      d2_Objs[obj].centred = 1;
+      row++;
+      d2_Objs[obj].w = width;
+    }
+  }
 
-    /* page 4: the buttons */
-    if (other != 0) {
-        d2_SetForm(win, 4);
-        takeOverBtn = d2_GetWinObj(win, 4, io_PrintText(0x1f50, chr->id));
-    } else {
-        if (ai_Chars[ai_PlayerId].sex == 0 && chr->relatives[1] == ai_Chars[ai_PlayerId].netId
-            || ai_Chars[ai_PlayerId].sex == 1 && chr->relatives[2] == ai_Chars[ai_PlayerId].netId) {
-            if (chr->jobId == 0) {
-                if (he_FindEvent(2, 2, chr->id, 0, 0x5e) == 0 && chr->f020 <= chr->age + 4) {
-                    if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
-                        txt_Format(text1, 0x1f4b, chr->id);
-                        txt_Format(text2, 0x1a96);
-                        d2_SetForm(win, 4);
-                        {
-                            int btns[2];
-                            sv_ButtonRow(d2_LastWindow, 0, btns, 2, text1, text2);
-                            giftBtn = btns[0];
-                            professionBtn = btns[1];
-                        }
-                    }
-                } else if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
-                    txt_Format(text1, 0x1f4b, chr->id);
-                    d2_SetForm(win, 4);
-                    giftBtn = d2_GetWinObj(win, 4, io_PrintText((intptr_t)"%ia[%s]", text1));
-                }
-            } else if ((chr->flags1c8 & 0x10000) == 0) {
-                if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
-                    txt_Format(text2, 0x1f4b, chr->id);
-                    txt_Format(text1, 0x1a97);
-                    d2_SetForm(win, 4);
-                    {
-                        int btns[2];
-                        sv_ButtonRow(d2_LastWindow, 0, btns, 2, text2, text1);
-                        giftBtn = btns[0];
-                        universityBtn = btns[1];
-                    }
-                }
-            } else if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
-                txt_Format(text1, 0x1f4b, chr->id);
-                d2_SetForm(win, 4);
-                giftBtn = d2_GetWinObj(win, 4, io_PrintText((intptr_t)"%ia[%s]", text1));
-            }
-        } else if (ai_Chars[ai_PlayerId].netId == chr->netId && ai_HasMission(chr->netId)) {
+  /* page 4: the buttons */
+  if (other != 0) {
+    d2_SetForm(win, 4);
+    takeOverBtn = d2_GetWinObj(win, 4, io_PrintText(0x1f50, chr->id));
+  } else {
+    if (ai_Chars[ai_PlayerId].sex == 0 &&
+            chr->relatives[1] == ai_Chars[ai_PlayerId].netId ||
+        ai_Chars[ai_PlayerId].sex == 1 &&
+            chr->relatives[2] == ai_Chars[ai_PlayerId].netId) {
+      if (chr->jobId == 0) {
+        if (he_FindEvent(2, 2, chr->id, 0, 0x5e) == 0 &&
+            chr->f020 <= chr->age + 4) {
+          if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
+            txt_Format(text1, 0x1f4b, chr->id);
+            txt_Format(text2, 0x1a96);
             d2_SetForm(win, 4);
-            missionBtn = d2_GetWinObj(win, 4, io_PrintText(0x1f49));
-        }
-    }
-
-    d2_ClickedId = -1;
-    d2_PointerObj = -1;
-    do {
-        if (giftBtn != -1) {
-            if (gm_GetGoodsValue(&ai_Chars[ai_PlayerId]) <= 0)
-                d2_SetObjEnabled(giftBtn, 0);
-            else
-                d2_SetObjEnabled(giftBtn, 1);
-        }
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1) {
-            d2_SetViewEnabled(win, 0);
-            if (d2_PointerObj == takeOverBtn) {
-                txt_Format(text2, 0x1f51, chr->id, chr->id);
-                if (sv_MessageBox((intptr_t)text2, 1) != 0) {
-                    cm_SendTakeOverCharacter(ai_Chars[ai_PlayerId].netId, chr->netId);
-                    sv_PopRequest = 2;
-                }
-            } else if (d2_PointerObj == giftBtn) {
-                if (ai_GiftWindow(&ai_Chars[ai_PlayerId], chr) != 0)
-                    d2_SetObjEnabled(giftBtn, 0);
-            } else if (d2_PointerObj == professionBtn) {
-                if (ai_ChooseProfessionWindow(&ai_Chars[ai_PlayerId], chr) != 0)
-                    d2_SetObjEnabled(professionBtn, 0);
-            } else if (d2_PointerObj == universityBtn) {
-                if (ai_UniversityWindow(&ai_Chars[ai_PlayerId], chr) != 0)
-                    d2_SetObjEnabled(universityBtn, 0);
-            } else if (d2_PointerObj == missionBtn) {
-                ai_ShowMissions(chr->netId);
+            {
+              int btns[2];
+              sv_ButtonRow(d2_LastWindow, 0, btns, 2, text1, text2);
+              giftBtn = btns[0];
+              professionBtn = btns[1];
             }
-            d2_SetViewEnabled(win, 1);
+          }
+        } else if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
+          txt_Format(text1, 0x1f4b, chr->id);
+          d2_SetForm(win, 4);
+          giftBtn =
+              d2_GetWinObj(win, 4, io_PrintText((intptr_t)"%ia[%s]", text1));
         }
-    } while (sv_RunFrame(ai_CharInfoPanel, callId) != 0);
-    d2_CloseView(win);
+      } else if ((chr->flags1c8 & 0x10000) == 0) {
+        if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
+          txt_Format(text2, 0x1f4b, chr->id);
+          txt_Format(text1, 0x1a97);
+          d2_SetForm(win, 4);
+          {
+            int btns[2];
+            sv_ButtonRow(d2_LastWindow, 0, btns, 2, text2, text1);
+            giftBtn = btns[0];
+            universityBtn = btns[1];
+          }
+        }
+      } else if ((ai_Chars[ai_PlayerId].flags1c8 & 0x20) == 0) {
+        txt_Format(text1, 0x1f4b, chr->id);
+        d2_SetForm(win, 4);
+        giftBtn =
+            d2_GetWinObj(win, 4, io_PrintText((intptr_t)"%ia[%s]", text1));
+      }
+    } else if (ai_Chars[ai_PlayerId].netId == chr->netId &&
+               ai_HasMission(chr->netId)) {
+      d2_SetForm(win, 4);
+      missionBtn = d2_GetWinObj(win, 4, io_PrintText(0x1f49));
+    }
+  }
+
+  d2_ClickedId = -1;
+  d2_PointerObj = -1;
+  do {
+    if (giftBtn != -1) {
+      if (gm_GetGoodsValue(&ai_Chars[ai_PlayerId]) <= 0)
+        d2_SetObjEnabled(giftBtn, 0);
+      else
+        d2_SetObjEnabled(giftBtn, 1);
+    }
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1) {
+      d2_SetViewEnabled(win, 0);
+      if (d2_PointerObj == takeOverBtn) {
+        txt_Format(text2, 0x1f51, chr->id, chr->id);
+        if (sv_MessageBox((intptr_t)text2, 1) != 0) {
+          cm_SendTakeOverCharacter(ai_Chars[ai_PlayerId].netId, chr->netId);
+          sv_PopRequest = 2;
+        }
+      } else if (d2_PointerObj == giftBtn) {
+        if (ai_GiftWindow(&ai_Chars[ai_PlayerId], chr) != 0)
+          d2_SetObjEnabled(giftBtn, 0);
+      } else if (d2_PointerObj == professionBtn) {
+        if (ai_ChooseProfessionWindow(&ai_Chars[ai_PlayerId], chr) != 0)
+          d2_SetObjEnabled(professionBtn, 0);
+      } else if (d2_PointerObj == universityBtn) {
+        if (ai_UniversityWindow(&ai_Chars[ai_PlayerId], chr) != 0)
+          d2_SetObjEnabled(universityBtn, 0);
+      } else if (d2_PointerObj == missionBtn) {
+        ai_ShowMissions(chr->netId);
+      }
+      d2_SetViewEnabled(win, 1);
+    }
+  } while (sv_RunFrame(ai_CharInfoPanel, callId) != 0);
+  d2_CloseView(win);
 }
 /* 0x5c6050, the gift window "misc\geschenck" (1133 B): the player (giver, the player's character record) gives chr
    money. The least gift is 0.5 % of the player's worth (gm_GetWorth), at least 0x640, the most 5 % of the worth or
@@ -4965,125 +5181,128 @@ void ai_CharInfoPanel(AICHAR *chr, int other)
    (give, close). Give: when the player has the amount (sv_CheckGoodAmount) the group "gift" moves it from the giver
    to chr and sets the giver's bit 0x20; the window closes and it returns 1. A right click or close returns 0 */
 
-int ai_GiftWindow(AICHAR *giver, AICHAR *chr)
-{
-    int slider;
-    int least;
-    int giveBtn;
-    int closeBtn;
-    int most;
-    int win;
-    int given;
-    int used;
-    int text;
-    int amount;
+int ai_GiftWindow(AICHAR *giver, AICHAR *chr) {
+  int slider;
+  int least;
+  int giveBtn;
+  int closeBtn;
+  int most;
+  int win;
+  int given;
+  int used;
+  int text;
+  int amount;
 
-    giveBtn = -1;
-    closeBtn = -1;
-    slider = -1;
-    least = max(0x640, (int)(gm_GetWorth(ai_Chars[ai_PlayerId].id) * 0.005f));
-    most = max(0xc80, (int)min((float)(gm_GetWorth(ai_Chars[ai_PlayerId].id) * 0.05f),
-                                (float)gm_GetGoodsValue(&ai_Chars[ai_PlayerId])));
-    if (most <= 0)
-        return 0;
-    used = (giver->flags1c8 >> 5) & 1;
-    win = d2_OpenForm(0, 0, "misc\\geschenck");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1f4c);
-    if (used) {
-        io_PrintText(0x1f4f);
-    } else {
-        slider = d2_GetWinObj(win, 1, io_PrintText(0x1f4d, chr->id, ai_OwnPlayer));
-        text = io_PrintText(0x1f4e);
-        giveBtn = d2_GetWinObj(win, 1, text);
-        closeBtn = d2_GetWinObj(win, 1, text + 1);
-        d2_SetObjValue(slider, gm_ConvertMoney(least, ai_OwnPlayer), gm_ConvertMoney(most, ai_OwnPlayer),
-                       gm_ConvertMoney(least, ai_OwnPlayer));
-    }
-    given = 0;
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1 && !used) {
-            if (d2_PointerObj == giveBtn) {
-                amount = gm_PlayerFactor(d2_GetObjValue(slider), ai_OwnPlayer);
-                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], amount, ai_OwnPlayer)) {
-                    unsigned int flags = giver->flags1c8 | 0x20;
+  giveBtn = -1;
+  closeBtn = -1;
+  slider = -1;
+  least = max(0x640, (int)(gm_GetWorth(ai_Chars[ai_PlayerId].id) * 0.005f));
+  most = max(0xc80,
+             (int)min((float)(gm_GetWorth(ai_Chars[ai_PlayerId].id) * 0.05f),
+                      (float)gm_GetGoodsValue(&ai_Chars[ai_PlayerId])));
+  if (most <= 0)
+    return 0;
+  used = (giver->flags1c8 >> 5) & 1;
+  win = d2_OpenForm(0, 0, "misc\\geschenck");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1f4c);
+  if (used) {
+    io_PrintText(0x1f4f);
+  } else {
+    slider = d2_GetWinObj(win, 1, io_PrintText(0x1f4d, chr->id, ai_OwnPlayer));
+    text = io_PrintText(0x1f4e);
+    giveBtn = d2_GetWinObj(win, 1, text);
+    closeBtn = d2_GetWinObj(win, 1, text + 1);
+    d2_SetObjValue(slider, gm_ConvertMoney(least, ai_OwnPlayer),
+                   gm_ConvertMoney(most, ai_OwnPlayer),
+                   gm_ConvertMoney(least, ai_OwnPlayer));
+  }
+  given = 0;
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1 && !used) {
+      if (d2_PointerObj == giveBtn) {
+        amount = gm_PlayerFactor(d2_GetObjValue(slider), ai_OwnPlayer);
+        if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], amount, ai_OwnPlayer)) {
+          unsigned int flags = giver->flags1c8 | 0x20;
 
-                    cm_BeginGroup("gift");
-                    cm_SendMoveGoods(chr->netId, giver->netId, ai_OwnPlayer, amount);
-                    cm_BeginFieldBlock(giver, giver->netId);
-                    cm_AddFieldDelta(4, 1, 0x1c8, &flags);
-                    cm_SendFieldDeltas();
-                    cm_EndGroup("gift");
-                }
-                given = 1;
-                sv_PopRequest = 1;
-            } else if (d2_PointerObj == closeBtn) {
-                sv_PopRequest = 1;
-            }
+          cm_BeginGroup("gift");
+          cm_SendMoveGoods(chr->netId, giver->netId, ai_OwnPlayer, amount);
+          cm_BeginFieldBlock(giver, giver->netId);
+          cm_AddFieldDelta(4, 1, 0x1c8, &flags);
+          cm_SendFieldDeltas();
+          cm_EndGroup("gift");
         }
-    } while (sv_RunFrame(ai_GiftWindow, 0x677c7) != 0);
-    d2_CloseView(win);
-    return given;
+        given = 1;
+        sv_PopRequest = 1;
+      } else if (d2_PointerObj == closeBtn) {
+        sv_PopRequest = 1;
+      }
+    }
+  } while (sv_RunFrame(ai_GiftWindow, 0x677c7) != 0);
+  d2_CloseView(win);
+  return given;
 }
 
 struct AICHAR;
 int gm_CharLevel(unsigned short id, int again);
-unsigned int ai_FindCandidates(struct AICHAR *p, unsigned int n, unsigned int fl, float lo, float hi, unsigned short *out);
+unsigned int ai_FindCandidates(struct AICHAR *p, unsigned int n,
+                               unsigned int fl, float lo, float hi,
+                               unsigned short *out);
 
-#define AI_CANDIDATE_FLAGS_SEX0 0xc0540a    /* the candidate flags of the kind 9 (advertising) search for a character with sex 0 (the mask bits of ai_PassesPartnerFilter) */
-#define AI_CANDIDATE_FLAGS_SEX1 0xc05409    /* ditto for sex != 0 */
+#define AI_CANDIDATE_FLAGS_SEX0                                                \
+  0xc0540a /* the candidate flags of the kind 9 (advertising) search for a character with sex 0 (the mask bits of ai_PassesPartnerFilter) */
+#define AI_CANDIDATE_FLAGS_SEX1 0xc05409 /* ditto for sex != 0 */
 /* 0x5c64c0, collects the candidate net ids of a kind 9 search into out[] and their count into *n: up to 10
    candidates of character p (ai_FindCandidates, the filter 0xc0540a, one less for a female character, sex +9);
    the ids are the characters' net ids, ai_Chars[id].netId (the caller finds them again with gm_FindChar) */
 
-void ai_FindCandidateIds(AICHAR *p, int *n, int *out)
-{
-    unsigned short ids[10];
-    int i;
+void ai_FindCandidateIds(AICHAR *p, int *n, int *out) {
+  unsigned short ids[10];
+  int i;
 
-    unsigned int fl = p->sex != 0 ? AI_CANDIDATE_FLAGS_SEX1 : AI_CANDIDATE_FLAGS_SEX0;
+  unsigned int fl =
+      p->sex != 0 ? AI_CANDIDATE_FLAGS_SEX1 : AI_CANDIDATE_FLAGS_SEX0;
 
-    *n = ai_FindCandidates(p, 9, fl, 0.0f, 100.0f, ids);
-    for (i = 0; i < *n; i++)
-        out[i] = ai_Chars[ids[i]].netId;
+  *n = ai_FindCandidates(p, 9, fl, 0.0f, 100.0f, ids);
+  for (i = 0; i < *n; i++)
+    out[i] = ai_Chars[ids[i]].netId;
 }
 /* 0x5c6530, the marriage test of two characters, idA / idB their net ids: gm_FindChar resolves both;
    the codes 0xfffffc00 (no record), 0xfffffbff / 0xfffffbfe (health 0), 0xfffffbfd / 0xfffffbfc (the partner
    link +0x5c is another net id), 0xfffffbfb / 0xfffffbfa (held); the level difference (gm_CharLevel) under
    6 -> 1 */
 
-unsigned int ai_MarriageTest(int idA, int idB)
-{
-    AICHAR *a;
-    AICHAR *b;
-    int i;
-    int j;
+unsigned int ai_MarriageTest(int idA, int idB) {
+  AICHAR *a;
+  AICHAR *b;
+  int i;
+  int j;
 
-    a = gm_FindChar(idA);
-    b = gm_FindChar(idB);
-    if (a == 0 || b == 0)
-        return 0xfffffc00;
-    if (a->health <= 0)
-        return 0xfffffbff;
-    if (b->health <= 0)
-        return 0xfffffbfe;
-    if (b->relatives[0] != -1 && b->relatives[0] != idA)
-        return 0xfffffbfd;
-    i = a->relatives[0];
-    if (i != -1 && i != idB)
-        return 0xfffffbfc;
-    if (a->heldRounds > 0)
-        return 0xfffffbfb;
-    if (b->heldRounds > 0)
-        return 0xfffffbfa;
-    i = gm_CharLevel(a->id, 0);
-    j = gm_CharLevel(b->id, 0);
-    return (unsigned int)(abs(i - j) < 6);
+  a = gm_FindChar(idA);
+  b = gm_FindChar(idB);
+  if (a == 0 || b == 0)
+    return 0xfffffc00;
+  if (a->health <= 0)
+    return 0xfffffbff;
+  if (b->health <= 0)
+    return 0xfffffbfe;
+  if (b->relatives[0] != -1 && b->relatives[0] != idA)
+    return 0xfffffbfd;
+  i = a->relatives[0];
+  if (i != -1 && i != idB)
+    return 0xfffffbfc;
+  if (a->heldRounds > 0)
+    return 0xfffffbfb;
+  if (b->heldRounds > 0)
+    return 0xfffffbfa;
+  i = gm_CharLevel(a->id, 0);
+  j = gm_CharLevel(b->id, 0);
+  return (unsigned int)(abs(i - j) < 6);
 }
 /* 0x5c6620, the courtship rounds the suitor idA needs for idB (742 B; the netIds, 0 when either is not found):
    idB's standing is the larger of idB's worth (gm_GetWorth, at least 0) and half the worth of either parent
@@ -5092,51 +5311,52 @@ unsigned int ai_MarriageTest(int idA, int idB)
    + 1, and idB's five skills / 252 each. An order handler 0x10 of the suitor (ord_DispatchOrder) with the bit 2 set
    halves it; the result is clamped to 2 .. 15 */
 
-int ai_CourtshipRounds(int idA, int idB)
-{
-    float parentB;
-    float standing;
-    float parentA;
-    ORDMSG req;
-    AICHAR *a;
-    AICHAR *b;
-    AICHAR *p;
-    int worth;
-    float rate;
-    float liking;
-    float score;
-    int i;
+int ai_CourtshipRounds(int idA, int idB) {
+  float parentB;
+  float standing;
+  float parentA;
+  ORDMSG req;
+  AICHAR *a;
+  AICHAR *b;
+  AICHAR *p;
+  int worth;
+  float rate;
+  float liking;
+  float score;
+  int i;
 
-    parentA = parentB = 0.0f;
-    memset(&req, 0, sizeof(req));
-    req.kind = 1;
-    a = gm_FindChar(idA);
-    b = gm_FindChar(idB);
-    if (a == 0 || b == 0)
-        return 0;
-    p = gm_FindChar(b->relatives[1]);
-    if (p != 0)
-        parentA = (float)(gm_GetWorth(p->id) / 2);
-    p = gm_FindChar(b->relatives[2]);
-    if (p != 0)
-        parentB = (float)(gm_GetWorth(p->id) / 2);
-    standing = max((float)gm_GetWorth(b->id), 0.0f);
-    standing = max(standing, max(parentA, parentB));
-    worth = gm_GetWorth(a->id);
-    if ((float)worth > standing)
-        rate = 1.0f;
-    else
-        rate = (standing - (float)worth) / standing * 5.0f + 1.0f;
-    liking = (100.0f - gm_Liking(a->id, b->id, 1)) * 0.05f + 1.0f;
-    score = (1.0f - min(30.0f, max(gm_CharAge(b->id), 15.0f)) * 0.06666667f) * 4.0f + 1.0f;
-    score += liking;
-    score += rate;
-    for (i = 0; i < 5; i++)
-        score += b->skills[i] * 0.003968254f;
-    if (ord_DispatchOrder(0x10, a, &req) & 2)
-        score *= 0.5f;
-    score = min(max(score, 2.0f), 15.0f);
-    return (int)score;
+  parentA = parentB = 0.0f;
+  memset(&req, 0, sizeof(req));
+  req.kind = 1;
+  a = gm_FindChar(idA);
+  b = gm_FindChar(idB);
+  if (a == 0 || b == 0)
+    return 0;
+  p = gm_FindChar(b->relatives[1]);
+  if (p != 0)
+    parentA = (float)(gm_GetWorth(p->id) / 2);
+  p = gm_FindChar(b->relatives[2]);
+  if (p != 0)
+    parentB = (float)(gm_GetWorth(p->id) / 2);
+  standing = max((float)gm_GetWorth(b->id), 0.0f);
+  standing = max(standing, max(parentA, parentB));
+  worth = gm_GetWorth(a->id);
+  if ((float)worth > standing)
+    rate = 1.0f;
+  else
+    rate = (standing - (float)worth) / standing * 5.0f + 1.0f;
+  liking = (100.0f - gm_Liking(a->id, b->id, 1)) * 0.05f + 1.0f;
+  score =
+      (1.0f - min(30.0f, max(gm_CharAge(b->id), 15.0f)) * 0.06666667f) * 4.0f +
+      1.0f;
+  score += liking;
+  score += rate;
+  for (i = 0; i < 5; i++)
+    score += b->skills[i] * 0.003968254f;
+  if (ord_DispatchOrder(0x10, a, &req) & 2)
+    score *= 0.5f;
+  score = min(max(score, 2.0f), 15.0f);
+  return (int)score;
 }
 
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);
@@ -5148,49 +5368,48 @@ void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);
    clock, flags 2) through 0x4c4b70 and waits for its slot (0x4c3ae0 / 0x52fe00), the result 1; click 1 only
    pops; the exit 0x4758f0, d2_ClickedId = -1 and di_ClearEvents(0x11) */
 
-int ai_CourtshipConfirm(AICHAR *ch)
-{
-    AIMSG msg;
-    int win;
-    int v;
-    int slot;
+int ai_CourtshipConfirm(AICHAR *ch) {
+  AIMSG msg;
+  int win;
+  int v;
+  int slot;
 
-    v = ai_CourtshipRounds(ai_Chars[ai_PlayerId].netId, ch->netId);
-    win = d2_OpenForm(0, 0, "privillegien\\werbung2");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1ce5, ch->id, v);
-    d2_ClickedId = -1;
-    v = 0;
-    for (;;) {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1) {
-            if (d2_ClickedId == 0) {
-                memset(&msg, 0, sizeof(msg));
-                msg.type = 0x41;
-                msg.flags = 2;
-                msg.to = ai_Chars[ai_PlayerId].netId;
-                msg.time = ai_Time;
-                msg.arg[1] = ch->netId;
-                msg.fromId = ai_Chars[ai_PlayerId].netId;
-                msg.arg[0] = ai_Chars[ai_PlayerId].netId;
-                slot = cm_SendLongMessage(&msg);
-                while (cm_GetSlotState(slot) == 0)
-                    sv_PumpNet();
-                v = 1;
-                sv_PopRequest = 1;
-            } else if (d2_ClickedId == 1) {
-                sv_PopRequest = 1;
-            }
-        }
-        if (sv_RunFrame(ai_CourtshipConfirm, 0x657c7) == 0)
-            break;
+  v = ai_CourtshipRounds(ai_Chars[ai_PlayerId].netId, ch->netId);
+  win = d2_OpenForm(0, 0, "privillegien\\werbung2");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1ce5, ch->id, v);
+  d2_ClickedId = -1;
+  v = 0;
+  for (;;) {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1) {
+      if (d2_ClickedId == 0) {
+        memset(&msg, 0, sizeof(msg));
+        msg.type = 0x41;
+        msg.flags = 2;
+        msg.to = ai_Chars[ai_PlayerId].netId;
+        msg.time = ai_Time;
+        msg.arg[1] = ch->netId;
+        msg.fromId = ai_Chars[ai_PlayerId].netId;
+        msg.arg[0] = ai_Chars[ai_PlayerId].netId;
+        slot = cm_SendLongMessage(&msg);
+        while (cm_GetSlotState(slot) == 0)
+          sv_PumpNet();
+        v = 1;
+        sv_PopRequest = 1;
+      } else if (d2_ClickedId == 1) {
+        sv_PopRequest = 1;
+      }
     }
-    d2_CloseView(win);
-    d2_ClickedId = -1;
-    di_ClearEvents(0x11);
-    return v;
+    if (sv_RunFrame(ai_CourtshipConfirm, 0x657c7) == 0)
+      break;
+  }
+  d2_CloseView(win);
+  d2_ClickedId = -1;
+  di_ClearEvents(0x11);
+  return v;
 }
 /* 0x5c6aa0, the courtship list "privillegien\werbung1" (604 B): the caption 0x1ce3 and up to nine candidates of ch
    (ai_FindCandidateIds) as amount rows in a grid of three columns spread over the list part's width (the frame
@@ -5198,58 +5417,60 @@ int ai_CourtshipConfirm(AICHAR *ch)
    below it. A click on a row opens the confirm ai_CourtshipConfirm (the list's objects disabled meanwhile); a
    confirmed courtship closes the list and returns 0x92, a right click returns 2 */
 
-int ai_CourtshipListWindow(AICHAR *ch, ORDMSG *m)
-{
-    int n;
-    int result;
-    int win;
-    int margin;
-    int ids[9];
-    char text[128];
-    LCAMOUNTROW rows[9];
-    int gap;
-    int i;
+int ai_CourtshipListWindow(AICHAR *ch, ORDMSG *m) {
+  int n;
+  int result;
+  int win;
+  int margin;
+  int ids[9];
+  char text[128];
+  LCAMOUNTROW rows[9];
+  int gap;
+  int i;
 
-    result = 2;
-    ai_FindCandidateIds(ch, &n, ids);
-    win = d2_OpenForm(0, 0, "privillegien\\werbung1");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1ce3);
-    d2_SetForm(win, 2);
-    gap = (d2_LastWindowPtr->w - d2_Pics[0x5da].w * 3) / 4;
-    margin = (d2_LastWindowPtr->w - d2_Pics[0x5da].w * 3) % 4 / 2;
-    for (i = 0; i < n; i++) {
-        rows[i].x = margin + (d2_Pics[0x5da].w + 10) * (i % 3) + (i % 3 + 1) * gap - 10;
-        rows[i].y = i / 3 * 0x82 + 5;
-        rows[i].rec = gm_FindChar(ids[i]);
-        rows[i].pickable = 1;
-        ai_AmountRowStatus(&rows[i]);
-        rows[i].x2c = ai_CourtshipRounds(ai_Chars[ai_PlayerId].netId, rows[i].rec->netId);
-        txt_Format(text, 0x1ce4, rows[i].x2c);
-        ai_AmountRow(rows[i].x, rows[i].y, d2_LastWindow, 0x56, &rows[i], 1);
-        ai_CentredText(text, rows[i].x + d2_Pics[0x5da].w / 2, rows[i].y + d2_Pics[0x5da].h + 0x2b, 0xca, 0x56);
-    }
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup) {
+  result = 2;
+  ai_FindCandidateIds(ch, &n, ids);
+  win = d2_OpenForm(0, 0, "privillegien\\werbung1");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1ce3);
+  d2_SetForm(win, 2);
+  gap = (d2_LastWindowPtr->w - d2_Pics[0x5da].w * 3) / 4;
+  margin = (d2_LastWindowPtr->w - d2_Pics[0x5da].w * 3) % 4 / 2;
+  for (i = 0; i < n; i++) {
+    rows[i].x =
+        margin + (d2_Pics[0x5da].w + 10) * (i % 3) + (i % 3 + 1) * gap - 10;
+    rows[i].y = i / 3 * 0x82 + 5;
+    rows[i].rec = gm_FindChar(ids[i]);
+    rows[i].pickable = 1;
+    ai_AmountRowStatus(&rows[i]);
+    rows[i].x2c =
+        ai_CourtshipRounds(ai_Chars[ai_PlayerId].netId, rows[i].rec->netId);
+    txt_Format(text, 0x1ce4, rows[i].x2c);
+    ai_AmountRow(rows[i].x, rows[i].y, d2_LastWindow, 0x56, &rows[i], 1);
+    ai_CentredText(text, rows[i].x + d2_Pics[0x5da].w / 2,
+                   rows[i].y + d2_Pics[0x5da].h + 0x2b, 0xca, 0x56);
+  }
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup) {
+      sv_PopRequest = 1;
+    } else if (d2_ClickedId != -1 && dm_L.lclick) {
+      for (i = 0; i < n; i++) {
+        if (rows[i].ctl[0] == d2_PointerObj) {
+          d2_EnableViewObjects(win, 0);
+          if (ai_CourtshipConfirm(rows[i].rec) != 0) {
+            result = 0x92;
             sv_PopRequest = 1;
-        } else if (d2_ClickedId != -1 && dm_L.lclick) {
-            for (i = 0; i < n; i++) {
-                if (rows[i].ctl[0] == d2_PointerObj) {
-                    d2_EnableViewObjects(win, 0);
-                    if (ai_CourtshipConfirm(rows[i].rec) != 0) {
-                        result = 0x92;
-                        sv_PopRequest = 1;
-                        break;
-                    }
-                    d2_EnableViewObjects(win, 1);
-                }
-            }
+            break;
+          }
+          d2_EnableViewObjects(win, 1);
         }
-    } while (sv_RunFrame(ai_CourtshipListWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return result;
+      }
+    }
+  } while (sv_RunFrame(ai_CourtshipListWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return result;
 }
 /* 0x5c6d00, the courtship order's ask (ord.c ord_ApplyForOffice, kind 3; 1479 B): ch the asking character, m the order
    message. ch's courtship event 0x41 (he_FindEvent, AIJOB.partner1 = ch) gives the state: none 1, running 2, done
@@ -5263,136 +5484,140 @@ int ai_CourtshipListWindow(AICHAR *ch, ORDMSG *m)
    posts the event again (cm_SendExSetHE), pays pairPrice (cm_SendMoveGoods) and tells the partner's answer 0x1cf9
    (text 0x1d02 + a random pick by the gain); the close button tells 0x1cfa and posts the event. Returns 2 */
 
-int ai_CourtshipWindow(AICHAR *ch, ORDMSG *m)
-{
-    int state;
-    int partner;
-    int win;
-    int level;
-    int price;
-    int left;
-    int picks[3];
-    int prices[3];
-    int btns[9];               /* the gift buttons and the close button in [0 .. 3]; the original's frame holds nine */
-    AIJOB *ev;
-    AICHAR *p;
-    char answer[0x200];
-    char closing[0x200];
-    int i;
-    int gain;
-    char rounds;
-    int r;
+int ai_CourtshipWindow(AICHAR *ch, ORDMSG *m) {
+  int state;
+  int partner;
+  int win;
+  int level;
+  int price;
+  int left;
+  int picks[3];
+  int prices[3];
+  int btns
+      [9]; /* the gift buttons and the close button in [0 .. 3]; the original's frame holds nine */
+  AIJOB *ev;
+  AICHAR *p;
+  char answer[0x200];
+  char closing[0x200];
+  int i;
+  int gain;
+  char rounds;
+  int r;
 
-    state = 1;
-    level = 0;
-    partner = -1;
-    for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
-        if (ev->partner1 == ch->netId) {
-            state = 2;
-            partner = ev->partner2;
-            if (ev->pairDone == 1)
-                state = 3;
-            if (ev->pairDrawn == 1)
-                state = 4;
-            break;
-        }
+  state = 1;
+  level = 0;
+  partner = -1;
+  for (ev = he_FindEvent(1, 0, 0x41); ev != 0; ev = he_NextEvent()) {
+    if (ev->partner1 == ch->netId) {
+      state = 2;
+      partner = ev->partner2;
+      if (ev->pairDone == 1)
+        state = 3;
+      if (ev->pairDrawn == 1)
+        state = 4;
+      break;
     }
-    if (ch->kind != 6) {
-        if (ev != 0)
-            return 0x20;
-        p = gm_FindChar(m->target);
-        if (p != 0 && p->health != 0) {
-            AIMSG msg;
+  }
+  if (ch->kind != 6) {
+    if (ev != 0)
+      return 0x20;
+    p = gm_FindChar(m->target);
+    if (p != 0 && p->health != 0) {
+      AIMSG msg;
 
-            memset(&msg, 0, sizeof(msg));
-            msg.type = 0x41;
-            msg.flags = 2;
-            msg.to = ch->netId;
-            msg.fromId = ch->netId;
-            msg.time = ai_Time;
-            msg.arg[0] = ch->netId;
-            msg.arg[1] = p->netId;
-            cm_SendLongMessage(&msg);
-            return 0x10;
-        }
-        return 0x20;
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x41;
+      msg.flags = 2;
+      msg.to = ch->netId;
+      msg.fromId = ch->netId;
+      msg.time = ai_Time;
+      msg.arg[0] = ch->netId;
+      msg.arg[1] = p->netId;
+      cm_SendLongMessage(&msg);
+      return 0x10;
     }
-    if (state == 1)
-        return ai_CourtshipListWindow(ch, m);
-    win = d2_OpenForm(0, 0, "privillegien\\werbung2");
-    d2_CentreViewWindows(win);
-    d2_SetPointerSprite(0, 0);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1cf3);
-    if (state == 2) {
-        p = gm_FindChar(partner);
-        io_PrintText(0x1ce7, ch->id, p->id, max(0, ev->pairRounds - ev->pairRound), 0x5d);
-    } else if (state == 3) {
-        p = gm_FindChar(partner);
-        io_PrintText(0x1ce3);
-        io_PrintText(0x1d31, p->id);
-    } else if (state == 4) {
-        p = gm_FindChar(partner);
-        level = p->level;
-        for (i = 0; i < 3; i++) {
-            prices[i] = ev->pairPrice[i];
-            picks[i] = ev->pairPick[i];
-        }
-        io_PrintText(0x1cf4, p->id, 0x5d, ev->pairRounds - ev->pairRound, 0x5d);
-        btns[0] = d2_GetWinObj(win, 1, io_PrintText(0x1cf5, picks[0] + 0x1d11, prices[0]));
-        btns[1] = d2_GetWinObj(win, 1, io_PrintText(0x1cf6, picks[1] + 0x1d11, prices[1]));
-        btns[2] = d2_GetWinObj(win, 1, io_PrintText(0x1cf7, picks[2] + 0x1d11, prices[2]));
-        btns[3] = d2_GetWinObj(win, 1, io_PrintText(0x1cf8));
+    return 0x20;
+  }
+  if (state == 1)
+    return ai_CourtshipListWindow(ch, m);
+  win = d2_OpenForm(0, 0, "privillegien\\werbung2");
+  d2_CentreViewWindows(win);
+  d2_SetPointerSprite(0, 0);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1cf3);
+  if (state == 2) {
+    p = gm_FindChar(partner);
+    io_PrintText(0x1ce7, ch->id, p->id, max(0, ev->pairRounds - ev->pairRound),
+                 0x5d);
+  } else if (state == 3) {
+    p = gm_FindChar(partner);
+    io_PrintText(0x1ce3);
+    io_PrintText(0x1d31, p->id);
+  } else if (state == 4) {
+    p = gm_FindChar(partner);
+    level = p->level;
+    for (i = 0; i < 3; i++) {
+      prices[i] = ev->pairPrice[i];
+      picks[i] = ev->pairPick[i];
     }
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1 && state == 4) {
-            for (i = 0; i < 4; i++) {
-                if (d2_PointerObj == btns[i])
-                    break;
-            }
-            if (i < 3) {
-                price = prices[i];
-                if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], price, ai_OwnPlayer)) {
-                    rounds = 0;
-                    p = gm_FindChar(partner);
-                    left = picks[i] - level;
-                    gain = (int)(max(left * 0.11111111f, 0.0f) * 3.0f + 0.5f);
-                    if (gain > 0)
-                        rounds = min(gain, 3);
-                    if (gain <= 0)
-                        r = util_Random(5);
-                    else if (gain == 1)
-                        r = util_Random(5) + 5;
-                    else if (gain == 2)
-                        r = util_Random(4) + 9;
-                    else
-                        r = util_Random(3) + 0xc;
-                    txt_Format(answer, 0x1cf9, p->id, r + 0x1d02);
-                    ev->pairRound += rounds;
-                    if (ev->pairRound >= ev->pairRounds) {
-                        ev->end = ai_Time;
-                        gm_AddTime(&ev->end, 0, 1, 0);
-                    }
-                    ev->pairDrawn = 0;
-                    ev->exSlot = cm_SendExSetHE(0, ev);
-                    cm_SendMoveGoods(-1, ch->netId, ai_OwnPlayer, price);
-                    sv_MessageBox((intptr_t)answer, 0);
-                    sv_PopRequest = 1;
-                }
-            } else if (i == 3) {
-                txt_Format(closing, 0x1cfa, gm_FindChar(partner)->id);
-                ev->pairDrawn = 0;
-                ev->exSlot = cm_SendExSetHE(0, ev);
-                sv_MessageBox((intptr_t)closing, 0);
-                sv_PopRequest = 1;
-            }
+    io_PrintText(0x1cf4, p->id, 0x5d, ev->pairRounds - ev->pairRound, 0x5d);
+    btns[0] = d2_GetWinObj(win, 1,
+                           io_PrintText(0x1cf5, picks[0] + 0x1d11, prices[0]));
+    btns[1] = d2_GetWinObj(win, 1,
+                           io_PrintText(0x1cf6, picks[1] + 0x1d11, prices[1]));
+    btns[2] = d2_GetWinObj(win, 1,
+                           io_PrintText(0x1cf7, picks[2] + 0x1d11, prices[2]));
+    btns[3] = d2_GetWinObj(win, 1, io_PrintText(0x1cf8));
+  }
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1 && state == 4) {
+      for (i = 0; i < 4; i++) {
+        if (d2_PointerObj == btns[i])
+          break;
+      }
+      if (i < 3) {
+        price = prices[i];
+        if (sv_CheckGoodAmount(&ai_Chars[ai_PlayerId], price, ai_OwnPlayer)) {
+          rounds = 0;
+          p = gm_FindChar(partner);
+          left = picks[i] - level;
+          gain = (int)(max(left * 0.11111111f, 0.0f) * 3.0f + 0.5f);
+          if (gain > 0)
+            rounds = min(gain, 3);
+          if (gain <= 0)
+            r = util_Random(5);
+          else if (gain == 1)
+            r = util_Random(5) + 5;
+          else if (gain == 2)
+            r = util_Random(4) + 9;
+          else
+            r = util_Random(3) + 0xc;
+          txt_Format(answer, 0x1cf9, p->id, r + 0x1d02);
+          ev->pairRound += rounds;
+          if (ev->pairRound >= ev->pairRounds) {
+            ev->end = ai_Time;
+            gm_AddTime(&ev->end, 0, 1, 0);
+          }
+          ev->pairDrawn = 0;
+          ev->exSlot = cm_SendExSetHE(0, ev);
+          cm_SendMoveGoods(-1, ch->netId, ai_OwnPlayer, price);
+          sv_MessageBox((intptr_t)answer, 0);
+          sv_PopRequest = 1;
         }
-    } while (sv_RunFrame(ai_CourtshipWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return 2;
+      } else if (i == 3) {
+        txt_Format(closing, 0x1cfa, gm_FindChar(partner)->id);
+        ev->pairDrawn = 0;
+        ev->exSlot = cm_SendExSetHE(0, ev);
+        sv_MessageBox((intptr_t)closing, 0);
+        sv_PopRequest = 1;
+      }
+    }
+  } while (sv_RunFrame(ai_CourtshipWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return 2;
 }
 /* 0x5c72d0, the rating chart of the statistics window (ai_DrawStatisticsCharts, its flag 1; 393 B): the top value is the
    first of the thresholds 500 .. 20000 above the highest of the rounds' rating bases (ord_StatisticsHistory[].base)
@@ -5400,181 +5625,184 @@ int ai_CourtshipWindow(AICHAR *ch, ORDMSG *m)
    = (width - 0x69) / 16 apart from x 0x2d, y from height - 0x16 up by (height - 0x1e) / top per unit, the last one
    to the running ai_RatingBase. The current statistics stats (by value) are not read. Returns the top value */
 
-int ai_PlotRatingBaseChart(ORDSTATS stats, int width, int height)
-{
-    float bottom;
-    int limits[9];
-    int scale;
-    int top;
-    int x;
-    int i;
-    float unit;
+int ai_PlotRatingBaseChart(ORDSTATS stats, int width, int height) {
+  float bottom;
+  int limits[9];
+  int scale;
+  int top;
+  int x;
+  int i;
+  float unit;
 
-    scale = (width - 0x69) / 16;
-    top = -1;
-    limits[0] = 500;
-    limits[1] = 1000;
-    limits[2] = 2000;
-    limits[3] = 4000;
-    limits[4] = 8000;
-    limits[5] = 10000;
-    limits[6] = 15000;
-    limits[7] = 20000;
-    limits[8] = 50000;
-    for (i = 0; i < 16; i++) {
-        if (ord_StatisticsHistory[i].base > top)
-            top = ord_StatisticsHistory[i].base;
+  scale = (width - 0x69) / 16;
+  top = -1;
+  limits[0] = 500;
+  limits[1] = 1000;
+  limits[2] = 2000;
+  limits[3] = 4000;
+  limits[4] = 8000;
+  limits[5] = 10000;
+  limits[6] = 15000;
+  limits[7] = 20000;
+  limits[8] = 50000;
+  for (i = 0; i < 16; i++) {
+    if (ord_StatisticsHistory[i].base > top)
+      top = ord_StatisticsHistory[i].base;
+  }
+  top = (int)max(ai_RatingBase, (float)top);
+  for (i = 0; i < 8; i++) {
+    if (top < limits[i]) {
+      top = limits[i];
+      break;
     }
-    top = (int)max(ai_RatingBase, (float)top);
-    for (i = 0; i < 8; i++) {
-        if (top < limits[i]) {
-            top = limits[i];
-            break;
-        }
-    }
-    unit = (float)(height - 0x1e) / top;
-    bottom = (float)(height - 0x16);
-    x = 0x2d;
-    for (i = 0; i < 15; i++) {
-        d2_PlotLine(x, (int)(bottom - ord_StatisticsHistory[i].base * unit), x + scale,
-                    (int)(bottom - ord_StatisticsHistory[i + 1].base * unit), 0x33, 0x33, 0x33);
-        x += scale;
-    }
-    d2_PlotLine(0x2d + scale * 15, (int)(bottom - ord_StatisticsHistory[15].base * unit), 0x2d + scale * 16,
-                (int)(bottom - ai_RatingBase * unit), 0x33, 0x33, 0x33);
-    return top;
+  }
+  unit = (float)(height - 0x1e) / top;
+  bottom = (float)(height - 0x16);
+  x = 0x2d;
+  for (i = 0; i < 15; i++) {
+    d2_PlotLine(x, (int)(bottom - ord_StatisticsHistory[i].base * unit),
+                x + scale,
+                (int)(bottom - ord_StatisticsHistory[i + 1].base * unit), 0x33,
+                0x33, 0x33);
+    x += scale;
+  }
+  d2_PlotLine(0x2d + scale * 15,
+              (int)(bottom - ord_StatisticsHistory[15].base * unit),
+              0x2d + scale * 16, (int)(bottom - ai_RatingBase * unit), 0x33,
+              0x33, 0x33);
+  return top;
 }
 /* 0x5c7460, the score chart of the statistics window (ai_DrawStatisticsCharts, its flag 2; 255 B): the rounds' overall scores
    (ord_StatisticsHistory[].score, 0 .. 1) as green (0x10, 0xee, 0x10) line segments, scale = (width - 0x69) / 16
    apart from x 0x2d, y from height - 0x20 + 10 up by height - 0x1e for a score of 1, the last one to the current
    score stats.score. The highest score is looked for and not used */
 
-void ai_PlotScoreChart(ORDSTATS stats, int width, int height)
-{
-    float unit;
-    float bottom;
-    float top;
-    int scale;
-    int x;
-    int i;
-    float from;
-    float to;
+void ai_PlotScoreChart(ORDSTATS stats, int width, int height) {
+  float unit;
+  float bottom;
+  float top;
+  int scale;
+  int x;
+  int i;
+  float from;
+  float to;
 
-    scale = (width - 0x69) / 16;
-    top = -1.0f;
-    for (i = 0; i < 16; i++) {
-        if (top < ord_StatisticsHistory[i].score)
-            top = ord_StatisticsHistory[i].score;
-    }
-    unit = (float)(height - 0x1e);
-    bottom = (float)(height - 0x20) + 10.0f;
-    x = 0x2d;
-    for (i = 0; i < 15; i++) {
-        from = ord_StatisticsHistory[i].score;
-        to = ord_StatisticsHistory[i + 1].score;
-        d2_PlotLine(x, (int)(bottom - from * unit), x + scale, (int)(bottom - to * unit), 0x10, 0xee, 0x10);
-        x += scale;
-    }
-    d2_PlotLine(0x2d + scale * 15, (int)(bottom - ord_StatisticsHistory[15].score * unit), 0x2d + scale * 16,
-                (int)(bottom - stats.score * unit), 0x10, 0xee, 0x10);
+  scale = (width - 0x69) / 16;
+  top = -1.0f;
+  for (i = 0; i < 16; i++) {
+    if (top < ord_StatisticsHistory[i].score)
+      top = ord_StatisticsHistory[i].score;
+  }
+  unit = (float)(height - 0x1e);
+  bottom = (float)(height - 0x20) + 10.0f;
+  x = 0x2d;
+  for (i = 0; i < 15; i++) {
+    from = ord_StatisticsHistory[i].score;
+    to = ord_StatisticsHistory[i + 1].score;
+    d2_PlotLine(x, (int)(bottom - from * unit), x + scale,
+                (int)(bottom - to * unit), 0x10, 0xee, 0x10);
+    x += scale;
+  }
+  d2_PlotLine(
+      0x2d + scale * 15, (int)(bottom - ord_StatisticsHistory[15].score * unit),
+      0x2d + scale * 16, (int)(bottom - stats.score * unit), 0x10, 0xee, 0x10);
 }
 /* 0x5c7560, the first-object chart of the statistics window (ai_DrawStatisticsCharts, its flag 8; 325 B): the rounds' shares
    of characters without the first object (ord_StatisticsHistory[].noFirst, 0 .. 1, below 0 drawn as 0) as yellow
    (0xee, 0xee, 0x10) line segments, scale = (width - 0x69) / 16 apart from x 0x2d, y from height - 0x16 up by
    height - 0x1e for a share of 1, the last one to the current share stats.col[1] */
 
-void ai_PlotNoFirstChart(ORDSTATS stats, int width, int height)
-{
-    int scale;
-    int x;
-    int i;
-    float bottom;
-    float unit;
-    float from;
-    float to;
+void ai_PlotNoFirstChart(ORDSTATS stats, int width, int height) {
+  int scale;
+  int x;
+  int i;
+  float bottom;
+  float unit;
+  float from;
+  float to;
 
-    scale = (width - 0x69) / 16;
-    unit = (float)(height - 0x1e);
-    bottom = (float)(height - 0x16);
-    x = 0x2d;
-    for (i = 1; i < 16; i++) {
-        from = max(ord_StatisticsHistory[i - 1].noFirst, 0.0);
-        to = max(ord_StatisticsHistory[i].noFirst, 0.0);
-        d2_PlotLine(x, (int)(bottom - from * unit), x + scale, (int)(bottom - to * unit), 0xee, 0xee, 0x10);
-        x += scale;
-    }
-    from = max(ord_StatisticsHistory[15].noFirst, 0.0);
-    to = max(stats.col[1], 0.0);
-    d2_PlotLine(0x2d + scale * 15, (int)(bottom - from * unit), 0x2d + scale * 16, (int)(bottom - to * unit), 0xee, 0xee,
-                0x10);
+  scale = (width - 0x69) / 16;
+  unit = (float)(height - 0x1e);
+  bottom = (float)(height - 0x16);
+  x = 0x2d;
+  for (i = 1; i < 16; i++) {
+    from = max(ord_StatisticsHistory[i - 1].noFirst, 0.0);
+    to = max(ord_StatisticsHistory[i].noFirst, 0.0);
+    d2_PlotLine(x, (int)(bottom - from * unit), x + scale,
+                (int)(bottom - to * unit), 0xee, 0xee, 0x10);
+    x += scale;
+  }
+  from = max(ord_StatisticsHistory[15].noFirst, 0.0);
+  to = max(stats.col[1], 0.0);
+  d2_PlotLine(0x2d + scale * 15, (int)(bottom - from * unit), 0x2d + scale * 16,
+              (int)(bottom - to * unit), 0xee, 0xee, 0x10);
 }
 /* 0x5c76b0, the second-object chart of the statistics window (ai_DrawStatisticsCharts, its flag 0x10; 325 B): the rounds'
    shares of characters without the second object (ord_StatisticsHistory[].noSecond, 0 .. 1, below 0 drawn as 0)
    as purple (0xee, 0x10, 0xee) line segments, scale = (width - 0x69) / 16 apart from x 0x2d, y from height - 0x16
    up by height - 0x1e for a share of 1, the last one to the current share stats.col[3] */
 
-void ai_PlotNoSecondChart(ORDSTATS stats, int width, int height)
-{
-    int scale;
-    int x;
-    int i;
-    float bottom;
-    float unit;
-    float from;
-    float to;
+void ai_PlotNoSecondChart(ORDSTATS stats, int width, int height) {
+  int scale;
+  int x;
+  int i;
+  float bottom;
+  float unit;
+  float from;
+  float to;
 
-    scale = (width - 0x69) / 16;
-    unit = (float)(height - 0x1e);
-    bottom = (float)(height - 0x16);
-    x = 0x2d;
-    for (i = 1; i < 16; i++) {
-        from = max(ord_StatisticsHistory[i - 1].noSecond, 0.0);
-        to = max(ord_StatisticsHistory[i].noSecond, 0.0);
-        d2_PlotLine(x, (int)(bottom - from * unit), x + scale, (int)(bottom - to * unit), 0xee, 0x10, 0xee);
-        x += scale;
-    }
-    from = max(ord_StatisticsHistory[15].noSecond, 0.0);
-    to = max(stats.col[3], 0.0);
-    d2_PlotLine(0x2d + scale * 15, (int)(bottom - from * unit), 0x2d + scale * 16, (int)(bottom - to * unit), 0xee, 0x10,
-                0xee);
+  scale = (width - 0x69) / 16;
+  unit = (float)(height - 0x1e);
+  bottom = (float)(height - 0x16);
+  x = 0x2d;
+  for (i = 1; i < 16; i++) {
+    from = max(ord_StatisticsHistory[i - 1].noSecond, 0.0);
+    to = max(ord_StatisticsHistory[i].noSecond, 0.0);
+    d2_PlotLine(x, (int)(bottom - from * unit), x + scale,
+                (int)(bottom - to * unit), 0xee, 0x10, 0xee);
+    x += scale;
+  }
+  from = max(ord_StatisticsHistory[15].noSecond, 0.0);
+  to = max(stats.col[3], 0.0);
+  d2_PlotLine(0x2d + scale * 15, (int)(bottom - from * unit), 0x2d + scale * 16,
+              (int)(bottom - to * unit), 0xee, 0x10, 0xee);
 }
 /* 0x5c7800, the combined rating chart of the statistics window (ai_DrawStatisticsCharts, its flag 4; 356 B): the rounds'
    combined ratings (ord_StatisticsHistory[].combined, 0 .. 1, below 0 drawn as 0) as red (0xee, 0x10, 0x10) line
    segments, scale = (width - 0x69) / 16 apart from x 0x2d, y from height - 0x16 up by height - 0x1e for a rating of
    1, the last one to the current rating stats.col[2]. The highest score is looked for and not used */
 
-void ai_PlotCombinedChart(ORDSTATS stats, int width, int height)
-{
-    int scale;
-    int x;
-    int i;
-    float top;
-    float bottom;
-    float unit;
-    float from;
-    float to;
+void ai_PlotCombinedChart(ORDSTATS stats, int width, int height) {
+  int scale;
+  int x;
+  int i;
+  float top;
+  float bottom;
+  float unit;
+  float from;
+  float to;
 
-    scale = (width - 0x69) / 16;
-    top = -1.0f;
-    for (i = 0; i < 16; i++) {
-        if (top < ord_StatisticsHistory[i].score)
-            top = ord_StatisticsHistory[i].score;
-    }
-    unit = (float)(height - 0x1e);
-    bottom = (float)(height - 0x16);
-    x = 0x2d;
-    for (i = 1; i < 16; i++) {
-        from = max(ord_StatisticsHistory[i - 1].combined, 0.0);
-        to = max(ord_StatisticsHistory[i].combined, 0.0);
-        d2_PlotLine(x, (int)(bottom - from * unit), x + scale, (int)(bottom - to * unit), 0xee, 0x10, 0x10);
-        x += scale;
-    }
-    from = max(ord_StatisticsHistory[15].combined, 0.0);
-    to = max(stats.col[2], 0.0);
-    d2_PlotLine(0x2d + scale * 15, (int)(bottom - from * unit), 0x2d + scale * 16, (int)(bottom - to * unit), 0xee, 0x10,
-                0x10);
+  scale = (width - 0x69) / 16;
+  top = -1.0f;
+  for (i = 0; i < 16; i++) {
+    if (top < ord_StatisticsHistory[i].score)
+      top = ord_StatisticsHistory[i].score;
+  }
+  unit = (float)(height - 0x1e);
+  bottom = (float)(height - 0x16);
+  x = 0x2d;
+  for (i = 1; i < 16; i++) {
+    from = max(ord_StatisticsHistory[i - 1].combined, 0.0);
+    to = max(ord_StatisticsHistory[i].combined, 0.0);
+    d2_PlotLine(x, (int)(bottom - from * unit), x + scale,
+                (int)(bottom - to * unit), 0xee, 0x10, 0x10);
+    x += scale;
+  }
+  from = max(ord_StatisticsHistory[15].combined, 0.0);
+  to = max(stats.col[2], 0.0);
+  d2_PlotLine(0x2d + scale * 15, (int)(bottom - from * unit), 0x2d + scale * 16,
+              (int)(bottom - to * unit), 0xee, 0x10, 0x10);
 }
-
 
 /* 0x5c7970, draws the statistics charts into the paintbox window win (1422 B): the flag mask selects the charts
    (1 the rating base, 2 the score, 4 the combined rating, 8 the share without the first object, 0x10 without the
@@ -5583,109 +5811,112 @@ void ai_PlotCombinedChart(ORDSTATS stats, int width, int height)
    base chart returned and its half) on the right, and along the bottom one tick per round back from the game clock
    ai_Time, a longer tick and the year at each round in the first month of a year. The pen size is restored */
 
-void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
-{
-    unsigned char old;
-    int top;
-    int height;
-    int width;
-    int scale;
-    int i;
-    int round;
-    int pct;
-    int y;
-    int x;
-    int mid;
-    int obj;
-    int textW;
-    float range;
-    AITIME clock;
-    GMDATE date;
-    char buf[16];
+void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win) {
+  unsigned char old;
+  int top;
+  int height;
+  int width;
+  int scale;
+  int i;
+  int round;
+  int pct;
+  int y;
+  int x;
+  int mid;
+  int obj;
+  int textW;
+  float range;
+  AITIME clock;
+  GMDATE date;
+  char buf[16];
 
-    top = 0;
-    old = d2_PenSize;
-    d2_ClearPaintbox();
-    d2_RemoveWindowObjects(win, 1);
-    d2_PenSize = 1;
-    width = d2_Wins[win].w;
-    height = d2_Wins[win].h;
-    scale = (width - 0x69) / 16;
-    if (flags & 1)
-        top = ai_PlotRatingBaseChart(stats, width - 1, height);
-    d2_PenSize = 1;
-    if (flags & 2)
-        ai_PlotScoreChart(stats, width - 1, height);
-    if (flags & 4)
-        ai_PlotCombinedChart(stats, width - 1, height);
-    if (flags & 8)
-        ai_PlotNoFirstChart(stats, width - 1, height);
-    if (flags & 0x10)
-        ai_PlotNoSecondChart(stats, width - 1, height);
-    d2_PenSize = 0;
-    d2_PlotLine(0x2d, 8, 0x2d, height - 0x13, 0x10, 0x10, 0x10);
-    d2_PlotLine(0x2d, height - 0x13, width - 0x3b, height - 0x13, 0x10, 0x10, 0x10);
-    range = (float)height - 30.0f;
-    for (i = 0; i < 4; i++) {
-        y = (int)(range * (i * 0.25f) + 8.0f);
-        d2_PlotLine(0x28, y, 0x2d, y, 0x10, 0x10, 0x10);
-    }
-    i = 0;
-    for (pct = 100; pct > 0; pct -= 25) {
-        txt_Format(buf, (intptr_t)"%i%", pct);
-        obj = d2_CreateWinText(3, (int)(range * (i * 0.25f) + 5.0f), buf, d2_LastWindow);
-        d2_Objs[obj].w = 0x23;
-        d2_Objs[obj].rightAligned = 1;
-        i++;
-    }
-    if (top != 0) {
-        d2_PlotLine(width - 0x3c, 8, width - 0x3c, height - 0x13, 0x10, 0x10, 0x10);
-        d2_PlotLine(width - 0x37, 8, width - 0x3c, 8, 0x10, 0x10, 0x10);
-        mid = (height - 0x1e) / 2;
-        d2_PlotLine(width - 0x37, mid + 8, width - 0x3c, mid + 8, 0x10, 0x10, 0x10);
-        txt_Format(buf, (intptr_t)"%i", top);
-        textW = d2_TextWidth(buf, 0x55) + 2;
-        obj = d2_CreateWinText(width - 0x3c, 5, buf, d2_LastWindow);
-        d2_Objs[obj].w = textW;
-        d2_Objs[obj].rightAligned = 1;
-        txt_Format(buf, (intptr_t)"%i", top / 2);
-        obj = d2_CreateWinText(width - 0x3c, mid + 5, buf, d2_LastWindow);
-        d2_Objs[obj].w = textW;
-        d2_Objs[obj].rightAligned = 1;
-    }
-    clock = ai_Time;
-    gm_ClockToDate(&clock, &date);
+  top = 0;
+  old = d2_PenSize;
+  d2_ClearPaintbox();
+  d2_RemoveWindowObjects(win, 1);
+  d2_PenSize = 1;
+  width = d2_Wins[win].w;
+  height = d2_Wins[win].h;
+  scale = (width - 0x69) / 16;
+  if (flags & 1)
+    top = ai_PlotRatingBaseChart(stats, width - 1, height);
+  d2_PenSize = 1;
+  if (flags & 2)
+    ai_PlotScoreChart(stats, width - 1, height);
+  if (flags & 4)
+    ai_PlotCombinedChart(stats, width - 1, height);
+  if (flags & 8)
+    ai_PlotNoFirstChart(stats, width - 1, height);
+  if (flags & 0x10)
+    ai_PlotNoSecondChart(stats, width - 1, height);
+  d2_PenSize = 0;
+  d2_PlotLine(0x2d, 8, 0x2d, height - 0x13, 0x10, 0x10, 0x10);
+  d2_PlotLine(0x2d, height - 0x13, width - 0x3b, height - 0x13, 0x10, 0x10,
+              0x10);
+  range = (float)height - 30.0f;
+  for (i = 0; i < 4; i++) {
+    y = (int)(range * (i * 0.25f) + 8.0f);
+    d2_PlotLine(0x28, y, 0x2d, y, 0x10, 0x10, 0x10);
+  }
+  i = 0;
+  for (pct = 100; pct > 0; pct -= 25) {
+    txt_Format(buf, (intptr_t)"%i%", pct);
+    obj = d2_CreateWinText(3, (int)(range * (i * 0.25f) + 5.0f), buf,
+                           d2_LastWindow);
+    d2_Objs[obj].w = 0x23;
+    d2_Objs[obj].rightAligned = 1;
+    i++;
+  }
+  if (top != 0) {
+    d2_PlotLine(width - 0x3c, 8, width - 0x3c, height - 0x13, 0x10, 0x10, 0x10);
+    d2_PlotLine(width - 0x37, 8, width - 0x3c, 8, 0x10, 0x10, 0x10);
+    mid = (height - 0x1e) / 2;
+    d2_PlotLine(width - 0x37, mid + 8, width - 0x3c, mid + 8, 0x10, 0x10, 0x10);
+    txt_Format(buf, (intptr_t)"%i", top);
+    textW = d2_TextWidth(buf, 0x55) + 2;
+    obj = d2_CreateWinText(width - 0x3c, 5, buf, d2_LastWindow);
+    d2_Objs[obj].w = textW;
+    d2_Objs[obj].rightAligned = 1;
+    txt_Format(buf, (intptr_t)"%i", top / 2);
+    obj = d2_CreateWinText(width - 0x3c, mid + 5, buf, d2_LastWindow);
+    d2_Objs[obj].w = textW;
+    d2_Objs[obj].rightAligned = 1;
+  }
+  clock = ai_Time;
+  gm_ClockToDate(&clock, &date);
+  if (date.month == 1) {
+    txt_Format(buf, (intptr_t)"%i", date.year);
+    textW = d2_TextWidth(buf, 0x55);
+    obj = d2_CreateWinText(0x2d + scale * 16, height - 0xd, buf, d2_LastWindow);
+    d2_Objs[obj].w = textW;
+  }
+  clock.year--;
+  gm_ClockToDate(&clock, &date);
+  for (round = 15; round > 0; round--) {
+    x = 0x2d + round * scale;
+    d2_PlotLine(x, height - 0x13, x, height - 0x10, 0x10, 0x10, 0x10);
     if (date.month == 1) {
-        txt_Format(buf, (intptr_t)"%i", date.year);
-        textW = d2_TextWidth(buf, 0x55);
-        obj = d2_CreateWinText(0x2d + scale * 16, height - 0xd, buf, d2_LastWindow);
-        d2_Objs[obj].w = textW;
+      txt_Format(buf, (intptr_t)"%i", date.year);
+      textW = d2_TextWidth(buf, 0x55);
+      obj = d2_CreateWinText(0x2d + round * scale, height - 0xd, buf,
+                             d2_LastWindow);
+      d2_Objs[obj].w = textW;
+      d2_PlotLine(x, height - 0x13, x, height - 0xd, 0x10, 0x10, 0x10);
     }
     clock.year--;
     gm_ClockToDate(&clock, &date);
-    for (round = 15; round > 0; round--) {
-        x = 0x2d + round * scale;
-        d2_PlotLine(x, height - 0x13, x, height - 0x10, 0x10, 0x10, 0x10);
-        if (date.month == 1) {
-            txt_Format(buf, (intptr_t)"%i", date.year);
-            textW = d2_TextWidth(buf, 0x55);
-            obj = d2_CreateWinText(0x2d + round * scale, height - 0xd, buf, d2_LastWindow);
-            d2_Objs[obj].w = textW;
-            d2_PlotLine(x, height - 0x13, x, height - 0xd, 0x10, 0x10, 0x10);
-        }
-        clock.year--;
-        gm_ClockToDate(&clock, &date);
-    }
-    if (date.month == 1) {
-        txt_Format(buf, (intptr_t)"%i", date.year);
-        textW = d2_TextWidth(buf, 0x55);
-        obj = d2_CreateWinText(0x2d, height - 0xd, buf, d2_LastWindow);
-        d2_Objs[obj].w = textW;
-    }
-    d2_PenSize = old;
+  }
+  if (date.month == 1) {
+    txt_Format(buf, (intptr_t)"%i", date.year);
+    textW = d2_TextWidth(buf, 0x55);
+    obj = d2_CreateWinText(0x2d, height - 0xd, buf, d2_LastWindow);
+    d2_Objs[obj].w = textW;
+  }
+  d2_PenSize = old;
 }
 
-struct ORDSTATS; float ord_GetStatistics(struct ORDSTATS *o);
+struct ORDSTATS;
+float ord_GetStatistics(struct ORDSTATS *o);
 
 /* 0x5c7f00, the statistics panel "panel_statistik_stadt" (995 B): when the run allows it (ai_RunAllows 0x10) and
    between the campaign steps 0xc, it opens the form and prints the town's name with the date (0x1f0e), the running
@@ -5694,85 +5925,85 @@ struct ORDSTATS; float ord_GetStatistics(struct ORDSTATS *o);
    by ai_StatsChartFlags, page 4 the legend: five check boxes with their texts 0x1f25 .. and a colour bar of the
    chart. A click on the legend rebuilds the flags from the check boxes and redraws the charts; the right button
    closes the panel */
-void ai_CityStatsPanel(void)
-{
-    unsigned char colors[15];
-    ORDSTATS stats;
-    int ids[5];
-    char buf[0x100];
-    int win;
-    int i;
-    int k;
-    int obj;
-    int checked;
+void ai_CityStatsPanel(void) {
+  unsigned char colors[15];
+  ORDSTATS stats;
+  int ids[5];
+  char buf[0x100];
+  int win;
+  int i;
+  int k;
+  int obj;
+  int checked;
 
-    colors[0] = 0x33;
-    colors[1] = 0x33;
-    colors[2] = 0x33;
-    colors[3] = 0x10;
-    colors[4] = 0xee;
-    colors[5] = 0x10;
-    colors[6] = 0xee;
-    colors[7] = 0x10;
-    colors[8] = 0x10;
-    colors[9] = 0xee;
-    colors[10] = 0xee;
-    colors[11] = 0;
-    colors[12] = 0xee;
-    colors[13] = 0x10;
-    colors[14] = 0xee;
-    if (ai_StatsChartFlags == 0)
-        ai_StatsChartFlags = 1;
-    if (!ai_RunAllows(0x10))
-        return;
-    ai_CampaignStep(0xc, 0, 0, 0);
-    win = d2_OpenForm(0, 0, "panel\\statistik_stadt");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1f0e, ai_PlayerSlots[ai_OwnPlayer].townName, &ai_Time);
-    ord_GetStatistics(&stats);
-    d2_SetForm(win, 2);
-    io_PrintText(0x1f14, (int)ai_RatingBase);
-    io_PrintText(0x1f15, min(4, (int)((stats.score + 1.0) * 2.5)) + 0x1f16);
-    io_PrintText(0x1f1b, min(4, (int)(stats.col[2] * 5.0f)) + 0x1f1c);
-    io_PrintText(0x1f21, (int)max(stats.col[1] * 100.0f, 0.0));
-    io_PrintText(0x1f22, (int)(max(stats.col[3], 0.0) * 100.0));
-    d2_SetForm(win, 3);
-    ai_DrawStatisticsCharts(ai_StatsChartFlags, stats, d2_LastWindow);
-    d2_SetForm(win, 4);
-    for (i = 0; i < 5; i++) {
-        checked = (ai_StatsChartFlags & (1 << i)) != 0;
-        obj = d2_WinOpenPic(5, i * 30 + 5, 0, d2_LastWindow);
-        ids[i] = obj;
-        txt_Format(buf, i + 0x1f25);
-        d2_CreateWinText(0x19, i * 30 + 4, buf, d2_LastWindow);
-        d2_Objs[obj].interactive = 1;
-        d2_Objs[obj].checkable = 1;
-        d2_SetObjValue(obj, checked);
-        for (k = 0; k < 10; k++)
-            d2_PlotLine(d2_Wins[d2_LastWindow].w - 1, i * 30 + 9 + k, d2_Wins[d2_LastWindow].w - 0xb, i * 30 + 9 + k,
-                        colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]);
+  colors[0] = 0x33;
+  colors[1] = 0x33;
+  colors[2] = 0x33;
+  colors[3] = 0x10;
+  colors[4] = 0xee;
+  colors[5] = 0x10;
+  colors[6] = 0xee;
+  colors[7] = 0x10;
+  colors[8] = 0x10;
+  colors[9] = 0xee;
+  colors[10] = 0xee;
+  colors[11] = 0;
+  colors[12] = 0xee;
+  colors[13] = 0x10;
+  colors[14] = 0xee;
+  if (ai_StatsChartFlags == 0)
+    ai_StatsChartFlags = 1;
+  if (!ai_RunAllows(0x10))
+    return;
+  ai_CampaignStep(0xc, 0, 0, 0);
+  win = d2_OpenForm(0, 0, "panel\\statistik_stadt");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1f0e, ai_PlayerSlots[ai_OwnPlayer].townName, &ai_Time);
+  ord_GetStatistics(&stats);
+  d2_SetForm(win, 2);
+  io_PrintText(0x1f14, (int)ai_RatingBase);
+  io_PrintText(0x1f15, min(4, (int)((stats.score + 1.0) * 2.5)) + 0x1f16);
+  io_PrintText(0x1f1b, min(4, (int)(stats.col[2] * 5.0f)) + 0x1f1c);
+  io_PrintText(0x1f21, (int)max(stats.col[1] * 100.0f, 0.0));
+  io_PrintText(0x1f22, (int)(max(stats.col[3], 0.0) * 100.0));
+  d2_SetForm(win, 3);
+  ai_DrawStatisticsCharts(ai_StatsChartFlags, stats, d2_LastWindow);
+  d2_SetForm(win, 4);
+  for (i = 0; i < 5; i++) {
+    checked = (ai_StatsChartFlags & (1 << i)) != 0;
+    obj = d2_WinOpenPic(5, i * 30 + 5, 0, d2_LastWindow);
+    ids[i] = obj;
+    txt_Format(buf, i + 0x1f25);
+    d2_CreateWinText(0x19, i * 30 + 4, buf, d2_LastWindow);
+    d2_Objs[obj].interactive = 1;
+    d2_Objs[obj].checkable = 1;
+    d2_SetObjValue(obj, checked);
+    for (k = 0; k < 10; k++)
+      d2_PlotLine(d2_Wins[d2_LastWindow].w - 1, i * 30 + 9 + k,
+                  d2_Wins[d2_LastWindow].w - 0xb, i * 30 + 9 + k, colors[i * 3],
+                  colors[i * 3 + 1], colors[i * 3 + 2]);
+  }
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      ai_StatsChartFlags = 0;
+      for (i = 0; i < 5; i++)
+        ai_StatsChartFlags |= d2_GetObjValue(ids[i]) ? 1 << i : 0;
+      d2_SetForm(win, 3);
+      ai_DrawStatisticsCharts(ai_StatsChartFlags, stats, d2_LastWindow);
     }
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            ai_StatsChartFlags = 0;
-            for (i = 0; i < 5; i++)
-                ai_StatsChartFlags |= d2_GetObjValue(ids[i]) ? 1 << i : 0;
-            d2_SetForm(win, 3);
-            ai_DrawStatisticsCharts(ai_StatsChartFlags, stats, d2_LastWindow);
-        }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_CityStatsPanel, 0x657c7) != 0);
-    d2_CloseView(win);
-    ai_CampaignStep(0xc, 0, 1, 0);
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_CityStatsPanel, 0x657c7) != 0);
+  d2_CloseView(win);
+  ai_CampaignStep(0xc, 0, 1, 0);
 }
 
-
 /* the x of a column of the player comparison panel (ai_PlayerComparePanel) */
-#define LC_COMPARE_X(count, i) (((count) <= 4 ? 0x50 : 0x3a) * (i) + ((count) <= 4 ? 0x14 : 2))
+#define LC_COMPARE_X(count, i)                                                 \
+  (((count) <= 4 ? 0x50 : 0x3a) * (i) + ((count) <= 4 ? 0x14 : 2))
 
 /* 0x5c82f0, the player comparison panel (837 B): when there are ranked players (gm_RankPlayers, up to 8) and the run
    allows it (ai_RunAllows 4), between the campaign steps 10 it opens "panel\pcompare4plus6" (up to 6 players) or
@@ -5781,64 +6012,64 @@ void ai_CityStatsPanel(void)
    the dynasty's colour and the points. The columns lie 0x50 apart from 0x14, or 0x3a apart from 2 for more than four
    players. The right button closes the panel */
 
-void ai_PlayerComparePanel(void)
-{
-    int count;
-    int sliderPics[8];
-    char buf[0x100];
-    GMRANK ranks[8];
-    GMRANK *rank;
-    int i;
-    int value;
-    int obj;
-    int colour;
-    int win;
+void ai_PlayerComparePanel(void) {
+  int count;
+  int sliderPics[8];
+  char buf[0x100];
+  GMRANK ranks[8];
+  GMRANK *rank;
+  int i;
+  int value;
+  int obj;
+  int colour;
+  int win;
 
-    sliderPics[0] = 0x8f;
-    sliderPics[1] = 0x95;
-    sliderPics[2] = 0x9b;
-    sliderPics[3] = 0xa1;
-    sliderPics[4] = 0xa7;
-    sliderPics[5] = 0xad;
-    sliderPics[6] = 0xb3;
-    sliderPics[7] = 0xb9;
-    gm_RankPlayers(&count, ranks);
-    if (count == 0 || ai_RunAllows(4) == 0)
-        return;
-    ai_CampaignStep(10, 0, 0, 0);
-    if (count <= 6)
-        win = d2_OpenForm(0, 0, "panel\\pcompare4plus6");
-    else
-        win = d2_OpenForm(0, 0, "panel\\pcompare8");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1f35);
-    d2_SetForm(win, 2);
-    for (i = 0; i < count; i++) {
-        rank = &ranks[i];
-        value = (int)(rank->sum * 100.0f);
-        obj = d2_WinOpenPic(0x28, LC_COMPARE_X(count, i), ai_Chars[rank->id].ref54, d2_LastWindow);
-        d2_Objs[obj].interactive = 1;
-        d2_Objs[obj].style = 3;
-        d2_Objs[obj].user = &ai_Chars[rank->id];
-        txt_Format(buf, (intptr_t)"%1N3", rank->id);
-        ai_CentredText(buf, 0x36, LC_COMPARE_X(count, i) + 0x22, 300, 0x56);
-        colour = min(max(ai_Chars[rank->id].ref54 - 0x59a, 0), 7);
-        obj = d2_WinOpenSlider(0x5a, LC_COMPARE_X(count, i) + 7, 300, 0, 100, sliderPics[colour], 0x42, d2_LastWindow);
-        d2_SetObjValue(obj, 0, 100, value);
-        txt_Format(buf, (intptr_t)"%i", rank->points);
-        ai_CentredText(buf, 500, LC_COMPARE_X(count, i), 200, 0x55);
-    }
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_PlayerComparePanel, 0x657c7) != 0);
-    d2_CloseView(win);
-    ai_CampaignStep(10, 0, 1, 0);
+  sliderPics[0] = 0x8f;
+  sliderPics[1] = 0x95;
+  sliderPics[2] = 0x9b;
+  sliderPics[3] = 0xa1;
+  sliderPics[4] = 0xa7;
+  sliderPics[5] = 0xad;
+  sliderPics[6] = 0xb3;
+  sliderPics[7] = 0xb9;
+  gm_RankPlayers(&count, ranks);
+  if (count == 0 || ai_RunAllows(4) == 0)
+    return;
+  ai_CampaignStep(10, 0, 0, 0);
+  if (count <= 6)
+    win = d2_OpenForm(0, 0, "panel\\pcompare4plus6");
+  else
+    win = d2_OpenForm(0, 0, "panel\\pcompare8");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1f35);
+  d2_SetForm(win, 2);
+  for (i = 0; i < count; i++) {
+    rank = &ranks[i];
+    value = (int)(rank->sum * 100.0f);
+    obj = d2_WinOpenPic(0x28, LC_COMPARE_X(count, i), ai_Chars[rank->id].ref54,
+                        d2_LastWindow);
+    d2_Objs[obj].interactive = 1;
+    d2_Objs[obj].style = 3;
+    d2_Objs[obj].user = &ai_Chars[rank->id];
+    txt_Format(buf, (intptr_t)"%1N3", rank->id);
+    ai_CentredText(buf, 0x36, LC_COMPARE_X(count, i) + 0x22, 300, 0x56);
+    colour = min(max(ai_Chars[rank->id].ref54 - 0x59a, 0), 7);
+    obj = d2_WinOpenSlider(0x5a, LC_COMPARE_X(count, i) + 7, 300, 0, 100,
+                           sliderPics[colour], 0x42, d2_LastWindow);
+    d2_SetObjValue(obj, 0, 100, value);
+    txt_Format(buf, (intptr_t)"%i", rank->points);
+    ai_CentredText(buf, 500, LC_COMPARE_X(count, i), 200, 0x55);
+  }
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_PlayerComparePanel, 0x657c7) != 0);
+  d2_CloseView(win);
+  ai_CampaignStep(10, 0, 1, 0);
 }
-
 
 /* 0x5c8640, the privileges panel "panel_privilegien" (1403 B): a held player character gets the privilege dialog
    with the text 0x1cdf instead; else, when the run allows it (ai_RunAllows 2), between the campaign steps 8 it lists
@@ -5847,163 +6078,163 @@ void ai_PlayerComparePanel(void)
    when the office power 0x100 is used or a partner was known), switched by the partner button (0x1cdc / 0x1cdb with
    the partner's id). Every 500 clock ticks or on a change the handlers are asked again and the list rebuilt; a click
    on an order runs it (kind 3 / 4) and redraws when it reports a change. The right button closes the panel */
-void ai_PrivilegesPanel(void)
-{
-    int changed;
-    int rows;
-    AICHAR *partner;
-    int button;
-    unsigned int next;
-    char fmt[8] = "%ia[%s]";
-    ORDMSG msg;
-    int answers[0x3a];
-    int ids[0x3a];
-    AICHAR *old;
-    AIJOB *job;
-    int page;
-    int win;
-    int i;
-    int v;
-    int k;
+void ai_PrivilegesPanel(void) {
+  int changed;
+  int rows;
+  AICHAR *partner;
+  int button;
+  unsigned int next;
+  char fmt[8] = "%ia[%s]";
+  ORDMSG msg;
+  int answers[0x3a];
+  int ids[0x3a];
+  AICHAR *old;
+  AIJOB *job;
+  int page;
+  int win;
+  int i;
+  int v;
+  int k;
 
-    button = -1;
-    page = 2;
-    partner = 0;
-    if (ai_Chars[ai_PlayerId].heldRounds != 0) {
-        ord_PrivilegeDialog(txt_Ptrs[0x1cdf], 0, 0x657c7);
-        return;
+  button = -1;
+  page = 2;
+  partner = 0;
+  if (ai_Chars[ai_PlayerId].heldRounds != 0) {
+    ord_PrivilegeDialog(txt_Ptrs[0x1cdf], 0, 0x657c7);
+    return;
+  }
+  if (!ai_RunAllows(2))
+    return;
+  ai_CampaignStep(8, 0, 0, 0);
+  memset(&msg, 0, sizeof(msg));
+  msg.kind = 1;
+  win = d2_OpenForm(0, 0, "panel\\privilegien");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  changed = 1;
+  for (i = 0; i < 0x3a; i++)
+    answers[i] = 1;
+  d2_ClickedId = -1;
+  next = d3_Time;
+  do {
+    rows = 0;
+    if (next <= d3_Time || changed) {
+      next = d3_Time + 500;
+      old = partner;
+      if ((ai_Chars[ai_PlayerId].flags1c8 & 0x100) != 0 || partner != 0) {
+        for (job = he_FindEvent(1, 0, 0x45); job != 0; job = he_NextEvent()) {
+          if (job->partner1 == ai_Chars[ai_PlayerId].netId)
+            break;
+        }
+        if (job != 0)
+          partner = gm_FindChar(job->partner2);
+        else
+          partner = 0;
+      }
+      msg.partner = partner;
+      if (partner != old || (partner == 0 && (msg.kind == 2 || button != -1))) {
+        changed = 1;
+        page = 2;
+      }
+      if (page == 2)
+        msg.kind = 1;
+      else
+        msg.kind = 2;
+      for (i = 0; i < 0x3a; i++) {
+        v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], &msg);
+        if (v != answers[i])
+          changed = 1;
+        answers[i] = v;
+      }
+      if (changed) {
+        changed = 0;
+        d2_SetForm(win, 2);
+        io_PrintText((intptr_t)"$C");
+        button = -1;
+        d2_Wins[d2_LastWindow].contentHeight = 0;
+        d2_Wins[d2_LastWindow].scrollY = 0;
+        if (page == 2) {
+          d2_SetForm(win, 1);
+          io_PrintText(0x1cdd);
+          if (partner != 0) {
+            d2_SetForm(win, 3);
+            button = d2_GetWinObj(win, 3, io_PrintText(0x1cdc, partner->id));
+          }
+        } else if (page == 10) {
+          if (partner != 0) {
+            d2_SetForm(win, 1);
+            io_PrintText(0x1cde);
+            d2_SetForm(win, 3);
+            button = d2_GetWinObj(win, 3, io_PrintText(0x1cdb, partner->id));
+          } else {
+            d2_SetForm(win, 1);
+            io_PrintText(0x1cdd);
+            page = 2;
+          }
+        }
+        d2_SetForm(win, 2);
+        msg.kind = (page != 2) + 1;
+        for (i = 0; i < 0x3a; i++) {
+          ids[i] = -1;
+          v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], &msg);
+          answers[i] = v;
+          if (v == page) {
+            if (rows != 0)
+              io_PrintText((intptr_t)"$A");
+            ids[i] =
+                d2_GetWinObj(win, 2, io_PrintText((intptr_t)fmt, msg.text));
+            rows++;
+          } else if (page == 2 && v == 9) {
+            if (rows != 0)
+              io_PrintText((intptr_t)"$A");
+            k = d2_GetWinObj(win, 2, io_PrintText((intptr_t)fmt, msg.text));
+            ids[i] = -1;
+            d2_Objs[k].clickDisabled = 1;
+            d2_Objs[k].greyed = 1;
+            rows++;
+          }
+        }
+        if (rows > 9) {
+          d2_SetForm(win, 2);
+          k = d2_LastWindow;
+          d2_SetForm(win, 4);
+          io_PrintText((intptr_t)"$C");
+          d2_CreateScrollButtons(-1, -1, d2_LastWindow, k, 0x767);
+        } else {
+          d2_SetForm(win, 4);
+          io_PrintText((intptr_t)"$C");
+        }
+      }
     }
-    if (!ai_RunAllows(2))
-        return;
-    ai_CampaignStep(8, 0, 0, 0);
-    memset(&msg, 0, sizeof(msg));
-    msg.kind = 1;
-    win = d2_OpenForm(0, 0, "panel\\privilegien");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    changed = 1;
-    for (i = 0; i < 0x3a; i++)
-        answers[i] = 1;
-    d2_ClickedId = -1;
-    next = d3_Time;
-    do {
-        rows = 0;
-        if (next <= d3_Time || changed) {
-            next = d3_Time + 500;
-            old = partner;
-            if ((ai_Chars[ai_PlayerId].flags1c8 & 0x100) != 0 || partner != 0) {
-                for (job = he_FindEvent(1, 0, 0x45); job != 0; job = he_NextEvent()) {
-                    if (job->partner1 == ai_Chars[ai_PlayerId].netId)
-                        break;
-                }
-                if (job != 0)
-                    partner = gm_FindChar(job->partner2);
-                else
-                    partner = 0;
-            }
-            msg.partner = partner;
-            if (partner != old || (partner == 0 && (msg.kind == 2 || button != -1))) {
-                changed = 1;
-                page = 2;
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == button) {
+        changed = 1;
+        page = page == 2 ? 10 : 2;
+      } else {
+        for (i = 0; i < 0x3a; i++) {
+          if (d2_PointerObj == ids[i]) {
+            d2_SetViewEnabled(win, 0);
+            msg.kind = (page != 2) + 3;
+            v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], &msg);
+            if (v & 0x80) {
+              changed = 1;
+              answers[i] = v & 10;
             }
             if (page == 2)
-                msg.kind = 1;
+              msg.kind = 1;
             else
-                msg.kind = 2;
-            for (i = 0; i < 0x3a; i++) {
-                v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], &msg);
-                if (v != answers[i])
-                    changed = 1;
-                answers[i] = v;
-            }
-            if (changed) {
-                changed = 0;
-                d2_SetForm(win, 2);
-                io_PrintText((intptr_t)"$C");
-                button = -1;
-                d2_Wins[d2_LastWindow].contentHeight = 0;
-                d2_Wins[d2_LastWindow].scrollY = 0;
-                if (page == 2) {
-                    d2_SetForm(win, 1);
-                    io_PrintText(0x1cdd);
-                    if (partner != 0) {
-                        d2_SetForm(win, 3);
-                        button = d2_GetWinObj(win, 3, io_PrintText(0x1cdc, partner->id));
-                    }
-                } else if (page == 10) {
-                    if (partner != 0) {
-                        d2_SetForm(win, 1);
-                        io_PrintText(0x1cde);
-                        d2_SetForm(win, 3);
-                        button = d2_GetWinObj(win, 3, io_PrintText(0x1cdb, partner->id));
-                    } else {
-                        d2_SetForm(win, 1);
-                        io_PrintText(0x1cdd);
-                        page = 2;
-                    }
-                }
-                d2_SetForm(win, 2);
-                msg.kind = (page != 2) + 1;
-                for (i = 0; i < 0x3a; i++) {
-                    ids[i] = -1;
-                    v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], &msg);
-                    answers[i] = v;
-                    if (v == page) {
-                        if (rows != 0)
-                            io_PrintText((intptr_t)"$A");
-                        ids[i] = d2_GetWinObj(win, 2, io_PrintText((intptr_t)fmt, msg.text));
-                        rows++;
-                    } else if (page == 2 && v == 9) {
-                        if (rows != 0)
-                            io_PrintText((intptr_t)"$A");
-                        k = d2_GetWinObj(win, 2, io_PrintText((intptr_t)fmt, msg.text));
-                        ids[i] = -1;
-                        d2_Objs[k].clickDisabled = 1;
-                        d2_Objs[k].greyed = 1;
-                        rows++;
-                    }
-                }
-                if (rows > 9) {
-                    d2_SetForm(win, 2);
-                    k = d2_LastWindow;
-                    d2_SetForm(win, 4);
-                    io_PrintText((intptr_t)"$C");
-                    d2_CreateScrollButtons(-1, -1, d2_LastWindow, k, 0x767);
-                } else {
-                    d2_SetForm(win, 4);
-                    io_PrintText((intptr_t)"$C");
-                }
-            }
+              msg.kind = 2;
+            d2_SetViewEnabled(win, 1);
+            break;
+          }
         }
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == button) {
-                changed = 1;
-                page = page == 2 ? 10 : 2;
-            } else {
-                for (i = 0; i < 0x3a; i++) {
-                    if (d2_PointerObj == ids[i]) {
-                        d2_SetViewEnabled(win, 0);
-                        msg.kind = (page != 2) + 3;
-                        v = ord_DispatchOrder(i, &ai_Chars[ai_PlayerId], &msg);
-                        if (v & 0x80) {
-                            changed = 1;
-                            answers[i] = v & 10;
-                        }
-                        if (page == 2)
-                            msg.kind = 1;
-                        else
-                            msg.kind = 2;
-                        d2_SetViewEnabled(win, 1);
-                        break;
-                    }
-                }
-            }
-        }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_PrivilegesPanel, 0x657c7) != 0);
-    d2_CloseView(win);
-    ai_CampaignStep(8, 0, 1, 0);
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_PrivilegesPanel, 0x657c7) != 0);
+  d2_CloseView(win);
+  ai_CampaignStep(8, 0, 1, 0);
 }
 
 /* 0x5c8bc0, the medicus order's ask (ord_MedicusOrder, kind 3) on the hurt or sick character ch (803 B): a character
@@ -6013,75 +6244,75 @@ void ai_PrivilegesPanel(void)
    the price 2 % of the worth) and its two buttons: yes pays 2 (sv_CheckMoney / sv_CheckGoodAmount), and in one of
    two cases cures a disease and pays the price to the player (the texts 0x1d3c + 0x1d3d / 0x1d3e), waits for the
    flag 0x40 to be set and shows the text: 0x81; no or the right button closes the window: 2 */
-int ai_MedicusHandler(AICHAR *ch, ORDMSG *m)
-{
-    int price;
-    int ret;
-    int win;
-    char note[0x100];
-    char text[0x400];
-    int heal;
-    int yes;
-    int no;
-    int slot;
+int ai_MedicusHandler(AICHAR *ch, ORDMSG *m) {
+  int price;
+  int ret;
+  int win;
+  char note[0x100];
+  char text[0x400];
+  int heal;
+  int yes;
+  int no;
+  int slot;
 
-    ret = 2;
-    if (ch->kind != 6 && ch->kind != 7) {
-        if (ch->money < 2)
-            return 0;
-        heal = abs(ch->v024) / 2;
-        price = (int)(gm_GetWorth(ch->id) * 0.02f);
-        cm_SendMoneyDelta(ch->netId, -2);
-        cm_SendSetField(ch->netId, 0x1c8, 4, 0x40, 0);
-        if ((short)util_Random(2) != 0) {
-            cm_SendMoveGoods(-1, ch->netId, ai_OwnPlayer, price);
-            gm_AddHealth(ch->id, heal);
-            gm_CureDisease(ch);
-        }
-        return 0x11;
-    }
+  ret = 2;
+  if (ch->kind != 6 && ch->kind != 7) {
+    if (ch->money < 2)
+      return 0;
+    heal = abs(ch->v024) / 2;
     price = (int)(gm_GetWorth(ch->id) * 0.02f);
-    win = d2_OpenForm(0, 0, "privillegien\\medicus");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    slot = io_PrintText(0x1d3b, 2, price);
-    yes = d2_GetWinObj(win, 1, slot);
-    no = d2_GetWinObj(win, 1, slot + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == yes) {
-                if (sv_CheckMoney(ch, 2) != 0 && sv_CheckGoodAmount(ch, price, ai_OwnPlayer) != 0) {
-                    cm_SendMoneyDelta(ch->netId, -2);
-                    txt_Format(text, 0x1d3c);
-                    if ((short)util_Random(2) != 0) {
-                        txt_Format(note, (intptr_t)"%s", 0x1d3d);
-                        strcat(text, note);
-                        cm_SendMoveGoods(-1, ch->netId, ai_OwnPlayer, price);
-                        gm_CureDisease(ch);
-                    } else {
-                        txt_Format(note, (intptr_t)"%s", 0x1d3e);
-                        strcat(text, note);
-                    }
-                    yes = -1;
-                    no = -1;
-                    ret = 0x81;
-                    slot = cm_SendSetField(ch->netId, 0x1c8, 4, 0x40, 0);
-                    while (cm_GetSlotState(slot) == 0)
-                        sv_PumpNet();
-                    sv_MessageBox((intptr_t)text, 0);
-                    sv_PopRequest = 1;
-                }
-            } else if (d2_PointerObj == no) {
-                sv_PopRequest = 1;
-            }
+    cm_SendMoneyDelta(ch->netId, -2);
+    cm_SendSetField(ch->netId, 0x1c8, 4, 0x40, 0);
+    if ((short)util_Random(2) != 0) {
+      cm_SendMoveGoods(-1, ch->netId, ai_OwnPlayer, price);
+      gm_AddHealth(ch->id, heal);
+      gm_CureDisease(ch);
+    }
+    return 0x11;
+  }
+  price = (int)(gm_GetWorth(ch->id) * 0.02f);
+  win = d2_OpenForm(0, 0, "privillegien\\medicus");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  slot = io_PrintText(0x1d3b, 2, price);
+  yes = d2_GetWinObj(win, 1, slot);
+  no = d2_GetWinObj(win, 1, slot + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == yes) {
+        if (sv_CheckMoney(ch, 2) != 0 &&
+            sv_CheckGoodAmount(ch, price, ai_OwnPlayer) != 0) {
+          cm_SendMoneyDelta(ch->netId, -2);
+          txt_Format(text, 0x1d3c);
+          if ((short)util_Random(2) != 0) {
+            txt_Format(note, (intptr_t)"%s", 0x1d3d);
+            strcat(text, note);
+            cm_SendMoveGoods(-1, ch->netId, ai_OwnPlayer, price);
+            gm_CureDisease(ch);
+          } else {
+            txt_Format(note, (intptr_t)"%s", 0x1d3e);
+            strcat(text, note);
+          }
+          yes = -1;
+          no = -1;
+          ret = 0x81;
+          slot = cm_SendSetField(ch->netId, 0x1c8, 4, 0x40, 0);
+          while (cm_GetSlotState(slot) == 0)
+            sv_PumpNet();
+          sv_MessageBox((intptr_t)text, 0);
+          sv_PopRequest = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_MedicusHandler, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      } else if (d2_PointerObj == no) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_MedicusHandler, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5c8ef0, the divorce order's ask (ord.c 0x4f5800, kind 3) on the character ch (927 B): of another kind than 6 / 7
    it needs 8 in money and goods of at least 0.12 of its worth (else 0x22), pays 8, clears its spouse
@@ -6090,88 +6321,90 @@ int ai_MedicusHandler(AICHAR *ch, ORDMSG *m)
    (0x1d8f: the text 0x114 + b00d (+ 10 for sex), 8, the price 8 % of the worth plus 4 %, the spouse's id); its
    first button pays 8 and the price (sv_CheckMoney / sv_CheckGoodAmount), sends the same fields and the money,
    each waited for, and prints 0x1d90: 0x81; the second button or the right button close it: 2, else 0 */
-int ai_DivorceDialog(AICHAR *ch, ORDMSG *m)
-{
-    int win;
-    int text;
-    AICHAR *spouse;
-    int slot;
-    int none;
-    int done;
-    int price;
-    float worth;
+int ai_DivorceDialog(AICHAR *ch, ORDMSG *m) {
+  int win;
+  int text;
+  AICHAR *spouse;
+  int slot;
+  int none;
+  int done;
+  int price;
+  float worth;
 
-    none = -1;
-    done = 0;
-    if (ch->kind != 6 && ch->kind != 7) {
-        if (ch->money < 8)
-            return 0x22;
-        worth = (float)gm_GetWorth(ch->id);
-        if (gm_GetGoodsValue(ch) / worth < 0.12)
-            return 0x22;
-        spouse = gm_FindChar(ch->relatives[0]);
-        cm_SendMoneyDelta(ch->netId, -8);
-        cm_BeginFieldBlock(ch, ch->netId);
-        cm_AddFieldValue(4, 1, 0x5c, &none);
-        cm_SendFieldDeltas();
-        cm_BeginFieldBlock(spouse, spouse->netId);
-        cm_AddFieldValue(4, 1, 0x5c, &none);
-        cm_AddFieldValue(2, 1, 0x50, &none);
-        cm_SendFieldDeltas();
-        slot = cm_SendMoveGoods(spouse->netId, ch->netId, ai_OwnPlayer, (int)(worth * 0.08));
-        while (cm_GetSlotState(slot) == 0)
-            sv_PumpNet();
-        return 0x11;
-    }
+  none = -1;
+  done = 0;
+  if (ch->kind != 6 && ch->kind != 7) {
+    if (ch->money < 8)
+      return 0x22;
     worth = (float)gm_GetWorth(ch->id);
-    price = (int)(worth * 0.08);
+    if (gm_GetGoodsValue(ch) / worth < 0.12)
+      return 0x22;
     spouse = gm_FindChar(ch->relatives[0]);
-    win = d2_OpenForm(0, 0, "privillegien\\scheidung");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    text = (ch->sex != 0 ? 10 : 0) + 0x114;
-    slot = io_PrintText(0x1d8f, text + ch->level, 8, price - (int)(worth * -0.04), spouse->id,
-                        spouse->id);
-    d2_GetWinObj(win, 1, slot);
-    d2_GetWinObj(win, 1, slot + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_ClickedId == 0) {
-                if (sv_CheckMoney(ch, 8) != 0 && sv_CheckGoodAmount(ch, price, ai_OwnPlayer) != 0) {
-                    cm_SendMoneyDelta(ch->netId, -8);
-                    cm_BeginFieldBlock(ch, ch->netId);
-                    cm_AddFieldValue(4, 1, 0x5c, &none);
-                    slot = cm_SendFieldValues();
-                    while (cm_GetSlotState(slot) == 0)
-                        sv_PumpNet();
-                    cm_BeginFieldBlock(spouse, spouse->netId);
-                    cm_AddFieldValue(4, 1, 0x5c, &none);
-                    cm_AddFieldValue(2, 1, 0x50, &none);
-                    slot = cm_SendFieldValues();
-                    while (cm_GetSlotState(slot) == 0)
-                        sv_PumpNet();
-                    slot = cm_SendMoveGoods(spouse->netId, ch->netId, ai_OwnPlayer, price);
-                    while (cm_GetSlotState(slot) == 0)
-                        sv_PumpNet();
-                    io_PrintText((intptr_t)"$C");
-                    io_PrintText(0x1d90);
-                    sv_PopRequest = 1;
-                    done = 0x81;
-                }
-            } else if (d2_ClickedId == 1) {
-                sv_PopRequest = 1;
-                done = 2;
-            }
+    cm_SendMoneyDelta(ch->netId, -8);
+    cm_BeginFieldBlock(ch, ch->netId);
+    cm_AddFieldValue(4, 1, 0x5c, &none);
+    cm_SendFieldDeltas();
+    cm_BeginFieldBlock(spouse, spouse->netId);
+    cm_AddFieldValue(4, 1, 0x5c, &none);
+    cm_AddFieldValue(2, 1, 0x50, &none);
+    cm_SendFieldDeltas();
+    slot = cm_SendMoveGoods(spouse->netId, ch->netId, ai_OwnPlayer,
+                            (int)(worth * 0.08));
+    while (cm_GetSlotState(slot) == 0)
+      sv_PumpNet();
+    return 0x11;
+  }
+  worth = (float)gm_GetWorth(ch->id);
+  price = (int)(worth * 0.08);
+  spouse = gm_FindChar(ch->relatives[0]);
+  win = d2_OpenForm(0, 0, "privillegien\\scheidung");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  text = (ch->sex != 0 ? 10 : 0) + 0x114;
+  slot = io_PrintText(0x1d8f, text + ch->level, 8, price - (int)(worth * -0.04),
+                      spouse->id, spouse->id);
+  d2_GetWinObj(win, 1, slot);
+  d2_GetWinObj(win, 1, slot + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_ClickedId == 0) {
+        if (sv_CheckMoney(ch, 8) != 0 &&
+            sv_CheckGoodAmount(ch, price, ai_OwnPlayer) != 0) {
+          cm_SendMoneyDelta(ch->netId, -8);
+          cm_BeginFieldBlock(ch, ch->netId);
+          cm_AddFieldValue(4, 1, 0x5c, &none);
+          slot = cm_SendFieldValues();
+          while (cm_GetSlotState(slot) == 0)
+            sv_PumpNet();
+          cm_BeginFieldBlock(spouse, spouse->netId);
+          cm_AddFieldValue(4, 1, 0x5c, &none);
+          cm_AddFieldValue(2, 1, 0x50, &none);
+          slot = cm_SendFieldValues();
+          while (cm_GetSlotState(slot) == 0)
+            sv_PumpNet();
+          slot =
+              cm_SendMoveGoods(spouse->netId, ch->netId, ai_OwnPlayer, price);
+          while (cm_GetSlotState(slot) == 0)
+            sv_PumpNet();
+          io_PrintText((intptr_t)"$C");
+          io_PrintText(0x1d90);
+          sv_PopRequest = 1;
+          done = 0x81;
         }
-        if (dm_L.rup) {
-            sv_PopRequest = 1;
-            done = 2;
-        }
-    } while (sv_RunFrame(ai_DivorceDialog, 0x657c7) != 0);
-    d2_CloseView(win);
-    return done;
+      } else if (d2_ClickedId == 1) {
+        sv_PopRequest = 1;
+        done = 2;
+      }
+    }
+    if (dm_L.rup) {
+      sv_PopRequest = 1;
+      done = 2;
+    }
+  } while (sv_RunFrame(ai_DivorceDialog, 0x657c7) != 0);
+  d2_CloseView(win);
+  return done;
 }
 
 int gv_HeldCrimeIdsOf(int culprit, int *out, unsigned short t);
@@ -6183,75 +6416,74 @@ int gv_HeldCrimeIdsOf(int culprit, int *out, unsigned short t);
    (me to me, arg[0] me, arg[1] the victim, flags 2, sent now) goes out and waits for its event to finish
    (AIJOB.stage -1) or me's powerFlags 0x100 (the victim gave in: the text 0x1d5a with the clock 0x60 hours ahead),
    returns 1; button 1 or the right button close it */
-int ai_BlackmailWindow(AICHAR *me, AICHAR *victim)
-{
-    char text[256];
-    int crimes[0x20];
-    AITIME due;
-    AIMSG msg;
-    AIJOB *job;
-    int win;
-    int h;
-    int held;
-    int ret;
+int ai_BlackmailWindow(AICHAR *me, AICHAR *victim) {
+  char text[256];
+  int crimes[0x20];
+  AITIME due;
+  AIMSG msg;
+  AIJOB *job;
+  int win;
+  int h;
+  int held;
+  int ret;
 
-    if (me == 0 || victim == 0)
-        return 0;
-    if (me->kind != 6 && me->kind != 7)
-        return 0;
-    held = gv_HeldCrimeIdsOf(victim->netId, crimes, me->id);
-    win = d2_OpenForm(0, 0, "privillegien\\erpressung2");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1d57, victim->id, victim->id, victim->id, victim->id, 2);
-    io_PrintText(0x1d58);
-    d2_ClickedId = -1;
-    ret = 0;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_ClickedId == 0) {
-                if (held >= (int)(util_Random(8))) {
-                    due = ai_Time;
-                    gm_AddTime(&due, 0x60, 0, 0);
-                    memset(&msg, 0, sizeof(msg));
-                    msg.type = 0x45;
-                    msg.to = me->netId;
-                    msg.fromId = me->netId;
-                    msg.flags = 2;
-                    msg.time = ai_Time;
-                    msg.arg[0] = me->netId;
-                    msg.arg[1] = victim->netId;
-                    h = cm_SendLongMessage(&msg);
-                    while (h != -1 && cm_GetSlotState(h) == 0)
-                        sv_PumpNet();
-                    job = (AIJOB *)cm_GetSlotValue(h);
-                    while ((me->flags1c8 & 0x100) == 0 && job->stage != -1)
-                        sv_PumpNet();
-                    if ((me->flags1c8 & 0x100) != 0) {
-                        txt_Format(text, 0x1d5a, victim->id, &due);
-                        sv_MessageBox((intptr_t)text, 0);
-                    }
-                    ret = 1;
-                    sv_PopRequest = 1;
-                } else {
-                    cm_SendRelations(me->netId, victim->netId, -26, 1);
-                    cm_SendMoneyDelta(me->netId, -2);
-                    txt_Format(text, 0x1d59, victim->id);
-                    sv_MessageBox((intptr_t)text, 0);
-                    ret = 0;
-                    sv_PopRequest = 1;
-                }
-            } else if (d2_ClickedId == 1) {
-                ret = 0;
-                sv_PopRequest = 1;
-            }
+  if (me == 0 || victim == 0)
+    return 0;
+  if (me->kind != 6 && me->kind != 7)
+    return 0;
+  held = gv_HeldCrimeIdsOf(victim->netId, crimes, me->id);
+  win = d2_OpenForm(0, 0, "privillegien\\erpressung2");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1d57, victim->id, victim->id, victim->id, victim->id, 2);
+  io_PrintText(0x1d58);
+  d2_ClickedId = -1;
+  ret = 0;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_ClickedId == 0) {
+        if (held >= (int)(util_Random(8))) {
+          due = ai_Time;
+          gm_AddTime(&due, 0x60, 0, 0);
+          memset(&msg, 0, sizeof(msg));
+          msg.type = 0x45;
+          msg.to = me->netId;
+          msg.fromId = me->netId;
+          msg.flags = 2;
+          msg.time = ai_Time;
+          msg.arg[0] = me->netId;
+          msg.arg[1] = victim->netId;
+          h = cm_SendLongMessage(&msg);
+          while (h != -1 && cm_GetSlotState(h) == 0)
+            sv_PumpNet();
+          job = (AIJOB *)cm_GetSlotValue(h);
+          while ((me->flags1c8 & 0x100) == 0 && job->stage != -1)
+            sv_PumpNet();
+          if ((me->flags1c8 & 0x100) != 0) {
+            txt_Format(text, 0x1d5a, victim->id, &due);
+            sv_MessageBox((intptr_t)text, 0);
+          }
+          ret = 1;
+          sv_PopRequest = 1;
+        } else {
+          cm_SendRelations(me->netId, victim->netId, -26, 1);
+          cm_SendMoneyDelta(me->netId, -2);
+          txt_Format(text, 0x1d59, victim->id);
+          sv_MessageBox((intptr_t)text, 0);
+          ret = 0;
+          sv_PopRequest = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_BlackmailWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      } else if (d2_ClickedId == 1) {
+        ret = 0;
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_BlackmailWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 
 /* 0x5c9550, the blackmail order's ask (ord_BlackmailBuildingOrder, kind 3) for the character me with the order
@@ -6264,107 +6496,110 @@ int ai_BlackmailWindow(AICHAR *me, AICHAR *victim)
    culprit with powerFlags 0x200 gives the text 0x1d52, fewer than 3 open evidences the text 0x1d51, else the
    blackmail window ai_BlackmailWindow (closing this one once it sent) and the result 0x92; else 0x20 */
 
-int ai_BlackmailBuildingListener(AICHAR *me, ORDMSG *m)
-{
-    int win;
-    int list;
-    int count;
-    int n;
-    int i;
-    int ret;
-    AICHAR *ch;
-    AICHAR *victim;
-    AITIME due;
-    int total[0x20];
-    char text[0x40];
-    int open[0x20];
-    int ids[0x20];
-    char warn[0x200];
-    LCAMOUNTROW rows[0x20];
+int ai_BlackmailBuildingListener(AICHAR *me, ORDMSG *m) {
+  int win;
+  int list;
+  int count;
+  int n;
+  int i;
+  int ret;
+  AICHAR *ch;
+  AICHAR *victim;
+  AITIME due;
+  int total[0x20];
+  char text[0x40];
+  int open[0x20];
+  int ids[0x20];
+  char warn[0x200];
+  LCAMOUNTROW rows[0x20];
 
-    if (me->kind != 6 && me->kind != 7) {
-        victim = gm_FindChar(m->target);
-        if (victim == 0)
-            return 0x60;
-        open[0] = gv_HeldCrimeIdsOf(victim->netId, ids, me->id);  /* the count in open[0]: the original's slot */
-        if (open[0] >= (int)(util_Random(8))) {
-            AIMSG msg;
+  if (me->kind != 6 && me->kind != 7) {
+    victim = gm_FindChar(m->target);
+    if (victim == 0)
+      return 0x60;
+    open[0] = gv_HeldCrimeIdsOf(
+        victim->netId, ids,
+        me->id); /* the count in open[0]: the original's slot */
+    if (open[0] >= (int)(util_Random(8))) {
+      AIMSG msg;
 
-            due = ai_Time;
-            gm_AddTime(&due, 0x60, 0, 0);
-            memset(&msg, 0, sizeof(msg));
-            msg.type = 0x45;
-            msg.to = me->netId;
-            msg.fromId = me->netId;
-            msg.flags = 2;
-            msg.time = ai_Time;
-            msg.arg[0] = me->netId;
-            msg.arg[1] = victim->netId;
-            cm_SendLongMessage(&msg);
-            return 0x10;
-        }
-        cm_SendRelations(me->netId, victim->netId, -26, 1);
-        return 0x10;
+      due = ai_Time;
+      gm_AddTime(&due, 0x60, 0, 0);
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x45;
+      msg.to = me->netId;
+      msg.fromId = me->netId;
+      msg.flags = 2;
+      msg.time = ai_Time;
+      msg.arg[0] = me->netId;
+      msg.arg[1] = victim->netId;
+      cm_SendLongMessage(&msg);
+      return 0x10;
     }
-    win = d2_OpenForm(0, 0, "privillegien\\erpressung");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1d55);
-    d2_SetForm(win, 2);
-    list = d2_LastWindow;
-    d2_SetForm(win, 3);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
-    count = gv_RankCulpritsAll(ids, open, total, me->id);
-    for (i = 0, n = 0; i < count; i++) {
-        ch = gm_FindChar(ids[i]);
-        if (ch != 0) {
-            rows[n].rec = ch;
-            rows[n].x2c = total[i];
-            rows[n].x34 = open[i];
-            ai_AmountRowStatus(&rows[n]);
-            rows[n].pickable = 1;
-            n++;
-        }
+    cm_SendRelations(me->netId, victim->netId, -26, 1);
+    return 0x10;
+  }
+  win = d2_OpenForm(0, 0, "privillegien\\erpressung");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1d55);
+  d2_SetForm(win, 2);
+  list = d2_LastWindow;
+  d2_SetForm(win, 3);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
+  count = gv_RankCulpritsAll(ids, open, total, me->id);
+  for (i = 0, n = 0; i < count; i++) {
+    ch = gm_FindChar(ids[i]);
+    if (ch != 0) {
+      rows[n].rec = ch;
+      rows[n].x2c = total[i];
+      rows[n].x34 = open[i];
+      ai_AmountRowStatus(&rows[n]);
+      rows[n].pickable = 1;
+      n++;
     }
-    d2_SetForm(win, 2);
-    if (n != 0) {
-        for (i = 0; i < n; i++) {
-            txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
-            rows[i].x = 0x32;
-            rows[i].y = i * 0x69 + 10;
-            ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
-            ai_RightAlignedText(text, d2_Wins[d2_LastWindow].w - 0xf, i * 0x69 + 10 + 0x2d, 200, 0x55);
-        }
-    } else {
-        io_PrintText(0x1d50);
+  }
+  d2_SetForm(win, 2);
+  if (n != 0) {
+    for (i = 0; i < n; i++) {
+      txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34,
+                 (rows[i].x2c != 1) + 0x1748);
+      rows[i].x = 0x32;
+      rows[i].y = i * 0x69 + 10;
+      ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
+      ai_RightAlignedText(text, d2_Wins[d2_LastWindow].w - 0xf,
+                          i * 0x69 + 10 + 0x2d, 200, 0x55);
     }
-    ret = 0x20;
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            for (i = 0; i < n; i++) {
-                if (d2_PointerObj == rows[i].ctl[0]) {
-                    if (sv_CheckMoney(me, 2) != 0) {
-                        if ((rows[i].rec->flags1c8 & 0x200) != 0) {
-                            txt_Format(warn, 0x1d52, rows[i].rec->id);
-                            sv_MessageBox((intptr_t)warn, 0);
-                        } else if ((unsigned int)rows[i].x34 < 3) {
-                            sv_MessageBox((intptr_t)txt_Ptrs[0x1d51], 0);
-                        } else {
-                            if (ai_BlackmailWindow(me, gm_FindChar(ids[i])) != 0)
-                                sv_PopRequest = 1;
-                            ret = 0x92;
-                        }
-                    }
-                    break;
-                }
+  } else {
+    io_PrintText(0x1d50);
+  }
+  ret = 0x20;
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      for (i = 0; i < n; i++) {
+        if (d2_PointerObj == rows[i].ctl[0]) {
+          if (sv_CheckMoney(me, 2) != 0) {
+            if ((rows[i].rec->flags1c8 & 0x200) != 0) {
+              txt_Format(warn, 0x1d52, rows[i].rec->id);
+              sv_MessageBox((intptr_t)warn, 0);
+            } else if ((unsigned int)rows[i].x34 < 3) {
+              sv_MessageBox((intptr_t)txt_Ptrs[0x1d51], 0);
+            } else {
+              if (ai_BlackmailWindow(me, gm_FindChar(ids[i])) != 0)
+                sv_PopRequest = 1;
+              ret = 0x92;
             }
+          }
+          break;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_BlackmailBuildingListener, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_BlackmailBuildingListener, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 
 /* 0x5c9990, the blackmail contact's letter window "misc\perga_rolle" (the pick callback ai_BlackmailContact hands
@@ -6374,73 +6609,72 @@ int ai_BlackmailBuildingListener(AICHAR *me, ORDMSG *m)
    random texts 0x1d6d + 0..8 / 0x1d76 + 0..8, flags 2, sent now), waited for, the player pays 2 and gets the text
    0x1d6a; sv_PopRequest 3, returns 1. Button 1: sv_PopRequest 2; the right button 1 */
 
-int ai_BlackmailContactWindow(AICHAR *ch, int n)
-{
-    char text[0x100];
-    AIMSG msg;
-    AIWINDOWROW row;
-    int win;
-    int h;
-    int ret;
-    int word;
-    unsigned short text1;
-    unsigned short text2;
+int ai_BlackmailContactWindow(AICHAR *ch, int n) {
+  char text[0x100];
+  AIMSG msg;
+  AIWINDOWROW row;
+  int win;
+  int h;
+  int ret;
+  int word;
+  unsigned short text1;
+  unsigned short text2;
 
-    ret = 0;
-    if ((ch->flags1c8 & 0x400) != 0) {
-        txt_Format(text, 0x1d7f, ch->id);
-        sv_MessageBox((intptr_t)text, 0);
-        return 0;
-    }
-    word = (ch->sex != 0) + 0x1d68;
-    win = d2_OpenForm(0, 0, "misc\\perga_rolle");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1d67, ch->id, 2, ch->id, word, ch->id);
-    memset(&row, 0xff, sizeof(row));
-    row.win = win;
-    row.pageA = 2;
-    row.pageB = 3;
-    row.pageC = 4;
-    row.entry = 4;
-    row.record = 4;
-    ai_ShowWindowRow(&row);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_ClickedId == 0) {
-                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 2) != 0) {
-                    text2 = util_Random(9) + 0x1d76;
-                    text1 = util_Random(9) + 0x1d6d;
-                    memset(&msg, 0, sizeof(msg));
-                    msg.type = 0x47;
-                    msg.to = ai_Chars[ai_PlayerId].netId;
-                    msg.fromId = ai_Chars[ai_PlayerId].netId;
-                    msg.flags = 2;
-                    msg.time = ai_Time;
-                    msg.letter.from = ai_Chars[ai_PlayerId].netId;
-                    msg.letter.text1 = text1;
-                    msg.letter.text2 = text2;
-                    msg.letter.victim = ch->netId;
-                    h = cm_SendLongMessage(&msg);
-                    while (cm_GetSlotState(h) == 0)
-                        sv_PumpNet();
-                    cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -2);
-                    txt_Format(text, 0x1d6a, text1, ch->id, text2);
-                    sv_MessageBox((intptr_t)text, 0);
-                    sv_PopRequest = 3;
-                    ret = 1;
-                }
-            } else if (d2_ClickedId == 1) {
-                sv_PopRequest = 2;
-            }
+  ret = 0;
+  if ((ch->flags1c8 & 0x400) != 0) {
+    txt_Format(text, 0x1d7f, ch->id);
+    sv_MessageBox((intptr_t)text, 0);
+    return 0;
+  }
+  word = (ch->sex != 0) + 0x1d68;
+  win = d2_OpenForm(0, 0, "misc\\perga_rolle");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1d67, ch->id, 2, ch->id, word, ch->id);
+  memset(&row, 0xff, sizeof(row));
+  row.win = win;
+  row.pageA = 2;
+  row.pageB = 3;
+  row.pageC = 4;
+  row.entry = 4;
+  row.record = 4;
+  ai_ShowWindowRow(&row);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_ClickedId == 0) {
+        if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 2) != 0) {
+          text2 = util_Random(9) + 0x1d76;
+          text1 = util_Random(9) + 0x1d6d;
+          memset(&msg, 0, sizeof(msg));
+          msg.type = 0x47;
+          msg.to = ai_Chars[ai_PlayerId].netId;
+          msg.fromId = ai_Chars[ai_PlayerId].netId;
+          msg.flags = 2;
+          msg.time = ai_Time;
+          msg.letter.from = ai_Chars[ai_PlayerId].netId;
+          msg.letter.text1 = text1;
+          msg.letter.text2 = text2;
+          msg.letter.victim = ch->netId;
+          h = cm_SendLongMessage(&msg);
+          while (cm_GetSlotState(h) == 0)
+            sv_PumpNet();
+          cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -2);
+          txt_Format(text, 0x1d6a, text1, ch->id, text2);
+          sv_MessageBox((intptr_t)text, 0);
+          sv_PopRequest = 3;
+          ret = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_BlackmailContactWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      } else if (d2_ClickedId == 1) {
+        sv_PopRequest = 2;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_BlackmailContactWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5c9c50, the blackmail contact order's ask (ord_BlackmailContactOrder, kind 3) for the character me with the
    order message m. Of another kind than 6 / 7 (the AI): no character m->target: 0x60; else the letter 0x47 to it
@@ -6457,51 +6691,50 @@ int ai_BlackmailContactWindow(AICHAR *ch, int n)
    63 bytes); climb 2 rounds: 10 ins / 71 bytes (victim, flags, text2 last; the same order 30 hunks, bytes
    worse, not kept). */
 
-int ai_BlackmailContact(AICHAR *me, ORDMSG *m)
-{
-    int ret;
-    AICHAR *victim;
-    AICHAR *pick;
-    unsigned short text1;
-    unsigned short text2;
-    AMOUNTCFG cfg;
+int ai_BlackmailContact(AICHAR *me, ORDMSG *m) {
+  int ret;
+  AICHAR *victim;
+  AICHAR *pick;
+  unsigned short text1;
+  unsigned short text2;
+  AMOUNTCFG cfg;
 
-    ret = 2;
-    if (me->kind != 6 && me->kind != 7) {
-        AIMSG msg;
+  ret = 2;
+  if (me->kind != 6 && me->kind != 7) {
+    AIMSG msg;
 
-        victim = gm_FindChar(m->target);
-        if (victim == 0)
-            return 0x60;
-        text2 = util_Random(9) + 0x1d76;
-        text1 = util_Random(9) + 0x1d6d;
-        memset(&msg, 0, sizeof(msg));
-        msg.type = 0x47;
-        msg.to = me->netId;
-        msg.fromId = me->netId;
-        msg.flags = 2;
-        msg.time = ai_Time;
-        msg.letter.from = me->netId;
-        msg.letter.text1 = text1;
-        msg.letter.text2 = text2;
-        msg.letter.victim = victim->netId;
-        cm_SendLongMessage(&msg);
-        cm_SendMoneyDelta(me->netId, -2);
-        return 0x10;
-    } else {
-        char text[0x40];
+    victim = gm_FindChar(m->target);
+    if (victim == 0)
+      return 0x60;
+    text2 = util_Random(9) + 0x1d76;
+    text1 = util_Random(9) + 0x1d6d;
+    memset(&msg, 0, sizeof(msg));
+    msg.type = 0x47;
+    msg.to = me->netId;
+    msg.fromId = me->netId;
+    msg.flags = 2;
+    msg.time = ai_Time;
+    msg.letter.from = me->netId;
+    msg.letter.text1 = text1;
+    msg.letter.text2 = text2;
+    msg.letter.victim = victim->netId;
+    cm_SendLongMessage(&msg);
+    cm_SendMoneyDelta(me->netId, -2);
+    return 0x10;
+  } else {
+    char text[0x40];
 
-        memset(&cfg, 0, sizeof(cfg));
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        txt_Format(text, 0x1d66);
-        pick = ai_AmountMenu(&cfg, text, 0, ai_BlackmailContactWindow);
-        if (pick != 0 && (pick->flags1c8 & 0x400) != 0)
-            ret = 0x81;
-    }
-    return ret;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    txt_Format(text, 0x1d66);
+    pick = ai_AmountMenu(&cfg, text, 0, ai_BlackmailContactWindow);
+    if (pick != 0 && (pick->flags1c8 & 0x400) != 0)
+      ret = 0x81;
+  }
+  return ret;
 }
 /* 0x5c9df0, the intimidation window "privillegien\furcht_einfloessen" (the pick callback of the intimidation order
    0x5c9ff0's amount menu) for the picked character ch: the offer 0x1d62 (ch's id twice, 2, its id). Button 0, the player paying 2
@@ -6509,51 +6742,50 @@ int ai_BlackmailContact(AICHAR *me, ORDMSG *m)
    arg[1] ch, flags 2, sent now), then the text 0x1d63 with the clock 0x18 hours ahead and ch's id; sv_PopRequest 4,
    returns 1. Button 1: sv_PopRequest 2; the right button 1 */
 
-int ai_IntimidateWindow(AICHAR *ch, int n)
-{
-    char text[0x100];
-    AIMSG msg;
-    AITIME due;
-    int win;
-    int ret;
+int ai_IntimidateWindow(AICHAR *ch, int n) {
+  char text[0x100];
+  AIMSG msg;
+  AITIME due;
+  int win;
+  int ret;
 
-    ret = 0;
-    win = d2_OpenForm(0, 0, "privillegien\\furcht_einfloessen");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1d62, ch->id, ch->id, 2, ch->id);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_ClickedId == 0) {
-                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 2) != 0) {
-                    cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -2);
-                    memset(&msg, 0, sizeof(msg));
-                    msg.type = 0x4b;
-                    msg.to = ai_Chars[ai_PlayerId].netId;
-                    msg.fromId = ai_Chars[ai_PlayerId].netId;
-                    msg.flags = 2;
-                    msg.time = ai_Time;
-                    msg.arg[0] = ai_Chars[ai_PlayerId].netId;
-                    msg.arg[1] = ch->netId;
-                    cm_SendLongMessage(&msg);
-                    due = ai_Time;
-                    gm_AddTime(&due, 0x18, 0, 0);
-                    txt_Format(text, 0x1d63, &due, ch->id);
-                    sv_MessageBox((intptr_t)text, 0);
-                    sv_PopRequest = 4;
-                    ret = 1;
-                }
-            } else if (d2_ClickedId == 1) {
-                sv_PopRequest = 2;
-            }
+  ret = 0;
+  win = d2_OpenForm(0, 0, "privillegien\\furcht_einfloessen");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1d62, ch->id, ch->id, 2, ch->id);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_ClickedId == 0) {
+        if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 2) != 0) {
+          cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -2);
+          memset(&msg, 0, sizeof(msg));
+          msg.type = 0x4b;
+          msg.to = ai_Chars[ai_PlayerId].netId;
+          msg.fromId = ai_Chars[ai_PlayerId].netId;
+          msg.flags = 2;
+          msg.time = ai_Time;
+          msg.arg[0] = ai_Chars[ai_PlayerId].netId;
+          msg.arg[1] = ch->netId;
+          cm_SendLongMessage(&msg);
+          due = ai_Time;
+          gm_AddTime(&due, 0x18, 0, 0);
+          txt_Format(text, 0x1d63, &due, ch->id);
+          sv_MessageBox((intptr_t)text, 0);
+          sv_PopRequest = 4;
+          ret = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_IntimidateWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      } else if (d2_ClickedId == 1) {
+        sv_PopRequest = 2;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_IntimidateWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5c9ff0, the intimidation order's ask (ord_IntimidateOrder, kind 3) for the character me with the order message
    m. Of another kind than 6 / 7 (the AI): no character m->target: 0x60; else me pays 2 and sends the message 0x4b
@@ -6570,46 +6802,45 @@ int ai_IntimidateWindow(AICHAR *ch, int n)
    bytes), msg at function scope (= control), the money call after the fill and arg[0] before arg[1] (far
    worse): no lever found. he_AllocMeeting's fill is scheduled the original's way with the same statements. */
 
-int ai_IntimidateContact(AICHAR *me, ORDMSG *m)
-{
-    int ret;
-    AICHAR *victim;
+int ai_IntimidateContact(AICHAR *me, ORDMSG *m) {
+  int ret;
+  AICHAR *victim;
 
-    ret = 0;
-    if (me->kind != 6 && me->kind != 7) {
-        AIMSG msg;
+  ret = 0;
+  if (me->kind != 6 && me->kind != 7) {
+    AIMSG msg;
 
-        victim = gm_FindChar(m->target);
-        if (victim == 0)
-            return 0x60;
-        cm_SendMoneyDelta(me->netId, -2);
-        memset(&msg, 0, sizeof(msg));
-        msg.type = 0x4b;
-        msg.to = me->netId;
-        msg.fromId = me->netId;
-        msg.flags = 2;
-        msg.time = ai_Time;
-        msg.arg[1] = victim->netId;
-        msg.arg[0] = me->netId;
-        cm_SendLongMessage(&msg);
-        return 0x10;
-    } else {
-        AMOUNTCFG cfg;
-        char text[0x40];
+    victim = gm_FindChar(m->target);
+    if (victim == 0)
+      return 0x60;
+    cm_SendMoneyDelta(me->netId, -2);
+    memset(&msg, 0, sizeof(msg));
+    msg.type = 0x4b;
+    msg.to = me->netId;
+    msg.fromId = me->netId;
+    msg.flags = 2;
+    msg.time = ai_Time;
+    msg.arg[1] = victim->netId;
+    msg.arg[0] = me->netId;
+    cm_SendLongMessage(&msg);
+    return 0x10;
+  } else {
+    AMOUNTCFG cfg;
+    char text[0x40];
 
-        memset(&cfg, 0, sizeof(cfg));
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        txt_Format(text, 0x1d61);
-        if (ai_AmountMenu(&cfg, text, 0, ai_IntimidateWindow) != 0)
-            ret = 1;
-    }
-    return ret;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    txt_Format(text, 0x1d61);
+    if (ai_AmountMenu(&cfg, text, 0, ai_IntimidateWindow) != 0)
+      ret = 1;
+  }
+  return ret;
 }
 
-int gv_SetTableRecord(struct AICHAR *c, int i, int v);   /* 0x4f2750 */
+int gv_SetTableRecord(struct AICHAR *c, int i, int v); /* 0x4f2750 */
 
 /* 0x5ca150, the law order's ask (ord_LawOrder / ord_LawOrder2, kinds 3 / 4) "privillegien\gesetz": the character me
    changes the decision m->law (AIDEC) of an office, the office's character being me (kind 3) or m->partner (kind 4;
@@ -6621,127 +6852,126 @@ int gv_SetTableRecord(struct AICHAR *c, int i, int v);   /* 0x4f2750 */
    is enabled once the value differs. Button 0, me paying 2 (sv_CheckMoney): the new value (a switch: 1 - cur), the
    set waited for, me pays 2 and the flag is set: 0x80; button 1 or the right button close it */
 
-int ai_LawPrivilegeWindow(AICHAR *me, ORDMSG *m)
-{
-    int flag;
-    AICHAR *owner;
-    int ret;
+int ai_LawPrivilegeWindow(AICHAR *me, ORDMSG *m) {
+  int flag;
+  AICHAR *owner;
+  int ret;
 
-    ret = 0;
-    if (m->kind == 3) {
-        owner = me;
-    } else if (m->kind == 4 && m->partner != 0) {
-        owner = m->partner;
-    } else {
-        return 0x60;
+  ret = 0;
+  if (m->kind == 3) {
+    owner = me;
+  } else if (m->kind == 4 && m->partner != 0) {
+    owner = m->partner;
+  } else {
+    return 0x60;
+  }
+  if (m->answerFlag == 1)
+    flag = 0x80000;
+  else if (m->answerFlag == 2)
+    flag = 0x100000;
+  else
+    return 0x60;
+  if (me->kind != 6) {
+    AIDEC rec;
+
+    if (me->money < 2)
+      return 0x20;
+    if (gv_GetTableRecord(m->law, &rec) == 0)
+      return 0x60;
+    if (m->value == rec.cur || m->value > rec.max || m->value < rec.min)
+      return 0x60;
+    gv_SetTableRecord(me, rec.id, m->value);
+    cm_SendMoneyDelta(me->netId, -2);
+    cm_SendSetField(owner->netId, 0x1c8, 4, flag, 0);
+  }
+  if (me->kind == 6) {
+    int base = 0;
+    int apply = 1;
+    int ctrl2 = -1;
+    int win;
+    int word;
+    int t;
+    int ctrl;
+    int h;
+    int v;
+    int from;
+    AIDEC rec = {0};
+
+    if (gv_GetTableRecord(m->law, &rec) == 0)
+      return 0;
+    word = rec.id * 5 + 0x13fd;
+    win = d2_OpenForm(0, 0, "privillegien\\gesetz");
+    d2_SetPointerSprite(0, 0);
+    d2_CentreViewWindows(win);
+    d2_SetForm(win, 1);
+    io_PrintText(0x1ba9);
+    switch (rec.valueText) {
+    case 0:
+      t = io_PrintText(0x13d0, word, 0x13d3);
+      ctrl = d2_GetWinObj(win, 1, t);
+      ctrl2 = d2_GetWinObj(win, 1, t + 1);
+      d2_SetObjValue(ctrl, rec.min, rec.max, rec.cur);
+      base = 0;
+      break;
+    case 1:
+      t = io_PrintText(0x13da, word, 0x13dd, rec.cur + 0x13dd);
+      ctrl = d2_GetWinObj(win, 1, t);
+      ctrl2 = d2_GetWinObj(win, 1, t + 1);
+      base = 0x13dd;
+      break;
+    case 2:
+      ctrl = d2_GetWinObj(win, 1,
+                          io_PrintText(0x13e3, word, word, 0x13e7 - rec.cur));
+      apply = 0;
+      break;
+    case 3:
+      t = io_PrintText(0x13e9, 0x13ec, rec.cur + 0x13ec);
+      ctrl = d2_GetWinObj(win, 1, t);
+      ctrl2 = d2_GetWinObj(win, 1, t + 1);
+      base = 0x13ec;
+      break;
+    default:
+      return 0;
     }
-    if (m->answerFlag == 1)
-        flag = 0x80000;
-    else if (m->answerFlag == 2)
-        flag = 0x100000;
-    else
-        return 0x60;
-    if (me->kind != 6) {
-        AIDEC rec;
-
-        if (me->money < 2)
-            return 0x20;
-        if (gv_GetTableRecord(m->law, &rec) == 0)
-            return 0x60;
-        if (m->value == rec.cur || m->value > rec.max || m->value < rec.min)
-            return 0x60;
-        gv_SetTableRecord(me, rec.id, m->value);
-        cm_SendMoneyDelta(me->netId, -2);
-        cm_SendSetField(owner->netId, 0x1c8, 4, flag, 0);
-    }
-    if (me->kind == 6) {
-        int base = 0;
-        int apply = 1;
-        int ctrl2 = -1;
-        int win;
-        int word;
-        int t;
-        int ctrl;
-        int h;
-        int v;
-        int from;
-        AIDEC rec = {0};
-
-        if (gv_GetTableRecord(m->law, &rec) == 0)
-            return 0;
-        word = rec.id * 5 + 0x13fd;
-        win = d2_OpenForm(0, 0, "privillegien\\gesetz");
-        d2_SetPointerSprite(0, 0);
-        d2_CentreViewWindows(win);
-        d2_SetForm(win, 1);
-        io_PrintText(0x1ba9);
-        switch (rec.valueText) {
-        case 0:
-            t = io_PrintText(0x13d0, word, 0x13d3);
-            ctrl = d2_GetWinObj(win, 1, t);
-            ctrl2 = d2_GetWinObj(win, 1, t + 1);
-            d2_SetObjValue(ctrl, rec.min, rec.max, rec.cur);
-            base = 0;
-            break;
-        case 1:
-            t = io_PrintText(0x13da, word, 0x13dd, rec.cur + 0x13dd);
-            ctrl = d2_GetWinObj(win, 1, t);
-            ctrl2 = d2_GetWinObj(win, 1, t + 1);
-            base = 0x13dd;
-            break;
-        case 2:
-            ctrl = d2_GetWinObj(win, 1, io_PrintText(0x13e3, word, word, 0x13e7 - rec.cur));
-            apply = 0;
-            break;
-        case 3:
-            t = io_PrintText(0x13e9, 0x13ec, rec.cur + 0x13ec);
-            ctrl = d2_GetWinObj(win, 1, t);
-            ctrl2 = d2_GetWinObj(win, 1, t + 1);
-            base = 0x13ec;
-            break;
-        default:
-            return 0;
+    d2_ClickedId = -1;
+    do {
+      if (apply) {
+        if (d2_GetObjValue(ctrl) - base == rec.cur || ctrl2 == -1)
+          d2_SetObjEnabled(ctrl2, 0);
+        else
+          d2_SetObjEnabled(ctrl2, 1);
+      }
+      if (dm_L.rup)
+        sv_PopRequest = 1;
+      if (d2_ClickedId != -1) {
+        if (d2_ClickedId == 0) {
+          if (sv_CheckMoney(me, 2) != 0) {
+            if (rec.valueText == 2) {
+              v = 1;
+              from = rec.cur;
+            } else {
+              v = d2_GetObjValue(ctrl);
+              from = base;
+            }
+            ret = 0x80;
+            h = gv_SetTableRecord(me, rec.id, v - from);
+            if (h != -1) {
+              while (cm_GetSlotState(h) == 0)
+                sv_PumpNet();
+              cm_SendMoneyDelta(me->netId, -2);
+              cm_SendSetField(owner->netId, 0x1c8, 4, flag, 0);
+            }
+            sv_PopRequest = 1;
+          }
+        } else if (d2_ClickedId == 1) {
+          sv_PopRequest = 1;
         }
-        d2_ClickedId = -1;
-        do {
-            if (apply) {
-                if (d2_GetObjValue(ctrl) - base == rec.cur || ctrl2 == -1)
-                    d2_SetObjEnabled(ctrl2, 0);
-                else
-                    d2_SetObjEnabled(ctrl2, 1);
-            }
-            if (dm_L.rup)
-                sv_PopRequest = 1;
-            if (d2_ClickedId != -1) {
-                if (d2_ClickedId == 0) {
-                    if (sv_CheckMoney(me, 2) != 0) {
-                        if (rec.valueText == 2) {
-                            v = 1;
-                            from = rec.cur;
-                        } else {
-                            v = d2_GetObjValue(ctrl);
-                            from = base;
-                        }
-                        ret = 0x80;
-                        h = gv_SetTableRecord(me, rec.id, v - from);
-                        if (h != -1) {
-                            while (cm_GetSlotState(h) == 0)
-                                sv_PumpNet();
-                            cm_SendMoneyDelta(me->netId, -2);
-                            cm_SendSetField(owner->netId, 0x1c8, 4, flag, 0);
-                        }
-                        sv_PopRequest = 1;
-                    }
-                } else if (d2_ClickedId == 1) {
-                    sv_PopRequest = 1;
-                }
-            }
-        } while (sv_RunFrame(ai_LawPrivilegeWindow, 0x657c7) != 0);
-        d2_CloseView(win);
-    }
-    return ret;
+      }
+    } while (sv_RunFrame(ai_LawPrivilegeWindow, 0x657c7) != 0);
+    d2_CloseView(win);
+  }
+  return ret;
 }
-
 
 /* 0x5ca560, the dismissal order's ask (ord_DismissOfficeOrder, kinds 3 / 4): the office holder owner (me
    for kind 3, m->partner for kind 4; none or another kind: 0x60) has an office holder of the same office column
@@ -6755,92 +6985,92 @@ int ai_LawPrivilegeWindow(AICHAR *me, ORDMSG *m)
    @original the refusal block is shared by the state test and the failed group (goto refused): written out at
    both or nested under if (office.state == 1) VC6 lays it out otherwise (42 / 40 instructions off) */
 
-int ai_DismissOfficeAsk(AICHAR *me, ORDMSG *m)
-{
-    AICHAR *owner;
-    AICHAR *ch;
-    AMTKIND ownerKind;
-    int officeKind;
-    int flagSlot;
-    int slot;
+int ai_DismissOfficeAsk(AICHAR *me, ORDMSG *m) {
+  AICHAR *owner;
+  AICHAR *ch;
+  AMTKIND ownerKind;
+  int officeKind;
+  int flagSlot;
+  int slot;
 
-    if (m->kind == 3) {
-        owner = me;
-        officeKind = me->officeKind;
-    } else if (m->kind == 4 && m->partner != 0) {
-        owner = m->partner;
-        officeKind = owner->officeKind;
-    } else {
+  if (m->kind == 3) {
+    owner = me;
+    officeKind = me->officeKind;
+  } else if (m->kind == 4 && m->partner != 0) {
+    owner = m->partner;
+    officeKind = owner->officeKind;
+  } else {
+    return 0x60;
+  }
+  if (amt_GetKind(officeKind, &ownerKind) == 0)
+    return 0x60;
+  if (me->kind != 6) {
+    AMTKIND kind;
+    AMTREC office;
+
+    ch = gm_FindChar(m->target);
+    if (ch == 0)
+      return 0x60;
+    if (amt_FindOffice(ch, &kind, &office) == 0)
+      return 0x60;
+    if (ownerKind.col != kind.col)
+      return 0x60;
+    cm_BeginGroup("absetzen");
+    amt_SendOfficeCandidates(ch, owner);
+    cm_SendSetField(owner->netId, 0x1c8, 4, 0x200000, 0);
+    cm_SendRelations(me->netId, ch->netId, -40, 1);
+    cm_EndGroup("absetzen");
+    return 0x10;
+  } else {
+    AMOUNTCFG cfg;
+    AMTREC office;
+    AMTKIND kind;
+    char text[0x100];
+    char caption2[0x100];
+    char caption[0x100];
+
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    cfg.ids[0] = me->id;
+    if (m->partner == owner)
+      cfg.ids[1] = owner->id;
+    cfg.kind = 6;
+    cfg.option14 = 3;
+    cfg.mode = 0x400;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    txt_Format(caption, 0x1d98);
+    txt_Format(caption2, 0x1d99);
+    ch = ai_SpecialAmountListWindow(ownerKind.col, &cfg, caption, caption2, 0);
+    if (ch != 0) {
+      if (amt_FindOffice(ch, &kind, &office) == 0)
         return 0x60;
-    }
-    if (amt_GetKind(officeKind, &ownerKind) == 0)
-        return 0x60;
-    if (me->kind != 6) {
-        AMTKIND kind;
-        AMTREC office;
-
-        ch = gm_FindChar(m->target);
-        if (ch == 0)
-            return 0x60;
-        if (amt_FindOffice(ch, &kind, &office) == 0)
-            return 0x60;
-        if (ownerKind.col != kind.col)
-            return 0x60;
-        cm_BeginGroup("absetzen");
-        amt_SendOfficeCandidates(ch, owner);
-        cm_SendSetField(owner->netId, 0x1c8, 4, 0x200000, 0);
-        cm_SendRelations(me->netId, ch->netId, -40, 1);
-        cm_EndGroup("absetzen");
-        return 0x10;
-    } else {
-        AMOUNTCFG cfg;
-        AMTREC office;
-        AMTKIND kind;
-        char text[0x100];
-        char caption2[0x100];
-        char caption[0x100];
-
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        cfg.ids[0] = me->id;
-        if (m->partner == owner)
-            cfg.ids[1] = owner->id;
-        cfg.kind = 6;
-        cfg.option14 = 3;
-        cfg.mode = 0x400;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        txt_Format(caption, 0x1d98);
-        txt_Format(caption2, 0x1d99);
-        ch = ai_SpecialAmountListWindow(ownerKind.col, &cfg, caption, caption2, 0);
-        if (ch != 0) {
-            if (amt_FindOffice(ch, &kind, &office) == 0)
-                return 0x60;
-            if (office.state != 1)
-                goto refused;
-            cm_BeginGroup("absetzen");
-            amt_SendOfficeCandidates(ch, owner);
-            flagSlot = cm_SendSetField(owner->netId, 0x1c8, 4, 0x200000, 0);
-            cm_SendRelations(me->netId, ch->netId, -20, 1);
-            slot = cm_EndGroup("absetzen");
-            while (cm_GetSlotState(slot) == 0)
-                sv_PumpNet();
-            if (cm_GetSlotState(slot) == 2) {
-refused:
-                txt_Format(text, 0x1d9a, ch->id);
-                sv_MessageBox((intptr_t)text, 0);
-                return 0x20;
-            }
-            while (cm_GetSlotState(flagSlot) == 0)
-                sv_PumpNet();
-            txt_Format(text, 0x1d9b, ch->id, ch->id);
-            sv_MessageBox((intptr_t)text, 0);
-            return 0x90;
-        }
+      if (office.state != 1)
+        goto refused;
+      cm_BeginGroup("absetzen");
+      amt_SendOfficeCandidates(ch, owner);
+      flagSlot = cm_SendSetField(owner->netId, 0x1c8, 4, 0x200000, 0);
+      cm_SendRelations(me->netId, ch->netId, -20, 1);
+      slot = cm_EndGroup("absetzen");
+      while (cm_GetSlotState(slot) == 0)
+        sv_PumpNet();
+      if (cm_GetSlotState(slot) == 2) {
+      refused:
+        txt_Format(text, 0x1d9a, ch->id);
+        sv_MessageBox((intptr_t)text, 0);
         return 0x20;
+      }
+      while (cm_GetSlotState(flagSlot) == 0)
+        sv_PumpNet();
+      txt_Format(text, 0x1d9b, ch->id, ch->id);
+      sv_MessageBox((intptr_t)text, 0);
+      return 0x90;
     }
+    return 0x20;
+  }
 }
-#define LC_POWER_EMBEZZLED 0x400000  /* AICHAR.flags1c8: the office's embezzlement used (ai_MisappropriationWindow) */
+#define LC_POWER_EMBEZZLED                                                     \
+  0x400000 /* AICHAR.flags1c8: the office's embezzlement used (ai_MisappropriationWindow) */
 
 /* 0x5ca860, the embezzlement order's ask "privillegien\unterschlagung" (kinds 3 / 4) for the character me: the office
    holder owner (me for kind 3, m->partner for kind 4; none or another kind: 0x60) embezzles (25 .. 200) * 0.005 of
@@ -6849,62 +7079,61 @@ refused:
    window with the offer 0x1dc2 (me's id); button 0, me paying 4 (sv_CheckMoney), does the same, waits for the flag's
    send and shows the text 0x1dc3 with the sum: 0x90; button 1 or the right button close it */
 
-int ai_MisappropriationWindow(AICHAR *me, ORDMSG *m)
-{
-    ORDWAGES wages = {0};
-    char text[0x100];
-    AICHAR *owner;
-    int ret = 0;
-    int sum;
-    int win;
-    int h;
+int ai_MisappropriationWindow(AICHAR *me, ORDMSG *m) {
+  ORDWAGES wages = {0};
+  char text[0x100];
+  AICHAR *owner;
+  int ret = 0;
+  int sum;
+  int win;
+  int h;
 
-    if (m->kind == 3) {
-        owner = me;
-    } else if (m->kind == 4 && m->partner != 0) {
-        owner = m->partner;
-    } else {
-        return 0x60;
-    }
-    gm_CharacterWages(owner->id, 0, &wages);
-    sum = (int)(wages.amount * ((float)(util_Random(0xb0) + 0x19) * 0.005f));
-    if (me->kind != 6) {
-        if (me->money < 4)
-            return 0x20;
-        cm_SendMoveGoodsUnchecked(me->netId, -1, 0, sum);
-        cm_SendMoneyDelta(me->netId, -4);
-        cm_SendSetField(owner->netId, 0x1c8, 4, LC_POWER_EMBEZZLED, 0);
-    } else {
-        win = d2_OpenForm(0, 0, "privillegien\\unterschlagung");
-        d2_SetPointerSprite(0, 0);
-        d2_CentreViewWindows(win);
-        d2_SetForm(win, 1);
-        io_PrintText(0x1dc2, me->id);
-        d2_ClickedId = -1;
-        do {
-            if (d2_ClickedId != -1) {
-                if (d2_ClickedId == 0) {
-                    if (sv_CheckMoney(me, 4) != 0) {
-                        cm_SendMoveGoodsUnchecked(me->netId, -1, 0, sum);
-                        cm_SendMoneyDelta(me->netId, -4);
-                        h = cm_SendSetField(owner->netId, 0x1c8, 4, LC_POWER_EMBEZZLED, 0);
-                        while (cm_GetSlotState(h) == 0)
-                            sv_PumpNet();
-                        txt_Format(text, 0x1dc3, sum);
-                        sv_MessageBox((intptr_t)text, 0);
-                        ret = 0x90;
-                        sv_PopRequest = 1;
-                    }
-                } else if (d2_ClickedId == 1) {
-                    sv_PopRequest = 1;
-                }
-            }
-            if (dm_L.rup)
-                sv_PopRequest = 1;
-        } while (sv_RunFrame(ai_MisappropriationWindow, 0x657c7) != 0);
-        d2_CloseView(win);
-    }
-    return ret;
+  if (m->kind == 3) {
+    owner = me;
+  } else if (m->kind == 4 && m->partner != 0) {
+    owner = m->partner;
+  } else {
+    return 0x60;
+  }
+  gm_CharacterWages(owner->id, 0, &wages);
+  sum = (int)(wages.amount * ((float)(util_Random(0xb0) + 0x19) * 0.005f));
+  if (me->kind != 6) {
+    if (me->money < 4)
+      return 0x20;
+    cm_SendMoveGoodsUnchecked(me->netId, -1, 0, sum);
+    cm_SendMoneyDelta(me->netId, -4);
+    cm_SendSetField(owner->netId, 0x1c8, 4, LC_POWER_EMBEZZLED, 0);
+  } else {
+    win = d2_OpenForm(0, 0, "privillegien\\unterschlagung");
+    d2_SetPointerSprite(0, 0);
+    d2_CentreViewWindows(win);
+    d2_SetForm(win, 1);
+    io_PrintText(0x1dc2, me->id);
+    d2_ClickedId = -1;
+    do {
+      if (d2_ClickedId != -1) {
+        if (d2_ClickedId == 0) {
+          if (sv_CheckMoney(me, 4) != 0) {
+            cm_SendMoveGoodsUnchecked(me->netId, -1, 0, sum);
+            cm_SendMoneyDelta(me->netId, -4);
+            h = cm_SendSetField(owner->netId, 0x1c8, 4, LC_POWER_EMBEZZLED, 0);
+            while (cm_GetSlotState(h) == 0)
+              sv_PumpNet();
+            txt_Format(text, 0x1dc3, sum);
+            sv_MessageBox((intptr_t)text, 0);
+            ret = 0x90;
+            sv_PopRequest = 1;
+          }
+        } else if (d2_ClickedId == 1) {
+          sv_PopRequest = 1;
+        }
+      }
+      if (dm_L.rup)
+        sv_PopRequest = 1;
+    } while (sv_RunFrame(ai_MisappropriationWindow, 0x657c7) != 0);
+    d2_CloseView(win);
+  }
+  return ret;
 }
 /* 0x5caab0, the bewitch window "privillegien\becircen" (the amount menu callback of 0x5cacd0, with the picked
    character ch). A ch of the player's own sex gets the text 0x1db1 (with 0x1db3 for a woman, 0x1db2 for a man)
@@ -6913,53 +7142,52 @@ int ai_MisappropriationWindow(AICHAR *me, ORDMSG *m)
    player (cm_SendMoneyDelta), sends the relation change to ch (cm_SendRelations), tells it (0x1db5, ch twice)
    and closes with 1; the second button or a right click close it. Returns 1 once ch was bewitched, else 0 */
 
-int ai_BewitchWindow(AICHAR *ch, int n)
-{
-    char text[0x100];
-    int win;
-    int slider;
-    int amount;
-    int gain;
-    int done;
+int ai_BewitchWindow(AICHAR *ch, int n) {
+  char text[0x100];
+  int win;
+  int slider;
+  int amount;
+  int gain;
+  int done;
 
-    done = 0;
-    if (ai_Chars[ai_PlayerId].sex == ch->sex) {
-        if (ai_Chars[ai_PlayerId].sex == 0)
-            txt_Format(text, 0x1db1, 0x1db2);
-        else
-            txt_Format(text, 0x1db1, 0x1db3);
-        sv_MessageBox((intptr_t)text, 0);
-        return 0;
-    }
-    win = d2_OpenForm(0, 0, "privillegien\\becircen");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    slider = d2_GetWinObj(win, 1, io_PrintText(0x1db4, ch->id, ch->id));
-    d2_SetObjValue(slider, 1, 5, 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_ClickedId == 0) {
-                amount = d2_GetObjValue(slider);
-                if (sv_CheckMoney(&ai_Chars[ai_PlayerId], amount) != 0) {
-                    gain = ai_RelationGain(&ai_Chars[ai_PlayerId], ch, amount);
-                    cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -amount);
-                    cm_SendRelations(ai_Chars[ai_PlayerId].netId, ch->netId, gain, 1);
-                    txt_Format(text, 0x1db5, ch->id, ch->id);
-                    sv_MessageBox((intptr_t)text, 0);
-                    sv_PopRequest = 4;
-                    done = 1;
-                }
-            } else if (d2_ClickedId == 1) {
-                sv_PopRequest = 2;
-            }
+  done = 0;
+  if (ai_Chars[ai_PlayerId].sex == ch->sex) {
+    if (ai_Chars[ai_PlayerId].sex == 0)
+      txt_Format(text, 0x1db1, 0x1db2);
+    else
+      txt_Format(text, 0x1db1, 0x1db3);
+    sv_MessageBox((intptr_t)text, 0);
+    return 0;
+  }
+  win = d2_OpenForm(0, 0, "privillegien\\becircen");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  slider = d2_GetWinObj(win, 1, io_PrintText(0x1db4, ch->id, ch->id));
+  d2_SetObjValue(slider, 1, 5, 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_ClickedId == 0) {
+        amount = d2_GetObjValue(slider);
+        if (sv_CheckMoney(&ai_Chars[ai_PlayerId], amount) != 0) {
+          gain = ai_RelationGain(&ai_Chars[ai_PlayerId], ch, amount);
+          cm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -amount);
+          cm_SendRelations(ai_Chars[ai_PlayerId].netId, ch->netId, gain, 1);
+          txt_Format(text, 0x1db5, ch->id, ch->id);
+          sv_MessageBox((intptr_t)text, 0);
+          sv_PopRequest = 4;
+          done = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_BewitchWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return done;
+      } else if (d2_ClickedId == 1) {
+        sv_PopRequest = 2;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_BewitchWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return done;
 }
 /* 0x5cacd0, the bewitch order's ask (ord_BewitchOrder, kinds 3 / 4): a player (kind 6 / 7) picks the character in
    the amount menu (the partner filter 0x400, gypsyFilter, the text 0x1dae with 0x1daf / 0x1db0 by me's sex) whose
@@ -6967,40 +7195,39 @@ int ai_BewitchWindow(AICHAR *ch, int n)
    above its money) for the relation with the character m->target (ai_RelationGain), sends the payment and the
    relation change: 0x10; a wrong amount or an unknown target: 0x60 */
 
-int ai_BewitchOrder(AICHAR *me, ORDMSG *m)
-{
-    AMOUNTCFG cfg;
-    char text[0x40];
-    AICHAR *target;
-    int gain;
-    int ret;
-    int n;
+int ai_BewitchOrder(AICHAR *me, ORDMSG *m) {
+  AMOUNTCFG cfg;
+  char text[0x40];
+  AICHAR *target;
+  int gain;
+  int ret;
+  int n;
 
-    ret = 0;
-    if (me->kind == 6 || me->kind == 7) {
-        memset(&cfg, 0, sizeof(cfg));
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        if (me->sex == 0)
-            txt_Format(text, 0x1dae, 0x1daf);
-        else
-            txt_Format(text, 0x1dae, 0x1db0);
-        if (ai_AmountMenu(&cfg, text, 0, ai_BewitchWindow) != 0)
-            ret = 1;
-        return ret;
-    }
-    if (me->money < m->amount || m->amount < 1 || m->amount > 5)
-        return 0x60;
-    target = gm_FindChar(m->target);
-    if (target == 0)
-        return 0x60;
-    n = m->amount;
-    gain = ai_RelationGain(me, target, n);
-    cm_SendMoneyDelta(me->netId, -n);
-    cm_SendRelations(me->netId, target->netId, gain, 1);
-    return 0x10;
+  ret = 0;
+  if (me->kind == 6 || me->kind == 7) {
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    if (me->sex == 0)
+      txt_Format(text, 0x1dae, 0x1daf);
+    else
+      txt_Format(text, 0x1dae, 0x1db0);
+    if (ai_AmountMenu(&cfg, text, 0, ai_BewitchWindow) != 0)
+      ret = 1;
+    return ret;
+  }
+  if (me->money < m->amount || m->amount < 1 || m->amount > 5)
+    return 0x60;
+  target = gm_FindChar(m->target);
+  if (target == 0)
+    return 0x60;
+  n = m->amount;
+  gain = ai_RelationGain(me, target, n);
+  cm_SendMoneyDelta(me->netId, -n);
+  cm_SendRelations(me->netId, target->netId, gain, 1);
+  return 0x10;
 }
 /* 0x5cae00, the counter-espionage order's ask (ord_CounterEspionageOrder, kinds 3 / 4) "privillegien\gegenspionage":
    it costs me 4. Every running espionage event 0x18 on me (id4 is me's netId) ends now, and me sends an espionage
@@ -7010,109 +7237,106 @@ int ai_BewitchOrder(AICHAR *me, ORDMSG *m)
    names (0x1db8, then 0x1db9 per spy, or 0x1dba when there were none); either button or a right click close it,
    then 2 */
 
-int ai_CounterEspionage(AICHAR *me, ORDMSG *m)
-{
-    AIMSG msg;
-    char text[0x200];
-    char *p;
-    AIJOB *ev;
-    int win;
-    int t;
-    int ok;
-    int cancel;
-    int caught;
-    int ret;
+int ai_CounterEspionage(AICHAR *me, ORDMSG *m) {
+  AIMSG msg;
+  char text[0x200];
+  char *p;
+  AIJOB *ev;
+  int win;
+  int t;
+  int ok;
+  int cancel;
+  int caught;
+  int ret;
 
-    ret = 2;
-    if (me->kind != 6 && me->kind != 7) {
-        if (me->money < 4)
-            return 0x20;
-        memset(&msg, 0, sizeof(msg));
-        msg.type = 0x18;
-        msg.to = me->netId;
-        msg.fromId = me->netId;
-        msg.flags = 2;
-        msg.time = ai_Time;
-        cm_SendMoneyDelta(me->netId, -4);
-        for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
-            if (ev->id4 == me->netId) {
-                ret |= 0x10;
-                ev->end = ai_Time;
-                ev->stopped18 = ai_Time;
-                cm_SendExSetHE(ev->stage, ev);
-                msg.espionage.target = ai_Chars[ev->chr].netId;
-                cm_SendLongMessage(&msg);
-            }
-        }
-        return ret;
+  ret = 2;
+  if (me->kind != 6 && me->kind != 7) {
+    if (me->money < 4)
+      return 0x20;
+    memset(&msg, 0, sizeof(msg));
+    msg.type = 0x18;
+    msg.to = me->netId;
+    msg.fromId = me->netId;
+    msg.flags = 2;
+    msg.time = ai_Time;
+    cm_SendMoneyDelta(me->netId, -4);
+    for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
+      if (ev->id4 == me->netId) {
+        ret |= 0x10;
+        ev->end = ai_Time;
+        ev->stopped18 = ai_Time;
+        cm_SendExSetHE(ev->stage, ev);
+        msg.espionage.target = ai_Chars[ev->chr].netId;
+        cm_SendLongMessage(&msg);
+      }
     }
-    win = d2_OpenForm(0, 0, "privillegien\\gegenspionage");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1db7, 4);
-    ok = d2_GetWinObj(win, 1, t);
-    cancel = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == ok) {
-                if (sv_CheckMoney(me, 4) != 0) {
-                    caught = 0;
-                    txt_Format(text, 0x1db8);
-                    p = text + strlen(text);
-                    memset(&msg, 0, sizeof(msg));
-                    msg.type = 0x18;
-                    msg.to = me->netId;
-                    msg.fromId = me->netId;
-                    msg.flags = 2;
-                    msg.time = ai_Time;
-                    cm_SendMoneyDelta(me->netId, -4);
-                    for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
-                        if (ev->id4 == me->netId) {
-                            caught |= 1;
-                            ev->end = ai_Time;
-                            cm_SendExSetHE(0, ev);
-                            msg.espionage.target = ai_Chars[ev->chr].netId;
-                            cm_SendLongMessage(&msg);
-                            txt_Format(p, 0x1db9, ev->chr);
-                            p = text + strlen(text);
-                        }
-                    }
-                    if (!caught)
-                        txt_Format(text, 0x1dba);
-                    sv_MessageBox((intptr_t)text, 0);
-                    sv_PopRequest = 1;
-                }
-            } else if (d2_PointerObj == cancel) {
-                sv_PopRequest = 1;
+    return ret;
+  }
+  win = d2_OpenForm(0, 0, "privillegien\\gegenspionage");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1db7, 4);
+  ok = d2_GetWinObj(win, 1, t);
+  cancel = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == ok) {
+        if (sv_CheckMoney(me, 4) != 0) {
+          caught = 0;
+          txt_Format(text, 0x1db8);
+          p = text + strlen(text);
+          memset(&msg, 0, sizeof(msg));
+          msg.type = 0x18;
+          msg.to = me->netId;
+          msg.fromId = me->netId;
+          msg.flags = 2;
+          msg.time = ai_Time;
+          cm_SendMoneyDelta(me->netId, -4);
+          for (ev = he_FindEvent(1, 0, 0x18); ev != 0; ev = he_NextEvent()) {
+            if (ev->id4 == me->netId) {
+              caught |= 1;
+              ev->end = ai_Time;
+              cm_SendExSetHE(0, ev);
+              msg.espionage.target = ai_Chars[ev->chr].netId;
+              cm_SendLongMessage(&msg);
+              txt_Format(p, 0x1db9, ev->chr);
+              p = text + strlen(text);
             }
+          }
+          if (!caught)
+            txt_Format(text, 0x1dba);
+          sv_MessageBox((intptr_t)text, 0);
+          sv_PopRequest = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_CounterEspionage, 0x657c7) != 0);
-    d2_CloseView(win);
-    return 2;
+      } else if (d2_PointerObj == cancel) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_CounterEspionage, 0x657c7) != 0);
+  d2_CloseView(win);
+  return 2;
 }
-
 
 /* 0x5cb1e0, the counter-espionage office swap (64 B): amt_SendOfficeSwap (0x4e6ba0) sends the requester's
    request for the two characters; -1 returns 0, another requester returns 1; a player (kind 6) waits on the
    message slot 0x4c3ae0 with the pump 0x52fe00 and returns whether the answer's status is not 2. */
-int ai_SwapSeats(AICHAR *requester, AICHAR *b, AICHAR *c)
-{
-    int h;
+int ai_SwapSeats(AICHAR *requester, AICHAR *b, AICHAR *c) {
+  int h;
 
-    h = amt_SendOfficeSwap(requester, b, c);
-    if (h != -1) {
-        if (requester->kind == 6) {
-            while (cm_GetSlotState(h) == 0)
-                sv_PumpNet();
-            return cm_GetSlotState(h) != 2;
-        }
-        return 1;
+  h = amt_SendOfficeSwap(requester, b, c);
+  if (h != -1) {
+    if (requester->kind == 6) {
+      while (cm_GetSlotState(h) == 0)
+        sv_PumpNet();
+      return cm_GetSlotState(h) != 2;
     }
-    return 0;
+    return 1;
+  }
+  return 0;
 }
 /* 0x5cb250, the seat swap order's ask (ord_SeatSwapOrder, kinds 3 / 4) "privillegien\sessel_vertauschen": the office
    holder (me for kind 3, m->partner for kind 4; none: 0x60) of the office 0xf / 0x15 / 0x1b swaps the two offices below
@@ -7122,92 +7346,92 @@ int ai_SwapSeats(AICHAR *requester, AICHAR *b, AICHAR *c)
    player has the 6 (sv_CheckMoney), swaps them and tells 0x1dca (or 0x1dcb when it failed); either button or a right
    click close it, then 1 */
 
-int ai_SeatSwapWindow(AICHAR *me, ORDMSG *m)
-{
-    char text[0x200];
-    AICHAR *first;
-    AICHAR *second;
-    AICHAR *c;
-    int office;
-    int k1;
-    int k2;
-    int n;
-    int win;
-    int t;
-    int ok;
-    int cancel;
+int ai_SeatSwapWindow(AICHAR *me, ORDMSG *m) {
+  char text[0x200];
+  AICHAR *first;
+  AICHAR *second;
+  AICHAR *c;
+  int office;
+  int k1;
+  int k2;
+  int n;
+  int win;
+  int t;
+  int ok;
+  int cancel;
 
-    second = 0;
-    n = 2;
-    first = 0;
-    if (m->kind == 3) {
-        office = me->officeKind;
-    } else if (m->kind == 4 && m->partner != 0) {
-        office = m->partner->officeKind;
-    } else {
-        return 0x60;
+  second = 0;
+  n = 2;
+  first = 0;
+  if (m->kind == 3) {
+    office = me->officeKind;
+  } else if (m->kind == 4 && m->partner != 0) {
+    office = m->partner->officeKind;
+  } else {
+    return 0x60;
+  }
+  if (office == 0xf) {
+    k2 = 0xe;
+    k1 = 0xd;
+  } else if (office == 0x15) {
+    k2 = 0x14;
+    k1 = 0x13;
+  } else if (office == 0x1b) {
+    k2 = 0x1a;
+    k1 = 0x19;
+  } else {
+    return 0x20;
+  }
+  for (c = ai_Chars; (int)c < (int)(ai_Chars + 0x300); c++) {
+    if (n == 0)
+      break;
+    if (c->officeKind == k1) {
+      first = c;
+      n--;
+    } else if (c->officeKind == k2) {
+      second = c;
+      n--;
     }
-    if (office == 0xf) {
-        k2 = 0xe;
-        k1 = 0xd;
-    } else if (office == 0x15) {
-        k2 = 0x14;
-        k1 = 0x13;
-    } else if (office == 0x1b) {
-        k2 = 0x1a;
-        k1 = 0x19;
-    } else {
-        return 0x20;
-    }
-    for (c = ai_Chars; (int)c < (int)(ai_Chars + 0x300); c++) {
-        if (n == 0)
-            break;
-        if (c->officeKind == k1) {
-            first = c;
-            n--;
-        } else if (c->officeKind == k2) {
-            second = c;
-            n--;
+  }
+  if (me->kind != 6 && me->kind != 7) {
+    if (me->money < 6 || n > 0)
+      return 0x20;
+    return ai_SwapSeats(me, second, first) ? 0x10 : 0x20;
+  }
+  if (n > 0) {
+    txt_Format(text, (intptr_t)"$Z%s", 0x1dcb);
+    sv_MessageBox((intptr_t)text, 0);
+    return 0;
+  }
+  win = d2_OpenForm(0, 0, "privillegien\\sessel_vertauschen");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1dc9, 6, second->id, first->id);
+  ok = d2_GetWinObj(win, 1, t);
+  cancel = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == ok) {
+        if (sv_CheckMoney(me, 6) != 0) {
+          if (ai_SwapSeats(me, second, first) != 0)
+            txt_Format(text, 0x1dca);
+          else
+            txt_Format(text, (intptr_t)"$Z%s", 0x1dcb);
+          sv_MessageBox((intptr_t)text, 0);
+          sv_PopRequest = 1;
         }
+      } else if (d2_PointerObj == cancel) {
+        sv_PopRequest = 1;
+      }
     }
-    if (me->kind != 6 && me->kind != 7) {
-        if (me->money < 6 || n > 0)
-            return 0x20;
-        return ai_SwapSeats(me, second, first) ? 0x10 : 0x20;
-    }
-    if (n > 0) {
-        txt_Format(text, (intptr_t)"$Z%s", 0x1dcb);
-        sv_MessageBox((intptr_t)text, 0);
-        return 0;
-    }
-    win = d2_OpenForm(0, 0, "privillegien\\sessel_vertauschen");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1dc9, 6, second->id, first->id);
-    ok = d2_GetWinObj(win, 1, t);
-    cancel = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == ok) {
-                if (sv_CheckMoney(me, 6) != 0) {
-                    if (ai_SwapSeats(me, second, first) != 0)
-                        txt_Format(text, 0x1dca);
-                    else
-                        txt_Format(text, (intptr_t)"$Z%s", 0x1dcb);
-                    sv_MessageBox((intptr_t)text, 0);
-                    sv_PopRequest = 1;
-                }
-            } else if (d2_PointerObj == cancel) {
-                sv_PopRequest = 1;
-            }
-        }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_CounterEspionage, 0x657c7) != 0);   /* the original passes the counter-espionage window here */
-    d2_CloseView(win);
-    return 1;
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_CounterEspionage, 0x657c7) !=
+           0); /* the original passes the counter-espionage window here */
+  d2_CloseView(win);
+  return 1;
 }
 /* 0x5cb4f0, the hatred order's ask (ord_HatredOrder, kinds 3 / 4) "privillegien\hass_erzeugen": me sets two
    characters against each other. The price is 2 % of their two worths (gm_GetWorth); each one's relation to the other
@@ -7219,114 +7443,119 @@ int ai_SeatSwapWindow(AICHAR *me, ORDMSG *m)
    button, when the player has the 4 (sv_CheckMoney) and the price (sv_CheckGoodAmount), does it and tells 0x1dd2;
    either button or a right click close it. Returns 1 once it was done, else 0 */
 
-int ai_HatredWindow(AICHAR *me, ORDMSG *m)
-{
-    int done;
-    int ok;
-    int price;
-    int cancel;
-    int win;
-    AMOUNTCFG cfg;
-    char text[0x100];
-    AICHAR *a;
-    AICHAR *b;
-    int t;
+int ai_HatredWindow(AICHAR *me, ORDMSG *m) {
+  int done;
+  int ok;
+  int price;
+  int cancel;
+  int win;
+  AMOUNTCFG cfg;
+  char text[0x100];
+  AICHAR *a;
+  AICHAR *b;
+  int t;
 
-    if (me->kind != 6) {
-        int r1, r2, o1, o2;
-        int price = 0;      /* @original: the initializer (no code) moves VC6's first-reference tie key so that
-                               both worth sums call gm_GetWorth(b) first, as the original (deep s29 lever) */
+  if (me->kind != 6) {
+    int r1, r2, o1, o2;
+    /* clang-format off */
+    int price = 0;      /* @original: the initializer (no code) moves VC6's first-reference tie key so that
+                           both worth sums call gm_GetWorth(b) first, as the original (deep s29 lever) */
+    /* clang-format on */
 
-        if (me->money < 4)
-            return 0x20;
-        a = gm_FindChar(m->target);
-        if (a == 0)
-            return 0x20;
-        b = gm_FindChar(m->target2);
-        if (b == 0)
-            return 0x20;
-        price = (int)((float)(gm_GetWorth(b->id) + gm_GetWorth(a->id)) * 0.02f);
-        if (gm_GetGoodsValue(me) < price)
-            return 0x20;
-        r1 = util_Random(0x1e) + 3;
-        r2 = util_Random(0x1e) + 3;
-        o1 = gm_Opinion(a->id, b->id);
-        o2 = gm_Opinion(b->id, a->id);
-        cm_SendRelations(a->netId, b->netId, r1 - o1 - 0x7f, 1);
-        cm_SendRelations(b->netId, a->netId, r2 - o2 - 0x7f, 1);
-        cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
-        cm_SendMoneyDelta(me->netId, -4);
-        if (a->kind == 6 || a->kind == 7) {
-            txt_Format(text, 0x1dd3, b->id, b->id);
-            he_ShowNews(a->netId, a->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
-        }
-        if (b->kind == 6 || b->kind == 7) {
-            txt_Format(text, 0x1dd3, a->id, a->id);
-            he_ShowNews(b->netId, b->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
-        }
-        return 0x10;
-    }
-    done = 0;
-    memset(&cfg, 0, sizeof(cfg));
-    cfg.mode = 0x400;
-    cfg.kind = 6;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    txt_Format(text, 0x1dcf);
-    a = ai_AmountMenu(&cfg, text, 0, 0);
+    if (me->money < 4)
+      return 0x20;
+    a = gm_FindChar(m->target);
     if (a == 0)
-        return 0;
-    txt_Format(text, 0x1dd0, a->id);
-    b = ai_AmountMenu(&cfg, text, 0, 0);
+      return 0x20;
+    b = gm_FindChar(m->target2);
     if (b == 0)
-        return 0;
+      return 0x20;
     price = (int)((float)(gm_GetWorth(b->id) + gm_GetWorth(a->id)) * 0.02f);
-    win = d2_OpenForm(0, 0, "privillegien\\hass_erzeugen");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1dd1, 4, price, a->id, b->id);
-    ok = d2_GetWinObj(win, 1, t);
-    cancel = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == ok) {
-                if (sv_CheckMoney(me, 4) != 0 && sv_CheckGoodAmount(me, price, ai_OwnPlayer) != 0) {
-                    int r1, r2, o1, o2;
+    if (gm_GetGoodsValue(me) < price)
+      return 0x20;
+    r1 = util_Random(0x1e) + 3;
+    r2 = util_Random(0x1e) + 3;
+    o1 = gm_Opinion(a->id, b->id);
+    o2 = gm_Opinion(b->id, a->id);
+    cm_SendRelations(a->netId, b->netId, r1 - o1 - 0x7f, 1);
+    cm_SendRelations(b->netId, a->netId, r2 - o2 - 0x7f, 1);
+    cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
+    cm_SendMoneyDelta(me->netId, -4);
+    if (a->kind == 6 || a->kind == 7) {
+      txt_Format(text, 0x1dd3, b->id, b->id);
+      he_ShowNews(a->netId, a->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
+    }
+    if (b->kind == 6 || b->kind == 7) {
+      txt_Format(text, 0x1dd3, a->id, a->id);
+      he_ShowNews(b->netId, b->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
+    }
+    return 0x10;
+  }
+  done = 0;
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.mode = 0x400;
+  cfg.kind = 6;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  txt_Format(text, 0x1dcf);
+  a = ai_AmountMenu(&cfg, text, 0, 0);
+  if (a == 0)
+    return 0;
+  txt_Format(text, 0x1dd0, a->id);
+  b = ai_AmountMenu(&cfg, text, 0, 0);
+  if (b == 0)
+    return 0;
+  price = (int)((float)(gm_GetWorth(b->id) + gm_GetWorth(a->id)) * 0.02f);
+  win = d2_OpenForm(0, 0, "privillegien\\hass_erzeugen");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1dd1, 4, price, a->id, b->id);
+  ok = d2_GetWinObj(win, 1, t);
+  cancel = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == ok) {
+        if (sv_CheckMoney(me, 4) != 0 &&
+            sv_CheckGoodAmount(me, price, ai_OwnPlayer) != 0) {
+          int r1, r2, o1, o2;
 
-                    r1 = util_Random(0x1e) + 3;
-                    r2 = util_Random(0x1e) + 3;
-                    o1 = gm_Opinion(a->id, b->id);
-                    o2 = gm_Opinion(b->id, a->id);
-                    cm_SendRelations(a->netId, b->netId, r1 - o1 - 0x7f, 1);
-                    cm_SendRelations(b->netId, a->netId, r2 - o2 - 0x7f, 1);
-                    cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
-                    cm_SendMoneyDelta(me->netId, -4);
-                    txt_Format(text, 0x1dd2, a->id, b->id);
-                    sv_MessageBox((intptr_t)text, 0);
-                    if (a->kind == 6 || a->kind == 7) {
-                        txt_Format(text, 0x1dd3, b->id, b->id);
-                        he_ShowNews(a->netId, a->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
-                    }
-                    if (b->kind == 6 || b->kind == 7) {
-                        txt_Format(text, 0x1dd3, a->id, a->id);
-                        he_ShowNews(b->netId, b->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
-                    }
-                    sv_PopRequest = 1;
-                    done = 1;
-                }
-            } else if (d2_PointerObj == cancel) {
-                sv_PopRequest = 1;
-            }
+          r1 = util_Random(0x1e) + 3;
+          r2 = util_Random(0x1e) + 3;
+          o1 = gm_Opinion(a->id, b->id);
+          o2 = gm_Opinion(b->id, a->id);
+          cm_SendRelations(a->netId, b->netId, r1 - o1 - 0x7f, 1);
+          cm_SendRelations(b->netId, a->netId, r2 - o2 - 0x7f, 1);
+          cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
+          cm_SendMoneyDelta(me->netId, -4);
+          txt_Format(text, 0x1dd2, a->id, b->id);
+          sv_MessageBox((intptr_t)text, 0);
+          if (a->kind == 6 || a->kind == 7) {
+            txt_Format(text, 0x1dd3, b->id, b->id);
+            he_ShowNews(a->netId, a->netId, text, 0, 0x5fb,
+                        "_NACHRICHTEN_HS_20");
+          }
+          if (b->kind == 6 || b->kind == 7) {
+            txt_Format(text, 0x1dd3, a->id, a->id);
+            he_ShowNews(b->netId, b->netId, text, 0, 0x5fb,
+                        "_NACHRICHTEN_HS_20");
+          }
+          sv_PopRequest = 1;
+          done = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_HatredWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return done;
+      } else if (d2_PointerObj == cancel) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_HatredWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return done;
 }
-#define LC_POWER_HEARING 0x8000  /* AICHAR.flags1c8: the office's hearing used (ai_HearingWindow) */
+#define LC_POWER_HEARING                                                       \
+  0x8000 /* AICHAR.flags1c8: the office's hearing used (ai_HearingWindow) */
 /* 0x5cba90, the hearing order's ask (ord_HearingOrder, kinds 3 / 4) "privillegien\verhoer": me summons a character
    to a hearing, once per office (LC_POWER_HEARING not yet set): me pays 2 and the character 3 (cm_SendMoneyDelta),
    the power is marked used on me's powerFlags (cm_SendSetField), and a player character summoned gets the news 0x1dda (me, the 3;
@@ -7335,87 +7564,89 @@ int ai_HatredWindow(AICHAR *me, ORDMSG *m)
    2), then the window (0x1dd8) whose first button, when the player has the 2 (sv_CheckMoney), does it, waits for the
    field message, tells 0x1dd9 and returns 0x81; the second button or a right click close it with 2 */
 
-int ai_HearingWindow(AICHAR *me, ORDMSG *m)
-{
-    int ret;
-    int cancel;
-    int ok;
-    AMOUNTCFG cfg;
-    char text[0x200];
-    AICHAR *target;
-    int win;
-    int t;
-    int h;
+int ai_HearingWindow(AICHAR *me, ORDMSG *m) {
+  int ret;
+  int cancel;
+  int ok;
+  AMOUNTCFG cfg;
+  char text[0x200];
+  AICHAR *target;
+  int win;
+  int t;
+  int h;
 
-    if (me->kind != 6) {
-        if (me->money < 2)
-            return 0x20;
-        if (me->flags1c8 & LC_POWER_HEARING)
-            return 0x20;
-        target = gm_FindChar(m->target);
-        if (target == 0)
-            return 0x60;
-        cm_SendMoneyDelta(me->netId, -2);
-        cm_SendMoneyDelta(target->netId, -3);
-        cm_SendSetField(me->netId, 0x1c8, 4, LC_POWER_HEARING, 0);
-        if (target->kind == 6 || target->kind == 7) {
-            txt_Format(text, 0x1dda, me->id, 3);
-            he_ShowNews(target->netId, target->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
-        }
-        return 0x10;
-    }
-    ret = 2;
-    memset(&cfg, 0, sizeof(cfg));
-    if (me->flags1c8 & LC_POWER_HEARING) {
-        txt_Format(text, 0x1ce0);
-        sv_MessageBox((intptr_t)text, 0);
-        return 0x81;
-    }
-    cfg.mode = 0x400;
-    cfg.kind = 6;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    txt_Format(text, 0x1dd7);
-    target = ai_AmountMenu(&cfg, text, 0, 0);
+  if (me->kind != 6) {
+    if (me->money < 2)
+      return 0x20;
+    if (me->flags1c8 & LC_POWER_HEARING)
+      return 0x20;
+    target = gm_FindChar(m->target);
     if (target == 0)
-        return 2;
-    win = d2_OpenForm(0, 0, "privillegien\\verhoer");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1dd8, 2, target->id, target->id, 3, 2);
-    ok = d2_GetWinObj(win, 1, t);
-    cancel = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == ok) {
-                if (sv_CheckMoney(me, 2) != 0) {
-                    cm_SendMoneyDelta(me->netId, -2);
-                    cm_SendMoneyDelta(target->netId, -3);
-                    h = cm_SendSetField(me->netId, 0x1c8, 4, LC_POWER_HEARING, 0);
-                    while (cm_GetSlotState(h) == 0)
-                        sv_PumpNet();
-                    txt_Format(text, 0x1dd9, target->id, target->id, 3, target->id, 3);
-                    sv_MessageBox((intptr_t)text, 0);
-                    if (target->kind == 6 || target->kind == 7) {
-                        txt_Format(text, 0x1dda, me->id, 3);
-                        he_ShowNews(target->netId, target->netId, text, 0, 0x5fb, "_NACHRICHTEN_HS_20");
-                    }
-                    sv_PopRequest = 1;
-                    ret = 0x81;
-                }
-            } else if (d2_PointerObj == cancel) {
-                sv_PopRequest = 1;
-            }
+      return 0x60;
+    cm_SendMoneyDelta(me->netId, -2);
+    cm_SendMoneyDelta(target->netId, -3);
+    cm_SendSetField(me->netId, 0x1c8, 4, LC_POWER_HEARING, 0);
+    if (target->kind == 6 || target->kind == 7) {
+      txt_Format(text, 0x1dda, me->id, 3);
+      he_ShowNews(target->netId, target->netId, text, 0, 0x5fb,
+                  "_NACHRICHTEN_HS_20");
+    }
+    return 0x10;
+  }
+  ret = 2;
+  memset(&cfg, 0, sizeof(cfg));
+  if (me->flags1c8 & LC_POWER_HEARING) {
+    txt_Format(text, 0x1ce0);
+    sv_MessageBox((intptr_t)text, 0);
+    return 0x81;
+  }
+  cfg.mode = 0x400;
+  cfg.kind = 6;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  txt_Format(text, 0x1dd7);
+  target = ai_AmountMenu(&cfg, text, 0, 0);
+  if (target == 0)
+    return 2;
+  win = d2_OpenForm(0, 0, "privillegien\\verhoer");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1dd8, 2, target->id, target->id, 3, 2);
+  ok = d2_GetWinObj(win, 1, t);
+  cancel = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == ok) {
+        if (sv_CheckMoney(me, 2) != 0) {
+          cm_SendMoneyDelta(me->netId, -2);
+          cm_SendMoneyDelta(target->netId, -3);
+          h = cm_SendSetField(me->netId, 0x1c8, 4, LC_POWER_HEARING, 0);
+          while (cm_GetSlotState(h) == 0)
+            sv_PumpNet();
+          txt_Format(text, 0x1dd9, target->id, target->id, 3, target->id, 3);
+          sv_MessageBox((intptr_t)text, 0);
+          if (target->kind == 6 || target->kind == 7) {
+            txt_Format(text, 0x1dda, me->id, 3);
+            he_ShowNews(target->netId, target->netId, text, 0, 0x5fb,
+                        "_NACHRICHTEN_HS_20");
+          }
+          sv_PopRequest = 1;
+          ret = 0x81;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_HearingWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      } else if (d2_PointerObj == cancel) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_HearingWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
-#define LC_POWER_EXPEL 0x80  /* AICHAR.flags1c8: the office's worker expulsion used (ai_ExpelWorkerWindow) */
+#define LC_POWER_EXPEL                                                         \
+  0x80 /* AICHAR.flags1c8: the office's worker expulsion used (ai_ExpelWorkerWindow) */
 /* 0x5cbe00, the expel-worker order's ask (ord_ExpelWorkerOrder, kinds 3 / 4) "privillegien\arbeiter_ausweisen": the
    office holder (me for kind 3, m->partner for kind 4; none: 0x60), once per office (LC_POWER_EXPEL not yet set), has
    a worker of a building removed: me pays 5, the power is marked used, the building's owner, when a player, gets the
@@ -7428,128 +7659,128 @@ int ai_HearingWindow(AICHAR *me, ORDMSG *m)
    in that building from a random start (none: only the payment) and tells 0x1dde: 0x81; the second button or a
    right click close it with 0 */
 
-int ai_ExpelWorkerWindow(AICHAR *me, ORDMSG *m)
-{
-    AICHAR *holder;
-    int cancel;
-    AIBLD *bld;
-    int ok;
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char news[0x200];
-    AICHAR *target;
-    AICHAR *owner;
-    AICHAR *worker;
-    int ret;
-    int win;
-    int t;
-    int h;
-    int i;
-    int n;
+int ai_ExpelWorkerWindow(AICHAR *me, ORDMSG *m) {
+  AICHAR *holder;
+  int cancel;
+  AIBLD *bld;
+  int ok;
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char news[0x200];
+  AICHAR *target;
+  AICHAR *owner;
+  AICHAR *worker;
+  int ret;
+  int win;
+  int t;
+  int h;
+  int i;
+  int n;
 
-    if (me->kind != 6) {
-        if (me->money < 5)
-            return 0x20;
-        /* @original the AI branch tests the bit as a signed int (0x80 in cl, test byte ptr [..],cl); the
-           unsigned field gives the sign test the player branch has */
-        if (m->kind == 3 && !((int)me->flags1c8 & LC_POWER_EXPEL)) {
-            holder = me;
-        } else {
-            if (m->kind != 4)
-                return 0x60;
-            holder = m->partner;
-            if (holder == 0 || ((int)holder->flags1c8 & LC_POWER_EXPEL))
-                return 0x60;
-        }
-        target = gm_FindChar(m->target);
-        if (target == 0)
-            return 0x60;
-        bld = gm_BuildQuery(1, 1, m->target2);
-        if (bld == 0)
-            return 0x60;
-        cm_SendMoneyDelta(me->netId, -5);
-        cm_SendSetField(holder->netId, 0x1c8, 4, LC_POWER_EXPEL, 0);
-        if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
-            txt_Format(news, 0x1ddf, me->id, bld, target->id);
-            he_ShowNews(bld->owner, bld->owner, news, 0, 0x5fb, "_NACHRICHTEN_HS_20");
-        }
-        gm_InheritEstate(target, ai_PlayerChar);
-        cm_SendKillCharacter(target->netId, 1);
-        return 0x10;
-    }
-    memset(&cfg, 0, sizeof(cfg));
-    if (m->kind == 3) {
-        holder = me;
-    } else if (m->kind == 4 && m->partner != 0) {
-        holder = m->partner;
+  if (me->kind != 6) {
+    if (me->money < 5)
+      return 0x20;
+    /* @original the AI branch tests the bit as a signed int (0x80 in cl, test byte ptr [..],cl); the
+       unsigned field gives the sign test the player branch has */
+    if (m->kind == 3 && !((int)me->flags1c8 & LC_POWER_EXPEL)) {
+      holder = me;
     } else {
+      if (m->kind != 4)
+        return 0x60;
+      holder = m->partner;
+      if (holder == 0 || ((int)holder->flags1c8 & LC_POWER_EXPEL))
         return 0x60;
     }
-    if (holder->flags1c8 & LC_POWER_EXPEL) {
-        txt_Format(text, 0x1ce0);
-        sv_MessageBox((intptr_t)text, 0);
-        return 0x81;
-    }
-    ret = 0;
-    cfg.mode = 0x410;
-    cfg.kind = 6;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    cfg.flags = 0;
-    txt_Format(text, 0x1ddc);
-    bld = ai_MapPick(1, &cfg, text, 0, 0);
+    target = gm_FindChar(m->target);
+    if (target == 0)
+      return 0x60;
+    bld = gm_BuildQuery(1, 1, m->target2);
     if (bld == 0)
-        return 0;
-    if (bld->owner == 0xffff)
-        return 0;
-    owner = &ai_Chars[bld->owner];
-    win = d2_OpenForm(0, 0, "privillegien\\arbeiter_ausweisen");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1ddd, 5, owner->id, bld);
-    ok = d2_GetWinObj(win, 1, t);
-    cancel = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == ok) {
-                if (sv_CheckMoney(me, 5) != 0) {
-                    cm_SendMoneyDelta(me->netId, -5);
-                    h = cm_SendSetField(holder->netId, 0x1c8, 4, LC_POWER_EXPEL, 0);
-                    while (cm_GetSlotState(h) == 0)
-                        sv_PumpNet();
-                    txt_Format(news, 0x1dde);
-                    sv_MessageBox((intptr_t)news, 0);
-                    worker = 0;
-                    i = util_Random(0x300);
-                    for (n = 0x300; n != 0; n--, i = (i + 1) % 0x300) {
-                        if (ai_Chars[i].id != 0xffff && ai_Chars[i].bld == bld &&
-                            ai_Chars[i].kind == 0) {
-                            worker = &ai_Chars[i];
-                            break;
-                        }
-                    }
-                    if (worker != 0) {
-                        if (owner->kind == 6 || owner->kind == 7) {
-                            txt_Format(news, 0x1ddf, me->id, bld, worker->id);
-                            he_ShowNews(owner->netId, owner->netId, news, 0, 0x5fb, "_NACHRICHTEN_HS_20");
-                        }
-                        gm_InheritEstate(worker, ai_PlayerChar);
-                        cm_SendKillCharacter(worker->netId, 1);
-                    }
-                    ret = 0x81;
-                    sv_PopRequest = 1;
-                }
-            } else if (d2_PointerObj == cancel) {
-                sv_PopRequest = 1;
+      return 0x60;
+    cm_SendMoneyDelta(me->netId, -5);
+    cm_SendSetField(holder->netId, 0x1c8, 4, LC_POWER_EXPEL, 0);
+    if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
+      txt_Format(news, 0x1ddf, me->id, bld, target->id);
+      he_ShowNews(bld->owner, bld->owner, news, 0, 0x5fb, "_NACHRICHTEN_HS_20");
+    }
+    gm_InheritEstate(target, ai_PlayerChar);
+    cm_SendKillCharacter(target->netId, 1);
+    return 0x10;
+  }
+  memset(&cfg, 0, sizeof(cfg));
+  if (m->kind == 3) {
+    holder = me;
+  } else if (m->kind == 4 && m->partner != 0) {
+    holder = m->partner;
+  } else {
+    return 0x60;
+  }
+  if (holder->flags1c8 & LC_POWER_EXPEL) {
+    txt_Format(text, 0x1ce0);
+    sv_MessageBox((intptr_t)text, 0);
+    return 0x81;
+  }
+  ret = 0;
+  cfg.mode = 0x410;
+  cfg.kind = 6;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  cfg.flags = 0;
+  txt_Format(text, 0x1ddc);
+  bld = ai_MapPick(1, &cfg, text, 0, 0);
+  if (bld == 0)
+    return 0;
+  if (bld->owner == 0xffff)
+    return 0;
+  owner = &ai_Chars[bld->owner];
+  win = d2_OpenForm(0, 0, "privillegien\\arbeiter_ausweisen");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1ddd, 5, owner->id, bld);
+  ok = d2_GetWinObj(win, 1, t);
+  cancel = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == ok) {
+        if (sv_CheckMoney(me, 5) != 0) {
+          cm_SendMoneyDelta(me->netId, -5);
+          h = cm_SendSetField(holder->netId, 0x1c8, 4, LC_POWER_EXPEL, 0);
+          while (cm_GetSlotState(h) == 0)
+            sv_PumpNet();
+          txt_Format(news, 0x1dde);
+          sv_MessageBox((intptr_t)news, 0);
+          worker = 0;
+          i = util_Random(0x300);
+          for (n = 0x300; n != 0; n--, i = (i + 1) % 0x300) {
+            if (ai_Chars[i].id != 0xffff && ai_Chars[i].bld == bld &&
+                ai_Chars[i].kind == 0) {
+              worker = &ai_Chars[i];
+              break;
             }
+          }
+          if (worker != 0) {
+            if (owner->kind == 6 || owner->kind == 7) {
+              txt_Format(news, 0x1ddf, me->id, bld, worker->id);
+              he_ShowNews(owner->netId, owner->netId, news, 0, 0x5fb,
+                          "_NACHRICHTEN_HS_20");
+            }
+            gm_InheritEstate(worker, ai_PlayerChar);
+            cm_SendKillCharacter(worker->netId, 1);
+          }
+          ret = 0x81;
+          sv_PopRequest = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_ExpelWorkerWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      } else if (d2_PointerObj == cancel) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_ExpelWorkerWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5cc2b0, the peace order's ask (ord_PeaceOrder, kinds 3 / 4) "privillegien\frieden_stiften": me reconciles two
    characters. Each one's relation to the other rises by a random 15 .. 54 (cm_SendRelations both ways), me pays 3
@@ -7559,97 +7790,96 @@ int ai_ExpelWorkerWindow(AICHAR *me, ORDMSG *m)
    whose first button, when the player has the 3 (sv_CheckMoney), does it and tells 0x1de7; either button or a right
    click close it. Returns 1 once it was done, else 0 */
 
-int ai_PeaceWindow(AICHAR *me, ORDMSG *m)
-{
-    int done;
-    int ok;
-    int cancel;
-    int win;
-    AMOUNTCFG cfg;
-    char text[0x200];
-    AICHAR *a;
-    AICHAR *b;
-    int r1;
-    int r2;
-    int t;
+int ai_PeaceWindow(AICHAR *me, ORDMSG *m) {
+  int done;
+  int ok;
+  int cancel;
+  int win;
+  AMOUNTCFG cfg;
+  char text[0x200];
+  AICHAR *a;
+  AICHAR *b;
+  int r1;
+  int r2;
+  int t;
 
-    if (me->kind != 6) {
-        r1 = util_Random(0x28) + 0xf;
-        r2 = util_Random(0x28) + 0xf;
-        if (me->money < 3)
-            return 0x20;
-        a = gm_FindChar(m->target);
-        if (a == 0)
-            return 0x60;
-        b = gm_FindChar(m->target2);
-        if (b == 0)
-            return 0x60;
-        cm_SendRelations(a->netId, b->netId, r1, 1);
-        cm_SendRelations(b->netId, a->netId, r2, 1);
-        cm_SendMoneyDelta(me->netId, -3);
-        if (a->kind == 6 || a->kind == 7) {
-            txt_Format(text, 0x1de8, b->id, me->id);
-            he_ShowNews(a->netId, a->netId, text, 0, 0x5ec, ch_EmptyName);
-        }
-        if (b->kind == 6 || b->kind == 7) {
-            txt_Format(text, 0x1de8, a->id, me->id);
-            he_ShowNews(b->netId, b->netId, text, 0, 0x5ec, ch_EmptyName);
-        }
-        return 0x10;
-    }
-    done = 0;
-    memset(&cfg, 0, sizeof(cfg));
-    cfg.mode = 0x400;
-    cfg.kind = 6;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    txt_Format(text, 0x1de4);
-    a = ai_AmountMenu(&cfg, text, 0, 0);
+  if (me->kind != 6) {
+    r1 = util_Random(0x28) + 0xf;
+    r2 = util_Random(0x28) + 0xf;
+    if (me->money < 3)
+      return 0x20;
+    a = gm_FindChar(m->target);
     if (a == 0)
-        return 0;
-    txt_Format(text, 0x1de5, a->id);
-    b = ai_AmountMenu(&cfg, text, 0, 0);
+      return 0x60;
+    b = gm_FindChar(m->target2);
     if (b == 0)
-        return 0;
-    win = d2_OpenForm(0, 0, "privillegien\\frieden_stiften");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1de6, 3, a->id, b->id);
-    ok = d2_GetWinObj(win, 1, t);
-    cancel = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == ok) {
-                if (sv_CheckMoney(me, 3) != 0) {
-                    r1 = util_Random(0x28) + 0xf;
-                    r2 = util_Random(0x28) + 0xf;
-                    cm_SendRelations(a->netId, b->netId, r1, 1);
-                    cm_SendRelations(b->netId, a->netId, r2, 1);
-                    cm_SendMoneyDelta(me->netId, -3);
-                    txt_Format(text, 0x1de7, a->id, b->id);
-                    sv_MessageBox((intptr_t)text, 0);
-                    if (a->kind == 6 || a->kind == 7) {
-                        txt_Format(text, 0x1de8, b->id, me->id);
-                        he_ShowNews(a->netId, a->netId, text, 0, 0x5ec, 0);
-                    }
-                    if (b->kind == 6 || b->kind == 7) {
-                        txt_Format(text, 0x1de8, a->id, me->id);
-                        he_ShowNews(b->netId, b->netId, text, 0, 0x5ec, 0);
-                    }
-                    sv_PopRequest = 1;
-                    done = 1;
-                }
-            } else if (d2_PointerObj == cancel) {
-                sv_PopRequest = 1;
-            }
+      return 0x60;
+    cm_SendRelations(a->netId, b->netId, r1, 1);
+    cm_SendRelations(b->netId, a->netId, r2, 1);
+    cm_SendMoneyDelta(me->netId, -3);
+    if (a->kind == 6 || a->kind == 7) {
+      txt_Format(text, 0x1de8, b->id, me->id);
+      he_ShowNews(a->netId, a->netId, text, 0, 0x5ec, ch_EmptyName);
+    }
+    if (b->kind == 6 || b->kind == 7) {
+      txt_Format(text, 0x1de8, a->id, me->id);
+      he_ShowNews(b->netId, b->netId, text, 0, 0x5ec, ch_EmptyName);
+    }
+    return 0x10;
+  }
+  done = 0;
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.mode = 0x400;
+  cfg.kind = 6;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  txt_Format(text, 0x1de4);
+  a = ai_AmountMenu(&cfg, text, 0, 0);
+  if (a == 0)
+    return 0;
+  txt_Format(text, 0x1de5, a->id);
+  b = ai_AmountMenu(&cfg, text, 0, 0);
+  if (b == 0)
+    return 0;
+  win = d2_OpenForm(0, 0, "privillegien\\frieden_stiften");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1de6, 3, a->id, b->id);
+  ok = d2_GetWinObj(win, 1, t);
+  cancel = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == ok) {
+        if (sv_CheckMoney(me, 3) != 0) {
+          r1 = util_Random(0x28) + 0xf;
+          r2 = util_Random(0x28) + 0xf;
+          cm_SendRelations(a->netId, b->netId, r1, 1);
+          cm_SendRelations(b->netId, a->netId, r2, 1);
+          cm_SendMoneyDelta(me->netId, -3);
+          txt_Format(text, 0x1de7, a->id, b->id);
+          sv_MessageBox((intptr_t)text, 0);
+          if (a->kind == 6 || a->kind == 7) {
+            txt_Format(text, 0x1de8, b->id, me->id);
+            he_ShowNews(a->netId, a->netId, text, 0, 0x5ec, 0);
+          }
+          if (b->kind == 6 || b->kind == 7) {
+            txt_Format(text, 0x1de8, a->id, me->id);
+            he_ShowNews(b->netId, b->netId, text, 0, 0x5ec, 0);
+          }
+          sv_PopRequest = 1;
+          done = 1;
         }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_PeaceWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return done;
+      } else if (d2_PointerObj == cancel) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_PeaceWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return done;
 }
 /* 0x5cc700, the conversion order's ask (ord_ConvertOrder, kinds 3 / 4) "privillegien\bekehren": me preaches to the
    town. The price is 6 % of me's worth (gm_GetWorth); me pays it to the bank (cm_SendMoveGoods) and 6
@@ -7660,92 +7890,94 @@ int ai_PeaceWindow(AICHAR *me, ORDMSG *m)
    price (sv_CheckGoodAmount), does it and tells 0x1de2 (the number converted); either button or a right click
    close it. Returns 1 once it was done, else 0 */
 
-int ai_ConvertWindow(AICHAR *me, ORDMSG *m)
-{
-    int price;
-    int done;
-    int win;
-    int ok;
-    int cancel;
-    int n;
-    int i;
-    int t;
-    AICHAR *c;
-    char text[0x100];
+int ai_ConvertWindow(AICHAR *me, ORDMSG *m) {
+  int price;
+  int done;
+  int win;
+  int ok;
+  int cancel;
+  int n;
+  int i;
+  int t;
+  AICHAR *c;
+  char text[0x100];
 
-    if (me->kind != 6) {
+  if (me->kind != 6) {
+    int faith;
+    unsigned char skill;
+
+    skill = me->skills[4];
+    faith = me->faith;
+    if (me->money < 6)
+      return 0x20;
+    price = (int)((float)gm_GetWorth(me->id) * 0.06f);
+    if (gm_GetGoodsValue(me) < price)
+      return 0x20;
+    cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
+    cm_SendMoneyDelta(me->netId, -6);
+    for (i = 0; i < 768; i++) {
+      c = &ai_Chars[i];
+      if (c->id != 0xffff && c->kind < 0xa && c->kind != 6 && c->kind != 7 &&
+          c->faith != me->faith &&
+          skill > (int)(util_Random(0x7e) + c->skills[4])) {
+        cm_BeginFieldBlock(c, c->netId);
+        cm_AddFieldDelta(1, 1, 0xc, &faith);
+        cm_SendFieldDeltas();
+      }
+    }
+    return 0x10;
+  }
+  done = 0;
+  price = (int)((float)gm_GetWorth(me->id) * 0.06f);
+  win = d2_OpenForm(0, 0, "privillegien\\bekehren");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1de1, 6, price);
+  ok = d2_GetWinObj(win, 1, t);
+  cancel = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == ok) {
         int faith;
         unsigned char skill;
 
+        n = 0;
         skill = me->skills[4];
         faith = me->faith;
-        if (me->money < 6)
-            return 0x20;
-        price = (int)((float)gm_GetWorth(me->id) * 0.06f);
-        if (gm_GetGoodsValue(me) < price)
-            return 0x20;
-        cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
-        cm_SendMoneyDelta(me->netId, -6);
-        for (i = 0; i < 768; i++) {
+        if (sv_CheckMoney(me, 6) != 0 &&
+            sv_CheckGoodAmount(me, price, ai_OwnPlayer) != 0) {
+          cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
+          cm_SendMoneyDelta(me->netId, -6);
+          /* @original: the loop's strength-reduced pointer is based on c->kind (ai_Chars+2: cmp byte
+             [esi],0xa, faith at [esi+0xa]), which VC6 picks only with a second kind reference, as in
+             the AI loop above; the original had a kind test VC6 folds away (written twice here) */
+          for (i = 0; i < 768; i++) {
             c = &ai_Chars[i];
-            if (c->id != 0xffff && c->kind < 0xa && c->kind != 6 && c->kind != 7 && c->faith != me->faith &&
+            if (c->id != 0xffff && c->kind < 0xa && c->kind < 0xa &&
+                c->faith != me->faith &&
                 skill > (int)(util_Random(0x7e) + c->skills[4])) {
-                cm_BeginFieldBlock(c, c->netId);
-                cm_AddFieldDelta(1, 1, 0xc, &faith);
-                cm_SendFieldDeltas();
+              n++;
+              cm_BeginFieldBlock(c, c->netId);
+              cm_AddFieldDelta(1, 1, 0xc, &faith);
+              cm_SendFieldDeltas();
             }
+          }
+          txt_Format(text, 0x1de2, n);
+          sv_MessageBox((intptr_t)text, 0);
+          done = 1;
+          sv_PopRequest = 1;
         }
-        return 0x10;
+      } else if (d2_PointerObj == cancel) {
+        sv_PopRequest = 1;
+      }
     }
-    done = 0;
-    price = (int)((float)gm_GetWorth(me->id) * 0.06f);
-    win = d2_OpenForm(0, 0, "privillegien\\bekehren");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1de1, 6, price);
-    ok = d2_GetWinObj(win, 1, t);
-    cancel = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == ok) {
-                int faith;
-                unsigned char skill;
-
-                n = 0;
-                skill = me->skills[4];
-                faith = me->faith;
-                if (sv_CheckMoney(me, 6) != 0 && sv_CheckGoodAmount(me, price, ai_OwnPlayer) != 0) {
-                    cm_SendMoveGoods(-1, me->netId, ai_OwnPlayer, price);
-                    cm_SendMoneyDelta(me->netId, -6);
-                    /* @original: the loop's strength-reduced pointer is based on c->kind (ai_Chars+2: cmp byte
-                       [esi],0xa, faith at [esi+0xa]), which VC6 picks only with a second kind reference, as in
-                       the AI loop above; the original had a kind test VC6 folds away (written twice here) */
-                    for (i = 0; i < 768; i++) {
-                        c = &ai_Chars[i];
-                        if (c->id != 0xffff && c->kind < 0xa && c->kind < 0xa && c->faith != me->faith &&
-                            skill > (int)(util_Random(0x7e) + c->skills[4])) {
-                            n++;
-                            cm_BeginFieldBlock(c, c->netId);
-                            cm_AddFieldDelta(1, 1, 0xc, &faith);
-                            cm_SendFieldDeltas();
-                        }
-                    }
-                    txt_Format(text, 0x1de2, n);
-                    sv_MessageBox((intptr_t)text, 0);
-                    done = 1;
-                    sv_PopRequest = 1;
-                }
-            } else if (d2_PointerObj == cancel) {
-                sv_PopRequest = 1;
-            }
-        }
-        if (dm_L.rup)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_ConvertWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return done;
+    if (dm_L.rup)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_ConvertWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return done;
 }
 /* 0x5cca40, the penance order's ask (ord_PenanceOrder, kinds 3 / 4) "privillegien\abbitte": me buys off its crimes,
    one per money unit (1 .. 9): it pays them (cm_SendMoneyDelta) and its oldest open crimes are retired
@@ -7754,62 +7986,66 @@ int ai_ConvertWindow(AICHAR *me, ORDMSG *m)
    the money (sv_CheckMoney), does it and tells 0x1deb (the number retired); either button or a right click close
    it. Returns 1 once it was done, else 0 */
 
-int ai_PenanceWindow(AICHAR *me, ORDMSG *m)
-{
-    char text[0x100];
-    int win;
-    int ok;
-    int cancel;
-    int slider;
-    int t;
-    int n;
-    int done;
+int ai_PenanceWindow(AICHAR *me, ORDMSG *m) {
+  char text[0x100];
+  int win;
+  int ok;
+  int cancel;
+  int slider;
+  int t;
+  int n;
+  int done;
 
-    if (me->kind != 6) {
-        if (m->amount < 1 || m->amount > 9 || m->amount > me->money)
-            return 0x60;
-        gv_RetireCrimesOf(me->netId, m->amount);
-        cm_SendMoneyDelta(me->netId, -m->amount);
-    }
-    if (me->kind == 6) {
-        done = 0;
-        win = d2_OpenForm(0, 0, "privillegien\\abbitte");
-        d2_SetPointerSprite(0, 0);
-        d2_CentreViewWindows(win);
-        d2_SetForm(win, 1);
-        t = io_PrintText(0x1dea);
-        ok = d2_GetWinObj(win, 1, t + 1);
-        cancel = d2_GetWinObj(win, 1, t + 2);
-        slider = d2_GetWinObj(win, 1, t);
-        d2_SetObjValue(slider, 1, 9, 1);
-        d2_ClickedId = -1;
-        do {
-            if (d2_ClickedId != -1) {
-                if (d2_PointerObj == ok) {
-                    n = d2_GetObjValue(slider);
-                    if (sv_CheckMoney(me, n) != 0) {
-                        cm_SendMoneyDelta(me->netId, -n);
-                        txt_Format(text, 0x1deb, gv_RetireCrimesOf(me->netId, n));
-                        sv_MessageBox((intptr_t)text, 0);
-                        done = 1;
-                        sv_PopRequest = 1;
-                    }
-                } else if (d2_PointerObj == cancel) {
-                    sv_PopRequest = 1;
-                }
-            }
-            if (dm_L.rup)
-                sv_PopRequest = 1;
-        } while (sv_RunFrame(ai_PenanceWindow, 0x657c7) != 0);
-        d2_CloseView(win);
-        return done;
-    }
-    return 0;
+  if (me->kind != 6) {
+    if (m->amount < 1 || m->amount > 9 || m->amount > me->money)
+      return 0x60;
+    gv_RetireCrimesOf(me->netId, m->amount);
+    cm_SendMoneyDelta(me->netId, -m->amount);
+  }
+  if (me->kind == 6) {
+    done = 0;
+    win = d2_OpenForm(0, 0, "privillegien\\abbitte");
+    d2_SetPointerSprite(0, 0);
+    d2_CentreViewWindows(win);
+    d2_SetForm(win, 1);
+    t = io_PrintText(0x1dea);
+    ok = d2_GetWinObj(win, 1, t + 1);
+    cancel = d2_GetWinObj(win, 1, t + 2);
+    slider = d2_GetWinObj(win, 1, t);
+    d2_SetObjValue(slider, 1, 9, 1);
+    d2_ClickedId = -1;
+    do {
+      if (d2_ClickedId != -1) {
+        if (d2_PointerObj == ok) {
+          n = d2_GetObjValue(slider);
+          if (sv_CheckMoney(me, n) != 0) {
+            cm_SendMoneyDelta(me->netId, -n);
+            txt_Format(text, 0x1deb, gv_RetireCrimesOf(me->netId, n));
+            sv_MessageBox((intptr_t)text, 0);
+            done = 1;
+            sv_PopRequest = 1;
+          }
+        } else if (d2_PointerObj == cancel) {
+          sv_PopRequest = 1;
+        }
+      }
+      if (dm_L.rup)
+        sv_PopRequest = 1;
+    } while (sv_RunFrame(ai_PenanceWindow, 0x657c7) != 0);
+    d2_CloseView(win);
+    return done;
+  }
+  return 0;
 }
-int ai_FindPartnersRandomWalk(struct AICHAR *p, unsigned int a, int *flags, float lo, float hi, unsigned short *id); /* 0x4a5b50 (am.h, not included) */
-int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e);  /* 0x4e6680 (amt.h) */
-#define LC_MIRACLE_PICK_FLAGS3 0x400800  /* ai_FindPartnersRandomWalk flags of the miracle that takes an office (bits not read) */
-#define LC_MIRACLE_PICK_FLAGS4 0x300000  /* ai_FindPartnersRandomWalk flags of the miracle that raises a skill (bits not read) */
+int ai_FindPartnersRandomWalk(
+    struct AICHAR *p, unsigned int a, int *flags, float lo, float hi,
+    unsigned short *id); /* 0x4a5b50 (am.h, not included) */
+int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c,
+                          int d, unsigned char e); /* 0x4e6680 (amt.h) */
+#define LC_MIRACLE_PICK_FLAGS3                                                 \
+  0x400800 /* ai_FindPartnersRandomWalk flags of the miracle that takes an office (bits not read) */
+#define LC_MIRACLE_PICK_FLAGS4                                                 \
+  0x300000 /* ai_FindPartnersRandomWalk flags of the miracle that raises a skill (bits not read) */
 /* 0x5ccc10, a miracle (ai_MiracleWindow, the miracle order's ask, rolls which = 0 .. 5): it builds the news title 0x1df7
    (me) and tells every player (kinds 6 / 7) what happened (he_ShowNews 0x5fe; 1 tells each character on its own, 0x601).
    0: a building of the kind 0x80 found by ai_PickActionBuilding: its owner gives 2 .. 4 % of his worth
@@ -7846,168 +8082,171 @@ int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, i
    the original eax / ecx), so one temporary more is handed out in ours before case 1 (case 0's tail or the
    0x1df7 title). No variant round this session. */
 
-void ai_Miracle(AICHAR *me, int which)
-{
-    char text[0x400];
-    char title[0x400];
-    char line[0x400];
-    char healed[0x400];
-    char unhealed[0x400];
-    AICHAR *c;
-    AIBLD *bld;
-    int out;
-    int price;
-    int i;
+void ai_Miracle(AICHAR *me, int which) {
+  char text[0x400];
+  char title[0x400];
+  char line[0x400];
+  char healed[0x400];
+  char unhealed[0x400];
+  AICHAR *c;
+  AIBLD *bld;
+  int out;
+  int price;
+  int i;
 
-    if (which < 0 || which > 5)
-        return;
-    txt_Format(title, 0x1df7, me->id);
-    if (which == 0) {
-        int worth;
-        LARGE_INTEGER kinds;
+  if (which < 0 || which > 5)
+    return;
+  txt_Format(title, 0x1df7, me->id);
+  if (which == 0) {
+    int worth;
+    LARGE_INTEGER kinds;
 
-        kinds.LowPart = 0x80;
-        kinds.HighPart = 0;
-        if (ai_PickActionBuilding(me, 2, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
-            return;
-        gm_FindById(&bld, 0, 0, out);
-        c = &ai_Chars[bld->owner];
-        worth = gm_GetWorth(c->id);
-        price = (int)((util_Random(3) + 2) * (worth * 0.01));
-        cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, price);
-        txt_Format(text, 0x1df8, c->id, bld, c->id, price, ai_PlayerSlots[ai_OwnPlayer].townName);
-    } else if (which == 1) {
-        int v;
+    kinds.LowPart = 0x80;
+    kinds.HighPart = 0;
+    if (ai_PickActionBuilding(me, 2, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
+      return;
+    gm_FindById(&bld, 0, 0, out);
+    c = &ai_Chars[bld->owner];
+    worth = gm_GetWorth(c->id);
+    price = (int)((util_Random(3) + 2) * (worth * 0.01));
+    cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, price);
+    txt_Format(text, 0x1df8, c->id, bld, c->id, price,
+               ai_PlayerSlots[ai_OwnPlayer].townName);
+  } else if (which == 1) {
+    int v;
 
-        txt_Format(text, 0x1df9);
-        txt_Format(line, 0x1dfa);
-        sprintf(healed, "%s%s%s", title, text, line);
-        txt_Format(line, 0x1dfb);
-        sprintf(unhealed, "%s%s", title, text, line);  /* sic: the original's format drops the line */
-        strcat(title, text);
-        for (i = 0; i < 768; i++) {
-            c = &ai_Chars[i];
-            if (c->id == 0xffff)
-                continue;
-            if (c->v024 < -20) {
-                if (util_Random(2) != 0) {
-                    v = abs(c->v024 / 2);
-                    cm_BeginFieldBlock(c, c->netId);
-                    cm_AddFieldDelta(4, 1, 0x24, &v);
-                    cm_SendFieldDeltas();
-                    if (c->kind == 6 || c->kind == 7)
-                        he_ShowNews(c->netId, -1, healed, 1, 0x601, 0);
-                } else if (c->kind == 6 || c->kind == 7) {
-                    he_ShowNews(c->netId, -1, unhealed, 1, 0x601, 0);
-                }
-            } else if (c->kind == 6 || c->kind == 7) {
-                he_ShowNews(c->netId, -1, title, 1, 0x601, 0);
-            }
-        }
-        return;
-    } else if (which == 2) {
-        signed char level;
-        LARGE_INTEGER kinds;
-
-        kinds.LowPart = 0xa07c43b0;
-        kinds.HighPart = 1;
-        if (ai_PickActionBuilding(me, 2, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
-            return;
-        gm_FindById(&bld, 0, 0, out);
-        c = &ai_Chars[bld->owner];
-        level = bld->level - util_Random(0x10) - 10;
-        if (level <= 0)
-            return;
-        cm_BeginFieldBlock(bld, bld->id);
-        cm_AddFieldDelta(1, 1, 0x5c, &level);
-        cm_SendFieldDeltas();
-        txt_Format(text, 0x1dfc, c->id, bld);
-    } else if (which == 3) {
-        int flags;
-        int id;
-        AMTKIND kind;
-        AMTREC office;
-
-        flags = LC_MIRACLE_PICK_FLAGS3;
-        if (ai_FindPartnersRandomWalk(me, 1, &flags, 0.0f, 100.0f, (unsigned short *)&id) == 0)
-            return;
-        c = &ai_Chars[(unsigned short)id];
-        if (amt_FindOffice(c, &kind, &office) == 0)
-            return;
-        amt_SendOfficeMessage(office.idx, 0, 0, 4, 0xff);
-        txt_Format(text, 0x1dfd, c->id, c->id, c->id);
-    } else if (which == 4) {
-        int flags;
-        int id;
-        char gain;
-        int j;
-        int skill;
-
-        flags = LC_MIRACLE_PICK_FLAGS4;
-        gain = util_Random(0x15);
-        if (ai_FindPartnersRandomWalk(me, 1, &flags, 0.0f, 100.0f, (unsigned short *)&id) == 0)
-            return;
-        c = &ai_Chars[(unsigned short)id];
-        skill = -1;
-        i = util_Random(5);
-        j = 5;
-        while (j != 0) {
-            if (c->skills[i] < 0xe7) {
-                skill = i;
-                break;
-            }
-            j--;
-            i = (i + 1) % 5;
-        }
-        if (skill == -1)
-            return;
-        cm_BeginFieldBlock(c, c->netId);
-        cm_AddFieldValues(1, 1, skill + 0x80, &gain);
-        cm_SendFieldDeltas();
-        txt_Format(text, 0x1dfe, c->id, c->id, skill + 0x16b7);
-    } else if (which == 5) {
-        AICHAR *chars[8];
-        int n;
-        int worth;
-        int v;
-        int j;
-        int out;
-        LARGE_INTEGER kinds;
-
-        n = 0;
-        for (i = 0; i < 768; i++) {
-            if (n >= 8)
-                break;
-            c = &ai_Chars[i];
-            if (c->kind == 6 || c->kind == 7 || c->kind == 5)
-                chars[n++] = c;
-        }
-        c = chars[0];
-        worth = gm_GetWorth(c->id);
-        for (j = 1; j < n; j++) {
-            v = gm_GetWorth(chars[j]->id);
-            if (v < worth) {
-                worth = v;
-                c = chars[j];
-            }
-        }
-        kinds.LowPart = 0xb07d43b4;
-        kinds.HighPart = 1;
-        if (ai_PickActionBuilding(c, 4, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
-            return;
-        price = (int)((float)(util_Random(5) + 3) * worth * 0.01f);
-        gm_FindById(&bld, 0, 0, out);
-        cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, price);
-        txt_Format(text, 0x1dff, c->id, bld, c->id, price);
-    } else {
-        return;
-    }
+    txt_Format(text, 0x1df9);
+    txt_Format(line, 0x1dfa);
+    sprintf(healed, "%s%s%s", title, text, line);
+    txt_Format(line, 0x1dfb);
+    sprintf(unhealed, "%s%s", title, text,
+            line); /* sic: the original's format drops the line */
     strcat(title, text);
     for (i = 0; i < 768; i++) {
-        c = &ai_Chars[i];
-        if (c->kind == 6 || c->kind == 7)
-            he_ShowNews(c->netId, -1, title, 1, 0x5fe, 0);
+      c = &ai_Chars[i];
+      if (c->id == 0xffff)
+        continue;
+      if (c->v024 < -20) {
+        if (util_Random(2) != 0) {
+          v = abs(c->v024 / 2);
+          cm_BeginFieldBlock(c, c->netId);
+          cm_AddFieldDelta(4, 1, 0x24, &v);
+          cm_SendFieldDeltas();
+          if (c->kind == 6 || c->kind == 7)
+            he_ShowNews(c->netId, -1, healed, 1, 0x601, 0);
+        } else if (c->kind == 6 || c->kind == 7) {
+          he_ShowNews(c->netId, -1, unhealed, 1, 0x601, 0);
+        }
+      } else if (c->kind == 6 || c->kind == 7) {
+        he_ShowNews(c->netId, -1, title, 1, 0x601, 0);
+      }
     }
+    return;
+  } else if (which == 2) {
+    signed char level;
+    LARGE_INTEGER kinds;
+
+    kinds.LowPart = 0xa07c43b0;
+    kinds.HighPart = 1;
+    if (ai_PickActionBuilding(me, 2, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
+      return;
+    gm_FindById(&bld, 0, 0, out);
+    c = &ai_Chars[bld->owner];
+    level = bld->level - util_Random(0x10) - 10;
+    if (level <= 0)
+      return;
+    cm_BeginFieldBlock(bld, bld->id);
+    cm_AddFieldDelta(1, 1, 0x5c, &level);
+    cm_SendFieldDeltas();
+    txt_Format(text, 0x1dfc, c->id, bld);
+  } else if (which == 3) {
+    int flags;
+    int id;
+    AMTKIND kind;
+    AMTREC office;
+
+    flags = LC_MIRACLE_PICK_FLAGS3;
+    if (ai_FindPartnersRandomWalk(me, 1, &flags, 0.0f, 100.0f,
+                                  (unsigned short *)&id) == 0)
+      return;
+    c = &ai_Chars[(unsigned short)id];
+    if (amt_FindOffice(c, &kind, &office) == 0)
+      return;
+    amt_SendOfficeMessage(office.idx, 0, 0, 4, 0xff);
+    txt_Format(text, 0x1dfd, c->id, c->id, c->id);
+  } else if (which == 4) {
+    int flags;
+    int id;
+    char gain;
+    int j;
+    int skill;
+
+    flags = LC_MIRACLE_PICK_FLAGS4;
+    gain = util_Random(0x15);
+    if (ai_FindPartnersRandomWalk(me, 1, &flags, 0.0f, 100.0f,
+                                  (unsigned short *)&id) == 0)
+      return;
+    c = &ai_Chars[(unsigned short)id];
+    skill = -1;
+    i = util_Random(5);
+    j = 5;
+    while (j != 0) {
+      if (c->skills[i] < 0xe7) {
+        skill = i;
+        break;
+      }
+      j--;
+      i = (i + 1) % 5;
+    }
+    if (skill == -1)
+      return;
+    cm_BeginFieldBlock(c, c->netId);
+    cm_AddFieldValues(1, 1, skill + 0x80, &gain);
+    cm_SendFieldDeltas();
+    txt_Format(text, 0x1dfe, c->id, c->id, skill + 0x16b7);
+  } else if (which == 5) {
+    AICHAR *chars[8];
+    int n;
+    int worth;
+    int v;
+    int j;
+    int out;
+    LARGE_INTEGER kinds;
+
+    n = 0;
+    for (i = 0; i < 768; i++) {
+      if (n >= 8)
+        break;
+      c = &ai_Chars[i];
+      if (c->kind == 6 || c->kind == 7 || c->kind == 5)
+        chars[n++] = c;
+    }
+    c = chars[0];
+    worth = gm_GetWorth(c->id);
+    for (j = 1; j < n; j++) {
+      v = gm_GetWorth(chars[j]->id);
+      if (v < worth) {
+        worth = v;
+        c = chars[j];
+      }
+    }
+    kinds.LowPart = 0xb07d43b4;
+    kinds.HighPart = 1;
+    if (ai_PickActionBuilding(c, 4, kinds.QuadPart, 0.0f, 100.0f, &out) == 0)
+      return;
+    price = (int)((float)(util_Random(5) + 3) * worth * 0.01f);
+    gm_FindById(&bld, 0, 0, out);
+    cm_SendMoveGoodsUnchecked(c->netId, -1, ai_OwnPlayer, price);
+    txt_Format(text, 0x1dff, c->id, bld, c->id, price);
+  } else {
+    return;
+  }
+  strcat(title, text);
+  for (i = 0; i < 768; i++) {
+    c = &ai_Chars[i];
+    if (c->kind == 6 || c->kind == 7)
+      he_ShowNews(c->netId, -1, title, 1, 0x5fe, 0);
+  }
 }
 /* 0x5cd2e0, the miracle order's ask (ord_MiracleOrder; 282 B): the character ch (its kind 6 / 7 at +2, its netId
    at +4, its money at +0x194). A kind 7 character returns 0; another kind: money < 4 returns 0x20, else the
@@ -8017,53 +8256,52 @@ void ai_Miracle(AICHAR *me, int which)
    click 1 sets 0x6f22a0; the pump 0x5309a0 (this, 0x657c7) and the end 0x4758f0. The second argument m is not
    read */
 
-int ai_MiracleWindow(void *chp, ORDMSG *m)
-{
-    AICHAR *ch;
-    int win;
-    int ret;
+int ai_MiracleWindow(void *chp, ORDMSG *m) {
+  AICHAR *ch;
+  int win;
+  int ret;
 
-    ch = chp;
+  ch = chp;
 
-    if (ch->kind != 6 && ch->kind != 7) {
-        if (ch->money < 4)
-            return 0x20;
-        cm_SendMoneyDelta(ch->netId, 0xfffffffc);
-        ai_Miracle(ch, util_Random(6));
-        return 0x10;
-    }
-    if (ch->kind == 6) {
-        ret = 0;
-        win = d2_OpenForm(0, 0, "privillegien\\wunder");
-        d2_SetPointerSprite(0, 0);
-        d2_CentreViewWindows(win);
-        d2_SetForm(win, 1);
-        io_PrintText(0x1df6, 4);
-        d2_ClickedId = -1;
-        do {
-            if (d2_ClickedId != -1) {
-                if (d2_ClickedId == 0) {
-                    if (sv_CheckMoney(ch, 4) != 0) {
-                        cm_SendMoneyDelta(ch->netId, 0xfffffffc);
-                        ai_Miracle(ch, util_Random(6));
-                        ret = 1;
-                        sv_PopRequest = 1;
-                    }
-                } else if (d2_ClickedId == 1) {
-                    sv_PopRequest = 1;
-                }
-            }
-            if (dm_L.rup != 0)
-                sv_PopRequest = 1;
-            if (sv_RunFrame(ai_MiracleWindow, 0x657c7) == 0) {
-                d2_CloseView(win);
-                return ret;
-            }
-        } while (1);
-    }
-    return 0;
+  if (ch->kind != 6 && ch->kind != 7) {
+    if (ch->money < 4)
+      return 0x20;
+    cm_SendMoneyDelta(ch->netId, 0xfffffffc);
+    ai_Miracle(ch, util_Random(6));
+    return 0x10;
+  }
+  if (ch->kind == 6) {
+    ret = 0;
+    win = d2_OpenForm(0, 0, "privillegien\\wunder");
+    d2_SetPointerSprite(0, 0);
+    d2_CentreViewWindows(win);
+    d2_SetForm(win, 1);
+    io_PrintText(0x1df6, 4);
+    d2_ClickedId = -1;
+    do {
+      if (d2_ClickedId != -1) {
+        if (d2_ClickedId == 0) {
+          if (sv_CheckMoney(ch, 4) != 0) {
+            cm_SendMoneyDelta(ch->netId, 0xfffffffc);
+            ai_Miracle(ch, util_Random(6));
+            ret = 1;
+            sv_PopRequest = 1;
+          }
+        } else if (d2_ClickedId == 1) {
+          sv_PopRequest = 1;
+        }
+      }
+      if (dm_L.rup != 0)
+        sv_PopRequest = 1;
+      if (sv_RunFrame(ai_MiracleWindow, 0x657c7) == 0) {
+        d2_CloseView(win);
+        return ret;
+      }
+    } while (1);
+  }
+  return 0;
 }
-void cm_SendSetJob(int id, int job);  /* 0x4c59b0 (cm.h, not included) */
+void cm_SendSetJob(int id, int job); /* 0x4c59b0 (cm.h, not included) */
 /* 0x5cd400, the profession change (ord.c's handler 0x4f4ff0, a player's ask) "privillegien\CHOOSEPROFESSION2": a
    grid of 15 professions, 5 to a row, the caption 0x1d36; a profession me holds a title in is labelled with it and
    the titles left (the format txt_Ptrs[0x1d39]), me's own one is disabled. While a running event 0x26 of the player
@@ -8080,189 +8318,196 @@ void cm_SendSetJob(int id, int job);  /* 0x4c59b0 (cm.h, not included) */
    the original's registers but stores base and moves two slots (17 ins, draft); win for it: 1 ins (its
    store), but win is read after the loop. ai_MasterExamWindow (lc.c) has the same arm left with a note. */
 
-int ai_ChangeProfessionWindow(AICHAR *me, ORDMSG *m)
-{
-    int win;
-    char **name;
-    int group;
-    int base;
-    int ret;
-    int w;
-    int h;
-    char caption[0x200];
-    char text[0x400];
-    int dx;
-    int i;
-    int job;
-    int obj;
-    int cost;
+int ai_ChangeProfessionWindow(AICHAR *me, ORDMSG *m) {
+  int win;
+  char **name;
+  int group;
+  int base;
+  int ret;
+  int w;
+  int h;
+  char caption[0x200];
+  char text[0x400];
+  int dx;
+  int i;
+  int job;
+  int obj;
+  int cost;
 
-    if (me->kind == 6) {
-        ret = 0;
-        ai_CampaignStep(9, 0, 0, 0);
-        win = d2_OpenForm(0, 0, "privillegien\\CHOOSEPROFESSION2");
-        d2_CentreViewWindows(win);
-        d2_SetForm(win, 0);
-        w = (d2_Wins[d2_LastWindow].w - 0x40) / 5;
-        h = (d2_Wins[d2_LastWindow].h - 0x84) / 3;
-        dx = (w - d2_Pics[0x5a2].w) / 2;
-        io_PrintText(0x1d36);
-        base = me->sex ? 0x18f : 0x130;
-        name = &txt_Ptrs[0x1ef];
-        for (group = 1; group <= 15; group++) {
-            i = group - 1;
-            job = gm_TitleJob(me->id, group);
-            obj = d2_WinOpenPic((i % 5) * w + dx + 0x20, (i / 5) * h + dx + 0x64, i + 0x5a2, d2_LastWindow);
-            d2_Objs[obj].interactive = 1;
-            d2_Objs[obj].style = 3;
-            d2_SetObjFont(obj, 0x56);
-            d2_Objs[obj].centred = 1;
-            d2_Objs[obj].captionX = -50;
-            d2_Objs[obj].captionY = 0x44;
-            if (job != 0)
-                sprintf(caption, txt_Ptrs[0x1d39], gm_TitlesLeft(job), txt_Ptrs[job + base]);
-            else
-                caption[0] = 0;
-            d2_SetCaption(obj, caption);
-            d2_Objs[obj].w = 0xa4;
-            if (job == me->jobId) {
-                d2_SetObjEnabled(obj, 0);
-            } else if (job == 0) {
-                d2_Objs[obj].capfont = 0x56;
-                d2_Objs[obj].picW = 0xa4;
-                strcpy(d2_Objs[obj].caption, *name);
-            }
-            name++;
-        }
-        d2_ClickedId = -1;
-        while (sv_RunFrame(ai_ChangeProfessionWindow, 0x657c7) != 0) {
-            if (dm_L.rup)
-                sv_PopRequest = 1;
-            if (dm_L.lclick && d2_PointerObj != -1) {
-                if (he_FindEvent(2, 2, ai_PlayerId, 0, 0x26) != 0) {
-                    txt_Format(caption, 0x15bd, ai_PlayerId,
-                               (ai_Chars[ai_PlayerId].sex ? 0x18f : 0x130) + ai_Chars[ai_PlayerId].jobId - 1);
-                    sv_MessageBox((intptr_t)caption, 4);
-                } else {
-                    d2_EnableViewObjects(win, 0);
-                    for (i = 0; i <= 15; i++)
-                        if (d2_ClickedId == i + 0x5a2)
-                            break;
-                    if (i <= 15) {
-                        job = gm_TitleJob(me->id, i + 1);
-                        cost = job != 0 ? -4 : -8;
-                        if (job != me->jobId && sv_CheckMoney(me, -cost) != 0) {
-                            for (i = 0; i <= 15; i++) {
-                                if (d2_ClickedId == i + 0x5a2) {
-                                    group = i + 1;
-                                    job = gm_TitleJob(me->id, group);
-                                    if (job == 0)
-                                        job = gm_TitleNumber(group, 1);
-                                    txt_Format(text, 0x1d37, -cost, job + base);
-                                    if (sv_MessageBox((intptr_t)text, 1) != 0) {
-                                        cm_SendSetJob(me->netId, job);
-                                        cm_SendMoneyDelta(me->netId, cost);
-                                        sv_PopRequest = 1;
-                                        ret = 0x10;
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    d2_EnableViewObjects(win, 1);
-                }
-            }
-        }
-        d2_CloseView(win);
-        ai_CampaignStep(9, 0, 1, 0);
-        return ret;
+  if (me->kind == 6) {
+    ret = 0;
+    ai_CampaignStep(9, 0, 0, 0);
+    win = d2_OpenForm(0, 0, "privillegien\\CHOOSEPROFESSION2");
+    d2_CentreViewWindows(win);
+    d2_SetForm(win, 0);
+    w = (d2_Wins[d2_LastWindow].w - 0x40) / 5;
+    h = (d2_Wins[d2_LastWindow].h - 0x84) / 3;
+    dx = (w - d2_Pics[0x5a2].w) / 2;
+    io_PrintText(0x1d36);
+    base = me->sex ? 0x18f : 0x130;
+    name = &txt_Ptrs[0x1ef];
+    for (group = 1; group <= 15; group++) {
+      i = group - 1;
+      job = gm_TitleJob(me->id, group);
+      obj = d2_WinOpenPic((i % 5) * w + dx + 0x20, (i / 5) * h + dx + 0x64,
+                          i + 0x5a2, d2_LastWindow);
+      d2_Objs[obj].interactive = 1;
+      d2_Objs[obj].style = 3;
+      d2_SetObjFont(obj, 0x56);
+      d2_Objs[obj].centred = 1;
+      d2_Objs[obj].captionX = -50;
+      d2_Objs[obj].captionY = 0x44;
+      if (job != 0)
+        sprintf(caption, txt_Ptrs[0x1d39], gm_TitlesLeft(job),
+                txt_Ptrs[job + base]);
+      else
+        caption[0] = 0;
+      d2_SetCaption(obj, caption);
+      d2_Objs[obj].w = 0xa4;
+      if (job == me->jobId) {
+        d2_SetObjEnabled(obj, 0);
+      } else if (job == 0) {
+        d2_Objs[obj].capfont = 0x56;
+        d2_Objs[obj].picW = 0xa4;
+        strcpy(d2_Objs[obj].caption, *name);
+      }
+      name++;
     }
-    return 0;
+    d2_ClickedId = -1;
+    while (sv_RunFrame(ai_ChangeProfessionWindow, 0x657c7) != 0) {
+      if (dm_L.rup)
+        sv_PopRequest = 1;
+      if (dm_L.lclick && d2_PointerObj != -1) {
+        if (he_FindEvent(2, 2, ai_PlayerId, 0, 0x26) != 0) {
+          txt_Format(caption, 0x15bd, ai_PlayerId,
+                     (ai_Chars[ai_PlayerId].sex ? 0x18f : 0x130) +
+                         ai_Chars[ai_PlayerId].jobId - 1);
+          sv_MessageBox((intptr_t)caption, 4);
+        } else {
+          d2_EnableViewObjects(win, 0);
+          for (i = 0; i <= 15; i++)
+            if (d2_ClickedId == i + 0x5a2)
+              break;
+          if (i <= 15) {
+            job = gm_TitleJob(me->id, i + 1);
+            cost = job != 0 ? -4 : -8;
+            if (job != me->jobId && sv_CheckMoney(me, -cost) != 0) {
+              for (i = 0; i <= 15; i++) {
+                if (d2_ClickedId == i + 0x5a2) {
+                  group = i + 1;
+                  job = gm_TitleJob(me->id, group);
+                  if (job == 0)
+                    job = gm_TitleNumber(group, 1);
+                  txt_Format(text, 0x1d37, -cost, job + base);
+                  if (sv_MessageBox((intptr_t)text, 1) != 0) {
+                    cm_SendSetJob(me->netId, job);
+                    cm_SendMoneyDelta(me->netId, cost);
+                    sv_PopRequest = 1;
+                    ret = 0x10;
+                  }
+                  break;
+                }
+              }
+            }
+          }
+          d2_EnableViewObjects(win, 1);
+        }
+      }
+    }
+    d2_CloseView(win);
+    ai_CampaignStep(9, 0, 1, 0);
+    return ret;
+  }
+  return 0;
 }
-int ai_PickPartnerRandomWalk(struct AICHAR *p, unsigned int fl, int n, unsigned short *ids, float lo, float hi, unsigned short *id); /* 0x4a5d30 (am.h, not included) */
-extern struct AICHAR *ai_JudgeCatholic;    /* 0x6f1bfc (gv.h), the catholic judge */
-extern struct AICHAR *ai_JudgeProtestant;  /* 0x6f1c00 (gv.h), the protestant judge */
-#define LC_TRIAL_PICK_FLAGS 0xc00          /* the ai_PickPartnerRandomWalk flags of the trial's assessors (bits not read) */
+int ai_PickPartnerRandomWalk(
+    struct AICHAR *p, unsigned int fl, int n, unsigned short *ids, float lo,
+    float hi, unsigned short *id); /* 0x4a5d30 (am.h, not included) */
+extern struct AICHAR
+    *ai_JudgeCatholic; /* 0x6f1bfc (gv.h), the catholic judge */
+extern struct AICHAR
+    *ai_JudgeProtestant; /* 0x6f1c00 (gv.h), the protestant judge */
+#define LC_TRIAL_PICK_FLAGS                                                    \
+  0xc00 /* the ai_PickPartnerRandomWalk flags of the trial's assessors (bits not read) */
 /* 0x5cd8c0, opens a trial (the message 0x2c to the player, flags 2): me accuses target of n crimes. Only while a
    building of the class 0xf stands (gm_BuildQuery 1, 6); else nothing is sent. The judge is the holder of the office
    0xd, else one of the two judges at random; with byFaith the judge of me's faith. The holder of the office 0x11 sits
    in when neither side holds it (his seat only from three crimes on), and two assessors come from the random walk
    (ai_PickPartnerRandomWalk, the ids already seated left out): 0x40 when one is missing, else 0x10 */
 
-int ai_OpenTrial(AICHAR *me, AICHAR *target, int n, int byFaith)
-{
-    unsigned short seated[4];
-    int picked;
-    AIMSG msg;
-    AIBLD *bld;
-    unsigned int i;
+int ai_OpenTrial(AICHAR *me, AICHAR *target, int n, int byFaith) {
+  unsigned short seated[4];
+  int picked;
+  AIMSG msg;
+  AIBLD *bld;
+  unsigned int i;
 
-    seated[0] = 0xffff;
-    seated[1] = 0xffff;
-    seated[2] = 0xffff;
-    seated[3] = 0xffff;
-    for (bld = gm_BuildQuery(1, 6); bld != 0; bld = gm_BuildNext())
-        if (ai_BTypes[bld->type].kind == 0xf)
-            break;
-    if (bld == 0)
-        return 0x10;
-    msg.type = 0x2c;
-    msg.flags = 2;
-    msg.to = me->netId;
-    msg.fromId = ai_Chars[ai_PlayerId].netId;
-    msg.arg[0] = me->netId;
-    msg.arg[1] = target->netId;
-    seated[0] = target->id;
-    msg.arg[2] = -1;
-    msg.arg[3] = -1;
-    msg.arg[4] = -1;
-    msg.arg[5] = -1;
-    if (byFaith == 0) {
-        for (i = 0; i < 768; i++) {
-            if (ai_Chars[i].officeKind == 0xd) {
-                msg.arg[2] = ai_Chars[i].netId;
-                seated[1] = ai_Chars[i].id;
-                break;
-            }
-        }
-        if (msg.arg[2] == -1) {
-            if (util_Random(2) != 0) {
-                msg.arg[2] = ai_JudgeCatholic->netId;
-                seated[1] = ai_JudgeCatholic->id;
-            } else {
-                msg.arg[2] = ai_JudgeProtestant->netId;
-                seated[1] = ai_JudgeProtestant->id;
-            }
-        }
-    } else {
-        msg.arg[2] = me->faith == 0 ? ai_JudgeCatholic->netId : ai_JudgeProtestant->netId;
-        seated[1] = me->faith == 0 ? ai_JudgeCatholic->id : ai_JudgeProtestant->id;
-    }
-    if (target->officeKind != 0x11 && me->officeKind != 0x11) {
-        for (i = 0; i < 768; i++) {
-            if (ai_Chars[i].officeKind == 0x11) {
-                if (n > 2)
-                    msg.arg[5] = ai_Chars[i].netId;
-                seated[2] = ai_Chars[i].id;
-                break;
-            }
-        }
-    }
-    if (ai_PickPartnerRandomWalk(me, LC_TRIAL_PICK_FLAGS, 4, seated, 0.0f, 100.0f,
-                                 (unsigned short *)&picked) == 0)
-        return 0x40;
-    if (seated[2] == 0xffff)
-        seated[2] = picked;
-    else
-        seated[3] = picked;
-    msg.arg[3] = ai_Chars[(unsigned short)picked].netId;
-    if (ai_PickPartnerRandomWalk(me, LC_TRIAL_PICK_FLAGS, 4, seated, 0.0f, 100.0f,
-                                 (unsigned short *)&picked) == 0)
-        return 0x40;
-    msg.arg[4] = ai_Chars[(unsigned short)picked].netId;
-    cm_SendLongMessage(&msg);
+  seated[0] = 0xffff;
+  seated[1] = 0xffff;
+  seated[2] = 0xffff;
+  seated[3] = 0xffff;
+  for (bld = gm_BuildQuery(1, 6); bld != 0; bld = gm_BuildNext())
+    if (ai_BTypes[bld->type].kind == 0xf)
+      break;
+  if (bld == 0)
     return 0x10;
+  msg.type = 0x2c;
+  msg.flags = 2;
+  msg.to = me->netId;
+  msg.fromId = ai_Chars[ai_PlayerId].netId;
+  msg.arg[0] = me->netId;
+  msg.arg[1] = target->netId;
+  seated[0] = target->id;
+  msg.arg[2] = -1;
+  msg.arg[3] = -1;
+  msg.arg[4] = -1;
+  msg.arg[5] = -1;
+  if (byFaith == 0) {
+    for (i = 0; i < 768; i++) {
+      if (ai_Chars[i].officeKind == 0xd) {
+        msg.arg[2] = ai_Chars[i].netId;
+        seated[1] = ai_Chars[i].id;
+        break;
+      }
+    }
+    if (msg.arg[2] == -1) {
+      if (util_Random(2) != 0) {
+        msg.arg[2] = ai_JudgeCatholic->netId;
+        seated[1] = ai_JudgeCatholic->id;
+      } else {
+        msg.arg[2] = ai_JudgeProtestant->netId;
+        seated[1] = ai_JudgeProtestant->id;
+      }
+    }
+  } else {
+    msg.arg[2] =
+        me->faith == 0 ? ai_JudgeCatholic->netId : ai_JudgeProtestant->netId;
+    seated[1] = me->faith == 0 ? ai_JudgeCatholic->id : ai_JudgeProtestant->id;
+  }
+  if (target->officeKind != 0x11 && me->officeKind != 0x11) {
+    for (i = 0; i < 768; i++) {
+      if (ai_Chars[i].officeKind == 0x11) {
+        if (n > 2)
+          msg.arg[5] = ai_Chars[i].netId;
+        seated[2] = ai_Chars[i].id;
+        break;
+      }
+    }
+  }
+  if (ai_PickPartnerRandomWalk(me, LC_TRIAL_PICK_FLAGS, 4, seated, 0.0f, 100.0f,
+                               (unsigned short *)&picked) == 0)
+    return 0x40;
+  if (seated[2] == 0xffff)
+    seated[2] = picked;
+  else
+    seated[3] = picked;
+  msg.arg[3] = ai_Chars[(unsigned short)picked].netId;
+  if (ai_PickPartnerRandomWalk(me, LC_TRIAL_PICK_FLAGS, 4, seated, 0.0f, 100.0f,
+                               (unsigned short *)&picked) == 0)
+    return 0x40;
+  msg.arg[4] = ai_Chars[(unsigned short)picked].netId;
+  cm_SendLongMessage(&msg);
+  return 0x10;
 }
 /* 0x5cdb90, the accusation window "privillegien\Beweise_Details" (the accusation order's ask, ai_AccusationWindow /
    ai_FaithAccusationWindow, for me and a culprit of its list): as ai_EvidenceDetailsWindow the crimes of culprit
@@ -8271,71 +8516,71 @@ int ai_OpenTrial(AICHAR *me, AICHAR *target, int n, int byFaith)
    only while one of the crimes is open (state 1) and culprit is not me. The button opens the trial (ai_OpenTrial)
    and closes the window; a right click closes it. Returns 0 */
 
-int ai_AccuseWindow(AICHAR *me, AICHAR *culprit)
-{
-    int n;
-    int i;
-    int k;
-    int win;
-    int list;
-    int accuse;
-    int open;
-    AIDEC pos;
-    int ids[0x20];
-    ORDMSG arg;
-    CRIME crimes[0x20];
+int ai_AccuseWindow(AICHAR *me, AICHAR *culprit) {
+  int n;
+  int i;
+  int k;
+  int win;
+  int list;
+  int accuse;
+  int open;
+  AIDEC pos;
+  int ids[0x20];
+  ORDMSG arg;
+  CRIME crimes[0x20];
 
-    open = 0;
-    accuse = -1;
-    if (culprit->id == 0xffff)
-        return 0;
-    n = gv_HeldCrimesOf(culprit->netId, ids, me->id);
-    if (n < 1)
-        return 0x60;
-    for (i = 0; i < n; i++) {
-        crimes[i] = ai_Crimes[ids[i]];
-        open |= crimes[i].state == 1;
-    }
-    if (me == culprit)
-        open = 0;
-    gv_SortCrimesByLaw(n, crimes);
-    win = d2_OpenForm(0, 0, "privillegien\\Beweise_Details");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 2);
-    list = d2_LastWindow;
-    d2_SetForm(win, 4);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
-    d2_SetPointerSprite(0, 0);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1742, culprit->id);
-    d2_SetForm(win, 2);
-    for (i = 0; i < n; i++) {
-        ai_LeftAlignedText(txt_Ptrs[crimes[i].law * 5 + 0x13fd], 10, i * 0x28 + 10, 0x13b, 0x55);
-        if (gv_GetTableRecord(crimes[i].law, &pos) != 0 && pos.guilt != 0)
-            for (k = 0; k < pos.guilt; k++)
-                d2_WinOpenPic(k * 0x10 + 0x154, i * 0x28 + 10, 0x526, d2_LastWindow);
-    }
-    memset(&arg, 0, sizeof(arg));
-    arg.kind = 1;
-    d2_SetForm(win, 3);
-    if (ord_DispatchOrder(0x16, culprit, &arg) & 2) {
-        io_PrintText(0x174a);
-    } else {
-        accuse = d2_GetWinObj(win, 3, io_PrintText(0x1745));
-        if (open == 0)
-            d2_SetObjEnabled(accuse, 0);
-    }
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-        if (d2_ClickedId != -1 && d2_PointerObj == accuse) {
-            ai_OpenTrial(me, culprit, n, 0);
-            sv_PopRequest = 3;
-        }
-    } while (sv_RunFrame(ai_AccuseWindow, 0x657c7) != 0);
-    d2_CloseView(win);
+  open = 0;
+  accuse = -1;
+  if (culprit->id == 0xffff)
     return 0;
+  n = gv_HeldCrimesOf(culprit->netId, ids, me->id);
+  if (n < 1)
+    return 0x60;
+  for (i = 0; i < n; i++) {
+    crimes[i] = ai_Crimes[ids[i]];
+    open |= crimes[i].state == 1;
+  }
+  if (me == culprit)
+    open = 0;
+  gv_SortCrimesByLaw(n, crimes);
+  win = d2_OpenForm(0, 0, "privillegien\\Beweise_Details");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 2);
+  list = d2_LastWindow;
+  d2_SetForm(win, 4);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
+  d2_SetPointerSprite(0, 0);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1742, culprit->id);
+  d2_SetForm(win, 2);
+  for (i = 0; i < n; i++) {
+    ai_LeftAlignedText(txt_Ptrs[crimes[i].law * 5 + 0x13fd], 10, i * 0x28 + 10,
+                       0x13b, 0x55);
+    if (gv_GetTableRecord(crimes[i].law, &pos) != 0 && pos.guilt != 0)
+      for (k = 0; k < pos.guilt; k++)
+        d2_WinOpenPic(k * 0x10 + 0x154, i * 0x28 + 10, 0x526, d2_LastWindow);
+  }
+  memset(&arg, 0, sizeof(arg));
+  arg.kind = 1;
+  d2_SetForm(win, 3);
+  if (ord_DispatchOrder(0x16, culprit, &arg) & 2) {
+    io_PrintText(0x174a);
+  } else {
+    accuse = d2_GetWinObj(win, 3, io_PrintText(0x1745));
+    if (open == 0)
+      d2_SetObjEnabled(accuse, 0);
+  }
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1 && d2_PointerObj == accuse) {
+      ai_OpenTrial(me, culprit, n, 0);
+      sv_PopRequest = 3;
+    }
+  } while (sv_RunFrame(ai_AccuseWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return 0;
 }
 /* 0x5cde90, the accusation order's ask (ord_AccusationOrder, kind 3): me accuses a character it holds evidence of.
    The AI (not kind 6 / 7) names him in m->target: the trial opens (ai_OpenTrial) unless me or he holds the office
@@ -8344,85 +8589,87 @@ int ai_AccuseWindow(AICHAR *me, AICHAR *culprit)
    clicked row opens its accusation window (ai_AccuseWindow), whose result it returns (0x20 when none was opened);
    a right click closes it */
 
-int ai_AccusationWindow(AICHAR *me, ORDMSG *m)
-{
-    int n;
-    int count;
-    int i;
-    int win;
-    int list;
-    int sel;
-    int ret;
-    AICHAR *ch;
-    char text[0x40];
-    int open[0x20];
-    int ids[0x20];
-    int total[0x20];
-    LCAMOUNTROW rows[0x20];
+int ai_AccusationWindow(AICHAR *me, ORDMSG *m) {
+  int n;
+  int count;
+  int i;
+  int win;
+  int list;
+  int sel;
+  int ret;
+  AICHAR *ch;
+  char text[0x40];
+  int open[0x20];
+  int ids[0x20];
+  int total[0x20];
+  LCAMOUNTROW rows[0x20];
 
-    ret = 0x20;
-    if (me->kind != 6 && me->kind != 7) {
-        if (me->officeKind == 0xd)
-            return 0x60;
-        ch = gm_FindChar(m->target);
-        if (ch == 0 || ch->officeKind == 0xd)
-            return 0x60;
-        open[0] = gv_HeldCrimesOf(m->target, ids, me->id);    /* the original keeps the count in open[0] */
-        if (open[0] == 0)
-            return 0x60;
-        return ai_OpenTrial(me, ch, open[0], 0);
+  ret = 0x20;
+  if (me->kind != 6 && me->kind != 7) {
+    if (me->officeKind == 0xd)
+      return 0x60;
+    ch = gm_FindChar(m->target);
+    if (ch == 0 || ch->officeKind == 0xd)
+      return 0x60;
+    open[0] = gv_HeldCrimesOf(
+        m->target, ids, me->id); /* the original keeps the count in open[0] */
+    if (open[0] == 0)
+      return 0x60;
+    return ai_OpenTrial(me, ch, open[0], 0);
+  }
+  win = d2_OpenForm(0, 0, "privillegien\\Beweise_Sichten");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x173f);
+  d2_SetForm(win, 2);
+  list = d2_LastWindow;
+  d2_SetForm(win, 3);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
+  count = gv_RankCulpritsAll(ids, open, total, me->id);
+  for (i = 0, n = 0; i < count; i++) {
+    ch = gm_FindChar(ids[i]);
+    if (ch != 0) {
+      rows[n].rec = ch;
+      rows[n].x2c = total[i];
+      rows[n].x34 = open[i];
+      ai_AmountRowStatus(&rows[n]);
+      rows[n].pickable = 1;
+      n++;
     }
-    win = d2_OpenForm(0, 0, "privillegien\\Beweise_Sichten");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x173f);
-    d2_SetForm(win, 2);
-    list = d2_LastWindow;
-    d2_SetForm(win, 3);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
-    count = gv_RankCulpritsAll(ids, open, total, me->id);
-    for (i = 0, n = 0; i < count; i++) {
-        ch = gm_FindChar(ids[i]);
-        if (ch != 0) {
-            rows[n].rec = ch;
-            rows[n].x2c = total[i];
-            rows[n].x34 = open[i];
-            ai_AmountRowStatus(&rows[n]);
-            rows[n].pickable = 1;
-            n++;
-        }
+  }
+  d2_SetForm(win, 2);
+  if (n != 0) {
+    for (i = 0; i < n; i++) {
+      txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34,
+                 (rows[i].x2c != 1) + 0x1748);
+      rows[i].x = 0x32;
+      rows[i].y = i * 0x69 + 10;
+      ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
+      ai_RightAlignedText(text, d2_Wins[d2_LastWindow].w - 0xf,
+                          i * 0x69 + 10 + 0x2d, 200, 0x55);
     }
-    d2_SetForm(win, 2);
-    if (n != 0) {
-        for (i = 0; i < n; i++) {
-            txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
-            rows[i].x = 0x32;
-            rows[i].y = i * 0x69 + 10;
-            ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
-            ai_RightAlignedText(text, d2_Wins[d2_LastWindow].w - 0xf, i * 0x69 + 10 + 0x2d, 200, 0x55);
+  } else {
+    io_PrintText(0x1741, ai_PlayerId);
+  }
+  d2_SetPointerSprite(0, 0);
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (d2_ClickedId != -1) {
+      sel = -1;
+      for (i = 0; i < n; i++) {
+        if (d2_PointerObj == rows[i].ctl[0]) {
+          sel = i;
+          break;
         }
-    } else {
-        io_PrintText(0x1741, ai_PlayerId);
+      }
+      if (sel > -1)
+        ret = ai_AccuseWindow(me, rows[sel].rec);
     }
-    d2_SetPointerSprite(0, 0);
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (d2_ClickedId != -1) {
-            sel = -1;
-            for (i = 0; i < n; i++) {
-                if (d2_PointerObj == rows[i].ctl[0]) {
-                    sel = i;
-                    break;
-                }
-            }
-            if (sel > -1)
-                ret = ai_AccuseWindow(me, rows[sel].rec);
-        }
-    } while (sv_RunFrame(ai_AccusationWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+  } while (sv_RunFrame(ai_AccusationWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5ce1a0, the accusation by faith (ord_SpyTargetFlagOrder, the jobs 0x12 / 0x16): ai_AccusationWindow's twin
    whose trial is held by the judge of me's faith (ai_OpenTrial byFaith 1). The AI (not kind 6 / 7) names the
@@ -8432,85 +8679,87 @@ int ai_AccusationWindow(AICHAR *me, ORDMSG *m)
    returns (0x20 when none was opened); a right click closes it. The frame pump names ai_AccusationWindow as its
    owner (the original's copy) */
 
-int ai_FaithAccusationWindow(AICHAR *me, ORDMSG *m)
-{
-    int n;
-    int count;
-    int i;
-    int win;
-    int list;
-    int sel;
-    int ret;
-    AICHAR *ch;
-    char text[0x40];
-    int open[0x20];
-    int ids[0x20];
-    int total[0x20];
-    LCAMOUNTROW rows[0x20];
+int ai_FaithAccusationWindow(AICHAR *me, ORDMSG *m) {
+  int n;
+  int count;
+  int i;
+  int win;
+  int list;
+  int sel;
+  int ret;
+  AICHAR *ch;
+  char text[0x40];
+  int open[0x20];
+  int ids[0x20];
+  int total[0x20];
+  LCAMOUNTROW rows[0x20];
 
-    ret = 0x20;
-    if (me->kind != 6 && me->kind != 7) {
-        if (me->officeKind == 0xd)
-            return 0x60;
-        ch = gm_FindChar(m->target);
-        if (ch == 0 || ch->officeKind == 0xd)
-            return 0x60;
-        open[0] = gv_HeldCrimesOf(m->target, ids, me->id);    /* the original keeps the count in open[0] */
-        if (open[0] == 0)
-            return 0x60;
-        return ai_OpenTrial(me, ch, open[0], 1);
+  ret = 0x20;
+  if (me->kind != 6 && me->kind != 7) {
+    if (me->officeKind == 0xd)
+      return 0x60;
+    ch = gm_FindChar(m->target);
+    if (ch == 0 || ch->officeKind == 0xd)
+      return 0x60;
+    open[0] = gv_HeldCrimesOf(
+        m->target, ids, me->id); /* the original keeps the count in open[0] */
+    if (open[0] == 0)
+      return 0x60;
+    return ai_OpenTrial(me, ch, open[0], 1);
+  }
+  win = d2_OpenForm(0, 0, "privillegien\\Beweise_Sichten");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x173f);
+  d2_SetForm(win, 2);
+  list = d2_LastWindow;
+  d2_SetForm(win, 3);
+  d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
+  count = gv_RankCulpritsAll(ids, open, total, me->id);
+  for (i = 0, n = 0; i < count; i++) {
+    ch = gm_FindChar(ids[i]);
+    if (ch != 0) {
+      rows[n].rec = ch;
+      rows[n].x2c = total[i];
+      rows[n].x34 = open[i];
+      ai_AmountRowStatus(&rows[n]);
+      rows[n].pickable = 1;
+      n++;
     }
-    win = d2_OpenForm(0, 0, "privillegien\\Beweise_Sichten");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x173f);
-    d2_SetForm(win, 2);
-    list = d2_LastWindow;
-    d2_SetForm(win, 3);
-    d2_CreateScrollButtons(-1, -1, d2_LastWindow, list, 0x767);
-    count = gv_RankCulpritsAll(ids, open, total, me->id);
-    for (i = 0, n = 0; i < count; i++) {
-        ch = gm_FindChar(ids[i]);
-        if (ch != 0) {
-            rows[n].rec = ch;
-            rows[n].x2c = total[i];
-            rows[n].x34 = open[i];
-            ai_AmountRowStatus(&rows[n]);
-            rows[n].pickable = 1;
-            n++;
-        }
+  }
+  d2_SetForm(win, 2);
+  if (n != 0) {
+    for (i = 0; i < n; i++) {
+      txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34,
+                 (rows[i].x2c != 1) + 0x1748);
+      rows[i].x = 0x32;
+      rows[i].y = i * 0x69 + 10;
+      ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
+      ai_RightAlignedText(text, d2_Wins[d2_LastWindow].w - 0xf,
+                          i * 0x69 + 10 + 0x2d, 200, 0x55);
     }
-    d2_SetForm(win, 2);
-    if (n != 0) {
-        for (i = 0; i < n; i++) {
-            txt_Format(text, (intptr_t)"%i (%i) %s", rows[i].x2c, rows[i].x34, (rows[i].x2c != 1) + 0x1748);
-            rows[i].x = 0x32;
-            rows[i].y = i * 0x69 + 10;
-            ai_AmountRow(0x32, i * 0x69 + 10, d2_LastWindow, 0x56, &rows[i], 1);
-            ai_RightAlignedText(text, d2_Wins[d2_LastWindow].w - 0xf, i * 0x69 + 10 + 0x2d, 200, 0x55);
+  } else {
+    io_PrintText(0x1741, ai_PlayerId);
+  }
+  d2_SetPointerSprite(0, 0);
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (d2_ClickedId != -1) {
+      sel = -1;
+      for (i = 0; i < n; i++) {
+        if (d2_PointerObj == rows[i].ctl[0]) {
+          sel = i;
+          break;
         }
-    } else {
-        io_PrintText(0x1741, ai_PlayerId);
+      }
+      if (sel > -1)
+        ret = ai_AccuseWindow(me, rows[sel].rec);
     }
-    d2_SetPointerSprite(0, 0);
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (d2_ClickedId != -1) {
-            sel = -1;
-            for (i = 0; i < n; i++) {
-                if (d2_PointerObj == rows[i].ctl[0]) {
-                    sel = i;
-                    break;
-                }
-            }
-            if (sel > -1)
-                ret = ai_AccuseWindow(me, rows[sel].rec);
-        }
-    } while (sv_RunFrame(ai_AccusationWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+  } while (sv_RunFrame(ai_AccusationWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5ce4b0, carries out the interrogation (ai_InterrogationWindow): me questions ch, whose office column holds up
    to 6 offices (amt_KindColumn, amt_GetColumnOffices). ch himself gains 100 relation to me and, a player, the news
@@ -8518,42 +8767,42 @@ int ai_FaithAccusationWindow(AICHAR *me, ORDMSG *m)
    0x1e0b (me, ch, me; "_NACHRICHTEN_NEU_06"). Then me's flag 0x80000 (AICHAR.flags1cc, interrogated: the window
    refuses a second one) is set */
 
-void ai_Interrogate(AICHAR *me, AICHAR *ch)
-{
-    AMTREC offices[6];
-    char text[0x200];
-    char news[0x200];
-    AICHAR *holder;
-    int col;
-    int n;
-    int i;
+void ai_Interrogate(AICHAR *me, AICHAR *ch) {
+  AMTREC offices[6];
+  char text[0x200];
+  char news[0x200];
+  AICHAR *holder;
+  int col;
+  int n;
+  int i;
 
-    col = amt_KindColumn(ch->officeKind);
-    n = amt_GetColumnOffices(col, 6, offices);
-    for (i = 0; i < n; i++) {
-        if (offices[i].owner == -1)
-            continue;
-        if (ch->netId == offices[i].owner) {
-            cm_SendRelations(me->netId, offices[i].owner, 100, 1);
-            if (ch->kind == 6 || ch->kind == 7) {
-                txt_Format(text, 0x1e0a, me->id);
-                he_ShowNews(ch->netId, -1, text, 0, 0x5fb, "_NACHRICHTEN_NEU_05");
-            }
-        } else {
-            holder = gm_FindChar(offices[i].owner);
-            if (holder == 0)
-                continue;
-            cm_SendRelations(me->netId, offices[i].owner, -20, 1);
-            if (holder->kind == 6 || holder->kind == 7) {
-                txt_Format(news, 0x1e0b, me->id, ch->id, me->id);
-                he_ShowNews(holder->netId, -1, news, 0, 0x5fb, "_NACHRICHTEN_NEU_06");
-            }
-        }
+  col = amt_KindColumn(ch->officeKind);
+  n = amt_GetColumnOffices(col, 6, offices);
+  for (i = 0; i < n; i++) {
+    if (offices[i].owner == -1)
+      continue;
+    if (ch->netId == offices[i].owner) {
+      cm_SendRelations(me->netId, offices[i].owner, 100, 1);
+      if (ch->kind == 6 || ch->kind == 7) {
+        txt_Format(text, 0x1e0a, me->id);
+        he_ShowNews(ch->netId, -1, text, 0, 0x5fb, "_NACHRICHTEN_NEU_05");
+      }
+    } else {
+      holder = gm_FindChar(offices[i].owner);
+      if (holder == 0)
+        continue;
+      cm_SendRelations(me->netId, offices[i].owner, -20, 1);
+      if (holder->kind == 6 || holder->kind == 7) {
+        txt_Format(news, 0x1e0b, me->id, ch->id, me->id);
+        he_ShowNews(holder->netId, -1, news, 0, 0x5fb, "_NACHRICHTEN_NEU_06");
+      }
     }
-    cm_SendSetField(me->netId, 0x1cc, 4, 0x80000, 0);
+  }
+  cm_SendSetField(me->netId, 0x1cc, 4, 0x80000, 0);
 }
 
-int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, int d, unsigned char e);
+int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c,
+                          int d, unsigned char e);
 
 /* 0x5ce610, the interrogation order's ask (ord.c, the callers push (c, m)): the AI (not kind 6) interrogates the
    character m->target unless me already did (AICHAR.flags1cc 0x80000: 0x20), he is unknown or holds no office
@@ -8562,63 +8811,62 @@ int amt_SendOfficeMessage(unsigned char a, struct AICHAR *b, struct AICHAR *c, i
    2) and confirms in the window "privillegien\verhoer" (the text 0x1e09 with the character's id, its two buttons):
    the first runs ai_Interrogate (0x91), the second or a right click closes it (2) */
 
-int ai_InterrogationWindow(AICHAR *me, ORDMSG *m)
-{
-    AMOUNTCFG cfg;
-    AICHAR *ch;
-    int win;
-    int text;
-    int yes;
-    int no;
-    int ret;
+int ai_InterrogationWindow(AICHAR *me, ORDMSG *m) {
+  AMOUNTCFG cfg;
+  AICHAR *ch;
+  int win;
+  int text;
+  int yes;
+  int no;
+  int ret;
 
-    if (me->kind != 6) {
-        if ((me->flags1cc & 0x80000) != 0)
-            return 0x20;
-        ch = gm_FindChar(m->target);
-        if (ch == 0)
-            return 0x60;
-        if (ch->officeKind == 0)
-            return 0x60;
-        ai_Interrogate(me, ch);
-        return 0x10;
-    }
-    ret = 2;
-    memset(&cfg, 0, sizeof(cfg));
-    if ((me->flags1cc & 0x80000) != 0) {
-        sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
-        return 0x81;
-    }
-    cfg.mode = 0xc00;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    cfg.kind = 6;
-    ch = ai_AmountMenu(&cfg, txt_Ptrs[0x1e08], 0, 0);
+  if (me->kind != 6) {
+    if ((me->flags1cc & 0x80000) != 0)
+      return 0x20;
+    ch = gm_FindChar(m->target);
     if (ch == 0)
-        return 2;
-    win = d2_OpenForm(0, 0, "privillegien\\verhoer");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    text = io_PrintText(0x1e09, ch->id);
-    yes = d2_GetWinObj(win, 1, text);
-    no = d2_GetWinObj(win, 1, text + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == yes) {
-                ai_Interrogate(me, ch);
-                ret = 0x91;
-                sv_PopRequest = 1;
-            } else if (d2_PointerObj == no) {
-                sv_PopRequest = 1;
-            }
-        }
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_InterrogationWindow, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      return 0x60;
+    if (ch->officeKind == 0)
+      return 0x60;
+    ai_Interrogate(me, ch);
+    return 0x10;
+  }
+  ret = 2;
+  memset(&cfg, 0, sizeof(cfg));
+  if ((me->flags1cc & 0x80000) != 0) {
+    sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
+    return 0x81;
+  }
+  cfg.mode = 0xc00;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  cfg.kind = 6;
+  ch = ai_AmountMenu(&cfg, txt_Ptrs[0x1e08], 0, 0);
+  if (ch == 0)
+    return 2;
+  win = d2_OpenForm(0, 0, "privillegien\\verhoer");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  text = io_PrintText(0x1e09, ch->id);
+  yes = d2_GetWinObj(win, 1, text);
+  no = d2_GetWinObj(win, 1, text + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == yes) {
+        ai_Interrogate(me, ch);
+        ret = 0x91;
+        sv_PopRequest = 1;
+      } else if (d2_PointerObj == no) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_InterrogationWindow, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5ce7f0, the worker dismissal window "privillegien_arbeiter_ausweisen" (352 B): the character ch, kinds
    6 / 7 only; its office (the byte +0x166) through amt_GetFirstOffice (the list out[0]); the window
@@ -8627,50 +8875,50 @@ int ai_InterrogationWindow(AICHAR *me, ORDMSG *m)
    and 0x90; click 1 closes; the pump 0x5309a0 (0x657c7) and the exit 0x4758f0. The return is 0x22 when nothing
    was clicked, 0x20 for another kind, 0x40 when the office has no list. The second argument m is not read */
 
-int ai_WorkerDismissalWindow(void *chp, ORDMSG *m)
-{
-    AICHAR *ch;
-    AMTREC out;
-    int win;
-    int text;
-    int click1;
-    int click2;
-    int i;
-    int ret;
+int ai_WorkerDismissalWindow(void *chp, ORDMSG *m) {
+  AICHAR *ch;
+  AMTREC out;
+  int win;
+  int text;
+  int click1;
+  int click2;
+  int i;
+  int ret;
 
-    ch = chp;
-    ret = 0x22;
-    if (ch->kind != 6 && ch->kind != 7)
-        return 0x20;
-    i = amt_GetFirstOffice(ch->officeKind, &out);
-    if (i == 0)
-        return 0x40;
-    win = d2_OpenForm(0, 0, "privillegien\\arbeiter_ausweisen");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1e24, (ch->sex != 0 ? 0x27b : 0x253) + ch->officeKind);
-    text = io_PrintText(0x1e25);
-    click1 = d2_GetWinObj(win, 1, text);
-    click2 = d2_GetWinObj(win, 1, text + 1);
-    d2_ClickedId = -1;
-    for (;;) {
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (d2_ClickedId != -1) {
-            if (d2_PointerObj == click1) {
-                amt_SendOfficeMessage(out.idx, 0, 0, (ai_Time.hour > 0xd ? 0xff : 3), 0xff);
-                ret = 0x90;
-                sv_PopRequest = 1;
-            } else if (d2_PointerObj == click2) {
-                sv_PopRequest = 1;
-            }
-        }
-        if (sv_RunFrame(ai_WorkerDismissalWindow, 0x657c7) == 0) {
-            d2_CloseView(win);
-            return ret;
-        }
+  ch = chp;
+  ret = 0x22;
+  if (ch->kind != 6 && ch->kind != 7)
+    return 0x20;
+  i = amt_GetFirstOffice(ch->officeKind, &out);
+  if (i == 0)
+    return 0x40;
+  win = d2_OpenForm(0, 0, "privillegien\\arbeiter_ausweisen");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1e24, (ch->sex != 0 ? 0x27b : 0x253) + ch->officeKind);
+  text = io_PrintText(0x1e25);
+  click1 = d2_GetWinObj(win, 1, text);
+  click2 = d2_GetWinObj(win, 1, text + 1);
+  d2_ClickedId = -1;
+  for (;;) {
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (d2_ClickedId != -1) {
+      if (d2_PointerObj == click1) {
+        amt_SendOfficeMessage(out.idx, 0, 0, (ai_Time.hour > 0xd ? 0xff : 3),
+                              0xff);
+        ret = 0x90;
+        sv_PopRequest = 1;
+      } else if (d2_PointerObj == click2) {
+        sv_PopRequest = 1;
+      }
     }
+    if (sv_RunFrame(ai_WorkerDismissalWindow, 0x657c7) == 0) {
+      d2_CloseView(win);
+      return ret;
+    }
+  }
 }
 /* 0x5ce950, the dismissal order's ask (ord.c, the callers push (c, m)): me has an office holder dismissed for 8
    (gm_SendMoneyDelta), once (AICHAR.flags1cc 0x40000, set with cm_SendSetField). The dismissal is the office
@@ -8683,106 +8931,108 @@ int ai_WorkerDismissalWindow(void *chp, ORDMSG *m)
    the window "privillegien\verhoer" (the text 0x1e0f with the holder's id): the first button, when me can pay 8
    (sv_CheckMoney), dismisses him and waits for the flag's slot (0x91); the second or a right click closes it (2) */
 
-int ai_DismissalHandler(AICHAR *me, ORDMSG *m)
-{
-    AICHAR *ch;
-    AMOUNTCFG cfg;
-    AMTREC office;
-    char text[0x200];
-    int win;
-    int t;
-    int yes;
-    int no;
-    int slot;
-    int ret;
+int ai_DismissalHandler(AICHAR *me, ORDMSG *m) {
+  AICHAR *ch;
+  AMOUNTCFG cfg;
+  AMTREC office;
+  char text[0x200];
+  int win;
+  int t;
+  int yes;
+  int no;
+  int slot;
+  int ret;
 
-    if (me->kind != 6) {
-        if ((me->flags1cc & 0x40000) != 0)
-            return 0x20;
-        if (me->money < 8)
-            return 0x20;
-        ch = gm_FindChar(m->target);
-        if (ch == 0)
-            return 0x60;
-        if (ch->officeKind == 0)
-            return 0x60;
-        if (amt_GetFirstOffice(ch->officeKind, &office) == 0)
-            return 0x40;
-        amt_SendOfficeMessage(office.idx, 0, 0, (ai_Time.hour > 0xd ? 0xff : 3), 0xff);
-        gm_SendMoneyDelta(me->netId, -8);
-        cm_SendSetField(me->netId, 0x1cc, 4, 0x40000, 0);
-        if (ch->kind == 6 || ch->kind == 7) {
-            txt_Format(text, 0x1e10, me->id, ch->sex == 0 ? 0x253 : ch->officeKind + 0x27b);
-            he_ShowNews(ch->netId, -1, text, 0, 0x5fb, "_NACHRICHTEN_NEU_07");
-        }
-        return 0x10;
-    }
-    ret = 2;
-    memset(&cfg, 0, sizeof(cfg));
-    if ((me->flags1cc & 0x40000) != 0) {
-        sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
-        return 0x81;
-    }
-    cfg.mode = 0xc00;
-    cfg.kind = 6;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    ch = ai_AmountMenu(&cfg, txt_Ptrs[0x1e0e], 0, 0);
+  if (me->kind != 6) {
+    if ((me->flags1cc & 0x40000) != 0)
+      return 0x20;
+    if (me->money < 8)
+      return 0x20;
+    ch = gm_FindChar(m->target);
     if (ch == 0)
-        return 2;
+      return 0x60;
+    if (ch->officeKind == 0)
+      return 0x60;
     if (amt_GetFirstOffice(ch->officeKind, &office) == 0)
-        return 0x40;
-    win = d2_OpenForm(0, 0, "privillegien\\verhoer");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1e0f, ch->id);
-    yes = d2_GetWinObj(win, 1, t);
-    no = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == yes && sv_CheckMoney(me, 8) != 0) {
-                amt_SendOfficeMessage(office.idx, 0, 0, (ai_Time.hour > 0xd ? 0xff : 3), 0xff);
-                gm_SendMoneyDelta(me->netId, -8);
-                slot = cm_SendSetField(me->netId, 0x1cc, 4, 0x40000, 0);
-                while (slot != -1 && cm_GetSlotState(slot) == 0)
-                    sv_PumpNet();
-                sv_PopRequest = 1;
-                ret = 0x91;
-                if (ch->kind == 6 || ch->kind == 7) {
-                    txt_Format(text, 0x1e10, me->id, ch->sex == 0 ? 0x253 : ch->officeKind + 0x27b);
-                    he_ShowNews(ch->netId, -1, text, 0, 0x5fb, 0);
-                }
-            } else if (d2_PointerObj == no) {
-                sv_PopRequest = 1;
-            }
+      return 0x40;
+    amt_SendOfficeMessage(office.idx, 0, 0, (ai_Time.hour > 0xd ? 0xff : 3),
+                          0xff);
+    gm_SendMoneyDelta(me->netId, -8);
+    cm_SendSetField(me->netId, 0x1cc, 4, 0x40000, 0);
+    if (ch->kind == 6 || ch->kind == 7) {
+      txt_Format(text, 0x1e10, me->id,
+                 ch->sex == 0 ? 0x253 : ch->officeKind + 0x27b);
+      he_ShowNews(ch->netId, -1, text, 0, 0x5fb, "_NACHRICHTEN_NEU_07");
+    }
+    return 0x10;
+  }
+  ret = 2;
+  memset(&cfg, 0, sizeof(cfg));
+  if ((me->flags1cc & 0x40000) != 0) {
+    sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
+    return 0x81;
+  }
+  cfg.mode = 0xc00;
+  cfg.kind = 6;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  ch = ai_AmountMenu(&cfg, txt_Ptrs[0x1e0e], 0, 0);
+  if (ch == 0)
+    return 2;
+  if (amt_GetFirstOffice(ch->officeKind, &office) == 0)
+    return 0x40;
+  win = d2_OpenForm(0, 0, "privillegien\\verhoer");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1e0f, ch->id);
+  yes = d2_GetWinObj(win, 1, t);
+  no = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == yes && sv_CheckMoney(me, 8) != 0) {
+        amt_SendOfficeMessage(office.idx, 0, 0, (ai_Time.hour > 0xd ? 0xff : 3),
+                              0xff);
+        gm_SendMoneyDelta(me->netId, -8);
+        slot = cm_SendSetField(me->netId, 0x1cc, 4, 0x40000, 0);
+        while (slot != -1 && cm_GetSlotState(slot) == 0)
+          sv_PumpNet();
+        sv_PopRequest = 1;
+        ret = 0x91;
+        if (ch->kind == 6 || ch->kind == 7) {
+          txt_Format(text, 0x1e10, me->id,
+                     ch->sex == 0 ? 0x253 : ch->officeKind + 0x27b);
+          he_ShowNews(ch->netId, -1, text, 0, 0x5fb, 0);
         }
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_DismissalHandler, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      } else if (d2_PointerObj == no) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_DismissalHandler, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5ced50, sends the AIMSG type 0x45 "the interrogation was refused" (144 B): to the interrogator ch
    (its netId at +4, as 'to' and arg[0]), about the interrogated target (its netId as arg[1]) and the
    interrogation window variant 1 / 2 (arg[2]); the clock, flags 2; cm_SendLongMessage (0x4c4b70) returns
    its handle. */
 
-int ai_SendInterrogationRefusal(AICHAR *ch, AICHAR *target, int variant)
-{
-    AIMSG msg;
+int ai_SendInterrogationRefusal(AICHAR *ch, AICHAR *target, int variant) {
+  AIMSG msg;
 
-    memset(&msg, 0, sizeof msg);
-    msg.type = 0x45;
-    msg.to = ch->netId;
-    msg.fromId = -1;
-    msg.time = ai_Time;
-    msg.flags = 2;
-    msg.arg[0] = ch->netId;
-    msg.arg[1] = target->netId;
-    msg.arg[2] = variant;
-    return cm_SendLongMessage(&msg);
+  memset(&msg, 0, sizeof msg);
+  msg.type = 0x45;
+  msg.to = ch->netId;
+  msg.fromId = -1;
+  msg.time = ai_Time;
+  msg.flags = 2;
+  msg.arg[0] = ch->netId;
+  msg.arg[1] = target->netId;
+  msg.arg[2] = variant;
+  return cm_SendLongMessage(&msg);
 }
 /* 0x5cede0, the interrogation order's ask, variant 1 (ord_InterrogationOrder2, the callers push (c, m)): me has an
    office holder questioned for 4, once (AICHAR.flags1c8 0x100): the message 0x45 of variant 1
@@ -8794,135 +9044,133 @@ int ai_SendInterrogationRefusal(AICHAR *ch, AICHAR *target, int variant)
    pay 4 (sv_CheckMoney), sends the message and waits for its slot (0x91); the second or a right click closes it
    (2) */
 
-int ai_InterrogationWindow1(AICHAR *me, ORDMSG *m)
-{
-    AICHAR *ch;
-    AMOUNTCFG cfg;
-    int win;
-    int t;
-    int yes;
-    int no;
-    int slot;
-    int ret;
+int ai_InterrogationWindow1(AICHAR *me, ORDMSG *m) {
+  AICHAR *ch;
+  AMOUNTCFG cfg;
+  int win;
+  int t;
+  int yes;
+  int no;
+  int slot;
+  int ret;
 
-    if (me->kind != 6) {
-        if ((me->flags1c8 & 0x100) != 0)
-            return 0x20;
-        if (me->money < 4)
-            return 0x20;
-        ch = gm_FindChar(m->target);
-        if (ch == 0)
-            return 0x60;
-        if (ch->officeKind == 0)
-            return 0x60;
-        ai_SendInterrogationRefusal(me, ch, 1);
-        return 0x10;
-    }
-    ret = 2;
-    memset(&cfg, 0, sizeof(cfg));
-    if ((me->flags1c8 & 0x100) != 0) {
-        sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
-        return 0x81;
-    }
-    cfg.mode = 0xc00;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    cfg.kind = 6;
-    ch = ai_SpecialAmountListWindow(4, &cfg, txt_Ptrs[0x1e16], ch_EmptyName, 0);
+  if (me->kind != 6) {
+    if ((me->flags1c8 & 0x100) != 0)
+      return 0x20;
+    if (me->money < 4)
+      return 0x20;
+    ch = gm_FindChar(m->target);
     if (ch == 0)
-        return 2;
-    win = d2_OpenForm(0, 0, "privillegien\\verhoer");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1e17, ch->id, 4);
-    yes = d2_GetWinObj(win, 1, t);
-    no = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == yes && sv_CheckMoney(me, 4) != 0) {
-                slot = ai_SendInterrogationRefusal(me, ch, 1);
-                while (slot != -1 && cm_GetSlotState(slot) == 0)
-                    sv_PumpNet();
-                sv_PopRequest = 1;
-                ret = 0x91;
-            } else if (d2_PointerObj == no) {
-                sv_PopRequest = 1;
-            }
-        }
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_InterrogationWindow1, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      return 0x60;
+    if (ch->officeKind == 0)
+      return 0x60;
+    ai_SendInterrogationRefusal(me, ch, 1);
+    return 0x10;
+  }
+  ret = 2;
+  memset(&cfg, 0, sizeof(cfg));
+  if ((me->flags1c8 & 0x100) != 0) {
+    sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
+    return 0x81;
+  }
+  cfg.mode = 0xc00;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  cfg.kind = 6;
+  ch = ai_SpecialAmountListWindow(4, &cfg, txt_Ptrs[0x1e16], ch_EmptyName, 0);
+  if (ch == 0)
+    return 2;
+  win = d2_OpenForm(0, 0, "privillegien\\verhoer");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1e17, ch->id, 4);
+  yes = d2_GetWinObj(win, 1, t);
+  no = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == yes && sv_CheckMoney(me, 4) != 0) {
+        slot = ai_SendInterrogationRefusal(me, ch, 1);
+        while (slot != -1 && cm_GetSlotState(slot) == 0)
+          sv_PumpNet();
+        sv_PopRequest = 1;
+        ret = 0x91;
+      } else if (d2_PointerObj == no) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_InterrogationWindow1, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5cf020, the interrogation order's ask, variant 2 (ord_InterrogationOrder3, the callers push (c, m)): the twin
    of ai_InterrogationWindow1 with the message 0x45 of variant 2, the office list of kind 5, the caption
    txt_Ptrs[0x1e1d] and the text 0x1e1e (the holder's id, the price 4) */
 
-int ai_InterrogationWindow2(AICHAR *me, ORDMSG *m)
-{
-    AICHAR *ch;
-    AMOUNTCFG cfg;
-    int win;
-    int t;
-    int yes;
-    int no;
-    int slot;
-    int ret;
+int ai_InterrogationWindow2(AICHAR *me, ORDMSG *m) {
+  AICHAR *ch;
+  AMOUNTCFG cfg;
+  int win;
+  int t;
+  int yes;
+  int no;
+  int slot;
+  int ret;
 
-    if (me->kind != 6) {
-        if ((me->flags1c8 & 0x100) != 0)
-            return 0x20;
-        if (me->money < 4)
-            return 0x20;
-        ch = gm_FindChar(m->target);
-        if (ch == 0)
-            return 0x60;
-        if (ch->officeKind == 0)
-            return 0x60;
-        ai_SendInterrogationRefusal(me, ch, 2);
-        return 0x10;
-    }
-    ret = 2;
-    memset(&cfg, 0, sizeof(cfg));
-    if ((me->flags1c8 & 0x100) != 0) {
-        sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
-        return 0x81;
-    }
-    cfg.mode = 0xc00;
-    cfg.classMask[0] = (unsigned int)gypsyFilter;
-    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-    cfg.kind = 6;
-    ch = ai_SpecialAmountListWindow(5, &cfg, txt_Ptrs[0x1e1d], ch_EmptyName, 0);
+  if (me->kind != 6) {
+    if ((me->flags1c8 & 0x100) != 0)
+      return 0x20;
+    if (me->money < 4)
+      return 0x20;
+    ch = gm_FindChar(m->target);
     if (ch == 0)
-        return 2;
-    win = d2_OpenForm(0, 0, "privillegien\\verhoer");
-    d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    t = io_PrintText(0x1e1e, ch->id, 4);
-    yes = d2_GetWinObj(win, 1, t);
-    no = d2_GetWinObj(win, 1, t + 1);
-    d2_ClickedId = -1;
-    do {
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == yes && sv_CheckMoney(me, 4) != 0) {
-                slot = ai_SendInterrogationRefusal(me, ch, 2);
-                while (slot != -1 && cm_GetSlotState(slot) == 0)
-                    sv_PumpNet();
-                sv_PopRequest = 1;
-                ret = 0x91;
-            } else if (d2_PointerObj == no) {
-                sv_PopRequest = 1;
-            }
-        }
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_InterrogationWindow2, 0x657c7) != 0);
-    d2_CloseView(win);
-    return ret;
+      return 0x60;
+    if (ch->officeKind == 0)
+      return 0x60;
+    ai_SendInterrogationRefusal(me, ch, 2);
+    return 0x10;
+  }
+  ret = 2;
+  memset(&cfg, 0, sizeof(cfg));
+  if ((me->flags1c8 & 0x100) != 0) {
+    sv_MessageBox((intptr_t)txt_Ptrs[0x1ce0], 0);
+    return 0x81;
+  }
+  cfg.mode = 0xc00;
+  cfg.classMask[0] = (unsigned int)gypsyFilter;
+  cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+  cfg.kind = 6;
+  ch = ai_SpecialAmountListWindow(5, &cfg, txt_Ptrs[0x1e1d], ch_EmptyName, 0);
+  if (ch == 0)
+    return 2;
+  win = d2_OpenForm(0, 0, "privillegien\\verhoer");
+  d2_SetPointerSprite(0, 0);
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  t = io_PrintText(0x1e1e, ch->id, 4);
+  yes = d2_GetWinObj(win, 1, t);
+  no = d2_GetWinObj(win, 1, t + 1);
+  d2_ClickedId = -1;
+  do {
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == yes && sv_CheckMoney(me, 4) != 0) {
+        slot = ai_SendInterrogationRefusal(me, ch, 2);
+        while (slot != -1 && cm_GetSlotState(slot) == 0)
+          sv_PumpNet();
+        sv_PopRequest = 1;
+        ret = 0x91;
+      } else if (d2_PointerObj == no) {
+        sv_PopRequest = 1;
+      }
+    }
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_InterrogationWindow2, 0x657c7) != 0);
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5cf260, the profession chooser "privillegien\CHOOSEPROFESSION2" (ai_CharInfoPanel): parent apprentices child.
    The fee is 1.5 % of the parent's worth (gm_GetWorth); the caption 0x1a9a names the child (0x1aa0 / 0x1aa1 by
@@ -8933,57 +9181,58 @@ int ai_InterrogationWindow2(AICHAR *me, ORDMSG *m)
    (profession, 1), the fee) and closes the window; a right click closes it. Returns 1 once the left button was
    clicked, else 0 */
 
-int ai_ChooseProfessionWindow(AICHAR *parent, AICHAR *child)
-{
-    AIMSG msg;
-    int fee;
-    int win;
-    int colW;
-    int rowH;
-    int dx;
-    int i;
-    int pic;
-    int ret;
+int ai_ChooseProfessionWindow(AICHAR *parent, AICHAR *child) {
+  AIMSG msg;
+  int fee;
+  int win;
+  int colW;
+  int rowH;
+  int dx;
+  int i;
+  int pic;
+  int ret;
 
-    fee = (int)((float)gm_GetWorth(parent->id) * 0.015f);
-    win = d2_OpenForm(0, 0, "privillegien\\CHOOSEPROFESSION2");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 0);
-    colW = (d2_Wins[d2_LastWindow].w - 0x40) / 5;
-    rowH = (d2_Wins[d2_LastWindow].h - 0x84) / 3;
-    dx = (colW - d2_Pics[0x5a2].w) / 2;
-    io_PrintText(0x1a9a, (child->sex != 0) + 0x1aa0, child->id, fee);
-    for (i = 1; i <= 15; i++) {
-        pic = d2_WinOpenPic((i - 1) % 5 * colW + dx + 0x20, (i - 1) / 5 * rowH + dx + 0x64, i + 0x5a1, d2_LastWindow);
-        d2_Objs[pic].interactive = 1;
-        d2_Objs[pic].style = 3;
-        strcpy(d2_Objs[pic].caption, txt_Ptrs[0x1ee + i]);
-        d2_Objs[pic].capfont = 0x56;
-    }
-    ret = 0;
-    while (sv_RunFrame(ai_ChooseProfessionWindow, sv_FrameMask) != 0) {
-        if (dm_L.rup != 0) {
-            sv_PopRequest = 1;
-        } else if (dm_L.lclick != 0) {
-            ret = 1;
-            for (i = 0; i <= 15; i++) {
-                if (d2_ClickedId == i + 0x5a2) {
-                    msg.flags = 0x12;
-                    msg.to = child->netId;
-                    msg.type = 0x5e;
-                    msg.fromId = -1;
-                    msg.apprenticeship.parent = parent->netId;
-                    msg.apprenticeship.bldClass = gm_TitleNumber(i + 1, 1);
-                    msg.apprenticeship.price = fee;
-                    cm_SendLongMessage(&msg);
-                    sv_PopRequest = 1;
-                    break;
-                }
-            }
+  fee = (int)((float)gm_GetWorth(parent->id) * 0.015f);
+  win = d2_OpenForm(0, 0, "privillegien\\CHOOSEPROFESSION2");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 0);
+  colW = (d2_Wins[d2_LastWindow].w - 0x40) / 5;
+  rowH = (d2_Wins[d2_LastWindow].h - 0x84) / 3;
+  dx = (colW - d2_Pics[0x5a2].w) / 2;
+  io_PrintText(0x1a9a, (child->sex != 0) + 0x1aa0, child->id, fee);
+  for (i = 1; i <= 15; i++) {
+    pic =
+        d2_WinOpenPic((i - 1) % 5 * colW + dx + 0x20,
+                      (i - 1) / 5 * rowH + dx + 0x64, i + 0x5a1, d2_LastWindow);
+    d2_Objs[pic].interactive = 1;
+    d2_Objs[pic].style = 3;
+    strcpy(d2_Objs[pic].caption, txt_Ptrs[0x1ee + i]);
+    d2_Objs[pic].capfont = 0x56;
+  }
+  ret = 0;
+  while (sv_RunFrame(ai_ChooseProfessionWindow, sv_FrameMask) != 0) {
+    if (dm_L.rup != 0) {
+      sv_PopRequest = 1;
+    } else if (dm_L.lclick != 0) {
+      ret = 1;
+      for (i = 0; i <= 15; i++) {
+        if (d2_ClickedId == i + 0x5a2) {
+          msg.flags = 0x12;
+          msg.to = child->netId;
+          msg.type = 0x5e;
+          msg.fromId = -1;
+          msg.apprenticeship.parent = parent->netId;
+          msg.apprenticeship.bldClass = gm_TitleNumber(i + 1, 1);
+          msg.apprenticeship.price = fee;
+          cm_SendLongMessage(&msg);
+          sv_PopRequest = 1;
+          break;
         }
+      }
     }
-    d2_CloseView(win);
-    return ret;
+  }
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5cf4f0, the university window "special\uni" (ai_CharInfoPanel): the player sends child to study. The three
    offers come from ai_RollStudyOffers for the player's character (per offer: the fee, the subject, the level);
@@ -8994,89 +9243,87 @@ int ai_ChooseProfessionWindow(AICHAR *parent, AICHAR *child)
    the child's powerFlags 0x10000 and closes the window (1); the close button or a right click closes it (0).
    parent (the caller passes the player's character) is not read */
 
-int ai_UniversityWindow(AICHAR *parent, AICHAR *child)
-{
-    int win;
-    int ctrl[4];
-    AISTUDYOFFER offers[3];
-    AIMSG msg;
-    char text[0x100];
-    int i;
-    int ret;
+int ai_UniversityWindow(AICHAR *parent, AICHAR *child) {
+  int win;
+  int ctrl[4];
+  AISTUDYOFFER offers[3];
+  AIMSG msg;
+  char text[0x100];
+  int i;
+  int ret;
 
-    ai_RollStudyOffers(&ai_Chars[ai_PlayerId], offers);
-    win = d2_OpenForm(0, 0, "special\\uni");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText(0x1a9d, (child->sex != 0) + 0x1aa0, child->id, 5);
-    d2_SetForm(win, 2);
-    for (i = 0; i < 3; i++) {
-        ctrl[i] = d2_WinOpenPic(0x14, i * 0x5a + 10, 0x4c6, d2_LastWindow);
-        d2_Objs[ctrl[i]].interactive = 1;
-        d2_Objs[ctrl[i]].style = 3;
-        txt_Format(text, (intptr_t)"%s", ai_PlayerSlots[i + 1].name);
-        d2_CreateWinText(0xbe, i * 0x5a + 10, text, d2_LastWindow);
-        txt_Format(text, (intptr_t)"%s", offers[i].subject + 0x16b7);
-        d2_CreateWinText(0xbe, i * 0x5a + 0x1e, text, d2_LastWindow);
-        txt_Format(text, (intptr_t)"%s", offers[i].level + 0x16b7);
-        d2_CreateWinText(0xbe, i * 0x5a + 0x32, text, d2_LastWindow);
-        txt_Format(text, (intptr_t)"%T", offers[i].price);
-        d2_CreateWinText(0xbe, i * 0x5a + 0x46, text, d2_LastWindow);
-    }
-    d2_SetForm(win, 3);
-    ctrl[3] = d2_GetWinObj(win, 3, io_PrintText(0x1ba8));
-    d2_SetPointerSprite(0, 0);
-    d2_ClickedId = -1;
-    ret = 0;
-    while (sv_RunFrame(ai_UniversityWindow, sv_FrameMask) != 0) {
-        if (dm_L.rup != 0)
+  ai_RollStudyOffers(&ai_Chars[ai_PlayerId], offers);
+  win = d2_OpenForm(0, 0, "special\\uni");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText(0x1a9d, (child->sex != 0) + 0x1aa0, child->id, 5);
+  d2_SetForm(win, 2);
+  for (i = 0; i < 3; i++) {
+    ctrl[i] = d2_WinOpenPic(0x14, i * 0x5a + 10, 0x4c6, d2_LastWindow);
+    d2_Objs[ctrl[i]].interactive = 1;
+    d2_Objs[ctrl[i]].style = 3;
+    txt_Format(text, (intptr_t)"%s", ai_PlayerSlots[i + 1].name);
+    d2_CreateWinText(0xbe, i * 0x5a + 10, text, d2_LastWindow);
+    txt_Format(text, (intptr_t)"%s", offers[i].subject + 0x16b7);
+    d2_CreateWinText(0xbe, i * 0x5a + 0x1e, text, d2_LastWindow);
+    txt_Format(text, (intptr_t)"%s", offers[i].level + 0x16b7);
+    d2_CreateWinText(0xbe, i * 0x5a + 0x32, text, d2_LastWindow);
+    txt_Format(text, (intptr_t)"%T", offers[i].price);
+    d2_CreateWinText(0xbe, i * 0x5a + 0x46, text, d2_LastWindow);
+  }
+  d2_SetForm(win, 3);
+  ctrl[3] = d2_GetWinObj(win, 3, io_PrintText(0x1ba8));
+  d2_SetPointerSprite(0, 0);
+  d2_ClickedId = -1;
+  ret = 0;
+  while (sv_RunFrame(ai_UniversityWindow, sv_FrameMask) != 0) {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+    if (d2_ClickedId != -1) {
+      if (d2_PointerObj == ctrl[3]) {
+        sv_PopRequest = 1;
+      } else {
+        for (i = 0; i < 3; i++) {
+          if (d2_PointerObj == ctrl[i]) {
+            msg.flags = 0x12;
+            msg.type = 0x5f;
+            msg.to = child->netId;
+            msg.fromId = -1;
+            msg.study.ch = ai_Chars[ai_PlayerId].netId;
+            msg.study.subject = offers[i].subject;
+            msg.study.level = offers[i].level;
+            msg.study.child = offers[i].price;
+            cm_SendLongMessage(&msg);
+            cm_SendSetField(child->netId, 0x1c8, 4, 0x10000, 0);
+            ret = 1;
             sv_PopRequest = 1;
-        if (d2_ClickedId != -1) {
-            if (d2_PointerObj == ctrl[3]) {
-                sv_PopRequest = 1;
-            } else {
-                for (i = 0; i < 3; i++) {
-                    if (d2_PointerObj == ctrl[i]) {
-                        msg.flags = 0x12;
-                        msg.type = 0x5f;
-                        msg.to = child->netId;
-                        msg.fromId = -1;
-                        msg.study.ch = ai_Chars[ai_PlayerId].netId;
-                        msg.study.subject = offers[i].subject;
-                        msg.study.level = offers[i].level;
-                        msg.study.child = offers[i].price;
-                        cm_SendLongMessage(&msg);
-                        cm_SendSetField(child->netId, 0x1c8, 4, 0x10000, 0);
-                        ret = 1;
-                        sv_PopRequest = 1;
-                        break;
-                    }
-                }
-            }
+            break;
+          }
         }
+      }
     }
-    d2_CloseView(win);
-    return ret;
+  }
+  d2_CloseView(win);
+  return ret;
 }
 /* 0x5cf820, the use-object panel (form "panel\useobj" 0x62d010): opens the form, page 1, prints
    text through the "%s" 0x5f8318, and pumps frames until the right mouse button (dm_L.rup) or a pop request
    closes it. */
 
-void ai_UseObjPanel(char *text)
-{
-    int win;
+void ai_UseObjPanel(char *text) {
+  int win;
 
-    win = d2_OpenForm(0, 0, "panel\\useobj");
-    d2_CentreViewWindows(win);
-    d2_SetForm(win, 1);
-    io_PrintText((intptr_t)"%s", text);
-    d2_SetPointerSprite(0, 0);
-    d2_ClickedId = -1;
-    do {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    } while (sv_RunFrame(ai_UseObjPanel, 0x677c7) != 0);
-    d2_CloseView(win);
+  win = d2_OpenForm(0, 0, "panel\\useobj");
+  d2_CentreViewWindows(win);
+  d2_SetForm(win, 1);
+  io_PrintText((intptr_t)"%s", text);
+  d2_SetPointerSprite(0, 0);
+  d2_ClickedId = -1;
+  do {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  } while (sv_RunFrame(ai_UseObjPanel, 0x677c7) != 0);
+  d2_CloseView(win);
 }
 /* 0x5cf8a0, uses a Domizil good: ch the character, use the request (use->obj the inventory object). Errors: -1 no
    character, -2 no request, -3 no object, -4 the good has no Domizil entry (ai_FindUsableGood), -5 a good of the
@@ -9088,96 +9335,110 @@ void ai_UseObjPanel(char *text)
    (kind 6) whose callback did not report the use sees the panel, with the text 0xfe8 (rank + 1) on effect.
    Returns the callback's result (1 without one). */
 
-int ai_UseGood(AICHAR *ch, G8USE *use)
-{
-    char text[0x800];
-    int minutes;
-    char flag;
-    G9DOMIZIL *entry;
-    G9DOMIZIL *found;
-    int ret;
+int ai_UseGood(AICHAR *ch, G8USE *use) {
+  char text[0x800];
+  int minutes;
+  char flag;
+  G9DOMIZIL *entry;
+  G9DOMIZIL *found;
+  int ret;
 
-    if (ch == 0)
-        return -1;
-    if (use == 0)
-        return -2;
-    use->handled = 0;
-    if (use->obj == 0)
-        return -3;
-    entry = ai_FindUsableGood(use->obj->id);
-    if (entry == 0)
-        return -4;
-    if ((entry->mask & ch->goodsMask) != 0)
-        return -5;
-    use->effect = (use->obj->id != 0x175 || util_RandomF() >= 0.66) ? 1 : 0;
-    if (entry->use != 0)
-        ret = entry->use(ch, use);
-    else
-        ret = 1;
-    if (ret != 0) {
-        ai_CampaignStep(0x2d, 0, 0, use->obj->id);
-        if (entry->mask != 0)
-            cm_SendSetField(ch->netId, 0x1ec, 4, entry->mask, 0);
-        if (entry->minutes != 0) {
-            int one;
+  if (ch == 0)
+    return -1;
+  if (use == 0)
+    return -2;
+  use->handled = 0;
+  if (use->obj == 0)
+    return -3;
+  entry = ai_FindUsableGood(use->obj->id);
+  if (entry == 0)
+    return -4;
+  if ((entry->mask & ch->goodsMask) != 0)
+    return -5;
+  use->effect = (use->obj->id != 0x175 || util_RandomF() >= 0.66) ? 1 : 0;
+  if (entry->use != 0)
+    ret = entry->use(ch, use);
+  else
+    ret = 1;
+  if (ret != 0) {
+    ai_CampaignStep(0x2d, 0, 0, use->obj->id);
+    if (entry->mask != 0)
+      cm_SendSetField(ch->netId, 0x1ec, 4, entry->mask, 0);
+    if (entry->minutes != 0) {
+      int one;
 
-            minutes = entry->minutes;
-            one = 1;
-            flag = 1;
-            cm_BeginFieldBlock(use->obj, use->obj->objId);
-            cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->minutesLeft - cm_FieldObject), &minutes);
-            cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->active - cm_FieldObject), &one);
-            cm_AddFieldDelta(1, 1, (unsigned short)((char *)&use->obj->inUse - cm_FieldObject), &flag);
-            cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->since.year - cm_FieldObject), &ai_Time.year);
-            cm_AddFieldDelta(2, 1, (unsigned short)((char *)&use->obj->since.hour - cm_FieldObject), &ai_Time.hour);
-            cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->since.min - cm_FieldObject), &ai_Time.min);
-            cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->since.sec - cm_FieldObject), &ai_Time.sec);
-            cm_SendFieldDeltas();
-        }
-        if (entry->minutes == 0)
-            cm_SendExSellObject(-1, ch->netId, use->obj->id, 1, ai_OwnPlayer, 0);
-        if (entry->law != -1) {
-            if (ch->bld2 != 0)
-                gv_Accuse(entry->law, 1, ch->netId, -1, ch->bld2->id);
-            else
-                gv_Accuse(entry->law, 1, ch->netId, -1, -1);
-        }
-        if (ch->kind == 6 && use->handled == 0) {
-            int index;
-
-            found = ai_FindUsableGoodIndex(use->obj->id, &index);
-            if (use->effect == 1)
-                txt_Format(text, 0xfe8, found->rank + 1);
-            ai_UseObjPanel(text);
-        }
+      minutes = entry->minutes;
+      one = 1;
+      flag = 1;
+      cm_BeginFieldBlock(use->obj, use->obj->objId);
+      cm_AddFieldDelta(
+          4, 1,
+          (unsigned short)((char *)&use->obj->minutesLeft - cm_FieldObject),
+          &minutes);
+      cm_AddFieldDelta(
+          4, 1, (unsigned short)((char *)&use->obj->active - cm_FieldObject),
+          &one);
+      cm_AddFieldDelta(
+          1, 1, (unsigned short)((char *)&use->obj->inUse - cm_FieldObject),
+          &flag);
+      cm_AddFieldDelta(
+          4, 1,
+          (unsigned short)((char *)&use->obj->since.year - cm_FieldObject),
+          &ai_Time.year);
+      cm_AddFieldDelta(
+          2, 1,
+          (unsigned short)((char *)&use->obj->since.hour - cm_FieldObject),
+          &ai_Time.hour);
+      cm_AddFieldDelta(
+          4, 1, (unsigned short)((char *)&use->obj->since.min - cm_FieldObject),
+          &ai_Time.min);
+      cm_AddFieldDelta(
+          4, 1, (unsigned short)((char *)&use->obj->since.sec - cm_FieldObject),
+          &ai_Time.sec);
+      cm_SendFieldDeltas();
     }
-    return ret;
+    if (entry->minutes == 0)
+      cm_SendExSellObject(-1, ch->netId, use->obj->id, 1, ai_OwnPlayer, 0);
+    if (entry->law != -1) {
+      if (ch->bld2 != 0)
+        gv_Accuse(entry->law, 1, ch->netId, -1, ch->bld2->id);
+      else
+        gv_Accuse(entry->law, 1, ch->netId, -1, -1);
+    }
+    if (ch->kind == 6 && use->handled == 0) {
+      int index;
+
+      found = ai_FindUsableGoodIndex(use->obj->id, &index);
+      if (use->effect == 1)
+        txt_Format(text, 0xfe8, found->rank + 1);
+      ai_UseObjPanel(text);
+    }
+  }
+  return ret;
 }
 /* 0x5cfb60, the use callback of the Domizil good 0x173 (the +0x14 pointer of the table entry 0x62c6c0):
    pays the character ch 2 money with gm_SendMoneyDelta (message 0x5a, the netId at +4); returns 1. */
 
-int ai_UseGoodAddMoney(AICHAR *ch, G8USE *use)
-{
-    gm_SendMoneyDelta(ch->netId, 2);
-    return 1;
+int ai_UseGoodAddMoney(AICHAR *ch, G8USE *use) {
+  gm_SendMoneyDelta(ch->netId, 2);
+  return 1;
 }
 /* 0x5cfb80, the use callback of the Domizil good 0x175 (the +0x14 pointer of the table entry 0x62c6dc;
    ai_UseGood gives it the effect 1 only one time in three): effect 1 adds 10% of the character's life
    (AICHAR.f01c) with cm_SendFloatDelta (0x4c4ac0); effect 0 for a player (kind 6) sets use->handled and
    shows the text 0xff0 (ai_UseObjPanel); returns 1. */
 
-int ai_UseGoodHeal(AICHAR *ch, G8USE *use)
-{
-    char text[0x800];
+int ai_UseGoodHeal(AICHAR *ch, G8USE *use) {
+  char text[0x800];
 
-    if (use->effect == 1) {
-        cm_SendFloatDelta(ch->netId, 0x1c, ch->f01c * 0.1f);
-    } else if (use->effect == 0 && ch->kind == 6) {
-        use->handled = 1;
-        txt_Format(text, 0xff0);
-        ai_UseObjPanel(text);
-    }
-    return 1;
+  if (use->effect == 1) {
+    cm_SendFloatDelta(ch->netId, 0x1c, ch->f01c * 0.1f);
+  } else if (use->effect == 0 && ch->kind == 6) {
+    use->handled = 1;
+    txt_Format(text, 0xff0);
+    ai_UseObjPanel(text);
+  }
+  return 1;
 }
 /* 0x5cfc00, the use callback of the Domizil good 0x177 (reached through its table entry +0x14): picks the target
    building, for a player (kind 6) on the town map (ai_MapPick with the prompt 0x9a, building class 2 only), else
@@ -9187,76 +9448,80 @@ int ai_UseGoodHeal(AICHAR *ch, G8USE *use)
    0x2c4 and util_RandomF() <= 0.75. A player owner (kind 6 / 7) gets the news 0xff1 (key 0x5fb). Returns 1.
    Both paths are written out in full, as the original's code has them. */
 
-int ai_UseGoodInfectOwner(AICHAR *ch, G8USE *use)
-{
-    AIBLD *bld;
-    int *id;
+int ai_UseGoodInfectOwner(AICHAR *ch, G8USE *use) {
+  AIBLD *bld;
+  int *id;
 
-    if (ch->kind == 6) {
-        AMOUNTCFG cfg;
-        char text[0x100];
+  if (ch->kind == 6) {
+    AMOUNTCFG cfg;
+    char text[0x100];
 
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9a);
-        cfg.flags = 1;
-        cfg.mode = -1;
-        cfg.kind = 6;
-        cfg.classMask[0] = 4;
-        bld = ai_MapPick(1, &cfg, text, 0, 0);
-        if (bld != 0 && bld->owner != 0) {
-            AIMSG msg;
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9a);
+    cfg.flags = 1;
+    cfg.mode = -1;
+    cfg.kind = 6;
+    cfg.classMask[0] = 4;
+    bld = ai_MapPick(1, &cfg, text, 0, 0);
+    if (bld != 0 && bld->owner != 0) {
+      AIMSG msg;
 
-            id = &bld->id;
-            msg.to = ch->netId;
-            msg.type = 0x76;
-            msg.fromId = -1;
-            msg.time = ai_Time;
-            msg.flags = 10;
-            msg.effect.target = *id;
-            msg.effect.good = 0x177;
-            cm_SendLongMessage(&msg);
-            cm_BeginFieldBlock(use->obj, use->obj->objId);
-            cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->placeBldId - cm_FieldObject), id);
-            cm_SendFieldDeltas();
-            gm_CatchDisease(&ai_Chars[bld->owner], 0, 0);
-            if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
-                char news[0x800];
+      id = &bld->id;
+      msg.to = ch->netId;
+      msg.type = 0x76;
+      msg.fromId = -1;
+      msg.time = ai_Time;
+      msg.flags = 10;
+      msg.effect.target = *id;
+      msg.effect.good = 0x177;
+      cm_SendLongMessage(&msg);
+      cm_BeginFieldBlock(use->obj, use->obj->objId);
+      cm_AddFieldDelta(
+          4, 1,
+          (unsigned short)((char *)&use->obj->placeBldId - cm_FieldObject), id);
+      cm_SendFieldDeltas();
+      gm_CatchDisease(&ai_Chars[bld->owner], 0, 0);
+      if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
+        char news[0x800];
 
-                txt_Format(news, 0xff1);
-                he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
-            }
-            return 1;
-        }
-    } else {
-        bld = gm_BuildQuery(1, 1, use->target);
-        if (bld != 0 && bld->owner != 0) {
-            AIMSG msg;
-
-            id = &bld->id;
-            msg.to = ch->netId;
-            msg.type = 0x76;
-            msg.fromId = -1;
-            msg.time = ai_Time;
-            msg.flags = 10;
-            msg.effect.target = *id;
-            msg.effect.good = 0x177;
-            cm_SendLongMessage(&msg);
-            cm_BeginFieldBlock(use->obj, use->obj->objId);
-            cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->placeBldId - cm_FieldObject), id);
-            cm_SendFieldDeltas();
-            if (ai_InventoryHas(&ai_Chars[bld->owner], 0x2c4) == 0 || util_RandomF() > 0.75f)
-                gm_CatchDisease(&ai_Chars[bld->owner], 0, 0);
-            if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
-                char news[0x800];
-
-                txt_Format(news, 0xff1);
-                he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
-            }
-            return 1;
-        }
+        txt_Format(news, 0xff1);
+        he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
+      }
+      return 1;
     }
-    return 0;
+  } else {
+    bld = gm_BuildQuery(1, 1, use->target);
+    if (bld != 0 && bld->owner != 0) {
+      AIMSG msg;
+
+      id = &bld->id;
+      msg.to = ch->netId;
+      msg.type = 0x76;
+      msg.fromId = -1;
+      msg.time = ai_Time;
+      msg.flags = 10;
+      msg.effect.target = *id;
+      msg.effect.good = 0x177;
+      cm_SendLongMessage(&msg);
+      cm_BeginFieldBlock(use->obj, use->obj->objId);
+      cm_AddFieldDelta(
+          4, 1,
+          (unsigned short)((char *)&use->obj->placeBldId - cm_FieldObject), id);
+      cm_SendFieldDeltas();
+      if (ai_InventoryHas(&ai_Chars[bld->owner], 0x2c4) == 0 ||
+          util_RandomF() > 0.75f)
+        gm_CatchDisease(&ai_Chars[bld->owner], 0, 0);
+      if (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7) {
+        char news[0x800];
+
+        txt_Format(news, 0xff1);
+        he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
+      }
+      return 1;
+    }
+  }
+  return 0;
 }
 /* 0x5cff70, the use callback of the Domizil good 0x178 (reached through its table entry +0x14): picks the target
    building, for a player (kind 6) on the town map (ai_MapPick with the prompt 0x9b, the building class filter
@@ -9269,114 +9534,119 @@ int ai_UseGoodInfectOwner(AICHAR *ch, G8USE *use)
    out in full with the 0x77 message and the rest, as the original has them: VC6 cross-jumps the first copy
    into the second, and the first copy's temporaries set the second path's scratch registers. */
 
-int ai_UseGoodSendHome(AICHAR *ch, G8USE *use)
-{
-    AIBLD *bld;
-    int *id;
-    int ret;
+int ai_UseGoodSendHome(AICHAR *ch, G8USE *use) {
+  AIBLD *bld;
+  int *id;
+  int ret;
 
-    ret = 0;
-    if (ch->kind == 6) {
-        AMOUNTCFG cfg;
-        char text[0x100];
+  ret = 0;
+  if (ch->kind == 6) {
+    AMOUNTCFG cfg;
+    char text[0x100];
 
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9b);
-        cfg.flags = 1;
-        cfg.mode = -1;
-        cfg.kind = 6;
-        cfg.classMask[0] = 0xa0744300;
-        cfg.classMask[1] = 0x1;
-        bld = ai_MapPick(1, &cfg, text, 0, 0);
-        if (bld != 0) {
-            {
-                AIMSG msg;
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9b);
+    cfg.flags = 1;
+    cfg.mode = -1;
+    cfg.kind = 6;
+    cfg.classMask[0] = 0xa0744300;
+    cfg.classMask[1] = 0x1;
+    bld = ai_MapPick(1, &cfg, text, 0, 0);
+    if (bld != 0) {
+      {
+        AIMSG msg;
 
-                D3_ZERO(&msg, sizeof(msg));
-                msg.to = ch->netId;
-                msg.type = 0x76;
-                msg.fromId = -1;
-                msg.time = ai_Time;
-                msg.flags = 10;
-                id = &bld->id;
-                msg.effect.target = *id;
-                msg.effect.good = 0x178;
-                cm_SendLongMessage(&msg);
-                D3_ZERO(&msg, sizeof(msg));
-            }
-            {
-                /* @original a message of its own block: VC6 gives it the slot of the 0x76 messages, which the
-                   D3_ZERO after each send has cleared, so its other fields are 0 */
-                AIMSG msg;
+        D3_ZERO(&msg, sizeof(msg));
+        msg.to = ch->netId;
+        msg.type = 0x76;
+        msg.fromId = -1;
+        msg.time = ai_Time;
+        msg.flags = 10;
+        id = &bld->id;
+        msg.effect.target = *id;
+        msg.effect.good = 0x178;
+        cm_SendLongMessage(&msg);
+        D3_ZERO(&msg, sizeof(msg));
+      }
+      {
+        /* @original a message of its own block: VC6 gives it the slot of the 0x76 messages, which the
+           D3_ZERO after each send has cleared, so its other fields are 0 */
+        AIMSG msg;
 
-                msg.to = ch->netId;
-                msg.type = 0x77;
-                msg.fromId = -1;
-                msg.time = ai_Time;
-                msg.flags = 1;
-                msg.effect.target = *id;
-                cm_SendLongMessage(&msg);
-            }
-            cm_BeginFieldBlock(use->obj, use->obj->objId);
-            cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->placeBldId - cm_FieldObject), id);
-            cm_SendFieldDeltas();
-            cm_SendSetField(*id, 0x5a, 2, 0x20, 0);
-            if (bld->owner != 0xffff && (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7)) {
-                char news[0x800];
+        msg.to = ch->netId;
+        msg.type = 0x77;
+        msg.fromId = -1;
+        msg.time = ai_Time;
+        msg.flags = 1;
+        msg.effect.target = *id;
+        cm_SendLongMessage(&msg);
+      }
+      cm_BeginFieldBlock(use->obj, use->obj->objId);
+      cm_AddFieldDelta(
+          4, 1,
+          (unsigned short)((char *)&use->obj->placeBldId - cm_FieldObject), id);
+      cm_SendFieldDeltas();
+      cm_SendSetField(*id, 0x5a, 2, 0x20, 0);
+      if (bld->owner != 0xffff &&
+          (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7)) {
+        char news[0x800];
 
-                txt_Format(news, 0xff2, bld);
-                he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
-            }
-        } else {
-            goto done;
-        }
+        txt_Format(news, 0xff2, bld);
+        he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
+      }
     } else {
-        bld = gm_BuildQuery(1, 1, use->target);
-        if (bld == 0)
-            goto done;
-        {
-            AIMSG msg;
-
-            D3_ZERO(&msg, sizeof(msg));
-            msg.to = ch->netId;
-            msg.type = 0x76;
-            msg.fromId = -1;
-            msg.time = ai_Time;
-            msg.flags = 10;
-            id = &bld->id;
-            msg.effect.target = *id;
-            msg.effect.good = 0x178;
-            cm_SendLongMessage(&msg);
-            D3_ZERO(&msg, sizeof(msg));
-        }
-        {
-            /* @original a message of its own block: VC6 gives it the slot of the 0x76 messages, which the
-               D3_ZERO after each send has cleared, so its other fields are 0 */
-            AIMSG msg;
-
-            msg.to = ch->netId;
-            msg.type = 0x77;
-            msg.fromId = -1;
-            msg.time = ai_Time;
-            msg.flags = 1;
-            msg.effect.target = *id;
-            cm_SendLongMessage(&msg);
-        }
-        cm_BeginFieldBlock(use->obj, use->obj->objId);
-        cm_AddFieldDelta(4, 1, (unsigned short)((char *)&use->obj->placeBldId - cm_FieldObject), id);
-        cm_SendFieldDeltas();
-        cm_SendSetField(*id, 0x5a, 2, 0x20, 0);
-        if (bld->owner != 0xffff && (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7)) {
-            char news[0x800];
-
-            txt_Format(news, 0xff2, bld);
-            he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
-        }
+      goto done;
     }
-    ret = 1;
+  } else {
+    bld = gm_BuildQuery(1, 1, use->target);
+    if (bld == 0)
+      goto done;
+    {
+      AIMSG msg;
+
+      D3_ZERO(&msg, sizeof(msg));
+      msg.to = ch->netId;
+      msg.type = 0x76;
+      msg.fromId = -1;
+      msg.time = ai_Time;
+      msg.flags = 10;
+      id = &bld->id;
+      msg.effect.target = *id;
+      msg.effect.good = 0x178;
+      cm_SendLongMessage(&msg);
+      D3_ZERO(&msg, sizeof(msg));
+    }
+    {
+      /* @original a message of its own block: VC6 gives it the slot of the 0x76 messages, which the
+         D3_ZERO after each send has cleared, so its other fields are 0 */
+      AIMSG msg;
+
+      msg.to = ch->netId;
+      msg.type = 0x77;
+      msg.fromId = -1;
+      msg.time = ai_Time;
+      msg.flags = 1;
+      msg.effect.target = *id;
+      cm_SendLongMessage(&msg);
+    }
+    cm_BeginFieldBlock(use->obj, use->obj->objId);
+    cm_AddFieldDelta(
+        4, 1, (unsigned short)((char *)&use->obj->placeBldId - cm_FieldObject),
+        id);
+    cm_SendFieldDeltas();
+    cm_SendSetField(*id, 0x5a, 2, 0x20, 0);
+    if (bld->owner != 0xffff &&
+        (ai_Chars[bld->owner].kind == 6 || ai_Chars[bld->owner].kind == 7)) {
+      char news[0x800];
+
+      txt_Format(news, 0xff2, bld);
+      he_ShowNews(ai_Chars[bld->owner].netId, -1, news, 0, 0x5fb, 0);
+    }
+  }
+  ret = 1;
 done:
-    return ret;
+  return ret;
 }
 /* 0x5d0320, the use callback of the Domizil good 0x17b (reached through its table entry +0x14): picks the target
    character, for a player (kind 6) with the special-amount menu (ai_AmountMenu, the gypsy filter, mode 0x400, the
@@ -9384,63 +9654,62 @@ done:
    the skills 3 and 2 lose 1/6 each for 24 hours (flags 2). A player target (kind 6 / 7) gets the news 0xff8 (key
    0x5fb). Returns 1. Both paths are written out in full, as the original's code has them. */
 
-int ai_UseGoodWeakenSkills(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char news[0x800];
-    AICHAR *target;
+int ai_UseGoodWeakenSkills(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char news[0x800];
+  AICHAR *target;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-        if (target != 0) {
-            AIMSG msg;
-            msg.type = 0x82;
-            msg.to = target->netId;
-            msg.fromId = -1;
-            msg.flags = 2;
-            msg.skillBonus.skill1 = 3;
-            msg.skillBonus.bonus1 = -1.0f / 6.0f;
-            msg.skillBonus.skill2 = 2;
-            msg.skillBonus.bonus2 = -1.0f / 6.0f;
-            msg.skillBonus.hours = 24;
-            cm_SendLongMessage(&msg);
-            if (target->kind == 6 || target->kind == 7) {
-                txt_Format(news, 0xff8);
-                he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-            }
-            return 1;
-        }
-    } else {
-        target = gm_FindChar(use->target);
-        if (target != 0) {
-            AIMSG msg;
-            msg.type = 0x82;
-            msg.to = target->netId;
-            msg.fromId = -1;
-            msg.flags = 2;
-            msg.skillBonus.skill1 = 3;
-            msg.skillBonus.bonus1 = -1.0f / 6.0f;
-            msg.skillBonus.skill2 = 2;
-            msg.skillBonus.bonus2 = -1.0f / 6.0f;
-            msg.skillBonus.hours = 24;
-            cm_SendLongMessage(&msg);
-            if (target->kind == 6 || target->kind == 7) {
-                txt_Format(news, 0xff8);
-                he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-            }
-            return 1;
-        }
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+    if (target != 0) {
+      AIMSG msg;
+      msg.type = 0x82;
+      msg.to = target->netId;
+      msg.fromId = -1;
+      msg.flags = 2;
+      msg.skillBonus.skill1 = 3;
+      msg.skillBonus.bonus1 = -1.0f / 6.0f;
+      msg.skillBonus.skill2 = 2;
+      msg.skillBonus.bonus2 = -1.0f / 6.0f;
+      msg.skillBonus.hours = 24;
+      cm_SendLongMessage(&msg);
+      if (target->kind == 6 || target->kind == 7) {
+        txt_Format(news, 0xff8);
+        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+      }
+      return 1;
     }
-    return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target != 0) {
+      AIMSG msg;
+      msg.type = 0x82;
+      msg.to = target->netId;
+      msg.fromId = -1;
+      msg.flags = 2;
+      msg.skillBonus.skill1 = 3;
+      msg.skillBonus.bonus1 = -1.0f / 6.0f;
+      msg.skillBonus.skill2 = 2;
+      msg.skillBonus.bonus2 = -1.0f / 6.0f;
+      msg.skillBonus.hours = 24;
+      cm_SendLongMessage(&msg);
+      if (target->kind == 6 || target->kind == 7) {
+        txt_Format(news, 0xff8);
+        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+      }
+      return 1;
+    }
+  }
+  return 0;
 }
 /* 0x5d0530, the use callback of the Domizil good 0x17d (reached through its table entry +0x14), the twin of
    ai_UseGoodWeakenSkills: a player (kind 6) picks the target character with the same special-amount menu (prompt
@@ -9448,87 +9717,85 @@ int ai_UseGoodWeakenSkills(AICHAR *ch, G8USE *use)
    2); for any other user the target is use->target (gm_FindChar) and no message is sent. A player target (kind
    6 / 7) gets the news 0xff6 (key 0x5fb). Returns 1, 0 without a target. */
 
-int ai_UseGoodWeakenSkills2(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char news[0x800];
-    AICHAR *target;
+int ai_UseGoodWeakenSkills2(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char news[0x800];
+  AICHAR *target;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-        if (target != 0) {
-            AIMSG msg;
-            msg.type = 0x82;
-            msg.to = target->netId;
-            msg.fromId = -1;
-            msg.flags = 2;
-            msg.skillBonus.skill1 = 0;
-            msg.skillBonus.bonus1 = -1.0f / 6.0f;
-            msg.skillBonus.skill2 = 4;
-            msg.skillBonus.bonus2 = -1.0f / 3.0f;
-            msg.skillBonus.hours = 24;
-            cm_SendLongMessage(&msg);
-            if (target->kind == 6 || target->kind == 7) {
-                txt_Format(news, 0xff6);
-                he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-            }
-            return 1;
-        }
-    } else {
-        target = gm_FindChar(use->target);
-        if (target != 0) {
-            if (target->kind == 6 || target->kind == 7) {
-                txt_Format(news, 0xff6);
-                he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-            }
-            return 1;
-        }
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+    if (target != 0) {
+      AIMSG msg;
+      msg.type = 0x82;
+      msg.to = target->netId;
+      msg.fromId = -1;
+      msg.flags = 2;
+      msg.skillBonus.skill1 = 0;
+      msg.skillBonus.bonus1 = -1.0f / 6.0f;
+      msg.skillBonus.skill2 = 4;
+      msg.skillBonus.bonus2 = -1.0f / 3.0f;
+      msg.skillBonus.hours = 24;
+      cm_SendLongMessage(&msg);
+      if (target->kind == 6 || target->kind == 7) {
+        txt_Format(news, 0xff6);
+        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+      }
+      return 1;
     }
-    return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target != 0) {
+      if (target->kind == 6 || target->kind == 7) {
+        txt_Format(news, 0xff6);
+        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+      }
+      return 1;
+    }
+  }
+  return 0;
 }
 /* 0x5d06e0, the use callback of the Domizil good 0x17e (the +0x14 pointer of the table entry 0x62c784;
    the "Unversehrtheit" good ai_DecideUseHealthObject wants while a character has an ailment): clears the
    low bits of the first set ailment field of ch->ailments (the mask of its field: 7, 0x30, 0x300, 0x1000,
    0xc000, 0x20000, 0x100000, 0x800000, 0x6000000) with cm_SendSetField; returns 1. */
 
-int ai_UseGoodCureAilment(AICHAR *ch, G8USE *use)
-{
-    unsigned int f;
-    int mask;
+int ai_UseGoodCureAilment(AICHAR *ch, G8USE *use) {
+  unsigned int f;
+  int mask;
 
-    f = ch->ailments;
-    if (f != 0) {
-        mask = 0;
-        if (f & 0xf)
-            mask = 7;
-        else if (f & 0xf0)
-            mask = 0x30;
-        else if (f & 0xf00)
-            mask = 0x300;
-        else if (f & 0x3000)
-            mask = 0x1000;
-        else if (f & 0x1c000)
-            mask = 0xc000;
-        else if (f & 0xe0000)
-            mask = 0x20000;
-        else if (f & (7 << 20))
-            mask = 0x100000;
-        else if (f & 0x1800000)
-            mask = 8 << 20;
-        else if (f & 0x1e000000)
-            mask = 0x6000000;
-        cm_SendSetField(ch->netId, 0x2c, 4, 0, mask);
-    }
-    return 1;
+  f = ch->ailments;
+  if (f != 0) {
+    mask = 0;
+    if (f & 0xf)
+      mask = 7;
+    else if (f & 0xf0)
+      mask = 0x30;
+    else if (f & 0xf00)
+      mask = 0x300;
+    else if (f & 0x3000)
+      mask = 0x1000;
+    else if (f & 0x1c000)
+      mask = 0xc000;
+    else if (f & 0xe0000)
+      mask = 0x20000;
+    else if (f & (7 << 20))
+      mask = 0x100000;
+    else if (f & 0x1800000)
+      mask = 8 << 20;
+    else if (f & 0x1e000000)
+      mask = 0x6000000;
+    cm_SendSetField(ch->netId, 0x2c, 4, 0, mask);
+  }
+  return 1;
 }
 /* 0x5d0780, the use callback of the Domizil good 0x161 (reached through its table entry +0x14): picks the target
    building, for a player (kind 6) on the town map (ai_MapPick with the prompt 0x9b, the class filter 0x90010,
@@ -9536,143 +9803,142 @@ int ai_UseGoodCureAilment(AICHAR *ch, G8USE *use)
    b1c5 halved, rounded up, sent as a field delta. Returns 1. (am.c's AI uses the good where the workers' b1c5
    averages at least 6; what b1c5 means is not known.) */
 
-int ai_UseGoodHalveWorkerValue(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    char text[0x100];
-    unsigned char value;
-    AIBLD *bld;
-    int i;
-    int ret;
+int ai_UseGoodHalveWorkerValue(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  char text[0x100];
+  unsigned char value;
+  AIBLD *bld;
+  int i;
+  int ret;
 
-    ret = 0;
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9b);
-        cfg.flags = 1;
-        cfg.mode = -1;
-        cfg.kind = 4;
-        cfg.classMask[0] = 0x90010;
-        cfg.classMask[1] = 0x0;
-        bld = ai_MapPick(1, &cfg, text, 0, 0);
-        if (bld == 0)
-            goto done;
-        ret = 1;
-    } else {
-        bld = gm_BuildQuery(1, 1, use->target);
-        if (bld == 0)
-            goto done;
-        ret = 1;
+  ret = 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9b);
+    cfg.flags = 1;
+    cfg.mode = -1;
+    cfg.kind = 4;
+    cfg.classMask[0] = 0x90010;
+    cfg.classMask[1] = 0x0;
+    bld = ai_MapPick(1, &cfg, text, 0, 0);
+    if (bld == 0)
+      goto done;
+    ret = 1;
+  } else {
+    bld = gm_BuildQuery(1, 1, use->target);
+    if (bld == 0)
+      goto done;
+    ret = 1;
+  }
+  for (i = 0; i < 0x300; i++) {
+    if (ai_Chars[i].bld == bld) {
+      value = ai_Chars[i].b1c5 % 2 + ai_Chars[i].b1c5 / 2;
+      cm_BeginFieldBlock(&ai_Chars[i], ai_Chars[i].netId);
+      cm_AddFieldDelta(
+          1, 1, (unsigned short)((char *)&ai_Chars[i].b1c5 - cm_FieldObject),
+          &value);
+      cm_SendFieldDeltas();
     }
-    for (i = 0; i < 0x300; i++) {
-        if (ai_Chars[i].bld == bld) {
-            value = ai_Chars[i].b1c5 % 2 + ai_Chars[i].b1c5 / 2;
-            cm_BeginFieldBlock(&ai_Chars[i], ai_Chars[i].netId);
-            cm_AddFieldDelta(1, 1, (unsigned short)((char *)&ai_Chars[i].b1c5 - cm_FieldObject), &value);
-            cm_SendFieldDeltas();
-        }
-    }
+  }
 done:
-    return ret;
+  return ret;
 }
 /* 0x5d08c0, raises a skill of the character ch by a trial step (he.c's trial event calls it for both of its
    skills): skill 0 .. 4 (>= 5 -> 0); a skill value n of 252 or more -> 0. With x = (252 - n) / 252 and
    y = 0.6x + 0.2 the amount is (1 - y + util_RandomF() * y) * 42x + 1, cut so that n + amount stays at 252; a
    nonzero amount goes out with cm_SendAddSkill (the netId, the skill, the amount). Returns 1. */
 
-int ai_ApplyTrialStep(AICHAR *ch, int skill)
-{
-    float x;
-    float y;
-    unsigned char amount;
+int ai_ApplyTrialStep(AICHAR *ch, int skill) {
+  float x;
+  float y;
+  unsigned char amount;
 
-    if (skill < 5 && !((float)ch->skills[skill] >= 252.0f)) {
-        x = (252.0f - ch->skills[skill]) * (1.0f / 252.0f);
-        y = x * 0.6f + 0.2f;
-        amount = (unsigned char)(int)(x * (((1.0f - y) + util_RandomF() * y) * 42.0f) + 1.0f);
-        if ((float)(ch->skills[skill] + amount) > 252.0f)
-            amount = (unsigned char)(int)(252.0f - ch->skills[skill]);
-        if (amount != 0)
-            cm_SendAddSkill(ch->netId, skill, amount);
-        return 1;
-    }
-    return 0;
+  if (skill < 5 && !((float)ch->skills[skill] >= 252.0f)) {
+    x = (252.0f - ch->skills[skill]) * (1.0f / 252.0f);
+    y = x * 0.6f + 0.2f;
+    amount =
+        (unsigned char)(int)(x * (((1.0f - y) + util_RandomF() * y) * 42.0f) +
+                             1.0f);
+    if ((float)(ch->skills[skill] + amount) > 252.0f)
+      amount = (unsigned char)(int)(252.0f - ch->skills[skill]);
+    if (amount != 0)
+      cm_SendAddSkill(ch->netId, skill, amount);
+    return 1;
+  }
+  return 0;
 }
 /* 0x5d09d0, the use callback of the Domizil record 9 (the good 0x162, 0x62c51c): the character kind 6 picks
    the target in the special-amount list 0x5bea00 (the text 0x5176d0 0x9d), every other kind takes the use's
    target 0x505df0; the target's trial step 1 (0x5d08c0) runs and 1, 0 without a target. */
 
-int ai_TrialStep1(AICHAR *ch, G8USE *use)
-{
-    char text[0x100];
-    AICHAR *target;
+int ai_TrialStep1(AICHAR *ch, G8USE *use) {
+  char text[0x100];
+  AICHAR *target;
 
-    if (ch->kind == 6) {
-        txt_Format(text, 0x9d);
-        target = ai_SpecialAmountList(ch, text);
-        if (target != 0) {
-            ai_ApplyTrialStep(target, 1);
-            return 1;
-        }
-    } else {
-        target = gm_FindChar(use->target);
-        if (target != 0) {
-            ai_ApplyTrialStep(target, 1);
-            return 1;
-        }
+  if (ch->kind == 6) {
+    txt_Format(text, 0x9d);
+    target = ai_SpecialAmountList(ch, text);
+    if (target != 0) {
+      ai_ApplyTrialStep(target, 1);
+      return 1;
     }
-    return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target != 0) {
+      ai_ApplyTrialStep(target, 1);
+      return 1;
+    }
+  }
+  return 0;
 }
 /* 0x5d0a40, the use callback of the Domizil record 10 (the good 0x163, 0x62c538): the character kind 6 picks
    the target in the special-amount list 0x5bea00 (the text 0x5176d0 0x9d), every other kind takes the use's
    target 0x505df0; the target's trial step 3 (0x5d08c0) runs and 1, 0 without a target. */
 
-int ai_TrialStep3(AICHAR *ch, G8USE *use)
-{
-    char text[0x100];
-    AICHAR *target;
+int ai_TrialStep3(AICHAR *ch, G8USE *use) {
+  char text[0x100];
+  AICHAR *target;
 
-    if (ch->kind == 6) {
-        txt_Format(text, 0x9d);
-        target = ai_SpecialAmountList(ch, text);
-        if (target != 0) {
-            ai_ApplyTrialStep(target, 3);
-            return 1;
-        }
-    } else {
-        target = gm_FindChar(use->target);
-        if (target != 0) {
-            ai_ApplyTrialStep(target, 3);
-            return 1;
-        }
+  if (ch->kind == 6) {
+    txt_Format(text, 0x9d);
+    target = ai_SpecialAmountList(ch, text);
+    if (target != 0) {
+      ai_ApplyTrialStep(target, 3);
+      return 1;
     }
-    return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target != 0) {
+      ai_ApplyTrialStep(target, 3);
+      return 1;
+    }
+  }
+  return 0;
 }
 /* 0x5d0ab0, the use callback of the Domizil record 11 (the good 0x164, 0x62c554): the character kind 6 picks
    the target in the special-amount list 0x5bea00 (the text 0x5176d0 0x9d), every other kind takes the use's
    target 0x505df0; the target's trial step 4 (0x5d08c0) runs and 1, 0 without a target. */
 
-int ai_TrialStep4(AICHAR *ch, G8USE *use)
-{
-    char text[0x100];
-    AICHAR *target;
+int ai_TrialStep4(AICHAR *ch, G8USE *use) {
+  char text[0x100];
+  AICHAR *target;
 
-    if (ch->kind == 6) {
-        txt_Format(text, 0x9d);
-        target = ai_SpecialAmountList(ch, text);
-        if (target != 0) {
-            ai_ApplyTrialStep(target, 4);
-            return 1;
-        }
-    } else {
-        target = gm_FindChar(use->target);
-        if (target != 0) {
-            ai_ApplyTrialStep(target, 4);
-            return 1;
-        }
+  if (ch->kind == 6) {
+    txt_Format(text, 0x9d);
+    target = ai_SpecialAmountList(ch, text);
+    if (target != 0) {
+      ai_ApplyTrialStep(target, 4);
+      return 1;
     }
-    return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target != 0) {
+      ai_ApplyTrialStep(target, 4);
+      return 1;
+    }
+  }
+  return 0;
 }
 /* 0x5d0b20, the use callback of the Domizil good 0x167 (reached through its table entry +0x14): picks the target
    character, for a player (kind 6) with the special-amount menu (the gypsy filter, mode 0x400 with the partner
@@ -9699,43 +9965,42 @@ int ai_TrialStep4(AICHAR *ch, G8USE *use)
    load order (regs 32, order 6). Tried: the inventory call inside the argument list (12 ins but its pops
    split, the original's merge), ret = 1 after the send. */
 
-int ai_UseGoodRaiseRelation(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char news[0x400];
-    AICHAR *target;
-    int amount;
-    int ret;
+int ai_UseGoodRaiseRelation(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char news[0x400];
+  AICHAR *target;
+  int amount;
+  int ret;
 
-    ret = 0;
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 1;
-        cfg.mode = 0x400 | (ai_Chars[ai_PlayerId].sex != 0 ? 1 : 2);
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-        if (target == 0)
-            return 0;
-        ret = 1;
-    } else {
-        target = gm_FindChar(use->target);
-        if (target != 0)
-            ret = 1;
+  ret = 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 1;
+    cfg.mode = 0x400 | (ai_Chars[ai_PlayerId].sex != 0 ? 1 : 2);
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+    if (target == 0)
+      return 0;
+    ret = 1;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target != 0)
+      ret = 1;
+  }
+  if (target != 0) {
+    amount = (ai_InventoryHas(ch, 0x2c5) != 0 ? 2 : 1) * 25;
+    cm_SendRelations(ch->netId, target->netId, amount, 1);
+    if (target->kind == 6 || target->kind == 7) {
+      txt_Format(news, 0xfe9, ch->id);
+      he_ShowNews(target->netId, -1, news, 0, 0x5ec, 0);
     }
-    if (target != 0) {
-        amount = (ai_InventoryHas(ch, 0x2c5) != 0 ? 2 : 1) * 25;
-        cm_SendRelations(ch->netId, target->netId, amount, 1);
-        if (target->kind == 6 || target->kind == 7) {
-            txt_Format(news, 0xfe9, ch->id);
-            he_ShowNews(target->netId, -1, news, 0, 0x5ec, 0);
-        }
-    }
-    return ret;
+  }
+  return ret;
 }
 /* 0x5d0c70, a message callback (484 B): param_1 the message record (+2 the type, +4 the handle), param_2
    the request record (+4 / +8 the two target ids). Type 6: the config cfg (20 dwords, [1] = 0x400, [2] /
@@ -9748,58 +10013,57 @@ int ai_UseGoodRaiseRelation(AICHAR *ch, G8USE *use)
    0x53dda0 (the first + 4, -1, 1, 0x5fb); when the second's is, the text 0x5176d0 (0xfeb, the first
    word twice) goes through 0x53dda0 (the second + 4, -1, 1, 0x5fb). Returns 1 (0 without records). */
 
-int ai_QuarrelCallback(AICHAR *ch, G8USE *req)
-{
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char text2[0x400];
-    AICHAR *a;
-    AICHAR *b;
-    int amount;
-    int ret;
+int ai_QuarrelCallback(AICHAR *ch, G8USE *req) {
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char text2[0x400];
+  AICHAR *a;
+  AICHAR *b;
+  int amount;
+  int ret;
 
+  ret = 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    a = ai_AmountMenu(&cfg, text, 0, 0);
+    if (a == 0)
+      goto done;
+    cfg.option14 = 3;
+    cfg.ids[0] = a->id;
+    txt_Format(text, 0x9e);
+    b = ai_AmountMenu(&cfg, text, 0, 0);
+    if (b == 0)
+      goto done;
+  } else {
+    /* @original ret set to 0 again in this arm (already 0): its reference in the else block
+       ranks req above ch, so ch takes ebx and ret's kind-6 piece esi */
     ret = 0;
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        a = ai_AmountMenu(&cfg, text, 0, 0);
-        if (a == 0)
-            goto done;
-        cfg.option14 = 3;
-        cfg.ids[0] = a->id;
-        txt_Format(text, 0x9e);
-        b = ai_AmountMenu(&cfg, text, 0, 0);
-        if (b == 0)
-            goto done;
-    } else {
-        /* @original ret set to 0 again in this arm (already 0): its reference in the else block
-           ranks req above ch, so ch takes ebx and ret's kind-6 piece esi */
-        ret = 0;
-        a = gm_FindChar(req->target);
-        b = gm_FindChar(req->arg);
-        if (a == 0 || b == 0)
-            goto done;
-    }
-    amount = (ai_InventoryHas(ch, 0x2c5) != 0 ? 2 : 1) * -40;
-    cm_SendRelations(a->netId, b->netId, amount, 1);
-    cm_SendRelations(b->netId, a->netId, amount, 1);
-    if (a->kind == 6 || a->kind == 7) {
-        txt_Format(text2, 0xfea, b->id);
-        he_ShowNews(a->netId, -1, text2, 1, 0x5fb, 0);
-    }
-    if (b->kind == 6 || b->kind == 7) {
-        txt_Format(text2, 0xfeb, a->id, a->id);
-        he_ShowNews(b->netId, -1, text2, 1, 0x5fb, 0);
-    }
-    ret = 1;
+    a = gm_FindChar(req->target);
+    b = gm_FindChar(req->arg);
+    if (a == 0 || b == 0)
+      goto done;
+  }
+  amount = (ai_InventoryHas(ch, 0x2c5) != 0 ? 2 : 1) * -40;
+  cm_SendRelations(a->netId, b->netId, amount, 1);
+  cm_SendRelations(b->netId, a->netId, amount, 1);
+  if (a->kind == 6 || a->kind == 7) {
+    txt_Format(text2, 0xfea, b->id);
+    he_ShowNews(a->netId, -1, text2, 1, 0x5fb, 0);
+  }
+  if (b->kind == 6 || b->kind == 7) {
+    txt_Format(text2, 0xfeb, a->id, a->id);
+    he_ShowNews(b->netId, -1, text2, 1, 0x5fb, 0);
+  }
+  ret = 1;
 done:
-    return ret;
+  return ret;
 }
 /* 0x5d0e60, the use callback of the Domizil good 0x168 (the +0x14 pointer of the table entry 0x62c5e0):
    marks the use handled, then 0x505ca0 (5, pick) gives a shuffled 0 .. 4 order and the first pick whose
@@ -9807,29 +10071,28 @@ done:
    remembered. A kind 6 character: 0x4c5870 (ch->netId) and the text 0x5176d0 (0xfe8, the used object's
    id * 2 + 0xd71, the pick + 0x16b7) through the use-object panel 0x5cf820. Returns 1. */
 
-int ai_UseGoodTrialStep(AICHAR *ch, G8USE *use)
-{
-    int pick[5];
-    char text[0x800];
-    int i;
-    int n;
-    int found = 0;
+int ai_UseGoodTrialStep(AICHAR *ch, G8USE *use) {
+  int pick[5];
+  char text[0x800];
+  int i;
+  int n;
+  int found = 0;
 
-    use->handled = 1;
-    gm_Shuffled(5, pick);
-    for (i = 0, n = 0; n < 1 && i < 5; i++) {
-        if (ch->skills[pick[i]] < 0xfc) {
-            ai_ApplyTrialStep(ch, pick[i]);
-            found = pick[i];
-            n++;
-        }
+  use->handled = 1;
+  gm_Shuffled(5, pick);
+  for (i = 0, n = 0; n < 1 && i < 5; i++) {
+    if (ch->skills[pick[i]] < 0xfc) {
+      ai_ApplyTrialStep(ch, pick[i]);
+      found = pick[i];
+      n++;
     }
-    if (ch->kind == 6) {
-        cm_SendSkillsChanged(ch->netId);
-        txt_Format(text, 0xfe8, use->obj->id * 2 + 0xd71, found + 0x16b7);
-        ai_UseObjPanel(text);
-    }
-    return 1;
+  }
+  if (ch->kind == 6) {
+    cm_SendSkillsChanged(ch->netId);
+    txt_Format(text, 0xfe8, use->obj->id * 2 + 0xd71, found + 0x16b7);
+    ai_UseObjPanel(text);
+  }
+  return 1;
 }
 /* 0x5d0f20, the use callback of the Domizil good 0x16a (the +0x14 pointer of the table entry 0x62c5fc): marks the
    use handled and picks the target character, for a player (kind 6) with the special-amount menu (the gypsy
@@ -9840,88 +10103,90 @@ int ai_UseGoodTrialStep(AICHAR *ch, G8USE *use)
    each player pick the news 0xfed naming the target (key 0x5fb); a player user sees the text 0xfe8 (the good's
    rank + 1 and the three) in the use-object panel. Returns 1. */
 
-int ai_UseGoodLowerOfficialRelations(AICHAR *ch, G8USE *use)
-{
-    AICHAR *pick[3];
-    int index;
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char news[0x800];
-    AICHAR *target;
-    G9DOMIZIL *found;
-    int level;
-    int amount;
-    int ret;
-    int id;
-    int n;
-    int i;
+int ai_UseGoodLowerOfficialRelations(AICHAR *ch, G8USE *use) {
+  AICHAR *pick[3];
+  int index;
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char news[0x800];
+  AICHAR *target;
+  G9DOMIZIL *found;
+  int level;
+  int amount;
+  int ret;
+  int id;
+  int n;
+  int i;
 
-    use->handled = 1;
-    ret = 0;
+  use->handled = 1;
+  ret = 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+  } else {
+    target = gm_FindChar(use->target);
+  }
+  if (target != 0) {
+    level = ai_InventoryHas(ch, 0x2c5) != 0 ? 2 : 1;
+    id = util_Random(0x300);
+    for (n = 0x300; n != 0; n--, id = (id + 1) % 0x300) {
+      if (id != target->id && id != ch->id && ai_Chars[id].id != 0xffff &&
+          ai_Chars[id].kind < 10 && ai_Chars[id].officeKind != 0) {
+        pick[0] = &ai_Chars[id];
+        break;
+      }
+    }
+    id = util_Random(0x300);
+    for (n = 0x300; n != 0; n--, id = (id + 7) % 0x300) {
+      if (id != target->id && id != ch->id && id != pick[0]->id &&
+          ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
+          ai_Chars[id].officeKind != 0) {
+        pick[1] = &ai_Chars[id];
+        break;
+      }
+    }
+    id = util_Random(0x300);
+    for (n = 0x300; n != 0; n--, id = (id + 13) % 0x300) {
+      if (id != target->id && id != ch->id && id != pick[0]->id &&
+          id != pick[1]->id && ai_Chars[id].id != 0xffff &&
+          ai_Chars[id].kind < 10 && ai_Chars[id].officeKind != 0) {
+        pick[2] = &ai_Chars[id];
+        break;
+      }
+    }
+    amount = level * -20;
+    cm_SendRelations(target->netId, pick[0]->netId, amount, 1);
+    cm_SendRelations(target->netId, pick[1]->netId, amount, 1);
+    cm_SendRelations(target->netId, pick[2]->netId, amount, 1);
+    if (target->kind == 6 || target->kind == 7) {
+      txt_Format(news, 0xfec, pick[0]->id, pick[1]->id, pick[2]->id);
+      he_ShowNews(target->netId, -1, news, 1, 0x5fb, 0);
+    }
+    txt_Format(news, 0xfed, target->id);
+    for (i = 0; i < 3; i++) {
+      if (pick[i]->kind == 6 || pick[i]->kind == 7)
+        he_ShowNews(pick[i]->netId, -1, news, 0, 0x5fb, 0);
+    }
     if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
+      found = ai_FindUsableGoodIndex(use->obj->id, &index);
+      txt_Format(news, 0xfe8, found->rank + 1, pick[0]->id, pick[1]->id,
+                 pick[2]->id);
+      ai_UseObjPanel(news);
+      ret = 1;
     } else {
-        target = gm_FindChar(use->target);
+      /* @original ret = 1 written in both arms: the arms' two return copies keep ebp's push in
+         the prologue and ch->kind loaded into cl at the top */
+      ret = 1;
     }
-    if (target != 0) {
-        level = ai_InventoryHas(ch, 0x2c5) != 0 ? 2 : 1;
-        id = util_Random(0x300);
-        for (n = 0x300; n != 0; n--, id = (id + 1) % 0x300) {
-            if (id != target->id && id != ch->id && ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
-                ai_Chars[id].officeKind != 0) {
-                pick[0] = &ai_Chars[id];
-                break;
-            }
-        }
-        id = util_Random(0x300);
-        for (n = 0x300; n != 0; n--, id = (id + 7) % 0x300) {
-            if (id != target->id && id != ch->id && id != pick[0]->id && ai_Chars[id].id != 0xffff &&
-                ai_Chars[id].kind < 10 && ai_Chars[id].officeKind != 0) {
-                pick[1] = &ai_Chars[id];
-                break;
-            }
-        }
-        id = util_Random(0x300);
-        for (n = 0x300; n != 0; n--, id = (id + 13) % 0x300) {
-            if (id != target->id && id != ch->id && id != pick[0]->id && id != pick[1]->id &&
-                ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 && ai_Chars[id].officeKind != 0) {
-                pick[2] = &ai_Chars[id];
-                break;
-            }
-        }
-        amount = level * -20;
-        cm_SendRelations(target->netId, pick[0]->netId, amount, 1);
-        cm_SendRelations(target->netId, pick[1]->netId, amount, 1);
-        cm_SendRelations(target->netId, pick[2]->netId, amount, 1);
-        if (target->kind == 6 || target->kind == 7) {
-            txt_Format(news, 0xfec, pick[0]->id, pick[1]->id, pick[2]->id);
-            he_ShowNews(target->netId, -1, news, 1, 0x5fb, 0);
-        }
-        txt_Format(news, 0xfed, target->id);
-        for (i = 0; i < 3; i++) {
-            if (pick[i]->kind == 6 || pick[i]->kind == 7)
-                he_ShowNews(pick[i]->netId, -1, news, 0, 0x5fb, 0);
-        }
-        if (ch->kind == 6) {
-            found = ai_FindUsableGoodIndex(use->obj->id, &index);
-            txt_Format(news, 0xfe8, found->rank + 1, pick[0]->id, pick[1]->id, pick[2]->id);
-            ai_UseObjPanel(news);
-            ret = 1;
-        } else {
-            /* @original ret = 1 written in both arms: the arms' two return copies keep ebp's push in
-               the prologue and ch->kind loaded into cl at the top */
-            ret = 1;
-        }
-    }
-    return ret;
+  }
+  return ret;
 }
 /* 0x5d1300, the use callback of the Domizil good 0x16c (the +0x14 pointer of the table entry 0x62c634): like
    ai_UseGoodTrialStep with two steps - marks the use handled, gm_Shuffled (5, pick) gives a shuffled 0 .. 4
@@ -9930,35 +10195,35 @@ int ai_UseGoodLowerOfficialRelations(AICHAR *ch, G8USE *use)
    and the text 0xfe8 (the used object's id * 2 + 0xd71, the second and the first pick + 0x16b7) through the
    use-object panel. Returns 1. */
 
-int ai_UseGoodTwoTrialSteps(AICHAR *ch, G8USE *use)
-{
-    int first;
-    int pick[5];
-    char text[0x800];
-    int second;
-    int i;
-    int n;
+int ai_UseGoodTwoTrialSteps(AICHAR *ch, G8USE *use) {
+  int first;
+  int pick[5];
+  char text[0x800];
+  int second;
+  int i;
+  int n;
 
-    second = 0;
-    first = 0;
-    use->handled = 1;
-    gm_Shuffled(5, pick);
-    for (i = 0, n = 0; n < 2 && i < 5; i++) {
-        if (ch->skills[pick[i]] < 0xfc) {
-            ai_ApplyTrialStep(ch, pick[i]);
-            n++;
-            if (n == 1)
-                first = pick[i];
-            else if (n == 2)
-                second = pick[i];
-        }
+  second = 0;
+  first = 0;
+  use->handled = 1;
+  gm_Shuffled(5, pick);
+  for (i = 0, n = 0; n < 2 && i < 5; i++) {
+    if (ch->skills[pick[i]] < 0xfc) {
+      ai_ApplyTrialStep(ch, pick[i]);
+      n++;
+      if (n == 1)
+        first = pick[i];
+      else if (n == 2)
+        second = pick[i];
     }
-    if (ch->kind == 6) {
-        cm_SendSkillsChanged(ch->netId);
-        txt_Format(text, 0xfe8, use->obj->id * 2 + 0xd71, second + 0x16b7, first + 0x16b7);
-        ai_UseObjPanel(text);
-    }
-    return 1;
+  }
+  if (ch->kind == 6) {
+    cm_SendSkillsChanged(ch->netId);
+    txt_Format(text, 0xfe8, use->obj->id * 2 + 0xd71, second + 0x16b7,
+               first + 0x16b7);
+    ai_UseObjPanel(text);
+  }
+  return 1;
 }
 /* 0x5d13e0, the use callback of the Domizil good 0x170 (the +0x14 pointer of the table entry 0x62c688): marks the
    use handled; three random characters of the other sex (ai_Chars from a random start, steps 1 / 7 / 13: a
@@ -9967,55 +10232,56 @@ int ai_UseGoodTwoTrialSteps(AICHAR *ch, G8USE *use)
    0xfef naming the user (key 0x5ec); a player user sees the text 0xfe8 (the good's rank + 1 and the three) in
    the use-object panel. Returns 1. */
 
-int ai_UseGoodCharmOtherSex(AICHAR *ch, G8USE *use)
-{
-    AICHAR *pick[3];
-    int index;
-    char news[0x800];
-    G9DOMIZIL *found;
-    int id;
-    int n;
-    int i;
+int ai_UseGoodCharmOtherSex(AICHAR *ch, G8USE *use) {
+  AICHAR *pick[3];
+  int index;
+  char news[0x800];
+  G9DOMIZIL *found;
+  int id;
+  int n;
+  int i;
 
-    use->handled = 1;
-    id = util_Random(0x300);
-    for (n = 0x300; n != 0; n--, id = (id + 1) % 0x300) {
-        if (id != ch->id && ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
-            ai_Chars[id].sex != ch->sex && ai_Chars[id].officeKind != 0) {
-            pick[0] = &ai_Chars[id];
-            break;
-        }
+  use->handled = 1;
+  id = util_Random(0x300);
+  for (n = 0x300; n != 0; n--, id = (id + 1) % 0x300) {
+    if (id != ch->id && ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
+        ai_Chars[id].sex != ch->sex && ai_Chars[id].officeKind != 0) {
+      pick[0] = &ai_Chars[id];
+      break;
     }
-    id = util_Random(0x300);
-    for (n = 0x300; n != 0; n--, id = (id + 7) % 0x300) {
-        if (id != ch->id && id != pick[0]->id && ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
-            ai_Chars[id].sex != ch->sex) {
-            pick[1] = &ai_Chars[id];
-            break;
-        }
+  }
+  id = util_Random(0x300);
+  for (n = 0x300; n != 0; n--, id = (id + 7) % 0x300) {
+    if (id != ch->id && id != pick[0]->id && ai_Chars[id].id != 0xffff &&
+        ai_Chars[id].kind < 10 && ai_Chars[id].sex != ch->sex) {
+      pick[1] = &ai_Chars[id];
+      break;
     }
-    id = util_Random(0x300);
-    for (n = 0x300; n != 0; n--, id = (id + 13) % 0x300) {
-        if (id != ch->id && id != pick[0]->id && id != pick[1]->id && ai_Chars[id].id != 0xffff &&
-            ai_Chars[id].kind < 10 && ai_Chars[id].sex != ch->sex) {
-            pick[2] = &ai_Chars[id];
-            break;
-        }
+  }
+  id = util_Random(0x300);
+  for (n = 0x300; n != 0; n--, id = (id + 13) % 0x300) {
+    if (id != ch->id && id != pick[0]->id && id != pick[1]->id &&
+        ai_Chars[id].id != 0xffff && ai_Chars[id].kind < 10 &&
+        ai_Chars[id].sex != ch->sex) {
+      pick[2] = &ai_Chars[id];
+      break;
     }
-    cm_SendRelations(ch->netId, pick[0]->netId, 20, 1);
-    cm_SendRelations(ch->netId, pick[1]->netId, 20, 1);
-    cm_SendRelations(ch->netId, pick[2]->netId, 20, 1);
-    txt_Format(news, 0xfef, ch->id);
-    for (i = 0; i < 3; i++) {
-        if (pick[i]->kind == 6 || pick[i]->kind == 7)
-            he_ShowNews(pick[i]->netId, -1, news, 0, 0x5ec, 0);
-    }
-    if (ch->kind == 6) {
-        found = ai_FindUsableGoodIndex(use->obj->id, &index);
-        txt_Format(news, 0xfe8, found->rank + 1, pick[0]->id, pick[1]->id, pick[2]->id);
-        ai_UseObjPanel(news);
-    }
-    return 1;
+  }
+  cm_SendRelations(ch->netId, pick[0]->netId, 20, 1);
+  cm_SendRelations(ch->netId, pick[1]->netId, 20, 1);
+  cm_SendRelations(ch->netId, pick[2]->netId, 20, 1);
+  txt_Format(news, 0xfef, ch->id);
+  for (i = 0; i < 3; i++) {
+    if (pick[i]->kind == 6 || pick[i]->kind == 7)
+      he_ShowNews(pick[i]->netId, -1, news, 0, 0x5ec, 0);
+  }
+  if (ch->kind == 6) {
+    found = ai_FindUsableGoodIndex(use->obj->id, &index);
+    txt_Format(news, 0xfe8, found->rank + 1, pick[0]->id, pick[1]->id,
+               pick[2]->id);
+    ai_UseObjPanel(news);
+  }
+  return 1;
 }
 /* 0x5d1680, the use callback of the Domizil good 0x16d (the +0x14 pointer of the table entry 0x62c66c): picks
    two characters, for a player (kind 6) with two special-amount menus (the gypsy filter, mode 0x400, the
@@ -10024,73 +10290,71 @@ int ai_UseGoodCharmOtherSex(AICHAR *ch, G8USE *use)
    ways (cm_SendRelations); each player of the two (kind 6 / 7) gets the news 0xfee naming the other (key
    0x5fb). Returns 1. */
 
-int ai_UseGoodSowDiscord(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char news[0x400];
-    AICHAR *a;
-    AICHAR *b;
-    int ret;
+int ai_UseGoodSowDiscord(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char news[0x400];
+  AICHAR *a;
+  AICHAR *b;
+  int ret;
 
-    ret = 0;
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        a = ai_AmountMenu(&cfg, text, 0, 0);
-        if (a == 0)
-            goto done;
-        cfg.option14 = 3;
-        cfg.ids[0] = a->id;
-        txt_Format(text, 0x9e);
-        b = ai_AmountMenu(&cfg, text, 0, 0);
-    } else {
-        a = gm_FindChar(use->target);
-        b = gm_FindChar(use->arg);
-        if (a == 0)
-            goto done;
+  ret = 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    a = ai_AmountMenu(&cfg, text, 0, 0);
+    if (a == 0)
+      goto done;
+    cfg.option14 = 3;
+    cfg.ids[0] = a->id;
+    txt_Format(text, 0x9e);
+    b = ai_AmountMenu(&cfg, text, 0, 0);
+  } else {
+    a = gm_FindChar(use->target);
+    b = gm_FindChar(use->arg);
+    if (a == 0)
+      goto done;
+  }
+  if (b != 0) {
+    ret = 1;
+    cm_SendRelations(a->netId, b->netId, -25, 1);
+    cm_SendRelations(b->netId, a->netId, -25, 1);
+    if (a->kind == 6 || a->kind == 7) {
+      txt_Format(news, 0xfee, b->id);
+      he_ShowNews(a->netId, -1, news, 0, 0x5fb, 0);
     }
-    if (b != 0) {
-        ret = 1;
-        cm_SendRelations(a->netId, b->netId, -25, 1);
-        cm_SendRelations(b->netId, a->netId, -25, 1);
-        if (a->kind == 6 || a->kind == 7) {
-            txt_Format(news, 0xfee, b->id);
-            he_ShowNews(a->netId, -1, news, 0, 0x5fb, 0);
-        }
-        if (b->kind == 6 || b->kind == 7) {
-            txt_Format(news, 0xfee, a->id);
-            he_ShowNews(b->netId, -1, news, 0, 0x5fb, 0);
-        }
+    if (b->kind == 6 || b->kind == 7) {
+      txt_Format(news, 0xfee, a->id);
+      he_ShowNews(b->netId, -1, news, 0, 0x5fb, 0);
     }
+  }
 done:
-    return ret;
+  return ret;
 }
 /* 0x5d1830, the use callback of the Domizil good 0x15c (the +0x14 pointer of the table entry 0x62c4ac):
    walks the running tribute events 0x35 (0x53e400 (1, 0, 0x35) / 0x53e300) and, for each whose collector
    ev->idbc is ch->netId, shows the tribute claim news 0x5a8d80 (ch, the payer record ai_Chars[ev->chr]),
    sets the event's end time to ai_Time and gives it its slot (0x4c4c60, -1). Returns 1. */
 
-int ai_UseGoodTributeClaim(AICHAR *ch, G8USE *use)
-{
-    AIJOB *ev;
+int ai_UseGoodTributeClaim(AICHAR *ch, G8USE *use) {
+  AIJOB *ev;
 
-    ev = he_FindEvent(1, 0, 0x35);
-    while (ev != 0) {
-        if ((int)ch->netId == ev->idbc) {
-            ai_ShowTributeClaimNews(ch, &ai_Chars[ev->chr]);
-            ev->end = ai_Time;
-            cm_SendExSetHE(-1, ev);
-        }
-        ev = he_NextEvent();
+  ev = he_FindEvent(1, 0, 0x35);
+  while (ev != 0) {
+    if ((int)ch->netId == ev->idbc) {
+      ai_ShowTributeClaimNews(ch, &ai_Chars[ev->chr]);
+      ev->end = ai_Time;
+      cm_SendExSetHE(-1, ev);
     }
-    return 1;
+    ev = he_NextEvent();
+  }
+  return 1;
 }
 /* 0x5d18c0, the use callback of the Domizil good 0x2b8 (the +0x14 pointer of the table entry 0x62c998): picks the
    target character, for a player (kind 6) with the special-amount menu (the gypsy filter, mode 0x400, the
@@ -10098,29 +10362,28 @@ int ai_UseGoodTributeClaim(AICHAR *ch, G8USE *use)
    target's flags1cc (cm_SendSetField): the next round start (main_RundenBeginn) charges it 3 action points
    (the AP event 0xf18) unless it holds the good 0x2c4, and clears the bit. Returns 1. */
 
-int ai_UseGoodDrainActionPoints(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    char text[0x100];
-    AICHAR *target;
+int ai_UseGoodDrainActionPoints(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  char text[0x100];
+  AICHAR *target;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-    } else {
-        target = gm_FindChar(use->target);
-    }
-    if (target == 0)
-        return 0;
-    cm_SendSetField(target->netId, 0x1cc, 4, 0x100000, 0);
-    return 1;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+  } else {
+    target = gm_FindChar(use->target);
+  }
+  if (target == 0)
+    return 0;
+  cm_SendSetField(target->netId, 0x1cc, 4, 0x100000, 0);
+  return 1;
 }
 /* 0x5d1990, the use callback of the Domizil good 0x2bb (the +0x14 pointer of the table entry 0x62c9ec): picks the
    target character, for a player (kind 6) with the special-amount menu (the gypsy filter, mode 0x400, the
@@ -10130,48 +10393,47 @@ int ai_UseGoodDrainActionPoints(AICHAR *ch, G8USE *use)
    0x5fb), and a player user sees the text 0x1099 (the target, the skill) inside 0xfe8 in the use-object
    panel. Marks the use handled and returns 1. */
 
-int ai_UseGoodDrainSkill(AICHAR *ch, G8USE *use)
-{
-    int pick[5];
-    AMOUNTCFG cfg;
-    char text[0x200];
-    char news[0x800];
-    AICHAR *target;
-    int i;
+int ai_UseGoodDrainSkill(AICHAR *ch, G8USE *use) {
+  int pick[5];
+  AMOUNTCFG cfg;
+  char text[0x200];
+  char news[0x800];
+  AICHAR *target;
+  int i;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-    } else {
-        target = gm_FindChar(use->target);
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+  } else {
+    target = gm_FindChar(use->target);
+  }
+  if (target == 0)
+    return 0;
+  gm_Shuffled(5, pick);
+  for (i = 0; i < 5; i++) {
+    if (ch->skills[pick[i]] > 0x15) {
+      cm_SendAddSkill(target->netId, pick[i], -0x15);
+      if (target->kind == 6 || target->kind == 7) {
+        txt_Format(news, 0x100a, pick[i] + 0x16b7);
+        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+      }
+      if (ch->kind == 6) {
+        txt_Format(text, 0x1099, target->id, pick[i] + 0x16b7);
+        txt_Format(news, 0xfe8, text);
+        ai_UseObjPanel(news);
+      }
+      break;
     }
-    if (target == 0)
-        return 0;
-    gm_Shuffled(5, pick);
-    for (i = 0; i < 5; i++) {
-        if (ch->skills[pick[i]] > 0x15) {
-            cm_SendAddSkill(target->netId, pick[i], -0x15);
-            if (target->kind == 6 || target->kind == 7) {
-                txt_Format(news, 0x100a, pick[i] + 0x16b7);
-                he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-            }
-            if (ch->kind == 6) {
-                txt_Format(text, 0x1099, target->id, pick[i] + 0x16b7);
-                txt_Format(news, 0xfe8, text);
-                ai_UseObjPanel(news);
-            }
-            break;
-        }
-    }
-    use->handled = 1;
-    return 1;
+  }
+  use->handled = 1;
+  return 1;
 }
 /* 0x5d1b30, the use callback of the Domizil good 0x2bc (the +0x14 pointer of the table entry 0x62ca08): picks a
    building and a character, for a player (kind 6) on the town map (ai_MapPick with the prompt txt_Ptrs[0x9b],
@@ -10184,59 +10446,59 @@ int ai_UseGoodDrainSkill(AICHAR *ch, G8USE *use)
    text 0x109b (the character, the owner, the building) inside 0xfe8 in the use-object panel. Marks the use
    handled and returns 1. */
 
-int ai_UseGoodHarmBuilding(AICHAR *ch, G8USE *use)
-{
-    AIBLD *bld;
-    AMOUNTCFG cfg;
-    char text[0x200];
-    char news[0x800];
-    AICHAR *target;
-    int i;
+int ai_UseGoodHarmBuilding(AICHAR *ch, G8USE *use) {
+  AIBLD *bld;
+  AMOUNTCFG cfg;
+  char text[0x200];
+  char news[0x800];
+  AICHAR *target;
+  int i;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        cfg.flags = 1;
-        cfg.mode = -1;
-        cfg.kind = 6;
-        cfg.classMask[0] = 0xa0744300;
-        cfg.classMask[1] = 0x1;
-        bld = ai_MapPick(1, &cfg, txt_Ptrs[0x9b], 0, 0);
-        if (bld == 0)
-            return 0;
-        cfg.option14 = 3;
-        cfg.ids[0] = bld->owner;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, txt_Ptrs[0x9c], 0, 0);
-        if (target == 0)
-            return 0;
-    } else {
-        target = gm_FindChar(use->target);
-        if (target == 0)
-            return 0;
-        gm_FindById(&bld, 0, 0, use->arg);
-        if (bld == 0)
-            return 0;
-    }
-    cm_SendRelations(target->id, ai_Chars[bld->owner].netId, -20 - util_Random(0x20), 1);
-    for (i = 0; i < 0x300; i++) {
-        if (ai_Chars[i].kind == 0 && ai_Chars[i].bld == bld)
-            gm_AddHealth(i, -((util_RandomF() * 0.2f + 0.1f) * ai_Chars[i].f01c));
-    }
-    if (target->kind == 6 || target->kind == 7) {
-        txt_Format(news, 0x100b, bld->owner, bld->owner, bld);
-        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-    }
-    if (ch->kind == 6) {
-        txt_Format(text, 0x109b, target->id, bld->owner, bld);
-        txt_Format(news, 0xfe8, text);
-        ai_UseObjPanel(news);
-    }
-    use->handled = 1;
-    return 1;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    cfg.flags = 1;
+    cfg.mode = -1;
+    cfg.kind = 6;
+    cfg.classMask[0] = 0xa0744300;
+    cfg.classMask[1] = 0x1;
+    bld = ai_MapPick(1, &cfg, txt_Ptrs[0x9b], 0, 0);
+    if (bld == 0)
+      return 0;
+    cfg.option14 = 3;
+    cfg.ids[0] = bld->owner;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, txt_Ptrs[0x9c], 0, 0);
+    if (target == 0)
+      return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target == 0)
+      return 0;
+    gm_FindById(&bld, 0, 0, use->arg);
+    if (bld == 0)
+      return 0;
+  }
+  cm_SendRelations(target->id, ai_Chars[bld->owner].netId,
+                   -20 - util_Random(0x20), 1);
+  for (i = 0; i < 0x300; i++) {
+    if (ai_Chars[i].kind == 0 && ai_Chars[i].bld == bld)
+      gm_AddHealth(i, -((util_RandomF() * 0.2f + 0.1f) * ai_Chars[i].f01c));
+  }
+  if (target->kind == 6 || target->kind == 7) {
+    txt_Format(news, 0x100b, bld->owner, bld->owner, bld);
+    he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+  }
+  if (ch->kind == 6) {
+    txt_Format(text, 0x109b, target->id, bld->owner, bld);
+    txt_Format(news, 0xfe8, text);
+    ai_UseObjPanel(news);
+  }
+  use->handled = 1;
+  return 1;
 }
 /* 0x5d1da0, the use callback of the Domizil good 0x2bd (the +0x14 pointer of the table entry 0x62ca24): picks a
    building, for a player (kind 6) on the town map (ai_MapPick with the prompt txt_Ptrs[0x9b], the class filter
@@ -10246,59 +10508,59 @@ int ai_UseGoodHarmBuilding(AICHAR *ch, G8USE *use)
    naming the building (key 0x5fb), a player user sees the text 0x109d (the owner, the building) inside 0xfe8
    in the use-object panel. Marks the use handled and returns 1. */
 
-int ai_UseGoodSpoilStock(AICHAR *ch, G8USE *use)
-{
-    AIBLD *bld;
-    AMOUNTCFG cfg;
-    char text[0x200];
-    char news[0x800];
-    AICHAR *owner;
-    AIOBJ *store;
-    AIOBJ *item;
-    int n;
+int ai_UseGoodSpoilStock(AICHAR *ch, G8USE *use) {
+  AIBLD *bld;
+  AMOUNTCFG cfg;
+  char text[0x200];
+  char news[0x800];
+  AICHAR *owner;
+  AIOBJ *store;
+  AIOBJ *item;
+  int n;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        cfg.flags = 1;
-        cfg.mode = -1;
-        cfg.kind = 6;
-        cfg.classMask[0] = 0xa0744300;
-        cfg.classMask[1] = 0x1;
-        bld = ai_MapPick(1, &cfg, txt_Ptrs[0x9b], 0, 0);
-        if (bld == 0)
-            return 0;
-    } else {
-        gm_FindById(&bld, 0, 0, use->target);
-        if (bld == 0)
-            return 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    cfg.flags = 1;
+    cfg.mode = -1;
+    cfg.kind = 6;
+    cfg.classMask[0] = 0xa0744300;
+    cfg.classMask[1] = 0x1;
+    bld = ai_MapPick(1, &cfg, txt_Ptrs[0x9b], 0, 0);
+    if (bld == 0)
+      return 0;
+  } else {
+    gm_FindById(&bld, 0, 0, use->target);
+    if (bld == 0)
+      return 0;
+  }
+  owner = &ai_Chars[bld->owner];
+  store = gm_Query(bld->objList, 2, 6, 0, 0x2a);
+  if (store != 0) {
+    gm_Query(store->list, 1, 5);
+    for (item = gm_Query(store->list, 1, 5); item != 0; item = gm_QueryNext()) {
+      if (item->count > 1) {
+        n = (int)((util_RandomF() * 0.2f + 0.1f) * item->count) < 1
+                ? 1
+                : (int)((util_RandomF() * 0.2f + 0.1f) * item->count);
+        cm_SendExSellObject(-1, store->objId, item->id, n, ai_OwnPlayer, 0);
+      }
     }
-    owner = &ai_Chars[bld->owner];
-    store = gm_Query(bld->objList, 2, 6, 0, 0x2a);
-    if (store != 0) {
-        gm_Query(store->list, 1, 5);
-        for (item = gm_Query(store->list, 1, 5); item != 0; item = gm_QueryNext()) {
-            if (item->count > 1) {
-                n = (int)((util_RandomF() * 0.2f + 0.1f) * item->count) < 1
-                        ? 1
-                        : (int)((util_RandomF() * 0.2f + 0.1f) * item->count);
-                cm_SendExSellObject(-1, store->objId, item->id, n, ai_OwnPlayer, 0);
-            }
-        }
-    }
-    if (owner->kind == 6 || owner->kind == 7) {
-        txt_Format(news, 0x100c, bld);
-        he_ShowNews(owner->netId, -1, news, 0, 0x5fb, 0);
-    }
-    if (ch->kind == 6) {
-        txt_Format(text, 0x109d, bld->owner, bld);
-        txt_Format(news, 0xfe8, text);
-        ai_UseObjPanel(news);
-    }
-    use->handled = 1;
-    return 1;
+  }
+  if (owner->kind == 6 || owner->kind == 7) {
+    txt_Format(news, 0x100c, bld);
+    he_ShowNews(owner->netId, -1, news, 0, 0x5fb, 0);
+  }
+  if (ch->kind == 6) {
+    txt_Format(text, 0x109d, bld->owner, bld);
+    txt_Format(news, 0xfe8, text);
+    ai_UseObjPanel(news);
+  }
+  use->handled = 1;
+  return 1;
 }
-extern const int ai_CharWalkSteps[16];  /* 0x5ed100, the random walk steps (am.h, not included) */
+extern const int ai_CharWalkSteps
+    [16]; /* 0x5ed100, the random walk steps (am.h, not included) */
 /* 0x5d1fb0, the use callback of the Domizil record 57 (0x62ca5c, the text id 0x2bf): picks the target
    character, for a player (kind 6) with the special-amount menu (the gypsy filter, mode 0x400, option14 3,
    the prompt txt_Ptrs[0x9c]), else the character use->target (gm_FindChar); none -> 0. Three office holders
@@ -10308,84 +10570,83 @@ extern const int ai_CharWalkSteps[16];  /* 0x5ed100, the random walk steps (am.h
    each player office holder 0x100e / 0x100f (key 0x5fb); marks the use handled, and a player user sees the
    text 0x10a1 (the target, the three) inside 0xfe8 in the use-object panel. Returns 1. */
 
-int ai_UseGoodCharmOfficials(AICHAR *ch, G8USE *use)
-{
-    AICHAR *pick[3];
-    AMOUNTCFG cfg;
-    char news[0x800];
-    char text[0x200];
-    AICHAR *target;
-    int id;
-    int step;
-    int n;
-    int i;
+int ai_UseGoodCharmOfficials(AICHAR *ch, G8USE *use) {
+  AICHAR *pick[3];
+  AMOUNTCFG cfg;
+  char news[0x800];
+  char text[0x200];
+  AICHAR *target;
+  int id;
+  int step;
+  int n;
+  int i;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        cfg.option14 = 3;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, txt_Ptrs[0x9c], 0, 0);
-        if (target == 0)
-            return 0;
-    } else {
-        target = gm_FindChar(use->target);
-        if (target == 0)
-            return 0;
-    }
-    id = util_Random(0x300);
-    step = ai_CharWalkSteps[util_Random(0x10)];
-    n = 3;
-    do {
-        if (ai_Chars[id].id != 0xffff && ai_Chars[id].officeKind != 0 && &ai_Chars[id] != ch &&
-            &ai_Chars[id] != target)
-            pick[--n] = &ai_Chars[id];
-        id = (id + step) % 0x300;
-    } while (n != 0);
-    for (i = 0; i < 3; i++)
-        cm_SendRelations(target->netId, pick[i]->netId, util_Random(0x20) + 20, 1);
-    gm_AddHealth(target->id, -50 - util_Random(0x40));
-    if (target->kind == 6 || target->kind == 7) {
-        txt_Format(news, 0x100d, pick[0]->id, pick[0]->id, pick[1]->id, pick[2]->id);
-        he_ShowNews(target->netId, -1, news, 1, 0x5fb, 0);
-    }
-    if (pick[0]->kind == 6 || pick[0]->kind == 7) {
-        txt_Format(news, 0x100e, target->id, pick[1]->id, pick[2]->id);
-        he_ShowNews(pick[0]->netId, -1, news, 1, 0x5fb, 0);
-    }
-    if (pick[1]->kind == 6 || pick[1]->kind == 7) {
-        txt_Format(news, 0x100f, target->id, pick[0]->id, pick[2]->id);
-        he_ShowNews(pick[1]->netId, -1, news, 1, 0x5fb, 0);
-    }
-    if (pick[2]->kind == 6 || pick[2]->kind == 7) {
-        txt_Format(news, 0x100f, target->id, pick[0]->id, pick[1]->id);
-        he_ShowNews(pick[2]->netId, -1, news, 1, 0x5fb, 0);
-    }
-    use->handled = 1;
-    if (ch->kind == 6) {
-        txt_Format(text, 0x10a1, target->id, pick[0]->id, pick[1]->id, pick[2]->id);
-        txt_Format(news, 0xfe8, text);
-        ai_UseObjPanel(news);
-    }
-    return 1;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    cfg.option14 = 3;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, txt_Ptrs[0x9c], 0, 0);
+    if (target == 0)
+      return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target == 0)
+      return 0;
+  }
+  id = util_Random(0x300);
+  step = ai_CharWalkSteps[util_Random(0x10)];
+  n = 3;
+  do {
+    if (ai_Chars[id].id != 0xffff && ai_Chars[id].officeKind != 0 &&
+        &ai_Chars[id] != ch && &ai_Chars[id] != target)
+      pick[--n] = &ai_Chars[id];
+    id = (id + step) % 0x300;
+  } while (n != 0);
+  for (i = 0; i < 3; i++)
+    cm_SendRelations(target->netId, pick[i]->netId, util_Random(0x20) + 20, 1);
+  gm_AddHealth(target->id, -50 - util_Random(0x40));
+  if (target->kind == 6 || target->kind == 7) {
+    txt_Format(news, 0x100d, pick[0]->id, pick[0]->id, pick[1]->id,
+               pick[2]->id);
+    he_ShowNews(target->netId, -1, news, 1, 0x5fb, 0);
+  }
+  if (pick[0]->kind == 6 || pick[0]->kind == 7) {
+    txt_Format(news, 0x100e, target->id, pick[1]->id, pick[2]->id);
+    he_ShowNews(pick[0]->netId, -1, news, 1, 0x5fb, 0);
+  }
+  if (pick[1]->kind == 6 || pick[1]->kind == 7) {
+    txt_Format(news, 0x100f, target->id, pick[0]->id, pick[2]->id);
+    he_ShowNews(pick[1]->netId, -1, news, 1, 0x5fb, 0);
+  }
+  if (pick[2]->kind == 6 || pick[2]->kind == 7) {
+    txt_Format(news, 0x100f, target->id, pick[0]->id, pick[1]->id);
+    he_ShowNews(pick[2]->netId, -1, news, 1, 0x5fb, 0);
+  }
+  use->handled = 1;
+  if (ch->kind == 6) {
+    txt_Format(text, 0x10a1, target->id, pick[0]->id, pick[1]->id, pick[2]->id);
+    txt_Format(news, 0xfe8, text);
+    ai_UseObjPanel(news);
+  }
+  return 1;
 }
 /* 0x5d22e0, the use callback of the Domizil record 59 (0x62ca94, the text id 0x2c1, the mask 0x5a0): a
    character of kind 6 needs sv_CheckMoney (ch, 3) to pass (it shows the text 0x74 "not enough money"), every
    other kind needs 3 money silently; then the money delta -3 (0x50cc50, ch->netId) and 1, 0 otherwise. */
 
-int ai_UsePayGood(AICHAR *ch, G8USE *use)
-{
-    if (ch->kind == 6) {
-        if (sv_CheckMoney(ch, 3) == 0)
-            return 0;
-    } else if (ch->money < 3) {
-        return 0;
-    }
-    gm_SendMoneyDelta(ch->netId, -3);
-    return 1;
+int ai_UsePayGood(AICHAR *ch, G8USE *use) {
+  if (ch->kind == 6) {
+    if (sv_CheckMoney(ch, 3) == 0)
+      return 0;
+  } else if (ch->money < 3) {
+    return 0;
+  }
+  gm_SendMoneyDelta(ch->netId, -3);
+  return 1;
 }
 /* 0x5d2320, the use callback of the Domizil record 60 (0x62cab0, the text id 0x2c2): picks the target character,
    for a player (kind 6) with the special-amount menu (the gypsy filter, mode 0x400, the prompt 0x9c), else the
@@ -10394,36 +10655,35 @@ int ai_UsePayGood(AICHAR *ch, G8USE *use)
    unless it holds the good 0x2c4, and clears the bit. Marks the use handled; a player user sees the text 0x10a7
    (the target) inside 0xfe8 in the use-object panel. Returns 1. */
 
-int ai_UseGoodDrainActionPoints8(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    char text[0x200];
-    char news[0x400];
-    AICHAR *target;
+int ai_UseGoodDrainActionPoints8(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  char text[0x200];
+  char news[0x400];
+  AICHAR *target;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-    } else {
-        target = gm_FindChar(use->target);
-    }
-    if (target == 0)
-        return 0;
-    cm_SendSetField(target->netId, 0x1cc, 4, 0x200000, 0);
-    use->handled = 1;
-    if (ch->kind == 6) {
-        txt_Format(text, 0x10a7, target->id);
-        txt_Format(news, 0xfe8, text);
-        ai_UseObjPanel(news);
-    }
-    return 1;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+  } else {
+    target = gm_FindChar(use->target);
+  }
+  if (target == 0)
+    return 0;
+  cm_SendSetField(target->netId, 0x1cc, 4, 0x200000, 0);
+  use->handled = 1;
+  if (ch->kind == 6) {
+    txt_Format(text, 0x10a7, target->id);
+    txt_Format(news, 0xfe8, text);
+    ai_UseObjPanel(news);
+  }
+  return 1;
 }
 /* 0x5d2440, the use callback of the Domizil record 61 (0x62cacc, the text id 0x2c3): picks the target character,
    for a player (kind 6) with the special-amount menu (the gypsy filter, mode 0x400, the prompt 0x9c), else the
@@ -10431,37 +10691,36 @@ int ai_UseGoodDrainActionPoints8(AICHAR *ch, G8USE *use)
    0.75, it is held one round more (cm_SendMessage5b, heldRounds + 1). Marks the use handled; a player user sees
    the text 0x10a9 (the target) inside 0xfe8 in the use-object panel. Returns 1. */
 
-int ai_UseGoodHoldRound(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    char text[0x200];
-    char news[0x400];
-    AICHAR *target;
+int ai_UseGoodHoldRound(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  char text[0x200];
+  char news[0x400];
+  AICHAR *target;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-    } else {
-        target = gm_FindChar(use->target);
-    }
-    if (target == 0)
-        return 0;
-    if (ai_InventoryHas(target, 0x2c4) == 0 || util_RandomF() > 0.75f)
-        cm_SendMessage5b(target->netId, 1, 0);
-    use->handled = 1;
-    if (ch->kind == 6) {
-        txt_Format(text, 0x10a9, target->id);
-        txt_Format(news, 0xfe8, text);
-        ai_UseObjPanel(news);
-    }
-    return 1;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+  } else {
+    target = gm_FindChar(use->target);
+  }
+  if (target == 0)
+    return 0;
+  if (ai_InventoryHas(target, 0x2c4) == 0 || util_RandomF() > 0.75f)
+    cm_SendMessage5b(target->netId, 1, 0);
+  use->handled = 1;
+  if (ch->kind == 6) {
+    txt_Format(text, 0x10a9, target->id);
+    txt_Format(news, 0xfe8, text);
+    ai_UseObjPanel(news);
+  }
+  return 1;
 }
 /* 0x5d2580, the use callback of the Domizil record 32 (0x62c7a0, the text id 0x229): picks the target character,
    for a player (kind 6) with the special-amount menu (flags 1, the gypsy filter, the prompt 0x9c, mode 0x400
@@ -10486,49 +10745,48 @@ int ai_UseGoodHoldRound(AICHAR *ch, G8USE *use)
    relations(ret) (no change), ret = 1 placement in both paths and a goto done tail (worse, 15 / 36 ins),
    the mode / filter store order (fixed: 39 -> 12). */
 
-int ai_UseGoodCharmPartner(AICHAR *ch, G8USE *use)
-{
-    int index;
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char news[0x400];
-    AICHAR *target;
-    G9DOMIZIL *found;
-    int ret;
+int ai_UseGoodCharmPartner(AICHAR *ch, G8USE *use) {
+  int index;
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char news[0x400];
+  AICHAR *target;
+  G9DOMIZIL *found;
+  int ret;
 
-    ret = 0;
+  ret = 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    ret = 1;
+    cfg.flags = 1;
+    cfg.kind = 6;
+    cfg.mode = ((ai_Chars[ai_PlayerId].sex != 0) + 1) | 0x400;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+    if (target == 0)
+      return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target != 0)
+      ret = 1;
+  }
+  if (target != 0) {
+    cm_SendRelations(ch->netId, target->netId, 25, 1);
+    if (target->kind == 6 || target->kind == 7) {
+      txt_Format(news, 0xffa, ch->id);
+      he_ShowNews(target->netId, -1, news, 0, 0x5ec, 0);
+    }
     if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        ret = 1;
-        cfg.flags = 1;
-        cfg.kind = 6;
-        cfg.mode = ((ai_Chars[ai_PlayerId].sex != 0) + 1) | 0x400;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-        if (target == 0)
-            return 0;
-    } else {
-        target = gm_FindChar(use->target);
-        if (target != 0)
-            ret = 1;
+      found = ai_FindUsableGoodIndex(use->obj->id, &index);
+      use->handled = 1;
+      txt_Format(news, 0xfe8, found->rank + 1, target->id);
+      ai_UseObjPanel(news);
     }
-    if (target != 0) {
-        cm_SendRelations(ch->netId, target->netId, 25, 1);
-        if (target->kind == 6 || target->kind == 7) {
-            txt_Format(news, 0xffa, ch->id);
-            he_ShowNews(target->netId, -1, news, 0, 0x5ec, 0);
-        }
-        if (ch->kind == 6) {
-            found = ai_FindUsableGoodIndex(use->obj->id, &index);
-            use->handled = 1;
-            txt_Format(news, 0xfe8, found->rank + 1, target->id);
-            ai_UseObjPanel(news);
-        }
-    }
-    return ret;
+  }
+  return ret;
 }
 /* 0x5d2720, the use callback of the Domizil record 34 (0x62c7d8, the text id 0x22c), a twin of
    ai_UseGoodWeakenSkills: picks the target character, for a player (kind 6) with the special-amount menu (the
@@ -10538,69 +10796,69 @@ int ai_UseGoodCharmPartner(AICHAR *ch, G8USE *use)
    text 0xfe8 (the good's rank + 1, the target) in the use-object panel and the use is marked handled. Returns 1.
    Both paths are written out in full, as the original's code has them. */
 
-int ai_UseGoodWeakenSkills3(AICHAR *ch, G8USE *use)
-{
-    int index;
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char news[0x800];
-    AICHAR *target;
-    G9DOMIZIL *found;
+int ai_UseGoodWeakenSkills3(AICHAR *ch, G8USE *use) {
+  int index;
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char news[0x800];
+  AICHAR *target;
+  G9DOMIZIL *found;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 0;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-        if (target != 0) {
-            AIMSG msg;
-            msg.type = 0x82;
-            msg.to = target->netId;
-            msg.fromId = -1;
-            msg.flags = 2;
-            msg.skillBonus.skill1 = 3;
-            msg.skillBonus.bonus1 = -0.35f;
-            msg.skillBonus.skill2 = 5;
-            msg.skillBonus.hours = 48;
-            cm_SendLongMessage(&msg);
-            if (target->kind == 6 || target->kind == 7) {
-                txt_Format(news, 0xffb);
-                he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-            }
-            found = ai_FindUsableGoodIndex(use->obj->id, &index);
-            use->handled = 1;
-            txt_Format(news, 0xfe8, found->rank + 1, target->id);
-            ai_UseObjPanel(news);
-            return 1;
-        }
-    } else {
-        target = gm_FindChar(use->target);
-        if (target != 0) {
-            AIMSG msg;
-            msg.type = 0x82;
-            msg.to = target->netId;
-            msg.fromId = -1;
-            msg.flags = 2;
-            msg.skillBonus.skill1 = 3;
-            msg.skillBonus.bonus1 = -0.35f;
-            msg.skillBonus.skill2 = 5;
-            msg.skillBonus.hours = 48;
-            cm_SendLongMessage(&msg);
-            if (target->kind == 6 || target->kind == 7) {
-                txt_Format(news, 0xffb);
-                he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-            }
-            return 1;
-        }
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 0;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+    if (target != 0) {
+      AIMSG msg;
+      msg.type = 0x82;
+      msg.to = target->netId;
+      msg.fromId = -1;
+      msg.flags = 2;
+      msg.skillBonus.skill1 = 3;
+      msg.skillBonus.bonus1 = -0.35f;
+      msg.skillBonus.skill2 = 5;
+      msg.skillBonus.hours = 48;
+      cm_SendLongMessage(&msg);
+      if (target->kind == 6 || target->kind == 7) {
+        txt_Format(news, 0xffb);
+        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+      }
+      found = ai_FindUsableGoodIndex(use->obj->id, &index);
+      use->handled = 1;
+      txt_Format(news, 0xfe8, found->rank + 1, target->id);
+      ai_UseObjPanel(news);
+      return 1;
     }
-    return 0;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target != 0) {
+      AIMSG msg;
+      msg.type = 0x82;
+      msg.to = target->netId;
+      msg.fromId = -1;
+      msg.flags = 2;
+      msg.skillBonus.skill1 = 3;
+      msg.skillBonus.bonus1 = -0.35f;
+      msg.skillBonus.skill2 = 5;
+      msg.skillBonus.hours = 48;
+      cm_SendLongMessage(&msg);
+      if (target->kind == 6 || target->kind == 7) {
+        txt_Format(news, 0xffb);
+        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+      }
+      return 1;
+    }
+  }
+  return 0;
 }
-extern AIDEC gv_Decisions[];  /* 0x611258, the 0x1d AI decision (law) records (gv.h, not included) */
+extern AIDEC gv_Decisions
+    []; /* 0x611258, the 0x1d AI decision (law) records (gv.h, not included) */
 /* 0x5d2960, the use callback of the Domizil record 36 (0x62c810, the text id 0x22b): picks the target character,
    for a player (kind 6) with the special-amount menu (flags 1, the gypsy filter, mode 0x400, the prompt 0x9c),
    else the character use->target (gm_FindChar); none -> 0. Collects the laws in force (the gv_Decisions records
@@ -10610,69 +10868,71 @@ extern AIDEC gv_Decisions[];  /* 0x611258, the 0x1d AI decision (law) records (g
    0xffe (key 0x5fb); a player user sees the text 0xfe8 (the good's rank + 1, the target) in the use-object panel
    and the use is marked handled. Returns 1. */
 
-int ai_UseGoodFrameChar(AICHAR *ch, G8USE *use)
-{
-    int ret;
-    int index;
-    AMOUNTCFG cfg;
-    int laws[0x1d];
-    char text[0x100];
-    char news[0x400];
-    AICHAR *target;
-    int i;
-    G9DOMIZIL *found;
-    int twice;
-    int n;
+int ai_UseGoodFrameChar(AICHAR *ch, G8USE *use) {
+  int ret;
+  int index;
+  AMOUNTCFG cfg;
+  int laws[0x1d];
+  char text[0x100];
+  char news[0x400];
+  AICHAR *target;
+  int i;
+  G9DOMIZIL *found;
+  int twice;
+  int n;
 
-    ret = 0;
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 1;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-        if (target == 0)
-            goto done;
-        ret = 1;
-    } else {
-        target = gm_FindChar(use->target);
-        if (target == 0)
-            goto done;
-        ret = 1;
-    }
-    twice = ai_InventoryHas(ch, 0x2c5) != 0;
-    n = 0;
-    for (i = 0; i < 0x1d; i++) {
-        if (gv_Decisions[i].valueText == 2 && (char)gv_Decisions[i].rule != 0 && gv_Decisions[i].cur != 0)
-            laws[n++] = gv_Decisions[i].id;
-    }
-    if (n == 0) {
-        txt_Format(news, 0xffe);
-        he_ShowNews(target->netId, -1, news, 0, 0x5fa, 0);
-        return 0;
-    }
+  ret = 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 1;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+    if (target == 0)
+      goto done;
+    ret = 1;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target == 0)
+      goto done;
+    ret = 1;
+  }
+  twice = ai_InventoryHas(ch, 0x2c5) != 0;
+  n = 0;
+  for (i = 0; i < 0x1d; i++) {
+    if (gv_Decisions[i].valueText == 2 && (char)gv_Decisions[i].rule != 0 &&
+        gv_Decisions[i].cur != 0)
+      laws[n++] = gv_Decisions[i].id;
+  }
+  if (n == 0) {
+    txt_Format(news, 0xffe);
+    he_ShowNews(target->netId, -1, news, 0, 0x5fa, 0);
+    return 0;
+  }
+  i = rand() % n;
+  gv_Accuse(laws[i], 1, target->netId, ch->netId,
+            ch->bld2 != 0 ? ch->bld2->id : -1);
+  if (twice) {
     i = rand() % n;
-    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
-    if (twice) {
-        i = rand() % n;
-        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
-    }
-    if (target->kind == 6 || target->kind == 7) {
-        txt_Format(news, 0xffe);
-        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-    }
-    if (ch->kind == 6) {
-        found = ai_FindUsableGoodIndex(use->obj->id, &index);
-        use->handled = 1;
-        txt_Format(news, 0xfe8, found->rank + 1, target->id);
-        ai_UseObjPanel(news);
-    }
+    gv_Accuse(laws[i], 1, target->netId, ch->netId,
+              ch->bld2 != 0 ? ch->bld2->id : -1);
+  }
+  if (target->kind == 6 || target->kind == 7) {
+    txt_Format(news, 0xffe);
+    he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+  }
+  if (ch->kind == 6) {
+    found = ai_FindUsableGoodIndex(use->obj->id, &index);
+    use->handled = 1;
+    txt_Format(news, 0xfe8, found->rank + 1, target->id);
+    ai_UseObjPanel(news);
+  }
 done:
-    return ret;
+  return ret;
 }
 /* 0x5d2bc0, the use callback of the Domizil record 37 (0x62c82c, the text id 0x22d), the twin of
    ai_UseGoodFrameChar: the same target pick (flags 1, the gypsy filter, mode 0x400, the prompt 0x9c) and the
@@ -10681,73 +10941,77 @@ done:
    A player target (kind 6 / 7) gets the news 0xfff (key 0x5fb); a player user sees the text 0xfe8 (the good's
    rank + 1, the target) in the use-object panel and the use is marked handled. Returns 1. */
 
-int ai_UseGoodFrameChar2(AICHAR *ch, G8USE *use)
-{
-    int ret;
-    int index;
-    AMOUNTCFG cfg;
-    int laws[0x1d];
-    char text[0x100];
-    char news[0x400];
-    AICHAR *target;
-    int i;
-    G9DOMIZIL *found;
-    int twice;
-    int n;
+int ai_UseGoodFrameChar2(AICHAR *ch, G8USE *use) {
+  int ret;
+  int index;
+  AMOUNTCFG cfg;
+  int laws[0x1d];
+  char text[0x100];
+  char news[0x400];
+  AICHAR *target;
+  int i;
+  G9DOMIZIL *found;
+  int twice;
+  int n;
 
-    ret = 0;
-    n = 0;
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 1;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-        if (target == 0)
-            goto done;
-        ret = 1;
-    } else {
-        target = gm_FindChar(use->target);
-        if (target == 0)
-            goto done;
-        ret = 1;
-    }
-    twice = ai_InventoryHas(ch, 0x2c5) != 0;
-    for (i = 0; i < 0x1d; i++) {
-        if (gv_Decisions[i].valueText == 2 && (char)gv_Decisions[i].rule != 0 && gv_Decisions[i].cur != 0)
-            laws[n++] = gv_Decisions[i].id;
-    }
-    if (n == 0) {
-        txt_Format(news, 0xfff);
-        he_ShowNews(target->netId, -1, news, 0, 0x5fa, 0);
-        return 0;
-    }
+  ret = 0;
+  n = 0;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 1;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+    if (target == 0)
+      goto done;
+    ret = 1;
+  } else {
+    target = gm_FindChar(use->target);
+    if (target == 0)
+      goto done;
+    ret = 1;
+  }
+  twice = ai_InventoryHas(ch, 0x2c5) != 0;
+  for (i = 0; i < 0x1d; i++) {
+    if (gv_Decisions[i].valueText == 2 && (char)gv_Decisions[i].rule != 0 &&
+        gv_Decisions[i].cur != 0)
+      laws[n++] = gv_Decisions[i].id;
+  }
+  if (n == 0) {
+    txt_Format(news, 0xfff);
+    he_ShowNews(target->netId, -1, news, 0, 0x5fa, 0);
+    return 0;
+  }
+  i = rand() % n;
+  gv_Accuse(laws[i], 1, target->netId, ch->netId,
+            ch->bld2 != 0 ? ch->bld2->id : -1);
+  i = rand() % n;
+  gv_Accuse(laws[i], 1, target->netId, ch->netId,
+            ch->bld2 != 0 ? ch->bld2->id : -1);
+  if (twice) {
     i = rand() % n;
-    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
+    gv_Accuse(laws[i], 1, target->netId, ch->netId,
+              ch->bld2 != 0 ? ch->bld2->id : -1);
     i = rand() % n;
-    gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
-    if (twice) {
-        i = rand() % n;
-        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
-        i = rand() % n;
-        gv_Accuse(laws[i], 1, target->netId, ch->netId, ch->bld2 != 0 ? ch->bld2->id : -1);
-    }
-    if (target->kind == 6 || target->kind == 7) {
-        txt_Format(news, 0xfff);
-        he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
-    }
-    if (ch->kind == 6) {
-        found = ai_FindUsableGoodIndex(use->obj->id, &index);
-        use->handled = 1;
-        txt_Format(news, 0xfe8, found->rank + 1, target->id);
-        ai_UseObjPanel(news);
-    }
+    gv_Accuse(laws[i], 1, target->netId, ch->netId,
+              ch->bld2 != 0 ? ch->bld2->id : -1);
+  }
+  if (target->kind == 6 || target->kind == 7) {
+    txt_Format(news, 0xfff);
+    he_ShowNews(target->netId, -1, news, 0, 0x5fb, 0);
+  }
+  if (ch->kind == 6) {
+    found = ai_FindUsableGoodIndex(use->obj->id, &index);
+    use->handled = 1;
+    txt_Format(news, 0xfe8, found->rank + 1, target->id);
+    ai_UseObjPanel(news);
+  }
 done:
-    return ret;
+  return ret;
 }
 /* 0x5d2e80, the use callback of the Domizil good 0x2b2 (the heating, the +0x14 pointer of the table entry
    0x62c8f0): a kind 6 character picks the building on the map (0x5b2180 (1, cfg, txt_Ptrs[0x9b], 0, 0),
@@ -10755,43 +11019,41 @@ done:
    (0x502020). Then the building's flags5aw bit 0x2000 (the heating, cleared at the round settlement) is set
    with 0x4c4a60 (id, 0x5a, 2, 0x2000, 0). Returns 1 (0 without a building). */
 
-int ai_UseGoodHeatBuilding(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    int i;
-    AIBLD *bld;
+int ai_UseGoodHeatBuilding(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  int i;
+  AIBLD *bld;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        cfg.mode = 0x410;
-        cfg.kind = 4;
-        cfg.classMask[0] = 0xa0400300;
-        cfg.classMask[1] = 1;
-        cfg.flags = 0;
-        bld = ai_MapPick(1, &cfg, txt_Ptrs[0x9b], 0, 0);
-    } else {
-        bld = gm_FindBuildingById(use->target);
-    }
-    if (bld == 0)
-        return 0;
-    cm_SendSetField(bld->id, 0x5a, 2, 0x2000, 0);
-    return 1;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.mode = 0x410;
+    cfg.kind = 4;
+    cfg.classMask[0] = 0xa0400300;
+    cfg.classMask[1] = 1;
+    cfg.flags = 0;
+    bld = ai_MapPick(1, &cfg, txt_Ptrs[0x9b], 0, 0);
+  } else {
+    bld = gm_FindBuildingById(use->target);
+  }
+  if (bld == 0)
+    return 0;
+  cm_SendSetField(bld->id, 0x5a, 2, 0x2000, 0);
+  return 1;
 }
 /* 0x5d2f20, the use callback of the Domizil record 49 (0x62c97c, the text id 0x2b7, the value 0x10e0):
    sends the message type 0xa4 (the event 0xa4, he.c 0x5753a0) to the character's netId, fromId -1, the
    current clock ai_Time and the flag 1 (0x4c4b70); returns 1. */
 
-int ai_UseEventGood(AICHAR *ch, G8USE *use)
-{
-    AIMSG msg;
+int ai_UseEventGood(AICHAR *ch, G8USE *use) {
+  AIMSG msg;
 
-    msg.to = ch->netId;
-    msg.type = 0xa4;
-    msg.fromId = -1;
-    msg.time = ai_Time;
-    msg.flags = 1;
-    cm_SendLongMessage(&msg);
-    return 1;
+  msg.to = ch->netId;
+  msg.type = 0xa4;
+  msg.fromId = -1;
+  msg.time = ai_Time;
+  msg.flags = 1;
+  cm_SendLongMessage(&msg);
+  return 1;
 }
 /* 0x5d2f90, the use callback of the Domizil good 0x298 (the twin of the heating good 0x2b2, the +0x14
    pointer of the table entry 0x62c864): a kind 6 character picks the building on the map (0x5b2180 (1,
@@ -10800,29 +11062,28 @@ int ai_UseEventGood(AICHAR *ch, G8USE *use)
    gm_StaffFactor, cleared at the round settlement) is set with 0x4c4a60 (id, 0x5a, 2, 0x1000, 0). Returns
    1 (0 without a building). */
 
-int ai_UseGoodStaffBonus(AICHAR *ch, G8USE *use)
-{
-    AMOUNTCFG cfg;
-    int i;
-    AIBLD *bld;
+int ai_UseGoodStaffBonus(AICHAR *ch, G8USE *use) {
+  AMOUNTCFG cfg;
+  int i;
+  AIBLD *bld;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        cfg.mode = 0x410;
-        cfg.kind = 4;
-        cfg.classMask[0] = 0xa0747980;
-        cfg.classMask[1] = 1;
-        cfg.flags = 0;
-        bld = ai_MapPick(1, &cfg, ch_EmptyName, 0, 0);
-        if (bld == 0)
-            return 0;
-    } else {
-        bld = gm_FindBuildingById(use->target);
-        if (bld == 0)
-            return 0;
-    }
-    cm_SendSetField(bld->id, 0x5a, 2, 0x1000, 0);
-    return 1;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.mode = 0x410;
+    cfg.kind = 4;
+    cfg.classMask[0] = 0xa0747980;
+    cfg.classMask[1] = 1;
+    cfg.flags = 0;
+    bld = ai_MapPick(1, &cfg, ch_EmptyName, 0, 0);
+    if (bld == 0)
+      return 0;
+  } else {
+    bld = gm_FindBuildingById(use->target);
+    if (bld == 0)
+      return 0;
+  }
+  cm_SendSetField(bld->id, 0x5a, 2, 0x1000, 0);
+  return 1;
 }
 /* 0x5d3030, the use callback of the Domizil record 43 (0x62c8d4, the text id 0x29c): picks the target character,
    for a player (kind 6) with the special-amount menu (flags 1, the gypsy filter, mode 0x400, the prompt 0x9c),
@@ -10831,93 +11092,92 @@ int ai_UseGoodStaffBonus(AICHAR *ch, G8USE *use)
    sees, inside 0xfe8, the text whose id is the good's rank + 1 (formatted with the target) in the use-object
    panel. Marks the use handled and returns 1. */
 
-int ai_UseGoodPettyLoss(AICHAR *ch, G8USE *use)
-{
-    int index;
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char line[0x200];
-    char news[0x400];
-    AICHAR *target;
-    G9DOMIZIL *found;
+int ai_UseGoodPettyLoss(AICHAR *ch, G8USE *use) {
+  int index;
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char line[0x200];
+  char news[0x400];
+  AICHAR *target;
+  G9DOMIZIL *found;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 1;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-    } else {
-        target = gm_FindChar(use->target);
-    }
-    if (target == 0)
-        return 0;
-    {
-        AIMSG msg;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 1;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+  } else {
+    target = gm_FindChar(use->target);
+  }
+  if (target == 0)
+    return 0;
+  {
+    AIMSG msg;
 
-        msg.type = 0xa3;
-        msg.to = target->netId;
-        msg.fromId = -1;
-        msg.time = ai_Time;
-        msg.flags = 1;
-        cm_SendLongMessage(&msg);
-    }
-    if (ch->kind == 6) {
-        found = ai_FindUsableGoodIndex(use->obj->id, &index);
-        txt_Format(line, found->rank + 1, target->id);
-        txt_Format(news, 0xfe8, line);
-        ai_UseObjPanel(news);
-    }
-    use->handled = 1;
-    return 1;
+    msg.type = 0xa3;
+    msg.to = target->netId;
+    msg.fromId = -1;
+    msg.time = ai_Time;
+    msg.flags = 1;
+    cm_SendLongMessage(&msg);
+  }
+  if (ch->kind == 6) {
+    found = ai_FindUsableGoodIndex(use->obj->id, &index);
+    txt_Format(line, found->rank + 1, target->id);
+    txt_Format(news, 0xfe8, line);
+    ai_UseObjPanel(news);
+  }
+  use->handled = 1;
+  return 1;
 }
 /* 0x5d31c0, the use callback of the Domizil good 0x297 (one of am.c's education goods 0x168 / 0x16c /
    0x297 / 0x2b7, the +0x14 pointer of the table entry 0x62c848): posts two skill-bonus messages 0x82
    (0x4c4b70, an AIMSG) to ch->netId, one raising skills 0 and 4 by 1/6, one lowering skills 3 and 2 by
    1/6, each lasting 24 hours. Returns 1. */
 
-int ai_UseGoodSkillBonus(AICHAR *ch, G8USE *use)
-{
-    union {
-        AIMSG msg;
-        struct {
-            char pad58[0x58];
-            unsigned char skill1;      /* 0x58, the first skill number 0 .. 4 */
-            unsigned char skill2;      /* 0x59, the second skill number */
-            char pad5a[2];
-            float bonus1;              /* 0x5c, the bonus added for skill1 */
-            float bonus2;              /* 0x60, the bonus added for skill2 */
-            int hours;                 /* 0x64, the hours the bonus lasts */
-        } skill;
-    } m;
+int ai_UseGoodSkillBonus(AICHAR *ch, G8USE *use) {
+  union {
+    AIMSG msg;
+    struct {
+      char pad58[0x58];
+      unsigned char skill1; /* 0x58, the first skill number 0 .. 4 */
+      unsigned char skill2; /* 0x59, the second skill number */
+      char pad5a[2];
+      float bonus1; /* 0x5c, the bonus added for skill1 */
+      float bonus2; /* 0x60, the bonus added for skill2 */
+      int hours;    /* 0x64, the hours the bonus lasts */
+    } skill;
+  } m;
 
-    m.msg.type = 0x82;
-    m.msg.to = ch->netId;
-    m.msg.fromId = -1;
-    m.msg.flags = 2;
-    m.skill.skill1 = 0;
-    m.skill.bonus1 = 1.0f / 6.0f;
-    m.skill.skill2 = 4;
-    m.skill.bonus2 = 1.0f / 6.0f;
-    m.skill.hours = 0x18;
-    cm_SendLongMessage(&m.msg);
-    m.msg.type = 0x82;
-    m.msg.to = ch->netId;
-    m.msg.fromId = -1;
-    m.msg.flags = 2;
-    m.skill.skill1 = 3;
-    m.skill.bonus1 = -1.0f / 6.0f;
-    m.skill.skill2 = 2;
-    m.skill.bonus2 = -1.0f / 6.0f;
-    m.skill.hours = 0x18;
-    cm_SendLongMessage(&m.msg);
-    return 1;
+  m.msg.type = 0x82;
+  m.msg.to = ch->netId;
+  m.msg.fromId = -1;
+  m.msg.flags = 2;
+  m.skill.skill1 = 0;
+  m.skill.bonus1 = 1.0f / 6.0f;
+  m.skill.skill2 = 4;
+  m.skill.bonus2 = 1.0f / 6.0f;
+  m.skill.hours = 0x18;
+  cm_SendLongMessage(&m.msg);
+  m.msg.type = 0x82;
+  m.msg.to = ch->netId;
+  m.msg.fromId = -1;
+  m.msg.flags = 2;
+  m.skill.skill1 = 3;
+  m.skill.bonus1 = -1.0f / 6.0f;
+  m.skill.skill2 = 2;
+  m.skill.bonus2 = -1.0f / 6.0f;
+  m.skill.hours = 0x18;
+  cm_SendLongMessage(&m.msg);
+  return 1;
 }
-#define LC_F1CC_DISTRUST 0x400000  /* AICHAR flags1cc: the distrust bit (poker.c AIPER_F1CC_DISTRUST: -0.2 trust) */
+#define LC_F1CC_DISTRUST                                                       \
+  0x400000 /* AICHAR flags1cc: the distrust bit (poker.c AIPER_F1CC_DISTRUST: -0.2 trust) */
 /* 0x5d3270, the use callback of the Domizil good 0x29a (record 41 at 0x62c89c of the table 0x62c420): picks the
    target character, for a player (kind 6) with the special-amount menu (flags 1, the gypsy filter, mode 0x400,
    the prompt 0x9c), else the character use->target (gm_FindChar); none -> 0. Sets the target's flags1cc bit
@@ -10925,46 +11185,47 @@ int ai_UseGoodSkillBonus(AICHAR *ch, G8USE *use)
    the text whose id is the good's rank + 1 (formatted with the target) in the use-object panel. Marks the use
    handled and returns 1. */
 
-int ai_UseGoodDistrust(AICHAR *ch, G8USE *use)
-{
-    int index;
-    AMOUNTCFG cfg;
-    char text[0x100];
-    char line[0x200];
-    char news[0x400];
-    AICHAR *target;
-    G9DOMIZIL *found;
+int ai_UseGoodDistrust(AICHAR *ch, G8USE *use) {
+  int index;
+  AMOUNTCFG cfg;
+  char text[0x100];
+  char line[0x200];
+  char news[0x400];
+  AICHAR *target;
+  G9DOMIZIL *found;
 
-    if (ch->kind == 6) {
-        memset(&cfg, 0, sizeof(cfg));
-        memset(cfg.ids, 0xff, sizeof(cfg.ids));
-        txt_Format(text, 0x9c);
-        cfg.flags = 1;
-        cfg.mode = 0x400;
-        cfg.kind = 6;
-        cfg.classMask[0] = (unsigned int)gypsyFilter;
-        cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
-        target = ai_AmountMenu(&cfg, text, 0, 0);
-    } else {
-        target = gm_FindChar(use->target);
-    }
-    if (target == 0)
-        return 0;
-    cm_SendSetField(target->netId, 0x1cc, 4, LC_F1CC_DISTRUST, 0);
-    if (ch->kind == 6) {
-        found = ai_FindUsableGoodIndex(use->obj->id, &index);
-        txt_Format(line, found->rank + 1, target->id);
-        txt_Format(news, 0xfe8, line);
-        ai_UseObjPanel(news);
-    }
-    use->handled = 1;
-    return 1;
+  if (ch->kind == 6) {
+    memset(&cfg, 0, sizeof(cfg));
+    memset(cfg.ids, 0xff, sizeof(cfg.ids));
+    txt_Format(text, 0x9c);
+    cfg.flags = 1;
+    cfg.mode = 0x400;
+    cfg.kind = 6;
+    cfg.classMask[0] = (unsigned int)gypsyFilter;
+    cfg.classMask[1] = (unsigned int)(gypsyFilter >> 32);
+    target = ai_AmountMenu(&cfg, text, 0, 0);
+  } else {
+    target = gm_FindChar(use->target);
+  }
+  if (target == 0)
+    return 0;
+  cm_SendSetField(target->netId, 0x1cc, 4, LC_F1CC_DISTRUST, 0);
+  if (ch->kind == 6) {
+    found = ai_FindUsableGoodIndex(use->obj->id, &index);
+    txt_Format(line, found->rank + 1, target->id);
+    txt_Format(news, 0xfe8, line);
+    ai_UseObjPanel(news);
+  }
+  use->handled = 1;
+  return 1;
 }
 
 /* the unit's data in the original's order: .data ai_AmountTabs 0x62d148 (the first of the block, after lc.c's strings) and the
    form strings, .bss 0x6f2f88 .. 0x6f2f90 (after lc.c's 0x6f2f60 .. 0x6f2f84) */
-const int ai_AmountTabCount = 8;  /* 0x5eede0, the unit's first .rdata (a named int after lc.c's 128.0): the number of tabs of
-   ai_AmountTabs; no reader in the surviving code (the loops use the immediate 8). Name a guess from the value and the place */
+const int ai_AmountTabCount =
+    8; /* 0x5eede0, the unit's first .rdata (a named int after lc.c's 128.0): the number of tabs of
+ai_AmountTabs; no reader in the surviving code (the loops use the immediate 8). Name a guess from the value and the place */
+/* clang-format off */
 AIAMOUNTTAB ai_AmountTabs[8] = {       /* 0x62d148, one table: 8 rows of 0x14 {id 0..7, count, control, two handlers}; ai_ClearAmountTabs clears count and control, the ids run 0..7 from 0x62d148 and row 7 ends where "%G" starts */
     { 0, 0, -1, ai_FillFamilyTab, ai_ShowFamilyTab },
     { 1, 0, -1, ai_FillFriendsTab, ai_ShowFriendsTab },
@@ -10975,6 +11236,10 @@ AIAMOUNTTAB ai_AmountTabs[8] = {       /* 0x62d148, one table: 8 rows of 0x14 {i
     { 6, 0, -1, ai_FillCandidacyTab, ai_ShowCandidacyTab },
     { 7, 0, -1, ai_FillOfficeTab, ai_ShowOfficeTab },
 };
-unsigned short ai_StatsChartFlags = 0;  /* 0x6f2f88, the charts the statistics panel shows (ai_CityStatsPanel: bit i the legend row i, 1 at the first open) */
-unsigned int ai_AmountTab = 0;  /* 0x6f2f8c, the open tab of the special-amount window (ai_SpecialAmountWindow, 0 .. 7; 8: no tab has rows) */
-int ai_MasterLetterPage = 0;  /* 0x6f2f90, the open page of the master letter window (ai_MasterLetterSettings): 0 the work settings, 1 the goods weights */
+/* clang-format on */
+unsigned short ai_StatsChartFlags =
+    0; /* 0x6f2f88, the charts the statistics panel shows (ai_CityStatsPanel: bit i the legend row i, 1 at the first open) */
+unsigned int ai_AmountTab =
+    0; /* 0x6f2f8c, the open tab of the special-amount window (ai_SpecialAmountWindow, 0 .. 7; 8: no tab has rows) */
+int ai_MasterLetterPage =
+    0; /* 0x6f2f90, the open page of the master letter window (ai_MasterLetterSettings): 0 the work settings, 1 the goods weights */

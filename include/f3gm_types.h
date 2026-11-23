@@ -3,195 +3,227 @@
 #ifndef F3GM_TYPES_H
 #define F3GM_TYPES_H
 
-typedef struct JOBTALENTS {             /* 6 bytes, one per job at 0x61a688 */
-    unsigned char skills[5];            /* 0x0, the five skill bytes a character of the job starts with (0x507690 ages them into a new character's +0x80..+0x84, the player profile copies them into its talents) */
-    unsigned char rank;                 /* 0x5, 1..4 in the table: a guess from the values and the rank byte +0xd */
+typedef struct JOBTALENTS { /* 6 bytes, one per job at 0x61a688 */
+  unsigned char skills
+      [5]; /* 0x0, the five skill bytes a character of the job starts with (0x507690 ages them into a new character's +0x80..+0x84, the player profile copies them into its talents) */
+  unsigned char
+      rank; /* 0x5, 1..4 in the table: a guess from the values and the rank byte +0xd */
 } JOBTALENTS;
 
-typedef struct GMHANDOUT {              /* 12 bytes, gm_HandOutMoney's out record (he_RunTavern's local) */
-    int count;                          /* 0x0, the number of characters paid */
-    int sum;                            /* 0x4, the sum paid (the caller takes it from the owner) */
-    struct AICHAR *partner;             /* 0x8, the partner the relation is sent to, 0: none (the tavern's hired helper) */
+typedef struct
+    GMHANDOUT { /* 12 bytes, gm_HandOutMoney's out record (he_RunTavern's local) */
+  int count;    /* 0x0, the number of characters paid */
+  int sum;      /* 0x4, the sum paid (the caller takes it from the owner) */
+  struct AICHAR *
+      partner; /* 0x8, the partner the relation is sent to, 0: none (the tavern's hired helper) */
 } GMHANDOUT;
 
-typedef struct GMHEAD {                 /* 0x44 bytes, a head record (gm_CharNameRecord's tables 0x6118a8 .. 0x617398) */
-    int key;                            /* 0x00, the job / title id the record belongs to, 0 = the end of a table */
-    char name[0x30];                    /* 0x04, the model name, "<name>_<suffix>" (bergmann3_MANN) */
-    int heads[4];                       /* 0x34, the icon numbers of the four heads, 0xff = not resolved yet (gm_ResolveHeadIcons) */
+typedef struct
+    GMHEAD { /* 0x44 bytes, a head record (gm_CharNameRecord's tables 0x6118a8 .. 0x617398) */
+  int key; /* 0x00, the job / title id the record belongs to, 0 = the end of a table */
+  char
+      name[0x30]; /* 0x04, the model name, "<name>_<suffix>" (bergmann3_MANN) */
+  int heads
+      [4]; /* 0x34, the icon numbers of the four heads, 0xff = not resolved yet (gm_ResolveHeadIcons) */
 } GMHEAD;
 
-typedef struct GMINCOME {               /* 0x38 bytes, a character's incomes (0x4fa4b0 clears it, the kind functions fill the first free entry) */
-    unsigned char kind[6];              /* 0x00, the income kind of each entry (1 .. 5), 0 = free */
-    char pad06[2];
-    int amount[6];                      /* 0x08, the amount */
-    int rate[6];                        /* 0x20, the rate in percent it was computed with (AIDEC.cur) */
+typedef struct
+    GMINCOME { /* 0x38 bytes, a character's incomes (0x4fa4b0 clears it, the kind functions fill the first free entry) */
+  unsigned char
+      kind[6]; /* 0x00, the income kind of each entry (1 .. 5), 0 = free */
+  char pad06[2];
+  int amount[6]; /* 0x08, the amount */
+  int rate[6]; /* 0x20, the rate in percent it was computed with (AIDEC.cur) */
 } GMINCOME;
 
 #include "ai_types.h"
 
-#include "ai_bld.h"                  /* AIBTYPE (ai_BTypes) */
+#include "ai_bld.h" /* AIBTYPE (ai_BTypes) */
 
 /* an event of the kind 0x23 (he_FindEvent(1, 0, 0x23)) as gm_BuildingEvents / gm_CreditEvents read it */
 
 /* the character statistics gm_CharacterStatistics (0x91b500, 0x68 bytes) as gm_CountCharacters (0x4fdfd0) fills
    them: per age bucket (gm_CharAge / 10, clamped to 0 .. 7) the count and the average health / base health */
 typedef struct GMCHARSTATS {
-    int count;                          /* 0x00, the living persons of kind < 10 */
-    int ageCount[8];                    /* 0x04, the persons per age bucket */
-    float underAge;                     /* 0x24, the share of the persons under age (gm_IsUnderAge), in percent */
-    float health[8];                    /* 0x28, per age bucket: gm_CharacterHealth summed, then in percent of baseHealth */
-    float baseHealth[8];                /* 0x48, per age bucket: gm_CharacterBaseHealth summed, then the average */
+  int count;       /* 0x00, the living persons of kind < 10 */
+  int ageCount[8]; /* 0x04, the persons per age bucket */
+  float
+      underAge; /* 0x24, the share of the persons under age (gm_IsUnderAge), in percent */
+  float health
+      [8]; /* 0x28, per age bucket: gm_CharacterHealth summed, then in percent of baseHealth */
+  float baseHealth
+      [8]; /* 0x48, per age bucket: gm_CharacterBaseHealth summed, then the average */
 } GMCHARSTATS;
-
 
 /* a disease kind's record (12 bytes, ten of them at 0x617850, gm_GetDisease copies one out): kinds 1 .. 9 are the
    bit fields of a character's word +0x2c (gm_CatchDisease) */
 typedef struct GMDISEASE {
-    int kind;                           /* 0x00, the record's own kind (0 .. 9) */
-    float cost;                         /* 0x04, the health a catch costs per point of severity */
-    int range;                          /* 0x08, the severity is util_Random(range) */
+  int kind;   /* 0x00, the record's own kind (0 .. 9) */
+  float cost; /* 0x04, the health a catch costs per point of severity */
+  int range;  /* 0x08, the severity is util_Random(range) */
 } GMDISEASE;
 
 /* one of the four production groups of a goods record: the goods' building group and the amount one of its
    buildings adds to the player's stock (gm_GoodsStock) */
 typedef struct GMSTOCKGROUP {
-    unsigned char group;                /* 0x00, the building group (gm_BuildQuery(1, 5, group) finds its buildings) */
-    char pad01[3];
-    float factor;                       /* 0x04, the amount one building of the group adds */
+  unsigned char
+      group; /* 0x00, the building group (gm_BuildQuery(1, 5, group) finds its buildings) */
+  char pad01[3];
+  float factor; /* 0x04, the amount one building of the group adds */
 } GMSTOCKGROUP;
 
 /* a player's goods record (0x80 bytes; 0x55 of them at 0x7d6a70 + player * 0x2a90, gm_StockBlocks + 0x10; the
    template gm_DefaultStock has the same layout) */
 typedef struct GMSTOCK {
-    unsigned short item;                /* 0x00, the goods prototype (an ai_Goods index) */
-    char pad02[2];
-    int amount;                         /* 0x04, the amount the player holds */
-    float rate;                         /* 0x08, the demand per unit of the rating (player 0) or of the block's demand index (gm_GoodsDemand) */
-    int v00c;                           /* 0x0c, copied from the template (gm_InitPlayerRecord); 0, 40, 80 or -1 there */
-    int daily[4];                       /* 0x10, four counters gm_UpdatePrices clears every day */
-    float demand;                       /* 0x20, the amount the market wants (gm_GoodsDemand) */
-    float mean;                         /* 0x24, the mean amount */
-    unsigned char offer;                /* 0x28, another player's offer counter: random 0 .. 0xff, then + 0x18 .. 0x1f per market sync; up to 0x80 the good is offered (gm_SyncMarket) */
-    char pad29[3];
-    float f2c;                          /* 0x2c, a float sent with the other deltas of message 0x40 (cm_SendGoodsDelta; meaning unknown) */
-    int baseStock;                      /* 0x30, the default stock (from the template; gm_UpdatePrices gives it to the players other than the own one as +0x34) */
-    int stock;                          /* 0x34, the stock of the kinds 0x17 / 0x25 (gm_GoodsStock) */
-    float price;                        /* 0x38, the stored price (gm_ItemPrice of the item, 100) */
-    unsigned short marketKind;          /* 0x3c, the kind of the market object (0x92 .. 0x97, 0x2db) that holds the good (gm_SyncMarket) */
-    char pad3e[2];
-    union {                             /* groups first: gm_DefaultStock's initialiser fills them */
-        GMSTOCKGROUP groups[4];         /* 0x40, the four production groups (gm_GoodsStock) */
-        unsigned char demandIsStock;    /* 0x40, set: gm_UpdatePrices takes the stock as the demand */
-    };
-    char pad60[0x20];
+  unsigned short item; /* 0x00, the goods prototype (an ai_Goods index) */
+  char pad02[2];
+  int amount; /* 0x04, the amount the player holds */
+  float
+      rate; /* 0x08, the demand per unit of the rating (player 0) or of the block's demand index (gm_GoodsDemand) */
+  int v00c; /* 0x0c, copied from the template (gm_InitPlayerRecord); 0, 40, 80 or -1 there */
+  int daily[4]; /* 0x10, four counters gm_UpdatePrices clears every day */
+  float demand; /* 0x20, the amount the market wants (gm_GoodsDemand) */
+  float mean;   /* 0x24, the mean amount */
+  unsigned char
+      offer; /* 0x28, another player's offer counter: random 0 .. 0xff, then + 0x18 .. 0x1f per market sync; up to 0x80 the good is offered (gm_SyncMarket) */
+  char pad29[3];
+  float
+      f2c; /* 0x2c, a float sent with the other deltas of message 0x40 (cm_SendGoodsDelta; meaning unknown) */
+  int baseStock; /* 0x30, the default stock (from the template; gm_UpdatePrices gives it to the players other than the own one as +0x34) */
+  int stock;     /* 0x34, the stock of the kinds 0x17 / 0x25 (gm_GoodsStock) */
+  float price;   /* 0x38, the stored price (gm_ItemPrice of the item, 100) */
+  unsigned short
+      marketKind; /* 0x3c, the kind of the market object (0x92 .. 0x97, 0x2db) that holds the good (gm_SyncMarket) */
+  char pad3e[2];
+  union { /* groups first: gm_DefaultStock's initialiser fills them */
+    GMSTOCKGROUP
+    groups[4]; /* 0x40, the four production groups (gm_GoodsStock) */
+    unsigned char
+        demandIsStock; /* 0x40, set: gm_UpdatePrices takes the stock as the demand */
+  };
+  char pad60[0x20];
 } GMSTOCK;
 
 /* a player's stock block (0x2a90 bytes, five of them at gm_StockBlocks 0x7d6a60): two seasonal indices in
    permille (gm_UpdatePrices interpolates them from the player slot's tables and scales them by their factors),
    then the goods records */
 typedef struct GMBLOCK {
-    int demandIndex;                    /* 0x00, the demand index (gm_GoodsDemand scales the demand by it) */
-    int demandFactor;                   /* 0x04, its factor in permille */
-    int indexB;                         /* 0x08, the index of the second table (no other reader known) */
-    int factorB;                        /* 0x0c, its factor in permille */
-    GMSTOCK goods[0x55];                /* 0x10 */
+  int demandIndex; /* 0x00, the demand index (gm_GoodsDemand scales the demand by it) */
+  int demandFactor; /* 0x04, its factor in permille */
+  int indexB;  /* 0x08, the index of the second table (no other reader known) */
+  int factorB; /* 0x0c, its factor in permille */
+  GMSTOCK goods[0x55]; /* 0x10 */
 } GMBLOCK;
 
 /* a point of a player slot's yearly tables (ten of them at ai_PlayerSlots[p] + 0x64 and + 0xb4, increasing
    years until the first that is not; gm_UpdatePrices interpolates between them by month) */
 typedef struct GMPOINT {
-    int year;
-    int value;
+  int year;
+  int value;
 } GMPOINT;
 
 /* an Umland entry of a player slot (0x12 bytes, eight at +0x144): a building kind of the surroundings with its
    number and up to eight object prototypes (the city file's "Umland%i" = kind, number, objects ..; init_LoadCityINI) */
 typedef struct GMUMLAND {
-    unsigned char kind;                 /* 0x00, the building kind (gm_FindBuildingKind of the name 3 characters in) */
-    unsigned char count;                /* 0x01, the number */
-    unsigned short objects[8];          /* 0x02, object prototypes (gm_FindObjectProto) */
+  unsigned char
+      kind; /* 0x00, the building kind (gm_FindBuildingKind of the name 3 characters in) */
+  unsigned char count;       /* 0x01, the number */
+  unsigned short objects[8]; /* 0x02, object prototypes (gm_FindObjectProto) */
 } GMUMLAND;
 
 /* a player slot (0x2f4 bytes, four of them at ai_PlayerSlots 0x7e3f40): the town the
    player plays in, read from its city file by init_LoadCityINI (the INI key names in quotes) */
 typedef struct GMPLAYERSLOT {
-    char name[0x20];                    /* 0x00, "Stadtname" (ls_WriteSaveHeader copies it into LSHDR.player and
-                                           writes 0x20 bytes of it) */
-    char townName[0x20];                /* 0x20, the town's name the datelines print before the date (hst.c's
-                                           "%s, %i %s %i", the statistics panel's text 0x1f0e with ai_Time) */
-    int mapX;                           /* 0x40, "KartenPosition": the player's place on the map (am.c 0x4948f0 measures */
-    int mapY;                           /* 0x44   gm_MapDistance from it to the other slots' places; the save header keeps both) */
-    signed char maxPlayers;                  /* 0x48, "MaxPlayer" (saved in the save header, LSHDR.playerByte; signed: init_SetupNewGame reads it with movsx) */
-    unsigned char faith;                /* 0x49, "Glaube" */
-    char pad04a[2];
-    int historyStart;                   /* 0x4c, "HistorieStart" (the year) */
-    int historyEnd;                     /* 0x50, "HistorieEnde" */
-    unsigned short moneyGood;           /* 0x54, "Waehrung": the good the player's money is counted in (cm.c 0x4c70b0 pays a
-                                           sale's price with gm_AddObjekt / gm_TakeObjekt of it) */
-    char pad056[0xa];
-    unsigned char land;                 /* 0x60, "Land" */
-    unsigned char language;             /* 0x61, "Sprache" */
-    char pad062[2];
-    GMPOINT inhabitants[10];            /* 0x64, "Einwohner_%i" (year, value): the yearly tables gm_UpdatePrices interpolates */
-    GMPOINT splendour[10];              /* 0xb4, "Prunk_%i" */
-    char pad104[4];
-    int rainChance[4];                  /* 0x108, "Regenwahrscheinlichkeit" per season */
-    int snowChance[4];                  /* 0x118, "Schneewahrscheinlichkeit" */
-    int freezeChance;                   /* 0x128, "Zufrierenwahrscheinlichkeit" */
-    unsigned char privileges[11];       /* 0x12c, "Privilegien" */
-    char pad137[0xd];
-    GMUMLAND umland[8];                 /* 0x144, "Umland0" .. "Umland7" */
-    char pad1d4[8];
-    int constitutionLaws[12];           /* 0x1dc, "Verfassungsgesetze" */
-    int financeLaws[8];                 /* 0x20c, "Finanzgesetze" (the reader parses up to 12 into it; the next lists are
-                                           read after it) */
-    int penalLaws[12];                  /* 0x22c, "Strafgesetze" */
-    int guildLaws[6];                   /* 0x25c, "Gildengesetze" (up to 12 parsed, as above) */
-    int churchLaws[7];                  /* 0x274, "Kirchengesetze" (up to 12 parsed, as above) */
-    int thiefLaws[7];                   /* 0x290, "DiebeRaeubergesetze" (up to 12 parsed: the rest runs into import, read
-                                           after it) */
-    unsigned short import[16];          /* 0x2ac, "Import" (the KONTOR goods, object prototypes) */
-    unsigned short export[16];          /* 0x2cc, "Export" */
-    int townX;                          /* 0x2ec, "KartenOffset": where the player's town lies on the town map bitmap: its
-                                           scene cells are drawn around it (lc.c ai_BuildTownMap, ai_MapCellToScreen's origin) */
-    int townY;                          /* 0x2f0 */
+  char name
+      [0x20]; /* 0x00, "Stadtname" (ls_WriteSaveHeader copies it into LSHDR.player and
+                 writes 0x20 bytes of it) */
+  char townName
+      [0x20]; /* 0x20, the town's name the datelines print before the date (hst.c's
+                 "%s, %i %s %i", the statistics panel's text 0x1f0e with ai_Time) */
+  int mapX; /* 0x40, "KartenPosition": the player's place on the map (am.c 0x4948f0 measures */
+  int mapY; /* 0x44   gm_MapDistance from it to the other slots' places; the save header keeps both) */
+  signed char
+      maxPlayers; /* 0x48, "MaxPlayer" (saved in the save header, LSHDR.playerByte; signed: init_SetupNewGame reads it with movsx) */
+  unsigned char faith; /* 0x49, "Glaube" */
+  char pad04a[2];
+  int historyStart; /* 0x4c, "HistorieStart" (the year) */
+  int historyEnd;   /* 0x50, "HistorieEnde" */
+  unsigned short
+      moneyGood; /* 0x54, "Waehrung": the good the player's money is counted in (cm.c 0x4c70b0 pays a
+                    sale's price with gm_AddObjekt / gm_TakeObjekt of it) */
+  char pad056[0xa];
+  unsigned char land;     /* 0x60, "Land" */
+  unsigned char language; /* 0x61, "Sprache" */
+  char pad062[2];
+  GMPOINT inhabitants
+      [10]; /* 0x64, "Einwohner_%i" (year, value): the yearly tables gm_UpdatePrices interpolates */
+  GMPOINT splendour[10]; /* 0xb4, "Prunk_%i" */
+  char pad104[4];
+  int rainChance[4]; /* 0x108, "Regenwahrscheinlichkeit" per season */
+  int snowChance[4]; /* 0x118, "Schneewahrscheinlichkeit" */
+  int freezeChance;  /* 0x128, "Zufrierenwahrscheinlichkeit" */
+  unsigned char privileges[11]; /* 0x12c, "Privilegien" */
+  char pad137[0xd];
+  GMUMLAND umland[8]; /* 0x144, "Umland0" .. "Umland7" */
+  char pad1d4[8];
+  int constitutionLaws[12]; /* 0x1dc, "Verfassungsgesetze" */
+  int financeLaws
+      [8]; /* 0x20c, "Finanzgesetze" (the reader parses up to 12 into it; the next lists are
+              read after it) */
+  int penalLaws[12]; /* 0x22c, "Strafgesetze" */
+  int guildLaws[6];  /* 0x25c, "Gildengesetze" (up to 12 parsed, as above) */
+  int churchLaws[7]; /* 0x274, "Kirchengesetze" (up to 12 parsed, as above) */
+  int thiefLaws
+      [7]; /* 0x290, "DiebeRaeubergesetze" (up to 12 parsed: the rest runs into import, read
+              after it) */
+  unsigned short
+      import[16]; /* 0x2ac, "Import" (the KONTOR goods, object prototypes) */
+  unsigned short export[16]; /* 0x2cc, "Export" */
+  int townX; /* 0x2ec, "KartenOffset": where the player's town lies on the town map bitmap: its
+                scene cells are drawn around it (lc.c ai_BuildTownMap, ai_MapCellToScreen's origin) */
+  int townY; /* 0x2f0 */
 } GMPLAYERSLOT;
 
 /* a player's line of the ranking gm_RankPlayers fills (0x24 bytes; the names from its log format 0x61ac40) */
 typedef struct GMRANK {
-    unsigned short id;                  /* 0x00, the character index */
-    short pad02;
-    int worth;                          /* 0x04, "vermoegen": gm_GetWorth, at least 1 */
-    float worthShare;                   /* 0x08, "vermoegen_trend": worth / the highest worth of the ranked */
-    float title;                        /* 0x0c, the character's level / 9 */
-    float office;                       /* 0x10, "amt": the kind levels of its two jobs / 13 */
-    float reputation;                   /* 0x14, "ansehen": the mean liking of the other players and townsmen / 100 */
-    float talents;                      /* 0x18, "talente": the sum of the five skills / 1260 */
-    float sum;                          /* 0x1c, the weighted sum of the five values */
-    int points;                         /* 0x20, sum * the highest worth / 10000 */
+  unsigned short id; /* 0x00, the character index */
+  short pad02;
+  int worth; /* 0x04, "vermoegen": gm_GetWorth, at least 1 */
+  float
+      worthShare; /* 0x08, "vermoegen_trend": worth / the highest worth of the ranked */
+  float title;  /* 0x0c, the character's level / 9 */
+  float office; /* 0x10, "amt": the kind levels of its two jobs / 13 */
+  float
+      reputation; /* 0x14, "ansehen": the mean liking of the other players and townsmen / 100 */
+  float talents; /* 0x18, "talente": the sum of the five skills / 1260 */
+  float sum;     /* 0x1c, the weighted sum of the five values */
+  int points;    /* 0x20, sum * the highest worth / 10000 */
 } GMRANK;
 
 #pragma pack(push, 1)
 /* the calendar record gm_ClockToDate fills (10 bytes) */
 typedef struct GMDATE {
-    signed char day;                    /* 0x0, the day of the month: 1 from gm_ClockToDate, gm_BirthDate /
-                                           gm_DeathDate pick it (the character info panel prints it signed) */
-    signed char month;                  /* 0x1, the first month of the season: season * 3 + 1 */
-    short year;                         /* 0x2, day + 0x578 */
-    unsigned char hour;                 /* 0x4 */
-    unsigned char min;                  /* 0x5 */
-    int sec;                            /* 0x6, the clock's seconds field (unaligned) */
+  signed char
+      day; /* 0x0, the day of the month: 1 from gm_ClockToDate, gm_BirthDate /
+              gm_DeathDate pick it (the character info panel prints it signed) */
+  signed char month;  /* 0x1, the first month of the season: season * 3 + 1 */
+  short year;         /* 0x2, day + 0x578 */
+  unsigned char hour; /* 0x4 */
+  unsigned char min;  /* 0x5 */
+  int sec;            /* 0x6, the clock's seconds field (unaligned) */
 } GMDATE;
 #pragma pack(pop)
 
-typedef struct RTNODE {                 /* 0x34 bytes, a node of the research tree layout gm_TreeNodes (f3gmt.c,
-                                           0x76fde0; gm_LayoutTree fills it, the tree window draws it) */
-    int id, p1, p2;                     /* 0x00, the item and its two parents */
-    unsigned short rank, pad;           /* 0x0c */
-    int x, y, z;                        /* 0x10 */
-    int l[5];                           /* 0x1c, l[2] (0x24) the node's button object, -1: none (the lc units' tree
-                                           windows find the clicked node by it) */
-    unsigned char flag;                 /* 0x30 */
+typedef struct
+    RTNODE { /* 0x34 bytes, a node of the research tree layout gm_TreeNodes (f3gmt.c,
+                0x76fde0; gm_LayoutTree fills it, the tree window draws it) */
+  int id, p1, p2;           /* 0x00, the item and its two parents */
+  unsigned short rank, pad; /* 0x0c */
+  int x, y, z;              /* 0x10 */
+  int l
+      [5]; /* 0x1c, l[2] (0x24) the node's button object, -1: none (the lc units' tree
+              windows find the clicked node by it) */
+  unsigned char flag; /* 0x30 */
 } RTNODE;
 
 #endif

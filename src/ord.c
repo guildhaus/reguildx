@@ -28,12 +28,14 @@
 #include "ch.h"
 #include "d2.h"
 #include "d3_sm.h"
+/* clang-format off */
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
+/* clang-format on */
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 
-#define ORD_FLAG_BLOCKED 0x400000  /* the privilege flag that blocks the misappropriation order (0x4f6b40) */
-
+#define ORD_FLAG_BLOCKED                                                       \
+  0x400000 /* the privilege flag that blocks the misappropriation order (0x4f6b40) */
 
 /* the clock's hour as am.h / cm.h / amt.h declare it: a view of gv.h's ai_Time (0x770ae0 + 4), so it is not
    an object of its own in the data area */
@@ -42,6 +44,7 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
    destination through temps, the source named directly in the asm (0x4f9190 copies the record 0x91b480) */
 #define ORD_CAT(a, b) a##b
 #define ORD_LABEL(name, n) ORD_CAT(name, n)
+/* clang-format off */
 #define ORD_COPY(dst, src, size) {                                  \
     int _cn = (size); void *_cd = (dst);                            \
     __asm mov edi, _cd                                              \
@@ -59,7 +62,9 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
     __asm ORD_LABEL(ord_copy_tail, __LINE__): add ecx, ebx          \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 /* both operands through temps (0x4f9220 copies the local record into the message out) */
+/* clang-format off */
 #define ORD_COPY3(dst, src, size) {                                 \
     int _cn = (size); void *_cs = (src); void *_cd = (dst);         \
     __asm mov edi, _cd                                              \
@@ -77,7 +82,9 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
     __asm ORD_LABEL(ord_copy3_tail, __LINE__): add ecx, ebx         \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 /* both operands named directly in the asm (0x4f9710 copies the message into the record 0x91b480) */
+/* clang-format off */
 #define ORD_COPY_AT(dvar, svar, size) {                             \
     int _cn = (size);                                               \
     __asm mov edi, dvar                                             \
@@ -95,38 +102,46 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
     __asm ORD_LABEL(ord_copyat_tail, __LINE__): add ecx, ebx        \
     __asm rep movsb                                                 \
 }
+/* clang-format on */
 
 /* the statistics record views of 0x4f9020 (unit-private: gv.h's AICHAR is the shared character view) */
-typedef struct ORDSAVE {                /* the saved record of 0x4f9020 (15 words) */
-    float col[4];                       /* 0x00, ORDSTATS */
-    int chars;                          /* 0x10 */
-    float rating;                       /* 0x14 */
-    float base;                         /* 0x18 */
-    int sumC, sumA;                     /* 0x1c, 0x20 */
-    float score;                        /* 0x24 */
-    float rate;                         /* 0x28, ord_RatingRate */
-    AITIME clock;                       /* 0x2c, the clock stamp (ord_StatisticsClock) */
+typedef struct ORDSAVE { /* the saved record of 0x4f9020 (15 words) */
+  float col[4];          /* 0x00, ORDSTATS */
+  int chars;             /* 0x10 */
+  float rating;          /* 0x14 */
+  float base;            /* 0x18 */
+  int sumC, sumA;        /* 0x1c, 0x20 */
+  float score;           /* 0x24 */
+  float rate;            /* 0x28, ord_RatingRate */
+  AITIME clock;          /* 0x2c, the clock stamp (ord_StatisticsClock) */
 } ORDSAVE;
-typedef struct ORDCHARKIND {            /* the character record seen from its kind byte */
-    unsigned char kind;                 /* 0x00 (AICHAR + 0x02) */
-    char pad01[5];
-    unsigned char health;               /* 0x06 (AICHAR + 0x08) */
-    char pad07[4];
-    unsigned char level;                /* 0x0b (AICHAR + 0x0d) */
-    char pad0c[0x72];
-    unsigned char stats[5];             /* 0x7e (AICHAR + 0x80), the five skill bytes 0x4f9020 averages */
-    char pad83[0x21c - 0x83];
+typedef struct ORDCHARKIND { /* the character record seen from its kind byte */
+  unsigned char kind;        /* 0x00 (AICHAR + 0x02) */
+  char pad01[5];
+  unsigned char health; /* 0x06 (AICHAR + 0x08) */
+  char pad07[4];
+  unsigned char level; /* 0x0b (AICHAR + 0x0d) */
+  char pad0c[0x72];
+  unsigned char stats
+      [5]; /* 0x7e (AICHAR + 0x80), the five skill bytes 0x4f9020 averages */
+  char pad83[0x21c - 0x83];
 } ORDCHARKIND;
 #define ORD_CHARKINDS ((ORDCHARKIND *)((char *)ai_Chars + 2))
-float ord_RatingRate;  /* 0x91aaf4, the change rate of the rating (ord_AdvanceRatingBase; ls.c saves it) */
-ORDSTATROUND ord_StatisticsHistory[16];  /* 0x91ab00, the statistics of the last 16 rounds */
-char ord_RatingBytes[16];  /* 0x91b460, 5 + 1 bytes */
-AITIME ord_StatisticsClock; /* 0x91b470, the clock of the last rating step (ord_AdvanceRatingBase) */
-ORDMSGREC ord_MessageRecord;  /* 0x91b480, the record the messages carry */
-ORDSTATS ord_Statistics; /* 0x91b4c0, the last statistics (ord_UpdateStatistics) */
-GMHEAD gm_OwnNameHeads[8];  /* 0x91ac40, the ring of the heads of characters with their own name (gm_CharNameRecord) */
+float
+    ord_RatingRate; /* 0x91aaf4, the change rate of the rating (ord_AdvanceRatingBase; ls.c saves it) */
+ORDSTATROUND ord_StatisticsHistory
+    [16];                 /* 0x91ab00, the statistics of the last 16 rounds */
+char ord_RatingBytes[16]; /* 0x91b460, 5 + 1 bytes */
+AITIME
+ord_StatisticsClock; /* 0x91b470, the clock of the last rating step (ord_AdvanceRatingBase) */
+ORDMSGREC ord_MessageRecord; /* 0x91b480, the record the messages carry */
+ORDSTATS
+ord_Statistics; /* 0x91b4c0, the last statistics (ord_UpdateStatistics) */
+GMHEAD gm_OwnNameHeads
+    [8]; /* 0x91ac40, the ring of the heads of characters with their own name (gm_CharNameRecord) */
 AIGRID ai_Grid[8][8]; /* 0x91ae60 */
-GMCHARSTATS gm_CharacterStatistics;  /* 0x91b500, the character statistics (gm_CountCharacters fills them) */
+GMCHARSTATS
+gm_CharacterStatistics; /* 0x91b500, the character statistics (gm_CountCharacters fills them) */
 
 /* 0x4f4e20, the order "apply for office" (table 0x611768 entry 0; c the character, m the message: m[0] the
    kind 1 = do / 3 = ask, the text at m + 5): only when c has no partner (partner = -1) or the partner record
@@ -136,365 +151,350 @@ GMCHARSTATS gm_CharacterStatistics;  /* 0x91b500, the character statistics (gm_C
    (not handled) or 2
 @deep s42 (36 -> 15 ins, size 242 -> 246 of 251): the event search as a found flag (found = 1; break; .. if (!found) the 0x1ce1 text) gives the original's loop return through r (mov eax,esi); the outer form if (m[0] == 3 || m[0] == 1) { r = 1; if (partner ok) { r = 2; .. } return r; } return 1; gives the original's registers m ebx / c edi / r esi and the RET1 block at the end. Left: the m-test failure returns early before push esi/edi (shrink-wrapped, its own return-1 copy; the original pushes all three first and jne's to the one RET1 at the end) and the partner failure goes through mov esi,1 (r = 1) where the original jumps straight into RET1 (mov eax,1: r = 1 known on both failure paths). Rounds (scratch af1..af7): r = 1 at the top (r1def, 40: const 1 becomes a register candidate, cmp eax,edi), else r = 1 / Y1-Y4 / N1-N4 / ok flags / r = 1 per failure (X5, 51: two RET1 copies inline): all worse; climb 2 rounds from r1def: nothing. Next: a form where both failures reach one return with r = 1 known and the m guard is no early return (pushes in the prologue). prior: meaning settled, only allocation/layout left: the original's m = ebx, c = edi, r = esi (ours m = edi, c = ebx, r = esi), its return-1 block sits at the end of the function (ours inline before the body), and its loop return is mov eax,esi where ours constant-folds mov eax,2. Read vs tools/disasm.py 0x4f4e20. Tried and kept (no WORSE, 240 -> 191 differing bytes): r = 2 + if/else-if with a shared return r (the 0x4f4ff0 idiom), typed AICHAR/ORDEVENT views (gv.h). Tried and reverted (build shows the same m = edi allocation): spell.py menu push-pop/dup-tail/reload leads; early-return guard if (!(...)) return 1; explicit else return 1; goto fail: label at the end; int partner = c->partner temp; char kind = c->kind temp; partner + kind temps; declaration-order permutations of o/p/r; unsigned r; unsigned char *o; int *m copy (int *msg = m, copy-propagated back). Needs match-deep's register-allocation toolbox (spell 'push-pop: the block the callee-saved register crosses' / vargen ren). */
 
-unsigned ord_ApplyForOffice(AICHAR *c, ORDMSG *m)
-{
-    AIJOB *ev;
-    AICHAR *ch;
-    AICHAR *p;
-    int r, found;
+unsigned ord_ApplyForOffice(AICHAR *c, ORDMSG *m) {
+  AIJOB *ev;
+  AICHAR *ch;
+  AICHAR *p;
+  int r, found;
 
-    if (m->kind == 3 || m->kind == 1) {
-        r = 1;
-        if (c->relatives[0] == -1
-            || ((ch = gm_FindChar(c->relatives[0])) != 0 && (ch->health == 0 || ch->kind == 0x0f))) {
-            r = 2;
-            if (m->kind == 3) {
-                r = ai_CourtshipWindow(c, m);
-                r |= 2;
-            } else if (m->kind == 1 && c->kind == 6) {
-                found = 0;
-                ev = he_FindEvent(1, 0, 0x41);
-                while (ev != 0) {
-                    if (ev->partner1 == ai_Chars[ai_PlayerId].netId) {
-                        p = gm_FindChar(ev->partner2);
-                        txt_Format(m->text, 0x1ce2, p->id);
-                        found = 1;
-                        break;
-                    }
-                    ev = he_NextEvent();
-                }
-                if (!found)
-                    txt_Format(m->text, (intptr_t)"%s", 0x1ce1);
-            }
+  if (m->kind == 3 || m->kind == 1) {
+    r = 1;
+    if (c->relatives[0] == -1 || ((ch = gm_FindChar(c->relatives[0])) != 0 &&
+                                  (ch->health == 0 || ch->kind == 0x0f))) {
+      r = 2;
+      if (m->kind == 3) {
+        r = ai_CourtshipWindow(c, m);
+        r |= 2;
+      } else if (m->kind == 1 && c->kind == 6) {
+        found = 0;
+        ev = he_FindEvent(1, 0, 0x41);
+        while (ev != 0) {
+          if (ev->partner1 == ai_Chars[ai_PlayerId].netId) {
+            p = gm_FindChar(ev->partner2);
+            txt_Format(m->text, 0x1ce2, p->id);
+            found = 1;
+            break;
+          }
+          ev = he_NextEvent();
         }
-        return r;
+        if (!found)
+          txt_Format(m->text, (intptr_t)"%s", 0x1ce1);
+      }
     }
-    return 1;
+    return r;
+  }
+  return 1;
 }
 /* 0x4f4f20, an order handler (c the character, m the message, kind 1 or 3): characters of level 3 or more: 4; a player (+2 = 6) with kind 3 gets the text 0x1d34 (level + 0x114, + 10 with +9) shown through 0x4f8200; kind 1 writes text 0x1d33 into m + 0x14; 1 for other kinds, else 2 @deep s42: original layout (dcp disasm): guard; lvl test jae -> r=4 block; r=2 (edi) + kind-3 test (jne -> kind-1 test at the end); kind-3 body + return copy; THEN the r = 4 block (mov edi,4 / mov eax,edi / own epilogue copy); then kind-1 test + body, whose failures jne into its own return copy. One shared return r (r unfolded in edi), m in esi. Rounds (scratch lo1..lo6, ~120 whole-function forms): lt-else (if lvl < 3 {..} else r = 4) gives jae but r=4 at the very end (32, m/r swapped); r = 4 default + if (lvl < 3) {r = 2; ..} (29, same); chain-r2guard (r = 2 before the guard) gives the original's registers m esi / r edi (r lives longer -> prio below m) but r=4 inline (21); returns per arm (D: 22) fold r into constants (no edi); switch (m[0]) inner, guard as if (m[0]==3 || m[0]==1) {..} return 1 / r = 1 default, kind-1 as a separate if after the if/else with r == 2 / lvl < 3 re-tests: all worse. climb 3 rounds: only the r = 2 move (24, meaning kept). Left: a source whose IL puts the r = 4 block between the kind-3 and the kind-1 code with one shared return (c2tail --il merge shows IL = source order), and r's priority below m's. prior: meaning settled and readable; remaining diff is allocation/scheduling only (97/208 bytes, 38 code bytes): the original keeps m in esi and r in edi (ours m = edi, r = esi, the same rank order), its r = 4 return block sits at 0x4f4fad between the kind-3 text block and the kind-1 text block (ours puts it after the if/else), and the r = 2 setup order differs. Won by the last-bytes pass: the complete-constant ternary (c[9] != 0 ? 0x11e : 0x114) + level instead of (c[9] ? 10 : 0) + 0x114 + level gives the original's and eax,0xa; add eax,0x114; add eax,ecx (notes/vc6-matching.md round entry; the same spelling is owed to the other level/job handlers, 0x253 variants: (c[9] ? 0x27b : 0x253) + job), and dropping the unsigned char lv local (read c[0xd] twice) keeps the byte load in cl and removes the 4-byte frame slot. Tried and reverted: level check forms (>=3 with r=4 inline, nested if/else, inverted <3 with else r=4, early return 4), r = 2 before/after the level check, a single final return r vs early returns, declaration order of r and buf. The 0x4f4ff0 idiom and the else-if chain gave the best byte counts. Needs match-deep's allocation toolbox (vargen ren / the push-pop: block the callee-saved register crosses lead). */
 
-int ord_LevelOrder(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
-    int r;
+int ord_LevelOrder(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
+  int r;
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level >= 3) {
-        r = 4;
-    } else {
-        r = 2;
-        if (m->kind == 3 && c->kind == 6) {
-            txt_Format(buf, 0x1d34, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-            ord_PrivilegeDialog(buf, 0, 0x657c7);
-        } else if (m->kind == 1 && c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1d33);
-    }
-    return r;
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level >= 3) {
+    r = 4;
+  } else {
+    r = 2;
+    if (m->kind == 3 && c->kind == 6) {
+      txt_Format(buf, 0x1d34, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+      ord_PrivilegeDialog(buf, 0, 0x657c7);
+    } else if (m->kind == 1 && c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1d33);
+  }
+  return r;
 }
 /* 0x4f4ff0, an order handler for a player (+2 = 6) or a kind 5 character; kind 3 of a player goes to ai_ChangeProfessionWindow (| 2), kind 1 of a player writes text 0x1d35 into m + 0x14; 1 when not handled, else 2 */
 
-int ord_ChangeProfessionOrder(AICHAR *c, ORDMSG *m)
-{
-    int r;
+int ord_ChangeProfessionOrder(AICHAR *c, ORDMSG *m) {
+  int r;
 
-    r = 2;
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->kind != 6 && c->kind != 5)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        r = ai_ChangeProfessionWindow(c, m);
-        r |= 2;
-    } else if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d35);
-    return r;
+  r = 2;
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->kind != 6 && c->kind != 5)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    r = ai_ChangeProfessionWindow(c, m);
+    r |= 2;
+  } else if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d35);
+  return r;
 }
 /* 0x4f5070, the medicus order: a sick character (v024 below -20, the int read as a double, or v02c's
    bits above 0xf) that is not already waiting on the flag 0x40 opens the medicus privilege window (kind 3)
    or, for a player's do (kind 1, kind 6), gets the text 0x1d3a into m + 0x14; else 1 (not handled), 2 */
 
-int ord_MedicusOrder(AICHAR *c, ORDMSG *m)
-{
-    int k;
+int ord_MedicusOrder(AICHAR *c, ORDMSG *m) {
+  int k;
 
-    k = m->kind;
-    if ((k == 3 || k == 1) && (c->flags1c8 & 0x40) == 0
-        && (c->v024 < -20.0 || (c->ailments & 0xfffffff0) != 0)) {
-        if (k == 3)
-            return ai_MedicusHandler(c, m);
-        if (k == 1 && c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1d3a);
-        return 2;
-    }
-    return 1;
+  k = m->kind;
+  if ((k == 3 || k == 1) && (c->flags1c8 & 0x40) == 0 &&
+      (c->v024 < -20.0 || (c->ailments & 0xfffffff0) != 0)) {
+    if (k == 3)
+      return ai_MedicusHandler(c, m);
+    if (k == 1 && c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1d3a);
+    return 2;
+  }
+  return 1;
 }
 /* 0x4f50f0, an order handler (c, m; kinds 1 / 3): characters with the byte +0x166 = 0xd are not handled; so are those that already own an order 0x2c (0x53e400 (1, 0, 0x2c) .. +0xac = c's id); kind 3 goes to ai_AccusationWindow, kind 1 of a player gets the text 0x1d44; else 2 */
 
-int ord_AccusationOrder(AICHAR *c, ORDMSG *m)
-{
-    AIJOB *o;
+int ord_AccusationOrder(AICHAR *c, ORDMSG *m) {
+  AIJOB *o;
 
-    if (m->kind != 3 && m->kind != 1)
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind == 0xd)
+    return 1;
+  o = he_FindEvent(1, 0, 0x2c);
+  if (o != 0) {
+    do {
+      if (o->offerWho[0] == c->netId)
         return 1;
-    if (c->officeKind == 0xd)
-        return 1;
-    o = he_FindEvent(1, 0, 0x2c);
-    if (o != 0) {
-        do {
-            if (o->offerWho[0] == c->netId)
-                return 1;
-            o = he_NextEvent();
-        } while (o != 0);
-    }
-    if (m->kind == 3) {
-        ai_AccusationWindow(c, m);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d44);
+      o = he_NextEvent();
+    } while (o != 0);
+  }
+  if (m->kind == 3) {
+    ai_AccusationWindow(c, m);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d44);
+  return 2;
 }
 /* 0x4f5190, an order handler (c, m; kinds 1 / 3): not for characters with the flag 0x100 of +0x1c8; kind 3 goes to 0x5c9550, kind 1 of a player writes the text 0x1d54; else 2 */
 
-int ord_BlackmailBuildingOrder(AICHAR *c, ORDMSG *m)
-{
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if ((c->flags1c8 & 0x100) != 0)
-        return 1;
-    if (m->kind == 3) {
-        ai_BlackmailBuildingListener(c, m);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d54);
+int ord_BlackmailBuildingOrder(AICHAR *c, ORDMSG *m) {
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if ((c->flags1c8 & 0x100) != 0)
+    return 1;
+  if (m->kind == 3) {
+    ai_BlackmailBuildingListener(c, m);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d54);
+  return 2;
 }
 /* 0x4f5200, an order handler (c the character, m the message, kind 1 or 3) for level 3 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d5f (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d5e into m + 0x14; else 2 */
 
-int ord_Level3Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Level3Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level > 3)
-        return 4;
-    if (c->level < 3)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1d5f, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d5e);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level > 3)
+    return 4;
+  if (c->level < 3)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1d5f, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d5e);
+  return 2;
 }
 /* 0x4f52e0, an order handler (c, m; kinds 1 / 3): characters below level 3 (c[0xd]) are not handled; kind 3 goes to 0x5c9ff0, kind 1 of a player writes the text 0x1d60; else 2 */
 
-int ord_IntimidateOrder(AICHAR *c, ORDMSG *m)
-{
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level < 3)
-        return 1;
-    if (m->kind == 3) {
-        ai_IntimidateContact(c, m);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d60);
+int ord_IntimidateOrder(AICHAR *c, ORDMSG *m) {
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level < 3)
+    return 1;
+  if (m->kind == 3) {
+    ai_IntimidateContact(c, m);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d60);
+  return 2;
 }
 /* 0x4f5350, an order handler (c, m; kinds 1 / 3): not for level below 3 or the flag 0x400 of +0x1c8; kind 3 goes to 0x5c9c50, kind 1 of a player writes the text 0x1d65; else 2 */
 
-int ord_BlackmailContactOrder(AICHAR *c, ORDMSG *m)
-{
-    if ((m->kind == 3 || m->kind == 1) && c->level >= 3 && (c->flags1c8 & 0x400) == 0) {
-        if (m->kind == 3) {
-            ai_BlackmailContact(c, m);
-            return 2;
-        }
-        if (m->kind == 1 && c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1d65);
-        return 2;
+int ord_BlackmailContactOrder(AICHAR *c, ORDMSG *m) {
+  if ((m->kind == 3 || m->kind == 1) && c->level >= 3 &&
+      (c->flags1c8 & 0x400) == 0) {
+    if (m->kind == 3) {
+      ai_BlackmailContact(c, m);
+      return 2;
     }
-    return 1;
+    if (m->kind == 1 && c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1d65);
+    return 2;
+  }
+  return 1;
 }
 /* 0x4f53c0, an order handler (c the character, m the message, kind 1 or 3) for level 4 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d85 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d84 into m + 0x14; else 2 */
 
-int ord_Level4Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Level4Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level > 4)
-        return 4;
-    if (c->level < 4)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1d85, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d84);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level > 4)
+    return 4;
+  if (c->level < 4)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1d85, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d84);
+  return 2;
 }
 /* 0x4f54a0, an order handler (c the character, m the message, kind 1 or 3) for level 4 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d87 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d86 into m + 0x14; else 2 */
 
-int ord_Level4Order2(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Level4Order2(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level > 4)
-        return 4;
-    if (c->level < 4)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1d87, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d86);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level > 4)
+    return 4;
+  if (c->level < 4)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1d87, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d86);
+  return 2;
 }
 /* 0x4f5580, an order handler (c the character, m the message, kind 1 or 3) for levels 4 .. 5 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d89 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1d88 into m + 0x14; else 2 */
 
-int ord_Level4To5Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Level4To5Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level >= 6)
-        return 4;
-    if (c->level < 4)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1d89, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d88);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level >= 6)
+    return 4;
+  if (c->level < 4)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1d89, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d88);
+  return 2;
 }
 /* 0x4f5660, an order handler (c the character, m the message, kind 1 or 3) for level 5 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d8b (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d8a into m + 0x14; else 2 */
 
-int ord_Level5UpOrder(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Level5UpOrder(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level < 5)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1d8b, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d8a);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level < 5)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1d8b, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d8a);
+  return 2;
 }
 /* 0x4f5730, an order handler (c the character, m the message, kind 1 or 3) for level 5 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d8d (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d8c into m + 0x14; else 2 */
 
-int ord_Level5UpOrder2(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Level5UpOrder2(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level < 5)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1d8d, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d8c);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level < 5)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1d8d, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d8c);
+  return 2;
 }
 /* 0x4f5800, the divorce order handler (c the character, m the message, kind 1 or 3) for level 5 and up (c[0xd]):
    the character needs a partner (relatives[0], alive by gm_FindChar) and the character table a record in use
    (the scan stops at the first one; the office test in it never holds); kind 3 opens ai_DivorceDialog, kind 1 of a
    player (+2 = 6) writes the text 0x1d8e into m + 0x14; else 2; 1 when not allowed */
 
-int ord_DivorceOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *ch = c;
-    AICHAR *partner;
-    int i;
+int ord_DivorceOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *ch = c;
+  AICHAR *partner;
+  int i;
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (ch->level < 5)
-        return 1;
-    for (i = 0; i < 0x300; i++) {
-        if (ai_Chars[i].id != 0xffff && (ai_Chars[i].officeKind != 0x12 || ai_Chars[i].officeKind <= 0x15))
-            break;
-    }
-    if (ch->relatives[0] == -1)
-        return 1;
-    if (i >= 0x300)
-        return 1;
-    partner = gm_FindChar(ch->relatives[0]);
-    if (partner == 0)
-        return 1;
-    if (partner->health == 0)
-        return 1;
-    if (m->kind == 3)
-        return ai_DivorceDialog(c, m);
-    if (m->kind == 1 && ch->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d8e);
-    return 2;
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (ch->level < 5)
+    return 1;
+  for (i = 0; i < 0x300; i++) {
+    if (ai_Chars[i].id != 0xffff &&
+        (ai_Chars[i].officeKind != 0x12 || ai_Chars[i].officeKind <= 0x15))
+      break;
+  }
+  if (ch->relatives[0] == -1)
+    return 1;
+  if (i >= 0x300)
+    return 1;
+  partner = gm_FindChar(ch->relatives[0]);
+  if (partner == 0)
+    return 1;
+  if (partner->health == 0)
+    return 1;
+  if (m->kind == 3)
+    return ai_DivorceDialog(c, m);
+  if (m->kind == 1 && ch->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d8e);
+  return 2;
 }
 /* 0x4f58e0, an order handler (c the character, m the message, kind 1 or 3) for level 6 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d93 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1d92 into m + 0x14; else 2 */
 
-int ord_Level6UpOrder(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Level6UpOrder(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level < 6)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1d93, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d92);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level < 6)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1d93, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d92);
+  return 2;
 }
 /* 0x4f59b0, an order handler (c the character, m the message, kind 1 or 3) for level 6 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1d95 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1d94 into m + 0x14; else 2 */
 
-int ord_Level6UpOrder2(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Level6UpOrder2(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level < 6)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1d95, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d94);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level < 6)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1d95, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d94);
+  return 2;
 }
 /* 0x4f5a80, the wage report order (table 0x611768 entry 17; c the character, m the message, kinds 1 / 3) for
    characters with a profession (job / job2, 0x166 / 0x169) or the privilege flags 0xe00 of +0x1cc: a player
@@ -503,1158 +503,1184 @@ int ord_Level6UpOrder2(AICHAR *c, ORDMSG *m)
    the amount at +4 / +8 / +0xc), shown through ord_PrivilegeDialog (mode 1); kind 1 writes the text 0x1d96 into
    m + 5; else 2 */
 
-int ord_WageReportOrder(AICHAR *c, ORDMSG *m)
-{
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind == 0 && c->secondOffice == 0 && (c->flags1cc & 0xe00) == 0)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        ORDWAGES o;
-        char buf[0x400];
-        int base;
+int ord_WageReportOrder(AICHAR *c, ORDMSG *m) {
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind == 0 && c->secondOffice == 0 && (c->flags1cc & 0xe00) == 0)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    ORDWAGES o;
+    char buf[0x400];
+    int base;
 
-        gm_CharacterWages(c->id, 0, &o);
-        memset(buf, 0, sizeof buf);
-        base = (c->sex != 0 ? 0x27b : 0x253);
-        txt_Format(buf, (intptr_t)"$Z%s$N", 0x1d96);
-        if (c->officeKind != 0)
-            txt_Format(buf + strlen(buf), 0x1d97, c->officeKind + base, o.amount);
-        if (c->secondOffice != 0)
-            txt_Format(buf + strlen(buf), 0x1d97, c->secondOffice + base, o.amount2);
-        if (o.kind != 0)
-            txt_Format(buf + strlen(buf), 0x1d97, o.kind + base, o.amount3);
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-    } else if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d96);
-    return 2;
+    gm_CharacterWages(c->id, 0, &o);
+    memset(buf, 0, sizeof buf);
+    base = (c->sex != 0 ? 0x27b : 0x253);
+    txt_Format(buf, (intptr_t)"$Z%s$N", 0x1d96);
+    if (c->officeKind != 0)
+      txt_Format(buf + strlen(buf), 0x1d97, c->officeKind + base, o.amount);
+    if (c->secondOffice != 0)
+      txt_Format(buf + strlen(buf), 0x1d97, c->secondOffice + base, o.amount2);
+    if (o.kind != 0)
+      txt_Format(buf + strlen(buf), 0x1d97, o.kind + base, o.amount3);
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
+  } else if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d96);
+  return 2;
 }
 /* 0x4f5c30, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4): clears the text at m + 0x14; kinds 3 / 1: only for characters with +0x166 != 0 (text 0x1d98 for a player), 9 when they have the flag 0x200 of +0x1c8, 1 with 0x200000, kind 3 runs 0x5ca560, result | 2; kinds 4 / 2: only when c has the flag 0x100 and the message's character m[0x87] has +0x166 != 0 and not 0x200000; kind 4 runs 0x5ca560, result | 0xa */
 
-int ord_DismissOfficeOrder(AICHAR *c, ORDMSG *m)
-{
-    int r;
-    AICHAR *t;
+int ord_DismissOfficeOrder(AICHAR *c, ORDMSG *m) {
+  int r;
+  AICHAR *t;
 
-    r = 0;
-    m->text[0] = 0;
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->officeKind == 0)
-            return 1;
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1d98);
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if ((c->flags1c8 & 0x200000) != 0)
-            return 1;
-        if (m->kind == 3)
-            r = ai_DismissOfficeAsk(c, m);
-        return r | 2;
-    }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        if (t->officeKind == 0)
-            return 1;
-        if ((t->flags1c8 & 0x200000) != 0)
-            return 1;
-        if (m->kind == 4) {
-            r = ai_DismissOfficeAsk(c, m);
-        } else if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1d98);
-        return r | 0xa;
-    }
-    return 1;
+  r = 0;
+  m->text[0] = 0;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->officeKind == 0)
+      return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1d98);
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if ((c->flags1c8 & 0x200000) != 0)
+      return 1;
+    if (m->kind == 3)
+      r = ai_DismissOfficeAsk(c, m);
+    return r | 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    if (t->officeKind == 0)
+      return 1;
+    if ((t->flags1c8 & 0x200000) != 0)
+      return 1;
+    if (m->kind == 4) {
+      r = ai_DismissOfficeAsk(c, m);
+    } else if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1d98);
+    return r | 0xa;
+  }
+  return 1;
 }
 /* 0x4f5d50, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f5d50: the table record 1 of 0x4f2870 (the record's id byte goes to m[1] and, for a player, into the text at m + 0x14 through 0x4f2fe0), the flag 0x80000 of +0x1c8 of the character (and of m[0x87] for 2 / 4) blocks; kind 3 / 4 sets m[0x85] = 1 and runs the law window 0x5ca150; result | 2 (| 0xa for 4 / 2) */
 
-int ord_LawOrder(AICHAR *c, ORDMSG *m)
-{
-    AIDEC rec;
-    int r;
-    AICHAR *t;
+int ord_LawOrder(AICHAR *c, ORDMSG *m) {
+  AIDEC rec;
+  int r;
+  AICHAR *t;
 
-    r = 0;
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->officeKind == 0)
-            return 1;
-        if (gv_FindTableRecord(c, 1, &rec) == 0)
-            return 1;
-        if (c->kind == 6)
-            gv_TableRecordText(m->text, rec.id);
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if ((c->flags1c8 & 0x80000) != 0)
-            return 1;
-        m->law = rec.id;
-        if (m->kind == 3) {
-            m->answerFlag = 1;
-            r = ai_LawPrivilegeWindow(c, m);
-        }
-        return r | 2;
+  r = 0;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->officeKind == 0)
+      return 1;
+    if (gv_FindTableRecord(c, 1, &rec) == 0)
+      return 1;
+    if (c->kind == 6)
+      gv_TableRecordText(m->text, rec.id);
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if ((c->flags1c8 & 0x80000) != 0)
+      return 1;
+    m->law = rec.id;
+    if (m->kind == 3) {
+      m->answerFlag = 1;
+      r = ai_LawPrivilegeWindow(c, m);
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        if (t->officeKind == 0)
-            return 1;
-        if ((t->flags1c8 & 0x80000) != 0)
-            return 1;
-        if (gv_FindTableRecord(t, 1, &rec) == 0)
-            return 1;
-        m->law = rec.id;
-        if (m->kind == 4) {
-            m->answerFlag = 1;
-            r = ai_LawPrivilegeWindow(c, m);
-        } else if (c->kind == 6)
-            gv_TableRecordText(m->text, rec.id);
-        return r | 0xa;
-    }
-    return 1;
+    return r | 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    if (t->officeKind == 0)
+      return 1;
+    if ((t->flags1c8 & 0x80000) != 0)
+      return 1;
+    if (gv_FindTableRecord(t, 1, &rec) == 0)
+      return 1;
+    m->law = rec.id;
+    if (m->kind == 4) {
+      m->answerFlag = 1;
+      r = ai_LawPrivilegeWindow(c, m);
+    } else if (c->kind == 6)
+      gv_TableRecordText(m->text, rec.id);
+    return r | 0xa;
+  }
+  return 1;
 }
 /* 0x4f5f00, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f5d50: the table record 2 of 0x4f2870 (the record's id byte goes to m[1] and, for a player, into the text at m + 0x14 through 0x4f2fe0), the flag 0x100000 of +0x1c8 of the character (and of m[0x87] for 2 / 4) blocks; kind 3 / 4 sets ORD_MSG(m)->answerFlag = 2 and runs 0x5ca150; result | 2 (| 0xa for 4 / 2) */
 
-int ord_LawOrder2(AICHAR *c, ORDMSG *m)
-{
-    AIDEC rec;
-    int r;
-    AICHAR *t;
+int ord_LawOrder2(AICHAR *c, ORDMSG *m) {
+  AIDEC rec;
+  int r;
+  AICHAR *t;
 
-    r = 0;
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->officeKind == 0)
-            return 1;
-        if (gv_FindTableRecord(c, 2, &rec) == 0)
-            return 1;
-        if (c->kind == 6)
-            gv_TableRecordText(m->text, rec.id);
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if ((c->flags1c8 & 0x100000) != 0)
-            return 1;
-        m->law = rec.id;
-        if (m->kind == 3) {
-            m->answerFlag = 2;
-            r = ai_LawPrivilegeWindow(c, m);
-        }
-        return r | 2;
+  r = 0;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->officeKind == 0)
+      return 1;
+    if (gv_FindTableRecord(c, 2, &rec) == 0)
+      return 1;
+    if (c->kind == 6)
+      gv_TableRecordText(m->text, rec.id);
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if ((c->flags1c8 & 0x100000) != 0)
+      return 1;
+    m->law = rec.id;
+    if (m->kind == 3) {
+      m->answerFlag = 2;
+      r = ai_LawPrivilegeWindow(c, m);
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        if (t->officeKind == 0)
-            return 1;
-        if ((t->flags1c8 & 0x100000) != 0)
-            return 1;
-        if (gv_FindTableRecord(t, 2, &rec) == 0)
-            return 1;
-        m->law = rec.id;
-        if (m->kind == 4) {
-            m->answerFlag = 2;
-            r = ai_LawPrivilegeWindow(c, m);
-        } else if (c->kind == 6)
-            gv_TableRecordText(m->text, rec.id);
-        return r | 0xa;
-    }
-    return 1;
+    return r | 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    if (t->officeKind == 0)
+      return 1;
+    if ((t->flags1c8 & 0x100000) != 0)
+      return 1;
+    if (gv_FindTableRecord(t, 2, &rec) == 0)
+      return 1;
+    m->law = rec.id;
+    if (m->kind == 4) {
+      m->answerFlag = 2;
+      r = ai_LawPrivilegeWindow(c, m);
+    } else if (c->kind == 6)
+      gv_TableRecordText(m->text, rec.id);
+    return r | 0xa;
+  }
+  return 1;
 }
 /* 0x4f60b0, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da0 (0x25e, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1d9f into m + 0x14; else 2 */
 
-int ord_Job11Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Job11Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0xb)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da0, (c->sex != 0 ? 0x286 : 0x25e));
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1d9f);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0xb)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1da0, (c->sex != 0 ? 0x286 : 0x25e));
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d9f);
+  return 2;
 }
 /* 0x4f6180, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da2 (0x253 + the job, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da1 into m + 0x14; else 2 */
 
-int ord_JobMultiOrder(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_JobMultiOrder(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0x1b && c->officeKind != 0xf && c->officeKind != 0x15 && c->officeKind != 0xd)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da2, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1da1);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0x1b && c->officeKind != 0xf && c->officeKind != 0x15 &&
+      c->officeKind != 0xd)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1da2, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1da1);
+  return 2;
 }
 /* 0x4f6270, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da4 (0x26f, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da3 into m + 0x14; else 2 */
 
-int ord_Job28Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Job28Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->secondOffice != 0x1c)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da4, (c->sex != 0 ? 0x297 : 0x26f));
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1da3);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->secondOffice != 0x1c)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1da4, (c->sex != 0 ? 0x297 : 0x26f));
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1da3);
+  return 2;
 }
 /* 0x4f6340, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da6 (0x270, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da5 into m + 0x14; else 2 */
 
-int ord_Job29Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Job29Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->secondOffice != 0x1d)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da6, (c->sex != 0 ? 0x298 : 0x270));
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1da5);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->secondOffice != 0x1d)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1da6, (c->sex != 0 ? 0x298 : 0x270));
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1da5);
+  return 2;
 }
 /* 0x4f6410, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1da8 (0x275, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da7 into m + 0x14; else 2 */
 
-int ord_Job34Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_Job34Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->secondOffice != 0x22)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1da8, (c->sex != 0 ? 0x29d : 0x275));
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1da7);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->secondOffice != 0x22)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1da8, (c->sex != 0 ? 0x29d : 0x275));
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1da7);
+  return 2;
 }
 /* 0x4f64e0, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1daa (0x253 + the job, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1da9 into m + 0x14; else 2 */
 
-int ord_JobRangeOrder(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x200];
+int ord_JobRangeOrder(AICHAR *c, ORDMSG *m) {
+  char buf[0x200];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->secondOffice < 0x1e || c->secondOffice > 0x21)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1daa, (c->sex != 0 ? 0x27b : 0x253) + c->secondOffice);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1da9);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->secondOffice < 0x1e || c->secondOffice > 0x21)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1daa, (c->sex != 0 ? 0x27b : 0x253) + c->secondOffice);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1da9);
+  return 2;
 }
 /* 0x4f65c0, an order handler (c, m; kinds 1 / 3) for the characters of one kind of job (+0x166 / +0x169 tested at the top; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dac (0x253 + the job, + 0x28 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dab into m + 0x14; else 2 */
 
-int ord_JobMultiOrder2(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x400];
+int ord_JobMultiOrder2(AICHAR *c, ORDMSG *m) {
+  char buf[0x400];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0x14 && c->officeKind != 0x18 && c->officeKind != 0x19)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dac, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1dab);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0x14 && c->officeKind != 0x18 && c->officeKind != 0x19)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1dac, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1dab);
+  return 2;
 }
 /* 0x4f66b0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) for the jobs 0x16 / 0x19 / 0x12 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): a player's text 0x1dad (m + 0x14), 9 with the flag 0x200, kind 3 / 4 run 0x5cacd0, 0xa for 4 / 2, else 2 */
 
-int ord_BewitchOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_BewitchOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dad);
-        j = c->officeKind;
-        if (j != 0x16 && j != 0x19 && j != 0x12)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_BewitchOrder(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dad);
+    j = c->officeKind;
+    if (j != 0x16 && j != 0x19 && j != 0x12)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_BewitchOrder(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x16 && j != 0x19 && j != 0x12)
+      return 1;
+    if (m->kind == 4) {
+      ai_BewitchOrder(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x16 && j != 0x19 && j != 0x12)
-            return 1;
-        if (m->kind == 4) {
-            ai_BewitchOrder(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dad);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dad);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f67c0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the jobs 0x13 / 0x14 / 0x18 / 0x1a, runs 0x5cae00, text 0x1db6 */
 
-int ord_CounterEspionageOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_CounterEspionageOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1db6);
-        j = c->officeKind;
-        if (j != 0x13 && j != 0x14 && j != 0x18 && j != 0x1a)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_CounterEspionage(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1db6);
+    j = c->officeKind;
+    if (j != 0x13 && j != 0x14 && j != 0x18 && j != 0x1a)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_CounterEspionage(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x13 && j != 0x14 && j != 0x18 && j != 0x1a)
+      return 1;
+    if (m->kind == 4) {
+      ai_CounterEspionage(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x13 && j != 0x14 && j != 0x18 && j != 0x1a)
-            return 1;
-        if (m->kind == 4) {
-            ai_CounterEspionage(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1db6);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1db6);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f68d0, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dbc ((c[9] != 0 ? 0x28c : 0x264)) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dbb into m + 0x14; else 2 */
 
-int ord_Job17Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x400];
+int ord_Job17Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x400];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0x11)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dbc, (c->sex != 0 ? 0x28c : 0x264));
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1dbb);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0x11)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1dbc, (c->sex != 0 ? 0x28c : 0x264));
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1dbb);
+  return 2;
 }
 /* 0x4f69a0, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dbe ((c[9] != 0 ? 0x28c : 0x264)) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dbd into m + 0x14; else 2 */
 
-int ord_Job17Order2(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x400];
+int ord_Job17Order2(AICHAR *c, ORDMSG *m) {
+  char buf[0x400];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0x11)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dbe, (c->sex != 0 ? 0x28c : 0x264));
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1dbd);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0x11)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1dbe, (c->sex != 0 ? 0x28c : 0x264));
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1dbd);
+  return 2;
 }
 /* 0x4f6a70, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc0 (c->id) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dbf into m + 0x14; else 2 */
 
-int ord_JobMultiOrder4(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x400];
+int ord_JobMultiOrder4(AICHAR *c, ORDMSG *m) {
+  char buf[0x400];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0xe && c->officeKind != 0xa)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dc0, c->id);
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1dbf);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0xe && c->officeKind != 0xa)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1dc0, c->id);
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1dbf);
+  return 2;
 }
 /* 0x4f6b40, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) for the job 0xe, text 0x1dc1, blocked by the flag 0x400000 of +0x1c8, runs 0x5ca860, result | 2 (| 0xa) */
 
-int ord_MisappropriationOrder(AICHAR *c, ORDMSG *m)
-{
-    int r;
-    AICHAR *t;
+int ord_MisappropriationOrder(AICHAR *c, ORDMSG *m) {
+  int r;
+  AICHAR *t;
 
-    r = 0;
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dc1);
-        if (c->officeKind != 0xe)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if ((c->flags1c8 & ORD_FLAG_BLOCKED) != 0)
-            return 1;
-        if (m->kind == 3)
-            r = ai_MisappropriationWindow(c, m);
-        return r | 2;
-    }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        if (t->officeKind != 0xe)
-            return 1;
-        if ((t->flags1c8 & ORD_FLAG_BLOCKED) != 0)
-            return 1;
-        if (m->kind == 4) {
-            r = ai_MisappropriationWindow(c, m);
-        } else if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dc1);
-        return r | 0xa;
-    }
-    return 1;
+  r = 0;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dc1);
+    if (c->officeKind != 0xe)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if ((c->flags1c8 & ORD_FLAG_BLOCKED) != 0)
+      return 1;
+    if (m->kind == 3)
+      r = ai_MisappropriationWindow(c, m);
+    return r | 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    if (t->officeKind != 0xe)
+      return 1;
+    if ((t->flags1c8 & ORD_FLAG_BLOCKED) != 0)
+      return 1;
+    if (m->kind == 4) {
+      r = ai_MisappropriationWindow(c, m);
+    } else if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dc1);
+    return r | 0xa;
+  }
+  return 1;
 }
 /* 0x4f6c60, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc5 (c->id) shown through 0x4f8200 (mode 2); kind 1 writes text 0x1dc4 into m + 0x14; else 2 */
 
-int ord_Job10Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x800];
+int ord_Job10Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x800];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0xa)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dc5, c->id);
-        ord_PrivilegeDialog(buf, 2, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1dc4);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0xa)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1dc5, c->id);
+    ord_PrivilegeDialog(buf, 2, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1dc4);
+  return 2;
 }
 /* 0x4f6d30, an order handler (c, m; kinds 1 / 3) for one job (+0x166; others: 1): a player (+2 = 6) with kind 3 gets the text 0x1dc7 (c->id) shown through 0x4f8200 (mode 2); kind 1 writes text 0x1dc6 into m + 0x14; else 2 */
 
-int ord_Job15Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x800];
+int ord_Job15Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x800];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0xf)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dc7, c->id);
-        ord_PrivilegeDialog(buf, 2, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1dc6);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0xf)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1dc7, c->id);
+    ord_PrivilegeDialog(buf, 2, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1dc6);
+  return 2;
 }
 /* 0x4f6e00, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0xf, 0x15, 0x1b (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5cb250, a player's text 0x1dc8 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_SeatSwapOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_SeatSwapOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dc8);
-        j = c->officeKind;
-        if (j != 0xf && j != 0x15 && j != 0x1b)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_SeatSwapWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dc8);
+    j = c->officeKind;
+    if (j != 0xf && j != 0x15 && j != 0x1b)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_SeatSwapWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0xf && j != 0x15 && j != 0x1b)
+      return 1;
+    if (m->kind == 4) {
+      ai_SeatSwapWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0xf && j != 0x15 && j != 0x1b)
-            return 1;
-        if (m->kind == 4) {
-            ai_SeatSwapWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dc8);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dc8);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f6f10, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x18 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5cb4f0, a player's text 0x1dce (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_HatredOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_HatredOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dce);
-        j = c->officeKind;
-        if (j != 0x18)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_HatredWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dce);
+    j = c->officeKind;
+    if (j != 0x18)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_HatredWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x18)
+      return 1;
+    if (m->kind == 4) {
+      ai_HatredWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x18)
-            return 1;
-        if (m->kind == 4) {
-            ai_HatredWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dce);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dce);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f7000, an order handler (c, m; kinds 1 / 3) for the jobs 0x17 / 0x13 (+0x166): a player (+2 = 6) with kind 3 gets the text 0x1dd5 (0x253 + the job, + 0x28 with +9) shown through 0x4f8200 (mode 1); kind 1 writes text 0x1dd4 into m + 0x14; else 2 */
 
-int ord_JobMultiOrder3(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x400];
+int ord_JobMultiOrder3(AICHAR *c, ORDMSG *m) {
+  char buf[0x400];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->officeKind != 0x17 && c->officeKind != 0x13)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        memset(buf, 0, sizeof buf);
-        txt_Format(buf, 0x1dd5, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
-        ord_PrivilegeDialog(buf, 1, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1dd4);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->officeKind != 0x17 && c->officeKind != 0x13)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    memset(buf, 0, sizeof buf);
+    txt_Format(buf, 0x1dd5, (c->sex != 0 ? 0x27b : 0x253) + c->officeKind);
+    ord_PrivilegeDialog(buf, 1, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1dd4);
+  return 2;
 }
 /* 0x4f70f0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x17, 0x13, 0x14, 0xd (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5cba90, a player's text 0x1dd6 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_HearingOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_HearingOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dd6);
-        j = c->officeKind;
-        if (j != 0x17 && j != 0x13 && j != 0x14 && j != 0xd)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_HearingWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dd6);
+    j = c->officeKind;
+    if (j != 0x17 && j != 0x13 && j != 0x14 && j != 0xd)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_HearingWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x17 && j != 0x13 && j != 0x14 && j != 0xd)
+      return 1;
+    if (m->kind == 4) {
+      ai_HearingWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x17 && j != 0x13 && j != 0x14 && j != 0xd)
-            return 1;
-        if (m->kind == 4) {
-            ai_HearingWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dd6);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dd6);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f7200, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x16, 0x19 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5cbe00, a player's text 0x1ddb (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_ExpelWorkerOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_ExpelWorkerOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1ddb);
-        j = c->officeKind;
-        if (j != 0x16 && j != 0x19)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_ExpelWorkerWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1ddb);
+    j = c->officeKind;
+    if (j != 0x16 && j != 0x19)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_ExpelWorkerWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x16 && j != 0x19)
+      return 1;
+    if (m->kind == 4) {
+      ai_ExpelWorkerWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x16 && j != 0x19)
-            return 1;
-        if (m->kind == 4) {
-            ai_ExpelWorkerWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1ddb);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1ddb);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f7300, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x15, 0x1a (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs ai_ConvertWindow, a player's text 0x1de0 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_ConvertOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_ConvertOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1de0);
-        j = c->officeKind;
-        if (j != 0x15 && j != 0x1a)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_ConvertWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1de0);
+    j = c->officeKind;
+    if (j != 0x15 && j != 0x1a)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_ConvertWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x15 && j != 0x1a)
+      return 1;
+    if (m->kind == 4) {
+      ai_ConvertWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x15 && j != 0x1a)
-            return 1;
-        if (m->kind == 4) {
-            ai_ConvertWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1de0);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1de0);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f7400, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x1b (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs ai_PeaceWindow, a player's text 0x1de3 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_PeaceOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_PeaceOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1de3);
-        j = c->officeKind;
-        if (j != 0x1b)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_PeaceWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1de3);
+    j = c->officeKind;
+    if (j != 0x1b)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_PeaceWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x1b)
+      return 1;
+    if (m->kind == 4) {
+      ai_PeaceWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x1b)
-            return 1;
-        if (m->kind == 4) {
-            ai_PeaceWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1de3);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1de3);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f74f0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x18 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs ai_PenanceWindow, a player's text 0x1de9 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_PenanceOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_PenanceOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1de9);
-        j = c->officeKind;
-        if (j != 0x18)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_PenanceWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1de9);
+    j = c->officeKind;
+    if (j != 0x18)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_PenanceWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x18)
+      return 1;
+    if (m->kind == 4) {
+      ai_PenanceWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x18)
-            return 1;
-        if (m->kind == 4) {
-            ai_PenanceWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1de9);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1de9);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f75e0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x12, 0x16 (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs 0x5ce1a0, a player's text 0x1dec (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_SpyTargetFlagOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_SpyTargetFlagOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dec);
-        j = c->officeKind;
-        if (j != 0x12 && j != 0x16)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_FaithAccusationWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dec);
+    j = c->officeKind;
+    if (j != 0x12 && j != 0x16)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_FaithAccusationWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x12 && j != 0x16)
+      return 1;
+    if (m->kind == 4) {
+      ai_FaithAccusationWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x12 && j != 0x16)
-            return 1;
-        if (m->kind == 4) {
-            ai_FaithAccusationWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1dec);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1dec);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f76e0, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f66b0 for the job(s) 0x1a (+0x166 of c; of m[0x87] for 2 / 4, where c needs the flag 0x100 of +0x1c8): runs ai_MiracleWindow, a player's text 0x1df5 (m + 0x14), 9 with the flag 0x200, 0xa for 4 / 2, else 2 */
 
-int ord_MiracleOrder(AICHAR *c, ORDMSG *m)
-{
-    AICHAR *t;
-    unsigned char j;
+int ord_MiracleOrder(AICHAR *c, ORDMSG *m) {
+  AICHAR *t;
+  unsigned char j;
 
-    if (m->kind == 3 || m->kind == 1) {
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1df5);
-        j = c->officeKind;
-        if (j != 0x1a)
-            return 1;
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if (m->kind == 3)
-            ai_MiracleWindow(c, m);
-        return 2;
+  if (m->kind == 3 || m->kind == 1) {
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1df5);
+    j = c->officeKind;
+    if (j != 0x1a)
+      return 1;
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if (m->kind == 3)
+      ai_MiracleWindow(c, m);
+    return 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    j = t->officeKind;
+    if (j != 0x1a)
+      return 1;
+    if (m->kind == 4) {
+      ai_MiracleWindow(c, m);
+      return 0xa;
     }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        j = t->officeKind;
-        if (j != 0x1a)
-            return 1;
-        if (m->kind == 4) {
-            ai_MiracleWindow(c, m);
-            return 0xa;
-        }
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1df5);
-        return 0xa;
-    }
-    return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1df5);
+    return 0xa;
+  }
+  return 1;
 }
 /* 0x4f77d0, an order handler (c, m; kind 1 or 3) for level 7 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1e02 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e01 into m + 0x14; else 2 */
 
-int ord_Level7Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Level7Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level > 7)
-        return 4;
-    if (c->level < 7)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1e02, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e01);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level > 7)
+    return 4;
+  if (c->level < 7)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1e02, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e01);
+  return 2;
 }
 /* 0x4f78b0, an order handler (c, m; kind 1 or 3) for level 8 (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1e04 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e03 into m + 0x14; else 2 */
 
-int ord_Level8Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Level8Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level > 8)
-        return 4;
-    if (c->level < 8)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1e04, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e03);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level > 8)
+    return 4;
+  if (c->level < 8)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1e04, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e03);
+  return 2;
 }
 /* 0x4f7990, an order handler (c, m; kind 1 or 3) for level 9 and up (c[0xd]; above: 4, below: 1); a player (+2 = 6) with kind 3 gets the text 0x1e06 (level + 0x114, + 10 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e05 into m + 0x14; else 2 */
 
-int ord_Level9UpOrder(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Level9UpOrder(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if (c->level < 9)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1e06, (c->sex != 0 ? 0x11e : 0x114) + c->level);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e05);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if (c->level < 9)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1e06, (c->sex != 0 ? 0x11e : 0x114) + c->level);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e05);
+  return 2;
 }
 /* 0x4f7a60, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4): clears the text at m + 0x14; characters need the flag 0x800 of +0x1cc (and m[0x87] for 2 / 4), 0x80000 of +0x1cc blocks; text 0x1e07 for a player, 9 with the flag 0x200 of +0x1c8, kind 3 / 4 run 0x5ce610, result | 2 (| 0xa for 4 / 2) */
 
-int ord_InterrogationOrder(AICHAR *c, ORDMSG *m)
-{
-    int r;
-    AICHAR *t;
+int ord_InterrogationOrder(AICHAR *c, ORDMSG *m) {
+  int r;
+  AICHAR *t;
 
-    r = 0;
-    m->text[0] = 0;
-    if (m->kind == 3 || m->kind == 1) {
-        if ((c->flags1cc & 0x800) == 0)
-            return 1;
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1e07);
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if ((c->flags1cc & 0x80000) != 0)
-            return 1;
-        if (m->kind == 3)
-            r = ai_InterrogationWindow(c, m);
-        return r | 2;
-    }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        if ((t->flags1cc & 0x800) == 0)
-            return 1;
-        if ((t->flags1cc & 0x80000) != 0)
-            return 1;
-        if (m->kind == 4) {
-            r = ai_InterrogationWindow(c, m);
-        } else if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1e07);
-        return r | 0xa;
-    }
-    return 1;
+  r = 0;
+  m->text[0] = 0;
+  if (m->kind == 3 || m->kind == 1) {
+    if ((c->flags1cc & 0x800) == 0)
+      return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1e07);
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if ((c->flags1cc & 0x80000) != 0)
+      return 1;
+    if (m->kind == 3)
+      r = ai_InterrogationWindow(c, m);
+    return r | 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    if ((t->flags1cc & 0x800) == 0)
+      return 1;
+    if ((t->flags1cc & 0x80000) != 0)
+      return 1;
+    if (m->kind == 4) {
+      r = ai_InterrogationWindow(c, m);
+    } else if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1e07);
+    return r | 0xa;
+  }
+  return 1;
 }
 /* 0x4f7b80, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4): clears the text at m + 0x14; characters need the flag 0x800 of +0x1cc (and m[0x87] for 2 / 4), 0x40000 of +0x1cc blocks; text 0x1e0d for a player, 9 with the flag 0x200 of +0x1c8, kind 3 / 4 run 0x5ce950, result | 2 (| 0xa for 4 / 2) */
 
-int ord_DismissalOrder(AICHAR *c, ORDMSG *m)
-{
-    int r;
-    AICHAR *t;
+int ord_DismissalOrder(AICHAR *c, ORDMSG *m) {
+  int r;
+  AICHAR *t;
 
-    r = 0;
-    m->text[0] = 0;
-    if (m->kind == 3 || m->kind == 1) {
-        if ((c->flags1cc & 0x800) == 0)
-            return 1;
-        if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1e0d);
-        if ((c->flags1c8 & 0x200) != 0)
-            return 9;
-        if ((c->flags1cc & 0x40000) != 0)
-            return 1;
-        if (m->kind == 3)
-            r = ai_DismissalHandler(c, m);
-        return r | 2;
-    }
-    if (m->kind == 4 || m->kind == 2) {
-        if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
-            return 1;
-        if ((t->flags1cc & 0x800) == 0)
-            return 1;
-        if ((t->flags1cc & 0x40000) != 0)
-            return 1;
-        if (m->kind == 4) {
-            r = ai_DismissalHandler(c, m);
-        } else if (c->kind == 6)
-            txt_Format(m->text, (intptr_t)"%s", 0x1e0d);
-        return r | 0xa;
-    }
-    return 1;
+  r = 0;
+  m->text[0] = 0;
+  if (m->kind == 3 || m->kind == 1) {
+    if ((c->flags1cc & 0x800) == 0)
+      return 1;
+    if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1e0d);
+    if ((c->flags1c8 & 0x200) != 0)
+      return 9;
+    if ((c->flags1cc & 0x40000) != 0)
+      return 1;
+    if (m->kind == 3)
+      r = ai_DismissalHandler(c, m);
+    return r | 2;
+  }
+  if (m->kind == 4 || m->kind == 2) {
+    if ((c->flags1c8 & 0x100) == 0 || (t = m->partner) == 0)
+      return 1;
+    if ((t->flags1cc & 0x800) == 0)
+      return 1;
+    if ((t->flags1cc & 0x40000) != 0)
+      return 1;
+    if (m->kind == 4) {
+      r = ai_DismissalHandler(c, m);
+    } else if (c->kind == 6)
+      txt_Format(m->text, (intptr_t)"%s", 0x1e0d);
+    return r | 0xa;
+  }
+  return 1;
 }
 /* 0x4f7ca0, an order handler (c, m; kinds 1 / 3) for characters with the flag 0x800 of +0x1cc: a player (+2 = 6) with kind 3 gets the text 0x1e12 (0x278, + 0x28 with +9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e11 into m + 0x14; else 2 */
 
-int ord_Flag800Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Flag800Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if ((c->flags1cc & 0x800) == 0)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1e12, (c->sex != 0 ? 0x2a0 : 0x278));
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e11);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if ((c->flags1cc & 0x800) == 0)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1e12, (c->sex != 0 ? 0x2a0 : 0x278));
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e11);
+  return 2;
 }
 /* 0x4f7d70, an order handler (c, m; kinds 1 / 3) for characters with the flag 0x800 of +0x1cc: a player (+2 = 6) with kind 3 gets the text 0x1e14 (0x278, + 0x28 with +9, extra argument 0x16b9) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e13 into m + 0x14; else 2 */
 
-int ord_Flag800Order2(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Flag800Order2(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if ((c->flags1cc & 0x800) == 0)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1e14, (c->sex != 0 ? 0x2a0 : 0x278), 0x16b9);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e13);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if ((c->flags1cc & 0x800) == 0)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1e14, (c->sex != 0 ? 0x2a0 : 0x278), 0x16b9);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e13);
+  return 2;
 }
 /* 0x4f7e40, an order handler (c, m; kinds 1 / 3): clears the text at m + 0x14; not for characters with the flag 0x100 of +0x1c8, they need 0x200 of +0x1cc; text 0x1e15 for a player, 9 with the flag 0x200, 1 with 0x40000 of +0x1c8; kind 3 runs 0x5cede0, result | 2 */
 
-int ord_InterrogationOrder2(AICHAR *c, ORDMSG *m)
-{
-    int r;
+int ord_InterrogationOrder2(AICHAR *c, ORDMSG *m) {
+  int r;
 
-    r = 0;
-    m->text[0] = 0;
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if ((c->flags1c8 & 0x100) != 0)
-        return 1;
-    if ((c->flags1cc & 0x200) == 0)
-        return 1;
-    if (c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e15);
-    if ((c->flags1c8 & 0x200) != 0)
-        return 9;
-    if ((c->flags1c8 & 0x40000) != 0)
-        return 1;
-    if (m->kind == 3)
-        r = ai_InterrogationWindow1(c, m);
-    return r | 2;
+  r = 0;
+  m->text[0] = 0;
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if ((c->flags1c8 & 0x100) != 0)
+    return 1;
+  if ((c->flags1cc & 0x200) == 0)
+    return 1;
+  if (c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e15);
+  if ((c->flags1c8 & 0x200) != 0)
+    return 9;
+  if ((c->flags1c8 & 0x40000) != 0)
+    return 1;
+  if (m->kind == 3)
+    r = ai_InterrogationWindow1(c, m);
+  return r | 2;
 }
 /* 0x4f7ef0, an order handler (c, m; kinds 1 / 3) for characters with the flag 0x200 of +0x1cc: a player (+2 = 6) with kind 3 gets the text 0x1e1b (0x276, + 0x28 with +9, extra argument 0x16ba) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e1a into m + 0x14; else 2 */
 
-int ord_Flag200Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Flag200Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if ((c->flags1cc & 0x200) == 0)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1e1b, (c->sex != 0 ? 0x29e : 0x276), 0x16ba);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e1a);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if ((c->flags1cc & 0x200) == 0)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1e1b, (c->sex != 0 ? 0x29e : 0x276), 0x16ba);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e1a);
+  return 2;
 }
 /* 0x4f7fc0, an order handler (c, m; kinds 1 / 3): clears the text at m + 0x14; not for characters with the flag 0x100 of +0x1c8, they need 0x400 of +0x1cc; text 0x1e1c for a player, 9 with the flag 0x200, 1 with 0x40000 of +0x1c8; kind 3 runs 0x5cf020, result | 2 */
 
-int ord_InterrogationOrder3(AICHAR *c, ORDMSG *m)
-{
-    int r;
+int ord_InterrogationOrder3(AICHAR *c, ORDMSG *m) {
+  int r;
 
-    r = 0;
-    m->text[0] = 0;
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if ((c->flags1c8 & 0x100) != 0)
-        return 1;
-    if ((c->flags1cc & 0x400) == 0)
-        return 1;
-    if (c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e1c);
-    if ((c->flags1c8 & 0x200) != 0)
-        return 9;
-    if ((c->flags1c8 & 0x40000) != 0)
-        return 1;
-    if (m->kind == 3)
-        r = ai_InterrogationWindow2(c, m);
-    return r | 2;
+  r = 0;
+  m->text[0] = 0;
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if ((c->flags1c8 & 0x100) != 0)
+    return 1;
+  if ((c->flags1cc & 0x400) == 0)
+    return 1;
+  if (c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e1c);
+  if ((c->flags1c8 & 0x200) != 0)
+    return 9;
+  if ((c->flags1c8 & 0x40000) != 0)
+    return 1;
+  if (m->kind == 3)
+    r = ai_InterrogationWindow2(c, m);
+  return r | 2;
 }
 /* 0x4f8070, an order handler (c, m; kinds 1 / 3) for characters with the flag 0x400 of +0x1cc: a player (+2 = 6) with kind 3 gets the text 0x1e22 (0x277, + 0x28 with +9, extra argument 0x16bb) shown through 0x4f8200 (mode 0); kind 1 writes text 0x1e21 into m + 0x14; else 2 */
 
-int ord_Flag400Order(AICHAR *c, ORDMSG *m)
-{
-    char buf[0x100];
+int ord_Flag400Order(AICHAR *c, ORDMSG *m) {
+  char buf[0x100];
 
-    if (m->kind != 3 && m->kind != 1)
-        return 1;
-    if ((c->flags1cc & 0x400) == 0)
-        return 1;
-    if (m->kind == 3 && c->kind == 6) {
-        txt_Format(buf, 0x1e22, (c->sex != 0 ? 0x29f : 0x277), 0x16bb);
-        ord_PrivilegeDialog(buf, 0, 0x657c7);
-        return 2;
-    }
-    if (m->kind == 1 && c->kind == 6)
-        txt_Format(m->text, (intptr_t)"%s", 0x1e21);
+  if (m->kind != 3 && m->kind != 1)
+    return 1;
+  if ((c->flags1cc & 0x400) == 0)
+    return 1;
+  if (m->kind == 3 && c->kind == 6) {
+    txt_Format(buf, 0x1e22, (c->sex != 0 ? 0x29f : 0x277), 0x16bb);
+    ord_PrivilegeDialog(buf, 0, 0x657c7);
     return 2;
+  }
+  if (m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1e21);
+  return 2;
 }
 /* 0x4f8140, an order handler (c, m; kinds 1 / 3) for the jobs 1 .. 0x1b (+0x166): kind 3 of a player runs 0x5ce7f0, kind 1 writes the text 0x1e23 (m + 0x14); else 2 (1 for other jobs and kinds) */
 
-int ord_DismissWorkerOrder(AICHAR *c, ORDMSG *m)
-{
-    unsigned char j;
-    int r = 2;
+int ord_DismissWorkerOrder(AICHAR *c, ORDMSG *m) {
+  unsigned char j;
+  int r = 2;
 
-    if (m->kind == 3 || m->kind == 1) {
-        j = c->officeKind;
-        if (j != 0 && j <= 0x1b) {
-            if (m->kind == 3 && c->kind == 6)
-                return ai_WorkerDismissalWindow(c, m);
-            if (m->kind == 1 && c->kind == 6) {
-                txt_Format(m->text, (intptr_t)"%s", 0x1e23);
-                return 2;
-            }
-        } else
-            r = 1;
+  if (m->kind == 3 || m->kind == 1) {
+    j = c->officeKind;
+    if (j != 0 && j <= 0x1b) {
+      if (m->kind == 3 && c->kind == 6)
+        return ai_WorkerDismissalWindow(c, m);
+      if (m->kind == 1 && c->kind == 6) {
+        txt_Format(m->text, (intptr_t)"%s", 0x1e23);
+        return 2;
+      }
     } else
-        r = 1;
-    return r;
+      r = 1;
+  } else
+    r = 1;
+  return r;
 }
-unsigned short ord_OrderTexts[0x3a] = { 0x1ce1, 0x1d33, 0x1d3a, 0x1d44, 0x1d50, 0x1d5e, 0x1d35, 0x1d60, 0x1d65, 0x1d84, 0x1d86, 0x1d88, 0x1d8a, 0x1d8c, 0x1d8e, 0x1d92, 0x1d94, 0x1d96, 0x1d98, 0x1d9d, 0x1d9e, 0x1d9f, 0x1da1, 0x1da3, 0x1da5, 0x1da7, 0x1da9, 0x1dab, 0x1dad, 0x1db6, 0x1dbb, 0x1dbd, 0x1dbf, 0x1dc1, 0x1dc4, 0x1dc6, 0x1dc8, 0x1dce, 0x1dd4, 0x1dd6, 0x1ddb, 0x1de0, 0x1de3, 0x1de9, 0x1dec, 0x1df5, 0x1e01, 0x1e03, 0x1e05, 0x1e07, 0x1e0d, 0x1e11, 0x1e13, 0x1e15, 0x1e1a, 0x1e1c, 0x1e21, 0x1e23 };  /* 0x6116f0, the text of each order number, parallel to ord_OrderHandlers (the first handler writes 0x1ce1, the last 0x1e23); no surviving instruction reads it (its reader was removed by /OPT:REF) */
-int (*ord_OrderHandlers[0x3a])(AICHAR *c, ORDMSG *m) = { ord_ApplyForOffice, ord_LevelOrder, ord_MedicusOrder, ord_AccusationOrder, ord_BlackmailBuildingOrder, ord_Level3Order, ord_ChangeProfessionOrder, ord_IntimidateOrder, ord_BlackmailContactOrder, ord_Level4Order, ord_Level4Order2, ord_Level4To5Order, ord_Level5UpOrder, ord_Level5UpOrder2, ord_DivorceOrder, ord_Level6UpOrder, ord_Level6UpOrder2, ord_WageReportOrder, ord_DismissOfficeOrder, ord_LawOrder, ord_LawOrder2, ord_Job11Order, ord_JobMultiOrder, ord_Job28Order, ord_Job29Order, ord_Job34Order, ord_JobRangeOrder, ord_JobMultiOrder2, ord_BewitchOrder, ord_CounterEspionageOrder, ord_Job17Order, ord_Job17Order2, ord_JobMultiOrder4, ord_MisappropriationOrder, ord_Job10Order, ord_Job15Order, ord_SeatSwapOrder, ord_HatredOrder, ord_JobMultiOrder3, ord_HearingOrder, ord_ExpelWorkerOrder, ord_ConvertOrder, ord_PeaceOrder, ord_PenanceOrder, ord_SpyTargetFlagOrder, ord_MiracleOrder, ord_Level7Order, ord_Level8Order, ord_Level9UpOrder, ord_InterrogationOrder, ord_DismissalOrder, ord_Flag800Order, ord_Flag800Order2, ord_InterrogationOrder2, ord_Flag200Order, ord_InterrogationOrder3, ord_Flag400Order, ord_DismissWorkerOrder };  /* 0x611768, the order handler of each order number (ord.c's .data block: the table, then its strings 0x611850..) */
+unsigned short
+    ord_OrderTexts[0x3a] =
+        {
+            0x1ce1, 0x1d33, 0x1d3a, 0x1d44, 0x1d50, 0x1d5e, 0x1d35, 0x1d60,
+            0x1d65, 0x1d84, 0x1d86, 0x1d88, 0x1d8a, 0x1d8c, 0x1d8e, 0x1d92,
+            0x1d94, 0x1d96, 0x1d98, 0x1d9d, 0x1d9e, 0x1d9f, 0x1da1, 0x1da3,
+            0x1da5, 0x1da7, 0x1da9, 0x1dab, 0x1dad, 0x1db6, 0x1dbb, 0x1dbd,
+            0x1dbf, 0x1dc1, 0x1dc4, 0x1dc6, 0x1dc8, 0x1dce, 0x1dd4, 0x1dd6,
+            0x1ddb, 0x1de0, 0x1de3, 0x1de9, 0x1dec, 0x1df5, 0x1e01, 0x1e03,
+            0x1e05, 0x1e07, 0x1e0d, 0x1e11, 0x1e13, 0x1e15, 0x1e1a, 0x1e1c,
+            0x1e21, 0x1e23}; /* 0x6116f0, the text of each order number, parallel to ord_OrderHandlers (the first handler writes 0x1ce1, the last 0x1e23); no surviving instruction reads it (its reader was removed by /OPT:REF) */
+int (*ord_OrderHandlers[0x3a])(AICHAR *c, ORDMSG *m) = {
+    ord_ApplyForOffice,
+    ord_LevelOrder,
+    ord_MedicusOrder,
+    ord_AccusationOrder,
+    ord_BlackmailBuildingOrder,
+    ord_Level3Order,
+    ord_ChangeProfessionOrder,
+    ord_IntimidateOrder,
+    ord_BlackmailContactOrder,
+    ord_Level4Order,
+    ord_Level4Order2,
+    ord_Level4To5Order,
+    ord_Level5UpOrder,
+    ord_Level5UpOrder2,
+    ord_DivorceOrder,
+    ord_Level6UpOrder,
+    ord_Level6UpOrder2,
+    ord_WageReportOrder,
+    ord_DismissOfficeOrder,
+    ord_LawOrder,
+    ord_LawOrder2,
+    ord_Job11Order,
+    ord_JobMultiOrder,
+    ord_Job28Order,
+    ord_Job29Order,
+    ord_Job34Order,
+    ord_JobRangeOrder,
+    ord_JobMultiOrder2,
+    ord_BewitchOrder,
+    ord_CounterEspionageOrder,
+    ord_Job17Order,
+    ord_Job17Order2,
+    ord_JobMultiOrder4,
+    ord_MisappropriationOrder,
+    ord_Job10Order,
+    ord_Job15Order,
+    ord_SeatSwapOrder,
+    ord_HatredOrder,
+    ord_JobMultiOrder3,
+    ord_HearingOrder,
+    ord_ExpelWorkerOrder,
+    ord_ConvertOrder,
+    ord_PeaceOrder,
+    ord_PenanceOrder,
+    ord_SpyTargetFlagOrder,
+    ord_MiracleOrder,
+    ord_Level7Order,
+    ord_Level8Order,
+    ord_Level9UpOrder,
+    ord_InterrogationOrder,
+    ord_DismissalOrder,
+    ord_Flag800Order,
+    ord_Flag800Order2,
+    ord_InterrogationOrder2,
+    ord_Flag200Order,
+    ord_InterrogationOrder3,
+    ord_Flag400Order,
+    ord_DismissWorkerOrder}; /* 0x611768, the order handler of each order number (ord.c's .data block: the table, then its strings 0x611850..) */
 /* 0x4f81c0, the order dispatcher: the handler number id (below 0x3a, else 0x40) of the table 0x611768 (0x4f4e20 .. 0x4f8140, one per order) runs on the character c (0x40 without one, 1 for a character whose kind +2 is 10 or more) and the message m */
 
-int ord_DispatchOrder(int id, AICHAR *c, ORDMSG *m)
-{
-    if (id >= 0x3a)
-        return 0x40;
-    if (c == 0)
-        return 0x40;
-    if (c->kind >= 10)
-        return 1;
-    return ord_OrderHandlers[id](c, m);
+int ord_DispatchOrder(int id, AICHAR *c, ORDMSG *m) {
+  if (id >= 0x3a)
+    return 0x40;
+  if (c == 0)
+    return 0x40;
+  if (c->kind >= 10)
+    return 1;
+  return ord_OrderHandlers[id](c, m);
 }
 /* 0x4f8200, a privilege dialog: loads the form privillegien\\prv_small (mode 0), prv_big (1) or prv_very_big, shows the text, then waits through 0x5309a0 (this function as its callback, arg its argument), setting the flag 0x6f22a0 while the redraw flag 0x14673a0 is set; closes the form */
 
-int ord_PrivilegeDialog(char *text, int mode, int arg)
-{
-    int v;
+int ord_PrivilegeDialog(char *text, int mode, int arg) {
+  int v;
 
-    if (mode == 0)
-        v = d2_OpenForm(0, 0, "privillegien\\prv_small");
-    else if (mode == 1)
-        v = d2_OpenForm(0, 0, "privillegien\\prv_big");
-    else
-        v = d2_OpenForm(0, 0, "privillegien\\prv_very_big");
-    d2_CentreViewWindows(v);
-    d2_SetForm(v, 1);
-    io_PrintText((intptr_t)text);
-    d2_ClickedId = -1;
-    while (sv_RunFrame(ord_PrivilegeDialog, arg) != 0) {
-        if (dm_L.rup != 0)
-            sv_PopRequest = 1;
-    }
-    d2_CloseView(v);
+  if (mode == 0)
+    v = d2_OpenForm(0, 0, "privillegien\\prv_small");
+  else if (mode == 1)
+    v = d2_OpenForm(0, 0, "privillegien\\prv_big");
+  else
+    v = d2_OpenForm(0, 0, "privillegien\\prv_very_big");
+  d2_CentreViewWindows(v);
+  d2_SetForm(v, 1);
+  io_PrintText((intptr_t)text);
+  d2_ClickedId = -1;
+  while (sv_RunFrame(ord_PrivilegeDialog, arg) != 0) {
+    if (dm_L.rup != 0)
+      sv_PopRequest = 1;
+  }
+  d2_CloseView(v);
 }
 /* 0x4f82a0, resets the statistics at the start of a game (the only caller is main_StartGame, 0x537e3f, after
    the graveyard clear): clears the message record 0x91b480 (0x24 bytes, then its first int = -1 = no event),
@@ -1662,36 +1688,35 @@ int ord_PrivilegeDialog(char *text, int mode, int arg)
    ai_Grid (0x600), the statistics history (0x140), the last statistics record (0x28) and the base rating
    ai_RatingBase. No result. */
 
-void ord_ResetStatistics(void)
-{
-    memset(&ord_MessageRecord, 0, 0x24);
-    memset(gm_IncomeHistory, 0, sizeof(gm_IncomeHistory));
-    memset(&gm_CharacterStatistics, 0, sizeof(gm_CharacterStatistics));
-    memset(ai_Grid, 0, 0x600);
-    memset(ord_StatisticsHistory, 0, 0x140);
-    memset(&ord_Statistics, 0, 0x28);
-    ord_MessageRecord.enabled = -1;
-    ai_RatingBase = 0;
+void ord_ResetStatistics(void) {
+  memset(&ord_MessageRecord, 0, 0x24);
+  memset(gm_IncomeHistory, 0, sizeof(gm_IncomeHistory));
+  memset(&gm_CharacterStatistics, 0, sizeof(gm_CharacterStatistics));
+  memset(ai_Grid, 0, 0x600);
+  memset(ord_StatisticsHistory, 0, 0x140);
+  memset(&ord_Statistics, 0, 0x28);
+  ord_MessageRecord.enabled = -1;
+  ai_RatingBase = 0;
 }
 /* 0x4f8300, the 8 x 8 grid cell of a position: d3_GetHeightAt gives the cell on scene 0's height map (d3_Scenes[0].hmap) and x / y are divided by the map's cell count per side (D3SM.size, +0x20) over 8; 0 when the call fails. The height is unread: VC6 keeps h in y's dead parameter slot (the original passes &y as the float out) */
 
-int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y)
-{
-    D3SM *hmap;
-    int n;
-    float h;
+int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y) {
+  D3SM *hmap;
+  int n;
+  float h;
 
-    hmap = d3_Scenes[0].hmap;
-    n = hmap->size / 8;
-    if (d3_GetHeightAt(hmap, p, x, y, &h) != 0) {
-        *x = *x / n;
-        *y = *y / n;
-        return 1;
-    }
-    return 0;
+  hmap = d3_Scenes[0].hmap;
+  n = hmap->size / 8;
+  if (d3_GetHeightAt(hmap, p, x, y, &h) != 0) {
+    *x = *x / n;
+    *y = *y / n;
+    return 1;
+  }
+  return 0;
 }
 
-#define ORD_CELLS ((AIGRID *)ai_Grid)   /* the grid as flat cells (row y, column x = y * 8 + x) */
+#define ORD_CELLS                                                              \
+  ((AIGRID *)ai_Grid) /* the grid as flat cells (row y, column x = y * 8 + x) */
 
 /* 0x4f8360, fills the 8 x 8 grid ai_Grid (cells of 0x18 bytes: +4 the number of objects, +8 the average):
    counts the objects of kind 6 (0x501190 / 0x501030 iteration; +0x61 a pointer, its +0x4c the position through
@@ -1717,201 +1742,194 @@ int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y)
    Read against tools/disasm.py 0x4f8360 0x100: same statements, constants and callees. Tried and reverted
    (each built, obj checked): for(i=0;i<8;i++)for(j=0;j<8;j++) grid[i][j].used=0 flat and 2D-typed (extern
    AIGRID grid[8][8], also via a flat (... */
-void ord_CountGridObjects(void)
-{
-    float f[64];
-    AIBLD *b;
-    int y;
-    int x;
-    int i;
-    int j;
-    memset(f, 0, sizeof f);
-    for (i = 0; i < 8; i++)
-        for (j = 0; j < 8; j++)
-            ai_Grid[i][j].used = 0;
-    b = gm_BuildQuery(1, 6);
-    while (b != 0) {
-        if (b->object != 0 && ord_GetGridCell(&b->object->pos, &x, &y) != 0) {
-            f[y + x * 8] = (float)gm_EquipmentValue(b, b->level);
-            ORD_CELLS[y + x * 8].used++;
-        }
-        b = gm_BuildNext();
+void ord_CountGridObjects(void) {
+  float f[64];
+  AIBLD *b;
+  int y;
+  int x;
+  int i;
+  int j;
+  memset(f, 0, sizeof f);
+  for (i = 0; i < 8; i++)
+    for (j = 0; j < 8; j++)
+      ai_Grid[i][j].used = 0;
+  b = gm_BuildQuery(1, 6);
+  while (b != 0) {
+    if (b->object != 0 && ord_GetGridCell(&b->object->pos, &x, &y) != 0) {
+      f[y + x * 8] = (float)gm_EquipmentValue(b, b->level);
+      ORD_CELLS[y + x * 8].used++;
     }
-    for (i = 0; i < 8; i++) {
-        for (j = 0; j < 8; j++) {
-            if (ai_Grid[i][j].used != 0)
-                ai_Grid[i][j].average = (int)(f[i * 8 + j] / ai_Grid[i][j].used);
-            else
-                ai_Grid[i][j].average = 0;
-        }
+    b = gm_BuildNext();
+  }
+  for (i = 0; i < 8; i++) {
+    for (j = 0; j < 8; j++) {
+      if (ai_Grid[i][j].used != 0)
+        ai_Grid[i][j].average = (int)(f[i * 8 + j] / ai_Grid[i][j].used);
+      else
+        ai_Grid[i][j].average = 0;
     }
+  }
 }
 
 /* 0x4f8460, adds the guilt weight (+0x0c, AIDEC.guilt) of the decision record kind (gv_GetTableRecord) to the sums (+2, a short) of the cell of the 8 x 8 grid 0x91ae60 at the position of an object (gm_FindById gives the object of who; ord_GetGridCell the cell x, y of its +0x61 record's +0x4c), and to the +0 sums of its 3 x 3 neighbourhood, clamped to the grid; x, y start as random cells (util_Random(8)) for when ord_GetGridCell fails; the cell x, y go to *px / *py */
 
-void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py)
-{
-    AIDEC rec;
-    AIBLD *b;
-    int x;
-    int y;
-    int xhi;
-    int yhi;
-    int xlo;
-    int ylo;
-    int i;
-    int j;
+void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py) {
+  AIDEC rec;
+  AIBLD *b;
+  int x;
+  int y;
+  int xhi;
+  int yhi;
+  int xlo;
+  int ylo;
+  int i;
+  int j;
 
-    gv_GetTableRecord(kind, &rec);
-    gm_FindById(&b, 0, 0, who);
-    x = util_Random(8);
-    y = util_Random(8);
-    if (b != 0 && b->object != 0) {
-        ord_GetGridCell(&b->object->pos, &x, &y);
-        ORD_CELLS[y + x * 8].b += rec.guilt;
-        xhi = x + 1 > 8 ? 8 : x + 1;
-        yhi = y + 1 > 8 ? 8 : y + 1;
-        xlo = x - 1 < 0 ? 0 : x - 1;
-        for (i = xlo; i <= xhi; i++) {
-            ylo = y - 1 < 0 ? 0 : y - 1;
-            for (j = ylo; j <= yhi; j++)
-                ORD_CELLS[j + i * 8].a += rec.guilt;
-        }
-        *px = x;
-        *py = y;
+  gv_GetTableRecord(kind, &rec);
+  gm_FindById(&b, 0, 0, who);
+  x = util_Random(8);
+  y = util_Random(8);
+  if (b != 0 && b->object != 0) {
+    ord_GetGridCell(&b->object->pos, &x, &y);
+    ORD_CELLS[y + x * 8].b += rec.guilt;
+    xhi = x + 1 > 8 ? 8 : x + 1;
+    yhi = y + 1 > 8 ? 8 : y + 1;
+    xlo = x - 1 < 0 ? 0 : x - 1;
+    for (i = xlo; i <= xhi; i++) {
+      ylo = y - 1 < 0 ? 0 : y - 1;
+      for (j = ylo; j <= yhi; j++)
+        ORD_CELLS[j + i * 8].a += rec.guilt;
     }
+    *px = x;
+    *py = y;
+  }
 }
 /* 0x4f8590, the counterpart of ord_AddGridAmount: subtracts the guilt weight (AIDEC.guilt) of the decision record kind from the cell of the object (+2) and its 3 x 3 neighbourhood (+0); no outputs */
 
-void ord_SubGridAmount(int who, unsigned char kind)
-{
-    AIDEC rec;
-    AIBLD *b;
-    int x;
-    int y;
-    int xhi;
-    int yhi;
-    int xlo;
-    int ylo;
-    int i;
-    int j;
+void ord_SubGridAmount(int who, unsigned char kind) {
+  AIDEC rec;
+  AIBLD *b;
+  int x;
+  int y;
+  int xhi;
+  int yhi;
+  int xlo;
+  int ylo;
+  int i;
+  int j;
 
-    gv_GetTableRecord(kind, &rec);
-    gm_FindById(&b, 0, 0, who);
-    x = util_Random(8);
-    y = util_Random(8);
-    if (b != 0 && b->object != 0) {
-        ord_GetGridCell(&b->object->pos, &x, &y);
-        ORD_CELLS[y + x * 8].b -= rec.guilt;
-        xhi = x + 1 > 8 ? 8 : x + 1;
-        yhi = y + 1 > 8 ? 8 : y + 1;
-        xlo = x - 1 < 0 ? 0 : x - 1;
-        for (i = xlo; i <= xhi; i++) {
-            ylo = y - 1 < 0 ? 0 : y - 1;
-            for (j = ylo; j <= yhi; j++)
-                ORD_CELLS[j + i * 8].a -= rec.guilt;
-        }
+  gv_GetTableRecord(kind, &rec);
+  gm_FindById(&b, 0, 0, who);
+  x = util_Random(8);
+  y = util_Random(8);
+  if (b != 0 && b->object != 0) {
+    ord_GetGridCell(&b->object->pos, &x, &y);
+    ORD_CELLS[y + x * 8].b -= rec.guilt;
+    xhi = x + 1 > 8 ? 8 : x + 1;
+    yhi = y + 1 > 8 ? 8 : y + 1;
+    xlo = x - 1 < 0 ? 0 : x - 1;
+    for (i = xlo; i <= xhi; i++) {
+      ylo = y - 1 < 0 ? 0 : y - 1;
+      for (j = ylo; j <= yhi; j++)
+        ORD_CELLS[j + i * 8].a -= rec.guilt;
     }
+  }
 }
 /* 0x4f86a0, a random point inside the cell (x, y) of scene 0's height map (d3_Scenes[0].hmap; the map's cell count per side (D3SM.size, +0x20) over 8 is the span of the grid cell): d3sm_GetVertex (0x45f100) into *out; returns its found flag (the one caller, cm.c, ignores it) */
 
-char ord_RandomCellPoint(int x, int y, D3VECTOR *out)
-{
-    D3SM *hmap;
-    int n;
-    unsigned a;
-    unsigned b;
+char ord_RandomCellPoint(int x, int y, D3VECTOR *out) {
+  D3SM *hmap;
+  int n;
+  unsigned a;
+  unsigned b;
 
-    hmap = d3_Scenes[0].hmap;
-    n = hmap->size / 8;
-    a = util_Random(n) + n * x;
-    b = util_Random(n) + n * y;
-    return d3sm_GetVertex(hmap, a, b, out);
+  hmap = d3_Scenes[0].hmap;
+  n = hmap->size / 8;
+  a = util_Random(n) + n * x;
+  b = util_Random(n) + n * y;
+  return d3sm_GetVertex(hmap, a, b, out);
 }
 /* 0x4f8700, picks a random object id for the character c (-1 without one): the ids of its two buildings
    (bld / bld2, when their object is present) and, up to 0x20 times, of up to 3 random buildings (3 of 4
    chances each) of a random one of the 20 kinds of the table (4 x 5), through gm_BuildQuery(1, 5, kind),
 until 16 are collected; then one of them at random @deep deep s43: flip.py --want 'mov eax, DWORD PTR _kinds' names only meaning changes and idx as short / char (one temp fewer: the rotation is decided at the idx expression). Tried, = control: idx = U(4)*5; idx += U(5), the inner loop as for, list[n++], the first id stored as list[n] / n++ / n = 1 first, tries before n; worse: idx inline (30), a k temp for U(5) (13), n++ / k++ swapped (10), n = 0 in an else (66), kinds as int [4][5] with [U(4)][U(5)] (30-35), climb 3 rounds (nothing). prior: near-byte sweep s22: goto done -> break (same code, kept). Left regs 8: kinds[idx] loaded into edx (original eax) and the list store's [esi+1] in eax (original edx): one scratch rotation step. = control: break / n < 16 in the inner condition, the kinds as an initializer; worse: k = 0 before idx (10), return in the loop (60), the c == 0 guard first (72). climb round 1: nothing. */
 
-int ord_RandomObjectId(AICHAR *c)
-{
-    int kinds[20];
-    int list[16];
-    int n;
-    int tries;
-    int k;
-    int idx;
-    AIBLD *o;
+int ord_RandomObjectId(AICHAR *c) {
+  int kinds[20];
+  int list[16];
+  int n;
+  int tries;
+  int k;
+  int idx;
+  AIBLD *o;
 
-    kinds[0] = 1;
-    kinds[1] = 2;
-    kinds[2] = 5;
-    kinds[3] = 7;
-    kinds[4] = 10;
-    kinds[5] = 6;
-    kinds[6] = 4;
-    kinds[7] = 0x13;
-    kinds[8] = 0x16;
-    kinds[9] = 9;
-    kinds[10] = 0xf;
-    kinds[11] = 0x17;
-    kinds[12] = 0x19;
-    kinds[13] = 0x1a;
-    kinds[14] = 0x18;
-    kinds[15] = 8;
-    kinds[16] = 0xe;
-    kinds[17] = 0x12;
-    kinds[18] = 0x14;
-    kinds[19] = 0x15;
-    if (c == 0)
-        return -1;
-    n = 0;
-    tries = 0x20;
-    if (c->bld != 0 && c->bld->object != 0) {
-        list[0] = c->bld->id;
-        n = 1;
-    }
-    if (c->bld2 != 0 && c->bld2->object != 0) {
-        list[n] = c->bld2->id;
+  kinds[0] = 1;
+  kinds[1] = 2;
+  kinds[2] = 5;
+  kinds[3] = 7;
+  kinds[4] = 10;
+  kinds[5] = 6;
+  kinds[6] = 4;
+  kinds[7] = 0x13;
+  kinds[8] = 0x16;
+  kinds[9] = 9;
+  kinds[10] = 0xf;
+  kinds[11] = 0x17;
+  kinds[12] = 0x19;
+  kinds[13] = 0x1a;
+  kinds[14] = 0x18;
+  kinds[15] = 8;
+  kinds[16] = 0xe;
+  kinds[17] = 0x12;
+  kinds[18] = 0x14;
+  kinds[19] = 0x15;
+  if (c == 0)
+    return -1;
+  n = 0;
+  tries = 0x20;
+  if (c->bld != 0 && c->bld->object != 0) {
+    list[0] = c->bld->id;
+    n = 1;
+  }
+  if (c->bld2 != 0 && c->bld2->object != 0) {
+    list[n] = c->bld2->id;
+    n++;
+  }
+  while (n < 16 && tries != 0) {
+    tries--;
+    idx = util_Random(4) * 5 + util_Random(5);
+    k = 0;
+    o = gm_BuildQuery(1, 5, kinds[idx]);
+    while (o != 0 && k < 3) {
+      if (n >= 16)
+        break;
+      if (util_Random(4) < 3) {
+        list[n] = o->id;
         n++;
+        k++;
+      }
+      o = gm_BuildNext();
     }
-    while (n < 16 && tries != 0) {
-        tries--;
-        idx = util_Random(4) * 5 + util_Random(5);
-        k = 0;
-        o = gm_BuildQuery(1, 5, kinds[idx]);
-        while (o != 0 && k < 3) {
-            if (n >= 16)
-                break;
-            if (util_Random(4) < 3) {
-                list[n] = o->id;
-                n++;
-                k++;
-            }
-            o = gm_BuildNext();
-        }
-    }
-    return list[util_Random(n)];
+  }
+  return list[util_Random(n)];
 }
 /* 0x4f8890, copies the kind record i (below 0x58) of ord_KindTable to out; 0 for a bad i */
-int ord_GetKindRecord(int i, ORDKIND *out)
-{
-    if (i >= 0x58)
-        return 0;
-    out->pair[0] = ord_KindTable[i].pair[0];
-    out->pair[1] = ord_KindTable[i].pair[1];
-    return 1;
+int ord_GetKindRecord(int i, ORDKIND *out) {
+  if (i >= 0x58)
+    return 0;
+  out->pair[0] = ord_KindTable[i].pair[0];
+  out->pair[1] = ord_KindTable[i].pair[1];
+  return 1;
 }
 /* 0x4f88c0, shifts the 15 rounds of ord_StatisticsHistory down by one (the oldest drops out) and fills the last one from ord_Statistics (out[1] .. out[3] and the score out[9]) and ai_RatingBase truncated */
 
-void ord_AppendStatisticsRound(void)
-{
-    memmove(&ord_StatisticsHistory[0], &ord_StatisticsHistory[1], 0x12c);
-    ord_StatisticsHistory[15].noFirst = ord_Statistics.col[1];
-    ord_StatisticsHistory[15].combined = ord_Statistics.col[2];
-    ord_StatisticsHistory[15].noSecond = ord_Statistics.col[3];
-    ord_StatisticsHistory[15].score = ord_Statistics.score;
-    ord_StatisticsHistory[15].base = (int)ai_RatingBase;
+void ord_AppendStatisticsRound(void) {
+  memmove(&ord_StatisticsHistory[0], &ord_StatisticsHistory[1], 0x12c);
+  ord_StatisticsHistory[15].noFirst = ord_Statistics.col[1];
+  ord_StatisticsHistory[15].combined = ord_Statistics.col[2];
+  ord_StatisticsHistory[15].noSecond = ord_Statistics.col[3];
+  ord_StatisticsHistory[15].score = ord_Statistics.score;
+  ord_StatisticsHistory[15].base = (int)ai_RatingBase;
 }
 /* 0x4f8920, rebuilds the three float sums of every cell of the 8 x 8 grid ai_Grid from the open crimes of ai_Crimes
    (state set, id not -1): the building of the crime's place (gm_BuildQuery(1, 1, place)) must have a scene object
@@ -1920,66 +1938,65 @@ void ord_AppendStatisticsRound(void)
    cell gets w * 0.5 in halfWeightSum, each cell of the 3 x 3 neighbourhood w in weightSum and w * 0.5 in
    halfWeightSum */
 
-void ord_RebuildGridSums(void)
-{
-    CRIME *p;
-    CRIME r;
-    AIDEC dec;
-    int x;
-    int y;
-    float w;
-    AIBLD *b;
-    AIBTYPE *bt;
-    struct D3OBJECT *q;
-    int n;
-    int i;
-    int j;
-    int xhi;
-    int yhi;
-    int xlo;
-    int ylo;
+void ord_RebuildGridSums(void) {
+  CRIME *p;
+  CRIME r;
+  AIDEC dec;
+  int x;
+  int y;
+  float w;
+  AIBLD *b;
+  AIBTYPE *bt;
+  struct D3OBJECT *q;
+  int n;
+  int i;
+  int j;
+  int xhi;
+  int yhi;
+  int xlo;
+  int ylo;
 
-    for (i = 0; i < 8; i++) {
-        for (j = 0; j < 8; j++) {
-            ai_Grid[i][j].weightSum = 0;
-            ai_Grid[i][j].halfWeightSum = 0;
-            ai_Grid[i][j].buildingCount = 0;
-        }
+  for (i = 0; i < 8; i++) {
+    for (j = 0; j < 8; j++) {
+      ai_Grid[i][j].weightSum = 0;
+      ai_Grid[i][j].halfWeightSum = 0;
+      ai_Grid[i][j].buildingCount = 0;
     }
-    for (n = 0; n < 0x200; n++) {
-        p = &ai_Crimes[n];
-        if (p->state == 0 || p->id == -1)
-            continue;
-        r = *p;
-        b = gm_BuildQuery(1, 1, r.place);
-        if (b == 0 || b->type == 0)
-            continue;
-        bt = &ai_BTypes[b->type];
-        q = b->object;
-        if (q == 0)
-            continue;
-        if ((bt->kind >= 0xb && bt->kind <= 0xd) || bt->kind == 0x10)
-            continue;
-        if (ord_GetGridCell(&q->pos, &x, &y) == 0)
-            continue;
-        gv_GetTableRecord(r.law, &dec);
-        w = (float)r.count / dec.crimeCount * dec.guilt;
-        ai_Grid[x][y].halfWeightSum += w * 0.5f;
-        xhi = x + 1 > 8 ? 8 : x + 1;
-        yhi = y + 1 > 8 ? 8 : y + 1;
-        xlo = x - 1 < 0 ? 0 : x - 1;
-        for (i = xlo; i <= xhi; i++) {
-            ylo = y - 1 < 0 ? 0 : y - 1;
-            for (j = ylo; j <= yhi; j++) {
-                ORD_CELLS[j + i * 8].weightSum += w;
-                ORD_CELLS[j + i * 8].halfWeightSum += w * 0.5f;
-            }
-        }
+  }
+  for (n = 0; n < 0x200; n++) {
+    p = &ai_Crimes[n];
+    if (p->state == 0 || p->id == -1)
+      continue;
+    r = *p;
+    b = gm_BuildQuery(1, 1, r.place);
+    if (b == 0 || b->type == 0)
+      continue;
+    bt = &ai_BTypes[b->type];
+    q = b->object;
+    if (q == 0)
+      continue;
+    if ((bt->kind >= 0xb && bt->kind <= 0xd) || bt->kind == 0x10)
+      continue;
+    if (ord_GetGridCell(&q->pos, &x, &y) == 0)
+      continue;
+    gv_GetTableRecord(r.law, &dec);
+    w = (float)r.count / dec.crimeCount * dec.guilt;
+    ai_Grid[x][y].halfWeightSum += w * 0.5f;
+    xhi = x + 1 > 8 ? 8 : x + 1;
+    yhi = y + 1 > 8 ? 8 : y + 1;
+    xlo = x - 1 < 0 ? 0 : x - 1;
+    for (i = xlo; i <= xhi; i++) {
+      ylo = y - 1 < 0 ? 0 : y - 1;
+      for (j = ylo; j <= yhi; j++) {
+        ORD_CELLS[j + i * 8].weightSum += w;
+        ORD_CELLS[j + i * 8].halfWeightSum += w * 0.5f;
+      }
     }
+  }
 }
 
-float gm_IncomeRating();                       /* 0x4f9ec0 */
-void cm_SendMessage41(void *p);                         /* 0x4c5800 */
+float gm_IncomeRating();        /* 0x4f9ec0 */
+void cm_SendMessage41(void *p); /* 0x4c5800 */
 
 /* 0x4f8ae0, the statistics of the characters and buildings into the 10-dword record out (floats but for the ints
    out[4], out[7], out[8]): counts the characters of kind 0 / 1 and their two buildings (bld / bld2), adds 1.0 to
@@ -1988,107 +2005,108 @@ void cm_SendMessage41(void *p);                         /* 0x4c5800 */
    the grid cells and rates the result (ord_WeightedRecordSum, ord_StatisticsRating, gm_IncomeRating). out[0] the
    income rating, out[1] / out[3] the shares without a bld / bld2, out[2] the combined rating, out[4] the number of
 characters, out[5] the rating, out[7] / out[8] the kind sums, out[9] the overall score */
-void ord_ComputeStatistics(ORDSTATS *out)
-{
-    int cnt, n1, n0, i, j, k;
-    int sumA, sumC, sumD, s58, s54, s50, s4c;
-    float cntf, f, m, sum, w, g;
-    float q3, q1, q2, income;               /* the inverted shares and the income rating of out->score */
-    AICHAR *c;
-    AIBLD *p;
-    unsigned char *b;
-    unsigned char *bt;
-    ORDKIND *t;
-    int rec[12];
+void ord_ComputeStatistics(ORDSTATS *out) {
+  int cnt, n1, n0, i, j, k;
+  int sumA, sumC, sumD, s58, s54, s50, s4c;
+  float cntf, f, m, sum, w, g;
+  float q3, q1, q2,
+      income; /* the inverted shares and the income rating of out->score */
+  AICHAR *c;
+  AIBLD *p;
+  unsigned char *b;
+  unsigned char *bt;
+  ORDKIND *t;
+  int rec[12];
 
-    cnt = 0;
-    n1 = 0;
-    n0 = 0;
-    sumA = 0;
-    sumD = 0;
-    sumC = 0;
-    m = 0;
-    sum = 0;
-    ord_RebuildGridSums();
-    for (i = 0; i < 0x300; i++) {
-        c = &ai_Chars[i];
-        if (c->id == 0xffff || c->kind != 0 && c->kind != 1)
-            continue;
-        cnt++;
-        if (c->bld != 0) {
-            int x, y;
+  cnt = 0;
+  n1 = 0;
+  n0 = 0;
+  sumA = 0;
+  sumD = 0;
+  sumC = 0;
+  m = 0;
+  sum = 0;
+  ord_RebuildGridSums();
+  for (i = 0; i < 0x300; i++) {
+    c = &ai_Chars[i];
+    if (c->id == 0xffff || c->kind != 0 && c->kind != 1)
+      continue;
+    cnt++;
+    if (c->bld != 0) {
+      int x, y;
 
-            bt = (unsigned char *)ai_BTypes + c->bld->type * 0x24d;
-            n0++;
-            if (c->bld->object != 0 && (*bt < 0xb || *bt > 0xd) && *bt != 0x10
-                && ord_GetGridCell(&c->bld->object->pos, &x, &y) != 0)
-                ai_Grid[x][y].buildingCount += 1.0f;
-        }
-        if (c->bld2 != 0) {
-            int x, y;
-
-            bt = (unsigned char *)ai_BTypes + c->bld2->type * 0x24d;
-            n1++;
-            if (c->bld2->object != 0 && (*bt < 0xb || *bt > 0xd) && *bt != 0x10
-                && ord_GetGridCell(&c->bld2->object->pos, &x, &y) != 0)
-                ai_Grid[x][y].buildingCount += 1.0f;
-        }
+      bt = (unsigned char *)ai_BTypes + c->bld->type * 0x24d;
+      n0++;
+      if (c->bld->object != 0 && (*bt < 0xb || *bt > 0xd) && *bt != 0x10 &&
+          ord_GetGridCell(&c->bld->object->pos, &x, &y) != 0)
+        ai_Grid[x][y].buildingCount += 1.0f;
     }
-    s50 = 0;
-    s58 = 0;
-    s4c = 0;
-    s54 = 0;
-    p = ai_Blds;
-    for (i = 0; i < 0x100; i++, p++) {
-        if (p->type == 0 || p->type >= 0x44 || p->owner == 0xffff)
-            continue;
-        t = &ord_KindTable[p->type];
-        b = (unsigned char *)ai_BTypes + p->type * 0x24d;
-        sumA += t->residents;
-        sumC += t->w4;
-        sumD += t->w2;
-        if (t->w2 > 0) {
-            s58 += b[0x247];
-            s54 += b[0x248];
-        }
-        if (t->w6 != 0) {
-            s50 += b[0x247];
-            s4c += b[0x248];
-        }
-    }
-    k = ord_KindTable[1].residents * 2;
-    if (sumA <= k)
-        sumA = k;
-    cntf = (float)cnt;
-    out->rating = cntf / sumA * ((float)s50 / s4c * ((float)s58 / s54) + 0.5) * sumD;
-    out->sumC = sumC;
-    out->chars = cnt;
-    out->sumA = sumA;
-    out->col[0] = gm_IncomeRating();
-    /* @original the shares divide in double: two float divisions by cntf become one shared reciprocal (VC6), the
-       original divides twice */
-    out->col[3] = 1.0f - (float)(n1 / (double)cntf);
-    out->col[1] = 1.0f - (float)(n0 / (double)cntf);
+    if (c->bld2 != 0) {
+      int x, y;
 
-    for (i = 0; i < 8; i++) {
-        for (j = 0; j < 8; j++) {
-            m = max(m, ai_Grid[i][j].halfWeightSum);
-            w = ai_Grid[i][j].weightSum > 1.0f ? ai_Grid[i][j].weightSum : 1.0f;
-            ai_Grid[i][j].weightSum = w;
-            g = ai_Grid[i][j].buildingCount / (cntf + cntf);
-            ai_Grid[i][j].buildingCount = g;
-            sum += ai_Grid[i][j].halfWeightSum / w * g;
-        }
+      bt = (unsigned char *)ai_BTypes + c->bld2->type * 0x24d;
+      n1++;
+      if (c->bld2->object != 0 && (*bt < 0xb || *bt > 0xd) && *bt != 0x10 &&
+          ord_GetGridCell(&c->bld2->object->pos, &x, &y) != 0)
+        ai_Grid[x][y].buildingCount += 1.0f;
     }
-    f = ord_WeightedRecordSum(rec);
-    f = (float)((1.0 - (f * 0.7f + ord_StatisticsRating(rec) * 0.3)) * sum);
-    out->col[2] = f;
-    q3 = 1.0f - out->col[3];
-    q1 = 1.0f - out->col[1];
-    income = out->col[0];
-    q2 = 1.0f - f;
-    out->score = ((q2 + income + q1 + q3) * 0.25f
-              + q2 * income * q1 * q3 * 2) * 0.33333334f;
+  }
+  s50 = 0;
+  s58 = 0;
+  s4c = 0;
+  s54 = 0;
+  p = ai_Blds;
+  for (i = 0; i < 0x100; i++, p++) {
+    if (p->type == 0 || p->type >= 0x44 || p->owner == 0xffff)
+      continue;
+    t = &ord_KindTable[p->type];
+    b = (unsigned char *)ai_BTypes + p->type * 0x24d;
+    sumA += t->residents;
+    sumC += t->w4;
+    sumD += t->w2;
+    if (t->w2 > 0) {
+      s58 += b[0x247];
+      s54 += b[0x248];
+    }
+    if (t->w6 != 0) {
+      s50 += b[0x247];
+      s4c += b[0x248];
+    }
+  }
+  k = ord_KindTable[1].residents * 2;
+  if (sumA <= k)
+    sumA = k;
+  cntf = (float)cnt;
+  out->rating =
+      cntf / sumA * ((float)s50 / s4c * ((float)s58 / s54) + 0.5) * sumD;
+  out->sumC = sumC;
+  out->chars = cnt;
+  out->sumA = sumA;
+  out->col[0] = gm_IncomeRating();
+  /* @original the shares divide in double: two float divisions by cntf become one shared reciprocal (VC6), the
+     original divides twice */
+  out->col[3] = 1.0f - (float)(n1 / (double)cntf);
+  out->col[1] = 1.0f - (float)(n0 / (double)cntf);
+
+  for (i = 0; i < 8; i++) {
+    for (j = 0; j < 8; j++) {
+      m = max(m, ai_Grid[i][j].halfWeightSum);
+      w = ai_Grid[i][j].weightSum > 1.0f ? ai_Grid[i][j].weightSum : 1.0f;
+      ai_Grid[i][j].weightSum = w;
+      g = ai_Grid[i][j].buildingCount / (cntf + cntf);
+      ai_Grid[i][j].buildingCount = g;
+      sum += ai_Grid[i][j].halfWeightSum / w * g;
+    }
+  }
+  f = ord_WeightedRecordSum(rec);
+  f = (float)((1.0 - (f * 0.7f + ord_StatisticsRating(rec) * 0.3)) * sum);
+  out->col[2] = f;
+  q3 = 1.0f - out->col[3];
+  q1 = 1.0f - out->col[1];
+  income = out->col[0];
+  q2 = 1.0f - f;
+  out->score = ((q2 + income + q1 + q3) * 0.25f + q2 * income * q1 * q3 * 2) *
+               0.33333334f;
 }
 /* 0x4f8ed0, recomputes the statistics (ord_ComputeStatistics) into ord_Statistics, smooths the rating out[5] into
    ai_Rating (the first time ai_RatingBase starts at 0.95 of it), sets the change rate ord_RatingRate from the gap
@@ -2096,37 +2114,36 @@ void ord_ComputeStatistics(ORDSTATS *out)
    restores). The copy into ord_Statistics stands in both arms (VC6 hoists it in front of the branch, in the
    original's edi / esi / ecx order). */
 
-void ord_UpdateStatistics(void)
-{
-    ORDSTATS st;
-    ORDSAVE m;
+void ord_UpdateStatistics(void) {
+  ORDSTATS st;
+  ORDSAVE m;
 
-    ord_ComputeStatistics(&st);
-    if (ai_RatingBase == 0.0f) {
-        memcpy(&ord_Statistics, &st, sizeof ord_Statistics);
-        ai_Rating = st.rating;
-        ai_RatingBase = st.rating * 0.95;
-    } else {
-        memcpy(&ord_Statistics, &st, sizeof ord_Statistics);
-        ai_Rating = (st.rating - ai_Rating) * 0.5f + ai_Rating;
-    }
-    ord_Statistics.rating = ai_Rating;
-    ord_Statistics.base = ai_RatingBase;
-    ord_RatingRate = (ai_Rating - ai_RatingBase) * 0.0007336182331406322;
-    ord_StatisticsClock = ai_Time;
-    m.col[0] = ord_Statistics.col[0];
-    m.col[1] = ord_Statistics.col[1];
-    m.col[2] = ord_Statistics.col[2];
-    m.col[3] = ord_Statistics.col[3];
-    m.chars = ord_Statistics.chars;
-    m.rating = ai_Rating;
-    m.base = ai_RatingBase;
-    m.sumC = ord_Statistics.sumC;
-    m.sumA = ord_Statistics.sumA;
-    m.score = ord_Statistics.score;
-    m.rate = ord_RatingRate;
-    m.clock = ord_StatisticsClock;
-    cm_SendMessage41(&m);
+  ord_ComputeStatistics(&st);
+  if (ai_RatingBase == 0.0f) {
+    memcpy(&ord_Statistics, &st, sizeof ord_Statistics);
+    ai_Rating = st.rating;
+    ai_RatingBase = st.rating * 0.95;
+  } else {
+    memcpy(&ord_Statistics, &st, sizeof ord_Statistics);
+    ai_Rating = (st.rating - ai_Rating) * 0.5f + ai_Rating;
+  }
+  ord_Statistics.rating = ai_Rating;
+  ord_Statistics.base = ai_RatingBase;
+  ord_RatingRate = (ai_Rating - ai_RatingBase) * 0.0007336182331406322;
+  ord_StatisticsClock = ai_Time;
+  m.col[0] = ord_Statistics.col[0];
+  m.col[1] = ord_Statistics.col[1];
+  m.col[2] = ord_Statistics.col[2];
+  m.col[3] = ord_Statistics.col[3];
+  m.chars = ord_Statistics.chars;
+  m.rating = ai_Rating;
+  m.base = ai_RatingBase;
+  m.sumC = ord_Statistics.sumC;
+  m.sumA = ord_Statistics.sumA;
+  m.score = ord_Statistics.score;
+  m.rate = ord_RatingRate;
+  m.clock = ord_StatisticsClock;
+  cm_SendMessage41(&m);
 }
 /* 0x4f9020, restores the statistics record from a saved record of 15 words (the fields of ORDSAVE): the five
    columns, ai_Rating / ai_RatingBase, the three values, the rate and the clock stamp; then rebuilds the rating
@@ -2148,76 +2165,75 @@ void ord_UpdateStatistics(void)
    ai_RatingBase: worse. (tiebreak: insensitive)
    */
 
-void ord_LoadStatistics(void *p)
-{
-    ORDSAVE *s = p;
-    AITIME *clk;
-    float rating, base;
-    int sum[5];
-    int n, w, i, j;
+void ord_LoadStatistics(void *p) {
+  ORDSAVE *s = p;
+  AITIME *clk;
+  float rating, base;
+  int sum[5];
+  int n, w, i, j;
 
-    n = 0;
-    w = 0;
-    ord_Statistics.col[0] = s->col[0];
-    ord_Statistics.col[1] = s->col[1];
-    ord_Statistics.col[2] = s->col[2];
-    ord_Statistics.col[3] = s->col[3];
-    ord_Statistics.chars = s->chars;
-    rating = s->rating;
-    ord_Statistics.rating = rating;
-    base = s->base;
-    ord_Statistics.base = base;
-    ord_Statistics.sumC = s->sumC;
-    ord_Statistics.sumA = s->sumA;
-    ord_Statistics.score = s->score;
-    ord_RatingRate = s->rate;
-    clk = &s->clock;
-    ord_StatisticsClock = *clk;
-    ai_RatingBase = base;
-    ai_Rating = rating;
-    for (i = 0; i < 5; i++)
-        sum[i] = 0;
-    for (j = 0; j < 768; j++) {
-        if (ai_Chars[j].id != 0xffff && ORD_CHARKINDS[j].kind < 10 && ORD_CHARKINDS[j].health > 0) {
-            n++;
-            w += ORD_CHARKINDS[j].level * 5;
-            for (i = 0; i < 5; i++)
-                sum[i] += ORD_CHARKINDS[j].stats[i];
-        }
+  n = 0;
+  w = 0;
+  ord_Statistics.col[0] = s->col[0];
+  ord_Statistics.col[1] = s->col[1];
+  ord_Statistics.col[2] = s->col[2];
+  ord_Statistics.col[3] = s->col[3];
+  ord_Statistics.chars = s->chars;
+  rating = s->rating;
+  ord_Statistics.rating = rating;
+  base = s->base;
+  ord_Statistics.base = base;
+  ord_Statistics.sumC = s->sumC;
+  ord_Statistics.sumA = s->sumA;
+  ord_Statistics.score = s->score;
+  ord_RatingRate = s->rate;
+  clk = &s->clock;
+  ord_StatisticsClock = *clk;
+  ai_RatingBase = base;
+  ai_Rating = rating;
+  for (i = 0; i < 5; i++)
+    sum[i] = 0;
+  for (j = 0; j < 768; j++) {
+    if (ai_Chars[j].id != 0xffff && ORD_CHARKINDS[j].kind < 10 &&
+        ORD_CHARKINDS[j].health > 0) {
+      n++;
+      w += ORD_CHARKINDS[j].level * 5;
+      for (i = 0; i < 5; i++)
+        sum[i] += ORD_CHARKINDS[j].stats[i];
     }
-    for (i = 0; i < 5; i++)
-        ord_RatingBytes[i] = (char)(int)((double)sum[i] / (double)n);
-    ord_RatingBytes[5] = (char)(int)((double)w / (double)n);
-    ord_ReportStatistics();
+  }
+  for (i = 0; i < 5; i++)
+    ord_RatingBytes[i] = (char)(int)((double)sum[i] / (double)n);
+  ord_RatingBytes[5] = (char)(int)((double)w / (double)n);
+  ord_ReportStatistics();
 }
 
 /* 0x4f9170, copies the 9 ints of the record 0x91b480 (the clear-able table of 0x4f82a0) to out */
-void ord_GetMessageRecord(ORDMSGREC *out)
-{
-    memcpy(out, &ord_MessageRecord, 0x24);
+void ord_GetMessageRecord(ORDMSGREC *out) {
+  memcpy(out, &ord_MessageRecord, 0x24);
 }
 /* 0x4f9190, sends the message 0x4c5e80 built from the record 0x91b480 with its fields replaced by
    (a, 0, ai_Time, b, c, 0, d, 0, 0) and the tag 'init' at +0x24: the first frame of a game */
 
-void ord_InitMessageRecord(int a, float b, float c, float d)
-{
-    ORDINITMSG m;
+void ord_InitMessageRecord(int a, float b, float c, float d) {
+  ORDINITMSG m;
 
-    ORD_COPY(&m, offset ord_MessageRecord, 0x24);
-    m.tag = 0x696e6974;
-    m.record.enabled = a;
-    m.record.count = 0;
-    m.record.time = ai_Time.year;
-    m.record.base = b;
-    m.record.scale = c;
-    m.record.value = 0.0f;
-    m.record.limit = d;
-    m.record.phase = 0;
-    m.record.stage = 0;
-    cm_SendMessage56(&m);
+  ORD_COPY(&m, offset ord_MessageRecord, 0x24);
+  m.tag = 0x696e6974;
+  m.record.enabled = a;
+  m.record.count = 0;
+  m.record.time = ai_Time.year;
+  m.record.base = b;
+  m.record.scale = c;
+  m.record.value = 0.0f;
+  m.record.limit = d;
+  m.record.phase = 0;
+  m.record.stage = 0;
+  cm_SendMessage56(&m);
 }
 
-int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);                     /* 0x53dda0 */
+int he_ShowNews(int pid, int fl, char *text, int unused, int ev,
+                char *text2); /* 0x53dda0 */
 
 /* 0x4f9220, advances the message event record 0x91b480 (ORDMSGREC): disabled it does nothing; idle (phase 0) it
    adds random * scale + base to the accumulator and, above the limit, counts the message, timestamps the record,
@@ -2225,152 +2241,149 @@ int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2);  
    the stage), sends the long message 0x59 / 0x4e / 0x50 to the player (character ai_PlayerChar, gm_AddTime later)
    and finally the whole record (message 0x4c5e80, tag 'set '); running, it returns while he_FindEvent (1, 0, the
    phase's event) exists, else clears the phase and the accumulator. */
-void ord_UpdateMessageEvent(void)
-{
-    ORDMSGREC r;
-    ORDINITMSG out;
-    AIMSG msg;
+void ord_UpdateMessageEvent(void) {
+  ORDMSGREC r;
+  ORDINITMSG out;
+  AIMSG msg;
 
-    if (ord_MessageRecord.enabled != 1)
+  if (ord_MessageRecord.enabled != 1)
+    return;
+  r = ord_MessageRecord;
+  if (ord_MessageRecord.phase > 0) {
+    if (ord_MessageRecord.phase == 1) {
+      if (he_FindEvent(1, 0, 0x59) != 0)
         return;
-    r = ord_MessageRecord;
-    if (ord_MessageRecord.phase > 0) {
-        if (ord_MessageRecord.phase == 1) {
-            if (he_FindEvent(1, 0, 0x59) != 0)
-                return;
-        } else if (ord_MessageRecord.phase == 2) {
-            if (he_FindEvent(1, 0, 0x4e) != 0)
-                return;
-        } else if (ord_MessageRecord.phase == 3) {
-            if (he_FindEvent(1, 0, 0x50) != 0)
-                return;
-        }
-        r.phase = 0;
-        r.value = 0.0f;
-    } else if ((r.value = util_RandomF() * r.scale + r.base + r.value) > r.limit) {
-        memset(&msg, 0, sizeof(msg));
-        r.count++;
-        r.time = ai_Time.year;
-        if (r.stage >= 4) {
-            r.stage = 0;
-            r.phase = 3;
-        } else if (r.stage == 0) {
-            r.phase = 3;
-        } else if (r.stage == 1) {
-            int t[16] = { 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 };
-
-            r.phase = t[util_Random(0x10)] + 1;
-        } else if (r.stage == 2) {
-            int t[16] = { 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2 };
-
-            r.phase = t[util_Random(0x10)] + 1;
-        } else {
-            int t[16] = { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2 };
-
-            r.phase = t[util_Random(0x10)] + 1;
-        }
-        if (r.phase == 1) {
-            msg.type = 0x59;
-            msg.to = ai_PlayerChar->netId;
-            msg.fromId = -1;
-            msg.time = ai_Time;
-            msg.flags = 2;
-            msg.arg[0] = util_Random(3) * 3;
-            msg.time = ai_Time;
-            msg.time.min = 0;
-            if (ai_Time.hour < 0x17 && ai_Time.hour >= 7)
-                gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
-            else
-                gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
-            cm_SendLongMessage(&msg);
-        } else if (r.phase == 2) {
-            msg.type = 0x4e;
-            msg.to = ai_PlayerChar->netId;
-            msg.fromId = -1;
-            msg.arg[0] = -1;
-            msg.flags = 1;
-            msg.word9c = 1000;
-            msg.time = ai_Time;
-            msg.time.min = 0;
-            if (ai_Time.hour >= 0x17)
-                gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
-            else
-                gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
-            cm_SendLongMessage(&msg);
-        } else if (r.phase == 3) {
-            msg.type = 0x50;
-            msg.to = ai_PlayerChar->netId;
-            msg.fromId = -1;
-            msg.time = ai_Time;
-            msg.flags = 2;
-            msg.arg[0] = -1;
-            msg.word9c = 1000;
-            if (ai_Time.hour >= 0x17)
-                gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
-            else
-                gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
-            cm_SendLongMessage(&msg);
-        }
-        r.stage = r.phase;
+    } else if (ord_MessageRecord.phase == 2) {
+      if (he_FindEvent(1, 0, 0x4e) != 0)
+        return;
+    } else if (ord_MessageRecord.phase == 3) {
+      if (he_FindEvent(1, 0, 0x50) != 0)
+        return;
     }
-    ORD_COPY3(&out, &r, 0x24);
-    out.tag = 0x73657420;
-    cm_SendMessage56(&out);
+    r.phase = 0;
+    r.value = 0.0f;
+  } else if ((r.value = util_RandomF() * r.scale + r.base + r.value) >
+             r.limit) {
+    memset(&msg, 0, sizeof(msg));
+    r.count++;
+    r.time = ai_Time.year;
+    if (r.stage >= 4) {
+      r.stage = 0;
+      r.phase = 3;
+    } else if (r.stage == 0) {
+      r.phase = 3;
+    } else if (r.stage == 1) {
+      int t[16] = {0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2};
+
+      r.phase = t[util_Random(0x10)] + 1;
+    } else if (r.stage == 2) {
+      int t[16] = {0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2};
+
+      r.phase = t[util_Random(0x10)] + 1;
+    } else {
+      int t[16] = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2};
+
+      r.phase = t[util_Random(0x10)] + 1;
+    }
+    if (r.phase == 1) {
+      msg.type = 0x59;
+      msg.to = ai_PlayerChar->netId;
+      msg.fromId = -1;
+      msg.time = ai_Time;
+      msg.flags = 2;
+      msg.arg[0] = util_Random(3) * 3;
+      msg.time = ai_Time;
+      msg.time.min = 0;
+      if (ai_Time.hour < 0x17 && ai_Time.hour >= 7)
+        gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
+      else
+        gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
+      cm_SendLongMessage(&msg);
+    } else if (r.phase == 2) {
+      msg.type = 0x4e;
+      msg.to = ai_PlayerChar->netId;
+      msg.fromId = -1;
+      msg.arg[0] = -1;
+      msg.flags = 1;
+      msg.word9c = 1000;
+      msg.time = ai_Time;
+      msg.time.min = 0;
+      if (ai_Time.hour >= 0x17)
+        gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
+      else
+        gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
+      cm_SendLongMessage(&msg);
+    } else if (r.phase == 3) {
+      msg.type = 0x50;
+      msg.to = ai_PlayerChar->netId;
+      msg.fromId = -1;
+      msg.time = ai_Time;
+      msg.flags = 2;
+      msg.arg[0] = -1;
+      msg.word9c = 1000;
+      if (ai_Time.hour >= 0x17)
+        gm_AddTime(&msg.time, util_Random(4) + 7, util_Random(2) * 0x1e, 0);
+      else
+        gm_AddTime(&msg.time, util_Random(4), util_Random(2) * 0x1e, 0);
+      cm_SendLongMessage(&msg);
+    }
+    r.stage = r.phase;
+  }
+  ORD_COPY3(&out, &r, 0x24);
+  out.tag = 0x73657420;
+  cm_SendMessage56(&out);
 }
 /* 0x4f9710, the handler of the message 0x4c5e80 sends (0x4f9190): the tag at +0x24 'init' / 'set ' (stored
    byte-swapped, as the message carries it) copies the 9 ints to the record 0x91b480 (1); 'dsbl' / 'enbl' clear /
    set its first int (1); anything else 0 */
 
-int ord_HandleMessageRecord(ORDINITMSG *m)
-{
-    switch ((unsigned)m->tag) {
-    case 0x656e626c:                    /* 'enbl' */
-        ord_MessageRecord.enabled = 1;
-        break;
-    case 0x6473626c:                    /* 'dsbl' */
-        ord_MessageRecord.enabled = 0;
-        break;
-    case 0x696e6974:                    /* 'init' */
-    case 0x73657420:                    /* 'set ' */
-        ORD_COPY_AT(offset ord_MessageRecord, m, 0x24);
-        break;
-    default:
-        return 0;
-    }
-    return 1;
+int ord_HandleMessageRecord(ORDINITMSG *m) {
+  switch ((unsigned)m->tag) {
+  case 0x656e626c: /* 'enbl' */
+    ord_MessageRecord.enabled = 1;
+    break;
+  case 0x6473626c: /* 'dsbl' */
+    ord_MessageRecord.enabled = 0;
+    break;
+  case 0x696e6974: /* 'init' */
+  case 0x73657420: /* 'set ' */
+    ORD_COPY_AT(offset ord_MessageRecord, m, 0x24);
+    break;
+  default:
+    return 0;
+  }
+  return 1;
 }
 /* 0x4f97a0, byte i (below 5) of 0x91b460, 0x7e for others */
 
-unsigned char ord_GetRatingByte(int i)
-{
-    if (i >= 5)
-        return 0x7e;
-    return ord_RatingBytes[i];
+unsigned char ord_GetRatingByte(int i) {
+  if (i >= 5)
+    return 0x7e;
+  return ord_RatingBytes[i];
 }
 /* 0x4f97c0, the ratio of the sums of the bytes +0x247 and +0x248 of the building records (ai_BTypes, 0x24d bytes per kind) of the 32 slots (0xa9 bytes each, the byte +0xa9 of the table 0x889f74 points to = the kind, 0 = free); the first sum over the second, 0 when the second is 0 */
 
-float ord_BuildingCapacityRatio(void)
-{
-    int a;
-    int b;
-    int i;
-    AIBLD *p;
-    AIBTYPE *r;
+float ord_BuildingCapacityRatio(void) {
+  int a;
+  int b;
+  int i;
+  AIBLD *p;
+  AIBTYPE *r;
 
-    a = 0;
-    b = 0;
-    p = &ai_Blds[1];
-    for (i = 0; i < 0x20; i++) {
-        if (p->type != 0) {
-            r = &ai_BTypes[p->type];
-            a += r->level;
-            b += r->maxLevel;
-        }
-        p++;
+  a = 0;
+  b = 0;
+  p = &ai_Blds[1];
+  for (i = 0; i < 0x20; i++) {
+    if (p->type != 0) {
+      r = &ai_BTypes[p->type];
+      a += r->level;
+      b += r->maxLevel;
     }
-    if (b != 0)
-        return (float)a / b;
-    return 0.0f;
+    p++;
+  }
+  if (b != 0)
+    return (float)a / b;
+  return 0.0f;
 }
 /* 0x4f9850, ord_ReportStatistics, in a game year >= 8 divisible by 4: averages the last four rounds of the
    statistics history (ord_StatisticsHistory[12..15]) into a = the share without the second object, b = the share
@@ -2384,117 +2397,120 @@ float ord_BuildingCapacityRatio(void)
    0x1c0f (ending 0x1c10), and sends it (flag 1) and then the tier phrase to every player character (kind 6, its
    netId) through he_ShowNews (0x53dda0, event 0x5f8); with a d in between the tier phrase goes out alone. */
 
-void ord_ReportStatistics(void)
-{
-    float a, b, c, d, v, m;
-    int txt0, txt1, txt2, txt3, k, i;
-    int ids[4];                         /* the base text id of the four columns; the higher tiers are the entries
-                                           2 / 4 further, as the original indexes them (the tie k on a 4-element
-                                           table is the original's own indexing, kept for the byte check) */
-    char sentence[0x200];
-    char tierText[0x200];
-    int any;
+void ord_ReportStatistics(void) {
+  float a, b, c, d, v, m;
+  int txt0, txt1, txt2, txt3, k, i;
+  int ids
+      [4]; /* the base text id of the four columns; the higher tiers are the entries
+              2 / 4 further, as the original indexes them (the tie k on a 4-element
+              table is the original's own indexing, kept for the byte check) */
+  char sentence[0x200];
+  char tierText[0x200];
+  int any;
 
-    if (ai_Time.year < 8 || ai_Time.year % 4 != 0)
-        return;
-    a = (ord_StatisticsHistory[15].noSecond + ord_StatisticsHistory[14].noSecond
-         + ord_StatisticsHistory[13].noSecond + ord_StatisticsHistory[12].noSecond) * 0.25f;
-    b = (ord_StatisticsHistory[15].noFirst + ord_StatisticsHistory[14].noFirst
-         + ord_StatisticsHistory[13].noFirst + ord_StatisticsHistory[12].noFirst) * 0.25f;
-    c = (ord_StatisticsHistory[15].combined + ord_StatisticsHistory[14].combined
-         + ord_StatisticsHistory[13].combined + ord_StatisticsHistory[12].combined) * 0.25f;
-    d = (ord_StatisticsHistory[15].score + ord_StatisticsHistory[14].score
-         + ord_StatisticsHistory[13].score + ord_StatisticsHistory[12].score) * 0.25f;
-    v = gm_IncomeRating();
-    txt0 = a <= 0.15 ? 0x1c11 : 0x1c15;
-    txt1 = b <= 0.15 ? 0x1c12 : 0x1c16;
-    txt2 = v >= 0.0 ? 0x1c13 : 0x1c17;
-    txt3 = c <= 0.15 ? 0x1c14 : 0x1c18;
-    k = 0;
-    any = 0;
-    m = a;
-    if (b > m)
-        k = 1;
-    m = m < b ? m : b;
-    if (v > m)
-        k = 2;
-    m = m < v ? m : v;
-    if (c > m)
-        k = 3;
-    m = m < c ? m : c;
-    if (m > 0.2) {
-        ids[0] = 0x1bf5;
-        ids[1] = 0x1bfb;
-        ids[2] = 0x1c01;
-        ids[3] = 0x1c07;
-        if (m < 0.3) {
-            txt_Format(tierText, (intptr_t)"%s%s", ids[k], ids[k] + 1);
-            any = 1;
-        } else if (m < 0.5) {
-            txt_Format(tierText, (intptr_t)"%s%s", ids[k + 2], ids[k + 2] + 1);
-            any = 1;
-        } else {
-            txt_Format(tierText, (intptr_t)"%s%s", ids[k + 4], ids[k + 4] + 1);
-            any = 1;
-        }
+  if (ai_Time.year < 8 || ai_Time.year % 4 != 0)
+    return;
+  a = (ord_StatisticsHistory[15].noSecond + ord_StatisticsHistory[14].noSecond +
+       ord_StatisticsHistory[13].noSecond +
+       ord_StatisticsHistory[12].noSecond) *
+      0.25f;
+  b = (ord_StatisticsHistory[15].noFirst + ord_StatisticsHistory[14].noFirst +
+       ord_StatisticsHistory[13].noFirst + ord_StatisticsHistory[12].noFirst) *
+      0.25f;
+  c = (ord_StatisticsHistory[15].combined + ord_StatisticsHistory[14].combined +
+       ord_StatisticsHistory[13].combined +
+       ord_StatisticsHistory[12].combined) *
+      0.25f;
+  d = (ord_StatisticsHistory[15].score + ord_StatisticsHistory[14].score +
+       ord_StatisticsHistory[13].score + ord_StatisticsHistory[12].score) *
+      0.25f;
+  v = gm_IncomeRating();
+  txt0 = a <= 0.15 ? 0x1c11 : 0x1c15;
+  txt1 = b <= 0.15 ? 0x1c12 : 0x1c16;
+  txt2 = v >= 0.0 ? 0x1c13 : 0x1c17;
+  txt3 = c <= 0.15 ? 0x1c14 : 0x1c18;
+  k = 0;
+  any = 0;
+  m = a;
+  if (b > m)
+    k = 1;
+  m = m < b ? m : b;
+  if (v > m)
+    k = 2;
+  m = m < v ? m : v;
+  if (c > m)
+    k = 3;
+  m = m < c ? m : c;
+  if (m > 0.2) {
+    ids[0] = 0x1bf5;
+    ids[1] = 0x1bfb;
+    ids[2] = 0x1c01;
+    ids[3] = 0x1c07;
+    if (m < 0.3) {
+      txt_Format(tierText, (intptr_t)"%s%s", ids[k], ids[k] + 1);
+      any = 1;
+    } else if (m < 0.5) {
+      txt_Format(tierText, (intptr_t)"%s%s", ids[k + 2], ids[k + 2] + 1);
+      any = 1;
+    } else {
+      txt_Format(tierText, (intptr_t)"%s%s", ids[k + 4], ids[k + 4] + 1);
+      any = 1;
     }
-    if (d > 0.55) {
-        txt_Format(sentence, 0x1c0d, txt0, txt1, txt2, txt3, 0x1c0e);
-        for (i = 0; i < 768; i++)
-            if (ai_Chars[i].kind == 6) {
-                he_ShowNews(ai_Chars[i].netId, -1, sentence, 1, 0x5f8, 0);
-                if (any)
-                    he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
-            }
-        return;
-    }
-    if (d < 0.45) {
-        txt_Format(sentence, 0x1c0f, txt0, txt1, txt2, txt3, 0x1c10);
-        for (i = 0; i < 768; i++)
-            if (ai_Chars[i].kind == 6) {
-                he_ShowNews(ai_Chars[i].netId, -1, sentence, 1, 0x5f8, 0);
-                if (any)
-                    he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
-            }
-        return;
-    }
-    if (any) {
-        for (i = 0; i < 768; i++)
-            if (ai_Chars[i].kind == 6)
-                he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
-    }
+  }
+  if (d > 0.55) {
+    txt_Format(sentence, 0x1c0d, txt0, txt1, txt2, txt3, 0x1c0e);
+    for (i = 0; i < 768; i++)
+      if (ai_Chars[i].kind == 6) {
+        he_ShowNews(ai_Chars[i].netId, -1, sentence, 1, 0x5f8, 0);
+        if (any)
+          he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
+      }
+    return;
+  }
+  if (d < 0.45) {
+    txt_Format(sentence, 0x1c0f, txt0, txt1, txt2, txt3, 0x1c10);
+    for (i = 0; i < 768; i++)
+      if (ai_Chars[i].kind == 6) {
+        he_ShowNews(ai_Chars[i].netId, -1, sentence, 1, 0x5f8, 0);
+        if (any)
+          he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
+      }
+    return;
+  }
+  if (any) {
+    for (i = 0; i < 768; i++)
+      if (ai_Chars[i].kind == 6)
+        he_ShowNews(ai_Chars[i].netId, -1, tierText, 0, 0x5f8, 0);
+  }
 }
 /* 0x4f9c00, advances the float 0x6f1b9c by the time since the stamp 0x91b470 (14 bytes, the layout of the clock 0x770ae0): 0x4fe280 (stamp, clock) gives the elapsed steps k; no step: the stamp is set to the clock; otherwise, when the float 0x6f1ba0 is not 0 and the clock's hour (word at +4) is between 7 and 0x14, 0x6f1b9c += k * the float 0x91aaf4, clamped to 0x6f1ba0 * 0.25, and the stamp = the clock */
 
-void ord_AdvanceRatingBase(void)
-{
-    int k;
-    double lim;
+void ord_AdvanceRatingBase(void) {
+  int k;
+  double lim;
 
-    k = gm_MinutesBetween(&ord_StatisticsClock, &ai_Time);
-    if (k == 0) {
-        ord_StatisticsClock = ai_Time;
-        return;
-    }
-    if (ai_Rating != 0 && ai_Time.hour > 6
-        && ai_Time.hour < 0x15) {
-        ai_RatingBase = k * ord_RatingRate + ai_RatingBase;
-        lim = ai_Rating * 0.25;
-        if (ai_RatingBase < lim)
-            ai_RatingBase = (float)lim;
-        ord_StatisticsClock = ai_Time;
-    }
+  k = gm_MinutesBetween(&ord_StatisticsClock, &ai_Time);
+  if (k == 0) {
+    ord_StatisticsClock = ai_Time;
+    return;
+  }
+  if (ai_Rating != 0 && ai_Time.hour > 6 && ai_Time.hour < 0x15) {
+    ai_RatingBase = k * ord_RatingRate + ai_RatingBase;
+    lim = ai_Rating * 0.25;
+    if (ai_RatingBase < lim)
+      ai_RatingBase = (float)lim;
+    ord_StatisticsClock = ai_Time;
+  }
 }
 /* 0x4f9ce0, a rating from the table records 0 and 1 of 0x4f2720 (their int +0x18): (4 - rec0[6]) * 0.25 * 0.75 + (1 - rec1[6]) * 0.25 */
 
-float ord_StatisticsRating(int *rec)
-{
-    AIDEC ra;
-    AIDEC rb;
+float ord_StatisticsRating(int *rec) {
+  AIDEC ra;
+  AIDEC rb;
 
-    gv_GetTableRecord(0, &ra);
-    gv_GetTableRecord(1, &rb);
-    return (float)(4 - ra.cur) * 0.25f * 0.75 + (1 - rb.cur) * 0.25;
+  gv_GetTableRecord(0, &ra);
+  gv_GetTableRecord(1, &rb);
+  return (float)(4 - ra.cur) * 0.25f * 0.75 + (1 - rb.cur) * 0.25;
 }
 /* 0x4f9d40, the weighted sum of the +0x18 ints (rec[6]) of the twelve table records 0x11 .. 0x1c of gv_GetTableRecord (0x4f2720) with the weights 0.06 0.05 0.08 0.04 0.13 0.1 0.13 0.12 0.14 0.15 and two zeros (the array is twelve long like the record range); the ints themselves are stored to out[0 .. 11]
    @deep deep s33: rec is the AIDEC record gv_GetTableRecord fills (rec.cur = +0x18; same code). Mechanism
@@ -2517,30 +2533,29 @@ float ord_StatisticsRating(int *rec)
    ord_WeightedRecordSum))
    */
 
-float ord_WeightedRecordSum(int *out)
-{
-    float sum = 0;
-    float w[12] = {0.06f, 0.05f, 0.08f, 0.04f, 0.13f, 0.1f, 0.13f, 0.12f, 0.14f, 0.15f};
-    AIDEC rec;
-    int i;
-    float fv;
+float ord_WeightedRecordSum(int *out) {
+  float sum = 0;
+  float w[12] = {0.06f, 0.05f, 0.08f, 0.04f, 0.13f,
+                 0.1f,  0.13f, 0.12f, 0.14f, 0.15f};
+  AIDEC rec;
+  int i;
+  float fv;
 
-    for (i = 0x11; i < 0x1d; i++) {
-        gv_GetTableRecord(i, &rec);
-        fv = (float)rec.cur;
-        out[i - 0x11] = rec.cur;
-        sum += fv * w[i - 0x11];
-    }
-    return sum;
+  for (i = 0x11; i < 0x1d; i++) {
+    gv_GetTableRecord(i, &rec);
+    fv = (float)rec.cur;
+    out[i - 0x11] = rec.cur;
+    sum += fv * w[i - 0x11];
+  }
+  return sum;
 }
 /* 0x4f9e00, copies the last statistics record (ord_Statistics, ten floats) to o, overwrites out[6] with the float
    bits of ord_Statistics's base field's live value (ai_RatingBase) and returns out[9] (the score); 0 for no o */
 
-float ord_GetStatistics(ORDSTATS *o)
-{
-    if (o == 0)
-        return 0.0f;
-    memcpy(o, &ord_Statistics, sizeof(*o));
-    o->base = ai_RatingBase;
-    return o->score;
+float ord_GetStatistics(ORDSTATS *o) {
+  if (o == 0)
+    return 0.0f;
+  memcpy(o, &ord_Statistics, sizeof(*o));
+  o->base = ai_RatingBase;
+  return o->score;
 }

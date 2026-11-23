@@ -2,6 +2,7 @@
 #ifndef LCAMT_H
 #define LCAMT_H
 
-extern const int ai_AmountTabCount;  /* 0x5eede0, the number of special-amount tabs (ai_AmountTabs[8]) */
+extern const int
+    ai_AmountTabCount; /* 0x5eede0, the number of special-amount tabs (ai_AmountTabs[8]) */
 
 #endif

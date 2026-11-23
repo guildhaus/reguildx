@@ -7,24 +7,26 @@
 struct VFSFILE;
 #include "vfs.h"
 
-extern const unsigned int bio_CrcTable[256];  /* 0x5eb380, the zlib crc32 table */
+extern const unsigned int
+    bio_CrcTable[256]; /* 0x5eb380, the zlib crc32 table */
 
-unsigned int util_Hash(unsigned char *buf, unsigned int len);                           /* 0x401000 */
-char *util_BaseName(char *path);                                                         /* 0x401040 */
-char file_Exists(char *path);                                                            /* 0x401090 */
-char *util_ReadLine(VFSFILE *f);                                                         /* 0x4010b0 */
-void bio_rd_c(VFSFILE *f, char *c);                                                     /* 0x401180 */
-void bio_rd_s(struct VFSFILE *f, char *s);                                                     /* 0x4011a0 */
-void bio_rd_i(struct VFSFILE *f, void *i);                                                     /* 0x4011d0 */
-void bio_wr_c(VFSFILE *f, unsigned char c);                                                   /* 0x4011f0 */
-void bio_wr_s(struct VFSFILE *f, char *s);                                                     /* 0x401210 */
-void bio_wr_i(struct VFSFILE *f, int i);                                                       /* 0x401240 */
-void bio_wr_f(VFSFILE *f, float x);                                                     /* unlinked: LINK folds it (/OPT:ICF) into bio_wr_i */
-void bio_rd_v3(VFSFILE *f, void *v);                                                    /* 0x401260 */
-void bio_rd_v4(VFSFILE *f, void *v);                                                    /* 0x401290 */
-void bio_wr_v3(VFSFILE *f, const void *v);                                               /* 0x4012d0 */
-void bio_wr_v4(VFSFILE *f, const void *v);                                               /* 0x401300 */
-void bio_wr_array(VFSFILE *f, int size, int n, void *data);                             /* 0x401340 */
-int bio_rd_array_quick(VFSFILE *f, int size, void **out);                               /* 0x401380 */
+unsigned int util_Hash(unsigned char *buf, unsigned int len); /* 0x401000 */
+char *util_BaseName(char *path);                              /* 0x401040 */
+char file_Exists(char *path);                                 /* 0x401090 */
+char *util_ReadLine(VFSFILE *f);                              /* 0x4010b0 */
+void bio_rd_c(VFSFILE *f, char *c);                           /* 0x401180 */
+void bio_rd_s(struct VFSFILE *f, char *s);                    /* 0x4011a0 */
+void bio_rd_i(struct VFSFILE *f, void *i);                    /* 0x4011d0 */
+void bio_wr_c(VFSFILE *f, unsigned char c);                   /* 0x4011f0 */
+void bio_wr_s(struct VFSFILE *f, char *s);                    /* 0x401210 */
+void bio_wr_i(struct VFSFILE *f, int i);                      /* 0x401240 */
+void bio_wr_f(VFSFILE *f,
+              float x); /* unlinked: LINK folds it (/OPT:ICF) into bio_wr_i */
+void bio_rd_v3(VFSFILE *f, void *v);                        /* 0x401260 */
+void bio_rd_v4(VFSFILE *f, void *v);                        /* 0x401290 */
+void bio_wr_v3(VFSFILE *f, const void *v);                  /* 0x4012d0 */
+void bio_wr_v4(VFSFILE *f, const void *v);                  /* 0x401300 */
+void bio_wr_array(VFSFILE *f, int size, int n, void *data); /* 0x401340 */
+int bio_rd_array_quick(VFSFILE *f, int size, void **out);   /* 0x401380 */
 
 #endif

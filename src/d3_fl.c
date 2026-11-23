@@ -37,61 +37,73 @@
 
 /* One pixel's blend weights of the four corner textures (d3fl_BlendC copies the record whole). */
 typedef struct {
-    unsigned char b[4];
+  unsigned char b[4];
 } D3FLWEIGHTS;
 
 /* 0x43eab0, blends n x n pixels of the four corner textures src[0..3] with the weights w into dst */
-void d3fl_BlendC(unsigned short *dst, unsigned long *w, unsigned char **src, unsigned int n)
-{
-    unsigned int i, j;
-    unsigned short *d;
-    unsigned char *s, *s0, *s1, *s2, *s3;
-    D3FLWEIGHTS *ww;
-    D3FLWEIGHTS wv;
+void d3fl_BlendC(unsigned short *dst, unsigned long *w, unsigned char **src,
+                 unsigned int n) {
+  unsigned int i, j;
+  unsigned short *d;
+  unsigned char *s, *s0, *s1, *s2, *s3;
+  D3FLWEIGHTS *ww;
+  D3FLWEIGHTS wv;
 
-    if (src[0] == src[1] && src[1] == src[2] && src[2] == src[3]) {
-        for (j = 0; j < n; j++) {
-            s = src[0];
-            d = dst;
-            for (i = 0; i < n; i++) {
-                *d++ = (unsigned short)d3fl_ColorTab[2][s[2]] + (unsigned short)d3fl_ColorTab[1][s[1]] + (unsigned short)d3fl_ColorTab[0][s[0]];
-                s += d3fl_SrcStep;
-            }
-            dst = (unsigned short *)((char *)dst + d3fl_DstPitch);
-            src[0] += d3fl_SrcPitch;
-        }
-    } else {
-        for (j = 0; j < n; j++) {
-            d = dst;
-            s0 = src[0];
-            s1 = src[1];
-            s2 = src[2];
-            s3 = src[3];
-            ww = (D3FLWEIGHTS *)w;
-            for (i = 0; i < n; i++) {
-                wv = *ww;
-                ww = (D3FLWEIGHTS *)((char *)ww + d3fl_SrcStep);
-                *d++ = (unsigned short)d3fl_ColorTab[2][(unsigned char)((s0[2] * wv.b[0] + s1[2] * wv.b[1] + s2[2] * wv.b[2] + s3[2] * wv.b[3]) >> 8)]
-                     + (unsigned short)d3fl_ColorTab[1][(unsigned char)((s0[1] * wv.b[0] + s1[1] * wv.b[1] + s2[1] * wv.b[2] + s3[1] * wv.b[3]) >> 8)]
-                     + (unsigned short)d3fl_ColorTab[0][(unsigned char)((s0[0] * wv.b[0] + s1[0] * wv.b[1] + s2[0] * wv.b[2] + s3[0] * wv.b[3]) >> 8)];
-                s0 += d3fl_SrcStep;
-                s1 += d3fl_SrcStep;
-                s2 += d3fl_SrcStep;
-                s3 += d3fl_SrcStep;
-            }
-            dst = (unsigned short *)((char *)dst + d3fl_DstPitch);
-            w = (unsigned long *)((char *)w + d3fl_WPitch);
-            src[0] += d3fl_SrcPitch;
-            src[1] += d3fl_SrcPitch;
-            src[2] += d3fl_SrcPitch;
-            src[3] += d3fl_SrcPitch;
-        }
+  if (src[0] == src[1] && src[1] == src[2] && src[2] == src[3]) {
+    for (j = 0; j < n; j++) {
+      s = src[0];
+      d = dst;
+      for (i = 0; i < n; i++) {
+        *d++ = (unsigned short)d3fl_ColorTab[2][s[2]] +
+               (unsigned short)d3fl_ColorTab[1][s[1]] +
+               (unsigned short)d3fl_ColorTab[0][s[0]];
+        s += d3fl_SrcStep;
+      }
+      dst = (unsigned short *)((char *)dst + d3fl_DstPitch);
+      src[0] += d3fl_SrcPitch;
     }
+  } else {
+    for (j = 0; j < n; j++) {
+      d = dst;
+      s0 = src[0];
+      s1 = src[1];
+      s2 = src[2];
+      s3 = src[3];
+      ww = (D3FLWEIGHTS *)w;
+      for (i = 0; i < n; i++) {
+        wv = *ww;
+        ww = (D3FLWEIGHTS *)((char *)ww + d3fl_SrcStep);
+        *d++ = (unsigned short)d3fl_ColorTab[2][(
+                   unsigned char)((s0[2] * wv.b[0] + s1[2] * wv.b[1] +
+                                   s2[2] * wv.b[2] + s3[2] * wv.b[3]) >>
+                                  8)] +
+               (unsigned short)d3fl_ColorTab[1][(
+                   unsigned char)((s0[1] * wv.b[0] + s1[1] * wv.b[1] +
+                                   s2[1] * wv.b[2] + s3[1] * wv.b[3]) >>
+                                  8)] +
+               (unsigned short)d3fl_ColorTab[0][(
+                   unsigned char)((s0[0] * wv.b[0] + s1[0] * wv.b[1] +
+                                   s2[0] * wv.b[2] + s3[0] * wv.b[3]) >>
+                                  8)];
+        s0 += d3fl_SrcStep;
+        s1 += d3fl_SrcStep;
+        s2 += d3fl_SrcStep;
+        s3 += d3fl_SrcStep;
+      }
+      dst = (unsigned short *)((char *)dst + d3fl_DstPitch);
+      w = (unsigned long *)((char *)w + d3fl_WPitch);
+      src[0] += d3fl_SrcPitch;
+      src[1] += d3fl_SrcPitch;
+      src[2] += d3fl_SrcPitch;
+      src[3] += d3fl_SrcPitch;
+    }
+  }
 }
 /* 0x43ed70, the same with MMX (all inline asm) */
 
-void d3fl_BlendMMX(unsigned short *dst, unsigned long *w, unsigned char **src, unsigned int n)
-{
+void d3fl_BlendMMX(unsigned short *dst, unsigned long *w, unsigned char **src,
+                   unsigned int n) {
+  /* clang-format off */
     __asm {
         mov eax, dst
         mov edx, w
@@ -216,109 +228,106 @@ void d3fl_BlendMMX(unsigned short *dst, unsigned long *w, unsigned char **src, u
         pop ebp
     done:
     }
+  /* clang-format on */
 }
 /* 0x43eef0, draws the tiles of r into the 16-bit texture pixels dst */
 
-void d3fl_Render(unsigned short *dst, D3FLTILES *r)
-{
-    unsigned char *s[4];
-    unsigned long *w;
-    unsigned int m, i, j;
-    unsigned char **base;
-    int off;
+void d3fl_Render(unsigned short *dst, D3FLTILES *r) {
+  unsigned char *s[4];
+  unsigned long *w;
+  unsigned int m, i, j;
+  unsigned char **base;
+  int off;
 
-    s[0] = (unsigned char *)d3fl_W16;
-    s[1] = (unsigned char *)d3fl_W32;
-    s[2] = (unsigned char *)d3fl_W64;
-    d3fl_TileN = r->texsize / r->n;
-    m = min(64, max(16, d3fl_TileN));
-    w = (unsigned long *)s[m >> 5];
-    base = r->src[2 - (m >> 5)];
-    d3fl_SrcStep = r->n * m * 4 / r->texsize;
-    d3fl_WPitch = d3fl_SrcStep * m;
-    d3fl_SrcPitch = d3fl_SrcStep << 6;
-    d3fl_DstPitch = r->texsize * 2;
-    for (j = 0; j < r->n; j++)
-        for (i = 0; i < r->n; i++) {
-            off = ((((r->y + j) * m) & 0x3f) * 64 + (((r->x + i) * m) & 0x3f)) * 4;
-            s[0] = base[r->tiles[j][i]] + off;
-            s[1] = base[r->tiles[j][i + 1]] + off;
-            s[2] = base[r->tiles[j + 1][i]] + off;
-            s[3] = base[r->tiles[j + 1][i + 1]] + off;
-            d3fl_Blend(dst + (r->texsize * j + i) * d3fl_TileN, w, s, d3fl_TileN);
-        }
-    if (dd_HasMMX)
-        _m_empty();
+  s[0] = (unsigned char *)d3fl_W16;
+  s[1] = (unsigned char *)d3fl_W32;
+  s[2] = (unsigned char *)d3fl_W64;
+  d3fl_TileN = r->texsize / r->n;
+  m = min(64, max(16, d3fl_TileN));
+  w = (unsigned long *)s[m >> 5];
+  base = r->src[2 - (m >> 5)];
+  d3fl_SrcStep = r->n * m * 4 / r->texsize;
+  d3fl_WPitch = d3fl_SrcStep * m;
+  d3fl_SrcPitch = d3fl_SrcStep << 6;
+  d3fl_DstPitch = r->texsize * 2;
+  for (j = 0; j < r->n; j++)
+    for (i = 0; i < r->n; i++) {
+      off = ((((r->y + j) * m) & 0x3f) * 64 + (((r->x + i) * m) & 0x3f)) * 4;
+      s[0] = base[r->tiles[j][i]] + off;
+      s[1] = base[r->tiles[j][i + 1]] + off;
+      s[2] = base[r->tiles[j + 1][i]] + off;
+      s[3] = base[r->tiles[j + 1][i + 1]] + off;
+      d3fl_Blend(dst + (r->texsize * j + i) * d3fl_TileN, w, s, d3fl_TileN);
+    }
+  if (dd_HasMMX)
+    _m_empty();
 }
 /* 0x43f080, bilinear weights of the four corners for an n x n tile, 4 bytes per pixel */
 
-void d3fl_MakeWeights(unsigned char *p, unsigned int n)
-{
-    int step = 0x100 / n;
-    unsigned int x, y;
-    int w[4], d[4];
+void d3fl_MakeWeights(unsigned char *p, unsigned int n) {
+  int step = 0x100 / n;
+  unsigned int x, y;
+  int w[4], d[4];
 
-    for (y = 0; y < n; y++, p += n * 4) {
-        w[2] = (y * step) << 8;
-        w[0] = 0xffff - w[2];
-        w[3] = 0;
-        w[1] = 0;
-        d[0] = -(d[1] = (w[0] >> 8) * step);
-        d[2] = -(d[3] = (w[2] >> 8) * step);
-        for (x = 0; x < n; x++) {
-            p[x * 4] = w[0] >> 8;
-            p[x * 4 + 1] = w[1] >> 8;
-            p[x * 4 + 2] = w[2] >> 8;
-            p[x * 4 + 3] = w[3] >> 8;
-            w[0] += d[0];
-            w[1] += d[1];
-            w[2] += d[2];
-            w[3] += d[3];
-        }
+  for (y = 0; y < n; y++, p += n * 4) {
+    w[2] = (y * step) << 8;
+    w[0] = 0xffff - w[2];
+    w[3] = 0;
+    w[1] = 0;
+    d[0] = -(d[1] = (w[0] >> 8) * step);
+    d[2] = -(d[3] = (w[2] >> 8) * step);
+    for (x = 0; x < n; x++) {
+      p[x * 4] = w[0] >> 8;
+      p[x * 4 + 1] = w[1] >> 8;
+      p[x * 4 + 2] = w[2] >> 8;
+      p[x * 4 + 3] = w[3] >> 8;
+      w[0] += d[0];
+      w[1] += d[1];
+      w[2] += d[2];
+      w[3] += d[3];
     }
+  }
 }
 /* 0x43f180, creates the texture cache of n empty entries, builds the three blend weight tables and selects
    the MMX blend routine (the C one without MMX) */
 
-void d3fl_InitCache(unsigned int n)
-{
-    unsigned int i;
+void d3fl_InitCache(unsigned int n) {
+  unsigned int i;
 
-    d3fl_Count = n;
-    d3fl_Cache = mem_Alloc(n * sizeof(D3FLCACHE), "d3_fl:TextureCache");
-    for (i = 0; i < d3fl_Count; i++) {
-        d3fl_Cache[i].tex = 0;
-        d3fl_Cache[i].flag = 0;
-        d3fl_Cache[i].stamp = 0;
-        d3fl_Cache[i].size = 0;
-        D3_ZERO(d3fl_Cache[i].t.tiles, sizeof(d3fl_Cache[i].t.tiles));
-    }
-    d3fl_MakeWeights((unsigned char *)d3fl_W64, 64);
-    d3fl_MakeWeights((unsigned char *)d3fl_W32, 32);
-    d3fl_MakeWeights((unsigned char *)d3fl_W16, 16);
-    d3fl_Blend = d3fl_BlendMMX;
-    if (!dd_HasMMX)
-        d3fl_Blend = d3fl_BlendC;
+  d3fl_Count = n;
+  d3fl_Cache = mem_Alloc(n * sizeof(D3FLCACHE), "d3_fl:TextureCache");
+  for (i = 0; i < d3fl_Count; i++) {
+    d3fl_Cache[i].tex = 0;
+    d3fl_Cache[i].flag = 0;
+    d3fl_Cache[i].stamp = 0;
+    d3fl_Cache[i].size = 0;
+    D3_ZERO(d3fl_Cache[i].t.tiles, sizeof(d3fl_Cache[i].t.tiles));
+  }
+  d3fl_MakeWeights((unsigned char *)d3fl_W64, 64);
+  d3fl_MakeWeights((unsigned char *)d3fl_W32, 32);
+  d3fl_MakeWeights((unsigned char *)d3fl_W16, 16);
+  d3fl_Blend = d3fl_BlendMMX;
+  if (!dd_HasMMX)
+    d3fl_Blend = d3fl_BlendC;
 }
 /* 0x43f270, releases the cached textures, frees the cache and selects the C blend routine */
 
-void d3fl_FreeCache(void)
-{
-    unsigned int i;
+void d3fl_FreeCache(void) {
+  unsigned int i;
 
-    for (i = 0; i < d3fl_Count; i++) {
-        if (d3fl_Cache[i].tex) {
-            if (d3fl_Cache[i].tex->name[0] == '*')
-                while (d3fl_Cache[i].tex->refs > 0)
-                    tex_Release(d3fl_Cache[i].tex);
-            d3fl_Cache[i].tex = 0;
-            d3fl_Cache[i].flag = 0;
-        }
+  for (i = 0; i < d3fl_Count; i++) {
+    if (d3fl_Cache[i].tex) {
+      if (d3fl_Cache[i].tex->name[0] == '*')
+        while (d3fl_Cache[i].tex->refs > 0)
+          tex_Release(d3fl_Cache[i].tex);
+      d3fl_Cache[i].tex = 0;
+      d3fl_Cache[i].flag = 0;
     }
-    d3fl_Count = 0;
-    mem_Free(d3fl_Cache);
-    d3fl_Cache = 0;
-    d3fl_Blend = d3fl_BlendC;
+  }
+  d3fl_Count = 0;
+  mem_Free(d3fl_Cache);
+  d3fl_Cache = 0;
+  d3fl_Blend = d3fl_BlendC;
 }
 /* 0x43f300, 256 texture triangles: 4 fixed ones covering the inner square (f..1-f), then 63 x 4 randomly
    placed, scaled (0.9..1.23) and rotated copies of the same four triangles
@@ -342,852 +351,868 @@ void d3fl_FreeCache(void)
    [esp+0x60], fadd st(1) vs st(2)), plus slots/fpu hunks from the same frame difference. Size 1352 vs 1429
    bytes (348 vs 359 ins): the head's spills. (tiebreak: not measured (dcp headers sample d3fl_MakeJitter)) */
 
-void d3fl_MakeJitter(float *out)
-{
-    D3FLUV *t = (D3FLUV *)out;
-    float f, g, ox, oy, s;
-    D3VECTOR4 rot;
-    D3MATRIX m;
-    D3VECTOR4 r;                        /* a corner turned by m */
-    D3VECTOR c01 = {0.0f, 1.0f, 0.0f}, c10 = {1.0f, 0.0f, 0.0f}, c11 = {1.0f, 1.0f, 0.0f};
-    int i;
+void d3fl_MakeJitter(float *out) {
+  D3FLUV *t = (D3FLUV *)out;
+  float f, g, ox, oy, s;
+  D3VECTOR4 rot;
+  D3MATRIX m;
+  D3VECTOR4 r; /* a corner turned by m */
+  D3VECTOR c01 = {0.0f, 1.0f, 0.0f}, c10 = {1.0f, 0.0f, 0.0f},
+           c11 = {1.0f, 1.0f, 0.0f};
+  int i;
 
-    f = 1.0f / d3fl_DetailScale;
-    g = 1.0f - f - f;
-    t[0].u = f;
-    t[0].v = g + f;
-    t[1].u = f;
-    t[1].v = f;
-    t[2].u = g + f;
-    t[2].v = f;
-    t[3].u = g + f;
-    t[3].v = f;
-    t[4].u = g + f;
-    t[4].v = g + f;
-    t[5].u = f;
-    t[5].v = g + f;
-    t[6].u = f;
-    t[6].v = f;
-    t[7].u = g + f;
-    t[7].v = g + f;
-    t[8].u = f;
-    t[8].v = g + f;
-    t[9].u = f;
-    t[9].v = f;
-    t[10].u = g + f;
-    t[10].v = f;
-    t[11].u = g + f;
-    t[11].v = g + f;
-    for (i = 1, t += 12; i < 64; i++, t += 12) {
-        ox = (float)rand() / RAND_MAX;
-        oy = (float)rand() / RAND_MAX;
-        s = (float)rand() / RAND_MAX / 3.0f + 0.9f;
-        rot.z = (rand() * D3FL_2PI) / (float)RAND_MAX;
-        rot.x = 0.0f;
-        rot.y = 0.0f;
-        d3_MatFromAngles(&rot.v, &m);
-        r.x = c01.x * m._11 + c01.y * m._21 + c01.z * m._31;
-        r.y = c01.x * m._12 + c01.y * m._22 + c01.z * m._32;
-        t[0].u = r.x * s + ox;
-        t[0].v = r.y * s + oy;
-        t[1].u = ox;
-        t[1].v = oy;
-        r.x = c10.x * m._11 + c10.y * m._21 + c10.z * m._31;
-        r.y = c10.x * m._12 + c10.y * m._22 + c10.z * m._32;
-        t[2].u = r.x * s + ox;
-        t[2].v = r.y * s + oy;
+  f = 1.0f / d3fl_DetailScale;
+  g = 1.0f - f - f;
+  t[0].u = f;
+  t[0].v = g + f;
+  t[1].u = f;
+  t[1].v = f;
+  t[2].u = g + f;
+  t[2].v = f;
+  t[3].u = g + f;
+  t[3].v = f;
+  t[4].u = g + f;
+  t[4].v = g + f;
+  t[5].u = f;
+  t[5].v = g + f;
+  t[6].u = f;
+  t[6].v = f;
+  t[7].u = g + f;
+  t[7].v = g + f;
+  t[8].u = f;
+  t[8].v = g + f;
+  t[9].u = f;
+  t[9].v = f;
+  t[10].u = g + f;
+  t[10].v = f;
+  t[11].u = g + f;
+  t[11].v = g + f;
+  for (i = 1, t += 12; i < 64; i++, t += 12) {
+    ox = (float)rand() / RAND_MAX;
+    oy = (float)rand() / RAND_MAX;
+    s = (float)rand() / RAND_MAX / 3.0f + 0.9f;
+    rot.z = (rand() * D3FL_2PI) / (float)RAND_MAX;
+    rot.x = 0.0f;
+    rot.y = 0.0f;
+    d3_MatFromAngles(&rot.v, &m);
+    r.x = c01.x * m._11 + c01.y * m._21 + c01.z * m._31;
+    r.y = c01.x * m._12 + c01.y * m._22 + c01.z * m._32;
+    t[0].u = r.x * s + ox;
+    t[0].v = r.y * s + oy;
+    t[1].u = ox;
+    t[1].v = oy;
+    r.x = c10.x * m._11 + c10.y * m._21 + c10.z * m._31;
+    r.y = c10.x * m._12 + c10.y * m._22 + c10.z * m._32;
+    t[2].u = r.x * s + ox;
+    t[2].v = r.y * s + oy;
 
-        ox = (float)rand() / RAND_MAX;
-        oy = (float)rand() / RAND_MAX;
-        s = (float)rand() / RAND_MAX / 3.0f + 0.9f;
-        rot.z = (rand() * D3FL_2PI) / (float)RAND_MAX;
-        rot.x = 0.0f;
-        rot.y = 0.0f;
-        d3_MatFromAngles(&rot.v, &m);
-        r.x = c10.x * m._11 + c10.y * m._21 + c10.z * m._31;
-        r.y = c10.x * m._12 + c10.y * m._22 + c10.z * m._32;
-        t[3].u = r.x * s + ox;
-        t[3].v = r.y * s + oy;
-        r.x = c11.x * m._11 + c11.y * m._21 + c11.z * m._31;
-        r.y = c11.x * m._12 + c11.y * m._22 + c11.z * m._32;
-        t[4].u = r.x * s + ox;
-        t[4].v = r.y * s + oy;
-        r.x = c01.x * m._11 + c01.y * m._21 + c01.z * m._31;
-        r.y = c01.x * m._12 + c01.y * m._22 + c01.z * m._32;
-        t[5].u = r.x * s + ox;
-        t[5].v = r.y * s + oy;
+    ox = (float)rand() / RAND_MAX;
+    oy = (float)rand() / RAND_MAX;
+    s = (float)rand() / RAND_MAX / 3.0f + 0.9f;
+    rot.z = (rand() * D3FL_2PI) / (float)RAND_MAX;
+    rot.x = 0.0f;
+    rot.y = 0.0f;
+    d3_MatFromAngles(&rot.v, &m);
+    r.x = c10.x * m._11 + c10.y * m._21 + c10.z * m._31;
+    r.y = c10.x * m._12 + c10.y * m._22 + c10.z * m._32;
+    t[3].u = r.x * s + ox;
+    t[3].v = r.y * s + oy;
+    r.x = c11.x * m._11 + c11.y * m._21 + c11.z * m._31;
+    r.y = c11.x * m._12 + c11.y * m._22 + c11.z * m._32;
+    t[4].u = r.x * s + ox;
+    t[4].v = r.y * s + oy;
+    r.x = c01.x * m._11 + c01.y * m._21 + c01.z * m._31;
+    r.y = c01.x * m._12 + c01.y * m._22 + c01.z * m._32;
+    t[5].u = r.x * s + ox;
+    t[5].v = r.y * s + oy;
 
-        ox = (float)rand() / RAND_MAX;
-        oy = (float)rand() / RAND_MAX;
-        s = (float)rand() / RAND_MAX / 3.0f + 0.9f;
-        rot.z = (rand() * D3FL_2PI) / (float)RAND_MAX;
-        rot.x = 0.0f;
-        rot.y = 0.0f;
-        d3_MatFromAngles(&rot.v, &m);
-        t[6].u = ox;
-        t[6].v = oy;
-        r.x = c11.x * m._11 + c11.y * m._21 + c11.z * m._31;
-        r.y = c11.x * m._12 + c11.y * m._22 + c11.z * m._32;
-        t[7].u = r.x * s + ox;
-        t[7].v = r.y * s + oy;
-        r.x = c01.x * m._11 + c01.y * m._21 + c01.z * m._31;
-        r.y = c01.x * m._12 + c01.y * m._22 + c01.z * m._32;
-        t[8].u = r.x * s + ox;
-        t[8].v = r.y * s + oy;
+    ox = (float)rand() / RAND_MAX;
+    oy = (float)rand() / RAND_MAX;
+    s = (float)rand() / RAND_MAX / 3.0f + 0.9f;
+    rot.z = (rand() * D3FL_2PI) / (float)RAND_MAX;
+    rot.x = 0.0f;
+    rot.y = 0.0f;
+    d3_MatFromAngles(&rot.v, &m);
+    t[6].u = ox;
+    t[6].v = oy;
+    r.x = c11.x * m._11 + c11.y * m._21 + c11.z * m._31;
+    r.y = c11.x * m._12 + c11.y * m._22 + c11.z * m._32;
+    t[7].u = r.x * s + ox;
+    t[7].v = r.y * s + oy;
+    r.x = c01.x * m._11 + c01.y * m._21 + c01.z * m._31;
+    r.y = c01.x * m._12 + c01.y * m._22 + c01.z * m._32;
+    t[8].u = r.x * s + ox;
+    t[8].v = r.y * s + oy;
 
-        ox = (float)rand() / RAND_MAX;
-        oy = (float)rand() / RAND_MAX;
-        s = (float)rand() / RAND_MAX / 3.0f + 0.9f;
-        rot.z = (rand() * D3FL_2PI) / (float)RAND_MAX;
-        rot.x = 0.0f;
-        rot.y = 0.0f;
-        d3_MatFromAngles(&rot.v, &m);
-        t[9].u = ox;
-        t[9].v = oy;
-        r.x = c10.x * m._11 + c10.y * m._21 + c10.z * m._31;
-        r.y = c10.x * m._12 + c10.y * m._22 + c10.z * m._32;
-        t[10].u = r.x * s + ox;
-        t[10].v = r.y * s + oy;
-        r.x = c11.x * m._11 + c11.y * m._21 + c11.z * m._31;
-        r.y = c11.x * m._12 + c11.y * m._22 + c11.z * m._32;
-        t[11].u = r.x * s + ox;
-        t[11].v = r.y * s + oy;
-    }
+    ox = (float)rand() / RAND_MAX;
+    oy = (float)rand() / RAND_MAX;
+    s = (float)rand() / RAND_MAX / 3.0f + 0.9f;
+    rot.z = (rand() * D3FL_2PI) / (float)RAND_MAX;
+    rot.x = 0.0f;
+    rot.y = 0.0f;
+    d3_MatFromAngles(&rot.v, &m);
+    t[9].u = ox;
+    t[9].v = oy;
+    r.x = c10.x * m._11 + c10.y * m._21 + c10.z * m._31;
+    r.y = c10.x * m._12 + c10.y * m._22 + c10.z * m._32;
+    t[10].u = r.x * s + ox;
+    t[10].v = r.y * s + oy;
+    r.x = c11.x * m._11 + c11.y * m._21 + c11.z * m._31;
+    r.y = c11.x * m._12 + c11.y * m._22 + c11.z * m._32;
+    t[11].u = r.x * s + ox;
+    t[11].v = r.y * s + oy;
+  }
 }
 /* 0x43f8a0, sets the terrain detail level n (4 .. 0x100): clamps n to 0x40, the detail scale is the power of two
    of that lowest bit (1 << s), the detail shift 6 - s and the size shift n >> 7, then rebuilds the jitter and
    flushes the floor cache */
 
-void d3fl_SetDetail(unsigned int n)
-{
-    if (n <= 0x100 && n >= 4) {
-        unsigned int m = n > 0x40 ? 0x40 : n;
-        unsigned char d;
-        int s = 0;
+void d3fl_SetDetail(unsigned int n) {
+  if (n <= 0x100 && n >= 4) {
+    unsigned int m = n > 0x40 ? 0x40 : n;
+    unsigned char d;
+    int s = 0;
 
-        while (!(m & 1)) {
-            m >>= 1;
-            s++;
-        }
-        d = (unsigned char)(n >> 7);
-        d3fl_DetailSizeShift = 2;
-        d3fl_DetailScale = 1 << s;
-        d3fl_DetailShift = 6 - s;
-        if (d <= 2)
-            d3fl_DetailSizeShift = d;
-        d3fl_MakeJitter(d3fl_Jitter);
-        d3fl_Flush();
+    while (!(m & 1)) {
+      m >>= 1;
+      s++;
     }
+    d = (unsigned char)(n >> 7);
+    d3fl_DetailSizeShift = 2;
+    d3fl_DetailScale = 1 << s;
+    d3fl_DetailShift = 6 - s;
+    if (d <= 2)
+      d3fl_DetailSizeShift = d;
+    d3fl_MakeJitter(d3fl_Jitter);
+    d3fl_Flush();
+  }
 }
 /* 0x43f910, reloads the textures of a map (does nothing for a scene without one) */
 
-void d3fl_ReloadMap(void *p)
-{
-    if (p)
-        d3fl_ReloadTextures(p);
+void d3fl_ReloadMap(void *p) {
+  if (p)
+    d3fl_ReloadTextures(p);
 }
 /* 0x43f930, switches mipmapping and reloads the textures of the terrain and of every scene's map */
 
-void d3fl_SetMips(char on)
-{
-    int i;
+void d3fl_SetMips(char on) {
+  int i;
 
-    if (on != d3fl_Mips) {
-        d3fl_Flush();
-        d3fl_Mips = on;
-        if (d3_Terrain)
-            d3fl_ReloadMap(d3_Terrain);
-        for (i = 0; i < D3_MAX_SCENES; i++)
-            if (d3_Scenes[i].map && d3_Scenes[i].map != d3_Terrain)
-                d3fl_ReloadMap(d3_Scenes[i].map);
-    }
+  if (on != d3fl_Mips) {
+    d3fl_Flush();
+    d3fl_Mips = on;
+    if (d3_Terrain)
+      d3fl_ReloadMap(d3_Terrain);
+    for (i = 0; i < D3_MAX_SCENES; i++)
+      if (d3_Scenes[i].map && d3_Scenes[i].map != d3_Terrain)
+        d3fl_ReloadMap(d3_Scenes[i].map);
+  }
 }
 /* 0x43f990, empties the cache */
 
-void d3fl_Flush(void)
-{
-    unsigned int i;
+void d3fl_Flush(void) {
+  unsigned int i;
 
-    for (i = 0; i < d3fl_Count; i++) {
-        if (d3fl_Cache[i].tex) {
-            if (d3fl_Cache[i].tex->name[0] == '*')
-                while (d3fl_Cache[i].tex->refs > 0)
-                    tex_Release(d3fl_Cache[i].tex);
-            d3fl_Cache[i].tex = 0;
-        }
-        d3fl_Cache[i].flag = 0;
-        d3fl_Cache[i].stamp = 0;
-        d3fl_Cache[i].size = 0;
-        d3fl_Cache[i].hash = 0;
-        D3_ZERO(d3fl_Cache[i].t.tiles, sizeof(d3fl_Cache[i].t.tiles));
+  for (i = 0; i < d3fl_Count; i++) {
+    if (d3fl_Cache[i].tex) {
+      if (d3fl_Cache[i].tex->name[0] == '*')
+        while (d3fl_Cache[i].tex->refs > 0)
+          tex_Release(d3fl_Cache[i].tex);
+      d3fl_Cache[i].tex = 0;
     }
-    if (d3_Terrain)
-        d3fl_Invalidate(d3_Terrain);
-    for (i = 0; i < D3_MAX_SCENES; i++)
-        if (d3_Scenes[i].map && d3_Scenes[i].map != d3_Terrain)
-            d3fl_Invalidate(d3_Scenes[i].map);
+    d3fl_Cache[i].flag = 0;
+    d3fl_Cache[i].stamp = 0;
+    d3fl_Cache[i].size = 0;
+    d3fl_Cache[i].hash = 0;
+    D3_ZERO(d3fl_Cache[i].t.tiles, sizeof(d3fl_Cache[i].t.tiles));
+  }
+  if (d3_Terrain)
+    d3fl_Invalidate(d3_Terrain);
+  for (i = 0; i < D3_MAX_SCENES; i++)
+    if (d3_Scenes[i].map && d3_Scenes[i].map != d3_Terrain)
+      d3fl_Invalidate(d3_Scenes[i].map);
 }
 /* 0x43faa0, a free cache entry, or the least recently used one */
 
-D3FLCACHE *d3fl_Alloc(void)
-{
-    D3FLCACHE *c = d3fl_Cache, *best = 0;
-    unsigned int i, oldest = d3_FrameCount;
+D3FLCACHE *d3fl_Alloc(void) {
+  D3FLCACHE *c = d3fl_Cache, *best = 0;
+  unsigned int i, oldest = d3_FrameCount;
 
-    for (i = 0; i < d3fl_Count; i++, c++) {
-        if (!c->tex) {
-            c->stamp = d3_FrameCount;
-            return c;
-        }
-        if (c->stamp < oldest) {
-            oldest = c->stamp;
-            best = c;
-        }
+  for (i = 0; i < d3fl_Count; i++, c++) {
+    if (!c->tex) {
+      c->stamp = d3_FrameCount;
+      return c;
     }
-    if (best) {
-        best->stamp = d3_FrameCount;
-        if (best->tex)
-            best->tex->reserved = 0;
+    if (c->stamp < oldest) {
+      oldest = c->stamp;
+      best = c;
     }
-    return best;
+  }
+  if (best) {
+    best->stamp = d3_FrameCount;
+    if (best->tex)
+      best->tex->reserved = 0;
+  }
+  return best;
 }
 /* 0x43fb00, the cache entry for the (size + 1)^2 tiles at x, y */
 
-D3FLCACHE *d3fl_Find(unsigned char *map, int mapsize, int x, int y, unsigned int size, int *phash)
-{
-    unsigned char tiles[5][5];
-    unsigned int i, j;
-    int hash;
-    D3FLCACHE *c;
-    int mask = mapsize - 1;
-    unsigned int n = size + 1;
+D3FLCACHE *d3fl_Find(unsigned char *map, int mapsize, int x, int y,
+                     unsigned int size, int *phash) {
+  unsigned char tiles[5][5];
+  unsigned int i, j;
+  int hash;
+  D3FLCACHE *c;
+  int mask = mapsize - 1;
+  unsigned int n = size + 1;
 
-    D3_ZERO(tiles, sizeof(tiles));
-    for (j = 0; j < n; j++)
-        for (i = 0; i < n; i++)
-            tiles[j][i] = map[((x + i) & mask) + ((j + y) & mask) * mapsize];
-    hash = util_Hash(tiles[0], sizeof(tiles)) + d3_CurrentScene;
-    if (phash)
-        *phash = hash;
-    for (i = 0, c = d3fl_Cache; i < d3fl_Count; i++, c++)
-        if (c->tex && c->size == size && c->hash == hash) {
-            d3fl_Cache[i].stamp = d3_FrameCount;
-            return &d3fl_Cache[i];
-        }
-    return 0;
+  D3_ZERO(tiles, sizeof(tiles));
+  for (j = 0; j < n; j++)
+    for (i = 0; i < n; i++)
+      tiles[j][i] = map[((x + i) & mask) + ((j + y) & mask) * mapsize];
+  hash = util_Hash(tiles[0], sizeof(tiles)) + d3_CurrentScene;
+  if (phash)
+    *phash = hash;
+  for (i = 0, c = d3fl_Cache; i < d3fl_Count; i++, c++)
+    if (c->tex && c->size == size && c->hash == hash) {
+      d3fl_Cache[i].stamp = d3_FrameCount;
+      return &d3fl_Cache[i];
+    }
+  return 0;
 }
 /* 0x43fc10, the cache texture for the tiles at x, y (created if needed) */
 
-TSTEXTURE *d3fl_GetTexture(unsigned char *map, int mapsize, int x, int y, unsigned int size, D3FLSRC *src)
-{
-    D3FLCACHE *c;
-    int hash;
-    unsigned int i, j;
-    union {
-        int i;                      /* the flags as the dword the original zeroes at once */
-        D3TEXFLAGS f;
-    } u;
+TSTEXTURE *d3fl_GetTexture(unsigned char *map, int mapsize, int x, int y,
+                           unsigned int size, D3FLSRC *src) {
+  D3FLCACHE *c;
+  int hash;
+  unsigned int i, j;
+  union {
+    int i; /* the flags as the dword the original zeroes at once */
+    D3TEXFLAGS f;
+  } u;
 
-    if (c = d3fl_Find(map, mapsize, x, y, size, &hash))
-        return c->tex;
-    if (c = d3fl_Alloc()) {
-        char names[5][7] = { "*", "*fltx1", "*fltx2", "*", "*fltx4" };
+  if (c = d3fl_Find(map, mapsize, x, y, size, &hash))
+    return c->tex;
+  if (c = d3fl_Alloc()) {
+    char names[5][7] = {"*", "*fltx1", "*fltx2", "*", "*fltx4"};
 
-        int mask;
+    int mask;
 
-        c->size = size;
-        mask = mapsize - 1;
-        for (j = 0; j <= size; j++)
-            for (i = 0; i <= size; i++)
-                c->t.tiles[j][i] = map[((x + i) & mask) + ((j + y) & mask) * mapsize];
-        c->hash = hash;
-        c->t.n = size;
-        c->t.x = x;
-        c->t.y = y;
-        c->t.src = src;
-        if (!c->tex) {
-            c->t.texsize = min((0x40 >> d3fl_DetailShift) * size, d3fl_DetailScale << d3fl_DetailSizeShift);
-            u.i = 0;
-            u.f.b[0] = 0xff;
-            c->tex = tex_CreateHi(names[size], c->t.texsize, u.f, 0, 0, d3fl_Mips);
-            c->tex->reserved = 0;
-        } else
-            strcpy(c->tex->name, names[size]);
-        c->tex->cache = c;
-        c->flag = 0;
-        return c->tex;
-    }
-    return 0;
+    c->size = size;
+    mask = mapsize - 1;
+    for (j = 0; j <= size; j++)
+      for (i = 0; i <= size; i++)
+        c->t.tiles[j][i] = map[((x + i) & mask) + ((j + y) & mask) * mapsize];
+    c->hash = hash;
+    c->t.n = size;
+    c->t.x = x;
+    c->t.y = y;
+    c->t.src = src;
+    if (!c->tex) {
+      c->t.texsize = min((0x40 >> d3fl_DetailShift) * size,
+                         d3fl_DetailScale << d3fl_DetailSizeShift);
+      u.i = 0;
+      u.f.b[0] = 0xff;
+      c->tex = tex_CreateHi(names[size], c->t.texsize, u.f, 0, 0, d3fl_Mips);
+      c->tex->reserved = 0;
+    } else
+      strcpy(c->tex->name, names[size]);
+    c->tex->cache = c;
+    c->flag = 0;
+    return c->tex;
+  }
+  return 0;
 }
 /* 0x43fe00, starts the terrain texture system: the colour tables, the cache of n entries, the detail level,
    mipmapping, the map shift and the jitter / uv tables */
 
-void d3fl_Init(unsigned int n, unsigned int detail, char mips, char b)
-{
-    dd_MakeColorTables(d3d_TexRMask, d3d_TexGMask, d3d_TexBMask, d3fl_ColorTab[0]);
-    d3fl_InitCache(n);
-    d3fl_SetDetail(detail);
-    d3fl_Mips = mips;
-    d3fl_MapShift = b;
-    d3fl_UV[0][0] = 0.0f;
-    d3fl_UV[0][1] = 0.0f;
-    d3fl_UV[0][2] = 1.0f;
-    d3fl_UV[0][3] = 1.0f;
-    d3fl_UV[0][4] = 0.0f;
-    d3fl_UV[0][5] = 1.0f;
-    d3fl_UV[1][0] = 0.0f;
-    d3fl_UV[1][1] = 0.0f;
-    d3fl_UV[1][2] = 1.0f;
-    d3fl_UV[1][3] = 0.0f;
-    d3fl_UV[1][4] = 1.0f;
-    d3fl_UV[1][5] = 1.0f;
-    d3fl_MakeJitter(d3fl_Jitter);
+void d3fl_Init(unsigned int n, unsigned int detail, char mips, char b) {
+  dd_MakeColorTables(d3d_TexRMask, d3d_TexGMask, d3d_TexBMask,
+                     d3fl_ColorTab[0]);
+  d3fl_InitCache(n);
+  d3fl_SetDetail(detail);
+  d3fl_Mips = mips;
+  d3fl_MapShift = b;
+  d3fl_UV[0][0] = 0.0f;
+  d3fl_UV[0][1] = 0.0f;
+  d3fl_UV[0][2] = 1.0f;
+  d3fl_UV[0][3] = 1.0f;
+  d3fl_UV[0][4] = 0.0f;
+  d3fl_UV[0][5] = 1.0f;
+  d3fl_UV[1][0] = 0.0f;
+  d3fl_UV[1][1] = 0.0f;
+  d3fl_UV[1][2] = 1.0f;
+  d3fl_UV[1][3] = 0.0f;
+  d3fl_UV[1][4] = 1.0f;
+  d3fl_UV[1][5] = 1.0f;
+  d3fl_MakeJitter(d3fl_Jitter);
 }
 /* 0x43fed0, frees the texture cache and resets the detail scale */
 
-void d3fl_Exit(void)
-{
-    d3fl_FreeCache();
-    d3fl_DetailScale = 0;
+void d3fl_Exit(void) {
+  d3fl_FreeCache();
+  d3fl_DetailScale = 0;
 }
 /* 0x43fee0, detail level (1, 2 or 4) of a tile, by its distance */
 
-signed char d3fl_TileLod(D3FLMAP *map, D3FLTILE *t, float unused, int detail)
-{
-    signed char lod;
-    signed char old;
-    float d, k;
+signed char d3fl_TileLod(D3FLMAP *map, D3FLTILE *t, float unused, int detail) {
+  signed char lod;
+  signed char old;
+  float d, k;
 
-    if (!(lod = map->lod)) {
-        if (!map->divide[0])
-            return 0;
-        d = t->centerDist / map->scale;
-        k = (40.0f - detail) * 0.4f;
-        if (d > (k + map->lodDist4) + t->lodDistBias)
-            lod = 4;
-        else if (d > (k + map->lodDist2) + t->lodDistBias)
-            lod = 2;
-        else
-            lod = 1;
-        old = t->lod;
-        if (old && old != -1 && lod != old) {
-            t->nextLod = lod;
-            if (++t->lodDelay <= 8)
-                return old;
-        }
-        t->lodDelay = 0;
+  if (!(lod = map->lod)) {
+    if (!map->divide[0])
+      return 0;
+    d = t->centerDist / map->scale;
+    k = (40.0f - detail) * 0.4f;
+    if (d > (k + map->lodDist4) + t->lodDistBias)
+      lod = 4;
+    else if (d > (k + map->lodDist2) + t->lodDistBias)
+      lod = 2;
+    else
+      lod = 1;
+    old = t->lod;
+    if (old && old != -1 && lod != old) {
+      t->nextLod = lod;
+      if (++t->lodDelay <= 8)
+        return old;
     }
-    return lod;
+    t->lodDelay = 0;
+  }
+  return lod;
 }
 /* 0x43ff90, frees a floor map and everything it owns: the source images, every tile's geometry (and its
    water data), the height / type / water / light arrays, the regions' textures and the divide arrays, then
    the map itself */
 
-void d3fl_FreeMap(D3FLMAP *map)
-{
-    int i, j;
+void d3fl_FreeMap(D3FLMAP *map) {
+  int i, j;
 
-    for (i = 0; i < 8; i++)
-        for (j = 0; j < 3; j++)
-            if (map->src[j][i]) {
-                mem_Free(map->src[j][i]);
-                map->src[j][i] = 0;
-            }
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++) {
-            mem_Free(map->tiles[j][i].points);
-            map->tiles[j][i].points = 0;
-            mem_Free(map->tiles[j][i].polys);
-            map->tiles[j][i].polys = 0;
-            mem_Free(map->tiles[j][i].split);
-            map->tiles[j][i].split = 0;
-            mem_Free(map->tiles[j][i].bp);
-            map->tiles[j][i].bp = 0;
-            if (map->tiles[j][i].water) {
-                mem_Free(map->tiles[j][i].wregions);
-                map->tiles[j][i].wregions = 0;
-                mem_Free(map->tiles[j][i].wpoints);
-                map->tiles[j][i].wpoints = 0;
-                mem_Free(map->tiles[j][i].wpolys);
-                map->tiles[j][i].wpolys = 0;
-            }
-        }
-    if (map->height) {
-        mem_Free(map->height);
-        map->height = 0;
+  for (i = 0; i < 8; i++)
+    for (j = 0; j < 3; j++)
+      if (map->src[j][i]) {
+        mem_Free(map->src[j][i]);
+        map->src[j][i] = 0;
+      }
+  for (j = 0; j < 8; j++)
+    for (i = 0; i < 8; i++) {
+      mem_Free(map->tiles[j][i].points);
+      map->tiles[j][i].points = 0;
+      mem_Free(map->tiles[j][i].polys);
+      map->tiles[j][i].polys = 0;
+      mem_Free(map->tiles[j][i].split);
+      map->tiles[j][i].split = 0;
+      mem_Free(map->tiles[j][i].bp);
+      map->tiles[j][i].bp = 0;
+      if (map->tiles[j][i].water) {
+        mem_Free(map->tiles[j][i].wregions);
+        map->tiles[j][i].wregions = 0;
+        mem_Free(map->tiles[j][i].wpoints);
+        map->tiles[j][i].wpoints = 0;
+        mem_Free(map->tiles[j][i].wpolys);
+        map->tiles[j][i].wpolys = 0;
+      }
     }
-    if (map->types) {
-        mem_Free(map->types);
-        map->types = 0;
+  if (map->height) {
+    mem_Free(map->height);
+    map->height = 0;
+  }
+  if (map->types) {
+    mem_Free(map->types);
+    map->types = 0;
+  }
+  if (map->water) {
+    mem_Free(map->water);
+    map->water = 0;
+  }
+  if (map->light) {
+    mem_Free(map->light);
+    map->light = 0;
+  }
+  if (map->lightofs) {
+    mem_Free(map->lightofs);
+    map->lightofs = 0;
+  }
+  if (map->regions) {
+    for (i = 0; i < map->nregions; i++)
+      tex_Release(map->regions[i].tex);
+    mem_Free(map->regions);
+    map->regions = 0;
+  }
+  for (i = 0; i < 3; i++)
+    if (map->divide[i]) {
+      mem_Free(map->divide[i]);
+      map->divide[i] = 0;
     }
-    if (map->water) {
-        mem_Free(map->water);
-        map->water = 0;
-    }
-    if (map->light) {
-        mem_Free(map->light);
-        map->light = 0;
-    }
-    if (map->lightofs) {
-        mem_Free(map->lightofs);
-        map->lightofs = 0;
-    }
-    if (map->regions) {
-        for (i = 0; i < map->nregions; i++)
-            tex_Release(map->regions[i].tex);
-        mem_Free(map->regions);
-        map->regions = 0;
-    }
-    for (i = 0; i < 3; i++)
-        if (map->divide[i]) {
-            mem_Free(map->divide[i]);
-            map->divide[i] = 0;
-        }
-    d3fl_Flush();
-    mem_Free(map);
+  d3fl_Flush();
+  mem_Free(map);
 }
 /* 0x440140, marks the map dirty and every tile's lod invalid (-1), so the next use recomputes them */
 
-void d3fl_Invalidate(D3FLMAP *map)
-{
-    int i, j;
+void d3fl_Invalidate(D3FLMAP *map) {
+  int i, j;
 
-    map->dirty = 1;
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++)
-            map->tiles[j][i].lod = -1;
+  map->dirty = 1;
+  for (j = 0; j < 8; j++)
+    for (i = 0; i < 8; i++)
+      map->tiles[j][i].lod = -1;
 }
 /* 0x440170, flood fill */
 
-void d3fl_Fill(unsigned char *map, int size, int x, int y, unsigned char from, unsigned char to)
-{
-    map[y * size + x] = to;
-    if (x + 1 < size && map[y * size + x + 1] == from)
-        d3fl_Fill(map, size, x + 1, y, from, to);
-    if (x - 1 >= 0 && map[y * size + x - 1] == from)
-        d3fl_Fill(map, size, x - 1, y, from, to);
-    if (y + 1 < size && map[(y + 1) * size + x] == from)
-        d3fl_Fill(map, size, x, y + 1, from, to);
-    if (y - 1 >= 0 && map[(y - 1) * size + x] == from)
-        d3fl_Fill(map, size, x, y - 1, from, to);
+void d3fl_Fill(unsigned char *map, int size, int x, int y, unsigned char from,
+               unsigned char to) {
+  map[y * size + x] = to;
+  if (x + 1 < size && map[y * size + x + 1] == from)
+    d3fl_Fill(map, size, x + 1, y, from, to);
+  if (x - 1 >= 0 && map[y * size + x - 1] == from)
+    d3fl_Fill(map, size, x - 1, y, from, to);
+  if (y + 1 < size && map[(y + 1) * size + x] == from)
+    d3fl_Fill(map, size, x, y + 1, from, to);
+  if (y - 1 >= 0 && map[(y - 1) * size + x] == from)
+    d3fl_Fill(map, size, x, y - 1, from, to);
 }
 /* 0x440280, the water point of a tile at x, y */
 
-D3VERTEX *d3fl_WaterPoint(D3FLTILE *t, int x, int y, char flag)
-{
-    D3VERTEX *p = 0;
-    D3FLWREG *r;
+D3VERTEX *d3fl_WaterPoint(D3FLTILE *t, int x, int y, char flag) {
+  D3VERTEX *p = 0;
+  D3FLWREG *r;
 
-    if (t && t->wregions) {
-        for (r = t->wregions; r->y >= 0; r++)
-            if (y == r->y && x >= r->x0 && x <= r->x1) {
-                if (r->flag == -1)
-                    r->flag = flag;
-                p = &t->wpoints[r->idx - r->x0 + x];
-                break;
-            }
-    }
-    return p;
+  if (t && t->wregions) {
+    for (r = t->wregions; r->y >= 0; r++)
+      if (y == r->y && x >= r->x0 && x <= r->x1) {
+        if (r->flag == -1)
+          r->flag = flag;
+        p = &t->wpoints[r->idx - r->x0 + x];
+        break;
+      }
+  }
+  return p;
 }
 /* 0x4402f0, linear ramp from v0 at p[a] to v1 at p[b] */
 
-void d3fl_Ramp(unsigned char *p, int a, int b, unsigned char v0, unsigned char v1)
-{
-    float step = (float)(v1 - v0) / (b - a);
-    float f = v0;
-    int i;
+void d3fl_Ramp(unsigned char *p, int a, int b, unsigned char v0,
+               unsigned char v1) {
+  float step = (float)(v1 - v0) / (b - a);
+  float f = v0;
+  int i;
 
-    for (i = a; i <= b; i++) {
-        p[i] = (unsigned char)(f + 0.5f);
-        f += step;
-    }
+  for (i = a; i <= b; i++) {
+    p[i] = (unsigned char)(f + 0.5f);
+    f += step;
+  }
 }
 /* 0x440360, finds the water tile type ("WASSER"), builds the water height map, its regions and the water
    strips, points and polygons of the tiles
-   @deep Session 2026-11-16: meaning fixed: regs[i].f14 = 63.0f (the original stores 0x427c0000;
-   d3_int_io's default is 63.0f too), and d3fl_Fill takes unsigned char map/from/to (the original pushes
-   0xfe as imm32; d3fl_Fill stays byte). Slot evidence read from the paired frames: the ramp and diagonal
-   loops run on j (row, [ebp-0x10], j's slot) and i (column, [ebp-0x14], i's slot), not y/x: kept (i then
-   conflicts with map, so it leaves map's arg slot as in the original, where map's slot holds tex/off/_zn
-   instead). The first ramp test reads map->water[k] == 0xff (the original re-tests v != 0xff in the
-   else-if when entered from the in-path: only this spelling gives cmp dl,0xff/je there; else-if swaps, two
-   ifs, v < 0xff, nested if(in): no). Now 889 ins (count rose from 879 by the right changes; the frame is
-   global). Original frame from ebp down: -4 {strcpy ptr, x0, k, D3_COPY/FILL temps}, -8 x/np, -0xc
-   {ty/x1/c/macro counts, tmp@892}, -0x10 j, -0x14 i, -0x15 byte in (kept in bl, spilled), -0x1c y (mask
-   and strip loops) + h1, -0x20 h0 + regs, -0x24 oldn + t, -0x28 a temp of the diagonal switch (921/928
-   edi=[ebp-0x28]), -0x2c cmask, -0x30 npoly, -0x34 mask. The byte slot ranks 6th, so five dword slots are
-   denser than in's byte (in count 8): their counts must be far above ours (c2frame --names). Code hunks
-   left (registers and slots ignored): mask-loop guard test vs cmp (844), the 8 neighbour writes (859-866:
-   x+-1 / y+-1 kept differently), cmask loops 935-942 (y in a register, xor), regs init loop 965-990 (jmp
-   into the body, i in memory), strips 1004-1043, the wpolys clear 1057-1061 (original: pointer walk add
-   0x4c with stores at [p-4],[p],[p-8]), 1073-1104. prior: read the whole function against the original
-   0x440360..0x441253 (water type search, mask and its 8 neighbours, the shore ramps, the diagonal switch
-   with its tables, regions, region records, strips/points/polys, the removed-region compaction, the frees)
-   and fixed: if (found) {...} else watertype = 0xff (the original lays the found branch first, 0x441149
-   after the cmask free), the strips test if (!in) {...} else if (!v) (the original tests in first,
-   0x440ce7), the corner bits built in the unsigned char q with byte adds (add bl,bl / or bl,dl, the last
-   bit and 0xff), the flag words cleared through D3TEXFLAGS.all. ours 1331 vs 1326 instructions, switch
-   tables equal. Left: allocation and scheduling: the 8 neighbour writes of the mask keep x+1 / x-1 in
-   [ebp-0x28] / [ebp-4] and y-1 / y+1 in other registers ('- mov ebx,[esi+0xc] / - mov edx,[esi]' vs '+ mov
-   ebx,ecx / + mov edx,[esi+0xc]', a 29/30... */
+   @deep Session 2026-11-23b (401 -> 300 ins), kept: (1) the first regions loop indexes cmask / map->water
+   inline, no c / w / w2 locals (401 -> 324; that loop is now equal but for cmask's slot); (2) the water
+   merge loop counts with k, not i (the original's [k + water] sib order; j = control); (3) the strips test
+   map->water[k] at both places, no v there (the original stores instrip = 0 as an immediate); (4) the
+   second polygon stores region first like the first one. Frame: the only slot hunk left is y / cmask / h1:
+   the original packs h1 with y and keeps cmask alone; under the packer (size, count desc, newest
+   compatible slot) y needs count 11 (ours 12): the one extra is our second y reload in the mask loop. The
+   original reloads y once, at write 7 (mov edi,[y]; lea edx,[edi+1]: y+1 spilled to [ebp-0xc], y stays in
+   edi to both latches); ours reloads at write 7 into eax (inc eax, y+1 kept in a register) and again
+   before the latch. flip --want '_y$ = -28' and 'lea edx,[edi+1]' only hit meaning changes (write 8 with y
+   instead of y+1: 247 ins, frame right). The original also recomputes x+1 at write 6 from x (mov edi,[x]
+   .. inc edi); flip for that hits only a swap of writes 2 / 3. No lever (all = control): the 255 sum
+   orders of the 8 index expressions, (a & mask) against (mask & a) in the writes and the diagonal, all 511
+   subsets of (j+1)*map->n -> map->n*(j+1) over the strips / polys / y1 / x1 sites, j*n / i*n polys inits,
+   v == 0. climb 2 rounds at 306: best u = map->mask local before write 8 (223; not the original: it
+   reloads [esi+0xc] at writes 8 and 9). Left: mask loop (-11 bytes), diagonal ((j+1)&m into eax: the
+   original anded into j+1 / i+1, ours into m), the strips' (j+1)*n tests (the original y in ebx, n from
+   [ebp-0x20]), the polys head (-6 bytes: the original lea ecx,[edx+1] = i+1 first, x = n*[i], x reloaded
+   into eax), and from the sprintf on one scratch rotation step. prior: Session 2026-11-23 (889 -> 401
+   ins): meaning fixed: the regions' tex_AddRef test reads first, not the counter (commit c9a67954). Then,
+   each read from the original's slots: the strips loop has its own flag instrip (the original keeps it at
+   [ebp+0xb], byte 3 of the dead map argument, apart from the ramps' in at [ebp-0x15]); no n local in the
+   strips (the original's [ebp-0x20] is the CSE of map->n, reloaded after the strip stores: ours with n =
+   map->n kept (j+1)*n as a loop-carried CSE); the regions' init loop counts with j (the original's counter
+   is in j's slot); the wpoints init reads t->wpoints once (pt = t->wpoints; pt[k].field: the original's
+   add eax,0x4c walk); the removed-row compaction counts rows (left = n*n/2, pos = 0, memmove size (left -
+   pos - 1) * sizeof: the original's two byte IVs ebx / [ebp+8] are initialised after the r->y != -1 guard,
+   i.e. strength-reduced). The frame's slot set now equals the original's; left: h1 packs with cmask where
+   the original packs it with y (cmask allocated earlier = worse, 484..824), y1 / y / cmask order. Code
+   hunks left: the mask loop's 8 neighbour writes (the original evaluates ((x-1)&mask) + mask before
+   size*y; operand order of the index = no lever; a local for map->mask = count mover, the original reloads
+   [esi+0xc] each write), the diagonal switch (0x4407d2), the cmask loops (0x440910), the polys loop's
+   bound tests (0x440f3e: the original computes (i+1) once into ecx: lea ecx,[edx+1]) and the register
+   rotation from there to the end. climb round 1 at 430: best 0 < x (commute, 8 ins), nothing structural. */
 
-void d3fl_PrepareWater(D3FLMAP *map)
-{
-    char msg[256];
-    char buf[64];
-    unsigned char *mask, *cmask, *c, *w, *w2;
-    D3FLREGION *regs;
-    TSTEXTURE *tex;
-    D3FLTILE *t;
-    D3FLWREG *r;
-    D3FLPOLY *p;
-    D3TEXFLAGS f;
-    int oldn, i, j, x, y, k, n, x0, x1, y1, np, npoly, first, left, off;
-    unsigned char found, in, v, h0, h1, q;
-    int tx, ty;
+void d3fl_PrepareWater(D3FLMAP *map) {
+  char msg[256];
+  char buf[64];
+  unsigned char *mask, *cmask;
+  D3FLREGION *regs;
+  TSTEXTURE *tex;
+  D3FLTILE *t;
+  D3FLWREG *r;
+  D3FLPOLY *p;
+  D3VERTEX *pt;
+  D3TEXFLAGS f;
+  int oldn, i, j, x, y, k, x0, x1, y1, np, npoly, first, left, pos;
+  unsigned char found, in, instrip, v, h0, h1, q;
+  int tx, ty;
 
-    oldn = map->nregions;
-    map->nregions = 0;
-    if (map->watertype == 0xff)
-        for (i = 0; i < 8; i++) {
-            strcpy(buf, map->typenames[i]);
-            strupr(buf);
-            if (strstr(buf, "WASSER")) {
-                map->watertype = i;
-                break;
-            }
-        }
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++)
-            map->tiles[j][i].water = 0;
-    if (map->watertype < 0xff) {
-        found = 0;
-        mask = mem_Alloc(map->size * map->size, "d3_fl:Water(water_mask)");
-        for (y = 0; y < map->size - 4; y++)
-            for (x = 0; x < map->size - 4; x++) {
-                k = map->size * y + x;
-                if (map->types[k] == map->watertype) {
-                    found = 1;
-                    ty = y / map->n;
-                    tx = x / map->n;
-                    map->tiles[ty][tx].water = 1;
-                    if (y % map->n == 0 && y > 0)
-                        map->tiles[ty - 1][tx].water = 1;
-                    if (x % map->n == 0 && x > 0)
-                        map->tiles[ty][tx - 1].water = 1;
-                    if (x % map->n == 0 && x > 0 && y % map->n == 0 && y > 0)
-                        map->tiles[ty - 1][tx - 1].water = 1;
-                    mask[k] = 0xff;
-                    mask[map->size * y + ((x - 1) & map->mask)] = 0xff;
-                    mask[map->size * y + ((x + 1) & map->mask)] = 0xff;
-                    mask[((y - 1) & map->mask) * map->size + ((x - 1) & map->mask)] = 0xff;
-                    mask[((y - 1) & map->mask) * map->size + x] = 0xff;
-                    mask[((y - 1) & map->mask) * map->size + ((x + 1) & map->mask)] = 0xff;
-                    mask[((y + 1) & map->mask) * map->size + ((x - 1) & map->mask)] = 0xff;
-                    mask[((y + 1) & map->mask) * map->size + x] = 0xff;
-                    mask[((y + 1) & map->mask) * map->size + ((x + 1) & map->mask)] = 0xff;
-                }
-            }
-        if (found) {
-            if (map->water) {
-                for (i = 0; i < map->size * map->size; i++) {
-                    map->water[i] &= mask[i];
-                    if (mask[i] == 0xff && !map->water[i])
-                        map->water[i] = 0xff;
-                }
-            } else {
-                map->water = mem_Alloc(map->size * map->size, "d3_fl:Water(height)");
-                D3_COPY(map->water, mask, map->size * map->size);
-            }
-            /* ramps from the shore height into the water, row by row */
-            for (j = 0; j < map->size; j++) {
-                in = 0;
-                for (i = 0; i < map->size; i++) {
-                    k = map->size * j + i;
-                    v = map->water[k];
-                    if (map->water[k] == 0xff && !in) {
-                        in = 1;
-                        x0 = i;
-                        if (i > 0 && map->water[k - 1] > 0)
-                            h0 = max(1, map->water[k - 1]);
-                        else
-                            h0 = max(1, map->height[k] - 2);
-                    } else if (v != 0xff && in) {
-                        in = 0;
-                        if (v > 0)
-                            h1 = max(1, v);
-                        else
-                            h1 = max(1, map->height[k - 1] - 2);
-                        d3fl_Ramp(&map->water[map->size * j], x0, i - 1, h0, h1);
-                    }
-                }
-                if (in) {
-                    h1 = max(1, map->height[(j + 1) * map->size - 1] - 2);
-                    d3fl_Ramp(&map->water[map->size * j], x0, map->size - 1, h0, h1);
-                }
-            }
-            /* diagonals of the quads at the shore */
-            for (j = 0; j < map->size; j++)
-                for (i = 0; i < map->size; i++) {
-                    /* the water corners of the quad as bits: (i, j) 8, (i, j + 1) 4, (i + 1, j) 2, (i + 1, j + 1) 1 */
-                    q = map->types[map->size * j + i] == map->watertype;
-                    q = q * 2 | map->types[((j + 1) & map->mask) * map->size + i] == map->watertype;
-                    q = q * 2 | map->types[map->size * j + ((i + 1) & map->mask)] == map->watertype;
-                    q *= 2;
-                    switch (q | (unsigned char)(map->types[((j + 1) & map->mask) * map->size + ((i + 1) & map->mask)] == map->watertype)) {
-                    case 2:
-                    case 4:
-                    case 6:
-                    case 11:
-                    case 13:
-                        map->divide[0][map->size * j + i] &= 0x7f;
-                        break;
-                    case 1:
-                    case 7:
-                    case 8:
-                    case 9:
-                    case 14:
-                        map->divide[0][map->size * j + i] |= 0x80;
-                        break;
-                    }
-                }
-            /* regions: connected quads with water at all four corners */
-            cmask = mem_Alloc(map->size * map->size, "d3_fl:Water(CalcRegions)");
-            D3FL_FILL(cmask, 0xff, map->size * map->size);
-            for (y = 0; y < map->size - 1; y++)
-                for (x = 0; x < map->size - 1; x++) {
-                    c = &cmask[map->size * y + x];
-                    if (*c == 0xff) {
-                        w = &map->water[map->size * y + x];
-                        w2 = &map->water[(y + 1) * map->size + x];
-                        if (*w > 0 && *w2 > 0 && w[1] > 0 && w2[1] > 0)
-                            *c = 0xfe;
-                    }
-                }
-            for (y = 0; y < map->size - 1; y++)
-                for (x = 0; x < map->size - 1; x++)
-                    if (cmask[map->size * y + x] == 0xfe)
-                        d3fl_Fill(cmask, map->size, x, y, 0xfe, map->nregions++);
-            if (map->nregions != oldn) {
-                regs = mem_Alloc(map->nregions * sizeof(D3FLREGION), "d3_fl:Water(Regions)");
-                if (oldn > map->nregions)
-                    D3FL_COPY_TO(regs, map->regions, map->nregions * sizeof(D3FLREGION))
-                else {
-                    first = 0;
-                    if (oldn > 0) {
-                        D3FL_COPY_TO(regs, map->regions, oldn * sizeof(D3FLREGION));
-                        first = oldn;
-                    }
-                    if (!(tex = tex_Find("EF_WASS_06A_2T_W_AN0"))) {
-                        f.all = 0;
-                        f.b[0] = 0xac;
-                        if (tex = tex_Load("EF_WASS_06A_2T_W_AN0", f, 0, 0))
-                            tex_Reload(tex, 0);
-                    }
-                    for (i = first; i < map->nregions; i++) {
-                        regs[i].tex = regs[i].tex2 = tex;
-                        if (tex) {
-                            regs[i].flags = tex->flags;
-                            if (i < map->nregions - 1)
-                                tex_AddRef(tex, 1);
-                        } else
-                            regs[i].flags.all = 0;
-                        regs[i].f14 = 63.0f;
-                        regs[i].speed[0] = 0.023f;
-                        regs[i].speed[1] = 0.02f;
-                        regs[i].speed[2] = 0.027f;
-                        regs[i].speed[3] = 0.03f;
-                        regs[i].amp[0] = 1.0f;
-                        regs[i].amp[1] = 1.0f;
-                        regs[i].amp[2] = 1.0f;
-                        regs[i].amp[3] = 31.0f;
-                        regs[i].scrollSpeedU = 0;
-                        regs[i].scrollSpeedV = 0;
-                        regs[i].time = d3_Time;
-                        regs[i].vOfs = 0;
-                        regs[i].uOfs = 0;
-                        regs[i].wavePhase[0] = 0;
-                        regs[i].wavePhase[1] = 0;
-                        regs[i].wavePhase[2] = 0;
-                        regs[i].wavePhase[3] = 0;
-                    }
-                }
-                if (map->regions) {
-                    mem_Free(map->regions);
-                    map->regions = 0;
-                }
-                map->regions = regs;
-            }
-            /* water strips, points and polygons of the tiles */
-            for (j = 0; j < 8; j++)
-                for (i = 0; i < 8; i++)
-                    if (map->tiles[j][i].water) {
-                        t = &map->tiles[j][i];
-                        if (!t->wregions)
-                            t->wregions = mem_Alloc(map->n * map->n / 2 * sizeof(D3FLWREG), "d3_fl:Water(strips)");
-                        r = t->wregions;
-                        np = 0;
-                        npoly = 0;
-                        y1 = j == 7 ? map->size - 4 : (j + 1) * map->n;
-                        for (y = map->n * j; y <= y1; y++) {
-                            in = 0;
-                            x1 = i == 7 ? map->size - 4 : (i + 1) * map->n;
-                            n = map->n;
-                            for (x = n * i; x <= x1; x++) {
-                                k = (y & map->mask) * map->size + (x & map->mask);
-                                v = map->water[k];
-                                if (!in) {
-                                    if (v > 0 && ((y < (j + 1) * n && x < (i + 1) * n && cmask[k] < 0xff)
-                                                  || (y > n * j && cmask[k - map->size] < 0xff)
-                                                  || (x > n * i && cmask[k - 1] < 0xff))) {
-                                        in = 1;
-                                        r->y = y;
-                                        r->x0 = x;
-                                        r->idx = np;
-                                        r->flag = 0xff;
-                                    }
-                                } else if (!v) {
-                                    in = 0;
-                                    r->x1 = x - 1;
-                                    if (r->x0 < r->x1) {
-                                        np += r->x1 - r->x0 + 1;
-                                        r++;
-                                    }
-                                }
-                                n = map->n;
-                                if (y < (j + 1) * n && x < (i + 1) * n && cmask[k] < 0xff)
-                                    npoly += 2;
-                            }
-                            if (in) {
-                                r->x1 = (i + 1) * map->n;
-                                if (r->x0 < r->x1) {
-                                    np += r->x1 - r->x0 + 1;
-                                    r++;
-                                }
-                            }
-                        }
-                        r->y = -1;
-                        if (t->wpoints && t->nwpoints != np) {
-                            mem_Free(t->wpoints);
-                            t->wpoints = 0;
-                        }
-                        t->nwpoints = np;
-                        if (!t->wpoints)
-                            t->wpoints = mem_Alloc(np * sizeof(D3VERTEX), "d3_fl:Water(points)");
-                        else
-                            D3_ZERO(t->wpoints, np * sizeof(D3VERTEX));
-                        for (k = 0; k < t->nwpoints; k++) {
-                            t->wpoints[k].src = 0;
-                            t->wpoints[k].flags = 0;
-                            t->wpoints[k].specular = 0x7fffffff;
-                            t->wpoints[k].color = 0x7fffffff;
-                        }
-                        if (t->wpolys && t->nwpolys != npoly) {
-                            mem_Free(t->wpolys);
-                            t->wpolys = 0;
-                        }
-                        t->nwpolys = npoly;
-                        if (!t->wpolys)
-                            t->wpolys = mem_Alloc(npoly * sizeof(D3FLPOLY), "d3_fl:Water(polys)");
-                        else
-                            D3_ZERO(t->wpolys, npoly * sizeof(D3FLPOLY));
-                        p = t->wpolys;
-                        for (y = map->n * j; y < (j + 1) * map->n; y++)
-                            for (x = map->n * i; x < (i + 1) * map->n; x++) {
-                                k = (y & map->mask) * map->size + (x & map->mask);
-                                if (cmask[k] < 0xff) {
-                                    p->region = cmask[k];
-                                    p->tex = 0;
-                                    p->vOfs = 0;
-                                    p->uOfs = 0;
-                                    p->flags = 0;
-                                    p->zOfs = 16.0f;
-                                    p->v[0] = d3fl_WaterPoint(t, x, y, p->region);
-                                    p->v[1] = d3fl_WaterPoint(t, x + 1, y + 1, p->region);
-                                    p->v[2] = d3fl_WaterPoint(t, x, y + 1, p->region);
-                                    p->uv = d3fl_UV[0];
-                                    p++;
-                                    p->tex = 0;
-                                    p->vOfs = 0;
-                                    p->uOfs = 0;
-                                    p->flags = 0;
-                                    p->region = cmask[k];
-                                    p->zOfs = 16.0f;
-                                    p->v[0] = d3fl_WaterPoint(t, x, y, p->region);
-                                    p->v[1] = d3fl_WaterPoint(t, x + 1, y, p->region);
-                                    p->v[2] = d3fl_WaterPoint(t, x + 1, y + 1, p->region);
-                                    p->uv = d3fl_UV[1];
-                                    p++;
-                                }
-                            }
-                        r = t->wregions;
-                        left = map->n * map->n / 2 * sizeof(D3FLWREG);
-                        off = sizeof(D3FLWREG);
-                        while (r->y != -1)
-                            if (r->flag == -1) {
-                                sprintf(msg, "PrepareFloorWater: removed region @ %i:[%i - %i] idx %i (hsize = %i)",
-                                        r->y, r->x0, r->x1, r->idx, map->size);
-                                memmove(r, r + 1, left - off);
-                                left -= sizeof(D3FLWREG);
-                            } else {
-                                r++;
-                                off += sizeof(D3FLWREG);
-                            }
-                    }
-            mem_Free(cmask);
-        } else {
-            map->watertype = 0xff;
-        }
-        mem_Free(mask);
+  oldn = map->nregions;
+  map->nregions = 0;
+  if (map->watertype == 0xff)
+    for (i = 0; i < 8; i++) {
+      strcpy(buf, map->typenames[i]);
+      strupr(buf);
+      if (strstr(buf, "WASSER")) {
+        map->watertype = i;
+        break;
+      }
     }
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++)
-            if (!map->tiles[j][i].water) {
-                if (map->tiles[j][i].wregions) {
-                    mem_Free(map->tiles[j][i].wregions);
-                    map->tiles[j][i].wregions = 0;
-                }
-                if (map->tiles[j][i].wpoints) {
-                    mem_Free(map->tiles[j][i].wpoints);
-                    map->tiles[j][i].wpoints = 0;
-                }
-                if (map->tiles[j][i].wpolys) {
-                    mem_Free(map->tiles[j][i].wpolys);
-                    map->tiles[j][i].wpolys = 0;
-                }
-            }
-    if (map->watertype == 0xff) {
+  for (j = 0; j < 8; j++)
+    for (i = 0; i < 8; i++)
+      map->tiles[j][i].water = 0;
+  if (map->watertype < 0xff) {
+    found = 0;
+    mask = mem_Alloc(map->size * map->size, "d3_fl:Water(water_mask)");
+    for (y = 0; y < map->size - 4; y++)
+      for (x = 0; x < map->size - 4; x++) {
+        k = map->size * y + x;
+        if (map->types[k] == map->watertype) {
+          found = 1;
+          ty = y / map->n;
+          tx = x / map->n;
+          map->tiles[ty][tx].water = 1;
+          if (y % map->n == 0 && y > 0)
+            map->tiles[ty - 1][tx].water = 1;
+          if (x % map->n == 0 && x > 0)
+            map->tiles[ty][tx - 1].water = 1;
+          if (x % map->n == 0 && x > 0 && y % map->n == 0 && y > 0)
+            map->tiles[ty - 1][tx - 1].water = 1;
+          mask[k] = 0xff;
+          mask[map->size * y + ((x - 1) & map->mask)] = 0xff;
+          mask[map->size * y + ((x + 1) & map->mask)] = 0xff;
+          mask[((y - 1) & map->mask) * map->size + ((x - 1) & map->mask)] =
+              0xff;
+          mask[((y - 1) & map->mask) * map->size + x] = 0xff;
+          mask[((y - 1) & map->mask) * map->size + ((x + 1) & map->mask)] =
+              0xff;
+          mask[((y + 1) & map->mask) * map->size + ((x - 1) & map->mask)] =
+              0xff;
+          mask[((y + 1) & map->mask) * map->size + x] = 0xff;
+          mask[((y + 1) & map->mask) * map->size + ((x + 1) & map->mask)] =
+              0xff;
+        }
+      }
+    if (found) {
+      if (map->water) {
+        for (k = 0; k < map->size * map->size; k++) {
+          map->water[k] &= mask[k];
+          if (mask[k] == 0xff && !map->water[k])
+            map->water[k] = 0xff;
+        }
+      } else {
+        map->water = mem_Alloc(map->size * map->size, "d3_fl:Water(height)");
+        D3_COPY(map->water, mask, map->size * map->size);
+      }
+      /* ramps from the shore height into the water, row by row */
+      for (j = 0; j < map->size; j++) {
+        in = 0;
+        for (i = 0; i < map->size; i++) {
+          k = map->size * j + i;
+          v = map->water[k];
+          if (map->water[k] == 0xff && !in) {
+            in = 1;
+            x0 = i;
+            if (i > 0 && map->water[k - 1] > 0)
+              h0 = max(1, map->water[k - 1]);
+            else
+              h0 = max(1, map->height[k] - 2);
+          } else if (v != 0xff && in) {
+            in = 0;
+            if (v > 0)
+              h1 = max(1, v);
+            else
+              h1 = max(1, map->height[k - 1] - 2);
+            d3fl_Ramp(&map->water[map->size * j], x0, i - 1, h0, h1);
+          }
+        }
+        if (in) {
+          h1 = max(1, map->height[(j + 1) * map->size - 1] - 2);
+          d3fl_Ramp(&map->water[map->size * j], x0, map->size - 1, h0, h1);
+        }
+      }
+      /* diagonals of the quads at the shore */
+      for (j = 0; j < map->size; j++)
+        for (i = 0; i < map->size; i++) {
+          /* the water corners of the quad as bits: (i, j) 8, (i, j + 1) 4, (i + 1, j) 2, (i + 1, j + 1) 1 */
+          q = map->types[map->size * j + i] == map->watertype;
+          q = q * 2 | map->types[((j + 1) & map->mask) * map->size + i] ==
+                          map->watertype;
+          q = q * 2 | map->types[map->size * j + ((i + 1) & map->mask)] ==
+                          map->watertype;
+          q *= 2;
+          switch (q |
+                  (unsigned char)(map->types[((j + 1) & map->mask) * map->size +
+                                             ((i + 1) & map->mask)] ==
+                                  map->watertype)) {
+          case 2:
+          case 4:
+          case 6:
+          case 11:
+          case 13:
+            map->divide[0][map->size * j + i] &= 0x7f;
+            break;
+          case 1:
+          case 7:
+          case 8:
+          case 9:
+          case 14:
+            map->divide[0][map->size * j + i] |= 0x80;
+            break;
+          }
+        }
+      /* regions: connected quads with water at all four corners */
+      cmask = mem_Alloc(map->size * map->size, "d3_fl:Water(CalcRegions)");
+      D3FL_FILL(cmask, 0xff, map->size * map->size);
+      for (y = 0; y < map->size - 1; y++)
+        for (x = 0; x < map->size - 1; x++) {
+          if (cmask[map->size * y + x] == 0xff &&
+              map->water[map->size * y + x] > 0 &&
+              map->water[(y + 1) * map->size + x] > 0 &&
+              map->water[map->size * y + x + 1] > 0 &&
+              map->water[(y + 1) * map->size + x + 1] > 0)
+            cmask[map->size * y + x] = 0xfe;
+        }
+      for (y = 0; y < map->size - 1; y++)
+        for (x = 0; x < map->size - 1; x++)
+          if (cmask[map->size * y + x] == 0xfe)
+            d3fl_Fill(cmask, map->size, x, y, 0xfe, map->nregions++);
+      if (map->nregions != oldn) {
+        regs = mem_Alloc(map->nregions * sizeof(D3FLREGION),
+                         "d3_fl:Water(Regions)");
+        if (oldn > map->nregions)
+          D3FL_COPY_TO(regs, map->regions, map->nregions * sizeof(D3FLREGION))
+        else {
+          first = 0;
+          if (oldn > 0) {
+            D3FL_COPY_TO(regs, map->regions, oldn * sizeof(D3FLREGION));
+            first = oldn;
+          }
+          if (!(tex = tex_Find("EF_WASS_06A_2T_W_AN0"))) {
+            f.all = 0;
+            f.b[0] = 0xac;
+            if (tex = tex_Load("EF_WASS_06A_2T_W_AN0", f, 0, 0))
+              tex_Reload(tex, 0);
+          }
+          for (j = first; j < map->nregions; j++) {
+            regs[j].tex = regs[j].tex2 = tex;
+            if (tex) {
+              regs[j].flags = tex->flags;
+              /* @original the test reads first, not j (cmp of the first slot with nregions - 1 in
+                 every pass): each new region adds a reference unless only the last one is new */
+              if (first < map->nregions - 1)
+                tex_AddRef(tex, 1);
+            } else
+              regs[j].flags.all = 0;
+            regs[j].f14 = 63.0f;
+            regs[j].speed[0] = 0.023f;
+            regs[j].speed[1] = 0.02f;
+            regs[j].speed[2] = 0.027f;
+            regs[j].speed[3] = 0.03f;
+            regs[j].amp[0] = 1.0f;
+            regs[j].amp[1] = 1.0f;
+            regs[j].amp[2] = 1.0f;
+            regs[j].amp[3] = 31.0f;
+            regs[j].scrollSpeedU = 0;
+            regs[j].scrollSpeedV = 0;
+            regs[j].time = d3_Time;
+            regs[j].vOfs = 0;
+            regs[j].uOfs = 0;
+            regs[j].wavePhase[0] = 0;
+            regs[j].wavePhase[1] = 0;
+            regs[j].wavePhase[2] = 0;
+            regs[j].wavePhase[3] = 0;
+          }
+        }
         if (map->regions) {
-            for (i = 0; i < map->nregions; i++)
-                tex_Release(map->regions[i].tex);
-            mem_Free(map->regions);
-            map->regions = 0;
+          mem_Free(map->regions);
+          map->regions = 0;
         }
-        map->nregions = 0;
-        if (map->water) {
-            mem_Free(map->water);
-            map->water = 0;
-        }
+        map->regions = regs;
+      }
+      /* water strips, points and polygons of the tiles */
+      for (j = 0; j < 8; j++)
+        for (i = 0; i < 8; i++)
+          if (map->tiles[j][i].water) {
+            t = &map->tiles[j][i];
+            if (!t->wregions)
+              t->wregions = mem_Alloc(map->n * map->n / 2 * sizeof(D3FLWREG),
+                                      "d3_fl:Water(strips)");
+            r = t->wregions;
+            np = 0;
+            npoly = 0;
+            y1 = j == 7 ? map->size - 4 : (j + 1) * map->n;
+            for (y = map->n * j; y <= y1; y++) {
+              instrip = 0;
+              x1 = i == 7 ? map->size - 4 : (i + 1) * map->n;
+              for (x = map->n * i; x <= x1; x++) {
+                k = (y & map->mask) * map->size + (x & map->mask);
+                if (!instrip) {
+                  if (map->water[k] > 0 &&
+                      ((y < (j + 1) * map->n && x < (i + 1) * map->n &&
+                        cmask[k] < 0xff) ||
+                       (y > map->n * j && cmask[k - map->size] < 0xff) ||
+                       (x > map->n * i && cmask[k - 1] < 0xff))) {
+                    instrip = 1;
+                    r->y = y;
+                    r->x0 = x;
+                    r->idx = np;
+                    r->flag = 0xff;
+                  }
+                } else if (!map->water[k]) {
+                  instrip = 0;
+                  r->x1 = x - 1;
+                  if (r->x0 < r->x1) {
+                    np += r->x1 - r->x0 + 1;
+                    r++;
+                  }
+                }
+                if (y < (j + 1) * map->n && x < (i + 1) * map->n &&
+                    cmask[k] < 0xff)
+                  npoly += 2;
+              }
+              if (instrip) {
+                r->x1 = (i + 1) * map->n;
+                if (r->x0 < r->x1) {
+                  np += r->x1 - r->x0 + 1;
+                  r++;
+                }
+              }
+            }
+            r->y = -1;
+            if (t->wpoints && t->nwpoints != np) {
+              mem_Free(t->wpoints);
+              t->wpoints = 0;
+            }
+            t->nwpoints = np;
+            if (!t->wpoints)
+              t->wpoints =
+                  mem_Alloc(np * sizeof(D3VERTEX), "d3_fl:Water(points)");
+            else
+              D3_ZERO(t->wpoints, np * sizeof(D3VERTEX));
+            pt = t->wpoints;
+            for (k = 0; k < t->nwpoints; k++) {
+              pt[k].src = 0;
+              pt[k].flags = 0;
+              pt[k].specular = 0x7fffffff;
+              pt[k].color = 0x7fffffff;
+            }
+            if (t->wpolys && t->nwpolys != npoly) {
+              mem_Free(t->wpolys);
+              t->wpolys = 0;
+            }
+            t->nwpolys = npoly;
+            if (!t->wpolys)
+              t->wpolys =
+                  mem_Alloc(npoly * sizeof(D3FLPOLY), "d3_fl:Water(polys)");
+            else
+              D3_ZERO(t->wpolys, npoly * sizeof(D3FLPOLY));
+            p = t->wpolys;
+            for (y = map->n * j; y < (j + 1) * map->n; y++)
+              for (x = map->n * i; x < (i + 1) * map->n; x++) {
+                k = (y & map->mask) * map->size + (x & map->mask);
+                if (cmask[k] < 0xff) {
+                  p->region = cmask[k];
+                  p->tex = 0;
+                  p->vOfs = 0;
+                  p->uOfs = 0;
+                  p->flags = 0;
+                  p->zOfs = 16.0f;
+                  p->v[0] = d3fl_WaterPoint(t, x, y, p->region);
+                  p->v[1] = d3fl_WaterPoint(t, x + 1, y + 1, p->region);
+                  p->v[2] = d3fl_WaterPoint(t, x, y + 1, p->region);
+                  p->uv = d3fl_UV[0];
+                  p++;
+                  p->region = cmask[k];
+                  p->tex = 0;
+                  p->vOfs = 0;
+                  p->uOfs = 0;
+                  p->flags = 0;
+                  p->zOfs = 16.0f;
+                  p->v[0] = d3fl_WaterPoint(t, x, y, p->region);
+                  p->v[1] = d3fl_WaterPoint(t, x + 1, y, p->region);
+                  p->v[2] = d3fl_WaterPoint(t, x + 1, y + 1, p->region);
+                  p->uv = d3fl_UV[1];
+                  p++;
+                }
+              }
+            r = t->wregions;
+            /* left: the rows the buffer holds, pos: r's index in it */
+            left = map->n * map->n / 2;
+            pos = 0;
+            while (r->y != -1)
+              if (r->flag == -1) {
+                sprintf(msg,
+                        "PrepareFloorWater: removed region @ %i:[%i - %i] idx "
+                        "%i (hsize = %i)",
+                        r->y, r->x0, r->x1, r->idx, map->size);
+                memmove(r, r + 1, (left - pos - 1) * sizeof(D3FLWREG));
+                left--;
+              } else {
+                r++;
+                pos++;
+              }
+          }
+      mem_Free(cmask);
+    } else {
+      map->watertype = 0xff;
     }
-    map->dirty = 1;
+    mem_Free(mask);
+  }
+  for (j = 0; j < 8; j++)
+    for (i = 0; i < 8; i++)
+      if (!map->tiles[j][i].water) {
+        if (map->tiles[j][i].wregions) {
+          mem_Free(map->tiles[j][i].wregions);
+          map->tiles[j][i].wregions = 0;
+        }
+        if (map->tiles[j][i].wpoints) {
+          mem_Free(map->tiles[j][i].wpoints);
+          map->tiles[j][i].wpoints = 0;
+        }
+        if (map->tiles[j][i].wpolys) {
+          mem_Free(map->tiles[j][i].wpolys);
+          map->tiles[j][i].wpolys = 0;
+        }
+      }
+  if (map->watertype == 0xff) {
+    if (map->regions) {
+      for (i = 0; i < map->nregions; i++)
+        tex_Release(map->regions[i].tex);
+      mem_Free(map->regions);
+      map->regions = 0;
+    }
+    map->nregions = 0;
+    if (map->water) {
+      mem_Free(map->water);
+      map->water = 0;
+    }
+  }
+  map->dirty = 1;
 }
 /* 0x441270, 1 if all map points of the (n + 1)^2 square at x, y have the same tile type */
 
-char d3fl_SameType(D3FLMAP *map, int x, int y, int n)
-{
-    int i, j;
-    unsigned char t = 0xff;
+char d3fl_SameType(D3FLMAP *map, int x, int y, int n) {
+  int i, j;
+  unsigned char t = 0xff;
 
-    for (j = y; j <= y + n; j++)
-        for (i = x; i <= x + n; i++) {
-            int k = (i & map->mask) + (j & map->mask) * map->size;
+  for (j = y; j <= y + n; j++)
+    for (i = x; i <= x + n; i++) {
+      int k = (i & map->mask) + (j & map->mask) * map->size;
 
-            if (t == 0xff)
-                t = map->types[k];
-            else if (t != map->types[k])
-                return 0;
-        }
-    return 1;
+      if (t == 0xff)
+        t = map->types[k];
+      else if (t != map->types[k])
+        return 0;
+    }
+  return 1;
 }
 /* 0x441300, the divide maps: per map quad, which diagonal splits it (bit 7) and whether all its
    corners have the same tile type (bit 6); then the height range of each tile
@@ -1217,111 +1242,117 @@ char d3fl_SameType(D3FLMAP *map, int x, int y, int n)
    worse; before the stores: = control). climb (rounds 1-3) leads change the meaning (commute) or add 2
    idivs (inline n). */
 
-void d3fl_MakeDivide(D3FLMAP *map)
-{
-    unsigned char step[3] = { 1, 2, 4 };
-    unsigned int mask = map->mask;
-    int size = map->size;
-    int x, y, l, s, n, i, j;
-    unsigned int x1, y1;
-    unsigned char *h;
-    unsigned char mn, mx, v;
-    int k;
+void d3fl_MakeDivide(D3FLMAP *map) {
+  unsigned char step[3] = {1, 2, 4};
+  unsigned int mask = map->mask;
+  int size = map->size;
+  int x, y, l, s, n, i, j;
+  unsigned int x1, y1;
+  unsigned char *h;
+  unsigned char mn, mx, v;
+  int k;
 
-    for (y = 0; y < size; y++) {
-        y1 = (y + 1) & mask;
-        for (x = 0; x < size; x++) {
-            h = map->height;
-            x1 = (x + 1) & mask;
-            map->divide[0][y * size + x] = ((abs(h[y * size + x] - h[y1 * size + x1]) <= abs(h[y * size + x1] - h[y1 * size + x])) << 1
-                                            | d3fl_SameType(map, x, y, 1)) << 6;
-        }
+  for (y = 0; y < size; y++) {
+    y1 = (y + 1) & mask;
+    for (x = 0; x < size; x++) {
+      h = map->height;
+      x1 = (x + 1) & mask;
+      map->divide[0][y * size + x] =
+          ((abs(h[y * size + x] - h[y1 * size + x1]) <=
+            abs(h[y * size + x1] - h[y1 * size + x]))
+               << 1 |
+           d3fl_SameType(map, x, y, 1))
+          << 6;
     }
-    for (l = 1; l < 3; l++) {
-        s = step[l];
-        n = map->size / s;
-        for (y = 0; y < n; y++) {
-            y1 = (y * s + s) & mask;
-            for (x = 0; x < n; x++) {
-                int size = map->size;
+  }
+  for (l = 1; l < 3; l++) {
+    s = step[l];
+    n = map->size / s;
+    for (y = 0; y < n; y++) {
+      y1 = (y * s + s) & mask;
+      for (x = 0; x < n; x++) {
+        int size = map->size;
 
-                x1 = (x * s + s) & mask;
-                h = map->height;
-                map->divide[l][y * n + x] = ((abs(h[(y * size + x) * s] - h[y1 * size + x1]) <= abs(h[y * s * size + x1] - h[y1 * size + x * s])) << 1
-                                             | d3fl_SameType(map, x * s, y * s, s)) << 6;
-            }
-        }
+        x1 = (x * s + s) & mask;
+        h = map->height;
+        map->divide[l][y * n + x] =
+            ((abs(h[(y * size + x) * s] - h[y1 * size + x1]) <=
+              abs(h[y * s * size + x1] - h[y1 * size + x * s]))
+                 << 1 |
+             d3fl_SameType(map, x * s, y * s, s))
+            << 6;
+      }
     }
-    d3fl_PrepareWater(map);
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++) {
-            mx = 0;
-            mn = 0xff;
-            for (y = 0; y <= map->n; y++)
-                for (x = 0; x <= map->n; x++) {
-                    k = ((map->n * i + x) & mask) + ((map->n * j + y) & mask) * map->size;
-                    v = map->height[k];
-                    mx = max(mx, v);
-                    mn = min(mn, v);
-                    if (map->water && (v = map->water[k]) > 0) {
-                        mx = max(mx, v);
-                        mn = min(mn, v);
-                    }
-                }
-            map->tiles[j][i].hmax = mx;
-            map->tiles[j][i].hmin = mn;
-            map->tiles[j][i].lod = -1;
+  }
+  d3fl_PrepareWater(map);
+  for (j = 0; j < 8; j++)
+    for (i = 0; i < 8; i++) {
+      mx = 0;
+      mn = 0xff;
+      for (y = 0; y <= map->n; y++)
+        for (x = 0; x <= map->n; x++) {
+          k = ((map->n * i + x) & mask) + ((map->n * j + y) & mask) * map->size;
+          v = map->height[k];
+          mx = max(mx, v);
+          mn = min(mn, v);
+          if (map->water && (v = map->water[k]) > 0) {
+            mx = max(mx, v);
+            mn = min(mn, v);
+          }
         }
-    map->dirty = 1;
+      map->tiles[j][i].hmax = mx;
+      map->tiles[j][i].hmin = mn;
+      map->tiles[j][i].lod = -1;
+    }
+  map->dirty = 1;
 }
 
 typedef struct D3FLLIGHTCTX {
-    D3FLMAP *map;
-    D3OBJECT *light;
+  D3FLMAP *map;
+  D3OBJECT *light;
 } D3FLLIGHTCTX;
 
 /* 0x441660, d3_ForEachObject callback of d3fl_MakeLight: finds the sun (type 7) and marks the map
    points lit by the other lights (bit 7 of the light map) */
-char d3fl_LightCB(D3OBJECT *obj, void *ctx)
-{
-    D3FLMAP *map;
-    D3VECTOR4 pos;
-    float h, r, d, t, q;
-    int x, y, n, n2, xx, yy, x0, x1, y0, y1, k;
+char d3fl_LightCB(D3OBJECT *obj, void *ctx) {
+  D3FLMAP *map;
+  D3VECTOR4 pos;
+  float h, r, d, t, q;
+  int x, y, n, n2, xx, yy, x0, x1, y0, y1, k;
 
-    if (obj->type == 7) {
-        if ((obj->objectFlags & 0x10) && !((D3FLLIGHTCTX *)ctx)->light) {
-            ((D3FLLIGHTCTX *)ctx)->light = obj;
-            return 1;
-        }
-    } else if (obj->power > 0.0 && obj->range > 0.0) {
-        map = ((D3FLLIGHTCTX *)ctx)->map;
-        r = obj->range;
-        d3_PointToWorld(obj, &obj->pos, &pos.v);
-        if (map_Pick(map, &pos.v, 0, &x, &y, &h)) {
-            d = pos.y - h;
-            t = r * r - d * d;
-            if (t > 0.0) {
-                q = (float)sqrt(t) / (d3fl_LightMargin + map->scale);
-                k = map->size * y + x;
-                if (q > 1.0) {
-                    n = (int)q;
-                    n2 = (int)(q * q + 0.5f);
-                    y1 = min(map->size - 1, y + n);
-                    y0 = max(0, y - n);
-                    for (yy = y0; yy <= y1; yy++) {
-                        x1 = min(map->size - 1, x + n);
-                        x0 = max(0, x - n);
-                        for (xx = x0; xx <= x1; xx++)
-                            if ((xx - x) * (xx - x) + (yy - y) * (yy - y) < n2)
-                                map->light[map->size * yy + xx] |= 0x80;
-                    }
-                } else
-                    map->light[k] |= 0x80;
-            }
-        }
+  if (obj->type == 7) {
+    if ((obj->objectFlags & 0x10) && !((D3FLLIGHTCTX *)ctx)->light) {
+      ((D3FLLIGHTCTX *)ctx)->light = obj;
+      return 1;
     }
-    return 1;
+  } else if (obj->power > 0.0 && obj->range > 0.0) {
+    map = ((D3FLLIGHTCTX *)ctx)->map;
+    r = obj->range;
+    d3_PointToWorld(obj, &obj->pos, &pos.v);
+    if (map_Pick(map, &pos.v, 0, &x, &y, &h)) {
+      d = pos.y - h;
+      t = r * r - d * d;
+      if (t > 0.0) {
+        q = (float)sqrt(t) / (d3fl_LightMargin + map->scale);
+        k = map->size * y + x;
+        if (q > 1.0) {
+          n = (int)q;
+          n2 = (int)(q * q + 0.5f);
+          y1 = min(map->size - 1, y + n);
+          y0 = max(0, y - n);
+          for (yy = y0; yy <= y1; yy++) {
+            x1 = min(map->size - 1, x + n);
+            x0 = max(0, x - n);
+            for (xx = x0; xx <= x1; xx++)
+              if ((xx - x) * (xx - x) + (yy - y) * (yy - y) < n2)
+                map->light[map->size * yy + xx] |= 0x80;
+          }
+        } else
+          map->light[k] |= 0x80;
+      }
+    }
+  }
+  return 1;
 }
 /* 0x441860, the light map: bit 7 = lit by a point light (d3fl_LightCB), bits 0..6 = sun shade by the
    terrain normal; then bit 7 of the divide maps follows the light edges
@@ -1350,429 +1381,437 @@ char d3fl_LightCB(D3OBJECT *obj, void *ctx)
    set {0001,1110,0110}, merged tails); no missing statement, wrong constant or field - needs vargen /
    listing */
 
-void d3fl_MakeLight(D3FLMAP *map)
-{
-    D3FLLIGHTCTX ctx;
-    D3VECTOR4 n;
-    int size, x, y, s, dx, dz;
-    unsigned char *h, *lp, *p, *drow;
-    float kx, ky, kz, ky2, half, fx, fz, inv, d;
-    int step[3];
-    unsigned char a, b, c, e;
+void d3fl_MakeLight(D3FLMAP *map) {
+  D3FLLIGHTCTX ctx;
+  D3VECTOR4 n;
+  int size, x, y, s, dx, dz;
+  unsigned char *h, *lp, *p, *drow;
+  float kx, ky, kz, ky2, half, fx, fz, inv, d;
+  int step[3];
+  unsigned char a, b, c, e;
 
-    if (!map->nolight && map->light) {
-        d3fl_Invalidate(map);
-        size = map->size;
-        D3_ZERO(map->light, size * size);
-        {
-            int iv;
+  if (!map->nolight && map->light) {
+    d3fl_Invalidate(map);
+    size = map->size;
+    D3_ZERO(map->light, size * size);
+    {
+      int iv;
 
-            ctx.map = map;
-            ctx.light = 0;
-            d3_ForEachObject(d3_DefaultScene, 0, 0xe, d3fl_LightCB, &ctx);
-            if (ctx.light) {
-                D3VECTOR4 dir;
+      ctx.map = map;
+      ctx.light = 0;
+      d3_ForEachObject(d3_DefaultScene, 0, 0xe, d3fl_LightCB, &ctx);
+      if (ctx.light) {
+        D3VECTOR4 dir;
 
-                half = ctx.light->power * 0.5f;
-                map->ambient[0] = ctx.light->lightColor.x * (1.0f / 255.0f);
-                map->ambient[1] = ctx.light->lightColor.y * (1.0f / 255.0f);
-                map->ambient[2] = ctx.light->lightColor.z * (1.0f / 255.0f);
-                d3_DirToWorld(ctx.light, &d3_ZAxis.v, &dir.v);
-                lp = map->light;
-                h = map->height;
-                kx = (map->negScale) * map->hscale * 2.0f;
-                ky = (map->negScale) * map->scale * -4.0f;
-                kz = map->hscale * map->scale * 2.0f;
-                for (y = 0; y < size; y++) {
-                    ky2 = ky * ky;
-                    for (x = 0; x < size; x++) {
-                        dx = h[y * size + ((x + 1) & (size - 1))] - h[y * size + ((x - 1) & (size - 1))];
-                        fx = dx * kx;
-                        dz = h[((y + 1) & (size - 1)) * size + x] - h[((y - 1) & (size - 1)) * size + x];
-                        fz = dz * kz;
-                        inv = 1.0f / (float)sqrt(fx * fx + fz * fz + ky2);
-                        n.x = inv * fx;
-                        n.y = ky * inv;
-                        n.z = inv * fz;
-                        d = n.x * dir.x + n.y * dir.y + n.z * dir.z;
-                        if (d < 0.0f) {
-                            d3fl_FtoI2(half * d3fl_Shade[(int)(d * -1023.0)], &iv);
-                            lp[y * size + x] |= min(0x7f, (unsigned int)iv);
-                        }
-                    }
-                }
-            } else {
-                map->ambient[0] = 255.0f;
-                map->ambient[1] = 255.0f;
-                map->ambient[2] = 255.0f;
+        half = ctx.light->power * 0.5f;
+        map->ambient[0] = ctx.light->lightColor.x * (1.0f / 255.0f);
+        map->ambient[1] = ctx.light->lightColor.y * (1.0f / 255.0f);
+        map->ambient[2] = ctx.light->lightColor.z * (1.0f / 255.0f);
+        d3_DirToWorld(ctx.light, &d3_ZAxis.v, &dir.v);
+        lp = map->light;
+        h = map->height;
+        kx = (map->negScale) * map->hscale * 2.0f;
+        ky = (map->negScale) * map->scale * -4.0f;
+        kz = map->hscale * map->scale * 2.0f;
+        for (y = 0; y < size; y++) {
+          ky2 = ky * ky;
+          for (x = 0; x < size; x++) {
+            dx = h[y * size + ((x + 1) & (size - 1))] -
+                 h[y * size + ((x - 1) & (size - 1))];
+            fx = dx * kx;
+            dz = h[((y + 1) & (size - 1)) * size + x] -
+                 h[((y - 1) & (size - 1)) * size + x];
+            fz = dz * kz;
+            inv = 1.0f / (float)sqrt(fx * fx + fz * fz + ky2);
+            n.x = inv * fx;
+            n.y = ky * inv;
+            n.z = inv * fz;
+            d = n.x * dir.x + n.y * dir.y + n.z * dir.z;
+            if (d < 0.0f) {
+              d3fl_FtoI2(half * d3fl_Shade[(int)(d * -1023.0)], &iv);
+              lp[y * size + x] |= min(0x7f, (unsigned int)iv);
             }
-            step[0] = 1;
-            step[1] = 2;
-            step[2] = 4;
-            for (iv = 0; iv < sizeof(step) / sizeof(step[0]); iv++) {
-                s = step[iv];
-                size = map->size / s;
-                drow = map->divide[iv];
-                for (y = 0; y < size - 1; y++) {
-                    p = drow + y * size;
-                    for (x = 0; x < size - 1; p++, x++) {
-                        int k = (map->size * y + x) * s;
-
-                        a = map->light[k] >> 7;
-                        b = map->light[k + s] >> 7;
-                        c = map->light[k + map->size * s] >> 7;
-                        e = map->light[k + (map->size + 1) * s] >> 7;
-                        if ((!a && b && c && e) || (a && !b && !c && !e))
-                            *p |= 0x80;
-                        else if ((a && !b && c && e) || (!a && !b && c && !e) || (a && !b && !c && e) || (a && b && !c && e) || (!a && b && !c && !e))
-                            *p &= 0x7f;
-                        else if ((!a && !b && !c && e) || (a && b && c && !e))
-                            *p |= 0x80;
-                        else if ((!a && b && c && !e))
-                            *p |= 0x80;
-                    }
-                }
-            }
+          }
         }
+      } else {
+        map->ambient[0] = 255.0f;
+        map->ambient[1] = 255.0f;
+        map->ambient[2] = 255.0f;
+      }
+      step[0] = 1;
+      step[1] = 2;
+      step[2] = 4;
+      for (iv = 0; iv < sizeof(step) / sizeof(step[0]); iv++) {
+        s = step[iv];
+        size = map->size / s;
+        drow = map->divide[iv];
+        for (y = 0; y < size - 1; y++) {
+          p = drow + y * size;
+          for (x = 0; x < size - 1; p++, x++) {
+            int k = (map->size * y + x) * s;
+
+            a = map->light[k] >> 7;
+            b = map->light[k + s] >> 7;
+            c = map->light[k + map->size * s] >> 7;
+            e = map->light[k + (map->size + 1) * s] >> 7;
+            if ((!a && b && c && e) || (a && !b && !c && !e))
+              *p |= 0x80;
+            else if ((a && !b && c && e) || (!a && !b && c && !e) ||
+                     (a && !b && !c && e) || (a && b && !c && e) ||
+                     (!a && b && !c && !e))
+              *p &= 0x7f;
+            else if ((!a && !b && !c && e) || (a && b && c && !e))
+              *p |= 0x80;
+            else if ((!a && b && c && !e))
+              *p |= 0x80;
+          }
+        }
+      }
     }
+  }
 }
 /* 0x441c50, allocates and resets the point and polygon buffers of a tile */
 
-void d3fl_InitTile(D3FLTILE *t, unsigned int n, unsigned char shift)
-{
-    unsigned int i;
+void d3fl_InitTile(D3FLTILE *t, unsigned int n, unsigned char shift) {
+  unsigned int i;
 
-    n >>= shift;
-    t->lodLevel = 0xff;
-    t->lodDelay = 0;
-    t->nextLod = 0;
-    t->npolys = 0;
-    t->npoints = 0;
-    if (!t->points)
-        t->points = mem_Alloc((n + 2) * (n + 2) * sizeof(D3VERTEX), "d3_fl:TilePoints");
-    if (!t->polys)
-        t->polys = mem_Alloc((n + 1) * (n + 1) * 2 * sizeof(D3FLPOLY), "d3_fl:TilePolys");
-    if (!t->split)
-        t->split = mem_Alloc((n * 3 + 6) * 0x10, "d3_fl:TileSplitUpdate");
-    if (!t->bp) {
-        t->nbp = n * 8 + 0x10;
-        t->bp = mem_Alloc((t->nbp + (n + 1) * (n + 1) * 2) * 0x18, "d3_fl:TileBPBuffer");
-    }
-    if (!t->wregions) {
-        t->water = 0;
-        t->wpoints = 0;
-        t->wpolys = 0;
-        t->nwpolys = 0;
-        t->nwpoints = 0;
-    }
-    for (i = 0; i < (n + 2) * (n + 2); i++) {
-        t->points[i].src = 0;
-        t->points[i].flags = 0;
-        t->points[i].specular = D3FL_WHITE;
-        t->points[i].color = D3FL_WHITE;
-    }
-    for (i = 0; i < (n + 1) * (n + 1) * 2; i++) {
-        t->polys[i].zOfs = 16.0f;
-        t->polys[i].vOfs = 0;
-        t->polys[i].uOfs = 0;
-        t->polys[i].flags = 0;
-        t->polys[i].v[0] = 0;
-        t->polys[i].v[1] = 0;
-        t->polys[i].v[2] = 0;
-        t->polys[i].uv = 0;
-        t->polys[i].tex = 0;
-    }
+  n >>= shift;
+  t->lodLevel = 0xff;
+  t->lodDelay = 0;
+  t->nextLod = 0;
+  t->npolys = 0;
+  t->npoints = 0;
+  if (!t->points)
+    t->points =
+        mem_Alloc((n + 2) * (n + 2) * sizeof(D3VERTEX), "d3_fl:TilePoints");
+  if (!t->polys)
+    t->polys =
+        mem_Alloc((n + 1) * (n + 1) * 2 * sizeof(D3FLPOLY), "d3_fl:TilePolys");
+  if (!t->split)
+    t->split = mem_Alloc((n * 3 + 6) * 0x10, "d3_fl:TileSplitUpdate");
+  if (!t->bp) {
+    t->nbp = n * 8 + 0x10;
+    t->bp = mem_Alloc((t->nbp + (n + 1) * (n + 1) * 2) * 0x18,
+                      "d3_fl:TileBPBuffer");
+  }
+  if (!t->wregions) {
+    t->water = 0;
+    t->wpoints = 0;
+    t->wpolys = 0;
+    t->nwpolys = 0;
+    t->nwpoints = 0;
+  }
+  for (i = 0; i < (n + 2) * (n + 2); i++) {
+    t->points[i].src = 0;
+    t->points[i].flags = 0;
+    t->points[i].specular = D3FL_WHITE;
+    t->points[i].color = D3FL_WHITE;
+  }
+  for (i = 0; i < (n + 1) * (n + 1) * 2; i++) {
+    t->polys[i].zOfs = 16.0f;
+    t->polys[i].vOfs = 0;
+    t->polys[i].uOfs = 0;
+    t->polys[i].flags = 0;
+    t->polys[i].v[0] = 0;
+    t->polys[i].v[1] = 0;
+    t->polys[i].v[2] = 0;
+    t->polys[i].uv = 0;
+    t->polys[i].tex = 0;
+  }
 }
 /* 0x441db0, frees the light, divide and tile buffers of a map */
 
-void d3fl_FreeTiles(D3FLMAP *map)
-{
-    int i, j;
+void d3fl_FreeTiles(D3FLMAP *map) {
+  int i, j;
 
-    if (map->light) {
-        mem_Free(map->light);
-        map->light = 0;
+  if (map->light) {
+    mem_Free(map->light);
+    map->light = 0;
+  }
+  for (i = 0; i < 3; i++)
+    if (map->divide[i]) {
+      mem_Free(map->divide[i]);
+      map->divide[i] = 0;
     }
-    for (i = 0; i < 3; i++)
-        if (map->divide[i]) {
-            mem_Free(map->divide[i]);
-            map->divide[i] = 0;
-        }
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++) {
-            map->tiles[j][i].lod = 0;
-            map->tiles[j][i].lodLevel = 0;
-            map->tiles[j][i].npolys = 0;
-            map->tiles[j][i].npoints = 0;
-            if (map->tiles[j][i].points) {
-                mem_Free(map->tiles[j][i].points);
-                map->tiles[j][i].points = 0;
-            }
-            if (map->tiles[j][i].polys) {
-                mem_Free(map->tiles[j][i].polys);
-                map->tiles[j][i].polys = 0;
-            }
-            if (map->tiles[j][i].split) {
-                mem_Free(map->tiles[j][i].split);
-                map->tiles[j][i].split = 0;
-            }
-            if (map->tiles[j][i].bp) {
-                mem_Free(map->tiles[j][i].bp);
-                map->tiles[j][i].bp = 0;
-            }
-            if (map->tiles[j][i].water) {
-                mem_Free(map->tiles[j][i].wregions);
-                map->tiles[j][i].wregions = 0;
-                mem_Free(map->tiles[j][i].wpoints);
-                map->tiles[j][i].wpoints = 0;
-                mem_Free(map->tiles[j][i].wpolys);
-                map->tiles[j][i].wpolys = 0;
-            }
-        }
+  for (j = 0; j < 8; j++)
+    for (i = 0; i < 8; i++) {
+      map->tiles[j][i].lod = 0;
+      map->tiles[j][i].lodLevel = 0;
+      map->tiles[j][i].npolys = 0;
+      map->tiles[j][i].npoints = 0;
+      if (map->tiles[j][i].points) {
+        mem_Free(map->tiles[j][i].points);
+        map->tiles[j][i].points = 0;
+      }
+      if (map->tiles[j][i].polys) {
+        mem_Free(map->tiles[j][i].polys);
+        map->tiles[j][i].polys = 0;
+      }
+      if (map->tiles[j][i].split) {
+        mem_Free(map->tiles[j][i].split);
+        map->tiles[j][i].split = 0;
+      }
+      if (map->tiles[j][i].bp) {
+        mem_Free(map->tiles[j][i].bp);
+        map->tiles[j][i].bp = 0;
+      }
+      if (map->tiles[j][i].water) {
+        mem_Free(map->tiles[j][i].wregions);
+        map->tiles[j][i].wregions = 0;
+        mem_Free(map->tiles[j][i].wpoints);
+        map->tiles[j][i].wpoints = 0;
+        mem_Free(map->tiles[j][i].wpolys);
+        map->tiles[j][i].wpolys = 0;
+      }
+    }
 }
 /* 0x441ea0, allocates the light and divide maps and the tiles, then computes the divide maps */
 
-void d3fl_Inflate(D3FLMAP *map)
-{
-    int i, j;
+void d3fl_Inflate(D3FLMAP *map) {
+  int i, j;
 
-    if (!map->light)
-        map->light = mem_Alloc(map->size * map->size + 1, "d3fl:Inflate(f->light)");
-    for (i = 0; i < 3; i++)
-        if (!map->divide[i]) {
-            int n = map->size >> i;
+  if (!map->light)
+    map->light = mem_Alloc(map->size * map->size + 1, "d3fl:Inflate(f->light)");
+  for (i = 0; i < 3; i++)
+    if (!map->divide[i]) {
+      int n = map->size >> i;
 
-            map->divide[i] = mem_Alloc(n * n + 1, "d3fl:Inflate(f->divide)");
-        }
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++)
-            d3fl_InitTile(&map->tiles[j][i], map->n, map->shift);
-    d3fl_MakeDivide(map);
-    map->dirty = 1;
+      map->divide[i] = mem_Alloc(n * n + 1, "d3fl:Inflate(f->divide)");
+    }
+  for (j = 0; j < 8; j++)
+    for (i = 0; i < 8; i++)
+      d3fl_InitTile(&map->tiles[j][i], map->n, map->shift);
+  d3fl_MakeDivide(map);
+  map->dirty = 1;
 }
 
 /* ---- 0x441f50..0x4439e0 (worker map) ---- */
 
 /* 0x441f50, allocates the divide and light maps of a freshly loaded map and resets its tiles */
-void d3fl_InitMap(D3FLMAP *map)
-{
-    int i, j;
+void d3fl_InitMap(D3FLMAP *map) {
+  int i, j;
 
-    map->watertype = 0xff;
-    map->divide[0] = mem_Alloc(map->size * map->size, "d3_fl:Divide0");
-    map->divide[1] = mem_Alloc((unsigned int)(map->size * map->size) >> 2, "d3_fl:Divide1");
-    map->divide[2] = mem_Alloc((unsigned int)(map->size * map->size) >> 4, "d3_fl:Divide2");
-    map->light = mem_Alloc(map->size * map->size, "d3_fl:Light");
-    if (!map->lightofs)
-        map->lightofs = mem_Alloc(map->size * map->size * 4, "d3_fl:LightOffset");
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++) {
-            D3_ZERO(&map->tiles[j][i], sizeof(D3FLTILE));
-            d3fl_InitTile(&map->tiles[j][i], map->n, map->shift);
-        }
-    d3fl_MakeDivide(map);
-    d3fl_MakeLight(map);
-    map->dirty = 1;
+  map->watertype = 0xff;
+  map->divide[0] = mem_Alloc(map->size * map->size, "d3_fl:Divide0");
+  map->divide[1] =
+      mem_Alloc((unsigned int)(map->size * map->size) >> 2, "d3_fl:Divide1");
+  map->divide[2] =
+      mem_Alloc((unsigned int)(map->size * map->size) >> 4, "d3_fl:Divide2");
+  map->light = mem_Alloc(map->size * map->size, "d3_fl:Light");
+  if (!map->lightofs)
+    map->lightofs = mem_Alloc(map->size * map->size * 4, "d3_fl:LightOffset");
+  for (j = 0; j < 8; j++)
+    for (i = 0; i < 8; i++) {
+      D3_ZERO(&map->tiles[j][i], sizeof(D3FLTILE));
+      d3fl_InitTile(&map->tiles[j][i], map->n, map->shift);
+    }
+  d3fl_MakeDivide(map);
+  d3fl_MakeLight(map);
+  map->dirty = 1;
 }
 /* 0x442080, loads the source textures (3 mip levels) of tile type idx (< 0: the first free one) */
 
-int d3fl_LoadTexture(D3FLMAP *map, char *name, int idx)
-{
-    char buf[256];
-    char *path;
-    int i, k;
+int d3fl_LoadTexture(D3FLMAP *map, char *name, int idx) {
+  char buf[256];
+  char *path;
+  int i, k;
 
-    if (idx < 0)
-        for (k = 0; map->typenames[k][0]; k++)
-            ;
-    else
-        k = idx;
-    if (k < 8) {
-        map->typenames[k][0] = ch_EmptyName[0];
-        for (i = 0; i < 3; i++)
-            map->src[i][k] = 0;
-        if (tex_FindFile(name)) {
-            strncpy(map->typenames[k], name, 0x40);
-            for (i = 0; i < 3; i++) {
-                strcpy(buf, name);
-                strcat(buf, d3fl_Suffix[i]);
-                if (path = tex_FindFile(buf)) {
-                    map->src[i][k] = mem_Alloc(0x4000, "d3_fl:fltx_SourceData");
-                    bmp_Load(path, map->src[i][k], 0, 0x11);
-                } else
-                    strcat(buf, " not found (FloorTexture)!");
-            }
-            return k;
-        }
-        sprintf(buf, "Floor-Texture \"%s\" not found!", name);
+  if (idx < 0)
+    for (k = 0; map->typenames[k][0]; k++)
+      ;
+  else
+    k = idx;
+  if (k < 8) {
+    map->typenames[k][0] = ch_EmptyName[0];
+    for (i = 0; i < 3; i++)
+      map->src[i][k] = 0;
+    if (tex_FindFile(name)) {
+      strncpy(map->typenames[k], name, 0x40);
+      for (i = 0; i < 3; i++) {
+        strcpy(buf, name);
+        strcat(buf, d3fl_Suffix[i]);
+        if (path = tex_FindFile(buf)) {
+          map->src[i][k] = mem_Alloc(0x4000, "d3_fl:fltx_SourceData");
+          bmp_Load(path, map->src[i][k], 0, 0x11);
+        } else
+          strcat(buf, " not found (FloorTexture)!");
+      }
+      return k;
     }
-    return -1;
+    sprintf(buf, "Floor-Texture \"%s\" not found!", name);
+  }
+  return -1;
 }
 /* 0x442210, replaces the texture of tile type idx */
 
-int d3fl_ReplaceTexture(D3FLMAP *map, char *name, int idx)
-{
-    int i;
+int d3fl_ReplaceTexture(D3FLMAP *map, char *name, int idx) {
+  int i;
 
-    map->typenames[idx][0] = ch_EmptyName[0];
-    for (i = 0; i < 3; i++)
-        if (map->src[i][idx]) {
-            mem_Free(map->src[i][idx]);
-            map->src[i][idx] = 0;
-        }
-    i = d3fl_LoadTexture(map, name, idx);
-    if (i >= 0) {
-        d3fl_Flush();
-        d3fl_Invalidate(map);
+  map->typenames[idx][0] = ch_EmptyName[0];
+  for (i = 0; i < 3; i++)
+    if (map->src[i][idx]) {
+      mem_Free(map->src[i][idx]);
+      map->src[i][idx] = 0;
     }
-    return i;
+  i = d3fl_LoadTexture(map, name, idx);
+  if (i >= 0) {
+    d3fl_Flush();
+    d3fl_Invalidate(map);
+  }
+  return i;
 }
 /* 0x442280, reloads the source textures of all tile types (d3fl_ReloadTextures in d3.h) */
 
-void d3fl_ReloadTextures(D3FLMAP *map)
-{
-    char buf[256];
-    char *path;
-    int i, j;
+void d3fl_ReloadTextures(D3FLMAP *map) {
+  char buf[256];
+  char *path;
+  int i, j;
 
-    if (map) {
-        d3fl_Invalidate(map);
-        for (i = 0; i < 8; i++)
-            for (j = 0; j < 3; j++) {
-                strcpy(buf, map->typenames[i]);
-                strcat(buf, d3fl_Suffix[j]);
-                if ((path = tex_FindFile(buf)) && map->src[j][i])
-                    bmp_Load(path, map->src[j][i], 0, 0x11);
-            }
-    }
+  if (map) {
+    d3fl_Invalidate(map);
+    for (i = 0; i < 8; i++)
+      for (j = 0; j < 3; j++) {
+        strcpy(buf, map->typenames[i]);
+        strcat(buf, d3fl_Suffix[j]);
+        if ((path = tex_FindFile(buf)) && map->src[j][i])
+          bmp_Load(path, map->src[j][i], 0, 0x11);
+      }
+  }
 }
 
-#define D3FL_CORNER(i, X0, Z0, H)                                    \
-    p.x = d3fl_AxisX.x * (X0) + d3fl_Origin.x;                       \
-    p.y = d3fl_AxisX.y * (X0) + d3fl_Origin.y;                       \
-    p.z = d3fl_AxisX.z * (X0) + d3fl_Origin.z;                       \
-    q.x = d3fl_AxisZ.x * (Z0) + p.x;                                 \
-    q.y = d3fl_AxisZ.y * (Z0) + p.y;                                 \
-    q.z = d3fl_AxisZ.z * (Z0) + p.z;                                 \
-    d3fl_Box[i].x = d3fl_AxisY.x * (H) + q.x;                        \
-    d3fl_Box[i].y = d3fl_AxisY.y * (H) + q.y;                        \
-    d3fl_Box[i].z = d3fl_AxisY.z * (H) + q.z;
+#define D3FL_CORNER(i, X0, Z0, H)                                              \
+  p.x = d3fl_AxisX.x * (X0) + d3fl_Origin.x;                                   \
+  p.y = d3fl_AxisX.y * (X0) + d3fl_Origin.y;                                   \
+  p.z = d3fl_AxisX.z * (X0) + d3fl_Origin.z;                                   \
+  q.x = d3fl_AxisZ.x * (Z0) + p.x;                                             \
+  q.y = d3fl_AxisZ.y * (Z0) + p.y;                                             \
+  q.z = d3fl_AxisZ.z * (Z0) + p.z;                                             \
+  d3fl_Box[i].x = d3fl_AxisY.x * (H) + q.x;                                    \
+  d3fl_Box[i].y = d3fl_AxisY.y * (H) + q.y;                                    \
+  d3fl_Box[i].z = d3fl_AxisY.z * (H) + q.z;
 
 /* 0x442390, creates a terrain map from a description: height, water and texture maps either from memory or from
    "boden/<name>.bmp", "boden/<name>_w.bmp" and "boden/<texname>.bmp" */
 
-D3FLMAP *d3fl_LoadMap(D3FLDESC *desc)
-{
-    char path[256];
-    char msg[256];
-    char dir[256];
-    D3FLMAP *map;
-    char *p;
-    int w, h;
-    int i, n, mn, mx, v;
+D3FLMAP *d3fl_LoadMap(D3FLDESC *desc) {
+  char path[256];
+  char msg[256];
+  char dir[256];
+  D3FLMAP *map;
+  char *p;
+  int w, h;
+  int i, n, mn, mx, v;
 
-    map = mem_Alloc(sizeof(D3FLMAP), "d3_fl:Floor");
-    strcpy(map->name, desc->name);
-    strcpy(map->texname, desc->texname);
-    map->shift = d3fl_MapShift;
-    if (desc->height && (n = desc->size) > 0) {
-        map->size = n;
-        map->height = mem_Alloc(n * n, "d3_fl:Height");
-        D3FL_COPY(map->height, desc->height, map->size * map->size);
+  map = mem_Alloc(sizeof(D3FLMAP), "d3_fl:Floor");
+  strcpy(map->name, desc->name);
+  strcpy(map->texname, desc->texname);
+  map->shift = d3fl_MapShift;
+  if (desc->height && (n = desc->size) > 0) {
+    map->size = n;
+    map->height = mem_Alloc(n * n, "d3_fl:Height");
+    D3FL_COPY(map->height, desc->height, map->size * map->size);
+  } else {
+    vfs_DirPath(d3io_StockDir, vfs_Root, path);
+    strcat(path, "boden/");
+    strcpy(dir, path);
+    strcat(path, desc->name);
+    strcat(path, ".bmp");
+    if (!bmp_GetInfo(path, &w, &h, 0) || w != h)
+      sprintf(msg,
+              "Could not open HeightMap-File %s or HeightMap has wrong size!!!",
+              path);
+    else {
+      map->size = w;
+      map->height = mem_Alloc(w * w, "d3_fl:Height");
+      bmp_Load(path, map->height, 0, 5);
+    }
+  }
+  /* @original: size read anew (sizeFresh) for mask and the transform, no reuse of an earlier load */
+  n = map->sizeFresh;
+  map->idxMask = n * n - 1 | n - 1;
+  map->mask = map->sizeFresh - 1;
+  if (desc->nregions > 0 && desc->regions) {
+    if (desc->water && desc->size > 0) {
+      map->water = mem_Alloc(map->size * map->size, "d3_fl:Water(height)");
+      D3FL_COPY(map->water, desc->water, map->size * map->size);
     } else {
-        vfs_DirPath(d3io_StockDir, vfs_Root, path);
-        strcat(path, "boden/");
-        strcpy(dir, path);
-        strcat(path, desc->name);
-        strcat(path, ".bmp");
-        if (!bmp_GetInfo(path, &w, &h, 0) || w != h)
-            sprintf(msg, "Could not open HeightMap-File %s or HeightMap has wrong size!!!", path);
-        else {
-            map->size = w;
-            map->height = mem_Alloc(w * w, "d3_fl:Height");
-            bmp_Load(path, map->height, 0, 5);
-        }
+      strcpy(path, dir);
+      strcat(path, desc->name);
+      strcat(path, "_w.bmp");
+      if (!bmp_GetInfo(path, &w, &h, 0) || w != h || w != map->size)
+        sprintf(msg,
+                "Could not open WaterMap-File %s or WaterMap has wrong size!!!",
+                path);
+      else {
+        map->water = mem_Alloc(map->size * map->size, "d3_fl:Water(height)");
+        bmp_Load(path, map->water, 0, 5);
+      }
     }
-    /* @original: size read anew (sizeFresh) for mask and the transform, no reuse of an earlier load */
-    n = map->sizeFresh;
-    map->idxMask = n * n - 1 | n - 1;
-    map->mask = map->sizeFresh - 1;
-    if (desc->nregions > 0 && desc->regions) {
-        if (desc->water && desc->size > 0) {
-            map->water = mem_Alloc(map->size * map->size, "d3_fl:Water(height)");
-            D3FL_COPY(map->water, desc->water, map->size * map->size);
-        } else {
-            strcpy(path, dir);
-            strcat(path, desc->name);
-            strcat(path, "_w.bmp");
-            if (!bmp_GetInfo(path, &w, &h, 0) || w != h || w != map->size)
-                sprintf(msg, "Could not open WaterMap-File %s or WaterMap has wrong size!!!", path);
-            else {
-                map->water = mem_Alloc(map->size * map->size, "d3_fl:Water(height)");
-                bmp_Load(path, map->water, 0, 5);
-            }
-        }
-        map->nregions = desc->nregions;
-        map->regions = mem_Alloc(map->nregions * sizeof(D3FLREGION), "d3_fl:Water(regions)");
-        D3FL_COPY(map->regions, desc->regions, map->nregions * sizeof(D3FLREGION));
+    map->nregions = desc->nregions;
+    map->regions =
+        mem_Alloc(map->nregions * sizeof(D3FLREGION), "d3_fl:Water(regions)");
+    D3FL_COPY(map->regions, desc->regions, map->nregions * sizeof(D3FLREGION));
+  }
+  if (desc->types && desc->size > 0) {
+    map->types = mem_Alloc(map->size * map->size, "d3_fl:Texture");
+    D3FL_COPY(map->types, desc->types, map->size * map->size);
+  } else {
+    strcpy(path, dir);
+    strcat(path, desc->texname);
+    strcat(path, ".bmp");
+    if (!bmp_GetInfo(path, &w, &h, 0) || w != h || w != map->size)
+      sprintf(msg,
+              "Could not open Texture-Information-File %s or "
+              "Texture-Information has wrong size!!!",
+              path);
+    else {
+      map->types = mem_Alloc(map->size * map->size, "d3_fl:Texture");
+      bmp_Load(path, map->types, 0, 5);
     }
-    if (desc->types && desc->size > 0) {
-        map->types = mem_Alloc(map->size * map->size, "d3_fl:Texture");
-        D3FL_COPY(map->types, desc->types, map->size * map->size);
-    } else {
-        strcpy(path, dir);
-        strcat(path, desc->texname);
-        strcat(path, ".bmp");
-        if (!bmp_GetInfo(path, &w, &h, 0) || w != h || w != map->size)
-            sprintf(msg, "Could not open Texture-Information-File %s or Texture-Information has wrong size!!!", path);
-        else {
-            map->types = mem_Alloc(map->size * map->size, "d3_fl:Texture");
-            bmp_Load(path, map->types, 0, 5);
-        }
+  }
+  if (desc->lightofs && desc->size > 0) {
+    map->lightofs = mem_Alloc(map->size * map->size * 4, "d3_fl:LightOffset");
+    D3FL_COPY(map->lightofs, desc->lightofs, map->size * map->size * 4);
+  }
+  if (map->types && map->height) {
+    map->orgx = (float)-map->sizeFresh * desc->scale * 0.5f;
+    map->orgy = desc->hscale * -64.0f;
+    map->orgz = (float)map->size * desc->scale * 0.5f;
+    map->scale = (desc->scale);
+    map->xAxisY = 0.0f;
+    map->xAxisZ = 0.0f;
+    map->zAxisX = 0.0f;
+    map->zAxisY = 0.0f;
+    map->negScale = -desc->scale;
+    map->yAxisX = 0.0f;
+    map->hscale = (desc->hscale);
+    map->yAxisZ = 0.0f;
+    map->n = map->sizeFresh / 8;
+    map->lodDist2 = 20.0f;
+    map->lodDist4 = 40.0f;
+    map->nolight = 0;
+    map->lod = 0;
+    for (i = 0; i < 8; i++) {
+      map->typenames[i][0] = ch_EmptyName[0];
+      p = desc->typenames[i];
+      if (p && *p)
+        d3fl_LoadTexture(map, p, -1);
     }
-    if (desc->lightofs && desc->size > 0) {
-        map->lightofs = mem_Alloc(map->size * map->size * 4, "d3_fl:LightOffset");
-        D3FL_COPY(map->lightofs, desc->lightofs, map->size * map->size * 4);
+    n = map->size * map->size;
+    mn = 0xff;
+    mx = 0;
+    for (i = 0; i < n; i++) {
+      v = map->types[i];
+      mx = max(mx, v);
+      mn = min(mn, v);
     }
-    if (map->types && map->height) {
-        map->orgx = (float)-map->sizeFresh * desc->scale * 0.5f;
-        map->orgy = desc->hscale * -64.0f;
-        map->orgz = (float)map->size * desc->scale * 0.5f;
-        map->scale = (desc->scale);
-        map->xAxisY = 0.0f;
-        map->xAxisZ = 0.0f;
-        map->zAxisX = 0.0f;
-        map->zAxisY = 0.0f;
-        map->negScale = -desc->scale;
-        map->yAxisX = 0.0f;
-        map->hscale = (desc->hscale);
-        map->yAxisZ = 0.0f;
-        map->n = map->sizeFresh / 8;
-        map->lodDist2 = 20.0f;
-        map->lodDist4 = 40.0f;
-        map->nolight = 0;
-        map->lod = 0;
-        for (i = 0; i < 8; i++) {
-            map->typenames[i][0] = ch_EmptyName[0];
-            p = desc->typenames[i];
-            if (p && *p)
-                d3fl_LoadTexture(map, p, -1);
-        }
-        n = map->size * map->size;
-        mn = 0xff;
-        mx = 0;
-        for (i = 0; i < n; i++) {
-            v = map->types[i];
-            mx = max(mx, v);
-            mn = min(mn, v);
-        }
-        for (i = 0; i < map->size * map->size; i++)
-            map->types[i] -= mn;
-        d3fl_InitMap(map);
-        return map;
-    }
-    d3fl_FreeMap(map);
-    return 0;
+    for (i = 0; i < map->size * map->size; i++)
+      map->types[i] -= mn;
+    d3fl_InitMap(map);
+    return map;
+  }
+  d3fl_FreeMap(map);
+  return 0;
 }
 /* 0x442ac0, the bounding box of tile (tx, ty) in world space (bottom from t->hmin, top from the map's tile)
    @deep s36: the code is equal up to corner 3 (line 1793); the original schedules the address of
@@ -1782,63 +1821,65 @@ D3FLMAP *d3fl_LoadMap(D3FLDESC *desc)
    straight-line body). No lever: a separate top local (= control), its assignment at each position from
    the x0 line to corner 4 (46..241, the early ones grow the frame), (float) casts on either h (= control),
    int h (68), t->hmax for the top (meaning: 259). climb round 1: nothing (the macro body is not mutated). */
-D3VERTEX *d3fl_TileBox(D3FLMAP *map, D3FLTILE *t, int tx, int ty)
-{
-    D3VECTOR4 p, q;
-    float x0, x1, z0, z1, h;
+D3VERTEX *d3fl_TileBox(D3FLMAP *map, D3FLTILE *t, int tx, int ty) {
+  D3VECTOR4 p, q;
+  float x0, x1, z0, z1, h;
 
-    x0 = (float)(map->n * tx);
-    x1 = (float)((tx + 1) * map->n);
-    z0 = (float)(map->n * ty);
-    z1 = (float)((ty + 1) * map->n);
-    h = t->hmin;
-    D3FL_CORNER(0, x0, z0, h)
-    D3FL_CORNER(1, x1, z0, h)
-    D3FL_CORNER(2, x1, z1, h)
-    D3FL_CORNER(3, x0, z1, h)
-    h = map->tiles[ty][tx].hmax;
-    D3FL_CORNER(4, x0, z0, h)
-    D3FL_CORNER(5, x1, z0, h)
-    D3FL_CORNER(6, x1, z1, h)
-    D3FL_CORNER(7, x0, z1, h)
-    return d3fl_Box;
+  x0 = (float)(map->n * tx);
+  x1 = (float)((tx + 1) * map->n);
+  z0 = (float)(map->n * ty);
+  z1 = (float)((ty + 1) * map->n);
+  h = t->hmin;
+  D3FL_CORNER(0, x0, z0, h)
+  D3FL_CORNER(1, x1, z0, h)
+  D3FL_CORNER(2, x1, z1, h)
+  D3FL_CORNER(3, x0, z1, h)
+  h = map->tiles[ty][tx].hmax;
+  D3FL_CORNER(4, x0, z0, h)
+  D3FL_CORNER(5, x1, z0, h)
+  D3FL_CORNER(6, x1, z1, h)
+  D3FL_CORNER(7, x0, z1, h)
+  return d3fl_Box;
 }
 /* 0x442ed0, animates n water regions: texture frame, texture offsets and the 16 wave vectors */
 
-void d3fl_UpdateWater(unsigned long time, unsigned int n, D3FLREGION *r)
-{
-    unsigned int k;
-    int i, dt;
-    float t, *w;
-    D3VECTOR4 v;
-    float f;
+void d3fl_UpdateWater(unsigned long time, unsigned int n, D3FLREGION *r) {
+  unsigned int k;
+  int i, dt;
+  float t, *w;
+  D3VECTOR4 v;
+  float f;
 
-    for (k = 0; k < n; k++, r++) {
-        if (r->tex && r->tex->frames > 0 && r->tex->speed > 0)
-            r->tex2 = tex_GetFrame(r->tex - d3_Textures,
-                                   time / d3_AnimDiv[r->tex->speed - 1] % r->tex->frames);
-        dt = time - r->time;
-        if (dt > 0) {
-            t = (float)dt;
-            r->uOfs = (float)fmod(t * r->scrollSpeedU + r->uOfs, 1.0);
-            r->vOfs = (float)fmod(t * r->scrollSpeedV + r->vOfs, 1.0);
-            for (i = 0; i < 4; i++)
-                r->wavePhase[i] = (float)fmod(t * r->speed[i] + r->wavePhase[i], D3FL_2PI);
-            for (i = 0; i < 16; i++) {
-                w = r->wave[i >> 2][i & 3];
-                f = i;
-                v.x = (float)sin(cos(2.7 * f) * D3FL_2PI + r->wavePhase[0] + f);
-                v.y = (float)cos(sin(3.1415927f - 2.4 * f) * D3FL_2PI + r->wavePhase[1] + f);
-                v.z = (float)sin(f - cos(2.5 * f) * D3FL_2PI + r->wavePhase[2] + 2.2);
-                v.w = (float)cos(f - sin(2.6 * f + 3.1415927f) * D3FL_2PI + r->wavePhase[3] + 4.0);
-                w[0] = v.x * r->amp[0];
-                w[1] = v.y * r->amp[1];
-                w[2] = v.z * r->amp[2];
-                w[3] = v.w * r->amp[3];
-            }
-            r->time = time;
-        }
+  for (k = 0; k < n; k++, r++) {
+    if (r->tex && r->tex->frames > 0 && r->tex->speed > 0)
+      r->tex2 =
+          tex_GetFrame(r->tex - d3_Textures,
+                       time / d3_AnimDiv[r->tex->speed - 1] % r->tex->frames);
+    dt = time - r->time;
+    if (dt > 0) {
+      t = (float)dt;
+      r->uOfs = (float)fmod(t * r->scrollSpeedU + r->uOfs, 1.0);
+      r->vOfs = (float)fmod(t * r->scrollSpeedV + r->vOfs, 1.0);
+      for (i = 0; i < 4; i++)
+        r->wavePhase[i] =
+            (float)fmod(t * r->speed[i] + r->wavePhase[i], D3FL_2PI);
+      for (i = 0; i < 16; i++) {
+        w = r->wave[i >> 2][i & 3];
+        f = i;
+        v.x = (float)sin(cos(2.7 * f) * D3FL_2PI + r->wavePhase[0] + f);
+        v.y = (float)cos(sin(3.1415927f - 2.4 * f) * D3FL_2PI +
+                         r->wavePhase[1] + f);
+        v.z = (float)sin(f - cos(2.5 * f) * D3FL_2PI + r->wavePhase[2] + 2.2);
+        v.w = (float)cos(f - sin(2.6 * f + 3.1415927f) * D3FL_2PI +
+                         r->wavePhase[3] + 4.0);
+        w[0] = v.x * r->amp[0];
+        w[1] = v.y * r->amp[1];
+        w[2] = v.z * r->amp[2];
+        w[3] = v.w * r->amp[3];
+      }
+      r->time = time;
     }
+  }
 }
 /* 0x4430c0, transforms, lights and projects the water points of a tile and queues its water polygons
    @deep session 2026-11: 330 -> 242 ins (frame 0x64 equal). Kept: (1) reg->wave[ym][x & 3][k] at each use,
@@ -1875,248 +1916,280 @@ void d3fl_UpdateWater(unsigned long time, unsigned int n, D3FLREGION *r)
    walks the strip records through ebp = r + 8 ([ebp-4] y, [ebp] x0, [ebp+8] flag) with a jmp into the
    rotated loop ('+ lea ebp,[eax+8] / + jmp 0x443195'), ours r in esi; the... */
 
-void d3fl_DrawWater(D3FLMAP *map, D3FLTILE *t)
-{
-    D3VECTOR4 sun;
-    D3VECTOR4 p;
-    D3FLWREG *r;
-    D3FLREGION *reg;
-    D3VERTEX *v;
-    D3FLPOLY *poly;
-    D3CLIPINFO *clip;
-    TSTEXTURE *tex;
-    float k, fy, h, f;
-    unsigned int mask;
-    int size, row, ym, x, idx, iv, npoints, npolys, i;
-    unsigned char *water, *light;
-    unsigned char a, l;
+void d3fl_DrawWater(D3FLMAP *map, D3FLTILE *t) {
+  D3VECTOR4 sun;
+  D3VECTOR4 p;
+  D3FLWREG *r;
+  D3FLREGION *reg;
+  D3VERTEX *v;
+  D3FLPOLY *poly;
+  D3CLIPINFO *clip;
+  TSTEXTURE *tex;
+  float k, fy, h, f;
+  unsigned int mask;
+  int size, row, ym, x, idx, iv, npoints, npolys, i;
+  unsigned char *water, *light;
+  unsigned char a, l;
 
-    if (map && t && t->lodLevel && t->water) {
-        sun.x = d3fl_AxisY.x;
-        sun.y = d3fl_AxisY.y;
-        sun.z = d3fl_AxisY.z;
-        d3_Normalize(&sun.v);
-        size = map->size;
-        mask = map->mask;
-        water = map->water;
-        npoints = t->nwpoints;
-        v = t->wpoints;
-        light = map->light;
-        npolys = t->nwpolys;
-        k = 0.5f - (float)fabs(d3_ZAxis.x * sun.x + d3_ZAxis.y * sun.y + d3_ZAxis.z * sun.z);
-        for (r = t->wregions; r->y >= 0; r++) {
-            ym = r->y & 3;
-            row = (r->y & mask) * size;
-            reg = &map->regions[(unsigned char)r->flag];
-            fy = (float)r->y;
-            p.x = d3fl_AxisZ.x * fy + d3fl_Origin.x;
-            p.y = d3fl_AxisZ.y * fy + d3fl_Origin.y;
-            p.z = d3fl_AxisZ.z * fy + d3fl_Origin.z;
-            f = (float)r->x0;
-            p.x = d3fl_AxisX.x * f + p.x;
-            p.y = d3fl_AxisX.y * f + p.y;
-            p.z = d3fl_AxisX.z * f + p.z;
-            h = k * reg->f14 + reg->flags.b[0];
-            for (x = r->x0; x <= r->x1; x++, v++) {
-                idx = (x & mask) + row;
-                f = water[idx];
-                sun.x = d3fl_AxisY.x * f;
-                sun.y = d3fl_AxisY.y * f;
-                sun.z = d3fl_AxisY.z * f;
-                sun.x += reg->wave[ym][x & 3][0];
-                sun.y += reg->wave[ym][x & 3][1];
-                sun.z += reg->wave[ym][x & 3][2];
-                v->x = p.x + sun.x;
-                v->y = p.y + sun.y;
-                v->z = p.z + sun.z;
-                a = (unsigned char)min(255.0f, max(0.0f, h + reg->wave[ym][x & 3][3]));
-                if (reg->flags.b[2] & 1)
-                    v->color = (a << 8 | a) << 8 | a;
-                else {
-                    l = light[idx];
-                    f = (float)(l & 0x7f);
-                    f += f;
-                    if (l & 0x80) {
-                        d3fl_FtoI(&iv, d3fl_LightCol.x * f + d3fl_SunCol.x + d3fl_Ambient.x);
-                        v->c.r = min(0xff, iv);
-                        d3fl_FtoI(&iv, d3fl_LightCol.y * f + d3fl_SunCol.y + d3fl_Ambient.y);
-                        v->c.g = min(0xff, iv);
-                        d3fl_FtoI(&iv, d3fl_LightCol.z * f + d3fl_SunCol.z + d3fl_Ambient.z);
-                    } else {
-                        d3fl_FtoI(&iv, d3fl_LightCol.x * f + d3fl_Ambient.x);
-                        v->c.r = min(0xff, iv);
-                        d3fl_FtoI(&iv, d3fl_LightCol.y * f + d3fl_Ambient.y);
-                        v->c.g = min(0xff, iv);
-                        d3fl_FtoI(&iv, d3fl_LightCol.z * f + d3fl_Ambient.z);
-                    }
-                    v->c.b = min(0xff, iv);
-                    v->specular = v->color;
-                    v->c.a = a;
-                }
-                p.x = d3fl_AxisX.x + p.x;
-                p.y = d3fl_AxisX.y + p.y;
-                p.z = d3fl_AxisX.z + p.z;
-            }
+  if (map && t && t->lodLevel && t->water) {
+    sun.x = d3fl_AxisY.x;
+    sun.y = d3fl_AxisY.y;
+    sun.z = d3fl_AxisY.z;
+    d3_Normalize(&sun.v);
+    size = map->size;
+    mask = map->mask;
+    water = map->water;
+    npoints = t->nwpoints;
+    v = t->wpoints;
+    light = map->light;
+    npolys = t->nwpolys;
+    k = 0.5f - (float)fabs(d3_ZAxis.x * sun.x + d3_ZAxis.y * sun.y +
+                           d3_ZAxis.z * sun.z);
+    for (r = t->wregions; r->y >= 0; r++) {
+      ym = r->y & 3;
+      row = (r->y & mask) * size;
+      reg = &map->regions[(unsigned char)r->flag];
+      fy = (float)r->y;
+      p.x = d3fl_AxisZ.x * fy + d3fl_Origin.x;
+      p.y = d3fl_AxisZ.y * fy + d3fl_Origin.y;
+      p.z = d3fl_AxisZ.z * fy + d3fl_Origin.z;
+      f = (float)r->x0;
+      p.x = d3fl_AxisX.x * f + p.x;
+      p.y = d3fl_AxisX.y * f + p.y;
+      p.z = d3fl_AxisX.z * f + p.z;
+      h = k * reg->f14 + reg->flags.b[0];
+      for (x = r->x0; x <= r->x1; x++, v++) {
+        idx = (x & mask) + row;
+        f = water[idx];
+        sun.x = d3fl_AxisY.x * f;
+        sun.y = d3fl_AxisY.y * f;
+        sun.z = d3fl_AxisY.z * f;
+        sun.x += reg->wave[ym][x & 3][0];
+        sun.y += reg->wave[ym][x & 3][1];
+        sun.z += reg->wave[ym][x & 3][2];
+        v->x = p.x + sun.x;
+        v->y = p.y + sun.y;
+        v->z = p.z + sun.z;
+        a = (unsigned char)min(255.0f, max(0.0f, h + reg->wave[ym][x & 3][3]));
+        if (reg->flags.b[2] & 1)
+          v->color = (a << 8 | a) << 8 | a;
+        else {
+          l = light[idx];
+          f = (float)(l & 0x7f);
+          f += f;
+          if (l & 0x80) {
+            d3fl_FtoI(&iv,
+                      d3fl_LightCol.x * f + d3fl_SunCol.x + d3fl_Ambient.x);
+            v->c.r = min(0xff, iv);
+            d3fl_FtoI(&iv,
+                      d3fl_LightCol.y * f + d3fl_SunCol.y + d3fl_Ambient.y);
+            v->c.g = min(0xff, iv);
+            d3fl_FtoI(&iv,
+                      d3fl_LightCol.z * f + d3fl_SunCol.z + d3fl_Ambient.z);
+          } else {
+            d3fl_FtoI(&iv, d3fl_LightCol.x * f + d3fl_Ambient.x);
+            v->c.r = min(0xff, iv);
+            d3fl_FtoI(&iv, d3fl_LightCol.y * f + d3fl_Ambient.y);
+            v->c.g = min(0xff, iv);
+            d3fl_FtoI(&iv, d3fl_LightCol.z * f + d3fl_Ambient.z);
+          }
+          v->c.b = min(0xff, iv);
+          v->specular = v->color;
+          v->c.a = a;
         }
-        d3_ClipMesh(t->clipCode, t->wpoints, npoints, (D3TRI *)t->wpolys, npolys);
-        clip = &d3_ClipInfo[t->clip & 0x3f];
-        if (d3_FogOn) {
-            for (i = npoints, v = t->wpoints; i > 0; i--, v++)
-                if (v->flags & 0x80) {
-                    k = 1.0f / v->z;
-                    v->sx = d3_ScaleX * v->x * k + d3_CenterX;
-                    v->sy = d3_ScaleY * v->y * k + d3_CenterY;
-                    v->rhw = k;
-                    d3_Dist2 = v->x * v->x + v->y * v->y + v->z * v->z;
-                    v->fog = (unsigned char)(d3_Dist2 > d3_FogStart2
-                        ? 255.0 - min(255.0, (sqrt(d3_Dist2) - d3_FogStart) * d3_FogScale) : 255.0);
-                }
-        } else {
-            for (i = npoints, v = t->wpoints; i > 0; i--, v++)
-                if (v->flags & 0x80) {
-                    k = 1.0f / v->z;
-                    v->sx = d3_ScaleX * v->x * k + d3_CenterX;
-                    v->sy = d3_ScaleY * v->y * k + d3_CenterY;
-                    v->rhw = k;
-                }
-        }
-        d3_TriCount += npolys;
-        d3_DrawnVerts += npoints;
-        d3_VertCount += npoints;
-        npolys = min(npolys, (int)(d3_Cfg.maxpolys - d3_SortCount));
-        for (i = npolys, poly = t->wpolys; i > 0; i--, poly++)
-            if (poly->flags & 0x80) {
-                reg = &map->regions[poly->region];
-                tex = reg->tex2;
-                d3_SortPtr->item = poly;
-                if (tex) {
-                    d3_SortPtr->key = (tex - d3_Textures) + 1;
-                    tex->stamp = d3_FrameCount;
-                } else
-                    d3_SortPtr->key = 0;
-                poly->tex = tex;
-                poly->clip = clip;
-                poly->uOfs = reg->uOfs;
-                poly->vOfs = reg->vOfs;
-                d3_SortPtr++;
-                d3_SortCount++;
-            }
+        p.x = d3fl_AxisX.x + p.x;
+        p.y = d3fl_AxisX.y + p.y;
+        p.z = d3fl_AxisX.z + p.z;
+      }
     }
+    d3_ClipMesh(t->clipCode, t->wpoints, npoints, (D3TRI *)t->wpolys, npolys);
+    clip = &d3_ClipInfo[t->clip & 0x3f];
+    if (d3_FogOn) {
+      for (i = npoints, v = t->wpoints; i > 0; i--, v++)
+        if (v->flags & 0x80) {
+          k = 1.0f / v->z;
+          v->sx = d3_ScaleX * v->x * k + d3_CenterX;
+          v->sy = d3_ScaleY * v->y * k + d3_CenterY;
+          v->rhw = k;
+          d3_Dist2 = v->x * v->x + v->y * v->y + v->z * v->z;
+          v->fog = (unsigned char)(d3_Dist2 > d3_FogStart2
+                                       ? 255.0 - min(255.0, (sqrt(d3_Dist2) -
+                                                             d3_FogStart) *
+                                                                d3_FogScale)
+                                       : 255.0);
+        }
+    } else {
+      for (i = npoints, v = t->wpoints; i > 0; i--, v++)
+        if (v->flags & 0x80) {
+          k = 1.0f / v->z;
+          v->sx = d3_ScaleX * v->x * k + d3_CenterX;
+          v->sy = d3_ScaleY * v->y * k + d3_CenterY;
+          v->rhw = k;
+        }
+    }
+    d3_TriCount += npolys;
+    d3_DrawnVerts += npoints;
+    d3_VertCount += npoints;
+    npolys = min(npolys, (int)(d3_Cfg.maxpolys - d3_SortCount));
+    for (i = npolys, poly = t->wpolys; i > 0; i--, poly++)
+      if (poly->flags & 0x80) {
+        reg = &map->regions[poly->region];
+        tex = reg->tex2;
+        d3_SortPtr->item = poly;
+        if (tex) {
+          d3_SortPtr->key = (tex - d3_Textures) + 1;
+          tex->stamp = d3_FrameCount;
+        } else
+          d3_SortPtr->key = 0;
+        poly->tex = tex;
+        poly->clip = clip;
+        poly->uOfs = reg->uOfs;
+        poly->vOfs = reg->vOfs;
+        d3_SortPtr++;
+        d3_SortCount++;
+      }
+  }
 }
 
 /* ---- 0x4439e0..0x446990 (worker d3fl3, d3fl4) ---- */
 
 /* light map value l (bit 7: lit by a point light, bits 0..6: sun shade) to the vertex colors of v */
-#define D3FL_LIGHT(v, l)                                                        \
-    f = (float)((l) & 0x7f);                                                    \
-    f += f;                                                                     \
-    if ((l) & 0x80) {                                                           \
-        d3fl_FtoI(&iv, d3fl_LightCol.x * f + d3fl_SunCol.x + d3fl_Ambient.x);   \
-        (v)->c.r = min(0xff, iv);                                               \
-        d3fl_FtoI(&iv, d3fl_LightCol.y * f + d3fl_SunCol.y + d3fl_Ambient.y);   \
-        (v)->c.g = min(0xff, iv);                                               \
-        d3fl_FtoI(&iv, d3fl_LightCol.z * f + d3fl_SunCol.z + d3fl_Ambient.z);   \
-    } else {                                                                    \
-        d3fl_FtoI(&iv, d3fl_LightCol.x * f + d3fl_Ambient.x);                   \
-        (v)->c.r = min(0xff, iv);                                               \
-        d3fl_FtoI(&iv, d3fl_LightCol.y * f + d3fl_Ambient.y);                   \
-        (v)->c.g = min(0xff, iv);                                               \
-        d3fl_FtoI(&iv, d3fl_LightCol.z * f + d3fl_Ambient.z);                   \
-    }                                                                           \
-    (v)->c.b = min(0xff, iv);                                                   \
-    (v)->specular = (v)->color;
+#define D3FL_LIGHT(v, l)                                                       \
+  f = (float)((l) & 0x7f);                                                     \
+  f += f;                                                                      \
+  if ((l) & 0x80) {                                                            \
+    d3fl_FtoI(&iv, d3fl_LightCol.x * f + d3fl_SunCol.x + d3fl_Ambient.x);      \
+    (v)->c.r = min(0xff, iv);                                                  \
+    d3fl_FtoI(&iv, d3fl_LightCol.y * f + d3fl_SunCol.y + d3fl_Ambient.y);      \
+    (v)->c.g = min(0xff, iv);                                                  \
+    d3fl_FtoI(&iv, d3fl_LightCol.z * f + d3fl_SunCol.z + d3fl_Ambient.z);      \
+  } else {                                                                     \
+    d3fl_FtoI(&iv, d3fl_LightCol.x * f + d3fl_Ambient.x);                      \
+    (v)->c.r = min(0xff, iv);                                                  \
+    d3fl_FtoI(&iv, d3fl_LightCol.y * f + d3fl_Ambient.y);                      \
+    (v)->c.g = min(0xff, iv);                                                  \
+    d3fl_FtoI(&iv, d3fl_LightCol.z * f + d3fl_Ambient.z);                      \
+  }                                                                            \
+  (v)->c.b = min(0xff, iv);                                                    \
+  (v)->specular = (v)->color;
 
 /* camera-space position of map point (X0, Z0) at height 0, as the tile vertices: the x step (a), plus the
    origin, plus the z step (q) */
-#define D3FL_POS(p, X0, Z0)                                                     \
-    a.x = d3fl_AxisX.x * (X0);                                                  \
-    a.y = d3fl_AxisX.y * (X0);                                                  \
-    a.z = d3fl_AxisX.z * (X0);                                                  \
-    p.x = d3fl_Origin.x + a.x;                                                  \
-    p.y = d3fl_Origin.y + a.y;                                                  \
-    p.z = d3fl_Origin.z + a.z;                                                  \
-    q.x = d3fl_AxisZ.x * (Z0);                                                  \
-    q.y = d3fl_AxisZ.y * (Z0);                                                  \
-    q.z = d3fl_AxisZ.z * (Z0);                                                  \
-    p.x = q.x + p.x;                                                            \
-    p.y = q.y + p.y;                                                            \
-    p.z = q.z + p.z;
+#define D3FL_POS(p, X0, Z0)                                                    \
+  a.x = d3fl_AxisX.x * (X0);                                                   \
+  a.y = d3fl_AxisX.y * (X0);                                                   \
+  a.z = d3fl_AxisX.z * (X0);                                                   \
+  p.x = d3fl_Origin.x + a.x;                                                   \
+  p.y = d3fl_Origin.y + a.y;                                                   \
+  p.z = d3fl_Origin.z + a.z;                                                   \
+  q.x = d3fl_AxisZ.x * (Z0);                                                   \
+  q.y = d3fl_AxisZ.y * (Z0);                                                   \
+  q.z = d3fl_AxisZ.z * (Z0);                                                   \
+  p.x = q.x + p.x;                                                             \
+  p.y = q.y + p.y;                                                             \
+  p.z = q.z + p.z;
 
 #define T map->tiles[y][x]
 
 /* 0x4437f0, culls the tiles against the view and picks their detail levels; returns 1 if any level changed */
 
-char d3fl_UpdateTiles(D3FLMAP *map)
-{
-    D3FLTILE *t;
-    D3VERTEX *box;
-    unsigned int x, y, k;
-    float sum = 0.0f;
-    int i, n = 0;
-    char changed = 0;
-    D3VECTOR4 c;
-    unsigned char lod;
+char d3fl_UpdateTiles(D3FLMAP *map) {
+  D3FLTILE *t;
+  D3VERTEX *box;
+  unsigned int x, y, k;
+  float sum = 0.0f;
+  int i, n = 0;
+  char changed = 0;
+  D3VECTOR4 c;
+  unsigned char lod;
 
-    for (y = 0; y < 8; y++)
-        for (x = 0; x < 8; x++) {
-            t = &map->tiles[y][x];
-            box = d3fl_TileBox(map, t, x, y);
-            if ((t->clip = d3_ClipBox(box, &t->zmin, &t->zmax)) & 0x40)
-                t->lodLevel = 0;
-            else {
-                t->lodLevel = 1;
-                t->zmin += 16.0f;
-                t->zmax += 16.0f;
-                c.x = box[0].x;
-                c.y = box[0].y;
-                c.z = box[0].z;
-                for (i = 1; i < 8; i++) {
-                    c.x += box[i].x;
-                    c.y += box[i].y;
-                    c.z += box[i].z;
-                }
-                n++;
-                c.x *= 0.125f;
-                c.y *= 0.125f;
-                c.z *= 0.125f;
-                t->center.x = c.x;
-                t->center.y = c.y;
-                t->center.z = c.z;
-                sum += t->centerDist = (float)sqrt(c.x * c.x + c.y * c.y + c.z * c.z);
-            }
+  for (y = 0; y < 8; y++)
+    for (x = 0; x < 8; x++) {
+      t = &map->tiles[y][x];
+      box = d3fl_TileBox(map, t, x, y);
+      if ((t->clip = d3_ClipBox(box, &t->zmin, &t->zmax)) & 0x40)
+        t->lodLevel = 0;
+      else {
+        t->lodLevel = 1;
+        t->zmin += 16.0f;
+        t->zmax += 16.0f;
+        c.x = box[0].x;
+        c.y = box[0].y;
+        c.z = box[0].z;
+        for (i = 1; i < 8; i++) {
+          c.x += box[i].x;
+          c.y += box[i].y;
+          c.z += box[i].z;
         }
-    for (y = 0; y < 8; y++)
-        for (k = 0; k < 8; k++) {
-            t = &map->tiles[y][k];
-            if (t->lodLevel > 0 && (t->lodLevel = lod = d3fl_TileLod(map, t, sum, n)) > 0) {
-                if (k > 0 && (lod == 4 && t[-1].lodLevel == 1 || lod == 1 && t[-1].lodLevel == 4))
-                    t->lodLevel = 2;
-                if (y > 0 && (t->lodLevel == 4 && t[-8].lodLevel == 1 || t->lodLevel == 1 && t[-8].lodLevel == 4))
-                    t->lodLevel = 2;
-                t->lodLevel = max(1 << map->shift, t->lodLevel);
-            }
-            if (t->lodLevel != (unsigned char)t->lod)
-                changed = 1;
-        }
-    return changed;
+        n++;
+        c.x *= 0.125f;
+        c.y *= 0.125f;
+        c.z *= 0.125f;
+        t->center.x = c.x;
+        t->center.y = c.y;
+        t->center.z = c.z;
+        sum += t->centerDist = (float)sqrt(c.x * c.x + c.y * c.y + c.z * c.z);
+      }
+    }
+  for (y = 0; y < 8; y++)
+    for (k = 0; k < 8; k++) {
+      t = &map->tiles[y][k];
+      if (t->lodLevel > 0 &&
+          (t->lodLevel = lod = d3fl_TileLod(map, t, sum, n)) > 0) {
+        if (k > 0 && (lod == 4 && t[-1].lodLevel == 1 ||
+                      lod == 1 && t[-1].lodLevel == 4))
+          t->lodLevel = 2;
+        if (y > 0 && (t->lodLevel == 4 && t[-8].lodLevel == 1 ||
+                      t->lodLevel == 1 && t[-8].lodLevel == 4))
+          t->lodLevel = 2;
+        t->lodLevel = max(1 << map->shift, t->lodLevel);
+      }
+      if (t->lodLevel != (unsigned char)t->lod)
+        changed = 1;
+    }
+  return changed;
 }
 /* 0x4439e0, draws the floor: transforms the map into camera space; if the map is dirty, rebuilds the tile meshes
    (vertices, lit from the light map, and triangles; extra vertices on edges next to finer tiles), projects them and
    culls the triangles; then animates the water (water != 0) and queues the visible triangles of all tiles,
    rendering their cache textures on first use
-   @deep read the function against the original: the same call set (no dcp diffclass call difference) and
-   the same global store set (no differs line); 2791 vs 2816 instructions (the 25 fewer are merged tails:
-   VC6 shares the repeated tile-corner blocks' copies in ours), 10122 vs 10143 bytes. Q4 settled: the UV
-   copy is a memcpy(uv, poly->uv, sizeof(D3FLTRIUV)) instead of the raw struct cast, the 1.0f numerators
-   are ai_FloatOne (the datum the original loads) and the MinZ/MaxZ clamps are the negated comparisons
-   (2509 -> 2503 differing, code 1769 -> 1746). What is left is allocation: the frame 0x14c against 0x150
-   (the local slot permutation, e.g. ebp-0x14 vs ebp-8, ebp-0x64 vs ebp-0x20), 1276 slots, 272 regs, 153
-   fpu and 212 frame hunks, plus one branch-target pairing; the six ref lines are crossed pairs (ours'
-   d3fl_Origin+0x4 load against the original's d3fl_AxisX+0x8 multiply - d3fl_Origin's declared extent
-   covers d3fl_AxisX, so 0xfc0d58 resolves as Origin+0x5028 - and ours' d3_SortPtr store against the
-   original's d3_FrameCount load in the mipmap block, both sequences storing the same values). Tried: the
-   Q4 field typing then the header-free memcpy, ai_FloatOne, the negated clamps, the tile-corner copy
-   spellings; none moves the frame or the slot assignment. (references: M8 at +0x11f8: ours refers to
+   @deep s(this): 2503 -> 2308 ins by structure read from the original, region by region (regions cut at
+   UpdateTiles / GetTexture / the four edge loop heads 'cmp [reg],0' / ClipMesh / _ftol / UpdateWater;
+   count the register-normalised diff per region, the global ins count is dominated by the allocation
+   cascade). Settled: the clip and queue loops index map->tiles[y][x] (T) so VC6 strength-reduces to the
+   original's bases &T.npoints (+0xf0) and &T.zmin (+0x130); every sign test is & 0x80 (jns, not jge);
+   d3_MinZ/MaxZ = (T.zmin) parenthesised (fld/fstp copy); the queue loop reads npolys/npts once and loops
+   to a separate bound j = min(npolys, ..) (the original's min result is a fresh temp, jae); x > 0 / y > 0
+   edge guards (test; jbe); cull test written '<' with the 0x7f arm first (and 0x4100; jne); (k * v->x) *
+   d3_ScaleX parenthesised in both projection loops; pp = poly + 1 in the right edge (block head) and top
+   edge (flip arm): the original's edge IV is &poly[1].uv ([iv-0x12] = flip). After these the clip / fog /
+   cull / queue regions differ only in registers and slots (8 / 4 / 8 normalised lines). No lever (=
+   control): operand order of a float product or sum (a.y = fx * AxisX.y, v->x = p.x + a.x, the cull
+   factors) - VC6 canonicalises; types/height load order th-swap moves only registers. Left: (1) frame
+   0x14c vs 0x150 (one 4-byte local more in the original); (2) the x87 form at every vector-times-scalar
+   triple: the original's .y line is 'fld st(1); fmul [Axis.y]', ours 'fld [Axis.y]; fmul st,st(2)', and in
+   the edge preludes the original's .z line consumes the conversion ('fxch; fmul [Axis.z]') - removing the
+   fx local gives the .y form but the .z form then dies early (nofx: 2308 at the time, a.z wrong), so the
+   original's conversion is a candidate that lives past .z: run c2fpu.py on lines 2210-2224; (3) the right
+   edge pp: the original computes pp once at the block head into a slot (add -0x10; mov [ebp-0x34]) and
+   uses it as the copy source in both arms, ours rematerialises lea [iv-0x10] per arm; a separate stepped
+   pp IV (ppiv2) gives the wrong IV; (4) the edge preludes: the original interleaves the
+   T.points/T.polys/T.bp loads into the D3FL_POS float code; move-one-statement rounds over each prelude
+   (genmove: 64/49/49/64 variants) move the count by 10-50 ins with the size off by +-30, none verified as
+   the original's order; climb.py round 1 is too slow for this function (killed after several minutes
+   without output). prior: read the function against the original: the same call set (no dcp diffclass call
+   difference) and the same global store set (no differs line); 2791 vs 2816 instructions (the 25 fewer are
+   merged tails: VC6 shares the repeated tile-corner blocks' copies in ours), 10122 vs 10143 bytes. Q4
+   settled: the UV copy is a memcpy(uv, poly->uv, sizeof(D3FLTRIUV)) instead of the raw struct cast, the
+   1.0f numerators are ai_FloatOne (the datum the original loads) and the MinZ/MaxZ clamps are the negated
+   comparisons (2509 -> 2503 differing, code 1769 -> 1746). What is left is allocation: the frame 0x14c
+   against 0x150 (the local slot permutation, e.g. ebp-0x14 vs ebp-8, ebp-0x64 vs ebp-0x20), 1276 slots,
+   272 regs, 153 fpu and 212 frame hunks, plus one branch-target pairing; the six ref lines are crossed
+   pairs (ours' d3fl_Origin+0x4 load against the original's d3fl_AxisX+0x8 multiply - d3fl_Origin's
+   declared extent covers d3fl_AxisX, so 0xfc0d58 resolves as Origin+0x5028 - and ours' d3_SortPtr store
+   against the original's d3_FrameCount load in the mipmap block, both sequences storing the same values).
+   Tried: the Q4 field typing then the header-free memcpy, ai_FloatOne, the negated clamps, the tile-corner
+   copy spellings; none moves the frame or the slot assignment. (references: M8 at +0x11f8: ours refers to
    d3fl_Origin+0x4 (0xfbbd34), the original's field to 0xfc0d58 (d3fl_Origin+0x5028) (and 5 more),
    explained: the six ref lines are crossed pairings of the same accesses: our three d3fl_Origin.x/y/z adds
    are emitted as three fadd [d3fl_Origin+n] where the original keeps the x in an FPU register (fld
@@ -2124,598 +2197,634 @@ char d3fl_UpdateTiles(D3FLMAP *map)
    has an extent that covers the d3fl_AxisX datum at 0xfc0d58, so the original's d3fl_AxisX+0x8 operand is
    named Origin+0x5028. The mipmap pair is ours' *d3_SortPtr = (esi - d3_Textures) / 128 + 1 then obj+0x54
    = d3_FrameCount against the original's same two statements in the other instruction order.) */
-void d3fl_Draw(D3FLMAP *map, char water)
-{
-    D3OBJECT *cam;
-    D3FLTILE *t;
-    D3VERTEX *v, *v0, *v1, *v2;
-    D3FLPOLY *poly, *np, *pp;
-    D3FLSPLIT *sp;
-    TSTEXTURE *tex;
-    D3FLCACHE *c;
-    D3CLIPINFO *clip;
-    D3VECTOR4 a, q, r, p, dx, dz;
-    float *uv;
-    float dx0, dy0, dz0, fx, fy, fs, h, f, u, w, k;
-    unsigned int n, size, mask, x, y, i, j, s, half, nx, ny, mx, my, lx, ly, idx, npts, npolys;
-    unsigned char *light, *types, *height, *div;
-    int iv, jit;
-    char changed;
-    signed char d, fl;
-    void *surf;
+void d3fl_Draw(D3FLMAP *map, char water) {
+  D3OBJECT *cam;
+  D3FLTILE *t;
+  D3VERTEX *v, *v0, *v1, *v2;
+  D3FLPOLY *poly, *np, *pp;
+  D3FLSPLIT *sp;
+  TSTEXTURE *tex;
+  D3FLCACHE *c;
+  D3CLIPINFO *clip;
+  D3VECTOR4 a, q, r, p, dx, dz;
+  float *uv;
+  float dx0, dy0, dz0, fx, fy, fs, h, f, u, w, k;
+  unsigned int n, size, mask, x, y, i, j, s, half, nx, ny, mx, my, lx, ly, idx,
+      npts, npolys;
+  unsigned char *light, *types, *height, *div;
+  int iv, jit;
+  char changed;
+  signed char d, fl;
+  void *surf;
 
-    if (d3_Hardware && d3_Camera) {
-        n = map->n;
-        size = map->size;
-        light = map->light;
-        types = map->types;
-        height = map->height;
-        mask = map->idxMask;
-        if (map->nolight) {
-            d3fl_Ambient.x = 0.0f;
-            d3fl_Ambient.y = 0.0f;
-            d3fl_Ambient.z = 0.0f;
-            d3fl_SunCol.x = 0.0f;
-            d3fl_SunCol.y = 0.0f;
-            d3fl_SunCol.z = 0.0f;
-            d3fl_LightCol.x = 1.0f;
-            d3fl_LightCol.y = 1.0f;
-            d3fl_LightCol.z = 1.0f;
-        } else {
-            d3fl_Ambient.x = d3_AmbientColor.x;
-            d3fl_Ambient.y = d3_AmbientColor.y;
-            d3fl_Ambient.z = d3_AmbientColor.z;
-            d3fl_SunCol.x = d3_SunColor.x;
-            d3fl_SunCol.y = d3_SunColor.y;
-            d3fl_SunCol.z = d3_SunColor.z;
-            d3fl_LightCol.x = map->ambient[0];
-            d3fl_LightCol.y = map->ambient[1];
-            d3fl_LightCol.z = map->ambient[2];
-        }
-        cam = d3_Camera;
-        dx0 = map->orgx - cam->pos.x;
-        dy0 = map->orgy - cam->pos.y;
-        dz0 = map->orgz - cam->pos.z;
-        d3fl_Origin.x = dx0 * cam->matrix._11 + dy0 * cam->matrix._21 + dz0 * cam->matrix._31;
-        d3fl_Origin.y = dx0 * cam->matrix._12 + dy0 * cam->matrix._22 + dz0 * cam->matrix._32;
-        d3fl_Origin.z = dx0 * cam->matrix._13 + dy0 * cam->matrix._23 + dz0 * cam->matrix._33;
-        d3fl_AxisX.x = map->scale * cam->matrix._11 + map->xAxisY * cam->matrix._21 + map->xAxisZ * cam->matrix._31;
-        d3fl_AxisX.y = map->scale * cam->matrix._12 + map->xAxisY * cam->matrix._22 + map->xAxisZ * cam->matrix._32;
-        d3fl_AxisX.z = map->scale * cam->matrix._13 + map->xAxisY * cam->matrix._23 + map->xAxisZ * cam->matrix._33;
-        d3fl_AxisZ.x = map->zAxisX * cam->matrix._11 + map->zAxisY * cam->matrix._21 + map->negScale * cam->matrix._31;
-        d3fl_AxisZ.y = map->zAxisX * cam->matrix._12 + map->zAxisY * cam->matrix._22 + map->negScale * cam->matrix._32;
-        d3fl_AxisZ.z = map->zAxisX * cam->matrix._13 + map->zAxisY * cam->matrix._23 + map->negScale * cam->matrix._33;
-        d3fl_AxisY.x = map->yAxisX * cam->matrix._11 + map->hscale * cam->matrix._21 + map->yAxisZ * cam->matrix._31;
-        d3fl_AxisY.y = map->yAxisX * cam->matrix._12 + map->hscale * cam->matrix._22 + map->yAxisZ * cam->matrix._32;
-        d3fl_AxisY.z = map->yAxisX * cam->matrix._13 + map->hscale * cam->matrix._23 + map->yAxisZ * cam->matrix._33;
-        if (map->dirty) {
-            changed = d3fl_UpdateTiles(map);
-            /* vertices and triangles */
-            for (y = 0; y < 8; y++)
-                for (x = 0; x < 8; x++) {
-                    mx = x * n;
-                    my = y * n;
-                    t = &map->tiles[y][x];
-                    if (!(s = t->lodLevel)) {
-                        t->npolys = 0;
-                        t->npoints = 0;
-                    } else {
-                        fx = (float)mx;
-                        a.x = d3fl_AxisX.x * fx;
-                        a.y = d3fl_AxisX.y * fx;
-                        a.z = d3fl_AxisX.z * fx;
-                        half = s >> 1;
-                        fy = (float)my;
-                        q.x = d3fl_AxisZ.x * fy;
-                        q.y = d3fl_AxisZ.y * fy;
-                        q.z = d3fl_AxisZ.z * fy;
-                        a.x = q.x + a.x;
-                        a.y = q.y + a.y;
-                        a.z = q.z + a.z;
-                        r.x = d3fl_Origin.x + a.x;
-                        r.y = d3fl_Origin.y + a.y;
-                        r.z = d3fl_Origin.z + a.z;
-                        nx = ny = n / s + 1;
-                        if (x == 7)
-                            nx -= 4 / s;
-                        if (y == 7)
-                            ny -= 4 / s;
-                        if (t->lodLevel != (unsigned char)t->lod || changed)
-                            t->npoints = ny * nx;
-                        fs = (float)s;
-                        dx.x = d3fl_AxisX.x * fs;
-                        dx.y = d3fl_AxisX.y * fs;
-                        dx.z = d3fl_AxisX.z * fs;
-                        dz.x = d3fl_AxisZ.x * fs;
-                        dz.y = d3fl_AxisZ.y * fs;
-                        dz.z = d3fl_AxisZ.z * fs;
-                        v = t->points;
-                        lx = (my * size + mx) & mask;
-                        for (j = 0; j < ny; j++) {
-                            p.x = r.x;
-                            p.y = r.y;
-                            p.z = r.z;
-                            idx = lx;
-                            for (i = 0; i < nx; i++) {
-                                h = height[idx];
-                                a.x = d3fl_AxisY.x * h;
-                                a.y = d3fl_AxisY.y * h;
-                                a.z = d3fl_AxisY.z * h;
-                                v->x = p.x + a.x;
-                                v->y = p.y + a.y;
-                                v->z = p.z + a.z;
-                                D3FL_LIGHT(v, light[idx])
-                                p.x += dx.x;
-                                p.y += dx.y;
-                                p.z += dx.z;
-                                idx = (idx + s) & mask;
-                                v++;
-                            }
-                            r.x += dz.x;
-                            r.y += dz.y;
-                            r.z += dz.z;
-                            lx = (lx + s * size) & mask;
-                        }
-                        if (s > 0 && changed) {
-                            v = t->points;
-                            poly = t->polys;
-                            t->npolys = 0;
-                            idx = (my / s * map->size / s + mx / s) & map->idxMask;
-                            div = map->divide[half];
-                            for (j = 0, ly = my; j < ny - 1; j++, ly += s) {
-                                v0 = v;
-                                v1 = v + nx;
-                                for (i = 0, lx = mx; i < nx - 1; i++, lx += s) {
-                                    d = div[idx + i];
-                                    if (d & 0x40)
-                                        jit = d3_Noise[(j + my) & 0xff][(i + mx) & 0xff] & 0x3f;
-                                    else
-                                        jit = 0;
-                                    poly[0].tex = poly[1].tex = d3fl_GetTexture(types, size, lx, ly, s, map->src);
-                                    if (d & 0x80) {
-                                        poly[0].flip &= ~1;
-                                        poly[0].v[2] = poly[1].v[0] = v0 + 1;
-                                        poly[0].v[0] = v1;
-                                        poly[0].v[1] = v0;
-                                        poly[1].v[1] = v1 + 1;
-                                        poly[1].v[2] = v1;
-                                        poly[0].uv = &d3fl_Jitter[jit * 24];
-                                        poly[1].uv = &d3fl_Jitter[jit * 24 + 6];
-                                    } else {
-                                        poly[0].flip |= 1;
-                                        poly[0].v[1] = poly[1].v[2] = v1 + 1;
-                                        poly[1].v[1] = v0 + 1;
-                                        poly[0].v[0] = poly[1].v[0] = v0;
-                                        poly[0].v[2] = v1;
-                                        poly[0].uv = &d3fl_Jitter[jit * 24 + 12];
-                                        poly[1].uv = &d3fl_Jitter[jit * 24 + 18];
-                                    }
-                                    poly += 2;
-                                    v0++;
-                                    v1++;
-                                    t->npolys += 2;
-                                }
-                                idx += map->size / s;
-                                v += nx;
-                            }
-                        }
-                    }
-                }
-            /* extra vertices on the edges next to finer tiles; their triangles are split in two */
-            for (y = 0; y < 8; y++)
-                for (x = 0; x < 8; x++) {
-                    if (T.lodLevel && changed) {
-                        s = T.lodLevel;
-                        half = s >> 1;
-                        ny = n / s + 1;
-                        if (x == 7)
-                            nx = ny - 4 / s;
-                        else
-                            nx = ny;
-                        if (y == 7)
-                            ny -= 4 / s;
-                        mx = x * n;
-                        my = y * n;
-                        T.nbpUsed = 0;
-                        T.nsplit = 0;
-                        sp = T.split;
-                        if (x < 7 && map->tiles[y][x + 1].lodLevel > 0 && map->tiles[y][x + 1].lodLevel < s) {
-                            /* right edge */
-                            lx = mx + n;
-                            ly = my + half;
-                            v = T.points + T.npoints;
-                            np = T.polys + T.npolys;
-                            uv = T.bp->uv;
-                            poly = T.polys + (nx - 2) * 2;
-                            D3FL_POS(p, lx, ly)
-                            fs = (float)s;
-                            dz.x = d3fl_AxisZ.x * fs;
-                            dz.y = d3fl_AxisZ.y * fs;
-                            dz.z = d3fl_AxisZ.z * fs;
-                            idx = (ly * size + mx + n) & mask;
-                            for (j = 0; j < ny - 1; j++) {
-                                if (poly->v[0]) {
-                                    h = height[idx];
-                                    a.x = d3fl_AxisY.x * h;
-                                    a.y = d3fl_AxisY.y * h;
-                                    a.z = d3fl_AxisY.z * h;
-                                    v->x = a.x + p.x;
-                                    v->y = a.y + p.y;
-                                    v->z = a.z + p.z;
-                                    sp->p = v;
-                                    sp->x = lx;
-                                    sp->y = ly;
-                                    D3FL_LIGHT(v, light[idx])
-                                    D3FL_COPY_TO(uv, poly[1].uv, 0x18)
-                                    if (poly->flip & 1) {
-                                        u = (uv[2] + uv[4]) * 0.5f;
-                                        w = (uv[3] + uv[5]) * 0.5f;
-                                        uv[4] = u;
-                                        uv[5] = w;
-                                        D3FL_COPY_TO(np, &poly[1], 0x28)
-                                        poly[1].v[2] = v;
-                                        poly[1].uv = uv;
-                                        T.nbpUsed++;
-                                        uv += 6;
-                                        D3FL_COPY_TO(uv, np->uv, 0x18)
-                                        np->uv = uv;
-                                        uv[2] = u;
-                                        uv[3] = w;
-                                        np->v[1] = v;
-                                    } else {
-                                        u = (uv[2] + uv[0]) * 0.5f;
-                                        w = (uv[3] + uv[1]) * 0.5f;
-                                        uv[0] = u;
-                                        uv[1] = w;
-                                        D3FL_COPY_TO(np, &poly[1], 0x28)
-                                        poly[1].v[0] = v;
-                                        poly[1].uv = uv;
-                                        T.nbpUsed++;
-                                        uv += 6;
-                                        D3FL_COPY_TO(uv, np->uv, 0x18)
-                                        np->uv = uv;
-                                        uv[2] = u;
-                                        uv[3] = w;
-                                        np->v[1] = v;
-                                    }
-                                    uv += 6;
-                                    sp++;
-                                    np->zOfs = 16.0f;
-                                    np++;
-                                    T.nbpUsed++;
-                                    T.npolys++;
-                                    v++;
-                                    T.nsplit++;
-                                    T.npoints++;
-                                }
-                                p.x += dz.x;
-                                p.y += dz.y;
-                                p.z += dz.z;
-                                idx += s * size;
-                                ly += s;
-                                poly += (nx - 1) * 2;
-                            }
-                        }
-                        if (x && map->tiles[y][x - 1].lodLevel > 0 && map->tiles[y][x - 1].lodLevel < s) {
-                            /* left edge */
-                            ly = half + my;
-                            v = T.points + T.npoints;
-                            np = T.polys + T.npolys;
-                            uv = T.bp[T.nbpUsed].uv;
-                            poly = T.polys;
-                            D3FL_POS(p, mx, ly)
-                            fs = (float)s;
-                            dz.x = d3fl_AxisZ.x * fs;
-                            dz.y = d3fl_AxisZ.y * fs;
-                            dz.z = d3fl_AxisZ.z * fs;
-                            idx = (ly * size + mx) & mask;
-                            for (j = 0; j < ny - 1; j++) {
-                                if (poly->v[0]) {
-                                    h = height[idx];
-                                    a.x = d3fl_AxisY.x * h;
-                                    a.y = d3fl_AxisY.y * h;
-                                    a.z = d3fl_AxisY.z * h;
-                                    v->x = a.x + p.x;
-                                    v->y = a.y + p.y;
-                                    v->z = a.z + p.z;
-                                    sp->x = mx;
-                                    sp->p = v;
-                                    sp->y = ly;
-                                    D3FL_LIGHT(v, light[idx])
-                                    memcpy(uv, poly->uv, sizeof(D3FLTRIUV));
-                                    if (poly->flip & 1) {
-                                        u = (uv[4] + uv[0]) * 0.5f;
-                                        w = (uv[5] + uv[1]) * 0.5f;
-                                        uv[0] = u;
-                                        uv[1] = w;
-                                        D3FL_COPY_TO(np, poly, 0x28)
-                                        poly->v[0] = v;
-                                        poly->uv = uv;
-                                        T.nbpUsed++;
-                                        uv += 6;
-                                        D3FL_COPY_TO(uv, np->uv, 0x18)
-                                        np->uv = uv;
-                                        uv[4] = u;
-                                        uv[5] = w;
-                                        np->v[2] = v;
-                                    } else {
-                                        u = (uv[2] + uv[0]) * 0.5f;
-                                        w = (uv[3] + uv[1]) * 0.5f;
-                                        uv[0] = u;
-                                        uv[1] = w;
-                                        D3FL_COPY_TO(np, poly, 0x28)
-                                        poly->v[0] = v;
-                                        poly->uv = uv;
-                                        T.nbpUsed++;
-                                        uv += 6;
-                                        D3FL_COPY_TO(uv, np->uv, 0x18)
-                                        np->uv = uv;
-                                        uv[2] = u;
-                                        uv[3] = w;
-                                        np->v[1] = v;
-                                    }
-                                    uv += 6;
-                                    sp++;
-                                    np->zOfs = 16.0f;
-                                    np++;
-                                    T.nbpUsed++;
-                                    T.npolys++;
-                                    v++;
-                                    T.npoints++;
-                                    T.nsplit++;
-                                }
-                                p.x += dz.x;
-                                p.y += dz.y;
-                                p.z += dz.z;
-                                idx += s * size;
-                                ly += s;
-                                poly += (nx - 1) * 2;
-                            }
-                        }
-                        if (y && map->tiles[y - 1][x].lodLevel > 0 && map->tiles[y - 1][x].lodLevel < s) {
-                            /* top edge */
-                            lx = half + mx;
-                            v = T.points + T.npoints;
-                            np = T.polys + T.npolys;
-                            uv = T.bp[T.nbpUsed].uv;
-                            poly = T.polys;
-                            D3FL_POS(p, lx, my)
-                            fs = (float)s;
-                            dx.x = d3fl_AxisX.x * fs;
-                            dx.y = d3fl_AxisX.y * fs;
-                            dx.z = d3fl_AxisX.z * fs;
-                            idx = (my * size + half + mx) & mask;
-                            for (i = 0; i < nx - 1; i++) {
-                                if (poly->v[0]) {
-                                    h = height[idx];
-                                    a.x = d3fl_AxisY.x * h;
-                                    a.y = d3fl_AxisY.y * h;
-                                    a.z = d3fl_AxisY.z * h;
-                                    v->x = a.x + p.x;
-                                    v->y = a.y + p.y;
-                                    v->z = a.z + p.z;
-                                    sp->x = lx;
-                                    sp->p = v;
-                                    sp->y = my;
-                                    D3FL_LIGHT(v, light[idx])
-                                    if (poly->flip & 1) {
-                                        D3FL_COPY_TO(uv, poly[1].uv, 0x18)
-                                        u = (uv[2] + uv[0]) * 0.5f;
-                                        w = (uv[3] + uv[1]) * 0.5f;
-                                        uv[0] = u;
-                                        uv[1] = w;
-                                        D3FL_COPY_TO(np, &poly[1], 0x28)
-                                        poly[1].uv = uv;
-                                        poly[1].v[0] = v;
-                                        T.nbpUsed++;
-                                        uv += 6;
-                                        D3FL_COPY_TO(uv, np->uv, 0x18)
-                                        np->uv = uv;
-                                        uv[2] = u;
-                                        uv[3] = w;
-                                        np->v[1] = v;
-                                    } else {
-                                        D3FL_COPY_TO(uv, poly->uv, 0x18)
-                                        u = (uv[2] + uv[4]) * 0.5f;
-                                        w = (uv[3] + uv[5]) * 0.5f;
-                                        uv[4] = u;
-                                        uv[5] = w;
-                                        D3FL_COPY_TO(np, poly, 0x28)
-                                        poly->uv = uv;
-                                        poly->v[2] = v;
-                                        T.nbpUsed++;
-                                        uv += 6;
-                                        D3FL_COPY_TO(uv, np->uv, 0x18)
-                                        np->uv = uv;
-                                        uv[2] = u;
-                                        uv[3] = w;
-                                        np->v[1] = v;
-                                    }
-                                    uv += 6;
-                                    sp++;
-                                    np->zOfs = 16.0f;
-                                    np++;
-                                    T.nbpUsed++;
-                                    T.npolys++;
-                                    v++;
-                                    T.npoints++;
-                                    T.nsplit++;
-                                }
-                                p.x += dx.x;
-                                p.y += dx.y;
-                                p.z += dx.z;
-                                idx += s;
-                                lx += s;
-                                poly += 2;
-                            }
-                        }
-                        if (y < 7 && map->tiles[y + 1][x].lodLevel > 0 && map->tiles[y + 1][x].lodLevel < s) {
-                            /* bottom edge */
-                            lx = half + mx;
-                            ly = n + my;
-                            v = T.points + T.npoints;
-                            np = T.polys + T.npolys;
-                            D3FL_POS(p, lx, ly)
-                            uv = T.bp[T.nbpUsed].uv;
-                            fs = (float)s;
-                            dx.x = d3fl_AxisX.x * fs;
-                            dx.y = d3fl_AxisX.y * fs;
-                            dx.z = d3fl_AxisX.z * fs;
-                            poly = T.polys + (ny - 2) * (nx - 1) * 2;
-                            idx = (ly * size + half + mx) & mask;
-                            for (i = 0; i < nx - 1; i++) {
-                                if (poly->v[0]) {
-                                    h = height[idx];
-                                    a.x = d3fl_AxisY.x * h;
-                                    a.y = d3fl_AxisY.y * h;
-                                    a.z = d3fl_AxisY.z * h;
-                                    v->x = a.x + p.x;
-                                    v->y = a.y + p.y;
-                                    v->z = a.z + p.z;
-                                    sp->x = lx;
-                                    sp->p = v;
-                                    sp->y = ly;
-                                    D3FL_LIGHT(v, light[idx])
-                                    pp = poly;
-                                    if (!(poly->flip & 1))
-                                        pp = poly + 1;
-                                    D3FL_COPY_TO(uv, pp->uv, 0x18)
-                                    u = (uv[2] + uv[4]) * 0.5f;
-                                    w = (uv[3] + uv[5]) * 0.5f;
-                                    uv[4] = u;
-                                    uv[5] = w;
-                                    D3FL_COPY_TO(np, pp, 0x28)
-                                    pp->uv = uv;
-                                    pp->v[2] = v;
-                                    T.nbpUsed++;
-                                    uv += 6;
-                                    D3FL_COPY_TO(uv, np->uv, 0x18)
-                                    np->uv = uv;
-                                    uv[2] = u;
-                                    uv[3] = w;
-                                    uv += 6;
-                                    np->v[1] = v;
-                                    np->zOfs = 16.0f;
-                                    T.nbpUsed++;
-                                    T.npolys++;
-                                    v++;
-                                    sp++;
-                                    T.npoints++;
-                                    T.nsplit++;
-                                    np++;
-                                }
-                                p.x += dx.x;
-                                p.y += dx.y;
-                                p.z += dx.z;
-                                poly += 2;
-                                idx += s;
-                                lx += s;
-                            }
-                        }
-                    }
-                    if (T.lodLevel > 0 && T.nsplit > 0 && !changed)
-                        /* same levels: move the edge vertices */
-                        for (i = 0, sp = T.split; i < T.nsplit; i++, sp++) {
-                            h = height[sp->y * size + sp->x];
-                            fx = (float)sp->x;
-                            p.x = d3fl_AxisX.x * fx + d3fl_Origin.x;
-                            p.y = d3fl_AxisX.y * fx + d3fl_Origin.y;
-                            p.z = d3fl_AxisX.z * fx + d3fl_Origin.z;
-                            fy = (float)sp->y;
-                            q.x = d3fl_AxisZ.x * fy + p.x;
-                            q.y = d3fl_AxisZ.y * fy + p.y;
-                            q.z = d3fl_AxisZ.z * fy + p.z;
-                            sp->p->x = d3fl_AxisY.x * h + q.x;
-                            sp->p->y = d3fl_AxisY.y * h + q.y;
-                            sp->p->z = d3fl_AxisY.z * h + q.z;
-                        }
-                    T.lod = T.lodLevel;
-                }
-            /* clipping, projection and culling */
-            for (y = 0, t = map->tiles[0]; y < 8; y++)
-                for (x = 0; x < 8; x++, t++)
-                    if (t->lodLevel) {
-                        npts = t->npoints;
-                        npolys = t->npolys;
-                        d3_ClipMesh(t->clipCode, t->points, npts, (D3TRI *)t->polys, npolys);
-                        if (d3_FogOn) {
-                            for (i = 0, v = t->points; i < npts; i++, v++)
-                                if (v->flags < 0) {
-                                    k = 1.0f / v->z;
-                                    v->sx = k * v->x * d3_ScaleX + d3_CenterX;
-                                    v->sy = k * v->y * d3_ScaleY + d3_CenterY;
-                                    v->rhw = k;
-                                    d3_Dist2 = v->x * v->x + v->y * v->y + v->z * v->z;
-                                    v->fog = (unsigned char)(d3_Dist2 > d3_FogStart2
-                                        ? 255.0 - min(255.0, (sqrt(d3_Dist2) - d3_FogStart) * d3_FogScale) : 255.0);
-                                }
-                        } else {
-                            for (i = 0, v = t->points; i < npts; i++, v++)
-                                if (v->flags < 0) {
-                                    k = 1.0f / v->z;
-                                    v->sx = k * v->x * d3_ScaleX + d3_CenterX;
-                                    v->sy = k * v->y * d3_ScaleY + d3_CenterY;
-                                    v->rhw = k;
-                                }
-                        }
-                        for (i = 0, poly = t->polys; i < npolys; i++, poly++)
-                            if ((fl = poly->flags) < 0) {
-                                v2 = poly->v[2];
-                                v1 = poly->v[1];
-                                v0 = poly->v[0];
-                                if ((v2->flags | v1->flags | v0->flags) & 0x10)
-                                    fl |= 0x40;
-                                else if ((v0->sx - v1->sx) * (v0->sy - v2->sy) >= (v0->sx - v2->sx) * (v0->sy - v1->sy))
-                                    fl &= 0xbf;
-                                else
-                                    fl &= 0x7f;
-                                poly->flags = fl;
-                            }
-                    }
-            map->dirty = 0;
-        }
-        if (water)
-            d3fl_UpdateWater(d3_Time, map->nregions, map->regions);
-        /* queue the visible triangles */
-        for (y = 0, t = map->tiles[0]; y < 8; y++)
-            for (x = 0; x < 8; x++, t++)
-                if (t->lodLevel) {
-                    if (!(t->zmin > d3_MinZ))
-                        d3_MinZ = t->zmin;
-                    if (!(t->zmax < d3_MaxZ))
-                        d3_MaxZ = t->zmax;
-                    clip = &d3_ClipInfo[t->clip & 0x3f];
-                    d3_TriCount += t->npolys;
-                    d3_VertCount += t->npoints;
-                    d3_DrawnVerts += t->npoints;
-                    npolys = min((unsigned int)t->npolys, d3_Cfg.maxpolys - d3_SortCount);
-                    for (i = 0, poly = t->polys; i < npolys; i++, poly++)
-                        if (poly->flags < 0) {
-                            if ((tex = poly->tex) && tex->name[0] == '*' && !(c = tex->cache)->flag) {
-                                tex->reserved = 0;
-                                if (!tex->surf)
-                                    tex_Prepare(tex);
-                                if (surf = dd_LockSurfaceFlags(tex->surf, 0x20)) {
-                                    d3fl_Render(surf, &c->t);
-                                    dd_UnlockSurface(tex->surf);
-                                    if (d3fl_Mips)
-                                        d3d_BuildMipmaps(tex->surf, 0);
-                                    c->flag = 1;
-                                }
-                            }
-                            d3_SortPtr->item = poly;
-                            if (tex) {
-                                d3_SortPtr->key = (tex - d3_Textures) + 1;
-                                tex->stamp = d3_FrameCount;
-                            } else
-                                d3_SortPtr->key = 0;
-                            poly->clip = clip;
-                            d3_SortPtr++;
-                            d3_SortCount++;
-                        }
-                    d3fl_DrawWater(map, t);
-                }
+  if (d3_Hardware && d3_Camera) {
+    n = map->n;
+    size = map->size;
+    light = map->light;
+    types = map->types;
+    height = map->height;
+    mask = map->idxMask;
+    if (map->nolight) {
+      d3fl_Ambient.x = 0.0f;
+      d3fl_Ambient.y = 0.0f;
+      d3fl_Ambient.z = 0.0f;
+      d3fl_SunCol.x = 0.0f;
+      d3fl_SunCol.y = 0.0f;
+      d3fl_SunCol.z = 0.0f;
+      d3fl_LightCol.x = 1.0f;
+      d3fl_LightCol.y = 1.0f;
+      d3fl_LightCol.z = 1.0f;
+    } else {
+      d3fl_Ambient.x = d3_AmbientColor.x;
+      d3fl_Ambient.y = d3_AmbientColor.y;
+      d3fl_Ambient.z = d3_AmbientColor.z;
+      d3fl_SunCol.x = d3_SunColor.x;
+      d3fl_SunCol.y = d3_SunColor.y;
+      d3fl_SunCol.z = d3_SunColor.z;
+      d3fl_LightCol.x = map->ambient[0];
+      d3fl_LightCol.y = map->ambient[1];
+      d3fl_LightCol.z = map->ambient[2];
     }
+    cam = d3_Camera;
+    dx0 = map->orgx - cam->pos.x;
+    dy0 = map->orgy - cam->pos.y;
+    dz0 = map->orgz - cam->pos.z;
+    d3fl_Origin.x =
+        dx0 * cam->matrix._11 + dy0 * cam->matrix._21 + dz0 * cam->matrix._31;
+    d3fl_Origin.y =
+        dx0 * cam->matrix._12 + dy0 * cam->matrix._22 + dz0 * cam->matrix._32;
+    d3fl_Origin.z =
+        dx0 * cam->matrix._13 + dy0 * cam->matrix._23 + dz0 * cam->matrix._33;
+    d3fl_AxisX.x = map->scale * cam->matrix._11 +
+                   map->xAxisY * cam->matrix._21 +
+                   map->xAxisZ * cam->matrix._31;
+    d3fl_AxisX.y = map->scale * cam->matrix._12 +
+                   map->xAxisY * cam->matrix._22 +
+                   map->xAxisZ * cam->matrix._32;
+    d3fl_AxisX.z = map->scale * cam->matrix._13 +
+                   map->xAxisY * cam->matrix._23 +
+                   map->xAxisZ * cam->matrix._33;
+    d3fl_AxisZ.x = map->zAxisX * cam->matrix._11 +
+                   map->zAxisY * cam->matrix._21 +
+                   map->negScale * cam->matrix._31;
+    d3fl_AxisZ.y = map->zAxisX * cam->matrix._12 +
+                   map->zAxisY * cam->matrix._22 +
+                   map->negScale * cam->matrix._32;
+    d3fl_AxisZ.z = map->zAxisX * cam->matrix._13 +
+                   map->zAxisY * cam->matrix._23 +
+                   map->negScale * cam->matrix._33;
+    d3fl_AxisY.x = map->yAxisX * cam->matrix._11 +
+                   map->hscale * cam->matrix._21 +
+                   map->yAxisZ * cam->matrix._31;
+    d3fl_AxisY.y = map->yAxisX * cam->matrix._12 +
+                   map->hscale * cam->matrix._22 +
+                   map->yAxisZ * cam->matrix._32;
+    d3fl_AxisY.z = map->yAxisX * cam->matrix._13 +
+                   map->hscale * cam->matrix._23 +
+                   map->yAxisZ * cam->matrix._33;
+    if (map->dirty) {
+      changed = d3fl_UpdateTiles(map);
+      /* vertices and triangles */
+      for (y = 0; y < 8; y++)
+        for (x = 0; x < 8; x++) {
+          mx = x * n;
+          my = y * n;
+          t = &map->tiles[y][x];
+          if (!(s = t->lodLevel)) {
+            t->npolys = 0;
+            t->npoints = 0;
+          } else {
+            fx = (float)mx;
+            a.x = d3fl_AxisX.x * fx;
+            a.y = d3fl_AxisX.y * fx;
+            a.z = d3fl_AxisX.z * fx;
+            half = s >> 1;
+            fy = (float)my;
+            q.x = d3fl_AxisZ.x * fy;
+            q.y = d3fl_AxisZ.y * fy;
+            q.z = d3fl_AxisZ.z * fy;
+            a.x = q.x + a.x;
+            a.y = q.y + a.y;
+            a.z = q.z + a.z;
+            r.x = d3fl_Origin.x + a.x;
+            r.y = d3fl_Origin.y + a.y;
+            r.z = d3fl_Origin.z + a.z;
+            nx = ny = n / s + 1;
+            if (x == 7)
+              nx -= 4 / s;
+            if (y == 7)
+              ny -= 4 / s;
+            if (t->lodLevel != (unsigned char)t->lod || changed)
+              t->npoints = ny * nx;
+            fs = (float)s;
+            dx.x = d3fl_AxisX.x * fs;
+            dx.y = d3fl_AxisX.y * fs;
+            dx.z = d3fl_AxisX.z * fs;
+            dz.x = d3fl_AxisZ.x * fs;
+            dz.y = d3fl_AxisZ.y * fs;
+            dz.z = d3fl_AxisZ.z * fs;
+            v = t->points;
+            lx = (my * size + mx) & mask;
+            for (j = 0; j < ny; j++) {
+              p.x = r.x;
+              p.y = r.y;
+              p.z = r.z;
+              idx = lx;
+              for (i = 0; i < nx; i++) {
+                h = height[idx];
+                a.x = d3fl_AxisY.x * h;
+                a.y = d3fl_AxisY.y * h;
+                a.z = d3fl_AxisY.z * h;
+                v->x = p.x + a.x;
+                v->y = p.y + a.y;
+                v->z = p.z + a.z;
+                D3FL_LIGHT(v, light[idx])
+                p.x += dx.x;
+                p.y += dx.y;
+                p.z += dx.z;
+                idx = (idx + s) & mask;
+                v++;
+              }
+              r.x += dz.x;
+              r.y += dz.y;
+              r.z += dz.z;
+              lx = (lx + s * size) & mask;
+            }
+            if (s > 0 && changed) {
+              v = t->points;
+              poly = t->polys;
+              t->npolys = 0;
+              idx = (my / s * map->size / s + mx / s) & map->idxMask;
+              div = map->divide[half];
+              for (j = 0, ly = my; j < ny - 1; j++, ly += s) {
+                v0 = v;
+                v1 = v + nx;
+                for (i = 0, lx = mx; i < nx - 1; i++, lx += s) {
+                  d = div[idx + i];
+                  if (d & 0x40)
+                    jit = d3_Noise[(j + my) & 0xff][(i + mx) & 0xff] & 0x3f;
+                  else
+                    jit = 0;
+                  poly[0].tex = poly[1].tex =
+                      d3fl_GetTexture(types, size, lx, ly, s, map->src);
+                  if (d & 0x80) {
+                    poly[0].flip &= ~1;
+                    poly[0].v[2] = poly[1].v[0] = v0 + 1;
+                    poly[0].v[0] = v1;
+                    poly[0].v[1] = v0;
+                    poly[1].v[1] = v1 + 1;
+                    poly[1].v[2] = v1;
+                    poly[0].uv = &d3fl_Jitter[jit * 24];
+                    poly[1].uv = &d3fl_Jitter[jit * 24 + 6];
+                  } else {
+                    poly[0].flip |= 1;
+                    poly[0].v[1] = poly[1].v[2] = v1 + 1;
+                    poly[1].v[1] = v0 + 1;
+                    poly[0].v[0] = poly[1].v[0] = v0;
+                    poly[0].v[2] = v1;
+                    poly[0].uv = &d3fl_Jitter[jit * 24 + 12];
+                    poly[1].uv = &d3fl_Jitter[jit * 24 + 18];
+                  }
+                  poly += 2;
+                  v0++;
+                  v1++;
+                  t->npolys += 2;
+                }
+                idx += map->size / s;
+                v += nx;
+              }
+            }
+          }
+        }
+      /* extra vertices on the edges next to finer tiles; their triangles are split in two */
+      for (y = 0; y < 8; y++)
+        for (x = 0; x < 8; x++) {
+          if (T.lodLevel && changed) {
+            s = T.lodLevel;
+            half = s >> 1;
+            ny = n / s + 1;
+            if (x == 7)
+              nx = ny - 4 / s;
+            else
+              nx = ny;
+            if (y == 7)
+              ny -= 4 / s;
+            mx = x * n;
+            my = y * n;
+            T.nbpUsed = 0;
+            T.nsplit = 0;
+            sp = T.split;
+            if (x < 7 && map->tiles[y][x + 1].lodLevel > 0 &&
+                map->tiles[y][x + 1].lodLevel < s) {
+              /* right edge */
+              lx = mx + n;
+              ly = my + half;
+              v = T.points + T.npoints;
+              np = T.polys + T.npolys;
+              uv = T.bp->uv;
+              poly = T.polys + (nx - 2) * 2;
+              D3FL_POS(p, lx, ly)
+              fs = (float)s;
+              dz.x = d3fl_AxisZ.x * fs;
+              dz.y = d3fl_AxisZ.y * fs;
+              dz.z = d3fl_AxisZ.z * fs;
+              idx = (ly * size + mx + n) & mask;
+              for (j = 0; j < ny - 1; j++) {
+                if (poly->v[0]) {
+                  pp = poly + 1;
+                  h = height[idx];
+                  a.x = d3fl_AxisY.x * h;
+                  a.y = d3fl_AxisY.y * h;
+                  a.z = d3fl_AxisY.z * h;
+                  v->x = a.x + p.x;
+                  v->y = a.y + p.y;
+                  v->z = a.z + p.z;
+                  sp->p = v;
+                  sp->x = lx;
+                  sp->y = ly;
+                  D3FL_LIGHT(v, light[idx])
+                  D3FL_COPY_TO(uv, pp->uv, 0x18)
+                  if (poly->flip & 1) {
+                    u = (uv[2] + uv[4]) * 0.5f;
+                    w = (uv[3] + uv[5]) * 0.5f;
+                    uv[4] = u;
+                    uv[5] = w;
+                    D3FL_COPY_TO(np, pp, 0x28)
+                    pp->v[2] = v;
+                    pp->uv = uv;
+                    T.nbpUsed++;
+                    uv += 6;
+                    D3FL_COPY_TO(uv, np->uv, 0x18)
+                    np->uv = uv;
+                    uv[2] = u;
+                    uv[3] = w;
+                    np->v[1] = v;
+                  } else {
+                    u = (uv[2] + uv[0]) * 0.5f;
+                    w = (uv[3] + uv[1]) * 0.5f;
+                    uv[0] = u;
+                    uv[1] = w;
+                    D3FL_COPY_TO(np, pp, 0x28)
+                    pp->v[0] = v;
+                    pp->uv = uv;
+                    T.nbpUsed++;
+                    uv += 6;
+                    D3FL_COPY_TO(uv, np->uv, 0x18)
+                    np->uv = uv;
+                    uv[2] = u;
+                    uv[3] = w;
+                    np->v[1] = v;
+                  }
+                  uv += 6;
+                  sp++;
+                  np->zOfs = 16.0f;
+                  np++;
+                  T.nbpUsed++;
+                  T.npolys++;
+                  v++;
+                  T.nsplit++;
+                  T.npoints++;
+                }
+                p.x += dz.x;
+                p.y += dz.y;
+                p.z += dz.z;
+                idx += s * size;
+                ly += s;
+                poly += (nx - 1) * 2;
+              }
+            }
+            if (x > 0 && map->tiles[y][x - 1].lodLevel > 0 &&
+                map->tiles[y][x - 1].lodLevel < s) {
+              /* left edge */
+              ly = half + my;
+              v = T.points + T.npoints;
+              np = T.polys + T.npolys;
+              uv = T.bp[T.nbpUsed].uv;
+              poly = T.polys;
+              D3FL_POS(p, mx, ly)
+              fs = (float)s;
+              dz.x = d3fl_AxisZ.x * fs;
+              dz.y = d3fl_AxisZ.y * fs;
+              dz.z = d3fl_AxisZ.z * fs;
+              idx = (ly * size + mx) & mask;
+              for (j = 0; j < ny - 1; j++) {
+                if (poly->v[0]) {
+                  h = height[idx];
+                  a.x = d3fl_AxisY.x * h;
+                  a.y = d3fl_AxisY.y * h;
+                  a.z = d3fl_AxisY.z * h;
+                  v->x = a.x + p.x;
+                  v->y = a.y + p.y;
+                  v->z = a.z + p.z;
+                  sp->x = mx;
+                  sp->p = v;
+                  sp->y = ly;
+                  D3FL_LIGHT(v, light[idx])
+                  memcpy(uv, poly->uv, sizeof(D3FLTRIUV));
+                  if (poly->flip & 1) {
+                    u = (uv[4] + uv[0]) * 0.5f;
+                    w = (uv[5] + uv[1]) * 0.5f;
+                    uv[0] = u;
+                    uv[1] = w;
+                    D3FL_COPY_TO(np, poly, 0x28)
+                    poly->v[0] = v;
+                    poly->uv = uv;
+                    T.nbpUsed++;
+                    uv += 6;
+                    D3FL_COPY_TO(uv, np->uv, 0x18)
+                    np->uv = uv;
+                    uv[4] = u;
+                    uv[5] = w;
+                    np->v[2] = v;
+                  } else {
+                    u = (uv[2] + uv[0]) * 0.5f;
+                    w = (uv[3] + uv[1]) * 0.5f;
+                    uv[0] = u;
+                    uv[1] = w;
+                    D3FL_COPY_TO(np, poly, 0x28)
+                    poly->v[0] = v;
+                    poly->uv = uv;
+                    T.nbpUsed++;
+                    uv += 6;
+                    D3FL_COPY_TO(uv, np->uv, 0x18)
+                    np->uv = uv;
+                    uv[2] = u;
+                    uv[3] = w;
+                    np->v[1] = v;
+                  }
+                  uv += 6;
+                  sp++;
+                  np->zOfs = 16.0f;
+                  np++;
+                  T.nbpUsed++;
+                  T.npolys++;
+                  v++;
+                  T.npoints++;
+                  T.nsplit++;
+                }
+                p.x += dz.x;
+                p.y += dz.y;
+                p.z += dz.z;
+                idx += s * size;
+                ly += s;
+                poly += (nx - 1) * 2;
+              }
+            }
+            if (y > 0 && map->tiles[y - 1][x].lodLevel > 0 &&
+                map->tiles[y - 1][x].lodLevel < s) {
+              /* top edge */
+              lx = half + mx;
+              v = T.points + T.npoints;
+              np = T.polys + T.npolys;
+              uv = T.bp[T.nbpUsed].uv;
+              poly = T.polys;
+              D3FL_POS(p, lx, my)
+              fs = (float)s;
+              dx.x = d3fl_AxisX.x * fs;
+              dx.y = d3fl_AxisX.y * fs;
+              dx.z = d3fl_AxisX.z * fs;
+              idx = (my * size + half + mx) & mask;
+              for (i = 0; i < nx - 1; i++) {
+                if (poly->v[0]) {
+                  h = height[idx];
+                  a.x = d3fl_AxisY.x * h;
+                  a.y = d3fl_AxisY.y * h;
+                  a.z = d3fl_AxisY.z * h;
+                  v->x = a.x + p.x;
+                  v->y = a.y + p.y;
+                  v->z = a.z + p.z;
+                  sp->x = lx;
+                  sp->p = v;
+                  sp->y = my;
+                  D3FL_LIGHT(v, light[idx])
+                  if (poly->flip & 1) {
+                    pp = poly + 1;
+                    D3FL_COPY_TO(uv, pp->uv, 0x18)
+                    u = (uv[2] + uv[0]) * 0.5f;
+                    w = (uv[3] + uv[1]) * 0.5f;
+                    uv[0] = u;
+                    uv[1] = w;
+                    D3FL_COPY_TO(np, pp, 0x28)
+                    pp->uv = uv;
+                    pp->v[0] = v;
+                    T.nbpUsed++;
+                    uv += 6;
+                    D3FL_COPY_TO(uv, np->uv, 0x18)
+                    np->uv = uv;
+                    uv[2] = u;
+                    uv[3] = w;
+                    np->v[1] = v;
+                  } else {
+                    D3FL_COPY_TO(uv, poly->uv, 0x18)
+                    u = (uv[2] + uv[4]) * 0.5f;
+                    w = (uv[3] + uv[5]) * 0.5f;
+                    uv[4] = u;
+                    uv[5] = w;
+                    D3FL_COPY_TO(np, poly, 0x28)
+                    poly->uv = uv;
+                    poly->v[2] = v;
+                    T.nbpUsed++;
+                    uv += 6;
+                    D3FL_COPY_TO(uv, np->uv, 0x18)
+                    np->uv = uv;
+                    uv[2] = u;
+                    uv[3] = w;
+                    np->v[1] = v;
+                  }
+                  uv += 6;
+                  sp++;
+                  np->zOfs = 16.0f;
+                  np++;
+                  T.nbpUsed++;
+                  T.npolys++;
+                  v++;
+                  T.npoints++;
+                  T.nsplit++;
+                }
+                p.x += dx.x;
+                p.y += dx.y;
+                p.z += dx.z;
+                idx += s;
+                lx += s;
+                poly += 2;
+              }
+            }
+            if (y < 7 && map->tiles[y + 1][x].lodLevel > 0 &&
+                map->tiles[y + 1][x].lodLevel < s) {
+              /* bottom edge */
+              lx = half + mx;
+              ly = n + my;
+              v = T.points + T.npoints;
+              np = T.polys + T.npolys;
+              D3FL_POS(p, lx, ly)
+              uv = T.bp[T.nbpUsed].uv;
+              fs = (float)s;
+              dx.x = d3fl_AxisX.x * fs;
+              dx.y = d3fl_AxisX.y * fs;
+              dx.z = d3fl_AxisX.z * fs;
+              poly = T.polys + (ny - 2) * (nx - 1) * 2;
+              idx = (ly * size + half + mx) & mask;
+              for (i = 0; i < nx - 1; i++) {
+                if (poly->v[0]) {
+                  h = height[idx];
+                  a.x = d3fl_AxisY.x * h;
+                  a.y = d3fl_AxisY.y * h;
+                  a.z = d3fl_AxisY.z * h;
+                  v->x = a.x + p.x;
+                  v->y = a.y + p.y;
+                  v->z = a.z + p.z;
+                  sp->x = lx;
+                  sp->p = v;
+                  sp->y = ly;
+                  D3FL_LIGHT(v, light[idx])
+                  pp = poly;
+                  if (!(poly->flip & 1))
+                    pp = poly + 1;
+                  D3FL_COPY_TO(uv, pp->uv, 0x18)
+                  u = (uv[2] + uv[4]) * 0.5f;
+                  w = (uv[3] + uv[5]) * 0.5f;
+                  uv[4] = u;
+                  uv[5] = w;
+                  D3FL_COPY_TO(np, pp, 0x28)
+                  pp->uv = uv;
+                  pp->v[2] = v;
+                  T.nbpUsed++;
+                  uv += 6;
+                  D3FL_COPY_TO(uv, np->uv, 0x18)
+                  np->uv = uv;
+                  uv[2] = u;
+                  uv[3] = w;
+                  uv += 6;
+                  np->v[1] = v;
+                  np->zOfs = 16.0f;
+                  T.nbpUsed++;
+                  T.npolys++;
+                  v++;
+                  sp++;
+                  T.npoints++;
+                  T.nsplit++;
+                  np++;
+                }
+                p.x += dx.x;
+                p.y += dx.y;
+                p.z += dx.z;
+                poly += 2;
+                idx += s;
+                lx += s;
+              }
+            }
+          }
+          if (T.lodLevel > 0 && T.nsplit > 0 && !changed)
+            /* same levels: move the edge vertices */
+            for (i = 0, sp = T.split; i < T.nsplit; i++, sp++) {
+              h = height[sp->y * size + sp->x];
+              fx = (float)sp->x;
+              p.x = d3fl_AxisX.x * fx + d3fl_Origin.x;
+              p.y = d3fl_AxisX.y * fx + d3fl_Origin.y;
+              p.z = d3fl_AxisX.z * fx + d3fl_Origin.z;
+              fy = (float)sp->y;
+              q.x = d3fl_AxisZ.x * fy + p.x;
+              q.y = d3fl_AxisZ.y * fy + p.y;
+              q.z = d3fl_AxisZ.z * fy + p.z;
+              sp->p->x = d3fl_AxisY.x * h + q.x;
+              sp->p->y = d3fl_AxisY.y * h + q.y;
+              sp->p->z = d3fl_AxisY.z * h + q.z;
+            }
+          T.lod = T.lodLevel;
+        }
+      /* clipping, projection and culling */
+      for (y = 0; y < 8; y++)
+        for (x = 0; x < 8; x++)
+          if (T.lodLevel) {
+            npts = T.npoints;
+            npolys = T.npolys;
+            d3_ClipMesh(T.clipCode, T.points, npts, (D3TRI *)T.polys, npolys);
+            if (d3_FogOn) {
+              for (i = 0, v = T.points; i < npts; i++, v++)
+                if (v->flags & 0x80) {
+                  k = 1.0f / v->z;
+                  v->sx = (k * v->x) * d3_ScaleX + d3_CenterX;
+                  v->sy = k * v->y * d3_ScaleY + d3_CenterY;
+                  v->rhw = k;
+                  d3_Dist2 = v->x * v->x + v->y * v->y + v->z * v->z;
+                  v->fog =
+                      (unsigned char)(d3_Dist2 > d3_FogStart2
+                                          ? 255.0 - min(255.0, (sqrt(d3_Dist2) -
+                                                                d3_FogStart) *
+                                                                   d3_FogScale)
+                                          : 255.0);
+                }
+            } else {
+              for (i = 0, v = T.points; i < npts; i++, v++)
+                if (v->flags & 0x80) {
+                  k = 1.0f / v->z;
+                  v->sx = (k * v->x) * d3_ScaleX + d3_CenterX;
+                  v->sy = k * v->y * d3_ScaleY + d3_CenterY;
+                  v->rhw = k;
+                }
+            }
+            for (i = 0, poly = T.polys; i < npolys; i++, poly++)
+              if ((fl = poly->flags) & 0x80) {
+                v2 = poly->v[2];
+                v1 = poly->v[1];
+                v0 = poly->v[0];
+                if ((v2->flags | v1->flags | v0->flags) & 0x10)
+                  fl |= 0x40;
+                else if ((v0->sx - v1->sx) * (v0->sy - v2->sy) <
+                         (v0->sx - v2->sx) * (v0->sy - v1->sy))
+                  fl &= 0x7f;
+                else
+                  fl &= 0xbf;
+                poly->flags = fl;
+              }
+          }
+      map->dirty = 0;
+    }
+    if (water)
+      d3fl_UpdateWater(d3_Time, map->nregions, map->regions);
+    /* queue the visible triangles */
+    for (y = 0; y < 8; y++)
+      for (x = 0; x < 8; x++)
+        if (T.lodLevel) {
+          if (!(T.zmin > d3_MinZ))
+            d3_MinZ = (T.zmin);
+          if (!(T.zmax < d3_MaxZ))
+            d3_MaxZ = (T.zmax);
+          clip = &d3_ClipInfo[T.clip & 0x3f];
+          npolys = T.npolys;
+          npts = T.npoints;
+          d3_TriCount += npolys;
+          d3_VertCount += npts;
+          d3_DrawnVerts += npts;
+          j = min(npolys, d3_Cfg.maxpolys - d3_SortCount);
+          for (i = 0, poly = T.polys; i < j; i++, poly++)
+            if (poly->flags & 0x80) {
+              if ((tex = poly->tex) && tex->name[0] == '*' &&
+                  !(c = tex->cache)->flag) {
+                tex->reserved = 0;
+                if (!tex->surf)
+                  tex_Prepare(tex);
+                if (surf = dd_LockSurfaceFlags(tex->surf, 0x20)) {
+                  d3fl_Render(surf, &c->t);
+                  dd_UnlockSurface(tex->surf);
+                  if (d3fl_Mips)
+                    d3d_BuildMipmaps(tex->surf, 0);
+                  c->flag = 1;
+                }
+              }
+              d3_SortPtr->item = poly;
+              if (tex) {
+                d3_SortPtr->key = (tex - d3_Textures) + 1;
+                tex->stamp = d3_FrameCount;
+              } else
+                d3_SortPtr->key = 0;
+              poly->clip = clip;
+              d3_SortPtr++;
+              d3_SortCount++;
+            }
+          d3fl_DrawWater(map, &T);
+        }
+  }
 }
 
 #undef T
@@ -2734,194 +2843,199 @@ void d3fl_Draw(D3FLMAP *map, char water)
    rounds (only a float temp, 64 ins / 421 bytes). c2trace: every outer candidate is cut by pressure (k#19b
    took ebx) and split; the pieces decide. Next: c2trace --split n|tx on the first region; a guard 'if
    (!d3_Hardware || !d3_Camera) return 0;' with the body unindented; n as a local of the hardware block */
-int d3fl_Prerender(D3FLMAP *map)
-{
-    int count = 0;
-    unsigned int n, s, nx, ny, i, j, x, y, tx, ty, mx, my;
-    int size;
-    unsigned char *types;
-    TSTEXTURE *tex;
-    D3FLCACHE *c;
-    D3FLTILE *t;
-    void *p;
+int d3fl_Prerender(D3FLMAP *map) {
+  int count = 0;
+  unsigned int n, s, nx, ny, i, j, x, y, tx, ty, mx, my;
+  int size;
+  unsigned char *types;
+  TSTEXTURE *tex;
+  D3FLCACHE *c;
+  D3FLTILE *t;
+  void *p;
 
-    if (d3_Hardware && d3_Camera) {
+  if (d3_Hardware && d3_Camera) {
     n = map->n;
     size = map->size;
     types = map->types;
     d3fl_UpdateTiles(map);
     for (ty = 0; ty < 8; ty++)
-        for (tx = 0; tx < 8; tx++) {
-            my = ty * n;
-            mx = tx * n;
-            t = &map->tiles[ty][tx];
-            if (!t->lodLevel)
-                s = map->lod ? map->lod : 1;
-            else
-                s = t->lodLevel;
-            if (s) {
-                ny = n / s + 1;
-                nx = ny;
-                if (tx == 7)
-                    nx -= 4 / s;
-                if (ty == 7)
-                    ny -= 4 / s;
-                for (j = 0; j < ny - 1; j++)
-                    for (i = 0; i < nx - 1; i++) {
-                        tex = d3fl_GetTexture(types, size, mx + i * s, my + j * s, s, map->src);
-                        if (tex && tex->name[0] == '*') {
-                            c = tex->cache;
-                            if (!c->flag) {
-                                tex->reserved = 0;
-                                if (!tex->surf)
-                                    tex_Prepare(tex);
-                                if (p = dd_LockSurfaceFlags(tex->surf, 0x20)) {
-                                    d3fl_Render(p, &c->t);
-                                    dd_UnlockSurface(tex->surf);
-                                    if (d3fl_Mips)
-                                        d3d_BuildMipmaps(tex->surf, 0);
-                                    c->flag = 1;
-                                    count++;
-                                }
-                            }
-                            if (!(tex->bits & 0x80)) {
-                                d3d_PrecacheTexture(tex->d3dtex);
-                                tex->bits |= 0x80;
-                            }
-                        }
-                    }
+      for (tx = 0; tx < 8; tx++) {
+        my = ty * n;
+        mx = tx * n;
+        t = &map->tiles[ty][tx];
+        if (!t->lodLevel)
+          s = map->lod ? map->lod : 1;
+        else
+          s = t->lodLevel;
+        if (s) {
+          ny = n / s + 1;
+          nx = ny;
+          if (tx == 7)
+            nx -= 4 / s;
+          if (ty == 7)
+            ny -= 4 / s;
+          for (j = 0; j < ny - 1; j++)
+            for (i = 0; i < nx - 1; i++) {
+              tex = d3fl_GetTexture(types, size, mx + i * s, my + j * s, s,
+                                    map->src);
+              if (tex && tex->name[0] == '*') {
+                c = tex->cache;
+                if (!c->flag) {
+                  tex->reserved = 0;
+                  if (!tex->surf)
+                    tex_Prepare(tex);
+                  if (p = dd_LockSurfaceFlags(tex->surf, 0x20)) {
+                    d3fl_Render(p, &c->t);
+                    dd_UnlockSurface(tex->surf);
+                    if (d3fl_Mips)
+                      d3d_BuildMipmaps(tex->surf, 0);
+                    c->flag = 1;
+                    count++;
+                  }
+                }
+                if (!(tex->bits & 0x80)) {
+                  d3d_PrecacheTexture(tex->d3dtex);
+                  tex->bits |= 0x80;
+                }
+              }
             }
         }
-        return count;
-    }
-    return 0;
+      }
+    return count;
+  }
+  return 0;
 }
 /* 0x4463b0, map point under the world position pos (x/z) and, if h is given, the ground height there,
    interpolated on the triangle of the (lod: current detail level) mesh */
 
-char map_Pick(D3FLMAP *map, D3VECTOR *pos, char lod, int *px, int *py, float *h)
-{
-    D3VECTOR4 d;
-    float u, v, h0, du, dv;
-    int x, y, k, ix;
-    unsigned int s;
-    unsigned char *div;
+char map_Pick(D3FLMAP *map, D3VECTOR *pos, char lod, int *px, int *py,
+              float *h) {
+  D3VECTOR4 d;
+  float u, v, h0, du, dv;
+  int x, y, k, ix;
+  unsigned int s;
+  unsigned char *div;
 
-    if (!map)
-        return 0;
-    d.x = pos->x - map->orgx;
-    d.z = pos->z - map->orgz;
-    if (map->scale != 0.0f)
-        d.x /= map->scale;
-    if (map->negScale != 0.0f)
-        d.z /= map->negScale;
-    *px = x = (int)(d.x + 0.5f);
-    *py = (int)(d.z + 0.5f);
-    if (*px < 0 || *px >= map->size || *py < 0 || *py >= map->size)
-        return 0;
-    if (h) {
-        div = map->divide[0];
-        s = 1;
-        if (lod) {
-            k = map->tiles[*py / map->n][x / map->n].lodLevel;
-            if (k == 2 || k == 4) {
-                s = k;
-                div = map->divide[k >> 1];
-            }
-        }
-        ix = x & ~(s - 1);
-        y = *py & ~(s - 1);
-        u = (d.x - ix) / s;
-        v = (d.z - y) / s;
-        if (div && (div[y / s * map->size / s + ix / s] & 0x80)) {
-            if (u + v > 1.0f) {
-                h0 = map->height[((y + s) & map->mask) * map->size + ((ix + s) & map->mask)];
-                du = map->height[((y + s) & map->mask) * map->size + ix] - h0;
-                dv = map->height[y * map->size + ((ix + s) & map->mask)] - h0;
-                u = 1.0f - u;
-                v = 1.0f - v;
-            } else {
-                h0 = map->height[y * map->size + ix];
-                du = map->height[y * map->size + ((ix + s) & map->mask)] - h0;
-                dv = map->height[((y + s) & map->mask) * map->size + ix] - h0;
-            }
-        } else if (u + (1.0f - v) > 1.0f) {
-            h0 = map->height[y * map->size + ((ix + s) & map->mask)];
-            du = map->height[y * map->size + ix] - h0;
-            dv = map->height[((y + s) & map->mask) * map->size + ((ix + s) & map->mask)] - h0;
-            u = 1.0f - u;
-        } else {
-            h0 = map->height[((y + s) & map->mask) * map->size + ix];
-            du = map->height[((y + s) & map->mask) * map->size + ((ix + s) & map->mask)] - h0;
-            dv = map->height[y * map->size + ix] - h0;
-            v = 1.0f - v;
-        }
-        *h = (du * u + dv * v + h0) * map->hscale + map->orgy;
+  if (!map)
+    return 0;
+  d.x = pos->x - map->orgx;
+  d.z = pos->z - map->orgz;
+  if (map->scale != 0.0f)
+    d.x /= map->scale;
+  if (map->negScale != 0.0f)
+    d.z /= map->negScale;
+  *px = x = (int)(d.x + 0.5f);
+  *py = (int)(d.z + 0.5f);
+  if (*px < 0 || *px >= map->size || *py < 0 || *py >= map->size)
+    return 0;
+  if (h) {
+    div = map->divide[0];
+    s = 1;
+    if (lod) {
+      k = map->tiles[*py / map->n][x / map->n].lodLevel;
+      if (k == 2 || k == 4) {
+        s = k;
+        div = map->divide[k >> 1];
+      }
     }
-    return 1;
+    ix = x & ~(s - 1);
+    y = *py & ~(s - 1);
+    u = (d.x - ix) / s;
+    v = (d.z - y) / s;
+    if (div && (div[y / s * map->size / s + ix / s] & 0x80)) {
+      if (u + v > 1.0f) {
+        h0 = map->height[((y + s) & map->mask) * map->size +
+                         ((ix + s) & map->mask)];
+        du = map->height[((y + s) & map->mask) * map->size + ix] - h0;
+        dv = map->height[y * map->size + ((ix + s) & map->mask)] - h0;
+        u = 1.0f - u;
+        v = 1.0f - v;
+      } else {
+        h0 = map->height[y * map->size + ix];
+        du = map->height[y * map->size + ((ix + s) & map->mask)] - h0;
+        dv = map->height[((y + s) & map->mask) * map->size + ix] - h0;
+      }
+    } else if (u + (1.0f - v) > 1.0f) {
+      h0 = map->height[y * map->size + ((ix + s) & map->mask)];
+      du = map->height[y * map->size + ix] - h0;
+      dv = map->height[((y + s) & map->mask) * map->size +
+                       ((ix + s) & map->mask)] -
+           h0;
+      u = 1.0f - u;
+    } else {
+      h0 = map->height[((y + s) & map->mask) * map->size + ix];
+      du = map->height[((y + s) & map->mask) * map->size +
+                       ((ix + s) & map->mask)] -
+           h0;
+      dv = map->height[y * map->size + ix] - h0;
+      v = 1.0f - v;
+    }
+    *h = (du * u + dv * v + h0) * map->hscale + map->orgy;
+  }
+  return 1;
 }
 /* 0x446750, the visible tile vertex nearest to the screen position x, y within r pixels (weighted by depth);
    returns its map position as y << 16 | x and its camera-space position in out, or -1 */
 
-int map_PickScreen(D3FLMAP *map, int x, int y, float r, D3VECTOR *out)
-{
-    D3VERTEX *p;
-    int tx, ty, s, nx, ny, n, i, ret;
-    float r2, best, dx, dy, d, f;
+int map_PickScreen(D3FLMAP *map, int x, int y, float r, D3VECTOR *out) {
+  D3VERTEX *p;
+  int tx, ty, s, nx, ny, n, i, ret;
+  float r2, best, dx, dy, d, f;
 
-    if (!map)
-        return -1;
-    r2 = r * r;
-    best = 1.0f;
-    ret = -1;
-    for (ty = 0; ty < 8; ty++)
-        for (tx = 0; tx < 8; tx++) {
-            s = map->tiles[ty][tx].lodLevel;
-            if (s > 0) {
-                n = map->n / s + 1;
-                if (tx == 7)
-                    nx = n - 4 / s;
-                else
-                    nx = n;
-                if (ty == 7)
-                    ny = n - 4 / s;
-                else
-                    ny = n;
-                n = ny * nx;
-                p = map->tiles[ty][tx].points;
-                for (i = 0; i < n; i++, p++)
-                    if (p->flags & 0x80) {
-                        dx = x - p->sx;
-                        dy = y - p->sy;
-                        d = dx * dx + dy * dy;
-                        if (d < r2) {
-                            f = sqrt(d) / r * (p->z / d3_MaxZ);
-                            if (f < best) {
-                                if (i / nx * s + map->n * ty < map->size && map->n * tx + i % nx * s < map->size) {
-                                    ret = (i / nx * s + map->n * ty) << 16 | (map->n * tx + i % nx * s);
-                                    out->x = p->x;
-                                    out->y = p->y;
-                                    out->z = p->z;
-                                    best = f;
-                                }
-                            }
-                        }
-                    }
+  if (!map)
+    return -1;
+  r2 = r * r;
+  best = 1.0f;
+  ret = -1;
+  for (ty = 0; ty < 8; ty++)
+    for (tx = 0; tx < 8; tx++) {
+      s = map->tiles[ty][tx].lodLevel;
+      if (s > 0) {
+        n = map->n / s + 1;
+        if (tx == 7)
+          nx = n - 4 / s;
+        else
+          nx = n;
+        if (ty == 7)
+          ny = n - 4 / s;
+        else
+          ny = n;
+        n = ny * nx;
+        p = map->tiles[ty][tx].points;
+        for (i = 0; i < n; i++, p++)
+          if (p->flags & 0x80) {
+            dx = x - p->sx;
+            dy = y - p->sy;
+            d = dx * dx + dy * dy;
+            if (d < r2) {
+              f = sqrt(d) / r * (p->z / d3_MaxZ);
+              if (f < best) {
+                if (i / nx * s + map->n * ty < map->size &&
+                    map->n * tx + i % nx * s < map->size) {
+                  ret = (i / nx * s + map->n * ty) << 16 |
+                        (map->n * tx + i % nx * s);
+                  out->x = p->x;
+                  out->y = p->y;
+                  out->z = p->z;
+                  best = f;
+                }
+              }
             }
-        }
-    return ret;
+          }
+      }
+    }
+  return ret;
 }
 /* 0x446910, water region flag of the map point x, y, or -1 */
 
-int map_Region(D3FLMAP *map, int x, int y)
-{
-    D3FLWREG *r;
+int map_Region(D3FLMAP *map, int x, int y) {
+  D3FLWREG *r;
 
-    if (x > 0 && y > 0 && x < map->size && y < map->size)
-        for (r = map->tiles[y / map->n][x / map->n].wregions; r && r->y >= 0; r++)
-            if (y == r->y && x >= r->x0 && x <= r->x1)
-                return (unsigned char)r->flag;
-    return -1;
+  if (x > 0 && y > 0 && x < map->size && y < map->size)
+    for (r = map->tiles[y / map->n][x / map->n].wregions; r && r->y >= 0; r++)
+      if (y == r->y && x >= r->x0 && x <= r->x1)
+        return (unsigned char)r->flag;
+  return -1;
 }
 
 /* ---- 0x446990..0x446e10, the end of the TU (worker d3if; was unk_446990.c until round 9). The next file,
@@ -2938,115 +3052,121 @@ int map_Region(D3FLMAP *map, int x, int y)
    product, push edi one instruction later. climb round 1: only (pl[j].x) parenthesised reaches 2 ins (a
    VC6 perturbation, not kept); no lever: index loop (197), r = &d3_Frustum[i] (205), p walk, operand
    orders (48 variants: one code), nested ifs (= code, kept for reading). */
-float d3fl_FarDist(D3FLMAP *map, D3VECTOR *pos, D3MATRIX *m)
-{
-    D3VECTOR4 pl[4];
-    D3VECTOR4 u, v;
-    float dx, dy, dz, f, best, zmin, t;
-    int i, j;
-    D3VECTOR d;
-    D3VECTOR4 *r;
+float d3fl_FarDist(D3FLMAP *map, D3VECTOR *pos, D3MATRIX *m) {
+  D3VECTOR4 pl[4];
+  D3VECTOR4 u, v;
+  float dx, dy, dz, f, best, zmin, t;
+  int i, j;
+  D3VECTOR d;
+  D3VECTOR4 *r;
 
-    dx = map->orgx - pos->x;
-    dy = map->orgy - pos->y;
-    dz = map->orgz - pos->z;
-    u.x = dx * m->_11 + dy * m->_21 + dz * m->_31;
-    u.y = dx * m->_12 + dy * m->_22 + dz * m->_32;
-    u.z = dx * m->_13 + dy * m->_23 + dz * m->_33;
-    d.x = 0.0f;
-    d.y = 0.0f;
-    d.z = -1.0f;
-    pl[0].x = m->_11 * d.x + m->_21 * d.y + m->_31 * d.z;
-    pl[0].y = m->_12 * d.x + m->_22 * d.y + m->_32 * d.z;
-    pl[0].z = m->_13 * d.x + m->_23 * d.y + m->_33 * d.z;
-    pl[0].w = pl[0].x * u.x + pl[0].y * u.y + pl[0].z * u.z;
-    d.x = 1.0f;
-    d.z = 0.0f;
-    pl[1].x = m->_11 * d.x + m->_21 * d.y + m->_31 * d.z;
-    pl[1].y = m->_12 * d.x + m->_22 * d.y + m->_32 * d.z;
-    pl[1].z = m->_13 * d.x + m->_23 * d.y + m->_33 * d.z;
-    pl[1].w = pl[1].x * u.x + pl[1].y * u.y + pl[1].z * u.z;
-    f = (float)(map->size - 4);
-    v.x = f * map->scale + map->orgx;
-    v.y = f * map->xAxisY + map->orgy;
-    v.z = f * map->xAxisZ + map->orgz;
-    v.x = f * map->zAxisX + v.x;
-    v.y = f * map->zAxisY + v.y;
-    v.z = f * map->negScale + v.z;
-    v.x -= pos->x;
-    v.y -= pos->y;
-    v.z -= pos->z;
-    u.x = v.x * m->_11 + v.y * m->_21 + v.z * m->_31;
-    u.y = v.x * m->_12 + v.y * m->_22 + v.z * m->_32;
-    u.z = v.x * m->_13 + v.y * m->_23 + v.z * m->_33;
-    d.x = -1.0f;
-    pl[2].x = m->_11 * d.x + m->_21 * d.y + m->_31 * d.z;
-    pl[2].y = m->_12 * d.x + m->_22 * d.y + m->_32 * d.z;
-    pl[2].z = m->_13 * d.x + m->_23 * d.y + m->_33 * d.z;
-    pl[2].w = pl[2].x * u.x + pl[2].y * u.y + pl[2].z * u.z;
-    d.x = 0.0f;
-    d.z = 1.0f;
-    pl[3].x = m->_11 * d.x + m->_21 * d.y + m->_31 * d.z;
-    pl[3].y = m->_12 * d.x + m->_22 * d.y + m->_32 * d.z;
-    pl[3].z = m->_13 * d.x + m->_23 * d.y + m->_33 * d.z;
-    pl[3].w = pl[3].x * u.x + pl[3].y * u.y + pl[3].z * u.z;
-    zmin = min(pl[0].w, min(pl[1].w, min(pl[2].w, pl[3].w)));
-    best = 1e10f;
-    for (r = d3_Frustum, i = 0; i < 5; i++, r++)
-        for (j = 0; j < 4; j++) {
-            t = pl[j].x * r->x + pl[j].y * r->y + pl[j].z * r->z;
-            if (t < -1e-07f || t > 1e-07f) {
-                t = pl[j].w / t;
-                if (t > 0.0f && t > zmin && t < best)
-                    best = t;
-            }
-        }
-    if (best == 1e10)
-        return fabs(zmin);
-    return best;
+  dx = map->orgx - pos->x;
+  dy = map->orgy - pos->y;
+  dz = map->orgz - pos->z;
+  u.x = dx * m->_11 + dy * m->_21 + dz * m->_31;
+  u.y = dx * m->_12 + dy * m->_22 + dz * m->_32;
+  u.z = dx * m->_13 + dy * m->_23 + dz * m->_33;
+  d.x = 0.0f;
+  d.y = 0.0f;
+  d.z = -1.0f;
+  pl[0].x = m->_11 * d.x + m->_21 * d.y + m->_31 * d.z;
+  pl[0].y = m->_12 * d.x + m->_22 * d.y + m->_32 * d.z;
+  pl[0].z = m->_13 * d.x + m->_23 * d.y + m->_33 * d.z;
+  pl[0].w = pl[0].x * u.x + pl[0].y * u.y + pl[0].z * u.z;
+  d.x = 1.0f;
+  d.z = 0.0f;
+  pl[1].x = m->_11 * d.x + m->_21 * d.y + m->_31 * d.z;
+  pl[1].y = m->_12 * d.x + m->_22 * d.y + m->_32 * d.z;
+  pl[1].z = m->_13 * d.x + m->_23 * d.y + m->_33 * d.z;
+  pl[1].w = pl[1].x * u.x + pl[1].y * u.y + pl[1].z * u.z;
+  f = (float)(map->size - 4);
+  v.x = f * map->scale + map->orgx;
+  v.y = f * map->xAxisY + map->orgy;
+  v.z = f * map->xAxisZ + map->orgz;
+  v.x = f * map->zAxisX + v.x;
+  v.y = f * map->zAxisY + v.y;
+  v.z = f * map->negScale + v.z;
+  v.x -= pos->x;
+  v.y -= pos->y;
+  v.z -= pos->z;
+  u.x = v.x * m->_11 + v.y * m->_21 + v.z * m->_31;
+  u.y = v.x * m->_12 + v.y * m->_22 + v.z * m->_32;
+  u.z = v.x * m->_13 + v.y * m->_23 + v.z * m->_33;
+  d.x = -1.0f;
+  pl[2].x = m->_11 * d.x + m->_21 * d.y + m->_31 * d.z;
+  pl[2].y = m->_12 * d.x + m->_22 * d.y + m->_32 * d.z;
+  pl[2].z = m->_13 * d.x + m->_23 * d.y + m->_33 * d.z;
+  pl[2].w = pl[2].x * u.x + pl[2].y * u.y + pl[2].z * u.z;
+  d.x = 0.0f;
+  d.z = 1.0f;
+  pl[3].x = m->_11 * d.x + m->_21 * d.y + m->_31 * d.z;
+  pl[3].y = m->_12 * d.x + m->_22 * d.y + m->_32 * d.z;
+  pl[3].z = m->_13 * d.x + m->_23 * d.y + m->_33 * d.z;
+  pl[3].w = pl[3].x * u.x + pl[3].y * u.y + pl[3].z * u.z;
+  zmin = min(pl[0].w, min(pl[1].w, min(pl[2].w, pl[3].w)));
+  best = 1e10f;
+  for (r = d3_Frustum, i = 0; i < 5; i++, r++)
+    for (j = 0; j < 4; j++) {
+      t = pl[j].x * r->x + pl[j].y * r->y + pl[j].z * r->z;
+      if (t < -1e-07f || t > 1e-07f) {
+        t = pl[j].w / t;
+        if (t > 0.0f && t > zmin && t < best)
+          best = t;
+      }
+    }
+  if (best == 1e10)
+    return fabs(zmin);
+  return best;
 }
 /* 0x446dc0, sets the tile shift (low nibble of map->flags byte +0x1c71), rebuilding the tiles and the light map */
 
-void d3fl_SetShift(D3FLMAP *map, unsigned char shift, char light)
-{
-    if (map->shift != shift) {
-        d3fl_FreeTiles(map);
-        map->shift = shift;
-        d3fl_Inflate(map);
-        if (light)
-            d3fl_MakeLight(map);
-    }
+void d3fl_SetShift(D3FLMAP *map, unsigned char shift, char light) {
+  if (map->shift != shift) {
+    d3fl_FreeTiles(map);
+    map->shift = shift;
+    d3fl_Inflate(map);
+    if (light)
+      d3fl_MakeLight(map);
+  }
 }
 
-D3VERTEX d3fl_Box[8] = {0};  /* 0x6334b8, result of d3fl_TileBox */
-D3FLMAP *d3_Terrain = 0;  /* 0x633738, the current scene's terrain map */
-char d3fl_Mips = 0;  /* 0x63373c */
-char d3fl_MapShift = 0;  /* 0x63373d, texture shift copied into D3FLMAP.shift (d3fl_Init argument) */
-float d3fl_LightMargin = 0;  /* 0x633740, world units added to map->scale when a light's
-                                             ground radius is converted to map cells (d3fl_LightCB; no writer) */
-unsigned int d3fl_Count = 0;  /* 0x633744 */
+D3VERTEX d3fl_Box[8] = {0}; /* 0x6334b8, result of d3fl_TileBox */
+D3FLMAP *d3_Terrain = 0;    /* 0x633738, the current scene's terrain map */
+char d3fl_Mips = 0;         /* 0x63373c */
+char d3fl_MapShift =
+    0; /* 0x63373d, texture shift copied into D3FLMAP.shift (d3fl_Init argument) */
+float d3fl_LightMargin =
+    0; /* 0x633740, world units added to map->scale when a light's
+                       ground radius is converted to map cells (d3fl_LightCB; no writer) */
+unsigned int d3fl_Count = 0;        /* 0x633744 */
 unsigned int d3fl_DetailScale = 0;  /* 0x633748 */
-D3FLCACHE * d3fl_Cache = 0;  /* 0x63374c */
-unsigned char d3fl_DetailShift = 0;  /* 0x633750, 6 - log2(detail scale): */
-unsigned char d3fl_DetailSizeShift = 0;  /* 0x633751, the byte right after d3fl_DetailShift (f3init.c's detail shift) */
+D3FLCACHE *d3fl_Cache = 0;          /* 0x63374c */
+unsigned char d3fl_DetailShift = 0; /* 0x633750, 6 - log2(detail scale): */
+unsigned char d3fl_DetailSizeShift =
+    0; /* 0x633751, the byte right after d3fl_DetailShift (f3init.c's detail shift) */
 extern float d3fl_Shade[1024];
-unsigned long d3fl_ColorTab[3][256];  /* 0xfbac60, 8-bit channel -> 16-bit pixel bits */
-D3VECTOR4 d3fl_LightCol;  /* 0xfbb860, color per light-map unit */
-unsigned int d3fl_TileN;  /* 0xfbb870, pixels per tile in the texture being drawn */
-int d3fl_DstPitch;  /* 0xfbb874, bytes per texture row */
-D3VECTOR4 d3fl_SunCol;  /* 0xfbb880, added where the light map has bit 7 */
-float d3fl_UV[2][8];  /* 0xfbb8a0 */
+unsigned long
+    d3fl_ColorTab[3][256]; /* 0xfbac60, 8-bit channel -> 16-bit pixel bits */
+D3VECTOR4 d3fl_LightCol;   /* 0xfbb860, color per light-map unit */
+unsigned int
+    d3fl_TileN;    /* 0xfbb870, pixels per tile in the texture being drawn */
+int d3fl_DstPitch; /* 0xfbb874, bytes per texture row */
+D3VECTOR4 d3fl_SunCol; /* 0xfbb880, added where the light map has bit 7 */
+float d3fl_UV[2][8];   /* 0xfbb8a0 */
 D3VECTOR4 d3fl_AxisZ;  /* 0xfbb8e0, world step per map y */
-unsigned long d3fl_W16[16 * 16];  /* 0xfbb900 */
-D3VECTOR4 d3fl_AxisY;  /* 0xfbbd00, world step per height unit */
-int d3fl_SrcPitch;  /* 0xfbbd10, source bytes per row step */
-D3VECTOR4 d3fl_Ambient;  /* 0xfbbd20 */
-D3VECTOR4 d3fl_Origin;  /* 0xfbbd30, map point (0, 0, 0) in world space */
-unsigned long d3fl_W32[32 * 32];  /* 0xfbbd40 */
-unsigned long d3fl_W64[64 * 64];  /* 0xfbcd40, blend weights for 64 pixels per tile */
-int d3fl_SrcStep;  /* 0xfc0d40, source bytes per pixel step */
-D3VECTOR4 d3fl_AxisX;  /* 0xfc0d50, world step per map x */
-float d3fl_Jitter[1536];  /* 0xfc0d60 */
-int d3fl_WPitch;  /* 0xfc2560, weight bytes per row step */
-const char d3fl_Suffix[3][11] = { "", "_high_1", "_high_2" };  /* 0x5ebaa8, "", "_high_1", "_high_2": source texture mip levels */
-D3FLBLEND d3fl_Blend = d3fl_BlendC;  /* 0x5fb970 */
+unsigned long d3fl_W16[16 * 16]; /* 0xfbb900 */
+D3VECTOR4 d3fl_AxisY;            /* 0xfbbd00, world step per height unit */
+int d3fl_SrcPitch;               /* 0xfbbd10, source bytes per row step */
+D3VECTOR4 d3fl_Ambient;          /* 0xfbbd20 */
+D3VECTOR4 d3fl_Origin; /* 0xfbbd30, map point (0, 0, 0) in world space */
+unsigned long d3fl_W32[32 * 32]; /* 0xfbbd40 */
+unsigned long
+    d3fl_W64[64 * 64];   /* 0xfbcd40, blend weights for 64 pixels per tile */
+int d3fl_SrcStep;        /* 0xfc0d40, source bytes per pixel step */
+D3VECTOR4 d3fl_AxisX;    /* 0xfc0d50, world step per map x */
+float d3fl_Jitter[1536]; /* 0xfc0d60 */
+int d3fl_WPitch;         /* 0xfc2560, weight bytes per row step */
+const char d3fl_Suffix[3][11] = {
+    "", "_high_1",
+    "_high_2"}; /* 0x5ebaa8, "", "_high_1", "_high_2": source texture mip levels */
+D3FLBLEND d3fl_Blend = d3fl_BlendC; /* 0x5fb970 */

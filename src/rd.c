@@ -27,167 +27,160 @@
 
 /* 0x4bc5a0, the vegetation type with id type, 0 if none */
 
-G15TREE *veg_FindType(int type)
-{
-    int i;
+G15TREE *veg_FindType(int type) {
+  int i;
 
-    for (i = 0; veg_Types[i].id != 0; i++) {
-        if (veg_Types[i].id == type)
-            return &veg_Types[i];
-    }
-    return 0;
+  for (i = 0; veg_Types[i].id != 0; i++) {
+    if (veg_Types[i].id == type)
+      return &veg_Types[i];
+  }
+  return 0;
 }
 /* 0x4bc5f0, the plant at cell x / z, 0 if none */
 
-G15PLANT *veg_FindPlantAt(G15PLANT *p, int x, int z)
-{
-    int i;
+G15PLANT *veg_FindPlantAt(G15PLANT *p, int x, int z) {
+  int i;
 
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].x == x && p[i].z == z && p[i].state != -1)
-            return &p[i];
-    }
-    return 0;
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].x == x && p[i].z == z && p[i].state != -1)
+      return &p[i];
+  }
+  return 0;
 }
 /* 0x4bc640, the plant with 3D object obj, 0 if none */
 
-G15PLANT *veg_FindPlantObject(G15PLANT *p, D3OBJECT *obj)
-{
-    int i;
+G15PLANT *veg_FindPlantObject(G15PLANT *p, D3OBJECT *obj) {
+  int i;
 
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].state != -1 && p[i].obj == obj)
-            return &p[i];
-    }
-    return 0;
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].state != -1 && p[i].obj == obj)
+      return &p[i];
+  }
+  return 0;
 }
 /* 0x4bc670, the plant with id id, 0 if none */
 
-G15PLANT *veg_FindPlantId(G15PLANT *p, int id)
-{
-    int i;
+G15PLANT *veg_FindPlantId(G15PLANT *p, int id) {
+  int i;
 
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].state != -1 && p[i].id == id)
-            return &p[i];
-    }
-    return 0;
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].state != -1 && p[i].id == id)
+      return &p[i];
+  }
+  return 0;
 }
 /* 0x4bc6a0, the plant whose area (size cells around it) covers cell x / z, 0 if none */
 
-G15PLANT *veg_FindPlantArea(G15PLANT *p, int x, int z)
-{
-    int i;
-    int r;
+G15PLANT *veg_FindPlantArea(G15PLANT *p, int x, int z) {
+  int i;
+  int r;
 
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].state != -1) {
-            r = p[i].size / 2;
-            if (x >= p[i].x - r && x <= p[i].x + r && z >= p[i].z - r && z <= p[i].z + r)
-                return &p[i];
-        }
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].state != -1) {
+      r = p[i].size / 2;
+      if (x >= p[i].x - r && x <= p[i].x + r && z >= p[i].z - r &&
+          z <= p[i].z + r)
+        return &p[i];
     }
-    return 0;
+  }
+  return 0;
 }
 /* 0x4bc710, 1 if a plant of size cells fits at x / z (a free record, no plant there or in the area) */
 
-int veg_Fits(G15PLANT *p, int x, int z, int size)
-{
-    int free;
-    int i, j, k;
+int veg_Fits(G15PLANT *p, int x, int z, int size) {
+  int free;
+  int i, j, k;
 
-    free = 0;
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].state == -1)
-            free = 1;
-        else if (p[i].x == x && p[i].z == z)
-            return 0;
-    }
-    if (!free)
+  free = 0;
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].state == -1)
+      free = 1;
+    else if (p[i].x == x && p[i].z == z)
+      return 0;
+  }
+  if (!free)
+    return 0;
+  for (j = 0; j < size; j++) {
+    for (k = 0; k < size; k++) {
+      if (veg_FindPlantArea(p, x - size / 2 + k, z - size / 2 + j) != 0)
         return 0;
-    for (j = 0; j < size; j++) {
-        for (k = 0; k < size; k++) {
-            if (veg_FindPlantArea(p, x - size / 2 + k, z - size / 2 + j) != 0)
-                return 0;
-        }
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4bc7c0, sets the plant at x / z (a new record if none) to type (0 removes it); fall: autumn model
    @original the free-record search leaves with goto add and tests i >= 0x40 after the loop (always true there):
    that test puts the not-found return 0 after the pops as in the original */
 
-G15PLANT *veg_SetPlant(G15PLANT *p, int x, int z, int type, int fall)
-{
-    G15TREE *t;
-    G15PLANT *q;
-    int i;
+G15PLANT *veg_SetPlant(G15PLANT *p, int x, int z, int type, int fall) {
+  G15TREE *t;
+  G15PLANT *q;
+  int i;
 
-    t = veg_FindType(type);
-    if (p == 0)
-        return 0;
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].x == x && p[i].z == z && p[i].state != -1)
-            goto found;
-    }
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].state == -1)
-            goto add;
-    }
-    if (i >= 0x40)
-        return 0;
+  t = veg_FindType(type);
+  if (p == 0)
+    return 0;
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].x == x && p[i].z == z && p[i].state != -1)
+      goto found;
+  }
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].state == -1)
+      goto add;
+  }
+  if (i >= 0x40)
+    return 0;
 add:
-    p[i].id = veg_NextId++;
+  p[i].id = veg_NextId++;
 found:
-    q = &p[i];
-    q->type = type;
-    if (fall == 0) {
-        q->fallId = -1;
-        if (type != 0)
-            q->state = 1;
-        else {
-            q->state = -1;
-            if (q->obj != 0) {
-                d3if_Delete(q->obj);
-                q->obj = 0;
-            }
-        }
-    } else {
-        if (q->obj != 0) {
-            d3if_Delete(q->obj);
-            q->obj = 0;
-        }
-        veg_LoadModel(q, fall);
+  q = &p[i];
+  q->type = type;
+  if (fall == 0) {
+    q->fallId = -1;
+    if (type != 0)
+      q->state = 1;
+    else {
+      q->state = -1;
+      if (q->obj != 0) {
+        d3if_Delete(q->obj);
+        q->obj = 0;
+      }
     }
-    q->x = x;
-    q->z = z;
-    if (t != 0)
-        q->size = t->size;
-    else
-        q->size = 0;
-    return q;
+  } else {
+    if (q->obj != 0) {
+      d3if_Delete(q->obj);
+      q->obj = 0;
+    }
+    veg_LoadModel(q, fall);
+  }
+  q->x = x;
+  q->z = z;
+  if (t != 0)
+    q->size = t->size;
+  else
+    q->size = 0;
+  return q;
 }
 /* 0x4bc8d0, the plants grow one state (their objects are rebuilt by 0x4bcb90) */
 
-void veg_GrowPlants(G15PLANT *p)
-{
-    int i;
-    G15TREE *t;
+void veg_GrowPlants(G15PLANT *p) {
+  int i;
+  G15TREE *t;
 
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].state != -1) {
-            if (p[i].obj != 0) {
-                d3if_Delete(p[i].obj);
-                p[i].obj = 0;
-            }
-            t = veg_FindType(p[i].type);
-            if (t == 0)
-                t = veg_FindType(p[i].type);
-            if (p[i].state < t->lastState)
-                p[i].state++;
-        }
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].state != -1) {
+      if (p[i].obj != 0) {
+        d3if_Delete(p[i].obj);
+        p[i].obj = 0;
+      }
+      t = veg_FindType(p[i].type);
+      if (t == 0)
+        t = veg_FindType(p[i].type);
+      if (p[i].state < t->lastState)
+        p[i].state++;
     }
-    veg_ShowPlants(p);
+  }
+  veg_ShowPlants(p);
 }
 /* 0x4bc940, loads plant q's model ("%svegetation/*pfl_<type>_0<n>[_FALL].ogr"), names it "_ID<id>" and places it
    on the height map (origin + x * axisx + z * axisz + height * axisy).
@@ -211,87 +204,85 @@ void veg_GrowPlants(G15PLANT *p)
    .. forms, a row pointer or index local assigned per component, pos as D3VECTOR; unsigned/uchar/ushort x,
    z locals and D3VECTOR4 pos are worse. */
 
-void veg_LoadModel(G15PLANT *q, int fall)
-{
-    G15TREE *t;
-    int n;
-    D3OBJECT *o;
-    D3FLMAP *tr;
-    D3VECTOR pos;
-    char path[0x100];
-    char buf[0x100];
+void veg_LoadModel(G15PLANT *q, int fall) {
+  G15TREE *t;
+  int n;
+  D3OBJECT *o;
+  D3FLMAP *tr;
+  D3VECTOR pos;
+  char path[0x100];
+  char buf[0x100];
 
-    t = veg_FindType(q->type);
-    if (fall == 0) {
-        n = q->state / t->states;
-        if (n < 1)
-            n = 1;
-        sprintf(path, "%svegetation/*pfl_%s_0%i.ogr", ai_DataPath, t->name, n);
-    } else {
-        n = q->state / t->states;
-        if (n < 1)
-            n = 1;
-        sprintf(path, "%svegetation/*pfl_%s_0%i_FALL.ogr", ai_DataPath, t->name, n);
-    }
-    o = d3_LoadGroup(path, 0, 0);
-    if (o == 0) {
-        sprintf(buf, "init_SetPflanzenMap(): Could not load 3D-Objekt-roup '%s'...", path);
-        err_Message(buf);
-        return;
-    }
-    q->obj = o;
-    sprintf(buf, "_ID%i", q->id);
-    strcat(o->name, buf);
-    o->mask = 1;
-    tr = d3_Terrain;
-    if (tr != 0) {
-        pos.x = tr->orgx;
-        pos.y = tr->orgy;
-        pos.z = tr->orgz;
-        pos.x += q->x * tr->scale;
-        pos.y += q->x * tr->xAxisY;
-        pos.z += q->x * tr->xAxisZ;
-        pos.x += q->z * tr->zAxisX;
-        pos.y += q->z * tr->zAxisY;
-        pos.z += q->z * tr->negScale;
-        pos.x += tr->height[q->z * tr->size + q->x] * tr->yAxisX;
-        pos.y += tr->height[q->z * tr->size + q->x] * tr->hscale;
-        pos.z += tr->height[q->z * tr->size + q->x] * tr->yAxisZ;
-        d3_SetObjectPos(o, &pos);
-    }
-    d3_RelightObjects(o);
+  t = veg_FindType(q->type);
+  if (fall == 0) {
+    n = q->state / t->states;
+    if (n < 1)
+      n = 1;
+    sprintf(path, "%svegetation/*pfl_%s_0%i.ogr", ai_DataPath, t->name, n);
+  } else {
+    n = q->state / t->states;
+    if (n < 1)
+      n = 1;
+    sprintf(path, "%svegetation/*pfl_%s_0%i_FALL.ogr", ai_DataPath, t->name, n);
+  }
+  o = d3_LoadGroup(path, 0, 0);
+  if (o == 0) {
+    sprintf(buf, "init_SetPflanzenMap(): Could not load 3D-Objekt-roup '%s'...",
+            path);
+    err_Message(buf);
+    return;
+  }
+  q->obj = o;
+  sprintf(buf, "_ID%i", q->id);
+  strcat(o->name, buf);
+  o->mask = 1;
+  tr = d3_Terrain;
+  if (tr != 0) {
+    pos.x = tr->orgx;
+    pos.y = tr->orgy;
+    pos.z = tr->orgz;
+    pos.x += q->x * tr->scale;
+    pos.y += q->x * tr->xAxisY;
+    pos.z += q->x * tr->xAxisZ;
+    pos.x += q->z * tr->zAxisX;
+    pos.y += q->z * tr->zAxisY;
+    pos.z += q->z * tr->negScale;
+    pos.x += tr->height[q->z * tr->size + q->x] * tr->yAxisX;
+    pos.y += tr->height[q->z * tr->size + q->x] * tr->hscale;
+    pos.z += tr->height[q->z * tr->size + q->x] * tr->yAxisZ;
+    d3_SetObjectPos(o, &pos);
+  }
+  d3_RelightObjects(o);
 }
 /* 0x4bcb90, shows the plants (loading missing models) */
 
-void veg_ShowPlants(G15PLANT *p)
-{
-    int i;
+void veg_ShowPlants(G15PLANT *p) {
+  int i;
 
-    if (p == 0)
-        return;
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].state != -1) {
-            if (p[i].obj == 0) {
-                veg_LoadModel(&p[i], 0);
-                if (p[i].obj == 0)
-                    continue;
-            }
-            d3if_ShowTree(p[i].obj, 1);
-        }
+  if (p == 0)
+    return;
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].state != -1) {
+      if (p[i].obj == 0) {
+        veg_LoadModel(&p[i], 0);
+        if (p[i].obj == 0)
+          continue;
+      }
+      d3if_ShowTree(p[i].obj, 1);
     }
+  }
 }
 /* 0x4bcbe0, hides the plants */
 
-void veg_HidePlants(G15PLANT *p)
-{
-    int i;
+void veg_HidePlants(G15PLANT *p) {
+  int i;
 
-    if (p == 0)
-        return;
-    for (i = 0; i < 0x40; i++) {
-        if (p[i].state != -1 && p[i].obj != 0)
-            d3if_ShowTree(p[i].obj, 0);
-    }
+  if (p == 0)
+    return;
+  for (i = 0; i < 0x40; i++) {
+    if (p[i].state != -1 && p[i].obj != 0)
+      d3if_ShowTree(p[i].obj, 0);
+  }
 }
 /* 0x4bcc20, lays a road from the building site of object obj (name: 0x58f640) to the next road (marks its cells
    as ground type "EINFACHER_WEG" on the town map, around each cell before 0x780)
@@ -317,152 +308,154 @@ void veg_HidePlants(G15PLANT *p)
    they are pooled literals. Left: as prior, plus the WorldToCell argument stores (hunks 0x4bcdf7,
    0x4bce1b) and the slots at 0x4bd144. */
 
-int rd_BuildRoad(struct D3OBJECT *obj, int name)
-{
-    G15BKFIND f;
-    G15BK *bk;
-    D3VECTOR4 v;
-    float ax, az, bx, bz;
-    float dx, dz;
-    float x, z, step;
-    int i, j, k;
-    struct D3OBJECT *o;
-    int px, pz;
-    int ok;
-    char buf[0x40];
+int rd_BuildRoad(struct D3OBJECT *obj, int name) {
+  G15BKFIND f;
+  G15BK *bk;
+  D3VECTOR4 v;
+  float ax, az, bx, bz;
+  float dx, dz;
+  float x, z, step;
+  int i, j, k;
+  struct D3OBJECT *o;
+  int px, pz;
+  int ok;
+  char buf[0x40];
 
-    rd_Road.map = ai_MapRefs;
-    if (ai_MapRefs == 0)
-        return 0;
-    rd_Road.grid = d3sm_Create(ai_MapRefs, ai_MapRefs->size, 2);
-    if (rd_Road.grid == 0)
-        return 0;
-    rd_Road.prunk = -1;
-    rd_Road.simple = -1;
-    for (i = 0; i < 8; i++) {
-        strcpy(buf, rd_Road.map->typenames[i]);
-        strupr(buf);
-        if (strstr(buf, "EINFACHER_WEG"))
-            rd_Road.simple = i;
-        if (strstr(buf, "PRUNK_WEG"))
-            rd_Road.prunk = i;
-    }
-    if (rd_Road.prunk == -1)
-        rd_Road.prunk = 1;
-    if (rd_Road.simple == -1)
-        rd_Road.simple = 2;
-    rd_AddBauplaetze(&rd_Road);
-    if (!ai_BuildingName(name, f.name)) {
-        d3sm_Destroy(rd_Road.grid);
-        return 0;
-    }
-    v.x = 0.0f;
-    v.y = 0.0f;
-    v.z = 0.0f;
-    d3_LocalToWorld(obj, &v.v, &f.pos.v);
-    f.found = 0;
-    d3_ForEachObject(d3_DefaultScene, 0, 0x180, rd_FindSiteCB, &f);
-    if (f.found == 0)
-        goto fail;
-    bk = rd_GetBKSize(f.found->name);
-    if (bk == 0) {
-        d3sm_Destroy(rd_Road.grid);
-        return 0;
-    }
-    v.x = rd_Road.map->scale + bk->x0;
-    v.y = bk->y0;
-    v.z = rd_Road.map->negScale + bk->z0;
-    rd_WorldToCell(&ax, &az, &v.v, f.found, &rd_Road);
-    v.x = bk->x1 - rd_Road.map->scale;
-    v.y = bk->y0;
-    v.z = rd_Road.map->negScale + bk->z0;
-    rd_WorldToCell(&bx, &bz, &v.v, f.found, &rd_Road);
-    if (!rd_PathToRoad(&rd_Road, (int)ax, (int)az, -1, -1)) {
-        d3sm_Destroy(rd_Road.grid);
-        return 0;
-    }
+  rd_Road.map = ai_MapRefs;
+  if (ai_MapRefs == 0)
+    return 0;
+  rd_Road.grid = d3sm_Create(ai_MapRefs, ai_MapRefs->size, 2);
+  if (rd_Road.grid == 0)
+    return 0;
+  rd_Road.prunk = -1;
+  rd_Road.simple = -1;
+  for (i = 0; i < 8; i++) {
+    strcpy(buf, rd_Road.map->typenames[i]);
+    strupr(buf);
+    if (strstr(buf, "EINFACHER_WEG"))
+      rd_Road.simple = i;
+    if (strstr(buf, "PRUNK_WEG"))
+      rd_Road.prunk = i;
+  }
+  if (rd_Road.prunk == -1)
+    rd_Road.prunk = 1;
+  if (rd_Road.simple == -1)
+    rd_Road.simple = 2;
+  rd_AddBauplaetze(&rd_Road);
+  if (!ai_BuildingName(name, f.name)) {
+    d3sm_Destroy(rd_Road.grid);
+    return 0;
+  }
+  v.x = 0.0f;
+  v.y = 0.0f;
+  v.z = 0.0f;
+  d3_LocalToWorld(obj, &v.v, &f.pos.v);
+  f.found = 0;
+  d3_ForEachObject(d3_DefaultScene, 0, 0x180, rd_FindSiteCB, &f);
+  if (f.found == 0)
+    goto fail;
+  bk = rd_GetBKSize(f.found->name);
+  if (bk == 0) {
+    d3sm_Destroy(rd_Road.grid);
+    return 0;
+  }
+  v.x = rd_Road.map->scale + bk->x0;
+  v.y = bk->y0;
+  v.z = rd_Road.map->negScale + bk->z0;
+  rd_WorldToCell(&ax, &az, &v.v, f.found, &rd_Road);
+  v.x = bk->x1 - rd_Road.map->scale;
+  v.y = bk->y0;
+  v.z = rd_Road.map->negScale + bk->z0;
+  rd_WorldToCell(&bx, &bz, &v.v, f.found, &rd_Road);
+  if (!rd_PathToRoad(&rd_Road, (int)ax, (int)az, -1, -1)) {
+    d3sm_Destroy(rd_Road.grid);
+    return 0;
+  }
+  memcpy(rd_Road.path2, rd_Road.path, sizeof(rd_Road.path));
+  rd_Road.n2 = rd_Road.out.count;
+  if (!rd_PathToRoad(&rd_Road, (int)bx, (int)bz, -1, -1))
+    goto fail;
+  if (rd_Road.n2 > rd_Road.out.count && rd_Road.n2 >= 5) {
     memcpy(rd_Road.path2, rd_Road.path, sizeof(rd_Road.path));
     rd_Road.n2 = rd_Road.out.count;
-    if (!rd_PathToRoad(&rd_Road, (int)bx, (int)bz, -1, -1))
-        goto fail;
-    if (rd_Road.n2 > rd_Road.out.count && rd_Road.n2 >= 5) {
-        memcpy(rd_Road.path2, rd_Road.path, sizeof(rd_Road.path));
-        rd_Road.n2 = rd_Road.out.count;
-    } else if (rd_Road.n2 < 5) {
-        memcpy(rd_Road.path2[rd_Road.n2], rd_Road.path, sizeof(rd_Road.path));
-        rd_Road.n2 += rd_Road.out.count;
+  } else if (rd_Road.n2 < 5) {
+    memcpy(rd_Road.path2[rd_Road.n2], rd_Road.path, sizeof(rd_Road.path));
+    rd_Road.n2 += rd_Road.out.count;
+  }
+  dx = bx - ax;
+  dz = bz - az;
+  if (fabs(dx) > fabs(dz)) {
+    dz = dz / fabs(dx);
+    step = dx > 0.0f ? 1.0f : -1.0f;
+    x = ax;
+    z = az;
+    while ((int)x != (int)bx) {
+      rd_Road.path2[rd_Road.n2][0] = (unsigned char)(int)x;
+      rd_Road.path2[rd_Road.n2][1] = (unsigned char)(int)z;
+      rd_Road.n2++;
+      rd_Road.grid->entries[(int)z * rd_Road.map->size + (int)x].type = 6;
+      x += step;
+      z += dz;
     }
-    dx = bx - ax;
-    dz = bz - az;
-    if (fabs(dx) > fabs(dz)) {
-        dz = dz / fabs(dx);
-        step = dx > 0.0f ? 1.0f : -1.0f;
-        x = ax;
-        z = az;
-        while ((int)x != (int)bx) {
-            rd_Road.path2[rd_Road.n2][0] = (unsigned char)(int)x;
-            rd_Road.path2[rd_Road.n2][1] = (unsigned char)(int)z;
-            rd_Road.n2++;
-            rd_Road.grid->entries[(int)z * rd_Road.map->size + (int)x].type = 6;
-            x += step;
-            z += dz;
-        }
-    } else {
-        dx = dx / fabs(dz);
-        step = dz > 0.0f ? 1.0f : -1.0f;
-        x = ax;
-        z = az;
-        while ((int)z != (int)bz) {
-            rd_Road.path2[rd_Road.n2][0] = (unsigned char)(int)x;
-            rd_Road.path2[rd_Road.n2][1] = (unsigned char)(int)z;
-            rd_Road.n2++;
-            rd_Road.grid->entries[rd_Road.map->size * (int)z + (int)x].type = 6;
-            x += dx;
-            z += step;
-        }
+  } else {
+    dx = dx / fabs(dz);
+    step = dz > 0.0f ? 1.0f : -1.0f;
+    x = ax;
+    z = az;
+    while ((int)z != (int)bz) {
+      rd_Road.path2[rd_Road.n2][0] = (unsigned char)(int)x;
+      rd_Road.path2[rd_Road.n2][1] = (unsigned char)(int)z;
+      rd_Road.n2++;
+      rd_Road.grid->entries[rd_Road.map->size * (int)z + (int)x].type = 6;
+      x += dx;
+      z += step;
     }
-    o = d3_FindObject(obj, 0x100, 0, "dummy_TUER");
-    if (o == 0)
-        o = obj;
-    d3_PointToWorld(o, &o->pos, &v.v);
-    ok = 0;
-    if (d3_GetHeightAt(rd_Road.grid, &v.v, &px, &pz, 0)) {
-        if (rd_PathToRoad(&rd_Road, px, pz, -1, -1)) {
-            ok = 1;
-        }
+  }
+  o = d3_FindObject(obj, 0x100, 0, "dummy_TUER");
+  if (o == 0)
+    o = obj;
+  d3_PointToWorld(o, &o->pos, &v.v);
+  ok = 0;
+  if (d3_GetHeightAt(rd_Road.grid, &v.v, &px, &pz, 0)) {
+    if (rd_PathToRoad(&rd_Road, px, pz, -1, -1)) {
+      ok = 1;
     }
-    if (!ok) {
-fail:
-        d3sm_Destroy(rd_Road.grid);
-        return 0;
-    }
+  }
+  if (!ok) {
+  fail:
     d3sm_Destroy(rd_Road.grid);
-    if (ai_MapSize >= 0x780) {
-        for (i = 0; i < rd_Road.n2; i++)
-            rd_Road.map->types[rd_Road.path2[i][1] * rd_Road.map->size + rd_Road.path2[i][0]]
-                = (unsigned char)rd_Road.simple;
-        for (i = 0; i < rd_Road.out.count; i++)
-            rd_Road.map->types[rd_Road.path[i][1] * rd_Road.map->size + rd_Road.path[i][0]]
-                = (unsigned char)rd_Road.simple;
-    } else {
-        for (i = 0; i < rd_Road.n2; i++) {
-            for (j = -1; j < 2; j++) {
-                for (k = -1; k < 2; k++)
-                    rd_Road.map->types[(rd_Road.path2[i][1] + j) * rd_Road.map->size
-                        + k + rd_Road.path2[i][0]] = (unsigned char)rd_Road.simple;
-            }
-        }
-        for (i = 0; i < rd_Road.out.count; i++) {
-            for (j = -1; j < 2; j++) {
-                for (k = -1; k < 2; k++)
-                    rd_Road.map->types[(rd_Road.path[i][1] + j) * rd_Road.map->size
-                        + k + rd_Road.path[i][0]] = (unsigned char)rd_Road.simple;
-            }
-        }
+    return 0;
+  }
+  d3sm_Destroy(rd_Road.grid);
+  if (ai_MapSize >= 0x780) {
+    for (i = 0; i < rd_Road.n2; i++)
+      rd_Road.map->types[rd_Road.path2[i][1] * rd_Road.map->size +
+                         rd_Road.path2[i][0]] = (unsigned char)rd_Road.simple;
+    for (i = 0; i < rd_Road.out.count; i++)
+      rd_Road.map
+          ->types[rd_Road.path[i][1] * rd_Road.map->size + rd_Road.path[i][0]] =
+          (unsigned char)rd_Road.simple;
+  } else {
+    for (i = 0; i < rd_Road.n2; i++) {
+      for (j = -1; j < 2; j++) {
+        for (k = -1; k < 2; k++)
+          rd_Road.map->types[(rd_Road.path2[i][1] + j) * rd_Road.map->size + k +
+                             rd_Road.path2[i][0]] =
+              (unsigned char)rd_Road.simple;
+      }
     }
-    if ((d3_Scenes[0].sceneFlags & 2) == 0)
-        d3fl_MakeDivide(rd_Road.map);
-    return 1;
+    for (i = 0; i < rd_Road.out.count; i++) {
+      for (j = -1; j < 2; j++) {
+        for (k = -1; k < 2; k++)
+          rd_Road.map->types[(rd_Road.path[i][1] + j) * rd_Road.map->size + k +
+                             rd_Road.path[i][0]] =
+              (unsigned char)rd_Road.simple;
+      }
+    }
+  }
+  if ((d3_Scenes[0].sceneFlags & 2) == 0)
+    d3fl_MakeDivide(rd_Road.map);
+  return 1;
 }
 /* 0x4bd340, path_Find from cell x / z to tx / tz (both < 0: the nearest road cell, type 6 / 0xb); 1 if found
    @deep s47: read against the original again. The original has no -1 candidate: the final test is tx >= 0
@@ -486,191 +479,190 @@ fail:
    g->cells[(i * n + j) * 7] (132, regs), a row pointer g->cells + i * n * 7, row + j * 7 inside the loop,
    the row step in the for header (134). (tiebreak: insensitive) */
 
-int rd_PathToRoad(G15ROAD *r, int x, int z, int tx, int tz)
-{
-    int n;
-    int i, j;
-    D3SMENTRY *c;
-    float d, best;
-    int row;
-    D3SM *g;
+int rd_PathToRoad(G15ROAD *r, int x, int z, int tx, int tz) {
+  int n;
+  int i, j;
+  D3SMENTRY *c;
+  float d, best;
+  int row;
+  D3SM *g;
 
-    if (tx < 0 || tz < 0) {
-        g = r->grid;
-        n = g->size;
-        best = (float)(n * n * 2);
-        tx = -1;
-        tz = -1;
-        row = 0;
-        for (i = 0; i < n; i++) {
-            c = (D3SMENTRY *)((char *)g->entries + row);
-            for (j = 0; j < n; j++) {
-                if ((c->type == 6 || c->type == 0xb)
-                    && (d = (float)((i - z) * (i - z) + (j - x) * (j - x))) < best) {
-                    tx = j;
-                    tz = i;
-                    best = d;
-                }
-                c++;
-            }
-            row += n * 0x1c;
+  if (tx < 0 || tz < 0) {
+    g = r->grid;
+    n = g->size;
+    best = (float)(n * n * 2);
+    tx = -1;
+    tz = -1;
+    row = 0;
+    for (i = 0; i < n; i++) {
+      c = (D3SMENTRY *)((char *)g->entries + row);
+      for (j = 0; j < n; j++) {
+        if ((c->type == 6 || c->type == 0xb) &&
+            (d = (float)((i - z) * (i - z) + (j - x) * (j - x))) < best) {
+          tx = j;
+          tz = i;
+          best = d;
         }
+        c++;
+      }
+      row += n * 0x1c;
     }
-    if (tx >= 0 && tz >= 0) {
-        r->out.max = 0x400;
-        r->out.xy = r->path[0];
-        r->out.count = 0;
-        return path_Find(&r->out, r->grid, x, z, tx, tz, 3) != 0xffff;
-    }
-    return 0;
+  }
+  if (tx >= 0 && tz >= 0) {
+    r->out.max = 0x400;
+    r->out.xy = r->path[0];
+    r->out.count = 0;
+    return path_Find(&r->out, r->grid, x, z, tx, tz, 3) != 0xffff;
+  }
+  return 0;
 }
 /* 0x4bd4a0, puts every building site (0x58f7a0's list) on the grid */
 
-void rd_AddBauplaetze(G15ROAD *r)
-{
-    D3OBJECT *list[0x100];
-    int n, i;
+void rd_AddBauplaetze(G15ROAD *r) {
+  D3OBJECT *list[0x100];
+  int n, i;
 
-    memset(list, 0, sizeof(list));
-    n = ai_FindBauplaetze(0, list);
-    if (n != 0) {
-        for (i = 0; i < n; i++) {
-            if (list[i] != 0)
-                rd_AllBauplatzToSupermap(r, list[i]);
-        }
+  memset(list, 0, sizeof(list));
+  n = ai_FindBauplaetze(0, list);
+  if (n != 0) {
+    for (i = 0; i < n; i++) {
+      if (list[i] != 0)
+        rd_AllBauplatzToSupermap(r, list[i]);
     }
+  }
 }
 /* 0x4bd500, marks the area of building site name (its four corners, 0x4bd760). @original the parenthesized
    corner copies (likely a macro's expansion) are what makes VC6 copy them through the FPU (fld/fstp, the last
    store sunk past the call's pushes); plain `v[0] = bk->x0` copies with integer moves. */
 
-void rd_AllBauplatzToSupermap(G15ROAD *r, D3OBJECT *site)
-{
-    G15BK *bk;
-    D3VECTOR4 v;
-    float c[8];
-    char buf[0x40];
+void rd_AllBauplatzToSupermap(G15ROAD *r, D3OBJECT *site) {
+  G15BK *bk;
+  D3VECTOR4 v;
+  float c[8];
+  char buf[0x40];
 
-    bk = rd_GetBKSize(site->name);
-    if (bk == 0) {
-        sprintf(buf, "rd_AllBauplatzToSupermap(): Unbekannter Bauplatz '%s'", site->name);
-        return;
-    }
-    v.x = (bk->x0);
-    v.y = (bk->y0);
-    v.z = (bk->z0);
-    rd_WorldToCell(&c[0], &c[1], &v.v, site, r);
-    v.x = (bk->x1);
-    v.y = (bk->y0);
-    v.z = (bk->z0);
-    rd_WorldToCell(&c[2], &c[3], &v.v, site, r);
-    v.x = (bk->x1);
-    v.y = (bk->y0);
-    v.z = (bk->z1);
-    rd_WorldToCell(&c[4], &c[5], &v.v, site, r);
-    v.x = (bk->x0);
-    v.y = (bk->y0);
-    v.z = (bk->z1);
-    rd_WorldToCell(&c[6], &c[7], &v.v, site, r);
-    rd_FillQuad(r, c, 0xff, 0);
+  bk = rd_GetBKSize(site->name);
+  if (bk == 0) {
+    sprintf(buf, "rd_AllBauplatzToSupermap(): Unbekannter Bauplatz '%s'",
+            site->name);
+    return;
+  }
+  v.x = (bk->x0);
+  v.y = (bk->y0);
+  v.z = (bk->z0);
+  rd_WorldToCell(&c[0], &c[1], &v.v, site, r);
+  v.x = (bk->x1);
+  v.y = (bk->y0);
+  v.z = (bk->z0);
+  rd_WorldToCell(&c[2], &c[3], &v.v, site, r);
+  v.x = (bk->x1);
+  v.y = (bk->y0);
+  v.z = (bk->z1);
+  rd_WorldToCell(&c[4], &c[5], &v.v, site, r);
+  v.x = (bk->x0);
+  v.y = (bk->y0);
+  v.z = (bk->z1);
+  rd_WorldToCell(&c[6], &c[7], &v.v, site, r);
+  rd_FillQuad(r, c, 0xff, 0);
 }
 /* 0x4bd610, d3_ForEachObject callback: the object named f->name (or with one leading character more) within 100
    of f->pos; stops there */
 
-char rd_FindSiteCB(D3OBJECT *obj, void *ctx)
-{
-    G15BKFIND *f = ctx;
-    D3VECTOR4 v;
+char rd_FindSiteCB(D3OBJECT *obj, void *ctx) {
+  G15BKFIND *f = ctx;
+  D3VECTOR4 v;
 
-    if (strnicmp(obj->name, f->name, strlen(f->name)) == 0 || strnicmp(obj->name + 1, f->name, strlen(f->name)) == 0) {
-        d3_PointToWorld(obj, &obj->pos, &v.v);
-        if (d3_VecEqual(&f->pos.v, &v.v, 100.0f)) {
-            f->found = obj;
-            return 0;
-        }
+  if (strnicmp(obj->name, f->name, strlen(f->name)) == 0 ||
+      strnicmp(obj->name + 1, f->name, strlen(f->name)) == 0) {
+    d3_PointToWorld(obj, &obj->pos, &v.v);
+    if (d3_VecEqual(&f->pos.v, &v.v, 100.0f)) {
+      f->found = obj;
+      return 0;
     }
-    return 1;
+  }
+  return 1;
 }
 /* 0x4bd6a0, the building site named name, 0 if unknown */
 
-G15BK *rd_GetBKSize(char *name)
-{
-    int i;
-    char buf[0x40];
+G15BK *rd_GetBKSize(char *name) {
+  int i;
+  char buf[0x40];
 
-    for (i = 0; i < ai_NBauplaetze; i++) {
-        if (strcmpi(name, ai_Bauplaetze[i].name) == 0)
-            return &ai_Bauplaetze[i];
-    }
-    sprintf(buf, "rd_GetBKSize(): Unbekannter Bauplatz '%s'", name);
-    return 0;
+  for (i = 0; i < ai_NBauplaetze; i++) {
+    if (strcmpi(name, ai_Bauplaetze[i].name) == 0)
+      return &ai_Bauplaetze[i];
+  }
+  sprintf(buf, "rd_GetBKSize(): Unbekannter Bauplatz '%s'", name);
+  return 0;
 }
 /* 0x4bd710, the town map cell x / z of v (local to obj) */
 
-void rd_WorldToCell(float *x, float *z, const D3VECTOR *v, D3OBJECT *obj, G15ROAD *r)
-{
-    D3VECTOR4 w;
+void rd_WorldToCell(float *x, float *z, const D3VECTOR *v, D3OBJECT *obj,
+                    G15ROAD *r) {
+  D3VECTOR4 w;
 
-    d3_LocalToWorld(obj, v, &w.v);
-    *x = (w.x - r->map->orgx) / r->map->scale;
-    *z = (w.z - r->map->orgz) / r->map->negScale;
+  d3_LocalToWorld(obj, v, &w.v);
+  *x = (w.x - r->map->orgx) / r->map->scale;
+  *z = (w.z - r->map->orgz) / r->map->negScale;
 }
 /* 0x4bd760, fills the quad c (four cells x / z) on the town map with ground type v (0xff: not) and on the grid with
    type t (0xff: not), two steps per cell */
 
-void rd_FillQuad(G15ROAD *r, float *c, unsigned char v, int t)
-{
-    float dx, dz, ex, ez;
-    float a, b;
-    float px, pz, qx, qz;
-    float fx, fz, x, z;
-    int n, m;
+void rd_FillQuad(G15ROAD *r, float *c, unsigned char v, int t) {
+  float dx, dz, ex, ez;
+  float a, b;
+  float px, pz, qx, qz;
+  float fx, fz, x, z;
+  int n, m;
 
-    px = c[0];
-    pz = c[1];
-    dx = c[2] - c[0];
-    dz = c[3] - c[1];
-    a = dz * dz + dx * dx;
-    qx = c[6];
-    qz = c[7];
-    ex = c[4] - c[6];
-    ez = c[5] - c[7];
-    b = ez * ez + ex * ex;
-    n = (int)(sqrt(a > b ? a : b) + 0.9) * 2;
-    if (n < 1)
-        n = 1;
-    dx /= n;
-    dz /= n;
-    ex /= n;
-    ez /= n;
-    for (; n > 0; n--) {
-        x = px;
-        z = pz;
-        fx = qx - px;
-        fz = qz - pz;
-        m = (int)(sqrt(fz * fz + fx * fx) + 0.9) * 2;
-        if (m < 1)
-            m = 1;
-        fx /= m;
-        fz /= m;
-        for (; m > 0; m--) {
-            if (v != 0xff)
-                r->map->types[(int)z * r->map->size + (int)x] = v;
-            if (t != 0xff)
-                r->grid->entries[r->map->size * (int)z + (int)x].type = t;
-            x += fx;
-            z += fz;
-        }
-        px += dx;
-        pz += dz;
-        qx += ex;
-        qz += ez;
+  px = c[0];
+  pz = c[1];
+  dx = c[2] - c[0];
+  dz = c[3] - c[1];
+  a = dz * dz + dx * dx;
+  qx = c[6];
+  qz = c[7];
+  ex = c[4] - c[6];
+  ez = c[5] - c[7];
+  b = ez * ez + ex * ex;
+  n = (int)(sqrt(a > b ? a : b) + 0.9) * 2;
+  if (n < 1)
+    n = 1;
+  dx /= n;
+  dz /= n;
+  ex /= n;
+  ez /= n;
+  for (; n > 0; n--) {
+    x = px;
+    z = pz;
+    fx = qx - px;
+    fz = qz - pz;
+    m = (int)(sqrt(fz * fz + fx * fx) + 0.9) * 2;
+    if (m < 1)
+      m = 1;
+    fx /= m;
+    fz /= m;
+    for (; m > 0; m--) {
+      if (v != 0xff)
+        r->map->types[(int)z * r->map->size + (int)x] = v;
+      if (t != 0xff)
+        r->grid->entries[r->map->size * (int)z + (int)x].type = t;
+      x += fx;
+      z += fz;
     }
+    px += dx;
+    pz += dz;
+    qx += ex;
+    qz += ez;
+  }
 }
 
 extern G15ROAD rd_Road;
-G15TREE veg_Types[] = { { 439, "TANNE", 3, 1, 4, 0 }, { 440, "BUCHE", 5, 1, 4, 0 }, { 441, "EICHE", 5, 2, 8, 0 }, { 0, "", 0, 1, 0, 0 } };  /* 0x602860 */
-int veg_NextId = 0;  /* 0x6f0748, the next plant id */
-G15ROAD rd_Road;  /* 0xf81300 */
-int ai_NBauplaetze;  /* 0xf812e0, the number of building sites */
-G15BK * ai_Bauplaetze;  /* 0xf812e4, the building sites */
+G15TREE veg_Types[] = {{439, "TANNE", 3, 1, 4, 0},
+                       {440, "BUCHE", 5, 1, 4, 0},
+                       {441, "EICHE", 5, 2, 8, 0},
+                       {0, "", 0, 1, 0, 0}}; /* 0x602860 */
+int veg_NextId = 0;                          /* 0x6f0748, the next plant id */
+G15ROAD rd_Road;                             /* 0xf81300 */
+int ai_NBauplaetze;   /* 0xf812e0, the number of building sites */
+G15BK *ai_Bauplaetze; /* 0xf812e4, the building sites */
