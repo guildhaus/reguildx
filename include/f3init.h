@@ -12,7 +12,7 @@ struct AIBLD;
 struct D3OBJECT;
 
 int init_SceneNameToPrototype(struct D3OBJECT *o);                                 /* 0x50d100 */
-void init_SceneObjectDestroyCB(int o);                                  /* 0x50d350 */
+void init_SceneObjectDestroyCB(struct D3OBJECT *o);                                  /* 0x50d350 */
 void init_HookObject(struct D3OBJECT *o, void *p, int kind);            /* 0x50d380 */
 char init_ResetSceneUniverses(void);                                    /* 0x50d460 */
 void init_FreeScenes(void);                                             /* 0x50d490 */

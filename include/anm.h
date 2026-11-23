@@ -1,3 +1,4 @@
+struct CHARACTER;
 struct D3SM;
 struct D3OBJECT;
 struct D3VECTOR;
@@ -7,7 +8,7 @@ struct D3VECTOR;
 #include "d3_types.h"                /* D3VECTOR */
 
 typedef struct ANMREC {                 /* 0x124 bytes, anm_Animals[32], an animal */
-    void *obj;                          /* 0x00, its 3D object (->0x34->0x1ec, flags byte 0x96d) */
+    struct CHARACTER *obj;              /* 0x00, its character (ch_Create; its 3D object ->obj, flags byte 0x96d) */
     int kind;                           /* 0x04, 0..7 */
     int nPoints;                        /* 0x08, kind 2: collected coordinates, 3 per building; -1 = not yet */
     unsigned char remove;               /* 0x0c, 1: to be removed (anm_RemoveAnimal) */

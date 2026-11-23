@@ -15,6 +15,7 @@
 #include "d3_io_t.h"
 #include "d3_io_a.h"
 #include "d3_io_b.h"
+#include "d3_anim.h"                 /* D3ANIMDATA, D3ANIMFRAME: the stream the reader fills */
 #include "bio.h"
 #include "err.h"
 #include "mem.h"
@@ -28,7 +29,7 @@
 int bgi_ReadId(void *f)
 {
     int id;
-    char c;
+    signed char c;
 
     if (!vfs_fread(&c, 1, 1, f))
         return 0x2b;
@@ -444,9 +445,9 @@ void d3_ReadBGF(void *f, D3BGFDESC *desc)
 
 /* 0x44f8c0, reads an animation stream (chunk 0x30): per frame the vertices, uv faces, position / angles and link
    points; then makes everything relative to frame 0 and packs the points into bytes */
-D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
+D3ANIMDATA *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
 {
-    D3BASTREAM *stream = 0;          /* result, created at the frame count chunk (0x23) */
+    D3ANIMDATA *stream = 0;          /* result, created at the frame count chunk (0x23) */
     int first = -1;
     int last = -1;
     int nvfix = -1;
@@ -459,7 +460,7 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
     VFSFILE *f;
     int hdr, tag, i, j, frame, pt;   /* frame: index of the frame being read, pt: point index */
     int time, nv, nuv, ofs;
-    D3BAVEC v, w, mn, mx;
+    D3VECTOR4 v, w, mn, mx;
 
     f = vfs_Tfopen(path, "rb", vfs_Root);
     if (f) {
@@ -479,14 +480,14 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
             if (tag == 0x23) {
                 bio_rd_i(f, &nframes);
                 if (nframes > 0) {
-                    stream = mem_Alloc(sizeof(D3BASTREAM), "d3_io_b:d3_LoadBinaryAnimation(tp_veranimstream)");
+                    stream = mem_Alloc(sizeof(D3ANIMDATA), "d3_io_b:d3_LoadBinaryAnimation(tp_veranimstream)");
                     strncpy(stream->name, name, 0x3f);
                     stream->nframes = nframes;
                     stream->first = 0;
                     stream->normals = 0;
                     stream->last = stream->nframes - 1;
                     stream->relative = relative;
-                    stream->frames = mem_Alloc(stream->nframes * sizeof(D3BAFRAME),
+                    stream->frames = mem_Alloc(stream->nframes * sizeof(D3ANIMFRAME),
                                           "d3_io_b:d3_LoadBinaryAnimation(tp_veranimstream->framedata)");
                 }
                 tag = bgi_ReadId(f);
@@ -502,7 +503,7 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
             if (tag == 0x37) {
                 bio_rd_i(f, &nlinks);
                 if (stream)
-                    stream->nlinks = nlinks;
+                    stream->nbones = nlinks;
                 tag = bgi_ReadId(f);
             }
             if (tag == 0x36) {
@@ -561,23 +562,23 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                     if (tag == 0x21) {
                         if (stream && ofs == 0) {
                             if (nvfix > 0)
-                                stream->frames[frame].points = mem_Alloc(nvfix * sizeof(D3BAPOINT),
+                                stream->frames[frame].pos = mem_Alloc(nvfix * sizeof(D3VECTOR),
                                     "d3_io_b:d3_LoadBinaryAnimation(tp_veranimstream->framedata->points)");
                             else
-                                stream->frames[frame].points = mem_Alloc(nv * sizeof(D3BAPOINT),
+                                stream->frames[frame].pos = mem_Alloc(nv * sizeof(D3VECTOR),
                                     "d3_io_b:d3_LoadBinaryAnimation(tp_veranimstream->framedata->points)");
                         }
                         for (i = 0; i < nv; i++) {
                             bio_rd_v3(f, &v);
                             if (stream) {
                                 if (frame == 0) {
-                                    stream->frames[frame].points[ofs + i].x = v.x;
-                                    stream->frames[frame].points[ofs + i].y = v.y;
-                                    stream->frames[frame].points[ofs + i].z = v.z;
+                                    stream->frames[frame].pos[ofs + i].x = v.x;
+                                    stream->frames[frame].pos[ofs + i].y = v.y;
+                                    stream->frames[frame].pos[ofs + i].z = v.z;
                                 } else {
-                                    stream->frames[frame].points[ofs + i].x = v.x - stream->frames[0].points[ofs + i].x;
-                                    stream->frames[frame].points[ofs + i].y = v.y - stream->frames[0].points[ofs + i].y;
-                                    stream->frames[frame].points[ofs + i].z = v.z - stream->frames[0].points[ofs + i].z;
+                                    stream->frames[frame].pos[ofs + i].x = v.x - stream->frames[0].pos[ofs + i].x;
+                                    stream->frames[frame].pos[ofs + i].y = v.y - stream->frames[0].pos[ofs + i].y;
+                                    stream->frames[frame].pos[ofs + i].z = v.z - stream->frames[0].pos[ofs + i].z;
                                 }
                             }
                         }
@@ -608,26 +609,26 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                     bio_rd_v3(f, &v);
                     bio_rd_v3(f, &w);
                     if (stream) {
-                        stream->frames[frame].pos[0] = v.x;
-                        stream->frames[frame].pos[1] = v.y;
-                        stream->frames[frame].pos[2] = v.z;
-                        stream->frames[frame].rot[0] = w.x;
-                        stream->frames[frame].rot[1] = w.y;
-                        stream->frames[frame].rot[2] = w.z;
+                        stream->frames[frame].move.x = v.x;
+                        stream->frames[frame].move.y = v.y;
+                        stream->frames[frame].move.z = v.z;
+                        stream->frames[frame].turn.x = w.x;
+                        stream->frames[frame].turn.y = w.y;
+                        stream->frames[frame].turn.z = w.z;
                     }
                     tag = bgi_ReadId(f);
                 }
                 for (i = 0; i < nlinks; i++) {
                     if (tag == 0x38) {
-                        bio_rd_s(f, stream->links[i]);
+                        bio_rd_s(f, stream->boneNames[i]);
                         tag = bgi_ReadId(f);
                     }
                     if (tag == 0x39) {
-                        bio_rd_v3(f, stream->frames[frame].links[i].a);
+                        bio_rd_v3(f, &stream->frames[frame].bone[i].pos);
                         tag = bgi_ReadId(f);
                     }
                     if (tag == 0x3a) {
-                        bio_rd_v3(f, stream->frames[frame].links[i].b);
+                        bio_rd_v3(f, &stream->frames[frame].bone[i].rot);
                         tag = bgi_ReadId(f);
                     }
                 }
@@ -653,38 +654,38 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                 if (stream->last >= stream->nframes)
                     stream->last = stream->nframes - 1;
                 for (frame = 0; frame < nframes - 1; frame++)
-                    stream->frames[frame].dt = stream->frames[frame + 1].time - stream->frames[frame].time;
-                stream->frames[nframes - 1].dt = stream->frames[nframes - 2].dt;
+                    stream->frames[frame].count = stream->frames[frame + 1].time - stream->frames[frame].time;
+                stream->frames[nframes - 1].count = stream->frames[nframes - 2].count;
                 for (frame = 1; frame < nframes; frame++) {
-                    stream->frames[frame].pos[0] -= stream->frames[0].pos[0];
-                    stream->frames[frame].pos[1] -= stream->frames[0].pos[1];
-                    stream->frames[frame].pos[2] -= stream->frames[0].pos[2];
-                    stream->frames[frame].rot[0] -= stream->frames[0].rot[0];
-                    stream->frames[frame].rot[1] -= stream->frames[0].rot[1];
-                    stream->frames[frame].rot[2] -= stream->frames[0].rot[2];
+                    stream->frames[frame].move.x -= stream->frames[0].move.x;
+                    stream->frames[frame].move.y -= stream->frames[0].move.y;
+                    stream->frames[frame].move.z -= stream->frames[0].move.z;
+                    stream->frames[frame].turn.x -= stream->frames[0].turn.x;
+                    stream->frames[frame].turn.y -= stream->frames[0].turn.y;
+                    stream->frames[frame].turn.z -= stream->frames[0].turn.z;
                 }
-                stream->frames[0].pos[0] = 0.0f;
-                stream->frames[0].pos[1] = 0.0f;
-                stream->frames[0].pos[2] = 0.0f;
-                stream->frames[0].rot[0] = 0.0f;
-                stream->frames[0].rot[1] = 0.0f;
-                stream->frames[0].rot[2] = 0.0f;
+                stream->frames[0].move.x = 0.0f;
+                stream->frames[0].move.y = 0.0f;
+                stream->frames[0].move.z = 0.0f;
+                stream->frames[0].turn.x = 0.0f;
+                stream->frames[0].turn.y = 0.0f;
+                stream->frames[0].turn.z = 0.0f;
                 for (frame = 0; frame < stream->nverts; frame++) {
-                    stream->frames[0].points[frame].x = 0.0f;
-                    stream->frames[0].points[frame].y = 0.0f;
-                    stream->frames[0].points[frame].z = 0.0f;
+                    stream->frames[0].pos[frame].x = 0.0f;
+                    stream->frames[0].pos[frame].y = 0.0f;
+                    stream->frames[0].pos[frame].z = 0.0f;
                 }
                 for (frame = 0; frame < nframes; frame++) {
                     if (stream->relative) {
                         for (i = 0; i < stream->nverts; i++) {
-                            stream->frames[frame].points[i].x -= stream->frames[frame].pos[0];
-                            stream->frames[frame].points[i].y -= stream->frames[frame].pos[1];
-                            stream->frames[frame].points[i].z -= stream->frames[frame].pos[2];
+                            stream->frames[frame].pos[i].x -= stream->frames[frame].move.x;
+                            stream->frames[frame].pos[i].y -= stream->frames[frame].move.y;
+                            stream->frames[frame].pos[i].z -= stream->frames[frame].move.z;
                         }
                         for (i = 0; i < nlinks; i++) {
-                            stream->frames[frame].links[i].a[0] -= stream->frames[frame].pos[0];
-                            stream->frames[frame].links[i].a[1] -= stream->frames[frame].pos[1];
-                            stream->frames[frame].links[i].a[2] -= stream->frames[frame].pos[2];
+                            stream->frames[frame].bone[i].pos.x -= stream->frames[frame].move.x;
+                            stream->frames[frame].bone[i].pos.y -= stream->frames[frame].move.y;
+                            stream->frames[frame].bone[i].pos.z -= stream->frames[frame].move.z;
                         }
                     }
                     mn.x = 1e10f;
@@ -694,7 +695,7 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                     mx.y = -1e10f;
                     mx.z = -1e10f;
                     if (nv > 0) {
-                        D3BAPOINT *p = stream->frames[frame].points;
+                        D3VECTOR *p = stream->frames[frame].pos;
                         for (i = nv; i; i--, p++) {
                             mn.x = (((p->x) > (mn.x)) ? (mn.x) : (p->x * 1.0f));
                             mn.y = (((p->y) > (mn.y)) ? (mn.y) : (p->y));
@@ -704,28 +705,28 @@ D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative)
                             mx.z = (!((mx.z) > (p->z)) ? (p->z) : (mx.z));
                         }
                     }
-                    stream->frames[frame].min[0] = mn.x;
-                    stream->frames[frame].min[1] = mn.y;
-                    stream->frames[frame].min[2] = mn.z;
+                    stream->frames[frame].base.x = mn.x;
+                    stream->frames[frame].base.y = mn.y;
+                    stream->frames[frame].base.z = mn.z;
                     v.x = mx.x - mn.x;
                     v.y = mx.y - mn.y;
                     v.z = mx.z - mn.z;
-                    stream->frames[frame].scale[0] = v.x / 255.0f;
-                    stream->frames[frame].scale[1] = v.y / 255.0f;
-                    stream->frames[frame].scale[2] = v.z / 255.0f;
-                    stream->frames[frame].dt *= 3;
+                    stream->frames[frame].scale.x = v.x / 255.0f;
+                    stream->frames[frame].scale.y = v.y / 255.0f;
+                    stream->frames[frame].scale.z = v.z / 255.0f;
+                    stream->frames[frame].count *= 3;
                     stream->frames[frame].packed = mem_Alloc(nv * 3,
                         "d3_io_b:d3_LoadBinaryAnimation(tp_veranimstream->framedata->wpoints)");
                     for (pt = 0; pt < nv; pt++) {
-                        w.x = stream->frames[frame].points[pt].x - mn.x;
-                        w.y = stream->frames[frame].points[pt].y - mn.y;
-                        w.z = stream->frames[frame].points[pt].z - mn.z;
+                        w.x = stream->frames[frame].pos[pt].x - mn.x;
+                        w.y = stream->frames[frame].pos[pt].y - mn.y;
+                        w.z = stream->frames[frame].pos[pt].z - mn.z;
                         stream->frames[frame].packed[pt * 3] = (unsigned char)((w.x * 255.0f) / v.x);
                         stream->frames[frame].packed[pt * 3 + 1] = (unsigned char)((w.y * 255.0f) / v.y);
                         stream->frames[frame].packed[pt * 3 + 2] = (unsigned char)((w.z * 255.0f) / v.z);
                     }
-                    mem_Free(stream->frames[frame].points);
-                    stream->frames[frame].points = 0;
+                    mem_Free(stream->frames[frame].pos);
+                    stream->frames[frame].pos = 0;
                 }
             }
         }

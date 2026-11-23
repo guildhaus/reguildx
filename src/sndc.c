@@ -28,9 +28,9 @@ int sndc_KillSampleBank(struct SBBANK **bank)
     return 0;
 }
 /* 0x410000, script command PlaySampleHandle: starts the named sample of a bank, only while the running
-   script is in no group; 0 when it is */
+   script is in no group; 0 when it is or the sample is not found, else sb_Play's status (0, -1 on a failure) */
 
-struct SBSAMPLE *sndc_PlaySampleHandle(struct SBBANK **bank, char **name)
+int sndc_PlaySampleHandle(struct SBBANK **bank, char **name)
 {
     struct SBSAMPLE *s;
 
@@ -38,8 +38,8 @@ struct SBSAMPLE *sndc_PlaySampleHandle(struct SBBANK **bank, char **name)
         return 0;
     s = sb_GetSample(*bank, *name);
     if (!s)
-        return s;
-    return (struct SBSAMPLE *)sb_Play(s, 0, 0);
+        return 0;
+    return sb_Play(s, 0, 0);
 }
 /* 0x410040, script command PlaySample: sets the loop count of the named sample of the default sample bank
    and plays it, only while the running script is in no group; returns the sample, 0 when it was not started
@@ -130,7 +130,7 @@ void sndc_Register(void)
 {
     evt_ImportCommand("LoadSampleBank", (int (*)())sndc_LoadSampleBank, 1, 1, 6);
     evt_ImportCommand("KillSampleBank", (int (*)())sndc_KillSampleBank, 1, 1, 1);
-    evt_ImportCommand("PlaySampleHandle", (int (*)())sndc_PlaySampleHandle, 1, 2, 1, 6);
+    evt_ImportCommand("PlaySampleHandle", sndc_PlaySampleHandle, 1, 2, 1, 6);
     evt_ImportCommand("PlaySample", (int (*)())sndc_PlaySample, 1, 2, 6, 1);
     evt_ImportCommand("PlaySample3D", (int (*)())sndc_PlaySample3D, 1, 4, 1, 1, 6, 1);
     evt_ImportCommand("StopSample", (int (*)())sndc_StopSample, 1, 1, 1);

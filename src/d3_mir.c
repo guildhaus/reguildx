@@ -27,10 +27,10 @@
 /* 0x454780, the boundary edges of the point set pts: for every pair (i, j) not taken yet the triangle
    (origin, i, j) is a hull edge when all other points lie on its positive side; the pairs go to out (2 per
    edge, *count of them), used is the n x n matrix that marks the taken pairs */
-char d3_MirBoundaryEdges(unsigned int n, unsigned char *used, D3PVERT **pts, unsigned int *count, D3PVERT **out)
+char d3_MirBoundaryEdges(unsigned int n, unsigned char *used, D3VERTEX **pts, unsigned int *count, D3VERTEX **out)
 {
     D3VECTOR4 nrm;
-    D3PVERT *p;
+    D3VERTEX *p;
     unsigned char *row;
     unsigned i, j, k;
 
@@ -39,7 +39,7 @@ char d3_MirBoundaryEdges(unsigned int n, unsigned char *used, D3PVERT **pts, uns
         row = used + i;
             for (j = 0; j < n; j++, row += n) {
                 if (i != j && used[i * n + j] == 0) {
-                    d3_TriNormal(&d3_Origin.v, &pts[i]->pos, &pts[j]->pos, &nrm);
+                    d3_TriNormal(&d3_Origin.v, &pts[i]->pos, &pts[j]->pos, &nrm.v);
                     for (k = 0; k < n; k++) {
                         if (k != i && k != j) {
                             p = pts[k];
@@ -87,13 +87,13 @@ char d3_MirBoundaryEdges(unsigned int n, unsigned char *used, D3PVERT **pts, uns
    0 inside the if / before res / at the top (4..15), head = tail = 0 right before the do (10 / 14): no
    lever. Left: the regs-2 hunk at 0x454acf ([edx+eax] for [eax+edx]). */
 
-char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PVERT ***out)
+char d3_MirCreateOutline(D3VERTEX **pts, unsigned int n, unsigned int *nout, D3VERTEX ***out)
 {
-    D3PVERT **edges;
+    D3VERTEX **edges;
     unsigned char *used;
     unsigned char *mark = 0;
-    D3PVERT **res;
-    D3PVERT *start, *end, *p, *q;
+    D3VERTEX **res;
+    D3VERTEX *start, *end, *p, *q;
     D3VECTOR4 dir, d, nd;
     unsigned int i, j, nres, tail, head, nedge;
 
@@ -200,25 +200,26 @@ char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PV
 D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, TSTEXTURE *tex)
 {
     D3SURF *info;
-    D3PTRI *t;
-    D3PTRI **polys;
-    D3PVERT **pts;
-    D3PVERT **uniq;
-    D3PVERT *p;
-    D3MIRPLANES *ci, *planes;
+    D3TRI *t;
+    D3TRI **polys;
+    D3VERTEX **pts;
+    D3VERTEX **uniq;
+    D3VERTEX *p;
+    D3CLIPINFO *ci;
+    D3MIRPLANES *planes;
     unsigned int n, cnt, np, nu, ne, k, j;
     unsigned char clip;
 
     if (obj && (info = obj->info) && tex) {
         n = info->ntris;
         cnt = 0;
-        for (k = 0, t = (D3PTRI *)info->tris; k < n; k++, t++)
+        for (k = 0, t = info->tris; k < n; k++, t++)
             if (t->tex == tex)
                 cnt++;
         if (cnt) {
             polys = mem_Alloc(cnt * 4, "d3_mir:CrClippingPolys");
             cnt = 0;
-            for (k = 0, t = (D3PTRI *)info->tris; k < n; k++, t++)
+            for (k = 0, t = info->tris; k < n; k++, t++)
                 if (t->tex == tex && (t->flags & 0x80))
                     polys[cnt++] = t;
             pts = mem_Alloc(cnt * 3 * 8, "d3_mir:CrClippingPoints");
@@ -237,7 +238,7 @@ D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, TSTEXTURE *tex)
             for (k = 0; k < np; k++) {
                 p = pts[k];
                 for (j = 0; j < np; j++)
-                    if (!uniq[j] || uniq[j] == p || d3_VecEqual((D3VECTOR *)uniq[j], (D3VECTOR *)p, 0.001f))
+                    if (!uniq[j] || uniq[j] == p || d3_VecEqual(&uniq[j]->pos, &p->pos, 0.001f))
                         break;
                 if (j < np && !uniq[j]) {
                     uniq[j] = p;
@@ -258,17 +259,17 @@ D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, TSTEXTURE *tex)
                 }
                 mem_Free(pts);
                 ne /= 2;
-                ci = (D3MIRPLANES *)d3_ClipInfo[clip & 0x3f];
+                ci = &d3_ClipInfo[clip & 0x3f];
                 planes = mem_Alloc((ci->n + ne) * 16 + 8, "d3_mir:CrClippingPlanesFinal");
                 planes->n = ci->n + ne;
                 planes->mirror = 1;
                 for (j = 0; j < ne; j++) {
-                    d3_TriNormal(&d3_Origin.v, &uniq[j * 2]->pos, &uniq[j * 2 + 1]->pos, &planes->p[j]);
+                    d3_TriNormal(&d3_Origin.v, &uniq[j * 2]->pos, &uniq[j * 2 + 1]->pos, &planes->p[j].v);
                     p = uniq[j * 2];
                     planes->p[j].w = -(p->x * (planes->p[j].x) + p->y * planes->p[j].y + (p->z) * planes->p[j].z);
                 }
                 mem_Free(uniq);
-                D3M_COPY(&planes->p[ne], ci->p, ci->n * 16);
+                D3M_COPY(&planes->p[ne], ci->plane, ci->n * 16);
                 return planes;
             }
         }
@@ -277,7 +278,7 @@ D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, TSTEXTURE *tex)
 }
 /* 0x454ec0, d3_Mirror.Transform: mirrors camera-space points at the mirror plane and projects them again */
 
-void d3_MirTransform(D3PVERT *v, int n, int unk)
+void d3_MirTransform(D3VERTEX *v, int n, int unk)
 {
     int i;
     float d, z;
@@ -299,7 +300,7 @@ char d3_MirBoxInPlanes(D3OBJECT *obj, D3MIRROR *m)
 {
     D3SURF *info;
     D3MIRPLANES *pl;
-    D3BOXVERT *box;
+    D3VERTEX *box;
     D3VECTOR4 pts[8];
     D3VECTOR4 *p;
     float d;
@@ -308,9 +309,9 @@ char d3_MirBoxInPlanes(D3OBJECT *obj, D3MIRROR *m)
 
     if (obj && (info = obj->info) && info->mesh && m && (pl = m->planes)) {
         if (obj->state & 0x10)
-            box = D3_OPS(info)->GetBox(obj, info, &D3_MESH(obj)->cameraMatrix);
+            box = info->mesh->GetBox(obj, info, &obj->material->cameraMatrix);
         else
-            box = (D3BOXVERT *)&info->keys[info->nkeys];
+            box = &info->keys[info->nkeys];
         for (i = 0; i < 8; i++, box++) {
             d = (box->x * m->plane.x + box->y * (m->plane.y) + (box->z) * (m->plane.z) - m->plane.w) * -2.0f;
             pts[i].x = d * m->plane.x + box->x;
@@ -338,10 +339,10 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
 {
     D3SURF *s;
     D3MESH *mesh;
-    D3PTRI *t;
+    D3TRI *t;
     TSTEXTURE *tex, *tt;
-    D3PVERT *a, *b, *c;
-    D3MIRBITS *bits;
+    D3VERTEX *a, *b, *c;
+    struct D3MIRBITS *bits;
     char redo;
     int i, k, n;
 
@@ -350,45 +351,45 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
         return 1;
     if (obj == d3s_Object)
         return 1;
-    bits = (D3MIRBITS *)&obj->objectFlags;
+    bits = &obj->mirBits;
     bits->mirrored = d3_MirBoxInPlanes(obj, m);
     if (bits->mirrored) {
         if (m->flags.on || (obj->state & 8))
             redo = 1;
         else
             redo = 0;
-        if (s != D3_MESH(obj)->mirrorSource) {
-            if (D3_MESH(obj)->mirrorSource) {
-                mem_Free(D3M_PTS(D3_MESH(obj)));
-                D3M_PTS(D3_MESH(obj)) = 0;
-                mem_Free(D3M_TRIS(D3_MESH(obj)));
-                D3M_TRIS(D3_MESH(obj)) = 0;
+        if (s != obj->material->mirrorSource) {
+            if (obj->material->mirrorSource) {
+                mem_Free(D3M_PTS(obj->material));
+                D3M_PTS(obj->material) = 0;
+                mem_Free(D3M_TRIS(obj->material));
+                D3M_TRIS(obj->material) = 0;
             }
-            D3_MESH(obj)->mirrorSource = s;
-            D3M_PTS(D3_MESH(obj)) = mem_Alloc(s->nkeys * 0x50, "d3_mir:MirroredPoints");
-            D3M_TRIS(D3_MESH(obj)) = mem_Alloc(s->ntris * 0x28, "d3_mir:MirroredPolys");
-            D3M_COPY(D3M_TRIS(D3_MESH(obj)), s->tris, s->ntris * 0x28);
-            for (i = 0, t = D3M_TRIS(D3_MESH(obj)); i < s->ntris; i++, t++) {
+            obj->material->mirrorSource = s;
+            D3M_PTS(obj->material) = mem_Alloc(s->nkeys * 0x50, "d3_mir:MirroredPoints");
+            D3M_TRIS(obj->material) = mem_Alloc(s->ntris * 0x28, "d3_mir:MirroredPolys");
+            D3M_COPY(D3M_TRIS(obj->material), s->tris, s->ntris * 0x28);
+            for (i = 0, t = D3M_TRIS(obj->material); i < s->ntris; i++, t++) {
                 k = 0;
                 /* do-while: the original's loop is the bottom-tested pointer walk (`dec edi / jne`) */
                 do {
-                    t->v[k] = &D3M_PTS(D3_MESH(obj))[((D3SRCPOLY *)t->src)->idx[k]];
+                    t->v[k] = &D3M_PTS(obj->material)[t->src->v[k]];
                 } while (++k < 3);
             }
             redo = 1;
         }
-        if ((obj->state & 0x10) || (D3_MESH(obj)->flags & 0x40)) {
-            D3_OPS(s)->Transform(obj, s, &D3_MESH(obj)->cameraMatrix);
+        if ((obj->state & 0x10) || (obj->material->flags & 0x40)) {
+            s->mesh->Transform(obj, s, &obj->material->cameraMatrix);
             obj->state &= 0xef;
             redo = 1;
         }
         if (redo) {
-            D3M_COPY(D3M_PTS(D3_MESH(obj)), s->keys, s->nkeys * 0x50);
-            m->Transform(D3M_PTS(D3_MESH(obj)), s->nkeys, 0);
+            D3M_COPY(D3M_PTS(obj->material), s->keys, s->nkeys * 0x50);
+            m->Transform(D3M_PTS(obj->material), s->nkeys, 0);
         } else {
             n = s->nkeys;
-            b = (D3PVERT *)s->keys;
-            a = D3M_PTS(D3_MESH(obj));
+            b = s->keys;
+            a = D3M_PTS(obj->material);
             for (i = 0; i < n; i++, b++, a++) {
                 a->color = b->color;
                 d3_MaxZ = max(d3_MaxZ, a->z);
@@ -396,7 +397,7 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
         }
         n = min(s->ntris, d3_Cfg.maxpolys - (int)d3_SortCount);
         tex = m->tex;
-        for (t = D3M_TRIS(D3_MESH(obj)); n > 0; n--, t++) {
+        for (t = D3M_TRIS(obj->material); n > 0; n--, t++) {
             tt = t->tex;
             a = t->v[0];
             b = t->v[1];
@@ -406,7 +407,7 @@ char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m)
                 d3_SortPtr->item = t;
                 if (tt) {
                     d3_SortPtr->key = (tt - d3_Textures) + 1;
-                    ((TSTEXTURE *)tt)->stamp = d3_FrameCount;
+                    tt->stamp = d3_FrameCount;
                 } else
                     d3_SortPtr->key = 0;
                 t->clip = m->planes;
@@ -425,13 +426,13 @@ void d3_MirBeginFrame(D3OBJECT *obj, D3MIRROR *m)
     D3SURF *s;
     TSTEXTURE **tp;
     TSTEXTURE *tex;
-    D3PTRI *t;
+    D3TRI *t;
     unsigned int i, n;
     int k, ntris;
 
     s = obj->info;
     if (s && s->mesh && !d3_MirrorObject) {
-        n = D3_OPS(s)->count;
+        n = s->mesh->ntex;
         tp = s->texHandles;
         for (i = 0; i < n; i++) {
             tex = *tp++;
@@ -445,7 +446,7 @@ found:
             m->flags.on = 0;
         m->tex = tex;
         if (m->info != s) {
-            for (k = 0, t = (D3PTRI *)s->tris; k < ntris; k++, t++) {
+            for (k = 0, t = s->tris; k < ntris; k++, t++) {
                 if (t->tex == tex) {
                     m->info = s;
                     m->obj = obj;
@@ -457,7 +458,7 @@ found:
         }
         m->flags.on = obj->state >> 3;
         if (m->flags.on) {
-            for (k = 0, t = (D3PTRI *)s->tris; k < ntris; k++, t++)
+            for (k = 0, t = s->tris; k < ntris; k++, t++)
                 if ((t->flags & 0x80) && t->tex == tex)
                     break;
             m->flags.visible = k < s->ntris;
@@ -466,7 +467,7 @@ found:
                 m->planes = 0;
             }
             if (m->flags.visible) {
-                d3_DirToRef(obj, d3_Camera, &((D3SRCPOLY *)m->tri->src)->normal, &m->plane.v);
+                d3_DirToRef(obj, d3_Camera, &m->tri->src->n, &m->plane.v);
                 m->plane.w = m->plane.x * m->tri->v[0]->x + m->plane.y * m->tri->v[0]->y + m->plane.z * m->tri->v[0]->z;
                 m->planes = d3_MirCreatePlanes(m->obj, m->tex);
             }

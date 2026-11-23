@@ -2,7 +2,7 @@
    mirrored copy of the objects behind it. Original file name unknown (d3_mir.c?). Names are ours. */
 #ifndef UNK_454890_H
 #define UNK_454890_H
-#include "d3_engine.h"                /* D3CLIP / D3SRCPOLY / D3PTRI */
+#include "d3_engine.h"                /* D3CLIP / D3BGFPOLY / D3TRI */
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 struct D3VECTOR4;
 
@@ -24,18 +24,13 @@ typedef struct D3MIRROR {           /* d3_Mirror (0xfb9900), the mirror of the f
     D3SURF *info;                /* 0x04, obj->info when the polygon was looked up */
     D3MIRPLANES *planes;            /* 0x08 */
     struct TSTEXTURE *tex;                 /* 0x0c, the mirror texture */
-    D3PTRI *tri;                    /* 0x10, the first polygon with it */
-    void (*Transform)(D3PVERT *v, int n, int unk);  /* 0x14, d3_MirTransform */
+    D3TRI *tri;                    /* 0x10, the first polygon with it */
+    void (*Transform)(D3VERTEX *v, int n, int unk);  /* 0x14, d3_MirTransform */
     D3VECTOR4 plane;                /* 0x18, mirror plane (camera space) */
     D3MIRFLAGS flags;               /* 0x28 */
 } D3MIRROR;
 
 
-typedef struct D3MIRBITS {          /* view of D3OBJECT::objectFlags */
-    unsigned char b0 : 6;
-    unsigned char mirrored : 1;     /* 0x40, its mirror image is visible */
-    unsigned char b7 : 1;
-} D3MIRBITS;
 
 /* Inline-asm copy as D3_COPY3 (d3_d3d.h): size, src and dst through temps, declared in this order. */
 #define D3M_COPY(dst, src, size) {                              \
@@ -76,15 +71,15 @@ typedef struct D3MIRBITS {          /* view of D3OBJECT::objectFlags */
 
 extern D3MIRROR d3_Mirror;        /* 0xfb9900 (d3_Unkfb9900.. in d3_engine.h) */
 
-void d3_TriNormal(const struct D3VECTOR *a, const struct D3VECTOR *b, const struct D3VECTOR *c, struct D3VECTOR4 *n);   /* 0x454700, face normal (d3_vec.h; d3_mir.c calls it through its vertex view d3_TriNormalM) */
+void d3_TriNormal(const struct D3VECTOR *a, const struct D3VECTOR *b, const struct D3VECTOR *c, struct D3VECTOR *n);   /* 0x454700, face normal (d3_vec.h) */
 /* 0x454780: the outline edges of the convex point set pts (pairs into edges, 2 * count into *ne) */
-char d3_MirBoundaryEdges(unsigned int n, unsigned char *conn, D3PVERT **pts, unsigned int *ne, D3PVERT **edges);
+char d3_MirBoundaryEdges(unsigned int n, unsigned char *conn, D3VERTEX **pts, unsigned int *ne, D3VERTEX **edges);
 
 /* 0x454890, "d3_mir:CreateOutline*": joins collinear outline edges; *out gets the corner pairs */
-char d3_MirCreateOutline(D3PVERT **pts, unsigned int n, unsigned int *nout, D3PVERT ***out);
+char d3_MirCreateOutline(D3VERTEX **pts, unsigned int n, unsigned int *nout, D3VERTEX ***out);
 
 D3MIRPLANES *d3_MirCreatePlanes(D3OBJECT *obj, struct TSTEXTURE *tex);      /* 0x454be0, "d3_mir:CrClippingPlanesFinal" */
-void d3_MirTransform(D3PVERT *v, int n, int unk);                  /* 0x454ec0, mirrors points at d3_Mirror.plane */
+void d3_MirTransform(D3VERTEX *v, int n, int unk);                  /* 0x454ec0, mirrors points at d3_Mirror.plane */
 char d3_MirBoxInPlanes(D3OBJECT *obj, D3MIRROR *m);                  /* 0x454f70, mirrored bounding box visible? */
 char d3_MirDrawObject(D3OBJECT *obj, D3MIRROR *m);                  /* 0x4550e0, d3_ForEachObject callback */
 void d3_MirBeginFrame(D3OBJECT *obj, D3MIRROR *m);                  /* 0x4554b0, finds the mirror polygon */

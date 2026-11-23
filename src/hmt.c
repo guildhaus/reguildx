@@ -53,7 +53,7 @@ unsigned short hmt_RandomRecord(short k)
 unsigned short hmt_RandomTextOffset(unsigned short k)
 {
     unsigned short ret;
-    G11REC *e;
+    const G11REC *e;
 
     ret = 0x1e2b;
     e = hmt_GetRecord(k);
@@ -85,7 +85,7 @@ unsigned short hmt_RandomTextOffset(unsigned short k)
 unsigned short hmt_RecordTextId(unsigned short k, unsigned short n)
 {
     unsigned short m;
-    G11REC *e;
+    const G11REC *e;
 
     m = n;
     if (m >= 9)
@@ -100,7 +100,7 @@ unsigned short hmt_RecordTextId(unsigned short k, unsigned short n)
 }
 /* 0x4ac1e0, record k, 0 if out of range */
 
-G11REC *hmt_GetRecord(unsigned short k)
+const G11REC *hmt_GetRecord(unsigned short k)
 {
     if (k >= 0x33)
         return 0;
@@ -128,7 +128,7 @@ int hmt_GetPrice(AICHAR *p)
 
 void hmt_ApplyRecord(AICHAR *p, int d, unsigned short k)
 {
-    G11REC *e;
+    const G11REC *e;
     int i;
     unsigned char v;
 
@@ -138,7 +138,7 @@ void hmt_ApplyRecord(AICHAR *p, int d, unsigned short k)
     if (e != 0) {
         if (e->kind == 0 && e->id <= 4) {
             v = util_Random(8) + 8;
-            v = (unsigned char)min((float)(char)v, 252.0f - ((unsigned char *)p)[e->id + 0x80]);
+            v = (unsigned char)min((float)(signed char)v, 252.0f - ((unsigned char *)p)[e->id + 0x80]);
             cm_BeginFieldBlock(p, p->netId);
             cm_AddFieldValues(1, 1, e->id + 0x80, &v);
             cm_SendFieldDeltas();
@@ -474,9 +474,6 @@ void hmt_SetPendingElection(int v)
     hmt_PendingElection = v;
 }
 
-/* bytes in AICHAR's pad009 (a view in ai.h changed ai_Unk483a60's code) */
-#define HMT_B(c, o) (((unsigned char *)(c))[o])
-
 /* 0x4ad1c0, the yearly election (years 1..3 of 4, ai_Time.year % 4): the four best candidates (score 0x4ad3e0)
    among the characters of the right group (hmt_ElectionGroupBits) without the excluded one (hmt_ElectionExcludedBits) get the
    office hmt_ElectionOfficeBits; human players are told
@@ -507,7 +504,7 @@ void hmt_Election(void)
                 n = 0;
                 for (i = 0; i < 768; i++) {
                     c = &ai_Chars[i];
-                    if ((excl & c->flags1cc) == 0 && (mask & c->flags1cc) != 0 && HMT_B(c, 0x0d) >= 7
+                    if ((excl & c->flags1cc) == 0 && (mask & c->flags1cc) != 0 && c->level >= 7
                         && (c->kind == 6 || c->kind == 7 || c->kind == 5 || c->kind == 4 || c->kind == 3
                             || c->kind == 2)) {
                         s = hmt_Score(c, obj, type, 0);
@@ -533,7 +530,7 @@ void hmt_Election(void)
                         return;
                     cm_SendSetField(c->netId, 0x1cc, 4, office, 0);
                     if (c->kind == 6 || c->kind == 7) {
-                        txt_Format(text, 0x42b1, (HMT_B(c, 0x09) ? 0x27b : 0x253) + type);
+                        txt_Format(text, 0x42b1, (c->sex ? 0x27b : 0x253) + type);
                         he_ShowNews(c->netId, -1, text, 0, 0x5fd, "_NACHRICHTEN_NEU_14");
                     }
                 }
@@ -560,7 +557,7 @@ float hmt_Score(AICHAR *c, AICHAR *obj, int type, int twice)
     rel = gm_Liking(c->id, obj->id, 1) * 0.01f;
     if (twice)
         rel = rel + rel;
-    age = (HMT_B(c, 0x0d) + 1) * 0.1f;
+    age = (c->level + 1) * 0.1f;
     age = age + age;
     w1 = (float)amt_GetKindLevel(c->officeKind) / (float)amt_GetKindLevel(0x1b);
     w2 = (float)amt_GetKindLevel(c->prevOffice) / (float)amt_GetKindLevel(0x1b);

@@ -1,20 +1,21 @@
 struct D3SM;
-struct D3TERRAIN;
+struct D3FLMAP;
 struct D3OBJECT;
 struct VFSFILE;
 /* d3_interface.c types and globals: object creation / deletion API of the d3 engine and the scene switch.
    __FILE__ string "D:\develop\Units\d3\d3_interface.c" at 0x5fbd94. Names are ours. */
 #ifndef D3_INTERFACE_H
 #define D3_INTERFACE_H
+#include <stddef.h>                    /* offsetof, for the layout checks */
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 
 extern float d3if_Gray;             /* 0x5fcc74, 0.3 r + 0.59 g + 0.11 b of the ambient colour */
 extern D3VECTOR d3_AmbientColor;    /* 0x5fcc78, the ambient colour (r, g, b) */
 extern D3FOGSET d3if_Fog[6];        /* 0xfba960, the fog sets of the current light set */
 extern D3LIGHTSET d3if_Levels[7];   /* 0xfba9c0, the day-time light sets */
-extern int d3if_CamOben;              /* 0x6338b8 */
-extern int d3if_CamVorne;              /* 0x6338bc */
-extern int d3if_CamSeite;              /* 0x6338c0 */
+extern D3OBJECT *d3if_CamOben;              /* 0x6338b8 */
+extern D3OBJECT *d3if_CamVorne;              /* 0x6338bc */
+extern D3OBJECT *d3if_CamSeite;              /* 0x6338c0 */
 #ifndef DATA_VIEWS_H
 extern int d3if_SceneState0;              /* 0x5fb5c0 */
 #endif
@@ -23,13 +24,13 @@ extern int d3s_ShadowMapSize;          /* 0x633dcc */
 #ifndef DATA_VIEWS_H
 extern unsigned int d3if_SceneSwitches;     /* 0x6339dc, counts the scene switches */
 #endif
-extern int d3if_LastMegaCam;          /* 0xfba944 */
+extern D3OBJECT *d3if_LastMegaCam;          /* 0xfba944 */
 
 void d3_AddChild(D3OBJECT *parent, D3OBJECT *obj);                                      /* 0x43cb80, d3_engine.c */
-int d3io_FindStock(char *name);                                                           /* 0x44c5d0 */
+struct D3BGF *d3io_FindStock(char *name);                                                           /* 0x44c5d0 */
 void d3if_CreateCameras(void);                                                                /* 0x448910 */
 void d3_SetFog(float start, float end, D3COLOR color);                    /* 0x43a6f0, d3_engine.c */
-struct D3SM * d3sm_Create(struct D3TERRAIN *t, int size, int mask);                                /* 0x45eeb0 */
+struct D3SM * d3sm_Create(struct D3FLMAP *t, int size, int mask);                                /* 0x45eeb0 */
 void d3sm_Destroy(struct D3SM *h);                                                          /* 0x45ef60 */
 struct TSTEXTURE; void tex_GetParams(struct TSTEXTURE *tex, unsigned char *opts, unsigned char *fmt);                                   /* 0x460aa0, ts_texture.c */
 
@@ -40,13 +41,12 @@ char d3if_ShowTree(D3OBJECT *obj, char show);                                   
 D3OBJECT *d3if_Pick(float x, float y, int flags, int mask);                       /* 0x448630, the object under a screen position, 0 if none */
 
 
-extern char d3if_ParList[];         /* 0xfb95e0 */
+extern D3PARTSYS d3if_ParList;      /* 0xfb95e0, the particle list head node */
 typedef char d3if_chk_size[sizeof(D3SCENE) == 0x3e0 ? 1 : -1];
-typedef char d3if_chk_levels[(int)&((D3SCENE *)0)->levels == 0x128 ? 1 : -1];
-typedef char d3if_chk_sceneFlags[(int)&((D3SCENE *)0)->sceneFlags == 0x3d8 ? 1 : -1];
+typedef char d3if_chk_levels[offsetof(D3SCENE, levels) == 0x128 ? 1 : -1];
+typedef char d3if_chk_sceneFlags[offsetof(D3SCENE, sceneFlags) == 0x3d8 ? 1 : -1];
 
 /* --- 0x447e60..0x448910 (worker d3if2) --- */
-#define D3IF_OBJ068(o) ((float *)(o))[0x68 / 4]     /* size of a type-0 object on screen */
 #define D3IF_RGB_MASK 0xffffff      /* the r/g/b bits of an ARGB colour (sprite vertex colour) */
 
 typedef struct D3IFMOVE {           /* context of d3if_MoveCB */
@@ -99,107 +99,12 @@ typedef struct D3CORNERCTX {        /* 0x88 bytes: context of d3_CornerCB */
     char pad85[3];
 } D3CORNERCTX;
 
-typedef struct D3CORNERVERT {       /* a transformed vertex (D3VERTEX) with its screen position */
-    float x, y, z;
-    float pad0c;
-    float sx, sy;                   /* 0x10 */
-    char pad18[0x38];
-} D3CORNERVERT;
-
-typedef struct D3CORNERTRI {        /* D3TRI as the corner search reads it */
-    D3CORNERVERT *v[3];
-    char pad0c[0x4];
-    float *uv;                      /* 0x10, (u, v) per corner */
-    void *tex;                      /* 0x14 */
-    char pad18[0xc];
-    signed char flag24;             /* 0x24 */
-    char pad25;
-    unsigned char flag26;           /* 0x26 */
-    char pad27;
-} D3CORNERTRI;
-
 float d3_YawTo(D3OBJECT *obj, const D3VECTOR *p);                          /* 0x448ac0 */
 char d3_ScreenToUV(float sx, float sy, D3OBJECT *obj, void *tex, float *outu, float *outv);   /* 0x448e60 */
 D3OBJECT *d3_FindObjectNoCase(D3OBJECT *a, int flags, D3OBJECT *c, char *name);  /* 0x449770, case-insensitive */
 void d3_WorldToParent(D3OBJECT *obj, const D3VECTOR *pos, D3MATRIX *rot, D3VECTOR *outpos, D3VECTOR *outrot);  /* 0x4497f0 */
 void d3_SetWorldPosRot(D3OBJECT *obj, const D3VECTOR *pos, D3MATRIX *rot);        /* 0x449920 */
 
-typedef struct D3LIGHTKEY {         /* 0x38 bytes, D3LIGHTENTRY: one of the 7 day-time keys of a light */
-    D3VECTOR pos;                   /* 0x00, relative to the light's parent */
-    D3VECTOR rot;                   /* 0x0c */
-    D3VECTOR color;                 /* 0x18, -> obj lightView color (0x5c) */
-    union {
-        float intensity;            /* 0x24, -> obj lightView power (0x94); 0 = off */
-        int intensityBits;          /* the same bits as an int (the scene file's bio_wr_i, d3_WriteObject) */
-    };
-    union {
-        float range;                /* 0x28, -> obj lightView range (0x90) */
-        int rangeBits;
-    };
-    union {
-        float atten;                /* 0x2c, -> obj lightView atten (0x98) */
-        int attenBits;
-    };
-    union {
-        float flicker;              /* 0x30, the key's flicker factor (D3LIGHTENTRY.flicker, d3_engine.h) */
-        int flickerBits;
-    };
-    int interval;                   /* 0x34, its flicker interval (D3LIGHTENTRY.interval) */
-} D3LIGHTKEY;
-
-typedef struct D3LIGHTKEYS {        /* 0x1ac bytes, D3LIGHTINFO */
-    D3LIGHTKEY k[7];
-    char pad188[0xc];
-    int time;                       /* 0x194, D3LIGHTINFO.time (d3_engine.h): the last flicker step */
-    void *list;                     /* 0x198, D3LIGHTINFO.list: the lit vertex records */
-    union {
-        float flicker;              /* 0x19c, D3LIGHTINFO.flicker */
-        int flickerBits;            /* the same bits as an int (the scene file's bio_wr_i, d3_WriteObject) */
-    };
-    int interval;                   /* 0x1a0, D3LIGHTINFO.interval */
-    float phase;                    /* 0x1a4, added to the day time */
-    char pad1a8[0x4];
-} D3LIGHTKEYS;
-#define D3O_LIGHT(o) ((D3LIGHTKEYS *)D3_X(o)->light)
-
-/* D3OBJECT as the light code of this unit reads the light fields (object types 5..8; the same bytes are
-   the stored position / rotation of a camera dummy, types 0/2/3 with objectFlags bit 0). The names are
-   d3_light.h's D3LOBJ view; a union in D3OBJECT itself (d3.h) is type debt. */
-typedef struct D3IFLIGHT {
-    char pad000[0x5c];
-    D3VECTOR color;                 /* 0x5c, light colour (r, g, b) */
-    char pad068[0x28];
-    union {
-        float range;                /* 0x90 */
-        int rangeBits;              /* the same bits as an int (the scene file's bio_wr_i, d3_WriteObject) */
-    };
-    union {
-        float power;                /* 0x94, 0 = off */
-        int powerBits;
-    };
-    union {
-        float atten;                /* 0x98 */
-        int attenBits;
-    };
-} D3IFLIGHT;
-#define D3IF_LIGHT(o) ((D3IFLIGHT *)(o))
-
-/* d3_WriteMap writes these float fields as their bit pattern (the typed views are local to this unit: a union
-   in d3_fl.h's D3FLMAP / D3FLREGION, which d3_fl.c's byte functions use, is type debt). */
-typedef union D3IFBITS { float f; int bits; } D3IFBITS;
-typedef struct D3IFREGION {         /* D3FLREGION, 0x158 bytes */
-    char pad000[0x0c];
-    D3IFBITS scrollSpeedU;          /* 0x0c */
-    D3IFBITS scrollSpeedV;          /* 0x10 */
-    D3IFBITS f14;                   /* 0x14 */
-    char pad018[0x140];
-} D3IFREGION;
-typedef struct D3IFMAP {            /* D3FLMAP, the fields the map writer serializes */
-    char pad000[0xa0];
-    D3IFBITS scale;                 /* 0xa0 */
-    char pad0a4[0x20];
-    D3IFBITS hscale;                /* 0xc4 */
-} D3IFMAP;
 
 extern int d3o_LightSet;            /* 0x5fbcfc, the current light set */
 extern int d3o_FogSet;              /* 0x5fbd00, the current fog set */

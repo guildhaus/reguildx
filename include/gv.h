@@ -40,28 +40,6 @@ typedef struct GVYARD {                 /* 0x24 bytes, the graveyard record of a
     GVENTRY *entries;                   /* 0x1c, all entries ("gv_Alloc:_all_graves") */
     GVGRAVE *graves;                    /* 0x20, the grave records, first word -1 when free ("gv_Alloc:_all_zombies") */
 } GVYARD;
-#pragma pack(push, 1)
-typedef struct GVORDER {                /* 0x1f bytes, a graveyard order: the data of message 0x60 (cm_SendGraveOrder), executed by type in cm.c's handler 0x4cce10 */
-    int type;                           /* 0x00, 0 .. 6 (0 gv_BuryCharacter, 1 a grave reserved for a living character 0x4f0490, ..) */
-    int chr;                            /* 0x04, the character's netId (AICHAR.netId), -1 for none */
-    int bld;                            /* 0x08, the graveyard building's id (AIBLD.id) */
-    int size;                           /* 0x0c, the grave size (GVYARD.lists index) */
-    unsigned char entry;                /* 0x10, the entry of that list, 0xff for none */
-    short years;                        /* 0x11, type 1: years added to ai_Time.year for the entry's GVENTRY.until */
-    int price;                          /* 0x13, type 1: the price (> 0: the owner's money changes) */
-    int objId;                          /* 0x17, ai_NextObjectId, filled by the handler when the game is networked */
-    int seed;                           /* 0x1b, a rand() the handler fills otherwise */
-} GVORDER;
-typedef struct GVRAISE {                /* 0x19 bytes, a raising of a dead person: the data of message 0x62 (cm_SendRaiseDead), run by gv_RaiseDead */
-    int seed;                           /* 0x00, a rand() the handler 0x4ccf10 fills (util_Seed) */
-    int objId;                          /* 0x04, ai_NextObjectId when the game is networked */
-    int bld;                            /* 0x08, the graveyard building's id (AIBLD.id) */
-    int size;                           /* 0x0c, the grave size (GVYARD.lists index) */
-    unsigned char entry;                /* 0x10, the entry of that list */
-    int grave;                          /* 0x11, the dead person's GVGRAVE.id */
-    int kind;                           /* 0x15, 0x1b or 0x1c (the handler refuses others) */
-} GVRAISE;
-#pragma pack(pop)
 typedef struct GVCANNON {               /* 0x20 bytes, the state of the cannon scene (sv_t 0x57e270 ..), saved with the effects */
     int bld;                            /* 0x00, the record id (rec + 1) the scene was last set up for, -1 after the reset */
     int spare;                          /* 0x04, no reader besides the save game */
@@ -96,12 +74,6 @@ extern GVAVATAR gv_Avatars[0x20];     /* 0x60f310, the avatars: the characters t
 
 #pragma pack(pop)
 
-/* a record of the event list (he_FindEvent / he_NextEvent) as the order handlers read it */
-typedef struct ORDEVENT {
-    char pad000[0xac];
-    int ownerId;                    /* 0x0ac, the character the event belongs to */
-    int targetId;                   /* 0x0b0, the event's other character */
-} ORDEVENT;
 extern volatile unsigned long d3_Time;  /* 0x6333cc, milliseconds (tb.c) */
 extern int d3_CurrentScene;                /* 0x633444 */
 
@@ -119,20 +91,9 @@ extern struct AICHAR *ai_PlayerChar;    /* 0x6f1bf8, the player's character */
 extern const struct D3VECTOR4 d3_Origin;     /* 0x5ebba4, (0, 0, 0), d3_vec.c */
 extern const struct D3VECTOR d3_ZeroRot;      /* 0x5ebbb4, (0, 0, 0), d3_vec.c */
 
-char *gv_AllocAvatar(void);              /* 0x4ed170 */
-int gv_WriteAvatars(void *f);             /* 0x4ed1e0 */
-int gv_ReadAvatars(void *f);             /* 0x4ed270 */
-typedef struct GVEFFPART {              /* 0x68 bytes, one of an effect slot's three parts (saved field by field) */
-    float v0[4];                        /* 0x00 */
-    float v1[4];                        /* 0x10 */
-    float v2[4];                        /* 0x20 */
-    float v3[4];                        /* 0x30, not saved */
-    float v4[4];                        /* 0x40 */
-    int a, b, c;                        /* 0x50 */
-    int state;                          /* 0x5c, the part is a SHOTREC (menu.h): this is its state, 0 idle, 1 in flight, 2 landed, 3 left the map (gv_UpdateEffects) */
-    int time;                           /* 0x60, not saved: the reader sets it to d3_Time */
-    int steps;                          /* 0x64, the flight steps made (SHOTREC.steps) */
-} GVEFFPART;
+GVAVATAR *gv_AllocAvatar(void);              /* 0x4ed170 */
+int gv_WriteAvatars(struct VFSFILE *f);             /* 0x4ed1e0 */
+int gv_ReadAvatars(struct VFSFILE *f);             /* 0x4ed270 */
 typedef struct GVEFFREC {               /* 16 bytes, a record of an effect slot's argument */
     int bldId;                          /* 0x00, a building id (gm_BuildQuery(1, 1, id)), -1: none */
     float dist;                         /* 0x04, the building's distance from the explosion (gv_ExplodeShot) */
@@ -154,7 +115,7 @@ typedef struct GVEFFECT {               /* 0x170 bytes, an effect slot of gv_Eff
         float charge[3];                /* 0x008, by the salvo's mode (0 .. 2): a received salvo takes its value off (0x4eee00, not below 0) */
     };
     int f14;                            /* 0x014 */
-    GVEFFPART parts[3];                 /* 0x018 */
+    SHOTREC parts[3];                   /* 0x018, the balls in flight (saved field by field: not time, not pos) */
     int tail[3];                        /* 0x150, 0: the part is free (gv_UpdateEffects clears it when the part ends) */
     struct D3OBJECT *objs[3];           /* 0x15c, the parts' "kugel" objects (gv_UpdateEffects creates them, gv_FreeEffectObjects frees them) */
     int (*cb)(GVEFFARG *arg);           /* 0x168, the slot's callback (gv_EffectNotifyOwner by default), called when a part ends */
@@ -164,8 +125,8 @@ extern GVEFFECT gv_Effects[8];          /* 0x6f1008, the effect slots */
 typedef char gv_AssertGVEFFECT[sizeof(GVEFFECT) == 0x170 ? 1 : -1];
 extern GVEFFARG gv_EffectArgs[8];      /* 0x6f0e48, one per effect slot */
 int gv_EffectNotifyOwner(GVEFFARG *a);  /* 0x4ed3f0, the default effect slot callback: tells the owner of the current record's building */
-int gv_WriteEffects(void *f);             /* 0x4ed480 */
-int gv_ReadEffects(void *f, int v);      /* 0x4ed910 */
+int gv_WriteEffects(struct VFSFILE *f);             /* 0x4ed480 */
+int gv_ReadEffects(struct VFSFILE *f, int v);      /* 0x4ed910 */
 void unk_ResetEffectSlots(void);               /* 0x4eddf0 */
 void gv_FreeEffectObjects(void);               /* 0x4ede70 */
 GVEFFECT *gv_FindEffect(int id);        /* 0x4eded0 */
@@ -176,8 +137,8 @@ int gv_RequestEffectLoad(struct AIBLD *bld);            /* 0x4eea70 */
 int gv_ReserveEffect(int id);              /* 0x4eeaa0 */
 int gv_StopEffect(int id);              /* 0x4eeb00 */
 int gv_FireShots(struct AIBLD *bld, struct AICHAR *ch, struct SHOTREC *a, struct SHOTREC *b, struct SHOTREC *d, float v, int cost, int x);  /* 0x4eeb70 */
-char *gv_GetEffect(int id);            /* 0x4eedd0 */
-int gv_StartShot(struct GVSHOTMSG *m, int w);       /* 0x4eee00 */
+GVEFFECT *gv_GetEffect(int id);            /* 0x4eedd0 */
+int gv_StartShot(struct GVSHOTMSG *m, G17STAT *st);       /* 0x4eee00 */
 void gv_SetEffectCallback(int id, void *cb, void *arg);  /* 0x4eeee0 */
 float gv_SalvoCharge(int a, int b, int c);  /* 0x4eef50 */
 struct G9KIND; void gv_CannonKind(int n, struct G9KIND *out);  /* 0x4ef000, am.h's record */
@@ -191,9 +152,9 @@ int gv_GravesInUse(struct AIBLD *o);    /* 0x4ef440 */
 int gv_EntryCount(struct AIBLD *o);    /* 0x4ef470 */
 int gv_SizeOpen(struct GVYARD *r, int i);      /* 0x4ef4f0 */
 extern struct AIBTYPE *ai_BTypes;    /* 0x7e3f30, the building types */
-int gv_ListEntry(struct GVYARD *r, int i, unsigned char n);  /* 0x4ef570 */
+struct GVENTRY *gv_ListEntry(struct GVYARD *r, int i, unsigned char n);  /* 0x4ef570 */
 int gv_EntryIndex(struct GVYARD *g, struct GVENTRY *e);     /* 0x4ef6b0 */
-int gv_EntryHeldBy(struct AICHAR *a, char *b);    /* 0x4ef710 */
+int gv_EntryHeldBy(struct AICHAR *a, struct GVENTRY *b);    /* 0x4ef710 */
 int gv_EntrySameId(int *a, int *b);      /* 0x4ef740 */
 int gv_EntryIsFree(int *a, int *b);      /* 0x4ef760 */
 int gv_EntryIsUsed(int *a, int *b);      /* 0x4ef770 */
@@ -218,11 +179,11 @@ void * mem_Alloc(int size, char *tag);        /* 0x4223c0, allocates zeroed memo
 void mem_Free(void *p);                 /* 0x422620 */
 GVYARD *gv_GrowGraveyard(struct AIBLD *o);  /* 0x4eff50 */
 void gv_FreeGraveyard(int *g);             /* 0x4f0180 */
-int gv_OrderBury(int *g, struct AIBLD *o, int v, int b);  /* 0x4f01d0 */
+int gv_OrderBury(struct AICHAR *ch, struct AIBLD *o, int v, int b);  /* 0x4f01d0 */
 int gv_BuryCharacter(int *p);              /* 0x4f0240 */
 int gv_OrderReserveGrave(struct AICHAR *c, struct AIBLD *o, int size, short years, int price);  /* 0x4f0430 */
 int gv_ReserveGrave(GVORDER *m);          /* 0x4f0490 */
-int gv_OrderExtendGrave(int *g, struct AIBLD *o, int v, int b, short s, int x);  /* 0x4f0700 */
+int gv_OrderExtendGrave(struct AICHAR *c, struct AIBLD *o, int v, int b, short s, int x);  /* 0x4f0700 */
 int gv_ExtendGrave(GVORDER *m);           /* 0x4f0770 */
 int gv_OrderSetGraveHolder(struct AICHAR *c, struct AIBLD *o, int size, int entry);  /* 0x4f0900 */
 int gv_SetGraveHolder(GVORDER *m);         /* 0x4f0970 */
@@ -232,7 +193,7 @@ int gv_OpenSize(GVORDER *m);           /* 0x4f0af0 */
 int gv_OrderAdjustEntry(struct AIBLD *o, int v, int b, int x);  /* 0x4f0c20 */
 int gv_AdjustEntry(GVORDER *m);          /* 0x4f0c80 */
 int gv_OrderNewDead(struct AIBLD *o, int x);      /* 0x4f0d70 */
-int gv_AddNewDead(unsigned char *p);    /* 0x4f0dd0 */
+int gv_AddNewDead(struct GVORDER *m);    /* 0x4f0dd0 */
 int gv_OrderMoveGrave(struct AICHAR *c, int to, struct AIBLD *o, int from, int entry, int price);  /* 0x4f0e80 */
 int gv_MoveGrave(GVMOVE *m);           /* 0x4f0ed0 */
 int gv_OrderRaiseDead(struct AIBLD *o, int size, int entry, int grave, int kind);  /* 0x4f1170 */
@@ -255,11 +216,11 @@ int gv_FindHeldEntry(void *a, struct AIBLD **o, struct GVENTRY **e);  /* 0x4f254
 int gv_FindReservedEntry(void *a, struct AIBLD **o, struct GVENTRY **e);  /* 0x4f25d0 */
 float gv_SeanceChance(struct AIBLD *o);           /* 0x4f2660 */
 int gv_GetTableRecord(int i, AIDEC *out);     /* 0x4f2720 */
-int gv_FindTableRecord(struct AICHAR *c, unsigned b, int *out);  /* 0x4f2870 */
+int gv_FindTableRecord(struct AICHAR *c, unsigned b, AIDEC *out);  /* 0x4f2870 */
 extern AIDEC gv_Decisions[];           /* 0x611258, 0x1d AIDEC records of 0x24 bytes (the AI decision table) */
 
 int gv_WriteCrimes(void *f);             /* 0x4f28d0 */
-float gv_SchoolLevelFactor(unsigned short *c);          /* 0x4f2da0 */
+float gv_SchoolLevelFactor(struct AICHAR *c);          /* 0x4f2da0 */
 
 int gv_ReadCrimes(struct VFSFILE *f);             /* 0x4f2b30 */
 int gv_TableRecordText(char *out, int i);    /* 0x4f2fe0 */
@@ -413,7 +374,7 @@ int ord_DispatchOrder(int id, struct AICHAR *c, ORDMSG *m);  /* 0x4f81c0 */
 
 int ord_DivorceOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5800 */
 int ord_WageReportOrder(struct AICHAR *c, ORDMSG *m);     /* 0x4f5a80 */
-int gm_CharacterWages(unsigned short id, int flag, unsigned char *out);  /* 0x4fa700, the wage record (ORDWAGES) of the character id for the report */
+int gm_CharacterWages(unsigned short id, int flag, ORDWAGES *out);  /* 0x4fa700, the wage record (ORDWAGES) of the character id for the report */
 
 
 /* the tables 0x4f82a0 clears */
@@ -434,9 +395,18 @@ int gm_EquipmentValue(struct AIBLD *b, int level);                     /* 0x509b
 void ord_CountGridObjects(void);               /* 0x4f8360 */
 
 char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100, d3_sm.c */
-extern char ord_KindTable[];            /* 0x617468, 0x58 pairs of ints */
+typedef union ORDKIND {             /* 8 bytes, a building kind's record in ord_KindTable */
+    struct {
+        unsigned short residents;   /* 0x0, the inhabitants a home of the kind holds (kinds 1 .. 3: 8, 12, 20) */
+        unsigned short w2;          /* 0x2, ord_ComputeStatistics: summed (sumD); > 0 adds the kind's bytes 0x247 / 0x248 */
+        unsigned short w4;          /* 0x4, ord_ComputeStatistics: summed (sumC, out[7]) */
+        unsigned short w6;          /* 0x6, ord_ComputeStatistics: != 0 adds the kind's bytes 0x247 / 0x248 */
+    };
+    int pair[2];                    /* the two dwords ord_GetKindRecord copies and gm_FindHome reads (mov edi, dword) */
+} ORDKIND;
+extern ORDKIND ord_KindTable[0x58];     /* 0x617468 */
 char ord_RandomCellPoint(int x, int y, struct D3VECTOR *out);  /* 0x4f86a0, ord.c */
-int ord_GetKindRecord(int i, int *out);     /* 0x4f8890 */
+int ord_GetKindRecord(int i, ORDKIND *out);     /* 0x4f8890 */
 
 void ord_AddGridAmount(int who, unsigned char kind, int *px, int *py);  /* 0x4f8460, kind: a law record (CRIME.law; the caller cm_ExAddCrime pushes the byte unwidened) */
 void ord_SubGridAmount(int who, unsigned char kind);  /* 0x4f8590 */
@@ -448,17 +418,17 @@ void ord_AppendStatisticsRound(void);               /* 0x4f88c0 */
 extern CRIME ai_Crimes[0x200];  /* 0x91f700, 0x200 records of 0x2d bytes (to 0x925100) */
 void ord_RebuildGridSums(void);               /* 0x4f8920 */
 
-void ord_GetMessageRecord(int *out);           /* 0x4f9170 */
+void ord_GetMessageRecord(ORDMSGREC *out);           /* 0x4f9170 */
 void ord_InitMessageRecord(int a, float b, float c, float d);  /* 0x4f9190 */
 
 extern char ord_RatingBytes[];            /* 0x91b460, 5 + 1 bytes */
 extern struct AIBLD *ai_Blds;     /* 0x889f74 */
-void ord_ComputeStatistics(float *out);         /* 0x4f8ae0 */
+void ord_ComputeStatistics(ORDSTATS *out);         /* 0x4f8ae0 */
 void ord_UpdateStatistics(void);               /* 0x4f8ed0 */
 void ord_LoadStatistics(void *p);       /* 0x4f9020 */
 void ord_UpdateMessageEvent(void);               /* 0x4f9220 */
 void ord_ReportStatistics(void);        /* 0x4f9850 */
-int ord_HandleMessageRecord(int *m);              /* 0x4f9710 */
+int ord_HandleMessageRecord(ORDINITMSG *m);              /* 0x4f9710 */
 unsigned char ord_GetRatingByte(int i);              /* 0x4f97a0 */
 float ord_BuildingCapacityRatio(void);              /* 0x4f97c0 */
 

@@ -4,8 +4,8 @@
    (0x623564) and ends before the language getter 0x519010 (its global 0x62364c opens the "ls" unit).
    Open: the 0x21c character record is untyped; the name builders read it as unsigned char at raw offsets
    (0x9, 0xd, 0x164.., 0x166; 0x1cc through gv.h's AICHAR).
-   Open: not included yet (dcp headers conflicts io_text HEADER): d2.h; held by own declarations that differ
-   from the owner's: d2_Objs.
+   Open: not included yet (dcp headers conflicts io_text HEADER): d2.h; held by an own copy of the owner's
+   declaration: d2_Objs.
    unit of rea 8cef7d5b (src/game/io_text.c); boundaries in decl/text.dcl */
 #include "d2_types.h"
 extern D2WIN d2_Wins[];
@@ -30,8 +30,8 @@ extern D2WIN d2_Wins[];
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 
 struct AITIME;
-void gm_ClockToDate(struct AITIME *c, unsigned char *out);  /* 0x4fe2c0, f3gm.c: the calendar record of a clock */
-int gm_Season(char *d);                 /* 0x4fe330, f3gm.c: the season of a calendar record */
+void gm_ClockToDate(struct AITIME *c, struct GMDATE *out);  /* 0x4fe2c0, f3gm.c: the calendar record of a clock */
+int gm_Season(struct GMDATE *d);                 /* 0x4fe330, f3gm.c: the season of a calendar record */
 
 /* 0x5142e0, the display name of the town called name (the player's town, "General"/"Stadt" of the game INI): the first text of the town's "_STADTAUSWAHL_<NAME>_INFO" group of the text table (txt_FindKey finds its number), else the given name itself; copied to out. Returns 1. */
 int io_TownDisplayName(char *name, char *out)
@@ -432,17 +432,16 @@ int io_CharacterNameMarkup(int id, unsigned char c, unsigned char kind, char *ou
 
 extern int txt_Loaded;
 extern int d2_LastWindow;                /* 0x6ed938, the current text window */
-extern char *d2_Objs;  /* 0xf8f080, 0x2ec bytes each; @original: d2.h declares D2OBJ *; the units add byte offsets to it and do not include d2.h yet (their own char * declarations of d2_Objs / d2_LastWindowPtr supersede d2.h's) */
-#define D2_OBJS ((D2OBJ *)d2_Objs)     /* d2_Objs as d2.h types it */
+extern D2OBJ *d2_Objs;  /* 0xf8f080, d2.c (d2.h) */
 /* ---- the text engine (0x515960 .. 0x519010) ---- */
 extern int txt_Loaded;
 extern int txt_Random[0x4800];
 int d2_SetForm(int view, int n);                    /* 0x475f70 */
 void d2_DrawAll(void);                    /* 0x46e150 */
-void d2_DrawWindow(int win, void *surf);                    /* 0x471a90, draws a window (d2.h) */
+void d2_DrawWindow(int win, struct D2SURF *surf);                    /* 0x471a90, draws a window (d2.h) */
 int d2_RemoveWindowObjects(int win, int all);         /* 0x472d20, removes the objects of a window (d2.h) */
 void d2_RedrawView(int view);                    /* 0x474e80 */
-extern void *d2_ScreenSurf;              /* 0x6ed924, the screen surface (d2.c) */
+extern struct D2SURF *d2_ScreenSurf;              /* 0x6ed924, the screen surface (d2.c) */
 void err_Message(char *text);                    /* 0x4222b0 */
 void gm_FormatAmount(int v, unsigned char k, char *out);                   /* 0x508a80 */
 int ls_GetLanguage();                     /* 0x5190a0, the language number */
@@ -462,7 +461,7 @@ int ls_GetLanguage();                     /* 0x5190a0, the language number */
    '$S' ten blanks, the F fallthrough, the '%i' dot grouping both ways, '%I', '%f' with _itoa formats, '%W'
    flush + d2_SetForm(dig, n), u/U/b/B/e/E removals, '%N' (case dig, kind digit), '%a' '%i%c' 0x14, '{r}'
    random group search + atoi + util_Random, '%D' season txt_Ptrs[0x4c + gm_Season], '%G' good name + '>%s<'
-   variant, '%%' 0x16, the end redraw (ctrl->loaded / view). ours 2238 vs 2244 instructions, switch tables in
+   variant, '%%' 0x16, the end redraw (ctrl->loaded / id). ours 2238 vs 2244 instructions, switch tables in
    the same case order. Left: (1) window addressing: the original keeps the window's byte offset
    d2_LastWindow*0x3c4 in [esp+0x20] and addresses [esi + d2_Wins+field] (asmdiff head: '- mov
    ecx,[eax*4+d2_Wins+0x280] / - lea eax,[eax*4+d2_Wins] / - mov [esp+0x24],eax' vs '+ shl eax,2 / + mov
@@ -481,10 +480,7 @@ int io_PrintText(intptr_t fmt, ...)
     char tmp[0x17d0];                   /* the substitution */
     char fmtbuf[0x20];                  /* a sprintf format built at run time, or the plain digits of "%i" */
     char num[0x14];                     /* _itoa digits */
-    union {
-        unsigned char b[0xc];
-        short w[6];                     /* w[1]: the year */
-    } date;                             /* gm_ClockToDate's calendar record */
+    GMDATE date;                        /* gm_ClockToDate's calendar record */
     char rnum[0x20];                    /* the count of a "{r}" token */
     char goodname[0x100];
     char digits1[0x40], digits2[0x40], digits3[0x40];
@@ -496,7 +492,7 @@ int io_PrintText(intptr_t fmt, ...)
     char code, c;
     char *s, *art, *p;
     unsigned char *good;
-    D2CTRL *ctrl;                       /* the drawing buffer of the window's object (a view) */
+    D2VIEW *ctrl;                       /* the drawing buffer of the window's object (a view) */
     int saved, ret;
 
     redraw = 0;
@@ -943,8 +939,8 @@ int io_PrintText(intptr_t fmt, ...)
                 }
                 break;
             case 'D':
-                gm_ClockToDate(va_arg(ap, struct AITIME *), date.b);
-                sprintf(tmp, "%s %i", txt_Ptrs[0x4c + gm_Season((char *)date.b)], date.w[1]);
+                gm_ClockToDate(va_arg(ap, struct AITIME *), &date);
+                sprintf(tmp, "%s %i", txt_Ptrs[0x4c + gm_Season(&date)], date.year);
                 memmove(&buf[pos + strlen(tmp) - 2], &buf[pos], strlen(buf) + 2 - pos);
                 memcpy(&buf[pos - 1], tmp, strlen(tmp));
                 break;
@@ -1024,10 +1020,10 @@ int io_PrintText(intptr_t fmt, ...)
     if (redraw && !drawall) {
         saved = d2_LayoutMode;
         d2_LayoutMode = 1;
-        ctrl = D2_OBJS[d2_Wins[d2_LastWindow].parent].buf;
+        ctrl = d2_Objs[d2_Wins[d2_LastWindow].parent].buf;
         if (ctrl != 0) {
             if (ctrl->loaded != 0)
-                d2_RedrawView(ctrl->view);
+                d2_RedrawView(ctrl->id);
             else
                 d2_DrawWindow(d2_LastWindow, d2_ScreenSurf);
         } else {
@@ -1065,10 +1061,7 @@ void txt_Format(char *out, intptr_t id0, ...)
     char tmp[0x17d0];                   /* the substitution */
     char fmtbuf[0x20];                  /* a sprintf format built at run time, or the plain digits of "%I" */
     char num[0x20];                     /* _itoa digits */
-    union {
-        unsigned char b[0xc];
-        short w[6];                     /* w[1]: the year */
-    } date;                             /* gm_ClockToDate's calendar record */
+    GMDATE date;                        /* gm_ClockToDate's calendar record */
     char rnum[0x20];                    /* the count of a "{r}" token */
     char goodname[0x80];
     char digits1[0x40], digits2[0x40], digits3[0x40];   /* "%s": the number before the token */
@@ -1403,8 +1396,8 @@ void txt_Format(char *out, intptr_t id0, ...)
                 }
                 break;
             case 'D':
-                gm_ClockToDate(va_arg(ap, struct AITIME *), date.b);
-                sprintf(tmp, "%s %i", txt_Ptrs[0x4c + gm_Season((char *)date.b)], date.w[1]);
+                gm_ClockToDate(va_arg(ap, struct AITIME *), &date);
+                sprintf(tmp, "%s %i", txt_Ptrs[0x4c + gm_Season(&date)], date.year);
                 memmove(&buf[pos + strlen(tmp) - 2], &buf[pos], strlen(buf) + 2 - pos);
                 memcpy(&buf[pos - 1], tmp, strlen(tmp));
                 break;

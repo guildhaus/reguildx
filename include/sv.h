@@ -305,10 +305,10 @@ extern int sv_PanelPerms;  /* 0x6f2320 */
 extern int sv_PickX;  /* 0x623e98 */
 extern int sv_PickY;  /* 0x623e9c */
 extern struct D3OBJECT *sv_HoverLast;  /* 0x6f1c4c */
-extern int sv_HoverItem;  /* 0x6f22f0 */
+extern struct AIOBJ *sv_HoverItem;  /* 0x6f22f0 */
 extern struct AIBLD *sv_HoverBuilding;  /* 0x6f22f4 */
-extern int sv_ClickedContact;  /* 0x6f22fc */
-extern int sv_HoverContact;  /* 0x6f2300 */
+extern struct AIOBJ *sv_ClickedContact;  /* 0x6f22fc */
+extern struct AIOBJ *sv_HoverContact;  /* 0x6f2300 */
 extern int sv_HoverBldPerms;  /* 0x6f2324 */
 extern int sv_HoverItemPerms;  /* 0x6f2328 */
 extern int sv_HoverCharPerms;  /* 0x6f232c */
@@ -324,7 +324,7 @@ extern struct AIBLD *sv_ShownBuilding;  /* 0x6f23bc */
 extern struct AIBLD *sv_ShownFallback;  /* 0x6f23c0 */
 extern struct AIBLD *sv_ShownObject;  /* 0x6f23c4 */
 extern int sv_ShownRoom;  /* 0x6f23c8 */
-extern int sv_ShownItem;  /* 0x6f23cc */
+extern struct AIOBJ *sv_ShownItem;  /* 0x6f23cc */
 extern struct AICHAR *sv_ShownChar;  /* 0x6f23d0 */
 extern int sv_ShownOther;  /* 0x6f23d4 */
 extern int sv_ShownCount;  /* 0x6f23d8 */
@@ -334,7 +334,7 @@ extern SVQUICKJUMP sv_QuickJump;                            /* 0x75e8c0 */
 extern unsigned char sv_SelectionFlags[0x300];               /* 0x75e920, one selection byte per character */
 extern int sv_SkyScene;                                    /* 0x75ec20 */
 extern MSG sv_Message;                                     /* 0x75ec40, the window message sv_PumpMessages reads */
-extern unsigned short * sv_SelectedItem;                       /* 0x75ec5c */
+extern struct AIOBJ *sv_SelectedItem;                         /* 0x75ec5c */
 extern SVACTIVITY sv_Activities[0x30];                          /* 0x75ec80 */
 extern SVMEMBERROW sv_MemberRows[0x20];                     /* 0x75f280, the member list rows */
 extern SVFRAME sv_Frames[0x80];                             /* 0x75f780, the frame stack, indexed by sv_FrameDepth */
@@ -345,7 +345,7 @@ extern SVBAND sv_Band;                                       /* 0x760440 */
 #define sv_BandActive (sv_Band.active)                          /* 0x760440 */
 extern int sv_Season;                                        /* 0x760454, the game clock's season (written by main) */
 extern struct AIBLD *sv_ClickedBuilding;                               /* 0x760458 */
-extern int sv_ClickedItem;                                   /* 0x76045c */
+extern struct AIOBJ *sv_ClickedItem;                         /* 0x76045c */
 extern struct AICHAR *sv_ClickedChar;                                   /* 0x760460 */
 extern int sv_SkyPhase;                                    /* 0x760464 */
 extern SVCLIMATE sv_Climate;                                /* 0x760480 */

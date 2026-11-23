@@ -30,5 +30,29 @@ typedef struct GMCARRYREC {
 } GMCARRYREC;
 #pragma pack(pop)
 typedef char gm_AssertGMCARRYREC[sizeof(GMCARRYREC) == 0xa4 ? 1 : -1];
+#pragma pack(push, 1)
+/* an entry of gm_CollectCarried's list (0x1e bytes) */
+typedef struct GMCARRYENTRY {
+    struct AIJOB *ref;                  /* 0x00, the record's event */
+    GMCARRYREC *rec;                    /* 0x04, the record */
+    char *data;                         /* 0x08, the record's data */
+    int value;                          /* 0x0c, the record's value when it has one */
+    GMCARRYSPEC spec;                   /* 0x10 */
+} GMCARRYENTRY;
+
+/* what gm_CollectCarried collects for a person (0x21d bytes; main.c's round change reads the goods and the capacity) */
+typedef struct GMCARRY {
+    int units;                          /* 0x000, the 0xe-byte units */
+    struct {
+        unsigned char good;             /* a good (its name is the text 0x253 + good), 0 ends the list */
+        int amount;
+    } goods[9];                         /* 0x004, what the round change lists on the balance page (main.c 0x5384e0) */
+    int capacity;                       /* 0x031, the free capacity (unaligned) */
+    GMCARRYENTRY entries[16];           /* 0x035 */
+    int valueSum;                       /* 0x215, minus the values of the records with one */
+    int count;                          /* 0x219, the entries used */
+} GMCARRY;
+#pragma pack(pop)
+typedef char gm_AssertGMCARRY[sizeof(GMCARRY) == 0x21d ? 1 : -1];
 extern GMCARRYREC gm_CarryRecs[0x100];  /* 0x74e1e0, the 0x100 carried-goods records */
 #endif

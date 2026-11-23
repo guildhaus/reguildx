@@ -172,19 +172,12 @@ typedef struct AIBTX {                  /* 0x24d bytes, an AIBTYPE (ai.h) as the
 
 
 
-typedef struct AIGOODX {                /* 0x41 bytes, an AIGOOD (ai.h) as these callbacks read it */
-    signed char type;                   /* 0x00 */
-    char pad01[0x3f];
-    unsigned char noSale;               /* 0x40, AIGOOD.b40: nonzero, the tooltip shows a text instead of the price (reasoned: not for sale; ai_DecideProduceGood never produces such a good) */
-} AIGOODX;
 #pragma pack(pop)
 
 typedef char ai_AssertAIBTX[sizeof(AIBTX) == 0x24d ? 1 : -1];
-typedef char ai_AssertAIGOODX[sizeof(AIGOODX) == 0x41 ? 1 : -1];
 
 
 #define AI_BTX ((AIBTX *)ai_BTypes)
-#define AI_GOODX ((AIGOODX *)ai_Goods)
 /* ai.h declares gm_BuildQuery with two arguments, am.h above with three */
 
 int ai_DecideProduceGood(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2);                 /* 0x497660 */
@@ -280,17 +273,6 @@ int gm_PlayerFactor(int a, unsigned char k);                       /* 0x5085f0 *
 float gm_GetSkill(struct AICHAR *c, int skill);                             /* 0x504ec0 */
 int amt_GetKind(int k, struct AMTKIND *out);                             /* 0x4e6f80 */
 int amt_GetColumnOffices(int col, int max, struct AMTREC *out);             /* 0x4e6fc0 */
-/* ai.h declares these with other types */
-
-#pragma pack(push, 1)
-
-typedef struct AIGDX {                  /* what 0x5ba620 returns */
-    char pad00[0xc];
-    float unk0c;                        /* 0x0c */
-} AIGDX;
-
-
-#pragma pack(pop)
 
 
 /* ai.h declares gm_FindById for another use; here it fills an int and takes three more */
@@ -398,7 +380,7 @@ int ai_PlanRank(AIPLAN *q);                                    /* 0x4945c0 */
 int ai_DecideSentence(AICHAR *ch, AIPLAN *q);                          /* 0x4946c0 */
 int ai_WealthRating(AICHAR *a, AICHAR *b);                             /* 0x4947a0 */
 int ai_WealthRatingHalf(AICHAR *a, AICHAR *b);                             /* 0x494830 */
-AIREC10 *ai_FindInstrumentRecord(int key);                                 /* 0x4948c0 */
+const AIREC10 *ai_FindInstrumentRecord(int key);                                 /* 0x4948c0 */
 struct AISTUDYOFFER; void ai_RollStudyOffers(struct AICHAR *ch, struct AISTUDYOFFER *out);                          /* 0x4948f0 */
 int ai_MasterExamPassed(AICHAR *a, AICHAR *b);                             /* 0x494a30 */
 int ai_EvalFest(AIGRP *g, int send);                           /* 0x494ac0 */
@@ -406,13 +388,6 @@ int ai_RelationGain(AICHAR *payer, AICHAR *target, int n);                      
 int ai_BrawlWin(AICHAR *attacker, AICHAR *defender, int *out);                   /* 0x494d90 */
 
 /* ---- 0x494e70..0x4984d0 (was unk_494e70.h) ---- */
-#pragma pack(push, 1)
-
-typedef struct G5STAMM {                /* the regulars' table, the object 0x12d of a kind-0x37 building (ai_DecideStammtisch) */
-    char pad00[0x1c];
-    int member[4];                      /* 0x1c, the members' netIds, -1 = a free seat */
-} G5STAMM;
-#pragma pack(pop)
 
 
 extern int ai_EvalDepth;                /* 0xf83ea4, the depth of the evaluation stack */
@@ -489,12 +464,6 @@ typedef struct AISTUDYOFFER {           /* 12 bytes, a university's study offer 
     int subject;                        /* 0x4, the fixed subject (4, 3, 2 by the offer) */
     int level;                          /* 0x8, the second subject index */
 } AISTUDYOFFER;
-
-typedef struct G8TABLE {                /* 12 bytes, a regulars' table request (0x4c5d80) */
-    unsigned int tag;                   /* 0x0, 'join' / 'leav' */
-    unsigned int ch;                    /* 0x4 */
-    int bld;                            /* 0x8 */
-} G8TABLE;
 
 typedef struct G8REQ {                  /* 20 bytes, the request of amt_ExecutePriceMessage / ShareMessage / MayorPowerMessage */
     int kind;                           /* 0x00 */
@@ -641,8 +610,6 @@ struct D3OBJECT *ai_PickBuildSite(AICHAR *p, int name);                         
 extern int d3_CurrentScene;             /* 0x633444 */
 char d3if_SelectScene(int index, char keep);                                        /* 0x4478e0 */
 void d3_PointToWorld(struct D3OBJECT *obj, struct D3VECTOR *in, struct D3VECTOR *out);                              /* 0x458a20 */                                                     /* 0x4a4680 */
-
-#define G7_MASK(p) (((AICHAR *)(p))->mask)
 
 int amt_GetKindLevel(int k);                                              /* 0x4e7c40 */
 extern const int ai_RingStrides[11];          /* 0x5ed180, the strides of the near ring cursor */

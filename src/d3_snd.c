@@ -13,6 +13,7 @@
 #include <windows.h>
 #include <d3d.h>
 #include "d3.h"
+#include "d3_fl.h"
 #include "d3_snd.h"
 
 #include "sblib.h"
@@ -469,20 +470,6 @@ D3SOUND *d3sndw_GetSound(int type, int *slot)
     return s;
 }
 
-/* Terrain map (d3_Terrain), as far as d3sndw_Update uses it */
-typedef struct D3MAPREGION {        /* 0x158 bytes */
-    char pad000[0x154];
-    int water;                      /* 0x154, water type, 0 = none */
-} D3MAPREGION;
-
-typedef struct D3MAP {
-    char pad0000[0x19e0];
-    D3MAPREGION *regions;           /* 0x19e0 */
-} D3MAP;
-
-char map_Pick(struct D3FLMAP *map, struct D3VECTOR *pos, char lod, int *x, int *y, float *h);          /* 0x4463b0 */
-int map_Region(D3MAP *map, int x, int y);                                              /* 0x446910, index into regions or < 0 */
-
 extern unsigned char snd_AmbientOn;     /* 0x6f0b60, 1: ambient sounds on */
 float d3sndw_Range[] = { 0.0f, 30.0f, 25.0f, 20.0f, 15.0f, 10.0f };  /* 0x5f38a4, per water type, in meters */
 unsigned int d3sndw_Vol[] = { 0, 70, 70, 70, 70, 60, 0 };  /* 0x5f38bc, per water type */
@@ -578,7 +565,7 @@ void d3sndw_Update(void)
     dir.y = 0.0f;
     d3_Normalize(&dir.v);
     idx = map_Region(d3_Terrain, gx, gy);
-    if (idx < 0 || (type = ((D3MAP *)d3_Terrain)->regions[idx].water) > 3 || type == 0) {
+    if (idx < 0 || (type = d3_Terrain->regions[idx].water) > 3 || type == 0) {
         for (i = 0; i < d3sndw_N; i++)
             d3sndw_State[i] = 1;
     } else {
@@ -599,7 +586,7 @@ void d3sndw_Update(void)
                 if (map_Pick(d3_Terrain, &probe.v, 0, &gx2, &gy2, &h)) {
                     idx = map_Region(d3_Terrain, gx2, gy2);
                     if (idx >= 0)
-                        d3sndw_Type[i] = ((D3MAP *)d3_Terrain)->regions[idx].water;
+                        d3sndw_Type[i] = d3_Terrain->regions[idx].water;
                     else
                         d3sndw_Type[i] = 0;
                     if (d3sndw_Type[i]) {

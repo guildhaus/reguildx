@@ -51,7 +51,9 @@ typedef struct AICHAR {                 /* 0x21c bytes, ai_Chars[768] */
         struct {
             char first[0x10];           /* 0x030, the first name (gv: copied to the grave, GVGRAVE.first) */
             char family[0x10];          /* 0x040, the family name (GVGRAVE.family) */
-            unsigned short w050;        /* 0x050, must equal the grave entry's GVENTRY.w08 to be buried there (gv_BuryCharacter) */
+            unsigned short w050;        /* 0x050, must equal the grave entry's GVENTRY.w08 to be buried there (gv_BuryCharacter);
+                                           a running number (ai_NextCharNumber: main_ReplaceFigure; the start couple get the
+                                           player's, main_CreateStartCouple) */
         };
         struct {
             char padname80[0x50];
@@ -77,6 +79,13 @@ typedef struct AICHAR {                 /* 0x21c bytes, ai_Chars[768] */
             int relatives[8];           /* 0x05c, the netIds of the character's relatives (gm_KillSpieler clears
                                            them when one dies, ai_DecideUseDynastyObject walks [3..7]); relatives[0] is never
                                            picked as a partner (ai_DecideOfficePartner) */
+        };
+        struct {
+            char padname5c2[0x2c];
+            int spouse;                 /* 0x05c, relatives[0]: the husband / wife (the start couple point at each other) */
+            int parent1;                /* 0x060, relatives[1] / [2]: the parents (the player gets the start couple) */
+            int parent2;                /* 0x064 */
+            int child;                  /* 0x068, relatives[3]: a child (the start couple get the player) */
         };
         struct {
             char padname7c[0x4c];
@@ -115,11 +124,16 @@ typedef struct AICHAR {                 /* 0x21c bytes, ai_Chars[768] */
     AIJOB *job;                       /* 0x17c */
     unsigned char jobKind;              /* 0x180, the kind (first byte) of job, refreshed on load */
     char pad181[3];
-    struct CHARACTER *scene;            /* 0x184, the scene character (ch.h): its group is the building the character
+    union {
+        struct CHARACTER *scene;        /* 0x184, the scene character (ch.h): its group is the building the character
                                            was sent to (f3gm.c 0x4fbd10), its obj the body */
+        int sceneId;                    /* 0x184, the scene character's id as loaded (ls_ReadCharacters), until the
+                                           fix-up sets the pointer */
+    };
     unsigned char selected;             /* 0x188, nonzero: the character is in the player's selection (sv_ClearSelection clears it, sv_HandleObjects sets it) */
     char pad189[3];
-    int picture;                        /* 0x18c, the portrait picture (sv.c: the person panel, the member list) */
+    int picture;                        /* 0x18c, the portrait picture (sv.c: the person panel, the member list; the player's
+                                           INIT_PLAYER.modelId, main_CreateStartCouple) */
     int v190;                         /* 0x190, a sum the round change prints on the player's balance page (text 0x1eff, main.c 0x5384e0) */
     int money;                          /* 0x194, the character's money (amt.c) */
     int spent198;                       /* 0x198, the money paid for goods bought (cm.c 0x4c70b0 adds count * price, unless the
@@ -133,9 +147,10 @@ typedef struct AICHAR {                 /* 0x21c bytes, ai_Chars[768] */
         int donated;                    /* 0x1ac, the money the character gave the church: ai_IndulgenceWindow adds the
                                            price (cm_AddFieldValues 0x1ac) and shows it (text 0x1964), gm_DonationRank
                                            ranks the characters by it */
-        int v1ac;                       /* 0x1ac, as cmfight.c reads it: a scene object of the fighter (cm.c 0x4d1xxx puts
-                                           it at the body, shows it and clears it; the fighter copy cm_AddFighter starts
-                                           with 0) */
+        int v1ac;                       /* 0x1ac, the word ls_WriteCharacters saves */
+        struct D3OBJECT *fightWare;     /* 0x1ac, in a fight: the ware the fighter picked up and carries (cm_PickUpAction
+                                           sets it, a fallen fighter's is put at the body, shown and cleared; the fighter
+                                           copy cm_AddFighter starts with 0) */
     };
     unsigned char b1b0;                 /* 0x1b0, saved and loaded (ls_WriteCharacters); no reader read yet */
     unsigned char heldRounds;           /* 0x1b1, rounds the character is held: message 0x5b (cm.c 0x4ccb10) adds to it, each

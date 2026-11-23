@@ -1,9 +1,7 @@
 /* d3_light.c -- dynamic lighting of mesh objects ("d3_light:cache", "d3_light:rlight_object"), original file
    name unknown: 0x451e80..0x4539b0 (the end: d3_ShadeInit's two literals 0x5ebb6c / 0x5ebb70 close this unit's
-   .rdata, right before d3_vec.c's named constants d3_ZAxis.., which VC6 puts first in an object). One object view (D3OBJECT +
-   D3_L, d3_light.h). Names are ours.
-   Open: the bits d3_SetVertexColors / d3_RelightObject read (D3PTRI 0x26, TSTEXTURE 0x68 / 0x6c) go through
-   d3_light.h's cast views; the typed fields flip d3_CloneObject / d3_MirDrawObject.
+   .rdata, right before d3_vec.c's named constants d3_ZAxis.., which VC6 puts first in an object). The objects are D3OBJECT
+   with its light fields (d3.h). Names are ours.
    Open: d3.h keeps its own char d3_RelightObject declaration; dropping it (or including d3_light.h there)
    flips d3_MirDrawObject, which needs re-matching first.
    unit of rea 8cef7d5b (src/game/d3_light.c); boundaries in decl/text.dcl */
@@ -16,6 +14,7 @@
 #include "d3.h"
 #include "d3_engine.h"
 #include "d3_light.h"
+#include "d3_anim.h"
 #include "d3_fl.h"
 #include "d3_vec.h"
 #include "mem.h"
@@ -35,11 +34,11 @@ void d3_LightResetVertexColors(D3OBJECT *obj)
     D3LHIT *p;
     int i, cnt;
 
-    for (n = D3_L(obj)->light->list; n; n = n->next) {
+    for (n = obj->light->list; n; n = n->next) {
         o = n->obj;
-        if (o && D3_L(o)->mesh && !(D3_L(o)->mesh->flags & 0x40) && D3_L(o)->info) {
+        if (o && o->material && !(o->material->flags & 0x40) && o->info) {
             cnt = n->n;
-            if (D3_L(o)->info->nkeys >= cnt) {
+            if (o->info->nkeys >= cnt) {
                 if (d3_Hardware) {
                     for (i = 0, p = n->v; i < cnt; i++, p++)
                         p->v->lit = p->v->base;
@@ -58,11 +57,11 @@ void d3_LightResetVertexColors(D3OBJECT *obj)
 void d3_LightFlicker(D3OBJECT *obj)
 {
     unsigned long now = d3_Time;
-    unsigned long t = now - D3_L(obj)->light->time;
-    unsigned int iv = D3_L(obj)->light->interval;
+    unsigned long t = now - obj->light->time;
+    unsigned int iv = obj->light->interval;
     D3LREC *n;
     D3OBJECT *o;
-    D3LVERT *v;
+    D3VERTEX *v;
     D3LHIT *p;
     D3COLOR c;
     unsigned int i, cnt;
@@ -70,25 +69,25 @@ void d3_LightFlicker(D3OBJECT *obj)
     float s, f, m, r, g, b, a, q;
 
     if (t >= iv) {
-        m = D3_L(obj)->color.y;
+        m = obj->lightColor.y;
         for (j = 0; j < 7; j++)
-            m = max(m, D3_L(obj)->light->keys[j].val);
-        s = (D3_L(obj)->light->flicker * D3_L(obj)->color.y) / m;
-        if (!D3_L(obj)->light->time)
-            D3_L(obj)->flickerStart = (float)((float)rand() / RAND_MAX) * s * 2 - s + 1.0f;
+            m = max(m, obj->light->keys[j].intensity);
+        s = (obj->light->flicker * obj->lightColor.y) / m;
+        if (!obj->light->time)
+            obj->flickerStart = (float)((float)rand() / RAND_MAX) * s * 2 - s + 1.0f;
         else
-            D3_L(obj)->flickerStart = D3_L(obj)->flickerEnd;
-        D3_L(obj)->flickerEnd = (float)((float)rand() / RAND_MAX) * s * 2 - s + 1.0f;
-        D3_L(obj)->light->time = now;
+            obj->flickerStart = obj->flickerEnd;
+        obj->flickerEnd = (float)((float)rand() / RAND_MAX) * s * 2 - s + 1.0f;
+        obj->light->time = now;
         t = 0;
     }
     f = (float)t / (float)iv;
-    a = (1.0f - f) * D3_L(obj)->flickerStart + f * D3_L(obj)->flickerEnd;
-    for (n = D3_L(obj)->light->list; n; n = n->next) {
+    a = (1.0f - f) * obj->flickerStart + f * obj->flickerEnd;
+    for (n = obj->light->list; n; n = n->next) {
         o = n->obj;
-        if (o && D3_L(o)->mesh && !(D3_L(o)->mesh->flags & 0x40) && D3_L(o)->info) {
+        if (o && o->material && !(o->material->flags & 0x40) && o->info) {
             cnt = n->n;
-            if (D3_L(o)->info->nkeys >= (int)cnt) {
+            if (o->info->nkeys >= (int)cnt) {
                 if (d3_Hardware) {
                     for (i = 0, p = n->v; i < cnt; i++, p++) {
                         v = p->v;
@@ -137,13 +136,13 @@ void d3_LightFlicker(D3OBJECT *obj)
 
 char d3_LightApply(D3OBJECT *obj, D3LCTX *set)
 {
-    D3LINFO *info = D3_L(obj)->info;
+    D3SURF *info = obj->info;
     D3OBJECT *l;
-    D3LVERT *v;
-    D3LTRI *t;
+    D3VERTEX *v;
+    D3TRI *t;
     D3VECTOR4 d, c, nrm, acc;
     D3MATRIX m;
-    D3VECTOR *p;
+    D3BGFVERT *p;
     unsigned int i, j;
     int k, iv;
     float a, s, r, r2, dist, f, sc;
@@ -154,15 +153,15 @@ char d3_LightApply(D3OBJECT *obj, D3LCTX *set)
         for (i = 0; i < set->count; i++) {
             l = set->list[i];
             if (l->type != 7) {
-                s = D3_L(obj)->mesh->lightScale * D3_L(l)->power * 10.0f;
-                a = D3_L(l)->atten;
-                r = D3_L(l)->range;
+                s = obj->material->lightScale * l->power * 10.0f;
+                a = l->atten;
+                r = l->range;
                 r2 = r * r;
                 if (set->normals) {
                     for (k = 0, v = info->keys; k < info->nkeys; k++, v++) {
-                        d.x = v->x - D3_L(l)->cam.x;
-                        d.y = v->y - D3_L(l)->cam.y;
-                        d.z = v->z - D3_L(l)->cam.z;
+                        d.x = v->x - l->cam.x;
+                        d.y = v->y - l->cam.y;
+                        d.z = v->z - l->cam.z;
                         dist = d.x * d.x + d.y * d.y + d.z * d.z;
                         if (dist < r2) {
                             d3_Normalize(&d.v);
@@ -170,9 +169,9 @@ char d3_LightApply(D3OBJECT *obj, D3LCTX *set)
                             if (f < 0.0) {
                                 d3l_FtoI2(f * -1023.0f, &iv);
                                 f = ((float)(1.0f / (dist * a)) * s) * d3fl_Shade[iv];
-                                c.x = f * D3_L(l)->color.x;
-                                c.y = f * D3_L(l)->color.y;
-                                c.z = f * D3_L(l)->color.z;
+                                c.x = f * l->lightColor.x;
+                                c.y = f * l->lightColor.y;
+                                c.z = f * l->lightColor.z;
                                 v->r = c.x + v->r;
                                 v->g = c.y + v->g;
                                 v->b = c.z + v->b;
@@ -181,15 +180,15 @@ char d3_LightApply(D3OBJECT *obj, D3LCTX *set)
                     }
                 } else {
                     for (k = 0, v = info->keys; k < info->nkeys; k++, v++) {
-                        d.x = v->x - D3_L(l)->cam.x;
-                        d.y = v->y - D3_L(l)->cam.y;
-                        d.z = v->z - D3_L(l)->cam.z;
+                        d.x = v->x - l->cam.x;
+                        d.y = v->y - l->cam.y;
+                        d.z = v->z - l->cam.z;
                         dist = d.x * d.x + d.y * d.y + d.z * d.z;
                         if (dist < r2) {
                             f = (float)(1.0f / (dist * a)) * s;
-                            c.x = f * D3_L(l)->color.x;
-                            c.y = f * D3_L(l)->color.y;
-                            c.z = f * D3_L(l)->color.z;
+                            c.x = f * l->lightColor.x;
+                            c.y = f * l->lightColor.y;
+                            c.z = f * l->lightColor.z;
                             v->r = c.x + v->r;
                             v->g = c.y + v->g;
                             v->b = c.z + v->b;
@@ -204,15 +203,15 @@ char d3_LightApply(D3OBJECT *obj, D3LCTX *set)
         if (i < set->count) {
             if (obj->kind == 1) {
                 d3_WorldMatrix(obj, (obj->state & 0x80) ? 0 : d3_Camera, 1, &m);
-                sc = 20.0f / info->ops->radius;
-                acc.y = info->ops->originY;
+                sc = 20.0f / info->mesh->radius;
+                acc.y = info->mesh->cy;
                 for (j = i; j < set->count; j++) {
                     l = set->list[j];
                     if (l->type == 7) {
-                        s = D3_L(obj)->mesh->lightScale * D3_L(l)->power * 0.01f;
-                        nrm.x = D3_L(l)->light->dir.x;
-                        nrm.y = D3_L(l)->light->dir.y;
-                        nrm.z = D3_L(l)->light->dir.z;
+                        s = obj->material->lightScale * l->power * 0.01f;
+                        nrm.x = l->light->dir.x;
+                        nrm.y = l->light->dir.y;
+                        nrm.z = l->light->dir.z;
                         for (k = 0, v = info->keys; k < info->nkeys; k++, v++) {
                             p = v->src;
                             d.x = p->x;
@@ -227,9 +226,9 @@ char d3_LightApply(D3OBJECT *obj, D3LCTX *set)
                             if (f < 0.0) {
                                 d3l_FtoI2(f * -1023.0f, &iv);
                                 f = s * d3fl_Shade[iv];
-                                c.x = f * D3_L(l)->color.x;
-                                c.y = f * D3_L(l)->color.y;
-                                c.z = f * D3_L(l)->color.z;
+                                c.x = f * l->lightColor.x;
+                                c.y = f * l->lightColor.y;
+                                c.z = f * l->lightColor.z;
                                 v->r = c.x + v->r;
                                 v->g = c.y + v->g;
                                 v->b = c.z + v->b;
@@ -239,21 +238,21 @@ char d3_LightApply(D3OBJECT *obj, D3LCTX *set)
                 }
             } else {
                 for (k = 0, t = info->tris; k < info->ntris; k++, t++) {
-                    d3_TriNormal(&t->v[0]->pos, &t->v[1]->pos, &t->v[2]->pos, &nrm);
+                    d3_TriNormal(&t->v[0]->pos, &t->v[1]->pos, &t->v[2]->pos, &nrm.v);
                     acc.x = 0.0f;
                     acc.y = 0.0f;
                     acc.z = 0.0f;
                     for (j = i; j < set->count; j++) {
                         l = set->list[j];
                         if (l->type == 7) {
-                            s = D3_L(obj)->mesh->lightScale * D3_L(l)->power * 0.001f;
-                            f = nrm.x * D3_L(l)->light->dir.x + nrm.y * D3_L(l)->light->dir.y + nrm.z * D3_L(l)->light->dir.z;
+                            s = obj->material->lightScale * l->power * 0.001f;
+                            f = nrm.x * l->light->dir.x + nrm.y * l->light->dir.y + nrm.z * l->light->dir.z;
                             if (f < 0.0f) {
                                 d3l_FtoI2(f * -1023.0f, &iv);
                                 f = s * d3fl_Shade[iv];
-                                c.x = f * D3_L(l)->color.x;
-                                c.y = f * D3_L(l)->color.y;
-                                c.z = f * D3_L(l)->color.z;
+                                c.x = f * l->lightColor.x;
+                                c.y = f * l->lightColor.y;
+                                c.z = f * l->lightColor.z;
                                 acc.x = acc.x + c.x;
                                 acc.y = acc.y + c.y;
                                 acc.z = acc.z + c.z;
@@ -275,9 +274,9 @@ char d3_LightApply(D3OBJECT *obj, D3LCTX *set)
 
 char d3_LightAddObject(D3OBJECT *obj, D3LCTX2 *ctx)
 {
-    D3LINFO *info = D3_L(obj)->info;
+    D3SURF *info = obj->info;
     D3OBJECT *light;
-    D3LVERT *v;
+    D3VERTEX *v;
     D3LREC *rec, *p;
     D3LHIT *hit;
     D3VECTOR4 d, c;
@@ -285,24 +284,24 @@ char d3_LightAddObject(D3OBJECT *obj, D3LCTX2 *ctx)
     int n, i, idx;
 
     if (info) {
-        d3_PointToRef(obj, d3_Camera, &obj->pos, &D3_L(obj)->cam);
-        D3_L(obj)->radius2 = (d3_LightRadiusMargin + info->ops->radius) * (d3_LightRadiusMargin + info->ops->radius);
+        d3_PointToRef(obj, d3_Camera, &obj->pos, &obj->cam);
+        obj->radius2 = (d3_LightRadiusMargin + info->mesh->radius) * (d3_LightRadiusMargin + info->mesh->radius);
         n = 0;
         light = ctx->light;
-        d.x = D3_L(obj)->cam.x - D3_L(light)->cam.x;
-        d.y = D3_L(obj)->cam.y - D3_L(light)->cam.y;
-        d.z = D3_L(obj)->cam.z - D3_L(light)->cam.z;
-        if (sqrt(d.x * d.x + d.y * d.y + d.z * d.z) < (D3_L(light)->radius2) + D3_L(obj)->radius2) {
-            rr = D3_L(light)->range * D3_L(light)->range;
-            k = D3_L(obj)->mesh->lightScale * D3_L(light)->power;
-            z = D3_L(light)->atten;
+        d.x = obj->cam.x - light->cam.x;
+        d.y = obj->cam.y - light->cam.y;
+        d.z = obj->cam.z - light->cam.z;
+        if (sqrt(d.x * d.x + d.y * d.y + d.z * d.z) < (light->radius2) + obj->radius2) {
+            rr = light->range * light->range;
+            k = obj->material->lightScale * light->power;
+            z = light->atten;
             if (ctx->normals) {
                 v = info->keys;
                 for (i = 0; i < info->nkeys; i++, v++) {
                     v->flags &= 0x7f;
-                    d.x = v->x - D3_L(light)->cam.x;
-                    d.y = v->y - D3_L(light)->cam.y;
-                    d.z = v->z - D3_L(light)->cam.z;
+                    d.x = v->x - light->cam.x;
+                    d.y = v->y - light->cam.y;
+                    d.z = v->z - light->cam.z;
                     s = d.x * d.x + d.y * d.y + d.z * d.z;   /* s, not dd: the original reuses s (scale below) */
                     if (s < rr) {
                         d3_Normalize(&d.v);
@@ -314,9 +313,9 @@ char d3_LightAddObject(D3OBJECT *obj, D3LCTX2 *ctx)
                             t = z;   /* through t: VC6 then loads atten before s, as the original */
                             t = (float)((float)(1.0f / (t * s)) * k * 10.0f) * d3fl_Shade[idx];
                             n++;
-                            v->light.x = t * D3_L(light)->color.x;
-                            v->light.y = t * D3_L(light)->color.y;
-                            v->light.z = t * D3_L(light)->color.z;
+                            v->light.x = t * light->lightColor.x;
+                            v->light.y = t * light->lightColor.y;
+                            v->light.z = t * light->lightColor.z;
                         }
                     }
                 }
@@ -324,29 +323,29 @@ char d3_LightAddObject(D3OBJECT *obj, D3LCTX2 *ctx)
                 v = info->keys;
                 for (i = 0; i < info->nkeys; i++, v++) {
                     v->flags &= 0x7f;
-                    d.x = v->x - D3_L(light)->cam.x;
-                    d.y = v->y - D3_L(light)->cam.y;
-                    d.z = v->z - D3_L(light)->cam.z;
+                    d.x = v->x - light->cam.x;
+                    d.y = v->y - light->cam.y;
+                    d.z = v->z - light->cam.z;
                     dd = d.x * d.x + d.y * d.y + d.z * d.z;
                     if (dd < rr) {
                         v->flags |= 0x80;
                         n++;
                         t = (float)(1.0f / (z * dd)) * k * 10.0f;
-                        v->light.x = t * D3_L(light)->color.x;
-                        v->light.y = t * D3_L(light)->color.y;
-                        v->light.z = t * D3_L(light)->color.z;
+                        v->light.x = t * light->lightColor.x;
+                        v->light.y = t * light->lightColor.y;
+                        v->light.z = t * light->lightColor.z;
                     }
                 }
             }
             if (n) {
-                if (D3_L(light)->light->list) {
-                    rec = D3_L(light)->light->list;
+                if (light->light->list) {
+                    rec = light->light->list;
                     while (rec->next)
                         rec = rec->next;
                     p = rec->next = (D3LREC *)mem_Alloc(n * 8 + 0xc, "d3_light:rlight_object");
                 } else {
-                    D3_L(light)->light->list = (D3LREC *)mem_Alloc(n * 8 + 0xc, "d3_light:rlight_object");
-                    p = D3_L(light)->light->list;
+                    light->light->list = (D3LREC *)mem_Alloc(n * 8 + 0xc, "d3_light:rlight_object");
+                    p = light->light->list;
                 }
                 p->obj = obj;
                 p->n = n;
@@ -393,9 +392,9 @@ char d3_LightAttach(D3OBJECT *light, D3OBJECT *obj)
     ctx.light = light;
     ctx.normals = (obj->state >> 5) & 1;
     d3_LightRemoveRecords(light, obj);
-    if (D3_L(light)->power != 0.0) {
-        d3_PointToRef(light, d3_Camera, &light->pos, &D3_L(light)->cam);
-        D3_L(light)->radius2 = D3_L(light)->range * D3_L(light)->range;
+    if (light->power != 0.0) {
+        d3_PointToRef(light, d3_Camera, &light->pos, &light->cam);
+        light->radius2 = light->range * light->range;
         d3_LightAddObject(obj, &ctx);
     }
     return 1;
@@ -414,19 +413,19 @@ char d3_LightRemoveRecords(D3OBJECT *obj, void *src)
 {
     D3LREC *p, *n;
 
-    if (obj && D3_L(obj)->light) {
+    if (obj && obj->light) {
         if (!src) {
-            for (p = D3_L(obj)->light->list; p; p = n) {
+            for (p = obj->light->list; p; p = n) {
                 n = p->next;
                 mem_Free(p);
             }
-            D3_L(obj)->light->list = 0;
+            obj->light->list = 0;
             return 1;
         }
-        p = D3_L(obj)->light->list;
+        p = obj->light->list;
         if (p) {
             if (p->obj == src) {
-                D3_L(obj)->light->list = p->next;
+                obj->light->list = p->next;
                 mem_Free(p);
                 return 1;
             }
@@ -451,15 +450,15 @@ void d3_LightPrepare(D3OBJECT *obj)
         if (!obj->info)
             return;
     }
-    d3_PointToRef(obj, d3_Camera, &obj->pos, &D3_L(obj)->cam);
-    if (D3_L(obj)->info->ops)
-        r = D3_L(obj)->info->ops->Radius(obj, obj->info);
-    D3_L(obj)->radius2 = r * r;
+    d3_PointToRef(obj, d3_Camera, &obj->pos, &obj->cam);
+    if (obj->info->mesh)
+        r = obj->info->mesh->GetRadius(obj, obj->info);
+    obj->radius2 = r * r;
     if (obj->state & 4)
         d3_TransformSurf(obj);
     if (obj->state & 0x20)
-        if (D3_L(obj)->info->ops)
-            D3_L(obj)->info->ops->fn1ec(obj, obj->info);
+        if (obj->info->mesh)
+            obj->info->mesh->TransformNormals(obj, obj->info);
 }
 /* 0x452fa0, sets the colours (c and s) of the vertices of the triangles of surface s from the texture's
    flags: the grey of the accumulated light scaled by the texture's two flag bytes, or the alpha byte alone.
@@ -468,10 +467,10 @@ void d3_LightPrepare(D3OBJECT *obj)
 void d3_SetVertexColors(D3OBJECT *obj, D3SURF *s, char on, D3TEXFLAGS fl)
 {
     int i, k, g;
-    D3PTRI *tri;
+    D3TRI *tri;
     TSTEXTURE *tex;
     D3TEXFLAGS f;
-    D3PVERT *v;
+    D3VERTEX *v;
     D3COLOR c;
     float x, b0, b1;
     unsigned char fl212 = obj->stateFlags;
@@ -479,12 +478,12 @@ void d3_SetVertexColors(D3OBJECT *obj, D3SURF *s, char on, D3TEXFLAGS fl)
     char pos = !(obj->objectFlags & 0x80);
 
     if (!(fl212 & 2)) {
-        tri = (D3PTRI *)s->tris;
+        tri = s->tris;
         for (i = 0; i < s->ntris; i++, tri++) {
             tex = tri->tex;
             if (tex) {
                 if (keep)
-                    ((D3BITS *)&tri->drawFlags)->b2 = ((D3BITS *)&tex->bits)->b4;
+                    tri->bits.b2 = tex->nocull;
                 if (pos)
                     f = tex->flags;
                 else
@@ -495,7 +494,7 @@ void d3_SetVertexColors(D3OBJECT *obj, D3SURF *s, char on, D3TEXFLAGS fl)
                     b0 = f.b[0];
                     for (; k < 3; k++) {
                         v = tri->v[k];
-                        x = min(255.0f, (float)((((D3LVERT *)v)->light.x * 0.3f + ((D3LVERT *)v)->light.y * 0.59f + ((D3LVERT *)v)->light.z * 0.11f + b1) * 0.00390625f) * b0);
+                        x = min(255.0f, (float)((v->light.x * 0.3f + v->light.y * 0.59f + v->light.z * 0.11f + b1) * 0.00390625f) * b0);
                         d3_FtoI(&g, x);
                         c.r = c.g = c.b = c.a = (unsigned char)g;
                         v->c = c;
@@ -518,26 +517,26 @@ void d3_SetVertexColors(D3OBJECT *obj, D3SURF *s, char on, D3TEXFLAGS fl)
 char d3_LightCollectCB(D3OBJECT *obj, D3LCTX *ctx)
 {
     if (!ctx->list) {
-        D3_L(obj)->light->on = 0;
-        d3_PointToRef(obj, d3_Camera, &obj->pos, &D3_L(obj)->cam);
+        obj->light->on = 0;
+        d3_PointToRef(obj, d3_Camera, &obj->pos, &obj->cam);
         if (obj->type == 7) {
-            if (D3_L(obj)->power != 0.0 && !(obj->objectFlags & 0x10)) {
-                d3_DirToRef(obj, d3_Camera, &d3_ZAxis.v, &D3_L(obj)->light->dir);
+            if (obj->power != 0.0 && !(obj->objectFlags & 0x10)) {
+                d3_DirToRef(obj, d3_Camera, &d3_ZAxis.v, &obj->light->dir);
                 ctx->count++;
-                D3_L(obj)->light->on = 1;
+                obj->light->on = 1;
             }
         } else {
-            float r = D3_L(obj)->radius2 = D3_L(obj)->range;
-            float dx = D3_L(obj)->cam.x - D3_L(ctx->obj)->cam.x;
-            float dy = D3_L(obj)->cam.y - D3_L(ctx->obj)->cam.y;
-            float dz = D3_L(obj)->cam.z - D3_L(ctx->obj)->cam.z;
+            float r = obj->radius2 = obj->range;
+            float dx = obj->cam.x - ctx->obj->cam.x;
+            float dy = obj->cam.y - ctx->obj->cam.y;
+            float dz = obj->cam.z - ctx->obj->cam.z;
             float s;
-            if (D3_L(obj)->power != 0.0 && (s = (float)sqrt(dx * dx + dy * dy + dz * dz), s < r + D3_L(ctx->obj)->radius2)) {
+            if (obj->power != 0.0 && (s = (float)sqrt(dx * dx + dy * dy + dz * dz), s < r + ctx->obj->radius2)) {
                 ctx->count++;
-                D3_L(obj)->light->on = 1;
+                obj->light->on = 1;
             }
         }
-    } else if (D3_L(obj)->light->on)
+    } else if (obj->light->on)
         ctx->list[ctx->count++] = obj;
     return 1;
 }
@@ -545,19 +544,19 @@ char d3_LightCollectCB(D3OBJECT *obj, D3LCTX *ctx)
 
 char d3_RelightObject(D3OBJECT *obj)
 {
-    D3LINFO *info;
+    D3SURF *info;
     D3LCTX ctx;
     D3TEXFLAGS f;
     D3VECTOR4 c;
     int i, g;
     float m;
-    D3LVERT *k;
+    D3VERTEX *k;
 
     if (!obj->info)
         obj->info = d3_SelectSurf(obj);
-    info = D3_L(obj)->info;
+    info = obj->info;
     if (info && !(obj->stateFlags & 2)) {
-        ((D3TEXPACK *)&f)->i = 0;
+        f.all = 0;
         f.b[0] = 0xff;
         d3_Busy++;
         d3_LightPrepare(obj);
@@ -617,12 +616,12 @@ char d3_RelightObject(D3OBJECT *obj)
                 k[i].color = k[i].specular;
             }
         }
-        d3_SetVertexColors(obj, (D3SURF *)info, 0, f);
+        d3_SetVertexColors(obj, info, 0, f);
         d3_ForEachObject(obj->scene, 0, 4, (D3OBJECTCB)d3_LightAttach, obj);
         d3_LightRadiusMargin = 0.0f;
         obj->state |= 4;
-        D3_L(obj)->time = d3_Time;
-        D3_L(obj)->mesh->lightGeneration = d3_LightGeneration;
+        obj->lightTime = d3_Time;
+        obj->material->lightGeneration = d3_LightGeneration;
         d3_Busy--;
         return 1;
     }
@@ -641,12 +640,12 @@ void d3_RelightObjects(D3OBJECT *obj)
 
 void d3_RelightObjectFrame(D3OBJECT *obj, struct D3ANIMFRAME *frame)
 {
-    D3LINFO *info;
+    D3SURF *info;
     D3LCTX ctx;
     D3VECTOR4 c;
     int i, g;
     float s;
-    D3LVERT *k;
+    D3VERTEX *k;
 
     if (!(obj->stateFlags & 2)) {
         if (!obj->info) {
@@ -654,16 +653,16 @@ void d3_RelightObjectFrame(D3OBJECT *obj, struct D3ANIMFRAME *frame)
             if (!obj->info)
                 return;
         }
-        info = D3_L(obj)->info;
+        info = obj->info;
         d3_Busy++;
-        d3_PointToRef(obj, d3_Camera, &obj->pos, &D3_L(obj)->cam);
+        d3_PointToRef(obj, d3_Camera, &obj->pos, &obj->cam);
         if (frame)
-            d3_LightRadiusMargin = ((D3LFRAME *)frame)->radius;
+            d3_LightRadiusMargin = frame->radius;
         else
             d3_LightRadiusMargin = 0.0f;
-        s = d3_LightRadiusMargin + info->ops->radius;
-        D3_L(obj)->radius2 = s * s;
-        d3_FrameNormals(obj, (D3SURF *)info, frame);
+        s = d3_LightRadiusMargin + info->mesh->radius;
+        obj->radius2 = s * s;
+        d3_FrameNormals(obj, info, frame);
         k = info->keys;
         for (i = 0; i < info->nkeys; i++) {
             k[i].light.x = d3_AmbientColor.x;
@@ -717,8 +716,8 @@ void d3_RelightObjectFrame(D3OBJECT *obj, struct D3ANIMFRAME *frame)
                 k[i].base.r = min((unsigned int)g, 0xff);
             }
         }
-        D3_L(obj)->time = d3_Time;
-        D3_L(obj)->mesh->lightGeneration = d3_LightGeneration;
+        obj->lightTime = d3_Time;
+        obj->material->lightGeneration = d3_LightGeneration;
         d3_Busy--;
     }
 }

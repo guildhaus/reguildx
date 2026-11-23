@@ -1,9 +1,9 @@
-struct D3ANIM;
+struct D3PATH;
 struct D3FLMAP;
 struct SBSAMPLE;
 struct SBBANK;
 struct D3VECTOR;
-struct D3TERRAIN;
+struct D3FLMAP;
 struct D3SM;
 struct D3SURF;
 /* ch.c -- characters ("ch_SetVisible(): invalid character", "ch_Create:Too many characters!"),
@@ -11,7 +11,7 @@ struct D3SURF;
    byte offsets whose meaning is not known yet. Names are ours. */
 #ifndef UNK_402140_H
 #define UNK_402140_H
-#include "d3.h"                       /* D3VECTOR / D3OBJECT / D3ANIM / D3SCENE: the character record embeds them */
+#include "d3.h"                       /* D3VECTOR / D3OBJECT / D3PATH / D3SCENE: the character record embeds them */
 struct D3OBJECT;
 struct PATHOUT;
 
@@ -37,10 +37,11 @@ typedef struct CHARACTER {         /* 0x244 bytes */
     D3VECTOR offset;                /* 0x54, added to the body position */
     char pad060[0x4];
     D3OBJECT *rightHand;            /* 0x64, the object in the right hand (ch_SetHandObject hand 2, ch_SetVisible) */
-    char pad068[0x8];
+    D3OBJECT *leftHand;             /* 0x68, the object in the left hand (ch_SetHandObject hand 1) */
+    D3OBJECT *headObject;           /* 0x6c, the object on the head (ch_SetHandObject hand 3) */
     struct D3ANIMSLOT *slot;        /* 0x70, current animation */
     struct D3ANIMSLOT *sitSlot;     /* 0x74, the sitting animation (ch_SetSitAnim), 0: none */
-    D3ANIM *turnAnim;               /* 0x78, the path animation a turn action created (CH_ANIM078) */
+    D3PATH *turnAnim;               /* 0x78, the path animation a turn action created (CH_ANIM078) */
     struct D3ANIMSLOT *morph;       /* 0x7c, blend between two animations ("morph_%i") */
     struct D3ANIMDATA *next;        /* 0x80, animation to start next */
     signed char nextloops;          /* 0x84 */
@@ -85,7 +86,7 @@ typedef struct CHARACTER {         /* 0x244 bytes */
     unsigned char pathState;        /* 0x110, cleared when a walk action's path search fails (reasoned: the only
                                        access the image has, ch_InitWalk) */
     char pad111[0x13];
-    D3OBJECT **transport;              /* points to a CHTRANSPORT */
+    struct CHTRANSPORT *transport;  /* 0x124, the transport object the character moves with (ch_AttachTransport) */
     union {                         /* 0x128 */
         CHANIM *anim;               /* the animation file in use */
         struct CHACTION *actions;   /* the action queue of the character */
@@ -97,7 +98,7 @@ typedef struct CHARACTER {         /* 0x244 bytes */
     float walkSpeed;                /* 0x1a0, a factor of the walk animation's playSpeed (ch.c); 1.0 at creation, a
                                        fighter's AIWEAPON.speed * 2/7 (cm_AddFighter) */
     float speedScale;               /* 0x1a4, walk animation speed scale 0.4 .. 1: a factor of
-                                       CH_XSLOT(ch)->playSpeed, lowered by ch_GetNewPath the closer a blocking
+                                       ch->slot->speed, lowered by ch_GetNewPath the closer a blocking
                                        character is (0.5 minimum) and raised again by 0.01 per walk update */
     char handObject[0x40];          /* 0x1a8, the model in the right hand (ch_SetHandObject hand 2 on load) */
     char sitAnim[0x40];             /* 0x1e8, the sit animation (ch_SetSitAnim on load, cut at its last '_') */
@@ -121,7 +122,6 @@ typedef struct CHTRANSPORT {        /* 0x18 bytes, what CHARACTER.transport poin
     int unk10;
     int reserved14;                 /* 0x14, only ever written 0 (ch_AttachTransport); no reader names it */
 } CHTRANSPORT;
-#define CH_TRANSPORT(ch) ((CHTRANSPORT *)(ch)->transport)
 
 typedef struct CHFADE {             /* 12 bytes, 16 of them in ch_Fades */
     CHARACTER *ch;
@@ -142,7 +142,7 @@ char d3if_ShowTree(D3OBJECT *obj, char show);                                   
 void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);                           /* 0x458810 */
 float d3_VecAngle(const D3VECTOR *a, D3VECTOR *b);                                            /* 0x4539f0 */
 extern const D3VECTOR4 d3_ZAxis;             /* 0x5ebb74, (0, 0, 1) */
-struct D3SM * d3sm_Create(struct D3TERRAIN *t, int size, int mask);                          /* 0x45eeb0 */
+struct D3SM * d3sm_Create(struct D3FLMAP *t, int size, int mask);                          /* 0x45eeb0 */
 void err_Message(char *msg);                                                            /* 0x4222b0 */
 int d3t_ReleaseObjectTextures(D3OBJECT *obj);                                           /* 0x411b70 */
 int sv_ReturnZero(void);                                                       /* 0x52a040 */
@@ -165,11 +165,6 @@ typedef union CHANIMFLAGS {
 } CHANIMFLAGS;
 struct D3ANIMDATA *d3_LoadAnimStream(char *name, char *file, char unk);                                /* 0x44e4a0, loads an animation, d3_io_t.c */
 
-/* bits of the D3OBJECT flag bytes 0x210..0x213 (by offset; d3_engine.h's D3OBJBITS names the bits of 0x210) */
-typedef struct CHOBJBITS {
-    unsigned char b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1;
-} CHOBJBITS;
-#define D3OBJ_BITS(obj, off) ((CHOBJBITS *)((char *)(obj) + (off)))
 float d3_YawTo(struct D3OBJECT *obj, const struct D3VECTOR *p);                                     /* 0x448ac0, angle towards target */
 
 extern char ch_ShadowEnabled;           /* 0x5f122c */
@@ -235,6 +230,7 @@ typedef void (*CHACTCB)(CHACTION *a);  /* func2: its result is not read (ch_Upda
 #define CH_WALK_STOPANIM 0x40   /* release the walk animation before moving on */
 #define CH_WALK_ARRIVED  0x80   /* the dest was reached: the action removes itself */
 
+typedef struct CHPATHPT { unsigned char x, z; } CHPATHPT;   /* a cell of a walk path (CHACTION.u.walk.path) */
 struct CHACTION {                   /* 0x194 bytes, 2000 of them in ch_Queue; func == 0: free */
     CHACTFUNC func;                 /* 0x00, called every update */
     CHACTCB func2;                  /* 0x04, called when the animation reaches frame func2Frame */
@@ -245,10 +241,19 @@ struct CHACTION {                   /* 0x194 bytes, 2000 of them in ch_Queue; fu
     unsigned char started;          /* 0x10, set once the action's initial wait for a free slot is over
                                        (ch_ActStandUp); ch_ActAnim returns it while its animation runs */
     char pad11[0x3];
-    CHARACTER *ch;                  /* 0x14 */
+    union {
+        CHARACTER *ch;              /* 0x14 */
+        int chIdx;                  /* 0x14, its ch_List index while saved (ls_WriteCharacters / ls_LoadCharacter) */
+    };
     D3VECTOR rot;                   /* 0x18, turn actions: final angles (worker ch4) */
-    CHACTION *prev;                 /* 0x24, the character's queue */
-    CHACTION *next;                 /* 0x28 */
+    union {
+        CHACTION *prev;             /* 0x24, the character's queue */
+        int prevIdx;                /* 0x24, its ch_Queue index while saved (ls_ActionIndex; -1: none) */
+    };
+    union {
+        CHACTION *next;             /* 0x28 */
+        int nextIdx;                /* 0x28, the same */
+    };
     char pad2c[0x4];
     union {                         /* 0x30 */
         int args[0x30];             /* from ch_InsertAction's varargs */
@@ -278,7 +283,7 @@ struct CHACTION {                   /* 0x194 bytes, 2000 of them in ch_Queue; fu
         } scene;
         struct {
             int pathLen;            /* 0xf0, number of cells in path (2 bytes each) */
-            void *path;             /* 0xf4, walk actions: allocated path */
+            CHPATHPT *path;         /* 0xf4, walk actions: the allocated path, pathLen cells */
             int cur;                /* 0xf8, next path cell (from here: worker ch4) */
             int prevCell;           /* 0xfc, reasoned: set to -1 with cur at every new path (the cell walked from, -1
                                        before the first); no reader in the image */
@@ -301,9 +306,22 @@ struct CHACTION {                   /* 0x194 bytes, 2000 of them in ch_Queue; fu
             void (*fail)(CHACTION *a);  /* 0x15c, called when no path is found */
             int flags;              /* 0x160, the CH_WALK_* flags below */
         } walk;
+        struct {                    /* the gate and object actions (ch_UseGate, ch_ActTakingObject ..) */
+            char name[0x40];        /* 0xf0, animation */
+            char name2[0x40];       /* 0x130, object / gate name */
+            union {
+                int scene;          /* 0x170, a gate: the target scene of the move it queues */
+                struct D3ANIMDATA *takeAnim;    /* the take action: the animation it started (unread) */
+            };
+            union {
+                int group;          /* 0x174, a gate: the group of that move */
+                struct D3ANIMDATA *dropAnim;    /* the drop action: the animation it started (unread) */
+            };
+        } obj;
     } u;
     union {                             /* 0x178 */
         float speed;                    /* walk actions: the animation speed */
+        int moveScriptGroup;            /* a gate (ch_UseGate): the scriptGroup of the move it queues */
         struct {                        /* animation-script actions (chc.c) */
             int unk178;
             int group;                  /* 0x17c, EVTSCRIPT.group for the script it runs */
@@ -369,8 +387,6 @@ typedef struct CHACTDEF {           /* 0x4c bytes, 64 of them in ch_ActDefs */
 /* CHARACTER fields that the declaration above does not name yet */
 #define CH_FRAME(ch)    ((ch)->lastActionFrame)                 /* last frame func2 ran for */
 #define CH_ACTIONS(ch)  ((ch)->actions)                             /* 0x128, queue head */
-#define CH_MODEL(ch)    ((char *)(ch) + 0x130)                      /* model name */
-#define CH_MODEL2(ch)   ((char *)(ch) + 0x230)                      /* model name of unk22c */
 
 #define CH_QUEUE 2000
 
@@ -384,7 +400,7 @@ extern int ch_DirtyZ0;                      /* 0x5f12ac */
 extern int ch_DirtyX1;                      /* 0x63107c */
 extern int ch_DirtyZ1;                      /* 0x631080 */
 extern int d3t_CamMoving;                   /* 0x6310e4 */
-extern struct D3ANIM *d3t_CamMove;       /* 0x6310e8, the running camera animation (d3_tools.c) */
+extern struct D3PATH *d3t_CamMove;       /* 0x6310e8, the running camera animation (d3_tools.c) */
 
 char d3sm_GetVertex(struct D3SM *h, int x, int z, struct D3VECTOR *out);                              /* 0x45f100 */
 char map_Pick(struct D3FLMAP *map, struct D3VECTOR *pos, char lod, int *x, int *y, float *h);             /* 0x4463b0 */
@@ -392,7 +408,7 @@ int d3t_PlaceObjectV(struct D3OBJECT *camera, struct D3VECTOR *pos, struct D3VEC
 void vfs_ToSlashes(char *path);                                                         /* 0x42ed10 */
 
 void ch_LoadLowAnims(CHARACTER *ch, int n, ...);                                        /* 0x404360 */
-int ch_AttachAni(CHARACTER *ch, char *name, unsigned char loop);                        /* 0x4044a0 */
+struct D3ANIMSLOT *ch_AttachAni(CHARACTER *ch, char *name, unsigned char loop);         /* 0x4044a0 */
 int ch_ActAnim(CHACTION *a);                                                            /* 0x404640 */
 CHACTION *ch_GetFreeQueueEntry(void);                                                   /* 0x404760 */
 int ch_RemoveAction(CHACTION *a);                                                       /* 0x4047a0 */
@@ -424,15 +440,6 @@ extern int ch_LastUpdate;                   /* 0x5f1224 */
 char ch_FindFreeCell(struct D3SM *h, struct D3VECTOR *from, struct D3VECTOR *to, int x, int z, int *px, int *pz, int max, int flags); /* 0x4072a0, see ch4 block */
 
 /* ---- 0x405810..0x406e40 (worker ch3): sit / stand / gate / take / drop actions ---- */
-/* CHACTION.u as used by the gate and object actions */
-typedef struct CHACTOBJ {
-    char name[0x40];                /* 0xf0, animation */
-    char name2[0x40];               /* 0x130, object / gate name */
-    int data[3];                    /* 0x170, the action's int payload: gate - the target scene, the group
-                                       and the scriptGroup of the move it queues; take - data[0] the
-                                       animation it started (a D3ANIMDATA *); data[2] also CHACTION.speed */
-} CHACTOBJ;
-#define CH_ACTOBJ(a)    ((CHACTOBJ *)&(a)->u)
 
 
 CHACTION *ch_QueueAnimSpeed(CHARACTER *ch, char *name, int n, float speed);                  /* 0x405810 */
@@ -461,15 +468,9 @@ D3OBJECT *ch_FindDummy(void);                                                   
 void ch_ActMove2Universe(CHACTION *a);                                                  /* 0x4067f0 */
 int ch_FollowGround(CHACTION *a);                                                       /* 0x406a70 */
 
-typedef struct CHPATHPT { unsigned char x, z; } CHPATHPT;
-typedef struct CHWALKDEF {
-    char pad00[0x10];
-    float speed;                    /* 0x10 */
-} CHWALKDEF;
-int ch_ThinPath(CHARACTER *ch, struct PATHOUT *path, CHPATHPT *out, CHWALKDEF *w);              /* 0x406bc0 */
+int ch_ThinPath(CHARACTER *ch, struct PATHOUT *path, CHPATHPT *out, struct D3SM *map);              /* 0x406bc0 */
 void ch_SetHandObject(CHARACTER *ch, int hand, char *name);                             /* 0x406c60, 1 left, 2 right, 3 head */
 
-#define CH_HAND(ch, off) ((D3OBJECT **)((char *)(ch) + (off)))                     /* 0x64 right, 0x68 left, 0x6c head */
 char d3if_SelectTextureSet(struct D3OBJECT *obj, struct D3SURF *surf, unsigned char set, char reload);                       /* 0x446f30 */
 char d3_AttachToBone(D3OBJECT *obj, char *name);                                           /* 0x43d6c0 */
 
@@ -517,25 +518,6 @@ typedef struct CHKEYFLAGS {         /* D3ANIMFLAGS as built for d3anim_CreatePat
 void ch_ActTurn(CHACTION *a);                                                           /* 0x406e60 */
 
 /* ---- 0x408690..0x40a900 (worker ch5): walking along a path ---- */
-typedef struct CHSLOT {             /* D3ANIMSLOT as the walk code sees it */
-    int frame;
-    char pad04[0x48];
-    D3VECTOR pos;                   /* 0x4c, where the animation moves the character to */
-    int unk58;
-    float speed;                    /* 0x5c, the animation speed set by ch_StartWalkAnim */
-    float playSpeed;                /* 0x60, the playback speed the walk code applies from the ground
-                                       type and CHARACTER.speedScale; 0.01 stops the animation, 1.0 is
-                                       the plain speed */
-    int unk64;
-    D3ANIMDATA *data;               /* 0x68 */
-    unsigned char b6c;
-    unsigned char f6d_1 : 4, f6d_10 : 1, f6d_20 : 1, f6d_40 : 2;          /* 0x6d */
-    unsigned char pad6e[2];
-    unsigned int a70 : 1, b70 : 1, r70 : 30;                            /* 0x70 */
-    unsigned char f74_1 : 1, play : 1, f74_4 : 1, f74_8 : 1, f74_10 : 4; /* 0x74 */
-} CHSLOT;
-#define CH_XSLOT(ch)    ((CHSLOT *)(ch)->slot)
-#define CH_POS038(ch)   ((D3VECTOR *)((char *)(ch) + 0x38))
 
 extern char ch_MarkWalkErrors;           /* 0x631058, marks a failed walk animation on the character (a debug switch, always 0) */
 extern struct SBBANK *ch_SndLib;            /* 0x63105c, sound library for step sounds */

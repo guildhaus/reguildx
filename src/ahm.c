@@ -289,31 +289,31 @@ float ahm_PlaceFactor(AICHAR *c, int id)
 
 int ahm_ResearchState(AIBLD *o, int *a, float *f, int flag)
 {
-    AHMRESEARCH *ev;
+    AIJOB *ev;
     float s, v;
 
-    ev = (AHMRESEARCH *)he_FindEvent(1, 3, o->id);
+    ev = he_FindEvent(1, 3, o->id);
     while (ev != 0) {
         switch (ev->kind) {
         default:
-            ev = (AHMRESEARCH *)he_NextEvent();
+            ev = he_NextEvent();
             break;
         case 0x95:
-            s = ((float)ev->total - (float)ev->amount) / (float)ev->total;
+            s = ((float)ev->recipeTotal - (float)ev->recipeLeft) / (float)ev->recipeTotal;
             *f = s;
             *f = (1.0f < s ? 1.0f : s) > 0.0f ? (1.0f < s ? 1.0f : s) : 0.0f;
             return 1;
         case 0x96:
-            v = ((float)ev->start - (float)ev->total) / (float)ev->start;
+            v = ((float)ev->ahmResearchStart - (float)ev->ahmResearchAmount) / (float)ev->ahmResearchStart;
             *f = v;
             *f = (1.0f < v ? 1.0f : v) > 0.0f ? (1.0f < v ? 1.0f : v) : 0.0f;
-            *a = ev->id;
+            *a = ev->ahmResearchId;
             return 2;
         case 0x97:
-            v = ((float)ev->start - (float)ev->total) / (float)ev->start;
+            v = ((float)ev->ahmResearchStart - (float)ev->ahmResearchAmount) / (float)ev->ahmResearchStart;
             *f = v;
             *f = (1.0f < v ? 1.0f : v) > 0.0f ? (1.0f < v ? 1.0f : v) : 0.0f;
-            *a = ev->id;
+            *a = ev->ahmResearchId;
             return 3;
         case 4:
             if (flag == 0)
@@ -330,15 +330,15 @@ int ahm_ResearchState(AIBLD *o, int *a, float *f, int flag)
 
 void ahm_RescheduleResearch(AIBLD *o)
 {
-    AHMRESEARCH *ev;
+    AIJOB *ev;
 
-    ev = (AHMRESEARCH *)he_FindEvent(1, 3, o->id);
+    ev = he_FindEvent(1, 3, o->id);
     while (ev != 0) {
         if (0x95 <= ev->kind && ev->kind <= 0x97) {
-            ev->due = ai_Time;
-            cm_SendExSetHE(-2, (struct AIJOB *)ev);
+            ev->end = ai_Time;
+            cm_SendExSetHE(-2, ev);
         }
-        ev = (AHMRESEARCH *)he_NextEvent();
+        ev = he_NextEvent();
     }
 }
 /* 0x4eb480, loads the prototype tables at start: with mode 0 from "/gamedata/ai/alchemy.dfn" (ahm_LoadDfn), else from "alchemy_data.ini" and then written back
@@ -693,9 +693,8 @@ void ahm_ClearStep(AHMSTEP *p)
    when there is one, both times 500 (0x5ed098), as an int shifted by 5. The two sums are added, not chosen (the 0.0 at 0x5eb788 is the FPU value the
    branch does or does not replace). */
 
-int ahm_StepValue(char *p)
+int ahm_StepValue(AHMSTEP *s)
 {
-    AHMSTEP *s = (AHMSTEP *)p;
     float v, sum, x;
     AHMGRID *g;
 
@@ -897,9 +896,8 @@ int ahm_SendSetShare(AICHAR *c, int id, float v)
 /* 0x4eca00, the 'SsCa' handler: sets the share m->id (0 .. 3) of the record rec (+8 .. +0xb) to the value m->value.f times 252 (the inverse of 0x4eab20); 0 for
    another number */
 
-int ahm_SetShare(int *p, AHMREC *rec)
+int ahm_SetShare(AHMORDER *m, AHMREC *rec)
 {
-    AHMORDER *m = (AHMORDER *)p;
     AHMREC *r = rec;
 
     switch (m->id) {
@@ -940,39 +938,9 @@ int ahm_SendAddPlace(AICHAR *c, int id)
     m.value.i = g->w[2];
     return cm_SendCommand(&m);
 }
-/* 0x4ecb30, puts the order p (+8 the id, +0x10 the value) into the first free place of the record rec (6 pairs at +0xc) of the object o (+0x5d the list); 0 when all are in use */
+/* 0x4ecb30, puts the order m (+8 the id, +0x10 the value) into the first free place of the record rec (6 pairs at +0xc) of the object o (+0x5d the list); 0 when all are in use */
 
-int ahm_AddPlace(int *p, AHMREC *rec, AIBLD *o)
-{
-    AIBLD *obj = o;
-    AHMREC *r = rec;
-    AHMORDER *m = (AHMORDER *)p;
-    int i;
-    AHMGOOD *sp;
-    AHMSLOT *q;
-
-    q = r->slots;
-    i = 0;
-    do {
-        if (q->id == 0) {
-            sp = (AHMGOOD *)gm_Query(obj->objList, 2, 6, 0, 0xff);
-            if (net_Conn.s != INVALID_SOCKET)   /* a network game: the server's id counter wins */
-                ai_NextObjectId = m->nextObjectId;
-            r->slots[i].id = m->id;
-            r->slots[i].v = m->value.f;
-            if (sp != 0)
-                gm_AddObjekt(sp->objId, p[2], 2);
-            gm_RefreshGoodsLists(ai_OwnPlayer);
-            return 1;
-        }
-        i++;
-        q++;
-    } while (i < 6);
-    return 0;
-}
-/* 0x4ecbc0, removes the place of the id p[2] from the record rec and from the list of the object o; 0 when there is none */
-
-int ahm_RemovePlace(int *p, AHMREC *rec, AIBLD *o)
+int ahm_AddPlace(AHMORDER *m, AHMREC *rec, AIBLD *o)
 {
     AIBLD *obj = o;
     AHMREC *r = rec;
@@ -983,10 +951,39 @@ int ahm_RemovePlace(int *p, AHMREC *rec, AIBLD *o)
     q = r->slots;
     i = 0;
     do {
-        if (q->id == p[2]) {
+        if (q->id == 0) {
+            sp = gm_Query(obj->objList, 2, 6, 0, 0xff);
+            if (net_Conn.s != INVALID_SOCKET)   /* a network game: the server's id counter wins */
+                ai_NextObjectId = m->nextObjectId;
+            r->slots[i].id = m->id;
+            r->slots[i].v = m->value.f;
+            if (sp != 0)
+                gm_AddObjekt(sp->objId, m->id, 2);
+            gm_RefreshGoodsLists(ai_OwnPlayer);
+            return 1;
+        }
+        i++;
+        q++;
+    } while (i < 6);
+    return 0;
+}
+/* 0x4ecbc0, removes the place of the id m->id from the record rec and from the list of the object o; 0 when there is none */
+
+int ahm_RemovePlace(AHMORDER *m, AHMREC *rec, AIBLD *o)
+{
+    AIBLD *obj = o;
+    AHMREC *r = rec;
+    int i;
+    AIOBJ *sp;
+    AHMSLOT *q;
+
+    q = r->slots;
+    i = 0;
+    do {
+        if (q->id == m->id) {
             sp = gm_Query(obj->objList, 2, 6, 0, 0xff);
             if (sp != 0)
-                gm_RemoveObject(&sp->list, p[2]);
+                gm_RemoveObject(&sp->list, m->id);
             r->slots[i].id = 0;
             r->slots[i].v = 0.0f;
             return 1;
@@ -1015,9 +1012,8 @@ int ahm_SendSetPlaceValue(AICHAR *c, int id, float v)
 }
 /* 0x4ecd10, the 'cRSa' handler: sets the value of the place m->id in the record rec to m->value.f; 0 when there is none */
 
-int ahm_SetPlaceValue(int *p, AHMREC *rec)
+int ahm_SetPlaceValue(AHMORDER *m, AHMREC *rec)
 {
-    AHMORDER *m = (AHMORDER *)p;
     AHMREC *r = rec;
     int i;
 
@@ -1045,9 +1041,8 @@ int ahm_SendAddValue(AICHAR *c, float v)
 }
 /* 0x4ecdb0, the 'SmSa' handler: adds m->value.f to the value at +4 of the record rec, clamped to 0 .. 1 (the windows.h min / max macros on the sum in a local; the 0.0f / 1.0f are the pooled literals ai_FloatZero / ai_FloatOne) */
 
-int ahm_AddValue(int *p, AHMREC *rec)
+int ahm_AddValue(AHMORDER *m, AHMREC *rec)
 {
-    AHMORDER *m = (AHMORDER *)p;
     AHMREC *r = rec;
     float f;
 
@@ -1069,31 +1064,31 @@ int ahm_SendDelete(AICHAR *c)
     m.charId = c->netId;
     return cm_SendCommand(&m);
 }
-/* 0x4ece60, deletes the alchemist of the record rec (+0 the character id): clears its object pointers, removes the places from the list of the object o, zeroes the record; 0 when the character is gone */
+/* 0x4ece60, the 'ErFi' handler (the order m unread): deletes the alchemist of the record rec (+0 the character id): clears its object pointers, removes the places from the list of the object o, zeroes the record; 0 when the character is gone */
 
-int ahm_DeleteAlchemist(int unused, int *rec, AIBLD *o)
+int ahm_DeleteAlchemist(AHMORDER *m, AHMREC *rec, AIBLD *o)
 {
     AICHAR *c;
     AIOBJ *sp;
-    int *q;
+    AHMSLOT *q;
     int i;
 
-    c = gm_FindChar(rec[0]);
+    c = gm_FindChar(rec->id);
     if (c != 0) {
         sp = gm_Query(o->objList, 2, 6, 0, 0xff);
         c->bld2 = 0;
         c->bld = 0;
-        q = rec + 3;
+        q = rec->slots;
         for (i = 6; i != 0; i--) {
-            if (*q != 0) {
+            if (q->id != 0) {
                 if (sp != 0)
-                    gm_RemoveObject(&sp->list, *q);
-                *q = 0;
-                q[1] = 0;
+                    gm_RemoveObject(&sp->list, q->id);
+                q->id = 0;
+                q->v = 0.0f;
             }
-            q += 2;
+            q++;
         }
-        memset(rec, 0, 0x3c);
+        memset(rec, 0, sizeof(AHMREC));
         gm_KillSpieler(c->id, 1);
         return 1;
     }

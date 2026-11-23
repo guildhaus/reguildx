@@ -11,7 +11,6 @@ struct D3OBJECT;
 struct D3SURF;
 struct VFSDIR;
 struct D3SM;
-struct D3TERRAIN;
 #include "txt_views.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,8 +46,7 @@ extern AISTORE gm_Offers[];            /* 0x7e4b20 */
 /* the player record view (ai.h's AIFIN, 0xac bytes, gm_PlayerRecords): the camera fields this unit reads */
 
 
-/* stdlib min / max (the body ai.h defines; f3init does not include ai.h yet: its cm_SendExSellObject with an int
-   third parameter, @original, supersedes ai.h's short) */
+/* stdlib min / max (the body ai.h defines; f3init does not include ai.h yet) */
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
@@ -83,11 +81,8 @@ typedef struct INIT_TORCHLIST {
                                           it at 0x6d0448 (build/link/exe/exe.map), which made the mask 0x6e8607
                                           and every id / parent lookup miss */
 #define INIT_CHARACTER_COUNT 0x300      /* ch.h's CH_MAX: the slots of the character list ch_List (0x1468ae0) */
-#define INIT_START_CHARACTERS_END ((int)&ai_Chars[16]) /* one past the 16th character record, compared signed (init_StartNewGame) */
-#define INIT_CHARACTERS_END ((unsigned)ai_Chars + 0x300 * 0x21c)  /* one past the character table ai_Chars (0x770b80 + 0x300 * 0x21c = 0x7d5f80; the original's gm_PlayerRecords follows it there, not in our link) */
-#define INIT_LAST_CHARACTER ((uintptr_t)&ai_Unk770d8c + 0x64fd8)  /* the last character record of ai_Chars (INIT_CHARACTERS_END - 0x21c; the greeting loop walks up to its +2) */
+#define INIT_START_CHARACTERS_END ((intptr_t)&ai_Chars[16]) /* one past the 16th character record, compared signed (init_StartNewGame) */
 #define INIT_FIELD_MONEY 0x1ac          /* the character's money field (the field block of the start purse) */
-#define INIT_FIELD_RELIGION 0x0c        /* the character's religion field: 0 catholic / 1 protestant (the two judges) */
 
 /* the functions of f3gm.c this unit calls (declared by their addresses there) */
 int gm_IsBuildingKind(int n);           /* 0x4fe940, f3gm.c: 1 when the object prototype n is a building part */
@@ -96,7 +91,6 @@ unsigned gm_PermissionBits(unsigned p1, struct AIBLD *b, struct AIOBJ *o, struct
 
 
 struct D3SCENE;
-/* init_SceneDirty: view of d3_Scenes (tools/data_views.py) */
 extern int sv_FrameMask;           /* 0x760638 */
 extern short d2_ScreenW;  /* 0xfb9072 */
 extern short d2_ScreenH;  /* 0xfb9070 */
@@ -173,7 +167,7 @@ struct G13MIS;
 struct G13MIS *ai_NewRandomMission(int owner, int kind, int x);  /* 0x4b3c10, mission.h */
 void ai_ShowMissions(int owner);                /* 0x4b5310, mission.c */
 void cm_SetSpeedLevel(unsigned int v);          /* 0x4c3ef0, cm.h */
-int cm_SendMessage0c(int a, int b, short c, unsigned char d, int e, unsigned char f, unsigned char g, const char *s1, const char *s2);  /* 0x4c46d0, cm.h */  /* @original: the callers store the returned slot, cm.c defines void */
+int cm_SendMessage0c(int a, int b, short c, unsigned char d, int e, unsigned char f, unsigned char g, const char *s1, const char *s2);  /* 0x4c46d0, cm.h */
 void main_GiveStartBuildings(int p);                     /* 0x534040, main.c range: gm_BuildQuery(1, 0, 6) makes the "Home-Sweet" house and hands it to character c (0x502b60) */
 struct D3FLMAP;
 int d3fl_ReplaceTexture(struct D3FLMAP *map, char *name, int idx);  /* 0x442210, d3_fl.c */
@@ -204,7 +198,6 @@ extern int init_StatusForm;
 #include "f3init_types.h"
 extern INIT_PLAYER init_PlayerProfile;
 extern struct AICHAR *ai_SceneChars[32];
-#define INIT_WINDOWS_END (uintptr_t)&sv_SkyScale       /* one past the scene window table 0x7603a0 (0x20 ints) */
 #include "rd_types.h"                 /* G15BK, the building sites ai_Bauplaetze (rd.h cannot be included here) */
 #include "ls.h"
 #include "f3init.h"
@@ -307,11 +300,11 @@ int init_SceneNameToPrototype(D3OBJECT *o)
 /* 0x50d350, the destroy callback of a scene object: removes its gfx infos and it from the quad tree d3_QuadTree */
 
 
-void init_SceneObjectDestroyCB(int o)
+void init_SceneObjectDestroyCB(D3OBJECT *o)
 {
     he_RemoveGfxInfos(o);
     if (d3_QuadTree != 0)
-        d3q_RemoveObject((D3OBJECT *)o, d3_QuadTree);
+        d3q_RemoveObject(o, d3_QuadTree);
 }
 /* 0x50d380, names the scene object o after its prototype ("gb_NAME" for kind 2, p a building record; "ob_NAME" for
    kind 1, p an object instance), sets its kind (3 for a building, 0 with no mask for a building type of class 10,
@@ -345,7 +338,7 @@ void init_HookObject(D3OBJECT *o, void *p, int kind)
     init_SceneNameToPrototype(o);
     o->owner = p;
     if (o->material != 0)
-        o->material->freeCallback = (void (*)(struct D3OBJECT *))init_SceneObjectDestroyCB;
+        o->material->freeCallback = init_SceneObjectDestroyCB;
 }
 /* 0x50d460, marks every scene universe as not loaded; returns 0 */
 
@@ -420,7 +413,7 @@ void init_AllocSceneBuilding(D3OBJECT *o)
                    kind is a register value (movsx ecx, byte ptr [ebp+0x4b] / cmp ecx,2), which a single
                    kind compare folds into cmp byte ptr [ebp+0x4b],2 */
                 if (kind == 2 && id == INIT_KONTOR_BUILDING) {
-                    b = (AIBLD *)gm_CreateBuilding(INIT_KONTOR_BUILDING, 0xffff);
+                    b = gm_CreateBuilding(INIT_KONTOR_BUILDING, 0xffff);
                     u = strrchr(o->name, '_') + 1;
                     strcpy(tail, u);
                     for (i = 1; i < 4; i++) {
@@ -433,7 +426,7 @@ void init_AllocSceneBuilding(D3OBJECT *o)
                         }
                     }
                 } else
-                    b = (AIBLD *)gm_CreateBuilding(id, 0xffff);
+                    b = gm_CreateBuilding(id, 0xffff);
                 if (b != 0) {
                     sprintf(buf, "f3_init:Geb\xe4ude des Typs %s allokiert", txt_Ptrs[TXT_BUILDING_NAMES + (id * 0xe - 2)]);
                     b->object = o;
@@ -482,10 +475,10 @@ void init_AdjustSceneLights(D3OBJECT *o)
 
     if (o->type == 6) {
         for (i = 0; i < 7; i++) {
-            if (D3_L(o)->light->keys[i].rgb[2] == 0.0f) {
-                D3_L(o)->light->keys[i].rgb[2] = (D3_L(o)->light->keys[i].rgb[1] + D3_L(o)->light->keys[i].rgb[0]) * 0.05f;
-                D3_L(o)->light->keys[i].rgb[1] *= 0.8f;
-                D3_L(o)->light->keys[i].val *= 0.5f;
+            if (o->light->keys[i].color.z == 0.0f) {
+                o->light->keys[i].color.z = (o->light->keys[i].color.y + o->light->keys[i].color.x) * 0.05f;
+                o->light->keys[i].color.y *= 0.8f;
+                o->light->keys[i].intensity *= 0.5f;
             }
         }
         if (o->lightColor.z == 0.0f) {
@@ -585,7 +578,7 @@ void init_LoadObjectScene(int n)
                         }
                     } else {
                         ch_SetPos(o, &o->pos, 1);
-                        ch_PlaceOnGround((struct CHARACTER *)o, 1);
+                        ch_PlaceOnGround(o, 1);
                     }
                 }
             }
@@ -638,7 +631,7 @@ void init_LoadBuildingScene(int k)
     struct D3OBJECT *d;
     int changed;
     D2FADE *bx;
-    char *slot;
+    signed char *slot;
     void (*cb)(int, int, int);
     unsigned fl;
     char buf[0x104], name[0x200], name2[0x80];
@@ -656,7 +649,7 @@ void init_LoadBuildingScene(int k)
         tb_SetFunctionOff(sv_UpdateClock, 1);
         changed = 1;
     }
-    slot = (char *)init_BuildingUniverse + ai_BTypes[k].kind;
+    slot = init_BuildingUniverse + ai_BTypes[k].kind;
     if (*slot == -1) {
         if (ai_GameState != 0 && (ai_FrameWait <= 0 || sv_QuickJump.panelFlag != 0)) {
             fl = sv_FrameMask & 0xfffffff7 | 0x80;
@@ -754,7 +747,7 @@ void init_LoadBuildingScene(int k)
    record of the kinds 0 .. 4 gets a start purse (the field INIT_FIELD_MONEY: rand() & 0xffff + 10 through the
    player factor) as a field block of its own. Then the two judges are created (kind 0xc, money 0x12) in one
    send group and fetched back through their send slots as ai_JudgeCatholic / ai_JudgeProtestant, whose
-   religion field INIT_FIELD_RELIGION is set to 0 / 1 in a second group; eight characters of the kind 0
+   religion field (AICHAR.faith) is set to 0 / 1 in a second group; eight characters of the kind 0
    (money rand(8) + 0x10, the 6th argument rand(3) + 4) follow in a third and eight of the kind 0xb (the 7th
    argument 0x13, each one also announced as a trade message from object -2) in a fourth; every group is
    waited for by pumping the queue. The message senders leave their send slot in eax where cm.h's prototypes
@@ -781,7 +774,7 @@ void init_StartNewGame(int unused)
             cm_SendFieldDeltas();
         }
         c++;
-    } while ((int)c < INIT_START_CHARACTERS_END);
+    } while ((intptr_t)c < INIT_START_CHARACTERS_END);
     cm_BeginSendGroup();
     w1 = cm_SendCreateCharacter(0xc, -1, -1, 0x12, -1, 0, 0, 0);
     w2 = cm_SendCreateCharacter(0xc, -1, -1, 0x12, -1, 0, 0, 0);
@@ -798,11 +791,11 @@ void init_StartNewGame(int unused)
     cm_BeginSendGroup();
     m = 0;
     cm_BeginFieldBlock(ai_JudgeCatholic, ai_JudgeCatholic->netId);
-    cm_AddFieldDelta(1, 1, ((char *)ai_JudgeCatholic - cm_FieldObject) + INIT_FIELD_RELIGION, &m);
+    cm_AddFieldDelta(1, 1, (char *)&ai_JudgeCatholic->faith - cm_FieldObject, &m);
     cm_SendFieldDeltas();
     m = 1;
     cm_BeginFieldBlock(ai_JudgeProtestant, ai_JudgeProtestant->netId);
-    cm_AddFieldDelta(1, 1, ((char *)ai_JudgeProtestant - cm_FieldObject) + INIT_FIELD_RELIGION, &m);
+    cm_AddFieldDelta(1, 1, (char *)&ai_JudgeProtestant->faith - cm_FieldObject, &m);
     cm_SendFieldDeltas();
     cm_EndSendGroup();
     i = cm_SendGroupState();
@@ -1038,7 +1031,7 @@ int init_CreateStartCharacters(int unused)
             n++;
         }
         p++;
-    } while ((intptr_t)p < (intptr_t)INIT_CHARACTERS_END);
+    } while ((intptr_t)p < (intptr_t)&ai_Chars[0x300]);
     for (i = 0; i < 30; i++)
         ids[i] = i;
     gm_Shuffle(4, ids);
@@ -1209,9 +1202,9 @@ void init_CreateOpeningObjects(void)
             o1 = gm_Query(b->objList, 1, 0, 0xff);
             o2 = gm_Query(b->objList, 1, 0, 0xfe);
             if (o1 == 0)
-                o1 = (AIOBJ *)gm_CreateObject(b->id, 0xff, 1);
+                o1 = gm_CreateObject(b->id, 0xff, 1);
             if (o2 == 0)
-                o2 = (AIOBJ *)gm_CreateObject(b->id, 0xfe, 1);
+                o2 = gm_CreateObject(b->id, 0xfe, 1);
             for (i = 0; i < 8; i++)
                 goods[i] = 0;
             switch (t) {
@@ -1310,9 +1303,9 @@ void init_StockMarketStalls(void)
                     n++;
             }
             cm_BeginFieldBlock(st, st->objId);
-            cm_AddFieldDelta(1, 1, (char *)st - cm_FieldObject + 0x1c, &n);
+            cm_AddFieldDelta(1, 1, (char *)&st->kindData - cm_FieldObject, &n);
             n = 4;
-            cm_AddFieldDelta(4, 1, (char *)st - cm_FieldObject + 0xe, &n);
+            cm_AddFieldDelta(4, 1, (char *)&st->count - cm_FieldObject, &n);
             cm_SendFieldDeltas();
             for (i = 0; i < 0x10; i++) {
                 if (ai_PlayerSlots[owner].import[i] != 0) {
@@ -1329,9 +1322,9 @@ void init_StockMarketStalls(void)
                     n++;
             }
             cm_BeginFieldBlock(st, st->objId);
-            cm_AddFieldDelta(1, 1, (char *)st - cm_FieldObject + 0x1c, &n);
+            cm_AddFieldDelta(1, 1, (char *)&st->kindData - cm_FieldObject, &n);
             n = 4;
-            cm_AddFieldDelta(4, 1, (char *)st - cm_FieldObject + 0xe, &n);
+            cm_AddFieldDelta(4, 1, (char *)&st->count - cm_FieldObject, &n);
             cm_SendFieldDeltas();
             for (i = 0; i < 0x10; i++) {
                 if (ai_PlayerSlots[owner].export[i] != 0) {
@@ -1535,7 +1528,8 @@ void init_OpenTown(void)
     int cnt[0x22];
     AICHAR *pl[8];
     AICHAR *ch2[16];
-    char vecA[16], vecB[12];
+    D3VECTOR4 vecA;                     /* the plot's position */
+    int vecB[3];                        /* its angles (ai_ObjectAngle), handed on as their bits */
     char buf260[96];
     D3OBJECT *list200[128];
     int ncl, i, j, k;
@@ -1600,9 +1594,9 @@ void init_OpenTown(void)
                         m++;
                     } while (m < n);
                 }
-                d3_PointToWorld(list200[m], &list200[m]->pos, (D3VECTOR *)vecA);
+                d3_PointToWorld(list200[m], &list200[m]->pos, &vecA.v);
                 ai_ObjectAngle(vecB, list200[m]);
-                h = cm_RequestCreateGeb(c->netId, proto, (D3VECTOR4 *)vecA, (int *)vecB);
+                h = cm_RequestCreateGeb(c->netId, proto, &vecA, vecB);
                 while (h != -1 && cm_GetSlotState(h) == 0)
                     sv_PumpNet();
                 geb = cm_GetSlotValue(h);
@@ -1874,7 +1868,7 @@ void init_LoadSiteScene(char *name)
     INIT_SITELIST list;
     D3MATRIX cam;
     D3OBJECT *o, *p, *next, *id;
-    D3BOXVERT *box;
+    D3VERTEX *box;
     int i;
 
     memset(&list, 0, sizeof list);
@@ -2043,9 +2037,9 @@ int init_InitTown(char *city)
     }
     d3if_SelectScene(1, 0);
     d3if_SelectScene(0, 0);
-    if (((D3TERRAIN *)d3_Terrain)->size == 0x80)
+    if (d3_Terrain->size == 0x80)
         d3_DefaultScene->hmap = d3sm_Create(d3_Terrain, 0x100, 2);
-    else if (((D3TERRAIN *)d3_Terrain)->size == 0x40)
+    else if (d3_Terrain->size == 0x40)
         d3_DefaultScene->hmap = d3sm_Create(d3_Terrain, 0x80, 2);
     else
         d3_DefaultScene->hmap = d3sm_Create(d3_Terrain, 0x100, 2);
@@ -2073,7 +2067,7 @@ void init_ShowStatus(intptr_t t)
 extern void * main_Instance;          /* 0x75e140 */
 extern unsigned ai_MissionSeed;           /* 0x75e120 */
 extern signed char ai_MissionMode;        /* 0x624580 */
-extern void *d2_ScreenSurf;                /* 0x6ed924 */
+extern struct D2SURF *d2_ScreenSurf;                /* 0x6ed924 */
 
 /* 0x510e50, starts a network game: waits for the session flags (cm_NetFlags), the host sends the city file
    (gamedata/cities/AUGSBURG.NET unless name holds one) and every side receives it, stores the player's names in
@@ -2124,7 +2118,7 @@ int init_StartNetworkGame(char *name)
     d2_SetViewEnabled(init_StatusForm, 1);
     WritePrivateProfileStringA("Network", "Name", init_PlayerProfile.firstName, ini);
     WritePrivateProfileStringA("Network", "Familienname", init_PlayerProfile.familyName, ini);
-    d2_ClearSurface((struct D2SURF *)d2_ScreenSurf);
+    d2_ClearSurface(d2_ScreenSurf);
     s = util_Random(2);
     d2_ShowPicture((s != 1 ? 3 : 0) + 0x78e);
     d2_DrawAll();
@@ -2264,7 +2258,7 @@ int init_SetupNewGame(int n)
     init_StartNewGame(0);   /* the original call pushes one argument (0x511422), which the callee does not read */
     if (main_StartHouseCheat != 0) {
         i = 0;
-        p = (char *)&ai_Chars[0] + 2;
+        p = (char *)&ai_Chars[0].kind;
         do {
             if (*p == 6) {
                 main_GiveStartBuildings(i);
@@ -2272,7 +2266,7 @@ int init_SetupNewGame(int n)
             }
             p += 0x21c;
             i++;
-        } while ((int)p < (int)(INIT_CHARACTERS_END + 2));
+        } while ((intptr_t)p < (intptr_t)&ai_Chars[0x300].kind);
     }
     if ((int)ai_PlayerSlots[n].maxPlayers - ai_NumPlayers > 0) {
         tab[0] = 0x18;
@@ -2287,7 +2281,7 @@ int init_SetupNewGame(int n)
             D3_ZERO(tab, sizeof(tab));
             tab[0] = 0x12;
         } else {
-            p = (char *)&ai_Chars[0] + 2;
+            p = (char *)&ai_Chars[0].kind;
             do {
                 if (*p == 6 || *p == 7) {
                     i = 0;
@@ -2300,7 +2294,7 @@ int init_SetupNewGame(int n)
                     } while (i < 8);
                 }
                 p += 0x21c;
-            } while ((int)p < (int)(INIT_CHARACTERS_END + 2));
+            } while ((intptr_t)p < (intptr_t)&ai_Chars[0x300].kind);
         }
         init_CreateOpponents((int)ai_PlayerSlots[n].maxPlayers - ai_NumPlayers, 8, tab);
     }
@@ -2463,7 +2457,7 @@ void init_RecreateQuadTree(void)
 
 void init_NameBuildings(void)
 {
-    unsigned char *b;
+    AIBLD *b;
     char names[0xc][0x40];
     int cnt, i, j;
     char *u, *src;
@@ -2471,25 +2465,25 @@ void init_NameBuildings(void)
     char err[0x200];            /* the "Building name too long" text handed to err_Message */
     char text[0x200];           /* the same text of the first (dead) check: the original formats it and drops it */
     unsigned r;
-    char *bl;
+    AIBLD *bl;
 
-    b = (unsigned char *)gm_BuildQuery(1, 6);
+    b = gm_BuildQuery(1, 6);
     while (b != 0) {
-        if (ai_BTypes[*b].kind != 0x1c)
-            b[5] = ch_EmptyName[0];
-        b = (unsigned char *)gm_BuildNext();
+        if (ai_BTypes[b->type].kind != 0x1c)
+            b->name[0] = ch_EmptyName[0];
+        b = gm_BuildNext();
     }
-    for (b = (unsigned char *)gm_BuildQuery(1, 6); b != 0; b = (unsigned char *)gm_BuildNext()) {
-        if (ai_BTypes[*b].kind != 0x1c) {
+    for (b = gm_BuildQuery(1, 6); b != 0; b = gm_BuildNext()) {
+        if (ai_BTypes[b->type].kind != 0x1c) {
             cnt = 0;
-            ((AIBLD *)b)->name[0] = ch_EmptyName[0];
+            b->name[0] = ch_EmptyName[0];
             for (i = 0; i < 0xc; i++) {
-                src = txt_Ptrs[TXT_BUILDING_NAMES + (i + *b * 0xe)];
+                src = txt_Ptrs[TXT_BUILDING_NAMES + (i + b->type * 0xe)];
                 if (*src != 0) {
                     strcpy(one, src);
-                    bl = (char *)ai_Blds;
-                    for (j = 0; j < 0x100; j++, bl += 0xa9) {
-                        if (*bl != 0 && strcmp(bl + 5, one) == 0)
+                    bl = ai_Blds;
+                    for (j = 0; j < 0x100; j++, bl++) {
+                        if (bl->type != 0 && strcmp(bl->name, one) == 0)
                             break;
                     }
                     if (j < 0x100)
@@ -2504,7 +2498,7 @@ void init_NameBuildings(void)
                 r = util_Random((unsigned char)cnt);
                 u = names[r & 0xffff];
                 if (strlen(u) < 0x20)
-                    strcpy(((AIBLD *)b)->name, u);
+                    strcpy(b->name, u);
                 else {
                     sprintf(err, "Building name too long: %s", u);
                     err_Message(err);
@@ -2607,7 +2601,7 @@ void init_GiveFirstPlayerBuildings(void)
             ai_BTypes[b->type].kind != 0xb) {
             int v = 64000;
             cm_BeginFieldBlock(b, b->id);
-            cm_AddFieldDelta(4, 1, (char *)b - cm_FieldObject + 0x39, &v);
+            cm_AddFieldDelta(4, 1, (char *)&b->budget - cm_FieldObject, &v);
             cm_SendFieldDeltas();
             cm_SendOwnership(b->id, c->netId, c->netId);
             cm_SendMessage3d(b, 1, 0, ai_BTypes[b->type].jobs[0]);
@@ -2634,7 +2628,7 @@ int init_ObjectSceneUniverse(AIOBJ *p)
         if (uni == -1)
             return -1;
         init_ObjectUniverse[p->type] = uni;
-        init_SceneDirty[uni * 0x3e0] = 1;
+        d3_Scenes[uni].dirty = 1;
         strcpy(d3_Scenes[uni].name, (char *)ai_Goods + p->type * 0x41 + 1);
     }
     return init_ObjectUniverse[p->type];
@@ -2654,7 +2648,7 @@ int init_BuildingSceneUniverse(AIBLD *b)
             if (uni == -1)
                 return -1;
             init_BuildingUniverse[k] = uni;
-            init_SceneDirty[uni * 0x3e0] = 1;
+            d3_Scenes[uni].dirty = 1;
             strcpy(d3_Scenes[uni].name, (char *)ai_BTypes + b->type * 0x24d + 1);
         } else
             init_LoadBuildingScene(b->type);
@@ -3036,7 +3030,7 @@ void init_SetSeasonTextures(void)
         while (!found) {
             if (i >= 8)
                 break;
-            nm = ((D3FLMAP *)d3_Terrain)->typenames[i];
+            nm = d3_Terrain->typenames[i];
             if (*nm != 0 && strstr(nm, "_SNOW") != 0)
                 found = 1;
             i++;
@@ -3044,16 +3038,16 @@ void init_SetSeasonTextures(void)
         if (found)
             return;
         for (i = 0; i < 8; i++) {
-            nm = ((D3FLMAP *)d3_Terrain)->typenames[i];
+            nm = d3_Terrain->typenames[i];
             if (*nm != 0) {
                 strcpy(a, nm);
                 if ((u = strstr(a, "_FRUEHLING")) != 0 || (u = strstr(a, "_HERBST")) != 0 || (u = strstr(a, "_SNOW")) != 0)
                     *u = 0;
                 sprintf(b, "%s_SNOW", a);
                 if (tex_FindFile(b) != 0)
-                    d3fl_ReplaceTexture((struct D3FLMAP *)d3_Terrain, b, i);
+                    d3fl_ReplaceTexture(d3_Terrain, b, i);
                 else
-                    d3fl_ReplaceTexture((struct D3FLMAP *)d3_Terrain, a, i);
+                    d3fl_ReplaceTexture(d3_Terrain, a, i);
             }
         }
         return;
@@ -3064,7 +3058,7 @@ void init_SetSeasonTextures(void)
         while (!found) {
             if (i >= 8)
                 break;
-            nm = ((D3FLMAP *)d3_Terrain)->typenames[i];
+            nm = d3_Terrain->typenames[i];
             if (*nm != 0 && strstr(nm, "_HERBST") != 0)
                 found = 1;
             i++;
@@ -3072,16 +3066,16 @@ void init_SetSeasonTextures(void)
         if (found)
             return;
         for (i = 0; i < 8; i++) {
-            nm = ((D3FLMAP *)d3_Terrain)->typenames[i];
+            nm = d3_Terrain->typenames[i];
             if (*nm != 0) {
                 strcpy(a, nm);
                 if ((u = strstr(a, "_FRUEHLING")) != 0 || (u = strstr(a, "_HERBST")) != 0 || (u = strstr(a, "_SNOW")) != 0)
                     *u = 0;
                 sprintf(b, "%s_HERBST", a);
                 if (tex_FindFile(b) != 0)
-                    d3fl_ReplaceTexture((struct D3FLMAP *)d3_Terrain, b, i);
+                    d3fl_ReplaceTexture(d3_Terrain, b, i);
                 else
-                    d3fl_ReplaceTexture((struct D3FLMAP *)d3_Terrain, a, i);
+                    d3fl_ReplaceTexture(d3_Terrain, a, i);
             }
         }
         return;
@@ -3092,7 +3086,7 @@ void init_SetSeasonTextures(void)
         while (!found) {
             if (i >= 8)
                 break;
-            nm = ((D3FLMAP *)d3_Terrain)->typenames[i];
+            nm = d3_Terrain->typenames[i];
             if (*nm != 0 && strstr(nm, "_FRUEHLING") != 0)
                 found = 1;
             i++;
@@ -3100,16 +3094,16 @@ void init_SetSeasonTextures(void)
         if (found)
             return;
         for (i = 0; i < 8; i++) {
-            nm = ((D3FLMAP *)d3_Terrain)->typenames[i];
+            nm = d3_Terrain->typenames[i];
             if (*nm != 0) {
                 strcpy(a, nm);
                 if ((u = strstr(a, "_FRUEHLING")) != 0 || (u = strstr(a, "_HERBST")) != 0 || (u = strstr(a, "_SNOW")) != 0)
                     *u = 0;
                 sprintf(b, "%s_FRUEHLING", a);
                 if (tex_FindFile(b) != 0)
-                    d3fl_ReplaceTexture((struct D3FLMAP *)d3_Terrain, b, i);
+                    d3fl_ReplaceTexture(d3_Terrain, b, i);
                 else
-                    d3fl_ReplaceTexture((struct D3FLMAP *)d3_Terrain, a, i);
+                    d3fl_ReplaceTexture(d3_Terrain, a, i);
             }
         }
         return;
@@ -3120,23 +3114,23 @@ void init_SetSeasonTextures(void)
         while (!found) {
             if (i >= 8)
                 break;
-            if (((D3FLMAP *)d3_Terrain)->typenames[i][0] != 0
-                && (strstr(((D3FLMAP *)d3_Terrain)->typenames[i], "_FRUEHLING") != 0
-                    || strstr(((D3FLMAP *)d3_Terrain)->typenames[i], "_HERBST") != 0
-                    || strstr(((D3FLMAP *)d3_Terrain)->typenames[i], "_SNOW") != 0))
+            if (d3_Terrain->typenames[i][0] != 0
+                && (strstr(d3_Terrain->typenames[i], "_FRUEHLING") != 0
+                    || strstr(d3_Terrain->typenames[i], "_HERBST") != 0
+                    || strstr(d3_Terrain->typenames[i], "_SNOW") != 0))
                 found = 1;
             i++;
         }
         if (!found)
             return;
         for (i = 0; i < 8; i++) {
-            nm = ((D3FLMAP *)d3_Terrain)->typenames[i];
+            nm = d3_Terrain->typenames[i];
             if (*nm != 0) {
                 strcpy(a, nm);
                 if ((u = strstr(a, "_FRUEHLING")) != 0 || (u = strstr(a, "_HERBST")) != 0 || (u = strstr(a, "_SNOW")) != 0) {
                     *u = 0;
                     if (tex_FindFile(a) != 0)
-                        d3fl_ReplaceTexture((struct D3FLMAP *)d3_Terrain, a, i);
+                        d3fl_ReplaceTexture(d3_Terrain, a, i);
                 }
             }
         }

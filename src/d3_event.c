@@ -67,7 +67,7 @@
    into one address while the readers start from another. */
 extern D3INITCFG d3_Cfg;
 extern D3PARTSYS d3_ParEnd;
-void d3fl_FreeMap(struct D3FLMAP *map);     /* 0x43ff90, d3_fl.c (d3.h types d3_Terrain as void *) */
+void d3fl_FreeMap(struct D3FLMAP *map);     /* 0x43ff90, d3_fl.c */
 
 int d3e_NoHandler(void *obj, int id, char *name, int arg);  /* the unlinked handler at the end (ai_AlwaysTrue in the exe) */
 
@@ -123,21 +123,21 @@ char d3e_RegisterEvent(D3OBJECT *obj, int id, D3EVHANDLER fn, char *name)
         return 0;
     if (id) {
         if (fn) {
-            if (!D3_X(obj)->events)
-                D3_X(obj)->events = mem_Alloc(D3E_NEVENTS * sizeof(D3EVENT), "d3e:RegisterEvent(eventtable)");
-            ((D3EVENT *)D3_X(obj)->events)[id].name[0x7f] = 0;
-            strncpy(((D3EVENT *)D3_X(obj)->events)[id].name, name, 0x7f);
-            ((D3EVENT *)D3_X(obj)->events)[id].fn = fn;
+            if (!obj->events)
+                obj->events = mem_Alloc(D3E_NEVENTS * sizeof(D3EVENT), "d3e:RegisterEvent(eventtable)");
+            obj->events[id].name[0x7f] = 0;
+            strncpy(obj->events[id].name, name, 0x7f);
+            obj->events[id].fn = fn;
             return 1;
         }
-        if (D3_X(obj)->events && ((D3EVENT *)D3_X(obj)->events)[id].fn) {
-            ((D3EVENT *)D3_X(obj)->events)[id].fn = 0;
+        if (obj->events && obj->events[id].fn) {
+            obj->events[id].fn = 0;
             for (i = 0; i < D3E_NEVENTS; i++)
-                if (((D3EVENT *)D3_X(obj)->events)[i].fn)
+                if (obj->events[i].fn)
                     break;
             if (i == D3E_NEVENTS) {
-                mem_Free(D3_X(obj)->events);
-                D3_X(obj)->events = 0;
+                mem_Free(obj->events);
+                obj->events = 0;
             }
         }
     }
@@ -155,15 +155,15 @@ char d3e_RegisterSceneEvent(D3SCENE *scene, int id, D3EVHANDLER fn, char *name)
         if (fn) {
             if (!scene->events)
                 scene->events = mem_Alloc(D3E_NEVENTS * sizeof(D3EVENT), "d3e:RegisterSceneEvent(eventtable)");
-            ((D3EVENT *)scene->events)[id].name[0x7f] = 0;
-            strncpy(((D3EVENT *)scene->events)[id].name, name, 0x7f);
-            ((D3EVENT *)scene->events)[id].fn = fn;
+            scene->events[id].name[0x7f] = 0;
+            strncpy(scene->events[id].name, name, 0x7f);
+            scene->events[id].fn = fn;
             return 1;
         }
-        if (scene->events && ((D3EVENT *)scene->events)[id].fn) {
-            ((D3EVENT *)scene->events)[id].fn = 0;
+        if (scene->events && scene->events[id].fn) {
+            scene->events[id].fn = 0;
             for (i = 0; i < D3E_NEVENTS; i++)
-                if (((D3EVENT *)scene->events)[i].fn)
+                if (scene->events[i].fn)
                     break;
             if (i == D3E_NEVENTS) {
                 mem_Free(scene->events);

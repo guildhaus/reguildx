@@ -26,7 +26,7 @@ void d3_MatMul43(D3MATRIX *a, D3MATRIX *b, D3MATRIX *out);             /* 0x453e
 void d3_MatTranspose(D3MATRIX *src, D3MATRIX *dst);                    /* 0x454040, transpose */
 void d3_MatInverse(D3MATRIX *src, D3MATRIX *dst);                    /* 0x454070, inverse */
 void d3_MatIdentity(D3MATRIX *m);                                     /* 0x454510, identity */
-void d3_MatFromAngles(D3VECTOR4 *v, D3MATRIX *m);                       /* 0x4545c0, angles to matrix */
+void d3_MatFromAngles(const D3VECTOR *v, D3MATRIX *m);                       /* 0x4545c0, angles to matrix */
 void d3_MatToAngles(const D3MATRIX *m, D3VECTOR *angles);                 /* 0x454690, matrix rows to angles */
-void d3_TriNormal(const struct D3VECTOR *a, const struct D3VECTOR *b, const struct D3VECTOR *c, struct D3VECTOR4 *n);   /* 0x454700, face normal */
+void d3_TriNormal(const struct D3VECTOR *a, const struct D3VECTOR *b, const struct D3VECTOR *c, struct D3VECTOR *n);   /* 0x454700, face normal */
 #endif

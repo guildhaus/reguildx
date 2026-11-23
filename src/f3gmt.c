@@ -32,12 +32,8 @@ struct AICHAR;
 #include "amt.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 #define GAPDATA __declspec(align(1)) unsigned char
-#define GM_BLOCK(p) ((GMBLOCK *)gm_StockBlocks + (p))  /* the stock block of the player p */
 #define GM_TABLE_A(p) (ai_PlayerSlots[p].inhabitants)  /* the player slot's first yearly table */
 #define GM_TABLE_B(p) (ai_PlayerSlots[p].splendour)  /* its second yearly table */
-/* the building type i's byte +0x21 (ai.h AIBTYPE.extensions, the room upgrades it takes): GMBTYPE keeps it in its pad,
-   because naming the field in f3gm_types.h moves sv_t's ai_TutorialInitChapter3 off byte (declaration-set tie-break) */
-#define GM_BTYPE_EXTENSIONS(i) (((unsigned char *)GM_BTYPE(i))[0x21])
 #define GM_OBJ_PROTO_MASK 0xffffff  /* the prototype reference's index bits of a scene object's pickId (D3OBJECT +0x48) */
 
 #include "am_types.h"
@@ -64,32 +60,10 @@ extern struct AICHAR *gm_RichestChar;
    bytes): the rows start 0x44 apart, so these aliases sit at the end of each row. They are views, not
    separate globals - a separate definition would reserve its own memory here and the 0x154-byte
    ord_ResetStatistics memset would zero whatever the COMMON linker put inside it (it hit ai_BTypes). */
-#include "f3gm_carry.h"            /* GMCARRYSPEC, GMCARRYREC, gm_CarryRecs */
-#pragma pack(push, 1)
-/* an entry of gm_CollectCarried's list (0x1e bytes) */
-typedef struct GMCARRYENTRY {
-    struct AIJOB *ref;                  /* 0x00, the record's event */
-    GMCARRYREC *rec;                    /* 0x04, the record */
-    char *data;                         /* 0x08, the record's data */
-    int value;                          /* 0x0c, the record's value when it has one */
-    GMCARRYSPEC spec;                   /* 0x10 */
-} GMCARRYENTRY;
-
-/* what gm_CollectCarried collects for a person (0x21d bytes; main.c MAINCARRY reads the head of it) */
-typedef struct GMCARRY {
-    int units;                          /* 0x000, the 0xe-byte units */
-    char goods[0x2d];                   /* 0x004, main.c: the goods list of the balance page */
-    int capacity;                       /* 0x031, the free capacity */
-    GMCARRYENTRY entries[16];           /* 0x035 */
-    int valueSum;                       /* 0x215, minus the values of the records with one */
-    int count;                          /* 0x219, the entries used */
-} GMCARRY;
-#pragma pack(pop)
-typedef char gm_AssertGMCARRY[sizeof(GMCARRY) == 0x21d ? 1 : -1];
+#include "f3gm_carry.h"            /* GMCARRYSPEC, GMCARRYREC, GMCARRY, gm_CarryRecs */
 
 int gm_IsUnderAge(unsigned short id);         /* 0x4fd7e0 */
 
-#define CH(i) ((char *)&ai_Chars[(unsigned short)(i)])
 #define REC_RATE(rec) ((rec)[6])
 
 #include "io_text.h"
@@ -123,7 +97,6 @@ int gm_IsUnderAge(unsigned short id);         /* 0x4fd7e0 */
 #include "f3gmt.h"
 void *ai_ProdSetting(AIBLD *bld);    /* 0x5a8560 */
 extern struct D2COLKEY d2_TransparentColour;  /* 0x6f0454, shp.c (the type in shp.h) */
-#define d2_TransparentBytes ((unsigned char *)&d2_TransparentColour)  /* 0x6f0454, @original: unk_LoadIconNames stores the key byte by byte (mov byte [0x6f0455], 0xff; [0x6f0454] and [0x6f0456] = bl), not through the D2COLKEY word gb */
 
 /* dcp unit split: the declarations of f3gm before the moved functions */
 struct AMTKIND; int amt_GetKind(int k, struct AMTKIND *out);                   /* 0x4e6f80 */
@@ -136,7 +109,6 @@ void ai_SendNeedBlock(void);                     /* 0x4c4a20 */
 void gm_ShiftLoyalty();                   /* 0x4fb0e0 */
 int gm_FindRichest(short *id, int *rate);
 extern char * cm_FieldObject;                /* 0xa68d2c */
-extern unsigned gm_BoyHead[], gm_GirlHead[], gm_TitleHeadsMale[], gm_TitleHeadsFemale[], gm_JobHeadsMale[], gm_JobHeadsFemale[], gm_SpyHeads[], gm_OwnNameHeads[];  /* 0x6118a8, 0x6118f0, 0x611938, 0x612288, 0x612bd8, 0x614518, 0x617398, 0x91ac40 */
 void gm_ResolveHeadIcons(GMHEAD *rec);
 char d3if_SelectTextureSet(struct D3OBJECT *obj, struct D3SURF *surf, unsigned char set, char reload);                     /* 0x446f30 */
 extern struct AIBLD *ai_PlayerBuilding;  /* 0x6f2308 */
@@ -180,9 +152,8 @@ void mem_Free(void *p);                    /* 0x422620 */
 extern int gm_ClassBuilding[32];
 extern int gm_GoodBuilding[732];
 extern struct AIGOOD *ai_Goods;
-extern unsigned gm_OwnNameHeads[136];
 extern struct AIOBJ *ai_Objects;
-extern int gm_DefaultStock[];
+extern GMSTOCK gm_DefaultStock[0x55];
 void * mem_Alloc(int size, char *tag);                   /* 0x4223c0 */
 void util_Randomize();                     /* 0x42ec80 */
 
@@ -245,12 +216,11 @@ int gm_MinutesBetween(AITIME *a, AITIME *b)
 {
     return ((((b->year - a->year) * 0x18 - a->hour) + b->hour) * 0x3c - a->min) + b->min;
 }
-/* 0x4fe2c0, converts the clock c into the calendar record out: the season's first month (the day % 4 * 3 + 1),
+/* 0x4fe2c0, converts the clock c into the calendar record d: the season's first month (the day % 4 * 3 + 1),
    the year (day + 0x578), the hour, the minute and the seconds */
 
-void gm_ClockToDate(AITIME *c, unsigned char *out)
+void gm_ClockToDate(AITIME *c, GMDATE *d)
 {
-    GMDATE *d = (GMDATE *)out;
     int r;
 
     d->year = (short)c->year + 0x578;
@@ -269,11 +239,9 @@ void gm_AddTime2(AITIME *c, int unused, int hours, int mins, int secs)
 }
 /* 0x4fe330, the season (word at +2 modulo 4) of a calendar record */
 
-int gm_Season(char *d)
+int gm_Season(GMDATE *d)
 {
-    GMDATE *date = (GMDATE *)d;
-
-    return date->year % 4;
+    return d->year % 4;
 }
 /* 0x4fe350, the season of the clock c (day % 4) */
 
@@ -283,7 +251,7 @@ int gm_ClockSeason(AITIME *c)
 }
 /* 0x4fe370, builds the building lookup tables: gm_ClassBuilding (the first building type of the goods classes 6 .. 16, fixed numbers) and gm_GoodBuilding (for every good in a building type's slot list: the first building type of its class plus the class run length * the position of this building type in its run of equal kinds / that run's length, the smallest such); goods in no slot list get the first building type of their class
    @deep 119 -> 66 ins, frame now equal: the decompiled pointer walks (p += 0x24d, q walks, the slots
-   pointer) as plain index loops over GM_BTYPE(i) with a GMBTYPE pointer bt and kind / kind2 locals (VC6
+   pointer) as plain index loops over ai_BTypes[i] with an AIBTYPE pointer bt and kind / kind2 locals (VC6
    makes the bt IV and the objs pointer itself: 119 -> 76), the init order memset, len, cur, fill, class
    entries, run (360 orders: 76 -> 74), the class run as base += cnt * run / len (the original adds into
    base's register: 74 -> 66). headers sample: insensitive. Read: the original keeps the zero in edx (run /
@@ -307,7 +275,7 @@ void gm_InitBuildingTables(void)
 {
     int run, len, i, j, k, u, base, cnt;
     int cur, kind, kind2;
-    GMBTYPE *bt;
+    AIBTYPE *bt;
 
     memset(gm_ClassBuilding, 0, 0x64);
     len = 0;
@@ -326,24 +294,24 @@ void gm_InitBuildingTables(void)
     gm_ClassBuilding[9] = 0x14;
     run = 0;
     for (i = 0; i < 0x58; i++) {
-        bt = GM_BTYPE(i);
+        bt = &ai_BTypes[i];
         kind = bt->kind;
         if (kind != cur) {
             run = 0;
             cur = kind;
             len = 0;
-            for (j = i; j < 0x58 && GM_BTYPE(j)->kind == kind; j++)
+            for (j = i; j < 0x58 && ai_BTypes[j].kind == kind; j++)
                 len++;
         } else {
             run++;
         }
-        for (k = 0; k < bt->objCount; k++) {
+        for (k = 0; k < bt->nslots; k++) {
             if (bt->objs[k] != 0xffff) {
                 u = bt->objs[k] & 0x7fff;
                 base = gm_ClassBuilding[ai_Goods[u].cls];
-                kind2 = GM_BTYPE(base)->kind;
+                kind2 = ai_BTypes[base].kind;
                 cnt = 0;
-                for (j = base; j < 0x58 && GM_BTYPE(j)->kind == kind2; j++)
+                for (j = base; j < 0x58 && ai_BTypes[j].kind == kind2; j++)
                     cnt++;
                 base += cnt * run / len;
                 if (base < gm_GoodBuilding[u])
@@ -364,7 +332,7 @@ int gm_LoadTables(char *root)
     FILE *f;
     int i, n, cnt, id;
     unsigned short u;
-    GMGOOD *g;
+    AIGOOD *g;
 
     /* every stock block: its header from the player slot (+0x68, +0xb8) and the factors 1000, its records from the template */
     for (i = 0; i < 5; i++) {
@@ -405,15 +373,15 @@ int gm_LoadTables(char *root)
     for (i = 0; i < 0x58; i++) {
         cnt = 0;
         for (n = 0; n < 0x40; n++) {
-            u = GM_BTYPE(i)->objs[n];
+            u = ai_BTypes[i].objs[n];
             if (u != 0xffff) {
                 id = u & 0x7fff;
-                g = GM_GOOD(id);
+                g = (&ai_Goods[id]);
                 if ((g->type == 2 || g->type == 6) && id != 0xfd && (u & 0x8000) != 0)
                     cnt++;
             }
         }
-        GM_BTYPE_EXTENSIONS(i) += cnt;
+        ai_BTypes[i].extensions += cnt;
     }
     util_Randomize();
     return 0;
@@ -449,8 +417,8 @@ void gm_ClearObjects(void)
     AICHAR *c;
 
     for (i = 0; i < 0x5008; i++) {
-        if (((AIOBJ *)ai_Objects)[i].type != 0) {
-            gm_FindById(&b, &o, &c, ((AIOBJ *)ai_Objects)[i].ownerId);
+        if (ai_Objects[i].type != 0) {
+            gm_FindById(&b, &o, &c, ai_Objects[i].ownerId);
             if (b != 0)
                 list = &b->objList;
             else if (o != 0)
@@ -460,10 +428,10 @@ void gm_ClearObjects(void)
             else
                 list = 0;
             if (list != 0) {
-                gm_RemoveObject(list, ((AIOBJ *)ai_Objects)[i].type);
+                gm_RemoveObject(list, ai_Objects[i].type);
             } else {
-                gm_FreeObjectExtra(&((AIOBJ *)ai_Objects)[i]);
-                ((AIOBJ *)ai_Objects)[i].type = 0;
+                gm_FreeObjectExtra(&ai_Objects[i]);
+                ai_Objects[i].type = 0;
                 f3gm_ObjectCount--;
             }
         }
@@ -477,7 +445,7 @@ int gm_FindObjectProto(char *name)
     int n;
 
     for (n = 0; n < 0x2dc; n++) {
-        if (stricmp(name, GM_GOOD(n)->name) == 0)
+        if (stricmp(name, (&ai_Goods[n])->name) == 0)
             return n;
     }
     return 0;
@@ -620,7 +588,7 @@ void gm_InitPlayerRecord(int p)
 
     for (i = 0; i < 0x55; i++) {
         g = &gm_StockBlocks[p].goods[i];
-        t = &((GMSTOCK *)gm_DefaultStock)[i];
+        t = &gm_DefaultStock[i];
         pc = (char *)ai_Goods + g->item * 0x41;
         g->v00c = t->v00c;
         g->baseStock = t->baseStock;
@@ -642,7 +610,7 @@ void cm_BeginSendGroup(void);                     /* 0x4c3b30 */
 void cm_EndSendGroup(void);                     /* 0x4c3b40 */
 int cm_SendGroupState();                     /* 0x4c3b50 */
 struct AIBLD *gm_FindPlayerBuilding(int p);                   /* 0x501000 */
-void gm_ClockToDate(struct AITIME *c, unsigned char *out);                     /* 0x4fe2c0 */
+void gm_ClockToDate(struct AITIME *c, struct GMDATE *out);                     /* 0x4fe2c0 */
 
 /* the goods record n (0x80 bytes) of the player p */
 
@@ -662,7 +630,7 @@ void gm_SyncMarket(unsigned p)
     GMSTOCK *stock, *g, *g2;
     AIBLD *b;
     AIOBJ *o, *o2, *m, *a1;
-    char *gp;
+    AIGOOD *gp;
     int i, j, k, h;
 
     list[0] = 0x92;
@@ -689,11 +657,11 @@ void gm_SyncMarket(unsigned p)
                         g = &stock[i];
                         if (g->item != 0 && gm_Query(o->list, 1, 0, g->item) != 0) {
                             g->amount = 1;
-                            gp = (char *)ai_Goods + g->item * 0x41;
+                            gp = &ai_Goods[g->item];
                             for (j = 0; j < 0x55; j++) {
                                 g2 = &stock[j];
                                 for (k = 0; k < 4; k++)
-                                    if (g2->item == ((GMGOOD *)gp)->in[k])
+                                    if (g2->item == gp->in[k])
                                         g2->amount = 1;
                             }
                         }
@@ -782,7 +750,7 @@ void gm_RefreshGoodsLists(unsigned p)
     GMSTOCK *stock, *g, *g2;
     AIBLD *b;
     AIOBJ *o, *o2;
-    char *gp;
+    AIGOOD *gp;
     int i, j, k, cnt;
 
     list[0] = 0x92;
@@ -809,11 +777,11 @@ void gm_RefreshGoodsLists(unsigned p)
                 g = &stock[i];
                 if (g->item != 0 && gm_Query(o->list, 1, 0, g->item) != 0) {
                     g->amount = 1;
-                    gp = (char *)ai_Goods + g->item * 0x41;
+                    gp = &ai_Goods[g->item];
                     for (j = 0; j < 0x55; j++) {
                         g2 = &stock[j];
                         for (k = 0; k < 4; k++)
-                            if (g2->item == ((GMGOOD *)gp)->in[k])
+                            if (g2->item == gp->in[k])
                                 g2->amount = 1;
                     }
                 }
@@ -873,13 +841,13 @@ void gm_RandomMarketShake(int unused)
     }
 }
 /* 0x4ff550, the daily price update of the player p at the clock t: the date's year and month are interpolated in the player slot's two yearly tables (GMPOINT, at +0x64 and +0xb4) into the block's two indices, each scaled by its factor / 1000; then for the 0x55 goods records the demand moves halfway to gm_GoodsDemand (not for the kinds 0x17 / 0x25), the stock is gm_GoodsStock for the own player and the base stock for the others, the price is gm_StockPrice, a record with the byte +0x40 set takes its stock as demand, and the four counters +0x10 .. +0x1c are cleared; without a network game the market syncs (gm_SyncMarket) and shakes (gm_RandomMarketShake)
-   @deep s42: the hoisted p*17 (GM_BLOCK(p)'s index) above cmp ebx,edi is common code of the three inner
-   table-A arms (all store to GM_BLOCK(p)->demandIndex): VC6 hoisted it in the original, ours computes it
+   @deep s42: the hoisted p*17 (&gm_StockBlocks[p]'s index) above cmp ebx,edi is common code of the three inner
+   table-A arms (all store to gm_StockBlocks[p].demandIndex): VC6 hoisted it in the original, ours computes it
    per arm. The inner arms as one ternary (year == A[k].year ? .. : k > 0 ? .. : A[0].value) or only the
    last two as a ternary: 244 / 266 ins, frame 0xc (the whole function's allocation moves). Earlier rounds
    (see prior) stand. Next: c2dag / flip on what makes the destination address anticipated in the k > 0
    test block (the else-if test block computes nothing of it in ours). prior: match-deep 2026-11-14: draft
-   40 -> shape 37 ins. Fixed: the goods kind through a pointer local (g = GM_GOOD(item); g->type tested
+   40 -> shape 37 ins. Fixed: the goods kind through a pointer local (g = (&ai_Goods[item]); g->type tested
    twice: the original's add eax,edx; mov al,[eax]) and cm_DoubleHalf for the 0.5 (M10). Table B matches
    the original exactly; what is left is table A's three inner arms: the original hoists p*17 (mov eax,ebp;
    shl eax,4; add eax,ebp) above 'cmp ebx,edi' for all three arms and loads the lower value first (arm 1
@@ -897,7 +865,7 @@ void gm_UpdatePrices(unsigned p, void *t)
     int i;
     AIGOOD *g;
 
-    gm_ClockToDate(t, (unsigned char *)&d);
+    gm_ClockToDate(t, &d);
     year = d.year;
     for (n = 0; n < 9; n++)
         if (GM_TABLE_A(p)[n].year >= GM_TABLE_A(p)[n + 1].year)
@@ -908,14 +876,14 @@ void gm_UpdatePrices(unsigned p, void *t)
         if (GM_TABLE_A(p)[k].year >= year)
             break;
     if (k >= n - 1)
-        GM_BLOCK(p)->demandIndex = GM_TABLE_A(p)[n - 1].value;
+        gm_StockBlocks[p].demandIndex = GM_TABLE_A(p)[n - 1].value;
     else if (year == GM_TABLE_A(p)[k].year)
-        GM_BLOCK(p)->demandIndex = (d.month + (year - GM_TABLE_A(p)[k].year) * 12) * (GM_TABLE_A(p)[k + 1].value - GM_TABLE_A(p)[k].value) / ((GM_TABLE_A(p)[k + 1].year - GM_TABLE_A(p)[k].year) * 12) + GM_TABLE_A(p)[k].value;
+        gm_StockBlocks[p].demandIndex = (d.month + (year - GM_TABLE_A(p)[k].year) * 12) * (GM_TABLE_A(p)[k + 1].value - GM_TABLE_A(p)[k].value) / ((GM_TABLE_A(p)[k + 1].year - GM_TABLE_A(p)[k].year) * 12) + GM_TABLE_A(p)[k].value;
     else if (k > 0)
-        GM_BLOCK(p)->demandIndex = (d.month + (year - GM_TABLE_A(p)[k - 1].year) * 12) * (GM_TABLE_A(p)[k].value - GM_TABLE_A(p)[k - 1].value) / ((GM_TABLE_A(p)[k].year - GM_TABLE_A(p)[k - 1].year) * 12) + GM_TABLE_A(p)[k - 1].value;
+        gm_StockBlocks[p].demandIndex = (d.month + (year - GM_TABLE_A(p)[k - 1].year) * 12) * (GM_TABLE_A(p)[k].value - GM_TABLE_A(p)[k - 1].value) / ((GM_TABLE_A(p)[k].year - GM_TABLE_A(p)[k - 1].year) * 12) + GM_TABLE_A(p)[k - 1].value;
     else
-        GM_BLOCK(p)->demandIndex = GM_TABLE_A(p)[0].value;
-    GM_BLOCK(p)->demandIndex = GM_BLOCK(p)->demandFactor * GM_BLOCK(p)->demandIndex / 1000;
+        gm_StockBlocks[p].demandIndex = GM_TABLE_A(p)[0].value;
+    gm_StockBlocks[p].demandIndex = gm_StockBlocks[p].demandFactor * gm_StockBlocks[p].demandIndex / 1000;
     for (n = 0; n < 9; n++)
         if (GM_TABLE_B(p)[n].year >= GM_TABLE_B(p)[n + 1].year)
             break;
@@ -925,7 +893,7 @@ void gm_UpdatePrices(unsigned p, void *t)
         if (GM_TABLE_B(p)[k].year >= year)
             break;
     if (k >= n - 1)
-        GM_BLOCK(p)->indexB = GM_TABLE_B(p)[n - 1].value;
+        gm_StockBlocks[p].indexB = GM_TABLE_B(p)[n - 1].value;
     else {
         if (year == GM_TABLE_B(p)[k].year)
             a = (d.month + (year - GM_TABLE_B(p)[k].year) * 12) * (GM_TABLE_B(p)[k + 1].value - GM_TABLE_B(p)[k].value) / ((GM_TABLE_B(p)[k + 1].year - GM_TABLE_B(p)[k].year) * 12) + GM_TABLE_B(p)[k].value;
@@ -933,26 +901,26 @@ void gm_UpdatePrices(unsigned p, void *t)
             a = (d.month + (year - GM_TABLE_B(p)[k - 1].year) * 12) * (GM_TABLE_B(p)[k].value - GM_TABLE_B(p)[k - 1].value) / ((GM_TABLE_B(p)[k].year - GM_TABLE_B(p)[k - 1].year) * 12) + GM_TABLE_B(p)[k - 1].value;
         else
             a = GM_TABLE_B(p)[0].value;
-        GM_BLOCK(p)->indexB = a;
+        gm_StockBlocks[p].indexB = a;
     }
-    GM_BLOCK(p)->indexB = GM_BLOCK(p)->factorB * GM_BLOCK(p)->indexB / 1000;
+    gm_StockBlocks[p].indexB = gm_StockBlocks[p].factorB * gm_StockBlocks[p].indexB / 1000;
     for (i = 0; i < 0x55; i++) {
-        g = GM_GOOD(GM_BLOCK(p)->goods[i].item);
+        g = (&ai_Goods[gm_StockBlocks[p].goods[i].item]);
         if (g->type != 0x17 && g->type != 0x25) {
             a = gm_GoodsDemand(p, i);
-            GM_BLOCK(p)->goods[i].demand = (float)(((float)a - GM_BLOCK(p)->goods[i].demand) * 0.5 + GM_BLOCK(p)->goods[i].demand);
+            gm_StockBlocks[p].goods[i].demand = (float)(((float)a - gm_StockBlocks[p].goods[i].demand) * 0.5 + gm_StockBlocks[p].goods[i].demand);
         }
         if (p == ai_OwnPlayer)
-            GM_BLOCK(p)->goods[i].stock = gm_GoodsStock(p, i);
+            gm_StockBlocks[p].goods[i].stock = gm_GoodsStock(p, i);
         else
-            GM_BLOCK(p)->goods[i].stock = GM_BLOCK(p)->goods[i].baseStock;
-        GM_BLOCK(p)->goods[i].price = gm_StockPrice(p, i);
-        if (GM_BLOCK(p)->goods[i].demandIsStock != 0)
-            GM_BLOCK(p)->goods[i].demand = (float)GM_BLOCK(p)->goods[i].stock;
-        GM_BLOCK(p)->goods[i].daily[0] = 0;
-        GM_BLOCK(p)->goods[i].daily[1] = 0;
-        GM_BLOCK(p)->goods[i].daily[3] = 0;
-        GM_BLOCK(p)->goods[i].daily[2] = 0;
+            gm_StockBlocks[p].goods[i].stock = gm_StockBlocks[p].goods[i].baseStock;
+        gm_StockBlocks[p].goods[i].price = gm_StockPrice(p, i);
+        if (gm_StockBlocks[p].goods[i].demandIsStock != 0)
+            gm_StockBlocks[p].goods[i].demand = (float)gm_StockBlocks[p].goods[i].stock;
+        gm_StockBlocks[p].goods[i].daily[0] = 0;
+        gm_StockBlocks[p].goods[i].daily[1] = 0;
+        gm_StockBlocks[p].goods[i].daily[3] = 0;
+        gm_StockBlocks[p].goods[i].daily[2] = 0;
     }
     if ((int)net_Conn.s == -1) {
         gm_SyncMarket(p);
@@ -965,11 +933,11 @@ int gm_GoodsDemand(int p, int i)
 {
     char *good;
 
-    good = (char *)ai_Goods + GM_BLOCK(p)->goods[i].item * 0x41;
+    good = (char *)ai_Goods + gm_StockBlocks[p].goods[i].item * 0x41;
     if (*good != 0x17 && *good != 0x25) {
         if (p == 0)
-            return (int)(ai_RatingBase * GM_BLOCK(0)->goods[i].rate * 0.0025 + 0.5);
-        return (int)(GM_BLOCK(p)->demandIndex * GM_BLOCK(p)->goods[i].rate * 0.0005);
+            return (int)(ai_RatingBase * gm_StockBlocks[0].goods[i].rate * 0.0025 + 0.5);
+        return (int)(gm_StockBlocks[p].demandIndex * gm_StockBlocks[p].goods[i].rate * 0.0005);
     }
     return 0;
 }
@@ -985,7 +953,7 @@ int gm_GoodsStock(int p, int i)
     int k; AIBLD *o;
 
     sum = 0;
-    g = &GM_BLOCK(p)->goods[i];
+    g = &gm_StockBlocks[p].goods[i];
     s = g->groups;
     if (s->group == 0)
         return 0;
@@ -1031,7 +999,7 @@ float gm_StockPrice(int p, int n)
     float count, cur, ratio, r;
     double f, t;
 
-    id = GM_BLOCK(p)->goods[n].item;
+    id = gm_StockBlocks[p].goods[n].item;
     good = (char *)ai_Goods + id * 0x41;
     mk = gm_FindMarketObject(id);
     if (mk == 0 && p != ai_OwnPlayer && (b = gm_FindPlayerBuilding(p)) != 0)
@@ -1042,13 +1010,13 @@ float gm_StockPrice(int p, int n)
     o = gm_Query(mk->list, 1, 0, id);
     if (o != 0)
         count = (float)o->count;
-    ratio = GM_BLOCK(p)->goods[n].mean / GM_BLOCK(p)->goods[n].demand;
-    cur = GM_BLOCK(p)->goods[n].price;
-    t = ratio * (count > GM_BLOCK(p)->goods[n].demand && *good != 0x17 ? (float)(GM_BLOCK(p)->goods[n].demand / (count < 1.0 ? 1.0 : count)) : 1.0f);
+    ratio = gm_StockBlocks[p].goods[n].mean / gm_StockBlocks[p].goods[n].demand;
+    cur = gm_StockBlocks[p].goods[n].price;
+    t = ratio * (count > gm_StockBlocks[p].goods[n].demand && *good != 0x17 ? (float)(gm_StockBlocks[p].goods[n].demand / (count < 1.0 ? 1.0 : count)) : 1.0f);
     t = t > 0.25 ? t : 0.25;
     f = t < 5.0 ? t : 5.0;
-    r = ((float)f * gm_ItemPrice(id, 100) - cur) * 0.4f + GM_BLOCK(p)->goods[n].price;
-    if (GM_BLOCK(p)->goods[n].price <= 0.0f) {
+    r = ((float)f * gm_ItemPrice(id, 100) - cur) * 0.4f + gm_StockBlocks[p].goods[n].price;
+    if (gm_StockBlocks[p].goods[n].price <= 0.0f) {
         if (gm_ItemPrice(id, 100) < 512.0f)
             return 512.0f;
         return gm_ItemPrice(id, 100);
@@ -1172,7 +1140,7 @@ struct AIOBJ *gm_QueryNext(void)
                 m = 1;
         }
         if (ok && gm_QueryKind != 0xff)
-            m = ai_Goods[gm_QueryCursor->type].type == (char)gm_QueryKind;
+            m = ai_Goods[gm_QueryCursor->type].type == (signed char)gm_QueryKind;
         if (!ok)
             m = 0;
         if (gm_QueryScanAll != 0) {
@@ -1277,21 +1245,12 @@ struct AIOBJ *gm_Query(void *list, int n, ...)
 
 extern struct AIBLD *ai_MarketBuilding;                /* 0x6f1bc8, the market building (group 1, 5, 10) */
 int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v);                     /* 0x4c3d00 */
-extern unsigned gm_BoyHead[];
-extern unsigned gm_GirlHead[];
-extern unsigned gm_TitleHeadsMale[];
-extern unsigned gm_TitleHeadsFemale[];
-extern unsigned gm_JobHeadsMale[];
-extern unsigned gm_JobHeadsFemale[];
-extern unsigned gm_SpyHeads[];
-extern char ord_KindTable[];
 extern int gm_RichestYear;
 extern int gm_RichestWorth;
 extern float gm_BirthChance[6];
 extern float gm_DayStartHours[];
 extern float gm_DayEndHours[];
 extern GMDISEASE gm_Diseases[10];
-extern int gm_DefaultStock[0xaa0];
 extern G7GRP gm_BuildingItemGroups[37];
 extern int ai_NextObjectId;
 extern unsigned char gm_BQType;
@@ -1330,7 +1289,7 @@ void rt_FreePoints(struct RTPOINT *p);                     /* 0x4bd9e0 */
 
 /* 0x4fffc0, the first free record (prototype 0) of the object instance table ai_Objects (0x5008 records of 0x43 bytes), 0 when it is full */
 
-short *gm_FindFreeObject(void)
+AIOBJ *gm_FindFreeObject(void)
 {
     int i;
     AIOBJ *p, *res;
@@ -1345,7 +1304,7 @@ short *gm_FindFreeObject(void)
         } else
             res = p;
     }
-    return (short *)res;
+    return res;
 }
 /* 0x4ffff0, removes the object instance with the prototype id from the singly linked list whose head pointer is *list (the next pointer sits at +0x3f of each node): frees its extra part (0x500140 of the pointer at +0x14), the node itself (0x500080), relinks, marks the record free and decrements the count 0x6f1bdc. Returns 0, -1 for an empty list, -2 when not found */
 
@@ -1452,7 +1411,7 @@ int gm_FreeList(AIOBJ **list)
    webs). The walk as 'while (it) {last = it; ..} if (last != 0) {..} else {..}' (same meaning, last = 0
    reaches the test) gives raw 2003 (padded 2016) but 189 ins and not the original's *list test first: not
    kept. prior: 194 -> 145 ins: no pr = ai_Goods copies (the top one and the one inside if (list != 0)): plain
-   pr = (char *)GM_GOOD(proto) after the list block; VC6 itself loads ai_Goods into edi for the null test and
+   pr = (char *)(&ai_Goods[proto]) after the list block; VC6 itself loads ai_Goods into edi for the null test and
    reloads it after the gm_FindFreeObject calls, as the original. The M9 literal line is alignment only (0
    arbeiter, 1 holzfaeller, else handwerker: the original's order, read at 0x50054b). Left: the original keeps
    the top ai_Goods web in edi across the tail walk, so last lives in its slot [esp+0x1c] (stored per step,
@@ -1470,7 +1429,7 @@ int gm_FreeList(AIOBJ **list)
    group by the home building). Tried: a switch vs an if chain for the random model (the if chain matches
    block for block), the home tail as if/else-if (matches block for block), set as char / unsigned char / a
    cast sum, the dummy ternary with the cast outside. L... */
-unsigned short *gm_CreateObject(int id, int proto, int n)
+AIOBJ *gm_CreateObject(int id, int proto, int n)
 {
     AIBLD *b;
     AIOBJ *o;
@@ -1480,8 +1439,8 @@ unsigned short *gm_CreateObject(int id, int proto, int n)
     AIOBJ **list;
     char *pr;
     char buf[1024];
-    float pos[4];
-    float rot[3];
+    D3VECTOR4 pos;
+    D3VECTOR rot;
     AIOBJ *it;
     AIOBJ *load;
     AIBLD *home;
@@ -1501,13 +1460,13 @@ unsigned short *gm_CreateObject(int id, int proto, int n)
     c = 0;
     last = 0;
     r = 0;
-    pos[0] = 0;
-    pos[1] = 0;
-    pos[2] = 0;
-    pos[3] = 0;
-    rot[0] = 0;
-    rot[1] = 0;
-    rot[2] = 0;
+    pos.x = 0;
+    pos.y = 0;
+    pos.z = 0;
+    pos.w = 0;
+    rot.x = 0;
+    rot.y = 0;
+    rot.z = 0;
     if (ai_Goods == 0 || id == -1 || gm_FindById(&b, &o, &c, id) == 0)
         return 0;
     if (b != 0)
@@ -1525,18 +1484,18 @@ unsigned short *gm_CreateObject(int id, int proto, int n)
                 last = it;
                 it = it->next;
             } while (it != 0);
-            r = (AIOBJ *)gm_FindFreeObject();
+            r = gm_FindFreeObject();
             if (r == 0)
                 return 0;
             last->next = r;
         } else {
-            r = (AIOBJ *)gm_FindFreeObject();
+            r = gm_FindFreeObject();
             if (r == 0)
                 return 0;
             *list = r;
         }
     }
-    pr = (char *)GM_GOOD(proto);
+    pr = (char *)(&ai_Goods[proto]);
     r->type = (unsigned short)proto;
     sprintf(buf, "----->ObjID= %i ObjProt= %i", ai_NextObjectId, proto & 0xffff);
     r->objId = ai_NextObjectId;
@@ -1593,7 +1552,7 @@ unsigned short *gm_CreateObject(int id, int proto, int n)
             r->bldId = b->id;
         else
             r->bldId = -1;
-        load = (AIOBJ *)gm_CreateObject(r->objId, 0x1dd, 1);
+        load = gm_CreateObject(r->objId, 0x1dd, 1);
         load->count = r->type - 0x133;
         load->lvl1c = (unsigned char)r->type - 0x33;
         home = gm_BuildQuery(1, 1, id);
@@ -1604,36 +1563,36 @@ unsigned short *gm_CreateObject(int id, int proto, int n)
         d3if_SelectScene(scene, 1);
         dummy = d3_FindObject(gm_IsHomeType(home) != 0 ? 0 : home->object, 0x100, 0, "dummy_TRANSPORTER");
         if (dummy != 0)
-            d3_PointToWorld(dummy, &dummy->pos, (D3VECTOR *)pos);
+            d3_PointToWorld(dummy, &dummy->pos, &pos.v);
         else if (home->object != 0) {
-            pos[0] = home->object->pos.x;
-            pos[1] = home->object->pos.y;
-            pos[2] = home->object->pos.z;
+            pos.x = home->object->pos.x;
+            pos.y = home->object->pos.y;
+            pos.z = home->object->pos.z;
         } else {
-            pos[0] = 0;
-            pos[1] = 0;
-            pos[2] = 0;
+            pos.x = 0;
+            pos.y = 0;
+            pos.z = 0;
         }
         if (proto != 0x136) {
             pick = util_Random(3);
             if (pick == 0)
-                model = ch_Create("arbeiter_KARREN", (D3VECTOR *)pos);
+                model = ch_Create("arbeiter_KARREN", &pos.v);
             else if (pick == 1)
-                model = ch_Create("holzfaeller_KARREN", (D3VECTOR *)pos);
+                model = ch_Create("holzfaeller_KARREN", &pos.v);
             else
-                model = ch_Create("handwerker_KARREN", (D3VECTOR *)pos);
+                model = ch_Create("handwerker_KARREN", &pos.v);
         } else
-            model = ch_Create("pferd_PFERD", (D3VECTOR *)pos);
+            model = ch_Create("pferd_PFERD", &pos.v);
         r->sceneObj = model;
         ch_PreloadAnims(model, 1, "bewegung/karren_ziehen");
         init_HookObject(model->obj, r, 1);
         sprintf(model->obj->name, "sp_%i", r->objId);
         if (proto == 0x134)
-            cart = d3_CreateObject(0, (D3VECTOR *)pos, (D3VECTOR *)rot, "ob_KARREN_klein");
+            cart = d3_CreateObject(0, &pos.v, &rot, "ob_KARREN_klein");
         else if (proto == 0x135)
-            cart = d3_CreateObject(0, (D3VECTOR *)pos, (D3VECTOR *)rot, "ob_KARREN_mittel");
+            cart = d3_CreateObject(0, &pos.v, &rot, "ob_KARREN_mittel");
         else if (proto == 0x136)
-            cart = d3_CreateObject(0, (D3VECTOR *)pos, (D3VECTOR *)rot, "ob_KARREN_GROSS");
+            cart = d3_CreateObject(0, &pos.v, &rot, "ob_KARREN_GROSS");
         else
             cart = 0;
         if (cart != 0) {
@@ -1686,7 +1645,7 @@ unsigned short *gm_CreateObject(int id, int proto, int n)
     }
     if (*pr == 0x17 || *pr == ' ' || *pr == '%')
         r->reserve = 0;
-    return (unsigned short *)r;
+    return r;
 }
 /* 0x500970, adds the amount n of the object prototype proto to the owner id (a building / object / character found by 0x4fea50): an existing instance gets +n (+0xe), else 0x500190 creates one; an unknown owner writes the message "gm_AddObjekt(): Parent not found. ObjProt:%i Menge:%i" (the buffer is not shown). Returns the instance or 0 */
 
@@ -1769,7 +1728,7 @@ int gm_AddNegative(int id, int proto, int n)
         return 0;
     r = gm_Query(*list, 1, 0, proto);
     if (r == 0) {
-        r = (AIOBJ *)gm_CreateObject(id, proto, 1);
+        r = gm_CreateObject(id, proto, 1);
         r->count = 0;
     }
     r->count -= n;
@@ -1944,7 +1903,7 @@ struct AIBLD *gm_BuildNext(void)
     AIBLD *end;
 
     m = 0;
-    end = (AIBLD *)ai_Blds + 0x100;
+    end = ai_Blds + 0x100;
     if (ai_BTypes == 0)
         return 0;
     if (gm_BQTested > 0x100)
@@ -2060,18 +2019,18 @@ struct AIBLD *gm_BuildQuery(int n, ...)
 }
 /* 0x5012b0, the first free record of the building table (0x100 records of 0xa9 bytes), 0 when it is full */
 
-char *gm_FindFreeBuilding(void)
+AIBLD *gm_FindFreeBuilding(void)
 {
     AIBLD *end, *b;
 
-    end = (AIBLD *)ai_Blds + 0x100;
+    end = ai_Blds + 0x100;
     for (b = ai_Blds; b < end; b++) {
         if (b->type == 0)
             break;
     }
     if (b >= end)
         return 0;
-    return (char *)b;
+    return b;
 }
 /* 0x5012e0, frees the building b: a player's building (its owner a character of kind 6) frees its production setting (ai_FreeProdSetting); by type, 0x1e frees its plant records, 0x48 .. 0x4a its graveyard record, 0x4b .. 0x4d its heap block; every character living or working in it loses it, its object list is freed and the type set to 0 (free). Returns 0, -1 for no building, -2 for one already free */
 
@@ -2141,7 +2100,7 @@ void gm_StockBuildingObjects(AIBLD *b)
     for (i = 0; i < 37; i++) {
         if (b->type == gm_BuildingItemGroups[i].key) {
             o = gm_Query(b->objList, 2, 6, 0, 0xff);
-            if (o != 0 || (o = (AIOBJ *)gm_CreateObject(b->id, 0xff, 1)) != 0) {
+            if (o != 0 || (o = gm_CreateObject(b->id, 0xff, 1)) != 0) {
                 for (k = 0; k < 10; k++) {
                     if (gm_BuildingItemGroups[i].items[k] != 0 && gm_Query(o->list, 1, 0, gm_BuildingItemGroups[i].items[k]) == 0)
                         gm_CreateObject(o->objId, gm_BuildingItemGroups[i].items[k], 2);
@@ -2154,32 +2113,32 @@ void gm_StockBuildingObjects(AIBLD *b)
 
 void gm_SetCapacities(AIBLD *b)
 {
-    unsigned char *k;
+    AIBTYPE *k;
     AIOBJ *o;
 
-    k = (unsigned char *)ai_BTypes + b->type * 0x24d;
+    k = &ai_BTypes[b->type];
     o = gm_Query(b->objList, 2, 0, 0x2a, 6);
     if (o != 0) {
-        if (k[0x23d] == 0 && k[0x23e] == 0 && k[0x23f] != 0) {
-            o->cap[0] = k[0x23f];
+        if (k->roomCap0 == 0 && k->roomCap1 == 0 && k->roomCapOnly != 0) {
+            o->cap[0] = k->roomCapOnly;
         } else {
-            o->cap[0] = k[0x23d] < 2 ? 2 : k[0x23d];
-            o->cap[1] = k[0x23e] < 2 ? 2 : k[0x23e];
+            o->cap[0] = k->roomCap0 < 2 ? 2 : k->roomCap0;
+            o->cap[1] = k->roomCap1 < 2 ? 2 : k->roomCap1;
         }
     }
     o = gm_Query(b->objList, 2, 0, 0x116, 6);
-    if (o != 0 && k[0x23d] == 0 && k[0x23e] == 0 && k[0x23f] != 0)
-        o->cap[0] = k[0x23f];
+    if (o != 0 && k->roomCap0 == 0 && k->roomCap1 == 0 && k->roomCapOnly != 0)
+        o->cap[0] = k->roomCapOnly;
 }
 
 struct AIOBJ *gm_GetGebaeudeHauptraum(struct AIBLD *b);                     /* 0x501ce0 */
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
 void * mem_Alloc(int size, char *tag);                   /* 0x4223c0 */
-unsigned short * gm_AllocRaum(struct AIBLD *b, unsigned n);
+struct AIOBJ *gm_AllocRaum(struct AIBLD *b, unsigned n);
 
 /* 0x501580, creates a building of the kind k for the owner own (a character slot, 0xffff none) in the next free instance (gm_FindFreeBuilding): a new id (ai_NextObjectId), the owner and master words, the start values (budget 0x7d00, wage rate 100, level 100, price factor 1.0, no smoke effect), a player's production setting (ai_ProdSetting), a name picked at random from the up to 12 names of its kind that no building has yet (the kind's own name when none is free; "Building name too long: %s" is the unused error text), the objects of its prototype (the rooms of the kinds 2 / 6 by gm_AllocRaum, the others while no room came before), its main room and the per-kind extras: the creation time and the owner's netId for the kinds 4 .. 7, -1 for 0xb .. 0xd, 10 / 3 / 5 for 0xe .. 0x10, the object 0x1b5 for 0x14 .. 0x16, the "f3_gm:PlantMap" of 0x1e, the price factor 0.8 of 0x1e .. 0x20, the graveyard of 0x48 .. 0x4a, the "AHM_INFO" block of 0x4b .. 0x4d; then the capacities and the kind's stock (gm_SetCapacities, gm_StockBuildingObjects). Returns the building, 0 when there are no tables or no free instance
-   @deep 145 -> 103 ins (bytes 1147 -> 552): bt = (GMBTYPE *)base + k computed BEFORE b->type = k (the
-   move-line round: base now in edi, k in edx, the whole prologue and early returns equal), g = GM_GOOD(id)
+   @deep 145 -> 103 ins (bytes 1147 -> 552): bt = base + k computed BEFORE b->type = k (the
+   move-line round: base now in edi, k in edx, the whole prologue and early returns equal), g = (&ai_Goods[id])
    read at both type tests (the materialized address), u = bt->objs[i] index loop. Left: (1) the objs loop:
    the original keeps any in edi (loaded from its top slot before the loop) and the objs[i] IV in the slot
    [ebp-4] shared with n, with the zero constant in ebx (cmp dx,bx, re-zeroed at the latch); ours gives the
@@ -2199,29 +2158,29 @@ unsigned short * gm_AllocRaum(struct AIBLD *b, unsigned n);
    in [ebp-0x14], w in edi: hunks +0x2bc / +0x2ea / +0x31a / +0x33c / +0x356), keeps 0 in ebx and re-zeroes
    it after the ai_Goods temp (ours zero in edi: +0x383, cmp eax,ebx vs edi), and the arrays sit at other
    frame slots (err/names swapped: +0x18b / +0x2d... */
-unsigned char *gm_CreateBuilding(unsigned char k, unsigned short own)
+AIBLD *gm_CreateBuilding(unsigned char k, unsigned short own)
 {
     AIBLD *b;
-    char *base;
-    GMBTYPE *bt;
+    AIBTYPE *base;
+    AIBTYPE *bt;
     char *name;
-    int *info;
+    AHMREC *info;
     char dbg[0x100];
     char names[12][0x40];
     int i, j, n, any, id;
-    GMGOOD *g;
+    AIGOOD *g;
     unsigned short u;
     AIOBJ *s;
     AIOBJ *o;
 
-    base = (char *)ai_BTypes;
+    base = ai_BTypes;
     if (base == 0)
         return 0;
     any = 0;
-    b = (AIBLD *)gm_FindFreeBuilding();
+    b = gm_FindFreeBuilding();
     if (b == 0)
         return 0;
-    bt = (GMBTYPE *)base + k;
+    bt = base + k;
     b->type = k;
     sprintf(dbg, "----->GebID= %i GebProt= %i", ai_NextObjectId, k);
     b->id = ai_NextObjectId;
@@ -2261,7 +2220,7 @@ unsigned char *gm_CreateBuilding(unsigned char k, unsigned short own)
 
             strcpy(cand, txt_Ptrs[TXT_BUILDING_NAMES + (k * 0xe + i)]);
             for (j = 0; j < 0x100; j++) {
-                if (((AIBLD *)ai_Blds)[j].type != 0 && strcmp(((AIBLD *)ai_Blds)[j].name, cand) == 0)
+                if (ai_Blds[j].type != 0 && strcmp(ai_Blds[j].name, cand) == 0)
                     break;
             }
             if (j < 0x100)
@@ -2280,7 +2239,7 @@ unsigned char *gm_CreateBuilding(unsigned char k, unsigned short own)
             break;
         if (u != 0xffff) {
             id = u & 0x7fff;
-            g = GM_GOOD(id);
+            g = (&ai_Goods[id]);
             if (g->type == 2 || g->type == 6)
                 any = 1;
             if (u & 0x8000) {
@@ -2319,7 +2278,7 @@ unsigned char *gm_CreateBuilding(unsigned char k, unsigned short own)
     case 0x14:
     case 0x15:
     case 0x16:
-        o = (AIOBJ *)gm_CreateObject(b->id, 0x1b5, 1);
+        o = gm_CreateObject(b->id, 0x1b5, 1);
         if (o != 0) {
             o->sermon.enabled = 0;
             o->sermon.text1 = -1;
@@ -2370,29 +2329,29 @@ unsigned char *gm_CreateBuilding(unsigned char k, unsigned short own)
     case 0x4b:
     case 0x4c:
     case 0x4d:
-        info = (int *)mem_Alloc(0x3c, "AHM_INFO");
-        b->ahm = (struct AHMREC *)info;
-        *info = -1;
+        info = mem_Alloc(0x3c, "AHM_INFO");
+        b->ahm = info;
+        info->id = -1;
     }
     if (b->type == 0x26)
         b->mainRoom = 0x10e;
     gm_SetCapacities(b);
     gm_BuildingClass(b->type);
     gm_StockBuildingObjects(b);
-    return (unsigned char *)b;
+    return b;
 }
 /* 0x501b50, the main object of the building b, chosen by its building class (gm_BuildingClass): the classes 1 / 7 / 8 look by kind for the object 0x205 (kind 0x1d), 0x12e (0x16), 0x54 (4) or 0xfd (0x1f); class 4 takes the object 0xf7, a home (gm_IsHomeType) the 0xfd; otherwise (or when that object is missing) the first room of the kind's prototype list (an object of goods class 2 other than 0xfd). Returns the object, 0 when there is none */
 AIOBJ *gm_BuildingMainObject(AIBLD *b)
 {
-    GMBTYPE *bt;
-    GMGOOD *g;
+    AIBTYPE *bt;
+    AIGOOD *g;
     AIOBJ *o;
     int cls, i;
     unsigned id;
 
     o = 0;
     cls = gm_BuildingClass(b->type);
-    bt = GM_BTYPE(b->type);
+    bt = &ai_BTypes[b->type];
     if (cls != 1 && cls != 7 && cls != 8) {
         if (cls == 4)
             o = gm_Query(b->objList, 1, 0, 0xf7);
@@ -2402,7 +2361,7 @@ AIOBJ *gm_BuildingMainObject(AIBLD *b)
             for (i = 0; i < 0x40; i++) {
                 if (bt->objs[i] != 0xffff) {
                     id = bt->objs[i] & 0x7fff;
-                    g = GM_GOOD(id);
+                    g = (&ai_Goods[id]);
                     if (g->type == 2 && id != 0xfd)
                         return gm_Query(b->objList, 1, 0, id);
                 }
@@ -2421,7 +2380,7 @@ AIOBJ *gm_BuildingMainObject(AIBLD *b)
             for (i = 0; i < 0x40; i++) {
                 if (bt->objs[i] != 0xffff) {
                     id = bt->objs[i] & 0x7fff;
-                    g = GM_GOOD(id);
+                    g = (&ai_Goods[id]);
                     if (g->type == 2 && id != 0xfd)
                         return gm_Query(b->objList, 1, 0, id);
                 }
@@ -2559,13 +2518,13 @@ AIBLD *gm_NearestFreeBuilding(AIBLD *p, unsigned kind)
 struct AIBLD *gm_FindBuildingById(int id)
 {
     int i;
-    char *p;
+    AIBLD *p;
 
     i = 0;
-    p = (char *)ai_Blds;
-    while (((AIBLD *)p)->type == 0 || ((AIBLD *)p)->id != id) {
+    p = ai_Blds;
+    while (p->type == 0 || p->id != id) {
         i++;
-        p += 0xa9;
+        p++;
         if (i >= 0x100)
             return 0;
     }
@@ -2578,7 +2537,7 @@ int gm_FindBuildingKind(char *name)
     int n;
 
     for (n = 0; n < 0x58; n++) {
-        if (stricmp(name, GM_BTYPE(n)->name) == 0)
+        if (stricmp(name, ai_BTypes[n].name) == 0)
             return n;
     }
     return 0;
@@ -2591,7 +2550,7 @@ int gm_ListBuildingsOfType(unsigned t, int *out)
 
     n = 0;
     for (k = 0; k < 0x58; k++) {
-        if (GM_BTYPE(k)->kind == t) {
+        if (ai_BTypes[k].kind == t) {
             out[n] = k;
             n++;
         }
@@ -2892,7 +2851,7 @@ void gm_AssignBuilding(AIBLD *b, unsigned master, unsigned own)
                 d3if_SelectScene(d3t_SceneIndex(ob->scene), 1);
                 if (ob->obj->info == 0)
                     ch_InflateModel(ob);
-                d3if_SelectTextureSet(*ob->transport, (*ob->transport)->info, owid, 1);
+                d3if_SelectTextureSet(ob->transport->obj, ob->transport->obj->info, owid, 1);
                 d3if_SelectScene(scn, 1);
             }
             w++;
@@ -3023,11 +2982,11 @@ void gm_SellBuilding(int id, int buyer, int price, AIJOB *job, int boss)
     cm_EndGroup("buy_building");
 }
 /* 0x5031b0, "gm_AllocRaum": creates the room object n of the building b with its sub-objects: the object list of the building kind (the words at +0x23, 0x40 of them) after n, up to the next room (goods kind 2 / 6) or the 0 end, the words with the top bit set; the room's first object 0x2a gets the count 2, the building as owner and the capacities +0x23d / +0x23e of the kind (at least 2; the kind's +0x23f alone when only it is set), its object 0x116 (kind 6) the same with the room as owner and at least 6; a market stall (0x92 .. 0x97, 0x2db) also makes its store room ob_LAGERFLAECHE_ALLGEMEIN (capacity 0xc, count 3) and an object 0xff holding up to 0x10 goods of the template gm_DefaultStock that the own player's stock records give to this stall kind. Returns the room, 0 without tables or room for 0x40 more objects */
-unsigned short *gm_AllocRaum(AIBLD *b, unsigned n)
+AIOBJ *gm_AllocRaum(AIBLD *b, unsigned n)
 {
     AIOBJ *o, *g;
-    unsigned short *bi;
-    unsigned char *bp;
+    AIOBJ *bi;
+    AIBTYPE *bp;
     unsigned short *q;
     char *k;
     unsigned short w;
@@ -3036,13 +2995,13 @@ unsigned short *gm_AllocRaum(AIBLD *b, unsigned n)
 
     if (ai_Goods == 0 || ai_BTypes == 0 || f3gm_ObjectCount + 0x40 >= 0x5008)
         return 0;
-    o = (AIOBJ *)gm_CreateObject(b->id, n, 1);
-    bp = (unsigned char *)ai_BTypes + b->type * 0x24d;
+    o = gm_CreateObject(b->id, n, 1);
+    bp = &ai_BTypes[b->type];
     i = 0;
-    for (q = ((GMBTYPE *)bp)->objs; (*q & 0x7fff) != n; q++)
+    for (q = bp->objs; (*q & 0x7fff) != n; q++)
         i++;
     for (i++; i < 0x40; i++) {
-        w = ((GMBTYPE *)bp)->objs[i];
+        w = bp->objs[i];
         if (w == 0)
             break;
         if (w != 0xffff) {
@@ -3057,22 +3016,22 @@ unsigned short *gm_AllocRaum(AIBLD *b, unsigned n)
     if (g != 0) {
         g->ownerId = b->id;
         g->count = 2;
-        if (bp[0x23d] == 0 && bp[0x23e] == 0 && bp[0x23f] != 0)
-            g->cap[0] = bp[0x23f];
+        if (bp->roomCap0 == 0 && bp->roomCap1 == 0 && bp->roomCapOnly != 0)
+            g->cap[0] = bp->roomCapOnly;
         else {
-            g->cap[0] = bp[0x23d] < 2 ? 2 : bp[0x23d];
-            g->cap[1] = bp[0x23e] < 2 ? 2 : bp[0x23e];
+            g->cap[0] = bp->roomCap0 < 2 ? 2 : bp->roomCap0;
+            g->cap[1] = bp->roomCap1 < 2 ? 2 : bp->roomCap1;
         }
     }
     g = gm_Query(o->list, 2, 0, 0x116, 6);
     if (g != 0) {
         g->ownerId = o->objId;
         g->count = 2;
-        if (bp[0x23d] == 0 && bp[0x23e] == 0 && bp[0x23f] != 0)
-            g->cap[0] = bp[0x23f] < 6 ? 6 : bp[0x23f];
+        if (bp->roomCap0 == 0 && bp->roomCap1 == 0 && bp->roomCapOnly != 0)
+            g->cap[0] = bp->roomCapOnly < 6 ? 6 : bp->roomCapOnly;
         else {
-            g->cap[0] = bp[0x23d] < 6 ? 6 : bp[0x23d];
-            g->cap[1] = bp[0x23e] < 6 ? 6 : bp[0x23e];
+            g->cap[0] = bp->roomCap0 < 6 ? 6 : bp->roomCap0;
+            g->cap[1] = bp->roomCap1 < 6 ? 6 : bp->roomCap1;
         }
     }
     if ((o->type >= 0x92 && o->type <= 0x97) || o->type == 0x2db) {
@@ -3086,15 +3045,15 @@ unsigned short *gm_AllocRaum(AIBLD *b, unsigned n)
             err_Message("gm_AllocRaum(): ob_LAGERFLAECHE_ALLGEMEIN is missing in ob_MARKTSTAND!");
         bi = gm_CreateObject(o->objId, 0xff, 1);
         cnt = 0;
-        t = (GMSTOCK *)gm_DefaultStock;
+        t = gm_DefaultStock;
         for (j = 0; j < 0x55; j++) {
             if (s[j].marketKind == o->type && s[j].amount != 0 && cnt < 0x10) {
-                gm_CreateObject(((AIOBJ *)bi)->objId, t[j].item, 1);
+                gm_CreateObject(bi->objId, t[j].item, 1);
                 cnt++;
             }
         }
     }
-    return (unsigned short *)o;
+    return o;
 }
 /* 0x503480, removes the object instance with the id from the list of the building b (0x4ffff0): 0 when it was there, -3 otherwise */
 
@@ -3171,7 +3130,7 @@ unsigned gm_PermissionBits(unsigned p, AIBLD *bld, AIOBJ *o, AICHAR *c)
         btype = (unsigned char *)ai_BTypes + bld->type * 0x24d;
         job = gm_TitleJob(p, gm_BuildingJob(*btype));
         if (*btype == 0x1d)
-            return ai_PermissionBits1d(&ai_Chars[p], bld, (char *)obj);
+            return ai_PermissionBits1d(&ai_Chars[p], bld, obj);
         switch (*btype) {
         case 0x21:
             if (bld->masterId == p)
@@ -3850,13 +3809,12 @@ int gm_TitleJob(int i, int p)
    left (gm_TitlesLeft, 1 .. 5) + 72) hours over (1 + the skill of its job group, at least 0.25: group 11 -> skill 2,
    12 / 10 -> 3, 8 -> 0, 9 -> 4, else 1), its hour of day moved into 7 .. 21; the time served is the job's days
    (+0x174, cleared by a job change) at the clock's hour. Served less than the period: returns served / period in
-   minutes and writes to *out (an AITIME; the callers declare int *) the date the period completes (now + period -
+   minutes and writes to *out the date the period completes (now + period -
    served); else returns 1.0; 0.0 when the character has no title left in 1 .. 5 */
 
-float gm_TitlePeriodServed(int n, int *out)
+float gm_TitlePeriodServed(int n, AITIME *out)
 {
     AITIME period, served, zero;
-    AITIME *when;
     int k, group, hours, days;
     unsigned short hour;
     float f, share;
@@ -3897,8 +3855,7 @@ float gm_TitlePeriodServed(int n, int *out)
         share = (double)gm_MinutesBetween(&zero, &served) / (double)gm_MinutesBetween(&zero, &period);
         gm_AddTime(&period, hour + ai_Time.year * 24, 0, 0);
         gm_AddTime(&period, -hour - days * 24, 0, 0);
-        when = (AITIME *)out;
-        *when = period;
+        *out = period;
         return share;
     }
     return 1.0f;
@@ -3994,10 +3951,10 @@ int gm_HasBuilding(int p)
 }
 /* 0x5049e0, the treasury object of the building b's class: class 5 the object 0x142 (the treasury) of the building 2 .. 5 chosen by the player's job2 (0x1e .. 0x21), class 3 the object 0x115 of the building 1; 0 else */
 
-char *gm_ClassTreasury(AIBLD *b)
+AIOBJ *gm_ClassTreasury(AIBLD *b)
 {
     int cls;
-    char *r;
+    AIOBJ *r;
     AIBLD *h;
 
     r = 0;
@@ -4014,10 +3971,10 @@ char *gm_ClassTreasury(AIBLD *b)
         else
             h = 0;
         if (h != 0)
-            r = (char *)gm_Query(h->objList, 2, 6, 0, 0x142);
+            r = gm_Query(h->objList, 2, 6, 0, 0x142);
     } else if (cls == 3) {
         h = gm_FirstBuilding(1);
-        r = (char *)gm_Query(h->objList, 2, 6, 0, 0x115);
+        r = gm_Query(h->objList, 2, 6, 0, 0x115);
     }
     return r;
 }
@@ -4276,9 +4233,9 @@ float gm_Mix2(float u, float v)
 
 int amt_GetKind(int k, struct AMTKIND *out);                     /* 0x4e6f80 */
 float gm_AddHealth(unsigned short id, int d);                   /* 0x4fca40 */
-void gm_ClockToDate(struct AITIME *c, unsigned char *out);                     /* 0x4fe2c0 */
+void gm_ClockToDate(struct AITIME *c, struct GMDATE *out);                     /* 0x4fe2c0 */
 
-int ai_InventoryHas(void *ch, int id);                     /* 0x5ba6b0 */
+int ai_InventoryHas(struct AICHAR *ch, int id);                     /* 0x5ba6b0 */
 
 /* 0x504ec0, the skill value (0 .. 1) of the character c for the skill number 0 .. 4 (-1 when there is none): the
    base skill byte (+0x80 + skill) / 252, plus the bonuses of the character's skill events ((2, 2, id, 0, 0x82):
@@ -4290,7 +4247,7 @@ int ai_InventoryHas(void *ch, int id);                     /* 0x5ba6b0 */
 float gm_GetSkill(AICHAR *c, int skill)
 {
     AICHAR *ch;
-    GMSKILLEV *it;
+    AIJOB *it;
     float s, acc, r;
     int v;
 
@@ -4301,13 +4258,13 @@ float gm_GetSkill(AICHAR *c, int skill)
     s = ch->skills[skill] * 0.003968254f;
     if (skill != 1) {
         acc = 0.0f;
-        it = (GMSKILLEV *)he_FindEvent(2, 2, ch->id, 0, 0x82);
+        it = he_FindEvent(2, 2, ch->id, 0, 0x82);
         while (it != 0) {
-            if (it->skill1 == skill)
-                acc = acc + it->bonus1;
-            else if (it->skill2 == skill)
-                acc = acc + it->bonus2;
-            it = (GMSKILLEV *)he_NextEvent();
+            if (it->skillBonusSkill1 == skill)
+                acc = acc + it->skillBonusAdd1;
+            else if (it->skillBonusSkill2 == skill)
+                acc = acc + it->skillBonusAdd2;
+            it = he_NextEvent();
         }
         v = ai_InventoryHas(c, 0x2c4);
         if (v == 1)
@@ -4989,7 +4946,7 @@ void gm_BirthDate(AICHAR *c, GMDATE *out)
     if (c->health == 0)
         clk.year = c->w028;
     clk.year -= c->age;
-    gm_ClockToDate(&clk, (unsigned char *)&d);
+    gm_ClockToDate(&clk, &d);
     x = c->nameKey ^ d.year;
     d.month = (char)(((x >> 3) % 13 + clk.year % 11) % 12) + 1;
     d.day = (unsigned char)((x >> 5) % 28) + 1;
@@ -5010,7 +4967,7 @@ int gm_DeathDate(AICHAR *c, GMDATE *out)
         return 0;
     clk.year = c->w028;
     year = clk.year;
-    gm_ClockToDate(&clk, (unsigned char *)&d);
+    gm_ClockToDate(&clk, &d);
     x = c->nameKey ^ d.year;
     d.month = (char)(((x >> 3) % 7 + year % 19) % 12) + 1;
     d.day = (unsigned char)((x >> 5) % 28) + 1;
@@ -5168,7 +5125,7 @@ unsigned gm_TakeOverCharacter(int a, int b)
         return -1;
     ai_RestartMission(ca);
     for (j = 0; j < 0x100; j++) {
-        bl = &((AIBLD *)ai_Blds)[j];
+        bl = &ai_Blds[j];
         if (bl->type != 0 && gm_BuildingClass(bl->type) == 2 && bl->owner == ca->id)
             gm_AssignBuilding(bl, ai_PlayerChar->id, ai_PlayerChar->id);
     }
@@ -5289,7 +5246,7 @@ void gm_InheritEstate(AICHAR *dead, AICHAR *heir)
     n = 0;
     taken = 0;
     if (gv_FindHeldEntry(dead, &s, &e) != 0) {
-        gv_OrderBury((int *)dead, s, e->size, gv_EntryIndex(s->yard, e));
+        gv_OrderBury(dead, s, e->size, gv_EntryIndex(s->yard, e));
         if (heir != 0 && heir != ai_PlayerChar && e->id == dead->netId)
             gv_OrderSetGraveHolder(heir, s, e->size, gv_EntryIndex(s->yard, e));
     }
@@ -5625,7 +5582,6 @@ float gm_ItemPrice(int item, unsigned char n);
 int gm_SumListAmounts(void *list, unsigned char p);
 
 #define PLW54(k) (ai_PlayerSlots[(unsigned char)(k)].moneyGood)  /* the city id of the player slot k */
-#define OPROTO(i) ((char *)ai_Goods + (unsigned)(i) * 0x41)
 
 extern int ai_CharCount, ai_NextCharNumber, ai_NextPlayerNumber, gm_AllowAll, ai_NextObjectId;  /* 0x6f1bc0, 0x6f1bb8, 0x6f1bbc, 0x6f2448, 0x61a654 */
 
@@ -5740,7 +5696,7 @@ unsigned short gm_CreateCharacter(int type, int a2, int a3, unsigned short a4, s
         c->level = 2;
     }
     if (c->kind == 0x10) {
-        av = (GVAVATAR *)gv_AllocAvatar();
+        av = gv_AllocAvatar();
         c->kind = 3;
         if (av != 0) {
             r = util_Random(8);
@@ -6103,7 +6059,7 @@ float gm_ObjectValue(int n)
     t = (unsigned char *)ai_BTypes + gm_GoodBuilding[n] * 0x24d + 0x233;
     for (; i < 2; i++)
         f += t[i] * 896.0f * 0.0013888888888888887;
-    return f * GM_GOOD(n)->workTime / GM_GOOD(n)->batch;
+    return f * (&ai_Goods[n])->workTime / (&ai_Goods[n])->batch;
 }
 /* 0x508740, the wage of a job (a) or title (b) of the building kind k for the character c, reduced for the kinds 6 / 7 */
 
@@ -6130,13 +6086,13 @@ float gm_JobWage(AICHAR *c, int k, int a, int b)
 
 float gm_ItemPrice(int item, unsigned char n)
 {
-    GMGOOD *g;
+    AIGOOD *g;
     float s, f, rate;
     int i;
     unsigned char *t;
     char buf[0x100];
 
-    g = GM_GOOD(item);
+    g = (&ai_Goods[item]);
     if (g->price != 0) {
         f = (float)(g->price << 5) * n * 0.01f;
         if (g->cls == 3)
@@ -6266,23 +6222,23 @@ void gm_FormatAmount(int v, unsigned char k, char *out)
    listed */
 int gm_ListObjectsAfter(AIBLD *b, AIOBJ *proto, int *out)
 {
-    GMBTYPE *bt;
-    GMGOOD *g;
+    AIBTYPE *bt;
+    AIGOOD *g;
     int n, i;
     unsigned id;
 
     n = 0;
-    bt = GM_BTYPE(b->type);
-    for (i = 0; i < bt->objCount; i++)
+    bt = &ai_BTypes[b->type];
+    for (i = 0; i < bt->nslots; i++)
         if ((unsigned short)(bt->objs[i] & 0x7fff) == proto->type)
             break;
-    if (i >= bt->objCount)
+    if (i >= bt->nslots)
         return 0;
     for (i++; i < 0x40; i++) {
         if (bt->objs[i] == 0)
             break;
         id = bt->objs[i] & 0x7fff;
-        g = GM_GOOD(id);
+        g = (&ai_Goods[id]);
         if (g->type == 2 || g->type == 6)
             break;
         if (g->type != 0x21)
@@ -6416,7 +6372,7 @@ int gm_BuildingCarts(AIBLD *b, AIOBJ **out)
    @deep deep s43: the original's table is [0] = 2/5/7 -> body ecx (0x5090e9), [1] = the 4 group and [2] =
    default -> body edx (0x5090f4, cross-jumped): A ecx, B edx, default edx. Ours: A ecx, B edx, default ecx
    (merged with A), so only the default body's scratch register is one rotation step off. All 6 orders of
-   the three groups, break + one return r, GM_BTYPE(*b)->kind / ->level, a GMBTYPE *bt, an int i = *b: all
+   the three groups, break + one return r, ai_BTypes[*b].kind / .level, an AIBTYPE *bt, an int i = *b: all
    = control (VC6 builds the arms in its own order). Open: what gives the default body one temp step more
    (or the B body one fewer). prior: near-byte sweep s22: left the two return bodies' registers (the
    original's first body uses ecx, the second edx). = control: the case groups swapped, the default return
@@ -6512,19 +6468,19 @@ int gm_BuildingValues(AIBLD *b, int *out)
    with flag the sum is scaled by the building's level in percent (rounded) */
 int gm_BuildingSkill(AIBLD *b, unsigned k, int flag)
 {
-    unsigned char *kind;
+    AIBTYPE *kind;
     int i, s, proto;
     unsigned short *slot;
 
     s = 0;
-    kind = (unsigned char *)ai_BTypes + b->type * 0x24d;
+    kind = &ai_BTypes[b->type];
     i = 0;
-    slot = ((GMBTYPE *)kind)->objs;
+    slot = kind->objs;
     do {
         proto = *slot & 0x7fff;
-        if (proto != 0 && kind[i + 0x1a3] == k) {
+        if (proto != 0 && kind->objClass[i] == k) {
             if (gm_Query(b->objList, 2, 6, 0, proto))
-                s += kind[i + 0x1e3];
+                s += kind->objValue[i];
         }
         i++;
         slot++;
@@ -6539,17 +6495,17 @@ int gm_BuildingSkill(AIBLD *b, unsigned k, int flag)
 
 int gm_BuildingKindSkill(int kind, unsigned k)
 {
-    unsigned char *p;
+    AIBTYPE *p;
     int i, s;
     unsigned short *slot;
 
     i = 0;
-    p = (unsigned char *)ai_BTypes + kind * 0x24d;
+    p = &ai_BTypes[kind];
     s = 0;
-    slot = ((GMBTYPE *)p)->objs;
+    slot = p->objs;
     do {
-        if ((*slot & 0x7fff) != 0 && p[s + 0x1a3] == k)
-            i += p[s + 0x1e3];
+        if ((*slot & 0x7fff) != 0 && p->objClass[s] == k)
+            i += p->objValue[s];
         s++;
         slot++;
     } while (s < 0x40);
@@ -6638,7 +6594,7 @@ int gm_FixedWorkMinutesBetween(AITIME *a, AITIME *b)
 int gm_BuildingGoodsList(AIBLD *bld, AIRECIPE *out, int kind)
 {
     AIOBJ *stall, *o;
-    GMGOOD *g;
+    AIGOOD *g;
     int cap;
 
     memset(out, 0, sizeof(*out));
@@ -6659,7 +6615,7 @@ int gm_BuildingGoodsList(AIBLD *bld, AIRECIPE *out, int kind)
     }
     o = gm_Query(stall->list, 1, 5);
     while (o) {
-        g = GM_GOOD(o->type);
+        g = (&ai_Goods[o->type]);
         if (((g->type == 0x17 || g->type == 0x25) && kind != 0) || ((g->type != 0x17 && g->type != 0x25) && kind == 0)
             || stall->type == 0x116) {
             out->amount[out->count] = gm_ListAmount(stall, o);
@@ -6680,7 +6636,7 @@ int gm_BuildingGoodsList17(AIBLD *b, AIRECIPE *out, int kind)
 {
     AIBLD *bld;
     AIOBJ *stall, *o;
-    GMGOOD *g;
+    AIGOOD *g;
     int cap;
 
     bld = b;
@@ -6702,7 +6658,7 @@ int gm_BuildingGoodsList17(AIBLD *b, AIRECIPE *out, int kind)
     }
     o = gm_Query(stall->list, 1, 5);
     while (o) {
-        g = GM_GOOD(o->type);
+        g = (&ai_Goods[o->type]);
         if ((g->type == 0x17 && kind != 0) || (g->type != 0x17 && kind == 0)) {
             out->amount[out->count] = gm_ListAmount(stall, o);
             out->max[out->count] = gm_ListStock(stall, o->type);
@@ -6723,13 +6679,13 @@ int gm_EquipmentValue(AIBLD *b, int level)
     unsigned id;
     AIOBJ *holder, *o;
     unsigned short *w;
-    GMBTYPE *t;
-    GMGOOD *g;
+    AIBTYPE *t;
+    AIGOOD *g;
     int value;
 
     holder = 0;
     found = 0;
-    t = GM_BTYPE(b->type);
+    t = &ai_BTypes[b->type];
     value = t->baseValue * 0xf00;
     i = 0;
     w = &t->objs[1];
@@ -6737,13 +6693,13 @@ int gm_EquipmentValue(AIBLD *b, int level)
         if (w[-1] == 0)
             break;
         id = w[-1] & 0x7fff;
-        g = GM_GOOD(id);
+        g = (&ai_Goods[id]);
         if (!found) {
             if (g->type == 2 || g->type == 6) {
                 holder = gm_Query(b->objList, 1, 0, id);
                 if (holder != 0) {
                     value += gm_ItemPrice(holder->type, holder->fill);
-                    if (i < 0x3f && (k = GM_GOOD(*w & 0x7fff)->type) != 2 && k != 6)
+                    if (i < 0x3f && (k = (&ai_Goods[*w & 0x7fff])->type) != 2 && k != 6)
                         found = 1;
                 }
             }
@@ -6751,7 +6707,7 @@ int gm_EquipmentValue(AIBLD *b, int level)
             o = gm_Query(holder->list, 1, 0, id);
             if (o != 0)
                 value += gm_ItemPrice(o->type, o->fill);
-            if (i < 0x3f && ((k = GM_GOOD(*w & 0x7fff)->type) == 2 || k == 6))
+            if (i < 0x3f && ((k = (&ai_Goods[*w & 0x7fff])->type) == 2 || k == 6))
                 found = 0;
         }
         i++;
@@ -6788,11 +6744,11 @@ int gm_BuildingKindValue(int kind)
     unsigned short w;
     unsigned short *p;
     int i;
-    GMBTYPE *t;
-    GMGOOD *g;
+    AIBTYPE *t;
+    AIGOOD *g;
     int value;
 
-    t = GM_BTYPE(kind);
+    t = &ai_BTypes[kind];
     value = t->baseValue * 0xf00;
     p = t->objs;
     i = 0;
@@ -6800,7 +6756,7 @@ int gm_BuildingKindValue(int kind)
         w = *p;
         if (w == 0)
             break;
-        g = GM_GOOD(w & 0x7fff);
+        g = (&ai_Goods[w & 0x7fff]);
         if (w & 0x8000)
             value += gm_ItemPrice((unsigned char)g->type, 100);
         i++;
@@ -6944,34 +6900,35 @@ int gm_StallValue(AIBLD *b)
     return v;
 }
 /* 0x509ff0, the character that owns the object o: the character of its holderId (+0x0a), else the master
-   (+0x25) of the building holding it, else 0. The found character goes back through o's own argument slot
-   (the original passes its address as gm_FindById's character out) */
+   (+0x25) of the building holding it, else 0 (VC6 packs the found character c into o's dead argument slot) */
 
 AICHAR *gm_ObjectOwnerChar(AIOBJ *o)
 {
     AIBLD *b;
+    AICHAR *c;
 
-    gm_FindById(&b, 0, (AICHAR **)&o, o->holderId);
-    if (o == 0) {
+    gm_FindById(&b, 0, &c, o->holderId);
+    if (c == 0) {
         if (b != 0 && b->masterId != 0xffff)
             return &ai_Chars[b->masterId];
-        o = 0;
+        c = 0;
     }
-    return (AICHAR *)o;
+    return c;
 }
 /* 0x50a050, the same with the owner word (+0x27) */
 
 AICHAR *gm_ObjectBuildingOwner(AIOBJ *o)
 {
     AIBLD *b;
+    AICHAR *c;
 
-    gm_FindById(&b, 0, (AICHAR **)&o, o->holderId);
-    if (o == 0) {
+    gm_FindById(&b, 0, &c, o->holderId);
+    if (c == 0) {
         if (b != 0 && b->owner != 0xffff)
             return &ai_Chars[b->owner];
-        o = 0;
+        c = 0;
     }
-    return (AICHAR *)o;
+    return c;
 }
 /* 0x50a0b0, the character number of the owner of the object o: the id (+0x00) of the character holding
    it (holderId +0x0a), else the owner word (+0x27) of the building holding it, else 0xffff */
@@ -7013,39 +6970,39 @@ AIBLD *gm_ObjectBuilding(AIOBJ *o)
    charId +0xb0 is its netId), only of the building bld when it is not 0 (their bldId +0xac is its id);
    returns their number */
 
-int gm_CreditEvents(int c, AIBLD *bld, HELOAN **out)
+int gm_CreditEvents(int c, AIBLD *bld, AIJOB **out)
 {
     int n;
-    GMEVENT23 *ev;
+    AIJOB *ev;
 
     n = 0;
-    ev = (GMEVENT23 *)he_FindEvent(1, 0, 0x23);
+    ev = he_FindEvent(1, 0, 0x23);
     while (ev != 0 && n < 9) {
-        if (ev->charId == ai_Chars[c].netId && (bld == 0 || ev->bldId == bld->id)) {
-            out[n] = (HELOAN *)ev;
+        if (ev->loanPartner == ai_Chars[c].netId && (bld == 0 || ev->bldId == bld->id)) {
+            out[n] = ev;
             n++;
         }
-        ev = (GMEVENT23 *)he_NextEvent();
+        ev = he_NextEvent();
     }
     return n;
 }
 /* 0x50a1c0, collects into out (up to 9) the events of the kind 0x23 whose building belongs to the owner (AIBLD.owner), only of the building b when b is not 0 and of the character slot c when c is not 0xffff; returns their number */
 
-int gm_BuildingEvents(unsigned owner, AIBLD *b, int c, HELOAN **out)
+int gm_BuildingEvents(unsigned owner, AIBLD *b, int c, AIJOB **out)
 {
     int n;
-    GMEVENT23 *ev;
+    AIJOB *ev;
     AIBLD *bl;
 
     n = 0;
-    ev = (GMEVENT23 *)he_FindEvent(1, n, 0x23);
+    ev = he_FindEvent(1, n, 0x23);
     while (ev != 0 && n < 9) {
         bl = gm_BuildQuery(1, 1, ev->bldId);
         if (bl != 0 && bl->owner == owner && (b == 0 || b == bl) &&
-            (c == 0xffff || ai_Chars[c].netId == ev->charId)) {
-            out[n++] = (HELOAN *)ev;
+            (c == 0xffff || ai_Chars[c].netId == ev->loanPartner)) {
+            out[n++] = ev;
         }
-        ev = (GMEVENT23 *)he_NextEvent();
+        ev = he_NextEvent();
     }
     return n;
 }
@@ -7075,7 +7032,7 @@ int gm_GetCreditOffers(AIBLD *b, AICHAR *p, unsigned cnt, ORDCREDIT *out)
     int budget, worth, maxAmount, i, all, amount, term, interest;
     unsigned k;
     float f, add, rate, lim;
-    HELOAN *events[9];
+    AIJOB *events[9];
     ORDMSG orders;
 
     if (p == 0 || b == 0 || bank->owner == 0xffff || cnt == 0)
@@ -7330,7 +7287,7 @@ int gm_FreeCapacity(AIOBJ *s, int id, int n)
 {
     unsigned char *b;
     AIOBJ *o;
-    GMGOOD *g;
+    AIGOOD *g;
     int cls2, stock, held, cnt, grp;
 
     b = (unsigned char *)gm_ObjectBuilding(s);
@@ -7345,7 +7302,7 @@ int gm_FreeCapacity(AIOBJ *s, int id, int n)
             return n;
         return stock - held;
     }
-    g = GM_GOOD(id);
+    g = (&ai_Goods[id]);
     if (cls2)
         grp = g->type == 0x17;
     else
@@ -7353,7 +7310,7 @@ int gm_FreeCapacity(AIOBJ *s, int id, int n)
     if (s->type == 0x2a) {
         cnt = 0;
         for (o = gm_Query(s->list, 1, 5); o != 0; o = gm_QueryNext()) {
-            g = GM_GOOD(o->type);
+            g = (&ai_Goods[o->type]);
             if (cls2) {
                 if (grp) {
                     if (g->type == 0x17)
@@ -7422,12 +7379,12 @@ int gm_TakeableCount(AICHAR *c, int proto, int n)
     int found, kinds, v;
     int counted[8] = { 8, 0xc, 0x12, 0x19, 0x22, 0x20, 0x27, 0 };
     int i;
-    GMGOOD *g;
+    AIGOOD *g;
     AIOBJ *o;
     AIOBJ *w;
 
     found = 0;
-    g = GM_GOOD(proto);
+    g = (&ai_Goods[proto]);
     v = 0;
     if (g->type == 9)
         return n;
@@ -7451,7 +7408,7 @@ int gm_TakeableCount(AICHAR *c, int proto, int n)
         w = gm_Query(ch->inventory, 1, 5);
         if (w != 0) {
             do {
-                if (GM_GOOD(w->type)->type != 9)
+                if ((&ai_Goods[w->type])->type != 9)
                     kinds++;
                 w = gm_QueryNext();
             } while (w != 0);
@@ -7467,21 +7424,19 @@ extern int gm_AllowAll;
 extern unsigned short gm_KindObjCount;
 extern int gm_TechTreeTime;
 /* ---- layout 2026-10-23: the standing / family helpers 0x50b010 .. 0x50d0b0 (ROUGH drafts) ---- */
-extern char gm_TreeNodes[3328];
+extern RTNODE gm_TreeNodes[64];
 extern int gm_TechTreeView;
 void d2_PlotLine(int x0, int y0, int x1, int y1, unsigned char r, unsigned char g, unsigned char b);  /* 0x4764f0 */
 void cm_SendBuildingDestroyed(int a);                     /* 0x4c5510 */
 
-/* 0x50af00, collects what the person id carries into out (a GMCARRY, cleared first): 0xe units and capacity when the person is the special worker (gm_ListWorkers' last slot) of a building of key 4 = id, then an entry for each used carried-goods record of gm_CarryRecs it owns (count, valueSum minus the values). Returns 0 */
-int gm_CollectCarried(int id, int *out)
+/* 0x50af00, collects what the person id carries into cr (cleared first): 0xe units and capacity when the person is the special worker (gm_ListWorkers' last slot) of a building of key 4 = id, then an entry for each used carried-goods record of gm_CarryRecs it owns (count, valueSum minus the values). Returns 0 */
+int gm_CollectCarried(int id, GMCARRY *cr)
 {
-    GMCARRY *cr;
     GMCARRYREC *r;
     AIBLD *b;
     int workers[0x26];
     int w, i, j;
 
-    cr = (GMCARRY *)out;
     memset(cr, 0, sizeof(GMCARRY));
     b = gm_BuildQuery(1, 4, id);
     while (b != 0) {
@@ -7549,7 +7504,7 @@ int gm_ResearchClass(int k, int *out)
     int r;
 
     r = 1;
-    switch ((unsigned char)GM_BTYPE(k)->kind) {
+    switch ((unsigned char)ai_BTypes[k].kind) {
     case 0xf:
         *out = 1;
         break;
@@ -7635,14 +7590,6 @@ int gm_LikingChance(int a, int b, int c, int d)
         return 1;
     return 0;
 }
-typedef struct {
-    int id, p1, p2;
-    unsigned short rank, pad;
-    int x, y, z;
-    int l[5];
-    unsigned char flag;
-} RTNODE;       /* 0x34 bytes, the nodes of the research tree layout 0x76fde0 */
-#define NODES ((RTNODE *)gm_TreeNodes)
 
 /* 0x50b2f0, the generation of the family record p: 0 without parents, else one more than the older parent's (cached in the word at +0xc) */
 
@@ -7652,21 +7599,21 @@ unsigned gm_TreeNodeRank(int p)
 
     a = 0;
     b = 0;
-    if (NODES[p].rank != 0xffff)
-        return NODES[p].rank;
-    if (NODES[p].p1 == 0)
+    if (gm_TreeNodes[p].rank != 0xffff)
+        return gm_TreeNodes[p].rank;
+    if (gm_TreeNodes[p].p1 == 0)
         return 0;
     n = gm_TreeNodeCount;
     for (i = 0; i < n; i++) {
-        if (NODES[p].p1 == NODES[i].id) {
+        if (gm_TreeNodes[p].p1 == gm_TreeNodes[i].id) {
             a = gm_TreeNodeRank(i) + 1;
             break;
         }
     }
-    if (NODES[p].p2 == 0)
+    if (gm_TreeNodes[p].p2 == 0)
         return a;
     for (i = 0; i < n; i++) {
-        if (NODES[p].p2 == NODES[i].id) {
+        if (gm_TreeNodes[p].p2 == gm_TreeNodes[i].id) {
             b = gm_TreeNodeRank(i) + 1;
             break;
         }
@@ -7680,36 +7627,36 @@ extern unsigned short gm_TreeRankStart[64];
 /* 0x50b3a0, lays out the goods tree of the building bld's type from the item *item on (the entries of its objs list that follow it, up to one of goods type 2 / 6) in the w x h area: the nodes go into gm_TreeNodes (id, the two parents, rank = gm_TreeNodeRank) sorted by rank, the first node of each rank into gm_TreeRankStart; the first rank is spread evenly, each further one under the mean x of its parents (equal x spread apart, neighbours 0x50 apart), the whole scaled back into the width when it leaves it, and the ranks spread over the height (0x60 apart at most). 1 when there is nothing to lay out, else 0 */
 int gm_LayoutTree(AIBLD *bld, AIOBJ *item, int w, int h)
 {
-    GMBTYPE *bt;
+    AIBTYPE *bt;
     int n, cnt, i, j, u, lv, rmax, again;
     int first, step, sum, num, lo, hi, d, m, off;
     float scale;
-    GMGOOD *g;
+    AIGOOD *g;
     RTNODE tmp;
 
-    bt = GM_BTYPE(bld->type);
-    for (n = 0; n < bt->objCount; n++)
+    bt = &ai_BTypes[bld->type];
+    for (n = 0; n < bt->nslots; n++)
         if ((bt->objs[n] & 0x7fff) == item->type)
             break;
-    if (n >= bt->objCount)
+    if (n >= bt->nslots)
         return 1;
     gm_TreeNodeCount = 0;
-    for (n++; n < bt->objCount; n++) {
-        g = GM_GOOD(bt->objs[n] & 0x7fff);
+    for (n++; n < bt->nslots; n++) {
+        g = (&ai_Goods[bt->objs[n] & 0x7fff]);
         if (g->type == 2 || g->type == 6)
             break;
-        NODES[gm_TreeNodeCount].id = bt->objs[n] & 0x7fff;
-        NODES[gm_TreeNodeCount].p1 = bt->parents[n][0];
-        NODES[gm_TreeNodeCount].p2 = bt->parents[n][1];
-        NODES[gm_TreeNodeCount].rank = 0xffff;
-        NODES[gm_TreeNodeCount].x = 0;
-        NODES[gm_TreeNodeCount].y = 0;
-        NODES[gm_TreeNodeCount].l[0] = -1;
-        NODES[gm_TreeNodeCount].l[1] = -1;
-        NODES[gm_TreeNodeCount].l[2] = -1;
-        NODES[gm_TreeNodeCount].l[3] = -1;
-        NODES[gm_TreeNodeCount].l[4] = -1;
-        NODES[gm_TreeNodeCount].flag = 0xff;
+        gm_TreeNodes[gm_TreeNodeCount].id = bt->objs[n] & 0x7fff;
+        gm_TreeNodes[gm_TreeNodeCount].p1 = bt->parents[n][0];
+        gm_TreeNodes[gm_TreeNodeCount].p2 = bt->parents[n][1];
+        gm_TreeNodes[gm_TreeNodeCount].rank = 0xffff;
+        gm_TreeNodes[gm_TreeNodeCount].x = 0;
+        gm_TreeNodes[gm_TreeNodeCount].y = 0;
+        gm_TreeNodes[gm_TreeNodeCount].l[0] = -1;
+        gm_TreeNodes[gm_TreeNodeCount].l[1] = -1;
+        gm_TreeNodes[gm_TreeNodeCount].l[2] = -1;
+        gm_TreeNodes[gm_TreeNodeCount].l[3] = -1;
+        gm_TreeNodes[gm_TreeNodeCount].l[4] = -1;
+        gm_TreeNodes[gm_TreeNodeCount].flag = 0xff;
         gm_TreeNodeCount++;
     }
     cnt = gm_TreeNodeCount;
@@ -7719,26 +7666,26 @@ int gm_LayoutTree(AIBLD *bld, AIOBJ *item, int w, int h)
     /* the ranks, and the nodes sorted by them */
     rmax = 0;
     for (i = 0; i < cnt; i++) {
-        NODES[i].rank = gm_TreeNodeRank(i);
-        if (rmax <= NODES[i].rank)
-            rmax = NODES[i].rank;
+        gm_TreeNodes[i].rank = gm_TreeNodeRank(i);
+        if (rmax <= gm_TreeNodes[i].rank)
+            rmax = gm_TreeNodes[i].rank;
     }
     gm_TreeRanks = rmax + 1;
     do {
         again = 0;
         for (i = 0; i < cnt; i++)
             for (j = i + 1; j < cnt; j++)
-                if (NODES[j].rank < NODES[i].rank) {
-                    tmp = NODES[i];
-                    NODES[i] = NODES[j];
-                    NODES[j] = tmp;
+                if (gm_TreeNodes[j].rank < gm_TreeNodes[i].rank) {
+                    tmp = gm_TreeNodes[i];
+                    gm_TreeNodes[i] = gm_TreeNodes[j];
+                    gm_TreeNodes[j] = tmp;
                     again = 1;
                 }
     } while (again);
     lv = 0;
     gm_TreeRankStart[0] = 0;
     for (i = 0; i < cnt; i++) {
-        if (NODES[i].rank > lv) {
+        if (gm_TreeNodes[i].rank > lv) {
             lv++;
             gm_TreeRankStart[lv] = i;
         }
@@ -7749,7 +7696,7 @@ int gm_LayoutTree(AIBLD *bld, AIOBJ *item, int w, int h)
     first = gm_TreeRankStart[1];
     step = w / (first * 2);
     for (i = 0; i < first; i++)
-        NODES[i].x = (i * 2 + 1) * step - 0x18;
+        gm_TreeNodes[i].x = (i * 2 + 1) * step - 0x18;
 
     /* each further rank under the mean of its parents */
     for (lv = 1; lv < gm_TreeRanks; lv++) {
@@ -7757,50 +7704,50 @@ int gm_LayoutTree(AIBLD *bld, AIOBJ *item, int w, int h)
             sum = 0;
             num = 0;
             for (j = 0; j < gm_TreeRankStart[lv]; j++) {
-                if (NODES[j].id == NODES[i].p1) {
-                    sum += NODES[j].x;
+                if (gm_TreeNodes[j].id == gm_TreeNodes[i].p1) {
+                    sum += gm_TreeNodes[j].x;
                     num++;
-                } else if (NODES[j].id == NODES[i].p2) {
-                    sum += NODES[j].x;
+                } else if (gm_TreeNodes[j].id == gm_TreeNodes[i].p2) {
+                    sum += gm_TreeNodes[j].x;
                     num++;
                 }
             }
             if (num != 0)
                 sum /= num;
-            NODES[i].x = sum;
+            gm_TreeNodes[i].x = sum;
         }
         do {
             again = 0;
             for (i = gm_TreeRankStart[lv]; i < gm_TreeRankStart[lv + 1]; i++)
                 for (j = i + 1; j < gm_TreeRankStart[lv + 1]; j++)
-                    if (NODES[j].x < NODES[i].x) {
-                        tmp = NODES[i];
-                        NODES[i] = NODES[j];
-                        NODES[j] = tmp;
+                    if (gm_TreeNodes[j].x < gm_TreeNodes[i].x) {
+                        tmp = gm_TreeNodes[i];
+                        gm_TreeNodes[i] = gm_TreeNodes[j];
+                        gm_TreeNodes[j] = tmp;
                         again = 1;
                     }
         } while (again);
         /* nodes on one x are spread around it */
         for (i = gm_TreeRankStart[lv]; i < gm_TreeRankStart[lv + 1]; i++) {
             for (j = i; j < gm_TreeRankStart[lv + 1]; j++)
-                if (NODES[i].x != NODES[j].x)
+                if (gm_TreeNodes[i].x != gm_TreeNodes[j].x)
                     break;
             if (j > i + 1) {
                 j -= i;
                 d = (w / first >> (lv - 1)) - (j * 3 + 3) * 8;
                 for (u = 0; u < j; u++)
-                    NODES[i + u].x += u * d / (j - 1) - (d >> 1);
+                    gm_TreeNodes[i + u].x += u * d / (j - 1) - (d >> 1);
             }
         }
         /* neighbours at least 0x50 apart */
         for (i = gm_TreeRankStart[lv]; i < gm_TreeRankStart[lv + 1]; i++)
             for (j = i + 1; j < gm_TreeRankStart[lv + 1]; j++) {
-                lo = NODES[i].x;
-                hi = NODES[j].x;
+                lo = gm_TreeNodes[i].x;
+                hi = gm_TreeNodes[j].x;
                 if (hi - lo < 0x50) {
                     d = (lo - hi + 0x50) >> 1;
-                    NODES[i].x = lo - d;
-                    NODES[j].x += d;
+                    gm_TreeNodes[i].x = lo - d;
+                    gm_TreeNodes[j].x += d;
                 }
             }
     }
@@ -7810,10 +7757,10 @@ int gm_LayoutTree(AIBLD *bld, AIOBJ *item, int w, int h)
     hi = -1;
     for (lv = 0; lv < gm_TreeRanks; lv++)
         for (i = gm_TreeRankStart[lv]; i < gm_TreeRankStart[lv + 1]; i++) {
-            if (lo >= NODES[i].x)
-                lo = NODES[i].x;
-            if (hi <= NODES[i].x)
-                hi = NODES[i].x;
+            if (lo >= gm_TreeNodes[i].x)
+                lo = gm_TreeNodes[i].x;
+            if (hi <= gm_TreeNodes[i].x)
+                hi = gm_TreeNodes[i].x;
         }
     m = lo - 0x18;
     if (m < 0 || hi + 0x60 >= w) {
@@ -7821,7 +7768,7 @@ int gm_LayoutTree(AIBLD *bld, AIOBJ *item, int w, int h)
         off = (int)-(m * scale);
         for (lv = 0; lv < gm_TreeRanks; lv++)
             for (i = gm_TreeRankStart[lv]; i < gm_TreeRankStart[lv + 1]; i++)
-                NODES[i].x = (int)(NODES[i].x * scale) + off;
+                gm_TreeNodes[i].x = (int)(gm_TreeNodes[i].x * scale) + off;
     }
 
     /* the ranks spread over the height, 0x60 apart at most */
@@ -7829,13 +7776,11 @@ int gm_LayoutTree(AIBLD *bld, AIOBJ *item, int w, int h)
     if (step >= h - 0x10)
         step = h - 0x10;
     for (i = 0; i < gm_TreeNodeCount; i++)
-        NODES[i].y = NODES[i].rank * step / gm_TreeRanks + 0x10;
+        gm_TreeNodes[i].y = gm_TreeNodes[i].rank * step / gm_TreeRanks + 0x10;
     return 0;
 }
 
 int d2_WinOpenPic(short x, short y, int pic, int win);                     /* 0x4731d0 */
-#define WIDGET(i) ((char *)d2_Objs + (i) * 0x2ec)
-#define D2OBJ_AT(i) ((D2OBJ *)d2_Objs + (i))  /* the object i of d2_Objs (char * here) as its D2OBJ record */
 
 /* 0x50b9f0, (re)builds the widgets of the tech tree nodes gm_LayoutTree laid out for the building bld and the
    workshop object item. A node's state: 0 locked, 2 open (its parents are there), 1 done, 3 in progress; a
@@ -7858,139 +7803,139 @@ void gm_UpdateTechTree(AIBLD *bld, AIOBJ *item)
     parent = d2_Views[gm_TechTreeView].wins[3];
     for (i = 0; i < gm_TreeNodeCount; i++) {
         state = 0;
-        if (GM_GOOD(NODES[i].id)->type == 6) {
-            if (gm_Query(bl->objList, 1, 0, NODES[i].id) != 0) {
+        if ((&ai_Goods[gm_TreeNodes[i].id])->type == 6) {
+            if (gm_Query(bl->objList, 1, 0, gm_TreeNodes[i].id) != 0) {
                 state = 1;
                 for (o = he_FindEvent(2, 0, 0xc, 3, bl->id); o != 0; o = he_NextEvent())
-                    if (o->research == NODES[i].id) {
+                    if (o->research == gm_TreeNodes[i].id) {
                         state = 3;
                         break;
                     }
             } else {
                 cnt = 0;
                 for (k = 0; k < i; k++) {
-                    q = &NODES[k];
-                    if ((q->id == NODES[i].p1 && (gm_Query(bl->objList, 1, 0, q->id) != 0 || gm_Query(ob->list, 1, 0, q->id) != 0) && D2OBJ_AT(q->l[2])->greyed == 0)
-                        || (q->id == NODES[i].p2 && (gm_Query(bl->objList, 1, 0, q->id) != 0 || gm_Query(ob->list, 1, 0, q->id) != 0) && D2OBJ_AT(q->l[2])->greyed == 0))
+                    q = &gm_TreeNodes[k];
+                    if ((q->id == gm_TreeNodes[i].p1 && (gm_Query(bl->objList, 1, 0, q->id) != 0 || gm_Query(ob->list, 1, 0, q->id) != 0) && d2_Objs[q->l[2]].greyed == 0)
+                        || (q->id == gm_TreeNodes[i].p2 && (gm_Query(bl->objList, 1, 0, q->id) != 0 || gm_Query(ob->list, 1, 0, q->id) != 0) && d2_Objs[q->l[2]].greyed == 0))
                         cnt++;
                 }
                 if (cnt == 0) {
-                    if (NODES[i].p1 == 0)
+                    if (gm_TreeNodes[i].p1 == 0)
                         state = 2;
                 } else if (cnt == 1) {
-                    if (NODES[i].p2 == 0)
+                    if (gm_TreeNodes[i].p2 == 0)
                         state = 2;
                 } else if (cnt == 2)
                     state = 2;
             }
-        } else if (gm_Query(ob->list, 1, 0, NODES[i].id) != 0)
+        } else if (gm_Query(ob->list, 1, 0, gm_TreeNodes[i].id) != 0)
             state = 1;
-        else if (ob->type == 0xfd && gm_Query(bl->objList, 1, 0, NODES[i].id) != 0)
+        else if (ob->type == 0xfd && gm_Query(bl->objList, 1, 0, gm_TreeNodes[i].id) != 0)
             state = 1;
         else {
             cnt = 0;
             for (k = 0; k < i; k++) {
-                q = &NODES[k];
-                if ((q->id == NODES[i].p1 && (gm_Query(bl->objList, 1, 0, q->id) != 0 || gm_Query(ob->list, 1, 0, q->id) != 0))
-                    || (q->id == NODES[i].p2 && (gm_Query(bl->objList, 1, 0, q->id) != 0 || gm_Query(ob->list, 1, 0, q->id) != 0)))
+                q = &gm_TreeNodes[k];
+                if ((q->id == gm_TreeNodes[i].p1 && (gm_Query(bl->objList, 1, 0, q->id) != 0 || gm_Query(ob->list, 1, 0, q->id) != 0))
+                    || (q->id == gm_TreeNodes[i].p2 && (gm_Query(bl->objList, 1, 0, q->id) != 0 || gm_Query(ob->list, 1, 0, q->id) != 0)))
                     cnt++;
             }
             if (cnt == 0) {
-                if (NODES[i].p1 == 0)
+                if (gm_TreeNodes[i].p1 == 0)
                     state = 2;
             } else if (cnt == 1) {
-                if (NODES[i].p2 == 0)
+                if (gm_TreeNodes[i].p2 == 0)
                     state = 2;
             } else if (cnt == 2)
                 state = 2;
             if (state == 2) {
                 for (o = he_FindEvent(2, 0, 2, 3, bl->id); o != 0; o = he_NextEvent())
-                    if (o->orderObj == ob->objId && o->orderGood == NODES[i].id) {
+                    if (o->orderObj == ob->objId && o->orderGood == gm_TreeNodes[i].id) {
                         state = 3;
                         break;
                     }
             }
         }
 
-        if (state != NODES[i].flag) {
-            if (NODES[i].l[0] != -1) {
-                d2_RemoveWindow(NODES[i].l[0]);
-                NODES[i].l[0] = -1;
-                NODES[i].l[1] = -1;
-                NODES[i].l[2] = -1;
-                NODES[i].l[3] = -1;
+        if (state != gm_TreeNodes[i].flag) {
+            if (gm_TreeNodes[i].l[0] != -1) {
+                d2_RemoveWindow(gm_TreeNodes[i].l[0]);
+                gm_TreeNodes[i].l[0] = -1;
+                gm_TreeNodes[i].l[1] = -1;
+                gm_TreeNodes[i].l[2] = -1;
+                gm_TreeNodes[i].l[3] = -1;
             }
-            if (NODES[i].l[4] != -1) {
-                d2_RemoveWindow(NODES[i].l[4]);
-                NODES[i].l[4] = -1;
+            if (gm_TreeNodes[i].l[4] != -1) {
+                d2_RemoveWindow(gm_TreeNodes[i].l[4]);
+                gm_TreeNodes[i].l[4] = -1;
             }
             saved = d2_LastWindow;
             if (state == 0) {
-                NODES[i].l[0] = d2_CreateChildWindow(NODES[i].x - 4, NODES[i].y - 4, 0x36, 0x36, 0x400, parent);
-                NODES[i].l[1] = d2_WinOpenPic(0, 0, 0x52b, NODES[i].l[0]);
-                NODES[i].l[2] = d2_WinOpenPic(3, 3, 0x4fb, NODES[i].l[0]);
+                gm_TreeNodes[i].l[0] = d2_CreateChildWindow(gm_TreeNodes[i].x - 4, gm_TreeNodes[i].y - 4, 0x36, 0x36, 0x400, parent);
+                gm_TreeNodes[i].l[1] = d2_WinOpenPic(0, 0, 0x52b, gm_TreeNodes[i].l[0]);
+                gm_TreeNodes[i].l[2] = d2_WinOpenPic(3, 3, 0x4fb, gm_TreeNodes[i].l[0]);
             } else if (state == 1) {
-                NODES[i].l[0] = d2_CreateChildWindow(NODES[i].x - 4, NODES[i].y - 4, 0x36, 0x36, 0x400, parent);
-                NODES[i].l[1] = d2_WinOpenPic(0, 0, 0x529, NODES[i].l[0]);
-                if (NODES[i].id < 0x2dc)
-                    NODES[i].l[2] = d2_WinOpenPic(3, 3, NODES[i].id + 0xdf, NODES[i].l[0]);
+                gm_TreeNodes[i].l[0] = d2_CreateChildWindow(gm_TreeNodes[i].x - 4, gm_TreeNodes[i].y - 4, 0x36, 0x36, 0x400, parent);
+                gm_TreeNodes[i].l[1] = d2_WinOpenPic(0, 0, 0x529, gm_TreeNodes[i].l[0]);
+                if (gm_TreeNodes[i].id < 0x2dc)
+                    gm_TreeNodes[i].l[2] = d2_WinOpenPic(3, 3, gm_TreeNodes[i].id + 0xdf, gm_TreeNodes[i].l[0]);
                 else
-                    NODES[i].l[2] = d2_WinOpenPic(3, 3, 0xdf, NODES[i].l[0]);                D2OBJ_AT(NODES[i].l[2])->hitTestable = 1;
-                D2OBJ_AT(NODES[i].l[2])->interactive = 1;
+                    gm_TreeNodes[i].l[2] = d2_WinOpenPic(3, 3, 0xdf, gm_TreeNodes[i].l[0]);                d2_Objs[gm_TreeNodes[i].l[2]].hitTestable = 1;
+                d2_Objs[gm_TreeNodes[i].l[2]].interactive = 1;
                 d2_LastWindow = saved;
-                NODES[i].l[4] = d2_CreateChildWindow(NODES[i].x - 0x18, NODES[i].y + 0x32, 0x60, 0x11, 0x4510, parent);
-                d2_Wins[NODES[i].l[4]].font = 0x54;
-                d2_Wins[NODES[i].l[4]].mt = 1;
-                d2_Wins[NODES[i].l[4]].mb = 1;
-                if (NODES[i].id < 0x2dc)
-                    io_PrintText(NODES[i].id * 2 + 0x9a8);            } else if (state == 2) {
-                NODES[i].l[0] = d2_CreateChildWindow(NODES[i].x - 4, NODES[i].y - 4, 0x36, 0x36, 0x400, parent);
-                NODES[i].l[1] = d2_WinOpenPic(0, 0, 0x52a, NODES[i].l[0]);
-                if (NODES[i].id < 0x2dc)
-                    NODES[i].l[2] = d2_WinOpenPic(3, 3, NODES[i].id + 0xdf, NODES[i].l[0]);
+                gm_TreeNodes[i].l[4] = d2_CreateChildWindow(gm_TreeNodes[i].x - 0x18, gm_TreeNodes[i].y + 0x32, 0x60, 0x11, 0x4510, parent);
+                d2_Wins[gm_TreeNodes[i].l[4]].font = 0x54;
+                d2_Wins[gm_TreeNodes[i].l[4]].mt = 1;
+                d2_Wins[gm_TreeNodes[i].l[4]].mb = 1;
+                if (gm_TreeNodes[i].id < 0x2dc)
+                    io_PrintText(gm_TreeNodes[i].id * 2 + 0x9a8);            } else if (state == 2) {
+                gm_TreeNodes[i].l[0] = d2_CreateChildWindow(gm_TreeNodes[i].x - 4, gm_TreeNodes[i].y - 4, 0x36, 0x36, 0x400, parent);
+                gm_TreeNodes[i].l[1] = d2_WinOpenPic(0, 0, 0x52a, gm_TreeNodes[i].l[0]);
+                if (gm_TreeNodes[i].id < 0x2dc)
+                    gm_TreeNodes[i].l[2] = d2_WinOpenPic(3, 3, gm_TreeNodes[i].id + 0xdf, gm_TreeNodes[i].l[0]);
                 else
-                    NODES[i].l[2] = d2_WinOpenPic(3, 3, 0xdf, NODES[i].l[0]);                D2OBJ_AT(NODES[i].l[2])->interactive = 1;
+                    gm_TreeNodes[i].l[2] = d2_WinOpenPic(3, 3, 0xdf, gm_TreeNodes[i].l[0]);                d2_Objs[gm_TreeNodes[i].l[2]].interactive = 1;
                 d2_LastWindow = saved;
-                NODES[i].l[4] = d2_CreateChildWindow(NODES[i].x - 0x18, NODES[i].y + 0x32, 0x60, 0x11, 0x4510, parent);
-                d2_Wins[NODES[i].l[4]].font = 0x54;
-                d2_Wins[NODES[i].l[4]].mt = 1;
-                d2_Wins[NODES[i].l[4]].mb = 1;
-                if (NODES[i].id < 0x2dc)
-                    io_PrintText(NODES[i].id * 2 + 0x9a8);            } else {
-                NODES[i].l[0] = d2_CreateChildWindow(NODES[i].x - 4, NODES[i].y - 4, 0x36, 0x36, 0x400, parent);
-                NODES[i].l[1] = d2_WinOpenPic(0, 0, 0x529, NODES[i].l[0]);
-                if (NODES[i].id < 0x2dc)
-                    NODES[i].l[2] = d2_WinOpenPic(3, 3, NODES[i].id + 0xdf, NODES[i].l[0]);
+                gm_TreeNodes[i].l[4] = d2_CreateChildWindow(gm_TreeNodes[i].x - 0x18, gm_TreeNodes[i].y + 0x32, 0x60, 0x11, 0x4510, parent);
+                d2_Wins[gm_TreeNodes[i].l[4]].font = 0x54;
+                d2_Wins[gm_TreeNodes[i].l[4]].mt = 1;
+                d2_Wins[gm_TreeNodes[i].l[4]].mb = 1;
+                if (gm_TreeNodes[i].id < 0x2dc)
+                    io_PrintText(gm_TreeNodes[i].id * 2 + 0x9a8);            } else {
+                gm_TreeNodes[i].l[0] = d2_CreateChildWindow(gm_TreeNodes[i].x - 4, gm_TreeNodes[i].y - 4, 0x36, 0x36, 0x400, parent);
+                gm_TreeNodes[i].l[1] = d2_WinOpenPic(0, 0, 0x529, gm_TreeNodes[i].l[0]);
+                if (gm_TreeNodes[i].id < 0x2dc)
+                    gm_TreeNodes[i].l[2] = d2_WinOpenPic(3, 3, gm_TreeNodes[i].id + 0xdf, gm_TreeNodes[i].l[0]);
                 else
-                    NODES[i].l[2] = d2_WinOpenPic(3, 3, 0xdf, NODES[i].l[0]);                NODES[i].l[3] = d2_WinOpenPic(3, 3, 0x4fc, NODES[i].l[0]);
+                    gm_TreeNodes[i].l[2] = d2_WinOpenPic(3, 3, 0xdf, gm_TreeNodes[i].l[0]);                gm_TreeNodes[i].l[3] = d2_WinOpenPic(3, 3, 0x4fc, gm_TreeNodes[i].l[0]);
                 d2_LastWindow = saved;
-                NODES[i].l[4] = d2_CreateChildWindow(NODES[i].x - 0x18, NODES[i].y + 0x32, 0x60, 0x11, 0x4510, parent);
-                d2_Wins[NODES[i].l[4]].font = 0x54;
-                d2_Wins[NODES[i].l[4]].mt = 1;
-                d2_Wins[NODES[i].l[4]].mb = 1;
-                if (NODES[i].id < 0x2dc)
-                    io_PrintText(NODES[i].id * 2 + 0x9a8);                D2OBJ_AT(NODES[i].l[2])->hitTestable = 1;
+                gm_TreeNodes[i].l[4] = d2_CreateChildWindow(gm_TreeNodes[i].x - 0x18, gm_TreeNodes[i].y + 0x32, 0x60, 0x11, 0x4510, parent);
+                d2_Wins[gm_TreeNodes[i].l[4]].font = 0x54;
+                d2_Wins[gm_TreeNodes[i].l[4]].mt = 1;
+                d2_Wins[gm_TreeNodes[i].l[4]].mb = 1;
+                if (gm_TreeNodes[i].id < 0x2dc)
+                    io_PrintText(gm_TreeNodes[i].id * 2 + 0x9a8);                d2_Objs[gm_TreeNodes[i].l[2]].hitTestable = 1;
             }
             d2_LastWindow = saved;
-            NODES[i].flag = (unsigned char)state;
+            gm_TreeNodes[i].flag = (unsigned char)state;
         }
 
-        if (NODES[i].flag == 3) {
+        if (gm_TreeNodes[i].flag == 3) {
             o = 0;
-            if (GM_GOOD(NODES[i].id)->type == 6) {
-                if (gm_Query(bl->objList, 1, 0, NODES[i].id) != 0)
+            if ((&ai_Goods[gm_TreeNodes[i].id])->type == 6) {
+                if (gm_Query(bl->objList, 1, 0, gm_TreeNodes[i].id) != 0)
                     for (o = he_FindEvent(2, 0, 0xc, 3, bl->id); o != 0; o = he_NextEvent())
-                        if (o->research == NODES[i].id)
+                        if (o->research == gm_TreeNodes[i].id)
                             break;
             } else {
                 for (o = he_FindEvent(2, 0, 2, 3, bl->id); o != 0; o = he_NextEvent())
-                    if (o->orderObj == ob->objId && o->orderGood == NODES[i].id)
+                    if (o->orderObj == ob->objId && o->orderGood == gm_TreeNodes[i].id)
                         break;
             }
             if (o != 0)
-                D2OBJ_AT(NODES[i].l[2])->fillFraction = (double)gm_MinutesBetween(&o->start, &ai_Time) / (double)gm_MinutesBetween(&o->start, &o->end);
+                d2_Objs[gm_TreeNodes[i].l[2]].fillFraction = (double)gm_MinutesBetween(&o->start, &ai_Time) / (double)gm_MinutesBetween(&o->start, &o->end);
             else
-                D2OBJ_AT(NODES[i].l[2])->fillFraction = 0;
+                d2_Objs[gm_TreeNodes[i].l[2]].fillFraction = 0;
         }
     }
 }
@@ -8029,10 +7974,10 @@ int gm_TechTreeWindow(char *form, AIBLD *bld, AIOBJ *item)
     gm_UpdateTechTree(bld, item);
     for (i = 0; i < gm_TreeNodeCount; i++) {
         for (j = 0; j < i; j++) {
-            if (NODES[j].id == NODES[i].p1)
-                gm_TreeLine(NODES[j].x + 0x18, NODES[j].y + 0x30, NODES[i].x + 0x18, NODES[i].y + 0x18);
-            else if (NODES[j].id == NODES[i].p2)
-                gm_TreeLine(NODES[j].x + 0x18, NODES[j].y + 0x30, NODES[i].x + 0x18, NODES[i].y + 0x18);
+            if (gm_TreeNodes[j].id == gm_TreeNodes[i].p1)
+                gm_TreeLine(gm_TreeNodes[j].x + 0x18, gm_TreeNodes[j].y + 0x30, gm_TreeNodes[i].x + 0x18, gm_TreeNodes[i].y + 0x18);
+            else if (gm_TreeNodes[j].id == gm_TreeNodes[i].p2)
+                gm_TreeLine(gm_TreeNodes[j].x + 0x18, gm_TreeNodes[j].y + 0x30, gm_TreeNodes[i].x + 0x18, gm_TreeNodes[i].y + 0x18);
         }
     }
     return gm_TechTreeView;
@@ -8077,7 +8022,6 @@ extern int gm_TreeRanks;
 extern struct AIBLD *ai_Blds;
 extern int gm_GoodBuilding[732];
 extern struct AIGOOD *ai_Goods;
-extern unsigned gm_OwnNameHeads[136];
 extern GMCHARSTATS gm_CharacterStatistics;
 extern char d2_GfxDir[256];
 /* 0x50c550, how much the character a likes the character b, 0 .. 100 (100 for the same character, 50 when one of them is
@@ -8097,7 +8041,7 @@ float gm_Liking(unsigned a, unsigned b, int c)
     unsigned flags, n;
     float rel;
     AIBLD *bp;
-    GMBTYPE *t;
+    AIBTYPE *t;
     AMTKIND kind;
 
     if (a == b)
@@ -8141,7 +8085,7 @@ float gm_Liking(unsigned a, unsigned b, int c)
     best = 0;
     for (; i < 0x100; i++, bp++) {
         if (bp->type != 0 && bp->owner == ai_Chars[a].id) {
-            t = GM_BTYPE(bp->type);
+            t = &ai_BTypes[bp->type];
             if (t->kind == '!' && t->level > best)
                 best = t->level;
             if (best >= 3)
@@ -8257,7 +8201,7 @@ void gm_ChangeBuildingState(AIBLD *bld, int d)
 {
     signed char k;
     signed char v;
-    GMBTYPE *bt;
+    AIBTYPE *bt;
     int i;
     AICHAR *c;
     char other[0x400], own[0x400];
@@ -8271,7 +8215,7 @@ void gm_ChangeBuildingState(AIBLD *bld, int d)
     cm_BeginFieldBlock(bld, bld->id);
     cm_AddFieldValues(1, 1, 0x5c, &v);
     cm_SendFieldDeltas();
-    if (bld->type != 0 && v + bld->level <= 0 && (bt = GM_BTYPE(bld->type))->kind != 0xf && bt->kind != 0x1c
+    if (bld->type != 0 && v + bld->level <= 0 && (bt = &ai_BTypes[bld->type])->kind != 0xf && bt->kind != 0x1c
         && bt->kind != 0x1b && bt->kind != 10 && bt->kind != 6 && bt->kind < 0x17 && bt->kind != 0x10) {
         for (i = 0; i < 768; i++) {
             c = &ai_Chars[i];
@@ -8352,7 +8296,7 @@ float gm_JobCost(AICHAR *c, int k, int a, int b)
 float gm_StaffFactor(AIBLD *b, int n, int *ids)
 {
     AIBLD *bld = b;
-    GMBTYPE *t;
+    AIBTYPE *t;
     AICHAR *c;
     int i, cnt, id;
     float sum, health, fit, f, inv;
@@ -8363,7 +8307,7 @@ float gm_StaffFactor(AIBLD *b, int n, int *ids)
     cnt = 0;
     sum = 0.0f;
     fit = 0.0f;
-    t = GM_BTYPE(bld->type);
+    t = &ai_BTypes[bld->type];
     skill = gm_BuildingSkill(b, 1, 1) * 0.01 + 1.0;
     c = gm_FindCharacterByMaster(b);
     if (c == 0)
@@ -8473,7 +8417,93 @@ int gm_CurseTargetCount(AIBLD *bld)
 float gm_DayStartHours[] = { 8.0f, 7.0f, 8.0f, 9.0f };  /* 0x617830 / */
 float gm_DayEndHours[] = { 20.0f, 21.0f, 20.0f, 19.0f };  /* 0x617840 */
 GMDISEASE gm_Diseases[10] = { { 0, 0.0f, 1 }, { 1, 40.0f, 16 }, { 2, 15.0f, 16 }, { 3, 20.0f, 16 }, { 4, 10.0f, 4 }, { 5, 0.0f, 8 }, { 6, 8.0f, 8 }, { 7, 5.0f, 8 }, { 8, 3.0f, 4 }, { 9, 12.0f, 16 } };  /* 0x617850, the disease kinds */
-int gm_DefaultStock[0xaa0] = { 468, 0, 1084227584, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 146, 18, 1094713344, 21, 1094713344, 7, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 341, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 342, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 343, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 344, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 345, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 346, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 469, 0, 1101004800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 146, 21, 0, 14, 1086324736, 8, 1094713344, 22, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 347, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 348, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 349, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 350, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 351, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 352, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 470, 0, 1092616192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 147, 18, 1086324736, 21, 1086324736, 20, 1086324736, 7, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 353, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 354, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 355, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 356, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 357, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 358, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 471, 0, 1101004800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 148, 18, 1086324736, 21, 1086324736, 20, 1086324736, 7, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 365, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 366, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 367, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 368, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 369, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 370, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 472, 0, 1092616192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 148, 18, 1088421888, 20, 1086324736, 7, 1084227584, 14, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 371, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 372, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 373, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 374, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 375, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 376, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 473, 0, 1092616192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 147, 14, 1088421888, 8, 1088421888, 22, 1088421888, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 377, 0, 1094713344, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 378, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 379, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 380, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 381, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 382, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 464, 0, 1112014848, -1, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 149, 18, 1104150528, 21, 1090519040, 14, 1082130432, 8, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 465, 0, 1106247680, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 149, 18, 1092616192, 21, 1092616192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 466, 0, 1101004800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 149, 18, 1073741824, 21, 1073741824, 20, 1090519040, 7, 1082130432, 0, 0, 0, 0, 0, 0, 0, 0, 467, 0, 1101004800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 149, 18, 1073741824, 20, 1073741824, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 458, 0, 1101004800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 149, 21, 1104150528, 7, 1108869120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 459, 0, 1097859072, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 149, 21, 1105199104, 7, 1104150528, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 460, 0, 1101004800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 149, 18, 1090519040, 21, 1101004800, 20, 1082130432, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 461, 0, 1112014848, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 149, 20, 1099956224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 462, 0, 1109393408, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 149, 20, 1105199104, 8, 1073741824, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 463, 0, 1103626240, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 149, 20, 1090519040, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 474, 0, 1112014848, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 151, 7, 1094713344, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 359, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 360, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 361, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 362, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 363, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 364, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 455, 0, 1112014848, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 0, 0, 150, 14, 1095761920, 8, 1095761920, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 456, 0, 1092616192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 150, 22, 1110966272, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 457, 0, 1092616192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 150, 22, 1112014848, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 686, 0, 1092616192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 150, 32, 1114636288, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1103626240, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 1090519040, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 552, 0, 1112014848, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 731, 29, 1094713344, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 553, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 555, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 556, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 557, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 558, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 689, 0, 1112014848, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 150, 32, 1094713344, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 690, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 691, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 692, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 693, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 694, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 695, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 662, 0, 1112014848, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 731, 32, 1094713344, 31, 1094713344, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 663, 0, 1086324736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 664, 0, 1077936128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 665, 0, 1073741824, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 666, 0, 1069547520, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 667, 0, 1067030938, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 668, 0, 1065353216, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 731, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };  /* 0x6178c8, the template of the 0x55 GMSTOCK goods records (0x80 bytes each) */
+GMSTOCK gm_DefaultStock[0x55] = {  /* 0x6178c8, the template of the 0x55 goods records (gm_InitPlayerRecord, gm_AllocRaum) */
+    { 468, { 0 }, 0, 5.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 146, { 0 }, { { { 18, { 0 }, 12.0f }, { 21, { 0 }, 12.0f }, { 7, { 0 }, 6.0f } } } },
+    { 341, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 342, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 343, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 344, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 345, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 346, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 469, { 0 }, 0, 20.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 146, { 0 }, { { { 21, { 0 }, 0.0f }, { 14, { 0 }, 6.0f }, { 8, { 0 }, 12.0f }, { 22, { 0 }, 6.0f } } } },
+    { 347, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 348, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 349, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 350, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 351, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 352, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 146 },
+    { 470, { 0 }, 0, 10.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 147, { 0 }, { { { 18, { 0 }, 6.0f }, { 21, { 0 }, 6.0f }, { 20, { 0 }, 6.0f }, { 7, { 0 }, 6.0f } } } },
+    { 353, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 354, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 355, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 356, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 357, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 358, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 471, { 0 }, 0, 20.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 148, { 0 }, { { { 18, { 0 }, 6.0f }, { 21, { 0 }, 6.0f }, { 20, { 0 }, 6.0f }, { 7, { 0 }, 6.0f } } } },
+    { 365, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 366, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 367, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 368, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 369, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 370, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 472, { 0 }, 0, 10.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 148, { 0 }, { { { 18, { 0 }, 7.0f }, { 20, { 0 }, 6.0f }, { 7, { 0 }, 5.0f }, { 14, { 0 }, 6.0f } } } },
+    { 371, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 372, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 373, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 374, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 375, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 376, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 148 },
+    { 473, { 0 }, 0, 10.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 147, { 0 }, { { { 14, { 0 }, 7.0f }, { 8, { 0 }, 7.0f }, { 22, { 0 }, 7.0f } } } },
+    { 377, { 0 }, 0, 12.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 378, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 379, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 380, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 381, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 382, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 147 },
+    { 464, { 0 }, 0, 50.0f, -1, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 149, { 0 }, { { { 18, { 0 }, 26.0f }, { 21, { 0 }, 8.0f }, { 14, { 0 }, 4.0f }, { 8, { 0 }, 6.0f } } } },
+    { 465, { 0 }, 0, 30.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 10, 0, 0.0f, 149, { 0 }, { { { 18, { 0 }, 10.0f }, { 21, { 0 }, 10.0f } } } },
+    { 466, { 0 }, 0, 20.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 10, 0, 0.0f, 149, { 0 }, { { { 18, { 0 }, 2.0f }, { 21, { 0 }, 2.0f }, { 20, { 0 }, 8.0f }, { 7, { 0 }, 4.0f } } } },
+    { 467, { 0 }, 0, 20.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 10, 0, 0.0f, 149, { 0 }, { { { 18, { 0 }, 2.0f }, { 20, { 0 }, 2.0f } } } },
+    { 458, { 0 }, 0, 20.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 20, 0, 0.0f, 149, { 0 }, { { { 21, { 0 }, 26.0f }, { 7, { 0 }, 38.0f } } } },
+    { 459, { 0 }, 0, 15.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 20, 0, 0.0f, 149, { 0 }, { { { 21, { 0 }, 28.0f }, { 7, { 0 }, 26.0f } } } },
+    { 460, { 0 }, 0, 20.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 20, 0, 0.0f, 149, { 0 }, { { { 18, { 0 }, 8.0f }, { 21, { 0 }, 20.0f }, { 20, { 0 }, 4.0f } } } },
+    { 461, { 0 }, 0, 50.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 20, 0, 0.0f, 149, { 0 }, { { { 20, { 0 }, 18.0f } } } },
+    { 462, { 0 }, 0, 40.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 20, 0, 0.0f, 149, { 0 }, { { { 20, { 0 }, 28.0f }, { 8, { 0 }, 2.0f } } } },
+    { 463, { 0 }, 0, 25.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 20, 0, 0.0f, 149, { 0 }, { { { 20, { 0 }, 8.0f } } } },
+    { 474, { 0 }, 0, 50.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 151, { 0 }, { { { 7, { 0 }, 12.0f } } } },
+    { 359, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 151 },
+    { 360, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 151 },
+    { 361, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 151 },
+    { 362, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 151 },
+    { 363, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 151 },
+    { 364, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 151 },
+    { 455, { 0 }, 0, 50.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 40, 0, 0.0f, 150, { 0 }, { { { 14, { 0 }, 13.0f }, { 8, { 0 }, 13.0f } } } },
+    { 456, { 0 }, 0, 10.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 30, 0, 0.0f, 150, { 0 }, { { { 22, { 0 }, 46.0f } } } },
+    { 457, { 0 }, 0, 10.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 30, 0, 0.0f, 150, { 0 }, { { { 22, { 0 }, 50.0f } } } },
+    { 686, { 0 }, 0, 10.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 30, 0, 0.0f, 150, { 0 }, { { { 32, { 0 }, 60.0f } } } },
+    { 0, { 0 }, 0, 25.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 20, 0, 0.0f, 0, { 0 }, { { { 0, { 0 }, 8.0f } } } },
+    { 552, { 0 }, 0, 50.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 731, { 0 }, { { { 29, { 0 }, 12.0f } } } },
+    { 553, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 554, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 555, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 556, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 557, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 558, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 689, { 0 }, 0, 50.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 150, { 0 }, { { { 32, { 0 }, 12.0f } } } },
+    { 690, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 150 },
+    { 691, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 150 },
+    { 692, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 150 },
+    { 693, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 150 },
+    { 694, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 150 },
+    { 695, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 150 },
+    { 662, { 0 }, 0, 50.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 15, 0, 0.0f, 731, { 0 }, { { { 32, { 0 }, 12.0f }, { 31, { 0 }, 12.0f } } } },
+    { 663, { 0 }, 0, 6.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 664, { 0 }, 0, 3.0f, 0, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 665, { 0 }, 0, 2.0f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 666, { 0 }, 0, 1.5f, 40, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 667, { 0 }, 0, 1.2f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 },
+    { 668, { 0 }, 0, 1.0f, 80, { 0, 0, 0, 0 }, 0.0f, 0.0f, 0, { 0 }, 0.0f, 0, 0, 0.0f, 731 }
+};
 G7GRP gm_BuildingItemGroups[37] = { { 41, { 0, 0, 468, 341, 342, 0, 0, 0, 0, 0 } }, { 42, { 0, 0, 468, 341, 342, 344, 343, 0, 0, 0 } }, { 43, { 0, 0, 468, 0, 341, 342, 344, 343, 345, 346 } }, { 50, { 469, 0, 0, 347, 348, 0, 0, 0, 0, 0 } }, { 51, { 469, 0, 347, 348, 349, 350, 0, 0, 0, 0 } }, { 52, { 469, 0, 347, 348, 349, 350, 352, 351, 0, 0 } }, { 33, { 471, 0, 0, 0, 365, 366, 0, 0, 0, 0 } }, { 34, { 471, 0, 0, 0, 365, 366, 367, 368, 0, 0 } }, { 35, { 471, 0, 0, 0, 365, 366, 367, 368, 369, 370 } }, { 23, { 472, 0, 0, 371, 372, 0, 0, 0, 0, 0 } }, { 24, { 472, 0, 0, 371, 372, 373, 375, 0, 0, 0 } }, { 25, { 472, 0, 0, 371, 372, 373, 375, 376, 374, 0 } }, { 47, { 470, 0, 0, 353, 354, 0, 0, 0, 0, 0 } }, { 48, { 470, 0, 0, 353, 354, 355, 356, 0, 0, 0 } }, { 49, { 470, 0, 0, 353, 354, 355, 356, 357, 358, 0 } }, { 53, { 0, 0, 0, 0, 473, 377, 378, 0, 0, 0 } }, { 54, { 0, 0, 0, 473, 377, 378, 379, 380, 0, 0 } }, { 55, { 0, 0, 0, 473, 377, 378, 379, 380, 381, 382 } }, { 20, { 474, 0, 0, 0, 359, 360, 0, 0, 0, 0 } }, { 21, { 474, 0, 0, 0, 359, 360, 361, 362, 0, 0 } }, { 22, { 474, 0, 0, 0, 359, 360, 361, 362, 363, 364 } }, { 72, { 552, 0, 0, 0, 553, 554, 0, 0, 0, 0 } }, { 73, { 552, 0, 0, 0, 553, 554, 555, 556, 0, 0 } }, { 74, { 552, 0, 0, 0, 553, 554, 555, 556, 557, 558 } }, { 31, { 463, 461, 462, 0, 0, 0, 0, 0, 0, 0 } }, { 75, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, { 76, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, { 77, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, { 81, { 689, 0, 0, 0, 690, 691, 0, 0, 0, 0 } }, { 82, { 689, 0, 0, 0, 690, 691, 692, 693, 0, 0 } }, { 83, { 689, 0, 0, 0, 690, 691, 692, 693, 694, 695 } }, { 78, { 662, 663, 664, 0, 0, 0, 0, 0, 0, 0 } }, { 79, { 662, 663, 664, 665, 666, 0, 0, 0, 0, 0 } }, { 80, { 662, 663, 664, 665, 666, 667, 668, 0, 0, 0 } }, { 32, { 464, 465, 466, 467, 0, 0, 0, 0, 0, 0 } }, { 30, { 458, 459, 460, 0, 0, 0, 0, 0, 0, 0 } }, { 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } };  /* 0x61a348, 37 item groups: a building kind and up to ten object prototypes */
 int ai_NextObjectId = 1;  /* 0x61a654, the next object id */
 int ai_NextPartyId = 1;  /* 0x61a658, the next party id (ls.c saves and loads it): in this unit's .data block right after ai_NextObjectId */
@@ -8518,7 +8548,7 @@ unsigned short gm_KindObjCount;  /* 0x76fdc4, common: tentative as in the origin
                                     .bss; gm_BuildKindObjects keeps it in a word register only when VC6 does not
                                     know its place) */
 int gm_TechTreeTime;  /* 0x76fdc8 */
-char gm_TreeNodes[3328];  /* 0x76fde0, the family records ( */
+RTNODE gm_TreeNodes[64];  /* 0x76fde0, the family records ( */
 int gm_TechTreeView;  /* 0x770af0, the view of the tech tree form (gm_TechTreeWindow) */
 unsigned short gm_TreeRankStart[64];  /* 0x770b00 */
 int gm_TreeNodeCount;  /* 0x7d6a40, the number of family records */

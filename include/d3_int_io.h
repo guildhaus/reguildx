@@ -4,7 +4,7 @@ struct TSTEXTURE;
    except rd_object. */
 #ifndef UNK_44ABB0_H
 #define UNK_44ABB0_H
-#include "d3_engine.h"                /* D3CLIP / D3SRCPOLY / D3PTRI */
+#include "d3_engine.h"                /* D3CLIP / D3BGFPOLY / D3TRI */
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 struct VFSFILE;
 
@@ -21,44 +21,7 @@ typedef union D3IOFLAGS {           /* tex_Load flags as the floor reader builds
     } s;
 } D3IOFLAGS;
 
-typedef struct D3IOOBJFLAGS {      /* D3OBJECT::state..stateFlags as the reader writes them */
-    unsigned char a0 : 1;           /* 0x210 */
-    unsigned char a1 : 1;
-    unsigned char a2 : 1;
-    unsigned char a3 : 1;
-    unsigned char a4 : 1;
-    unsigned char a5 : 1;
-    unsigned char a6 : 1;
-    unsigned char a7 : 1;
-    unsigned char b0 : 1;           /* 0x211 */
-    unsigned char b1 : 1;
-    unsigned char b2 : 1;
-    unsigned char b3 : 1;
-    unsigned char b4 : 1;
-    unsigned char b5 : 1;
-    unsigned char b6 : 1;
-    unsigned char b7 : 1;
-    unsigned char c0 : 1;           /* 0x212 */
-    unsigned char c1 : 1;
-    unsigned char c23 : 2;
-    unsigned char c4 : 1;
-    unsigned char c5 : 1;
-    unsigned char c6 : 1;
-    unsigned char c7 : 1;
-} D3IOOBJFLAGS;
-#define D3IO_FL(o) ((D3IOOBJFLAGS *)&(o)->state)
 
-typedef struct D3IOLIGHTKEY {       /* D3LIGHTENTRY (0x38 bytes) as the reader fills it (d3_io_t.h's D3IOKEY is the animation key) */
-    D3VECTOR v00;
-    D3VECTOR v0c;
-    D3VECTOR v18;
-    float f24;
-    float f28;
-    float f2c;
-    float f30;
-    int f34;
-} D3IOLIGHTKEY;
-#define D3IO_KEYS(o) ((D3IOLIGHTKEY *)D3_X(o)->light)
 
 
 #ifndef UNK_401000_H                /* bio.h's, for the includers without it (the bio.h / d3_fl.h clash is gone) */
@@ -75,22 +38,6 @@ D3OBJECT *rd_object(void *f, D3OBJECT *parent, unsigned int version, char reload
 struct D3FLMAP *d3io_ReadFloor(void *f, unsigned int version);                           /* 0x44b920 */
 
 /* --- 0x44be60..0x44cd40 (worker d3io): scene / group loading, stock objects --- */
-typedef struct D3IOSTOCK D3IOSTOCK;
-struct D3IOSTOCK {                  /* a loaded stock object (mesh driver, D3OPS / D3MESHSRC view) */
-    char name[0x40];                /* 0x000 */
-    char *points;                   /* 0x040, 0x18 bytes each */
-    int npoints;                    /* 0x044 */
-    D3SRCPOLY *polys;               /* 0x048 */
-    int npolys;                     /* 0x04c */
-    char pad050[0x18c];
-    int refs;                       /* 0x1dc */
-    int ntex;                       /* 0x1e0 */
-    char pad1e4[0x18];
-    D3IOSTOCK *next;                /* 0x1fc */
-    int unk200;
-    char (*texnames)[0x40];         /* 0x204 */
-};
-
 extern char d3io_StockPath[];               /* 0x633a00 */
 struct VFSDIR * vfs_FindDir(char *path, struct VFSDIR *d);                                                 /* 0x42f7e0, vfs.c */
 char * vfs_GetPath(char *name, struct VFSDIR *d, struct VFSDIR *stop, char *out);                          /* 0x42fca0, vfs.c */
@@ -107,70 +54,8 @@ typedef union D3IOLOD {             /* 0x5fbf78 (initialized to 2): which stock 
 } D3IOLOD;
 extern D3IOLOD d3io_Lod;                    /* 0x5fbf78, which stock object LODs are loaded (d3_io_t.c and main.c include this header) */
 char d3io_LodName(char *name, char *name2, int lod, char *out, char *out2);            /* 0x44c9d0 */
-typedef union D3IOCOL {             /* a vertex colour: the b, g, r, a bytes, or the whole dword (-1 = unset) */
-    int all;
-    struct {
-        unsigned char b, g, r, a;
-    };
-} D3IOCOL;
 
-typedef struct D3IOVERT {           /* 0x50 bytes, D3MESHKEY / D3VERTEX as the stock attach fills it */
-    char pad00[0x40];
-    D3IOCOL col40;                  /* 0x40 */
-    D3IOCOL col44;                  /* 0x44 */
-    char *src;                      /* 0x48, the stock object's point (0x18 bytes) */
-    unsigned char f4c;              /* 0x4c, 0x80: used by a triangle */
-    unsigned char f4d;              /* 0x4d */
-    char pad4e[0x2];
-} D3IOVERT;
-
-typedef struct D3IOPOLY {           /* 0x38 bytes, D3SRCPOLY */
-    char pad00[0x18];
-    int idx[3];                     /* 0x18 */
-    int tex;                        /* 0x24, index into d3_Textures, < 0: none */
-    int slot;                       /* 0x28, index into the stock object's texture set */
-    char pad2c[0xc];
-} D3IOPOLY;
-
-typedef struct D3IOTRIFL {
-    unsigned char b0 : 1;
-    unsigned char b1 : 1;
-    unsigned char b2 : 1;
-    unsigned char b3 : 1;
-    unsigned char b4 : 4;
-} D3IOTRIFL;
-
-
-typedef struct D3IOTRI {            /* 0x28 bytes, D3TRI */
-    D3IOVERT *v[3];
-    int pad0c;
-    D3IOPOLY *src;                  /* 0x10 */
-    struct TSTEXTURE *tex;          /* 0x14 */
-    int f18, f1c, f20;              /* 0x18 */
-    unsigned char f24;              /* 0x24 */
-    char pad25;
-    D3IOTRIFL fl;                   /* 0x26 */
-    char pad27;
-} D3IOTRI;
-
-typedef struct D3IOSURF {           /* 0x198 bytes, D3SURF as the stock attach fills it */
-    D3IOVERT *keys;
-    D3IOTRI *tris;                  /* 0x04 */
-    int nkeys;                      /* 0x08 */
-    int ntris;                      /* 0x0c */
-    D3IOSTOCK *stock;               /* 0x10 */
-    struct TSTEXTURE **texset;      /* 0x14 */
-    char pad18[0x17c];
-    unsigned char f194;             /* 0x194 */
-    unsigned char texSet;           /* 0x195, current texture set (D3SURF.texSet, d3_engine.h) */
-    char pad196[0x2];
-} D3IOSURF;
-
-#define D3IO_214(o) (D3_X(o)->meshMode)
 void d3io_AttachStock(D3OBJECT *obj, D3SURF *surf, char *name);                        /* 0x44c610 */
-#define D3IO_SCENEB4(s) (*(int *)((char *)(s) + 0xb4))
-#define D3IO_SCENEAC(s) (*(void **)((char *)(s) + 0xac))
-#define D3IO_SCENE3D8(s) (*(int *)((char *)(s) + 0x3d8))
 typedef void (*D3IOPROGRESS)(int a, int i, int n);
 
 D3OBJECT *d3_CloneObject(D3OBJECT *src);                                                /* 0x43d180, d3_engine.c */
@@ -182,6 +67,6 @@ D3OBJECT *d3_LoadGroup(char *name, void *f, D3OBJECT *parent);                  
 
 /* declared in other units' headers before (moved to the owner) */
 void d3_AttachMesh(D3OBJECT *obj, struct D3SURF *surf, char *name);  /* 0x44cbb0 */
-int d3io_FindStock(char *name);  /* 0x44c5d0 */
+struct D3BGF *d3io_FindStock(char *name);  /* 0x44c5d0 */
 
 #endif

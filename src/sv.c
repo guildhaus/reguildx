@@ -2,7 +2,7 @@
    "misc\\MessageBoxGreen" 0x623ed0), the groundplan bitmaps, the city / time panels, the pause / player bar, the book. Starts at 0x520ec0 (a tick callback, registered by 0x520ee0); ends before
    0x531670, main.c's program level code. Names are ours.
    Open: the start and the end rest on the .data order only.
-   Open: head: d2.h is included (the d2 records through the SV* views, the SV_I / SV_W address macros with their
+   Open: head: d2.h is included (the d2 records through the SV* views with their
    byte offsets and sv_D2Objs = d2_Objs as D2OBJ *), with gfx.h, cm.h, rt.h, lc.h (the ai_ panels), anm.h, f3snd.h, sblib.h, menu.h (the option / save screens,
    the wind update), sv_t.h and mission.h.
    Calls whose argument count differs from the definition (read the original's pushes): sb_PlaySample (sblib.h:
@@ -78,7 +78,6 @@ extern int d2_HitUnderPointer;
 extern int main_Inactive;
 
 
-struct G16CHARCLICK;  /* file-scope tag for the prototypes below */
 struct AITIME;        /* f3gm.c typedef; file-scope tag for the gm_AddTime / gm_SetTime prototypes */
 struct D3SURF;        /* d3_engine.h typedef; file-scope tag for the d3if_SelectTextureSet prototype */
 
@@ -88,7 +87,6 @@ extern unsigned char kb_Last;  /* 0x1468410 */
 
 extern struct D2SHP *sv_ViewShape;  /* 0x6f22c0 */
 extern struct D2SURF *sv_GroundplanSurf, *sv_GroundplanView;  /* 0x6f22c4, 0x6f22c8 */
-#define d2_TransparentBytes ((unsigned char *)&d2_TransparentColour)  /* 0x6f0454, @original: sv_BuildScreenLayout clears the key byte by byte (mov byte [0x6f0454] / [0x6f0455] / [0x6f0456], bl), not through the D2COLKEY word gb */
 /* the object / character record fields sv.c reads (AIBLD / AICHAR in ai.h; ai.h cannot be included here: its
    declarations of ai_Time / ai_Chars / ai_BTypes / ai_Blds clash with gv.h's char views). Views, as gv.h's ORDCHAR was */
 #pragma pack(push, 1)
@@ -593,7 +591,6 @@ void sv_DrawPanelPointer(void)
     d2_DrawMousePointer(x, y);
 }
 
-#define SV_I(a) (*(int *)(a))
 
 /* 0x521c10, the progress callback of the scene load (a Ghidra miss inside the span of 0x521ba0): kind is the load
    stage, cur / total the step. The first call creates the progress slider sv_LoadSlider (d2_OpenSlider, 0x190 long,
@@ -610,12 +607,12 @@ void sv_SceneLoadProgress(int kind, int cur, int total)
         h = d2_OpenSlider((int)(d3_ViewW * 0.5f + d3_ViewX - 205.0f), d2_ScreenH - 0x40, 0x190, 0, 0x190, 0x83, 0x42);
         sv_LoadSlider = h;
         d2_SetObjValue(h, 0, 0x190, 0);
-        d2_BlitPart(0, 0, ((D2SURF *)d2_BackSurf)->w, ((D2SURF *)d2_BackSurf)->h, d2_ScreenSurf, 0, 0, d2_BackSurf);
+        d2_BlitPart(0, 0, d2_BackSurf->w, d2_BackSurf->h, d2_ScreenSurf, 0, 0, d2_BackSurf);
         if (sv_LoadSlider == -1)
             goto lend;
     }
     if (kind == 0 || sv_LoadFrame % 10 == 0)
-        d2_BlitPart(0, 0, ((D2SURF *)d2_BackSurf)->w, ((D2SURF *)d2_BackSurf)->h, d2_BackSurf, 0, 0, d2_ScreenSurf);
+        d2_BlitPart(0, 0, d2_BackSurf->w, d2_BackSurf->h, d2_BackSurf, 0, 0, d2_ScreenSurf);
     if (kind == 0) {
         d2_SetObjValue(sv_LoadSlider, 0, 0x190, cur * 200 / total);
     } else if (kind == 1) {
@@ -630,7 +627,7 @@ void sv_SceneLoadProgress(int kind, int cur, int total)
                 d2_LockSurface(d2_ScreenSurf);
                 sv_UpdateCityPanel(1, 0);
                 d2_UnlockSurface(d2_ScreenSurf);
-                d2_BlitPart(0, 0, ((D2SURF *)d2_BackSurf)->w, ((D2SURF *)d2_BackSurf)->h, d2_ScreenSurf, 0, 0, d2_BackSurf);
+                d2_BlitPart(0, 0, d2_BackSurf->w, d2_BackSurf->h, d2_ScreenSurf, 0, 0, d2_BackSurf);
             }
             ai_FrameWait = 1;
         }
@@ -669,9 +666,9 @@ void sv_BuildScreenLayout(int s)
     if (d2_LockSurface(d2_BackSurf) != 0) {
         d2_ClearSurface(d2_BackSurf);
         d2_DrawShape(0, 0, d2_BackSurf, t, 0);
-        d2_TransparentBytes[0] = 0;
-        d2_TransparentBytes[1] = 0;
-        d2_TransparentBytes[2] = 0;
+        d2_TransparentColour.r = 0;
+        d2_TransparentColour.g = 0;
+        d2_TransparentColour.b = 0;
         sv_ViewShape = d2_GrabShape(sv_ViewRectLeft, sv_ViewRectTop, (sv_ViewRectRight - sv_ViewRectLeft) + 1, sv_ViewRectBottom - sv_ViewRectTop, d2_BackSurf, 0, 1);
         d2_ClearSurface(d2_BackSurf);
         d2_UnlockSurface(d2_BackSurf);
@@ -690,7 +687,7 @@ void sv_BuildScreenLayout(int s)
     sv_GroundplanView = d2_MakeSurface(&desc, 3);
     d2_ClearSurface(sv_GroundplanView);
     sv_BarToggle = d2_CreatePicObj(0x286, 0x23c, 0x544);
-    ((D2OBJ *)d2_Objs)[sv_BarToggle].interactive = 1;
+    d2_Objs[sv_BarToggle].interactive = 1;
     d2_EnableObject(sv_BarToggle, 0);
 }
 /* 0x522040, the image number of the panel for the player's group (0x6f3668, or when 0: the kind number 0x504ad0 of the first player character): 0x534 (1, 2, 10), 0x538 (3, 4), 0x53c (0xb, 0xc, 6), 0x540 (5, 7, 8, 9); 0x534 else */
@@ -774,7 +771,7 @@ void sv_SetPanelEnabled(int n)
         if (*q != -1)
             d2_EnableObject(*q, n);
         q++;
-    } while ((intptr_t)q < (intptr_t)((uintptr_t)&sv_GroundplanButtons + 0x3c));
+    } while ((intptr_t)q < (intptr_t)&sv_GroundplanButtons[15]);
 }
 /* 0x522280, closes the panel widgets (0x46e710, id := -1) and hides the rest */
 
@@ -843,7 +840,7 @@ void sv_DestroyScreen(void)
             *q = -1;
         }
         q++;
-    } while ((intptr_t)q < (intptr_t)((uintptr_t)&sv_GroundplanButtons + 0x3c));
+    } while ((intptr_t)q < (intptr_t)&sv_GroundplanButtons[15]);
     if (sv_GroundplanSurf != 0) {
         d2_FreeSurface(sv_GroundplanSurf);
         sv_GroundplanSurf = 0;
@@ -1196,12 +1193,7 @@ int gm_SumListMoney(void *list);  /* f3gmt.c, folded into gm_SumListAmounts 0x50
    of the player), re-opens the shield when its picture changed and moves the side panel by 0x625718 */
 void sv_UpdateCityPanel(unsigned char a, int b)
 {
-    struct {                            /* the calendar record gm_ClockToDate fills */
-        unsigned char day, season;
-        short year;
-        unsigned char hour, min;
-        char sec[4], pad[2];
-    } t;
+    GMDATE t;                           /* the calendar record gm_ClockToDate fills */
     char buf[0x100], name[0x100], arms[0x100];
     void *shape;
     int pic;
@@ -1215,7 +1207,7 @@ void sv_UpdateCityPanel(unsigned char a, int b)
        d2_ShpBlit with esi = 1); the original pushes sv_ViewRectLeft, sv_ViewRectTop, d2_ScreenSurf,
        sv_ViewShape. */
     if (sv_ViewShape != 0)
-        d2_ShpBlit(sv_ViewRectLeft, sv_ViewRectTop, (struct D2SURF *)d2_ScreenSurf, sv_ViewShape);
+        d2_ShpBlit(sv_ViewRectLeft, sv_ViewRectTop, d2_ScreenSurf, sv_ViewShape);
     if (a & 1) {
         if (sv_ButtonFamilyTree != -1) { d2_RemoveObj(sv_ButtonFamilyTree); sv_ButtonFamilyTree = -1; }
         if (sv_ButtonCompare != -1) { d2_RemoveObj(sv_ButtonCompare); sv_ButtonCompare = -1; }
@@ -1277,12 +1269,12 @@ void sv_UpdateCityPanel(unsigned char a, int b)
         }
         sv_UpdateGroundplan(b);
         d2_SetFont(0x55);
-        gm_ClockToDate(&ai_Time, (unsigned char *)&t);
+        gm_ClockToDate(&ai_Time, &t);
         if (ls_GetLanguage() == 2) {
-            sprintf(buf, "%s A.D.%i", txt_Ptrs[0x4c + gm_Season((char *)&t)], t.year);
+            sprintf(buf, "%s A.D.%i", txt_Ptrs[0x4c + gm_Season(&t)], t.year);
             d2_DrawText(d2_Wins[sv_BarWindow].x + 0x181, 0x17, d2_ScreenSurf, buf, 0);
         } else {
-            sprintf(buf, "%s A.D.%i", txt_Ptrs[0x4c + gm_Season((char *)&t)], t.year);
+            sprintf(buf, "%s A.D.%i", txt_Ptrs[0x4c + gm_Season(&t)], t.year);
             d2_DrawText(d2_Wins[sv_BarWindow].x + 0x195, 0x17, d2_ScreenSurf, buf, 0);
         }
         h = (int)((ai_Time.min % 0x3c) * 0.8);
@@ -1417,7 +1409,7 @@ void sv_RedrawScreen(void)
         sv_UpdateCityPanel(1, 0);
         d2_UnlockSurface(d2_ScreenSurf);
     }
-    d2_BlitPart(0, 0, ((D2SURF *)d2_BackSurf)->w, ((D2SURF *)d2_BackSurf)->h, d2_ScreenSurf, 0, 0, d2_BackSurf);
+    d2_BlitPart(0, 0, d2_BackSurf->w, d2_BackSurf->h, d2_ScreenSurf, 0, 0, d2_BackSurf);
     r = d2_StartFade(0, 0, (int)d2_ScreenW, (int)d2_ScreenH, "BLACK", 0, 1);
     sv_RunFrame(0, 0x1c6);
     d2_ReleaseFade(r);
@@ -1723,13 +1715,13 @@ int sv_CharStateIcons(AICHAR *c, int *out)
     n = 0;
     if (job != 0 && job->kind != 0) {
         i = 0;
-        p = (int *)(uintptr_t)&sv_Activities[0].icon;
-        for (; (intptr_t)p < (intptr_t)((uintptr_t)&sv_Activities[0].icon + 0x600); p += 8, i++) {
+        p = &sv_Activities[0].icon;
+        for (; (intptr_t)p < (intptr_t)&sv_Activities[0x30].icon; p += 8, i++) {
             if (p[-6] == job->kind) {
                 out[n++] = *p;
                 if (p[1] != -1) {
                     /* the entry's valueOff: the offset of a short of the job record (0xac / 0xae / 0xbc) */
-                    word = (unsigned short *)((char *)job + ((int *)(uintptr_t)&sv_Activities[0].valueOff)[i * 8]);
+                    word = (unsigned short *)((char *)job + sv_Activities[i].valueOff);
                     out[n++] = *word + 0xdf;
                     break;
                 }
@@ -1747,7 +1739,7 @@ extern struct AICHAR *sv_SelectedChar;
 extern char sv_PlayerBarKind;
 int d2_CreateChildWindow(short x, short y, short w, short h, unsigned int flags, int win);                     /* 0x472aa0 */
 int d2_CreateWinText(short x, short y, char *text, int win);                     /* 0x473650 */
-void snd_PlayWorkerClick(struct G16CHARCLICK *c);                     /* 0x4c2c70 */
+void snd_PlayWorkerClick(struct AICHAR *c);                     /* 0x4c2c70 */
 void d2_AddPointerItem(int id, int amount);                     /* 0x476b90 */
 int d2_WinOpenPic(short x, short y, int pic, int win);                     /* 0x4731d0 */
 
@@ -1854,7 +1846,7 @@ void sv_UpdateMemberList(AIBLD *g)
         if (d2_ClickedId != -1 && r->chr != 0xffff && d2_PointerObj == r->check) {
             if (sv_D2Objs[r->check].checked != 0) {
                 ai_Chars[r->chr].selected = 1;
-                snd_PlayWorkerClick((struct G16CHARCLICK *)&ai_Chars[r->chr]);
+                snd_PlayWorkerClick(&ai_Chars[r->chr]);
             } else
                 ai_Chars[r->chr].selected = 0;
         }
@@ -1951,7 +1943,7 @@ extern int sv_SkyPhase;  /* 0x760464 */
 extern int sv_ThunderFog;  /* 0x6f2370 */
 extern struct D3SKYLAYER *d3_SkyLayers[6];  /* 0x760620 */
 extern int sv_SkyScene;  /* 0x75ec20 */
-extern struct D3ANIM *d3t_CamMove;  /* 0x6310e8 */
+extern struct D3PATH *d3t_CamMove;  /* 0x6310e8 */
 extern int sv_LampPhase;  /* 0x623e80 */
 extern int sv_DayPhase;  /* 0x6f236c */
 extern char sv_LampSwitches;
@@ -1963,7 +1955,7 @@ const int sv_PhaseMinutes[24] = { 390, 510, 630, 1050, 1170, 1290, 300, 420, 540
 void d2_SetViewEnabled(int view, int on);  /* 0x475590 */
 void d2_ClearPointerItems(void);                     /* 0x476c70 */
 void sv_UpdatePanel(void);                     /* 0x52a050 */
-void gm_ClockToDate(struct AITIME *c, unsigned char *out);                     /* 0x4fe2c0 */
+void gm_ClockToDate(struct AITIME *c, struct GMDATE *out);                     /* 0x4fe2c0 */
 void ai_InitWind(int type, int id, float *from, float *to);                     /* 0x5dbc30 */
 struct D3TRAIN; void d3t_SetRain(struct D3TRAIN *rain, int n, ...);                     /* 0x413d30 */
 struct D3TSNOW; void d3t_SetSnow(struct D3TSNOW *snow, int n, ...);                     /* 0x414c60 */
@@ -1994,13 +1986,13 @@ void sv_OpenPlayerBar(AIBLD *a, char k)
     s = d2_LastWindow;
     d2_SetForm(sv_PlayerBarForm, 2);
     f = d2_GetWinObj(sv_PlayerBarForm, 2, 0);
-    ((D2OBJ *)d2_Objs)[f].style = 3;
+    d2_Objs[f].style = 3;
     d2_Wins[d2_LastWindow].btnup = f;
-    ((D2OBJ *)d2_Objs)[f].winIndex = s;
+    d2_Objs[f].winIndex = s;
     f = d2_GetWinObj(sv_PlayerBarForm, 2, 1);
-    ((D2OBJ *)d2_Objs)[f].style = 3;
+    d2_Objs[f].style = 3;
     d2_Wins[d2_LastWindow].btndown = f;
-    ((D2OBJ *)d2_Objs)[f].winIndex = s;
+    d2_Objs[f].winIndex = s;
     d2_Wins[s].visible = 0x4e;
     if (sv_PlayerBarForm != -1) {
         if (sv_PanelForm != -1)
@@ -2017,8 +2009,8 @@ void sv_OpenPlayerBar(AIBLD *a, char k)
         }
         d2_SetForm(sv_PlayerBarForm, 2);
         f = d2_WinOpenPicStyled(0x11, 4, 0x51d, d2_LastWindow, -2);
-        ((D2OBJ *)d2_Objs)[f].interactive = 1;
-        ((D2OBJ *)d2_Objs)[f].style = 3;
+        d2_Objs[f].interactive = 1;
+        d2_Objs[f].style = 3;
         for (i = 0; i < 768; i++)
             if (ai_Chars[i].selected != 0 && ai_Chars[i].jobId != 0)
                 ai_Chars[i].selected = 0;
@@ -2042,7 +2034,7 @@ int sv_ClockSeason(void *t)
 {
     return gm_ClockSeason(t);
 }
-typedef struct SVSKYKEY {               /* 0x10 bytes, a light key's colour in the sky tables (D3LKEY.rgb / val) */
+typedef struct SVSKYKEY {               /* 0x10 bytes, a light key's colour in the sky tables (D3LIGHTKEY.color / intensity) */
     float rgb[3];
     float val;
 } SVSKYKEY;
@@ -2063,10 +2055,10 @@ char sv_SetSkyLightColors(D3OBJECT *o, void *ctx)
     else
         t = (o->objectFlags & 0x10) ? sv_SkyKeysWinterAlt : sv_SkyKeysWinter;
     for (i = 0; i < 6; i++) {
-        D3_L(o)->light->keys[i].rgb[0] = t[i].rgb[0];
-        D3_L(o)->light->keys[i].rgb[1] = t[i].rgb[1];
-        D3_L(o)->light->keys[i].rgb[2] = t[i].rgb[2];
-        D3_L(o)->light->keys[i].val = t[i].val;
+        o->light->keys[i].color.x = t[i].rgb[0];
+        o->light->keys[i].color.y = t[i].rgb[1];
+        o->light->keys[i].color.z = t[i].rgb[2];
+        o->light->keys[i].intensity = t[i].val;
     }
     return 1;
 }
@@ -2081,9 +2073,9 @@ void sv_SetupWeather(struct AITIME *t, int reroll)
     float ang, step;
     int scene;
     D3TEXFLAGS flags;
-    char date[12];
+    GMDATE date;
 
-    gm_ClockToDate(t, date);
+    gm_ClockToDate(t, &date);
     season = sv_ClockSeason(t);
     sv_CloudChance = ai_PlayerSlots[ai_OwnPlayer].rainChance[season];
     sv_SeasonClimate = ai_PlayerSlots[ai_OwnPlayer].snowChance[season];
@@ -2177,7 +2169,7 @@ void sv_SetupWeather(struct AITIME *t, int reroll)
     d3if_SelectScene(scene, 1);
     sv_SkyPhase = -100;
     sv_LampSwitches = 0;
-    sv_UpdateSkyPhase((AITIME *)t);
+    sv_UpdateSkyPhase(t);
 }
 typedef struct SVLEVELCOLOR {           /* 0x10 bytes, the ambient colour of a light level in the sky tables */
     D3VECTOR amb;
@@ -2228,7 +2220,7 @@ void sv_FillDayPhases(struct AITIME *t)
     }
 }
 /* 0x525a80, a d3_ForEachObject callback (the object o, the flag f): sets the brightness ramp of the object's light
-   (0x1e8, a D3LDATA) to a random 0.3 .. 0.6 + 0.3 (f = 0) or -0.3 - 0.6 * random (f != 0); returns 1 */
+   (D3OBJECT.light, its phase) to a random 0.3 .. 0.6 + 0.3 (f = 0) or -0.3 - 0.6 * random (f != 0); returns 1 */
 
 char sv_SetLampRamp(D3OBJECT *o, void *f)
 {
@@ -2238,8 +2230,8 @@ char sv_SetLampRamp(D3OBJECT *o, void *f)
         v = util_RandomF() * 0.6 + 0.3;
     else
         v = -0.3 - util_RandomF() * 0.6;
-    if (D3_L(o)->light != 0)
-        D3_L(o)->light->ramp = (float)v;
+    if (o->light != 0)
+        o->light->phase = (float)v;
     return 1;
 }
 /* 0x525ad0, applies the sky phase of the clock t: the second of the day is mapped through the day phases to the sky phase k
@@ -2317,7 +2309,7 @@ extern int sv_BorderMoved;  /* 0x6f2378 */
 extern int sv_BorderViewX;  /* 0x6f22cc */
 extern int sv_BorderViewY;  /* 0x6f22d0 */
 extern int d3t_CamMoving;  /* 0x6310e4 */
-extern struct D3ANIM *d3t_CamMove;  /* 0x6310e8 */
+extern struct D3PATH *d3t_CamMove;  /* 0x6310e8 */
 extern int sv_ScrollTime;  /* 0x6f2394 */
 extern D3VECTOR4 sv_ScrollLastMove;
 int d3_VecEqual(const struct D3VECTOR *a, const struct D3VECTOR *b, float eps);  /* 0x453e80 */
@@ -2659,7 +2651,7 @@ int sv_ScrollCamera(void)
         dst.y = d3_Camera->pos.y;
         dst.z = fwd.z + d3_Camera->pos.z;
         if (d3_VecEqual(&sv_ScrollLastMove.v, &dst.v, 0.1f) == 0) {
-            hm = (D3SM *)d3_DefaultScene->hmap;
+            hm = d3_DefaultScene->hmap;
             if (hm != 0) {                                       /* clamped to the height map, 20 cells in */
                 lo = hm->cell.x * 20.0f + hm->origin.x;
                 if (dst.x < lo)
@@ -2753,7 +2745,7 @@ static const float sv_ZoomPixelsPerUnit = -666.6667f;  /* 0x5eeb78, .rdata: -1 /
 int sv_MouseCamera(void)
 {
     short my;
-    char *cam;
+    D3OBJECT *cam;
     AIFIN *rec;
     float z, f2, ang, lo, hi;
     double k;                       /* the drag scale: the scroll speed option / 16.5 */
@@ -2769,7 +2761,7 @@ int sv_MouseCamera(void)
     if (d3t_CamMoving != 0)
         return 0;
     my = dm_P.y;
-    cam = (char *)d3_Camera;
+    cam = d3_Camera;
     if (dm_L.rhold == 0) {
     chk:
         if (dm_L.ldown != 0 && dm_L.rhold != 0)
@@ -2796,10 +2788,10 @@ int sv_MouseCamera(void)
                 sv_ZoomStartX = dm_P.x;
                 sv_ZoomStartY = my;
                 sv_ZoomStartAngle = sv_CameraAngleFactor;
-                sv_ZoomBaseY = ((D3OBJECT *)cam)->pos.y - ((sv_CameraHeightFar - sv_CameraHeightNear) * sv_ZoomStartHeight + sv_CameraAngleNear);
+                sv_ZoomBaseY = cam->pos.y - ((sv_CameraHeightFar - sv_CameraHeightNear) * sv_ZoomStartHeight + sv_CameraAngleNear);
                 di_MaxY = sv_ZoomStartY - (int)((1.0 - sv_ZoomStartAngle) * sv_ZoomPixelsPerUnit);   /* the drag range of the angle 0 .. 1 at 0.0015 per pixel */
                 di_MinY = sv_ZoomStartY - (int)(-sv_ZoomStartAngle * sv_ZoomPixelsPerUnit);
-                sv_ZoomStartTurn = ((D3OBJECT *)cam)->rotation.y;
+                sv_ZoomStartTurn = cam->rotation.y;
             }
             goto chk;
         }
@@ -2828,22 +2820,22 @@ int sv_MouseCamera(void)
         return 0;
     }
 go:
-    cam = (char *)d3_Camera;
+    cam = d3_Camera;
     if (cam != 0) {
         if (dm_L.rhold != 0 && dm_L.ldown != 0 && sv_ZoomTurnOn != 0) {     /* both buttons: zoom and turn by the drag */
             f2 = ((dm_L.wup - dm_L.wdown) * 5.0f + my - sv_ZoomStartY) * 0.0015f;
             sv_CameraHeightFactor = sv_ZoomStartHeight + f2;
-            zpos.x = ((D3OBJECT *)cam)->pos.x;
-            zpos.y = ((D3OBJECT *)cam)->pos.y;
-            zpos.z = ((D3OBJECT *)cam)->pos.z;
+            zpos.x = cam->pos.x;
+            zpos.y = cam->pos.y;
+            zpos.z = cam->pos.z;
             zpos.y = (sv_CameraHeightFar - sv_CameraHeightNear) * sv_CameraHeightFactor + sv_ZoomBaseY;
             sv_CameraAngleFactor = f2 + sv_ZoomStartAngle;
-            zrot.x = ((D3OBJECT *)cam)->rotation.x;
-            zrot.y = ((D3OBJECT *)cam)->rotation.y;
-            zrot.z = ((D3OBJECT *)cam)->rotation.z;
+            zrot.x = cam->rotation.x;
+            zrot.y = cam->rotation.y;
+            zrot.z = cam->rotation.z;
             zrot.x = (sv_CameraAngleFar - sv_CameraAngleNear) * sv_CameraAngleFactor + sv_CameraAngleNear;
             zrot.y = sv_ZoomStartTurn - (dm_P.x - sv_ZoomStartX) * 0.0035f;
-            if (d3_VecEqual(&((D3OBJECT *)cam)->pos, &zpos.v, 0.1f) == 0 || d3_VecEqual(&d3_Camera->rotation, &zrot, 0.001f) == 0) {
+            if (d3_VecEqual(&cam->pos, &zpos.v, 0.1f) == 0 || d3_VecEqual(&d3_Camera->rotation, &zrot, 0.001f) == 0) {
                 d3_SetObjectPos(d3_Camera, &zpos.v);
                 d3_SetObjectRot(d3_Camera, &zrot);
                 rec = gm_PlayerRecord(&ai_Chars[ai_PlayerId]);
@@ -2853,7 +2845,7 @@ go:
                 }
             }
         }
-        cam = (char *)d3_Camera;
+        cam = d3_Camera;
         if (cam != 0) {
             if (sv_ZoomTurnOn == 0 && dm_L.wup - dm_L.wdown != 0) {   /* the wheel: the zoom by 0.1 a notch */
                 z = sv_CameraHeightFactor = (dm_L.wup - dm_L.wdown) * 0.1f + sv_CameraHeightFactor;
@@ -2866,7 +2858,7 @@ go:
                     SV_CAMREC(rec);
                 }
             }
-            cam = (char *)d3_Camera;
+            cam = d3_Camera;
             if (cam != 0 && dm_L.rhold != 0 && dm_L.ldown == 0) {    /* the right button alone: drag the map */
                 d3_MatTranspose(&d3_Camera->matrix, &right);
                 k = ai_OptionScrollSpeed * (1.0 / 16.5);
@@ -2893,7 +2885,7 @@ go:
                 dst.y = d3_Camera->pos.y;
                 dst.z = fwd.z + d3_Camera->pos.z;
                 if (d3_VecEqual(&sv_DragLastPos.v, &dst.v, 0.1f) == 0) {
-                    hm = (D3SM *)d3_DefaultScene->hmap;
+                    hm = d3_DefaultScene->hmap;
                     if (hm != 0) {                                      /* clamped to the height map, 20 cells in */
                         lo = hm->cell.x * 20.0f + hm->origin.x;
                         if (dst.x < lo)
@@ -3198,7 +3190,7 @@ char sv_CreateBannerCB(D3OBJECT *part, AIBLD *b)
         rot.x = 0;
         rot.y = 3.1415927f;
         rot.z = 0;
-        d3_MatFromAngles((D3VECTOR4 *)&rot, &m);
+        d3_MatFromAngles(&rot, &m);
         d3_SetWorldPosRot(o, &pos.v, &m);
         if (b->owner != 0xffff) {
             d3if_SelectTextureSet(o, o->info, (unsigned char)((char)ai_Chars[b->owner].ref54 + 'f'), 1);
@@ -3269,13 +3261,13 @@ void sv_ColourBanners(int c)
             d3_ForEachObject(d3_DefaultScene, b->object, 0x340, sv_ColourBannerCB, b);
     }
     for (o = gm_Query(0, 3, 7, 3, c, 4, 0x1d); o != 0; o = gm_QueryNext()) {
-        m = (CHARACTER *)o->sceneObj;
+        m = o->sceneObj;
         if (m != 0) {
             d3if_SelectScene(d3t_SceneIndex(m->scene), 1);
             if (ch != 0 && ch->ref54 != 0 && (ch->kind == 5 || ch->kind == 6 || ch->kind == 7)) {
                 set = ch->ref54 - 0x599;
                 if (set != 0)
-                    d3if_SelectTextureSet(*m->transport, (*m->transport)->info, set, 1);
+                    d3if_SelectTextureSet(m->transport->obj, m->transport->obj->info, set, 1);
             }
         }
     }
@@ -3414,7 +3406,7 @@ int sv_AddPanelButton(int x, int y, char *text)
 
     w = d2_WinCreateSlider(x + 3, y, 0xc5, text, d2_LastWindow);
     d2_SetObjFont(w, 0x54);
-    ((D2OBJ *)d2_Objs)[w].centred = 1;
+    d2_Objs[w].centred = 1;
     d2_SetObjWidth(w, 0x60);
     return w;
 }
@@ -3449,9 +3441,9 @@ void sv_OpenBuildingPanel(AIBLD *b)
     }
     d2_SetForm(sv_PanelForm, 0);
     sv_PanelBldPic = d2_WinOpenPic((d2_Wins[d2_LastWindow].w - 0x30) >> 1, 0x48, b->type + 0x427, d2_LastWindow);
-    ((D2OBJ *)d2_Objs)[sv_PanelBldPic].interactive = 1;
+    d2_Objs[sv_PanelBldPic].interactive = 1;
     if (b->owner != 0xffff && b->owner != ai_PlayerChar->id)
-        ((D2OBJ *)d2_Objs)[sv_PanelBldPic].user = &ai_Chars[b->owner];
+        d2_Objs[sv_PanelBldPic].user = &ai_Chars[b->owner];
     if (b->type == 0x47 || b->type == 0x1d || b->type == 0x57)
         sv_PanelHealthBar = -1;
     else {
@@ -3507,7 +3499,7 @@ void sv_OpenItemPanel(AIOBJ *p)
         } else
             io_PrintText((intptr_t)"$Z%s", p->type * 2 + 0x9a8);
         d2_SetForm(sv_PanelForm, 0);
-        ((D2OBJ *)d2_Objs)[d2_WinOpenPic(((d2_Wins[d2_LastWindow].w - 0x30) >> 1) - 1, 0x48, p->type + 0xdf, d2_LastWindow)].interactive = 1;
+        d2_Objs[d2_WinOpenPic(((d2_Wins[d2_LastWindow].w - 0x30) >> 1) - 1, 0x48, p->type + 0xdf, d2_LastWindow)].interactive = 1;
         g = &ai_Goods[p->type];
         if (b != 0 && (g->type == 2 || g->type == 6)) {
             owner = gm_ObjectBuildingOwner(p);
@@ -3541,7 +3533,7 @@ void sv_OpenCartPanel(AIOBJ *c)
     io_PrintText((intptr_t)"$Z%2N1$A%s", owner->id, c->id * 2 + 0x9a8);
     d2_SetForm(sv_PanelForm, 0);
     x = ((d2_Wins[d2_LastWindow].w - 0x30) >> 1) - 1;
-    ((D2OBJ *)d2_Objs)[d2_WinOpenPic(x, 0x30, c->id + 0xdf, d2_LastWindow)].interactive = 1;
+    d2_Objs[d2_WinOpenPic(x, 0x30, c->id + 0xdf, d2_LastWindow)].interactive = 1;
     if (owner->id == ai_PlayerId)
         sv_PanelCartBtn = sv_AddPanelButton(x, 0xac, txt_Ptrs[TXT_PANEL_BTN_CART]);
     sv_PanelHealthBar = d2_WinOpenSlider(0x18, 0x66, 0x30, 0, 100, 0x75, 0x442, d2_LastWindow);
@@ -3558,7 +3550,7 @@ extern int ai_SelectedCount;  /* 0x6f2334 */
 extern unsigned char ai_GameState;  /* 0x6f25ac */
 extern int d2_PointerObj;  /* 0x5fe710 */
 extern char *ai_Unk7662c0p;
-extern unsigned short * sv_SelectedItem;
+extern struct AIOBJ *sv_SelectedItem;
 extern int ai_BuildingPerms;  /* 0x6f231c */
 int gm_Opinion(int a, int b);                     /* 0x50c520 */
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);                     /* 0x4fe140 */
@@ -3657,8 +3649,8 @@ void sv_OpenPersonPanel(AICHAR *c)
     x = (d2_Wins[d2_LastWindow].w - 0x30) >> 1;
     if (c != 0) {
         sv_PanelPortrait = d2_WinOpenPic(x, 0x38, c->picture, d2_LastWindow);
-        ((D2OBJ *)d2_Objs)[sv_PanelPortrait].user = c;
-        ((D2OBJ *)d2_Objs)[sv_PanelPortrait].interactive = 1;
+        d2_Objs[sv_PanelPortrait].user = c;
+        d2_Objs[sv_PanelPortrait].interactive = 1;
         return;
     }
     d2_WinOpenPic(x, 0x38, 0x521, d2_LastWindow);
@@ -3670,7 +3662,6 @@ void sv_OpenPersonPanel(AICHAR *c)
             d2_RemoveObj(sv_PanelWidgets[i]); \
             sv_PanelWidgets[i] = -1; \
         }
-#define SV_SELCART ((AIOBJ *)sv_SelectedItem)  /* the selected cart, re-read at every use */
 
 /* 0x529380, the per-frame refresh of the open info panel (sv_PanelForm). For the selected building
    (sv_SelectedObject with its health bar and picture): the title as sv_OpenBuildingPanel writes it, the level
@@ -3725,7 +3716,7 @@ void sv_RefreshPanel(void)
             if (j == 0)
                 return;
             total = (float)gm_MinutesBetween(&j->start, &j->end8f);
-            ((D2OBJ *)d2_Objs)[sv_PanelBldPic].fillFraction = (float)gm_MinutesBetween(&j->start, &ai_Time) / total;
+            d2_Objs[sv_PanelBldPic].fillFraction = (float)gm_MinutesBetween(&j->start, &ai_Time) / total;
             if (sv_PanelWidgets[0] == -1) {
                 d2_SetForm(sv_PanelForm, 0);
                 sv_PanelWidgets[0] = d2_WinOpenPic(((d2_Wins[d2_LastWindow].w - 0x30) >> 1) + 0x2f, 0x4c, 0x4ff, d2_LastWindow);
@@ -3742,13 +3733,13 @@ void sv_RefreshPanel(void)
                     sv_PanelWidgets[0] = d2_WinOpenPic(((d2_Wins[d2_LastWindow].w - 0x30) >> 1) + 0x2f, 0x4c, 0x4ff, d2_LastWindow);
                 }
             }
-            ((D2OBJ *)d2_Objs)[sv_PanelBldPic].fillFraction = prog;
+            d2_Objs[sv_PanelBldPic].fillFraction = prog;
         } else if ((fl & 0x40) != 0) {
             j = he_FindEvent(2, 0, 0x1e, 3, sv_SelectedObject->id);
             if (j == 0)
                 return;
             total = (float)gm_MinutesBetween(&j->start, &j->end);
-            ((D2OBJ *)d2_Objs)[sv_PanelBldPic].fillFraction = (float)gm_MinutesBetween(&j->start, &ai_Time) / total;
+            d2_Objs[sv_PanelBldPic].fillFraction = (float)gm_MinutesBetween(&j->start, &ai_Time) / total;
             if (sv_PanelWidgets[0] == -1) {
                 d2_SetForm(sv_PanelForm, 0);
                 sv_PanelWidgets[0] = d2_WinOpenPic(((d2_Wins[d2_LastWindow].w - 0x30) >> 1) + 0x2f, 0x4c, 0x4ff, d2_LastWindow);
@@ -3758,7 +3749,7 @@ void sv_RefreshPanel(void)
             if (j == 0)
                 return;
             total = (float)gm_MinutesBetween(&j->start, &j->end);
-            ((D2OBJ *)d2_Objs)[sv_PanelBldPic].fillFraction = (float)gm_MinutesBetween(&j->start, &ai_Time) / total;
+            d2_Objs[sv_PanelBldPic].fillFraction = (float)gm_MinutesBetween(&j->start, &ai_Time) / total;
             if (sv_PanelWidgets[0] == -1) {
                 d2_SetForm(sv_PanelForm, 0);
                 sv_PanelWidgets[0] = d2_WinOpenPic(((d2_Wins[d2_LastWindow].w - 0x30) >> 1) + 0x2f, 0x4c, 0x4ff, d2_LastWindow);
@@ -3818,14 +3809,14 @@ void sv_RefreshPanel(void)
         } else if (kind == 0x61) {
             from = &j->start61;
             t = *from;
-            gm_AddTime((struct AITIME *)&t, 8, 0, 0);
+            gm_AddTime(&t, 8, 0, 0);
             total = (float)gm_MinutesBetween(from, &t);
             if (total != 0.0f)
                 prog = (float)gm_MinutesBetween(from, &ai_Time) / total;
         } else if (kind == 0x43) {
             from = &j->start;
             t = *from;
-            gm_AddTime((struct AITIME *)&t, 0x18, 0, 0);
+            gm_AddTime(&t, 0x18, 0, 0);
             total = (float)gm_MinutesBetween(from, &t);
             if (total != 0.0f)
                 prog = (float)gm_MinutesBetween(from, &ai_Time) / total;
@@ -3835,7 +3826,7 @@ void sv_RefreshPanel(void)
             else if (j->stage == 4) {
                 from = &j->start;
                 t = *from;
-                gm_AddTime((struct AITIME *)&t, 0x60, 0, 0);
+                gm_AddTime(&t, 0x60, 0, 0);
                 total = (float)gm_MinutesBetween(from, &t);
                 if (total != 0.0f)
                     prog = (float)gm_MinutesBetween(from, &ai_Time) / total;
@@ -3846,7 +3837,7 @@ void sv_RefreshPanel(void)
             else {
                 from = &j->start;
                 t = *from;
-                gm_AddTime((struct AITIME *)&t, 0x18, 0, 0);
+                gm_AddTime(&t, 0x18, 0, 0);
                 total = (float)gm_MinutesBetween(from, &t);
                 if (total != 0.0f)
                     prog = (float)gm_MinutesBetween(from, &ai_Time) / total;
@@ -3864,9 +3855,9 @@ void sv_RefreshPanel(void)
             if (total != 0.0f)
                 prog = (float)gm_MinutesBetween(&j->start, &ai_Time) / total;
         }
-            ((D2OBJ *)d2_Objs)[sv_PanelPortrait].fillFraction = prog;
+            d2_Objs[sv_PanelPortrait].fillFraction = prog;
         } else if (sv_PanelPortrait != -1)
-            ((D2OBJ *)d2_Objs)[sv_PanelPortrait].fillFraction = 0;
+            d2_Objs[sv_PanelPortrait].fillFraction = 0;
         return;
     }
     if (sv_PanelCartWin == -1 || sv_SelectedItem == 0) {
@@ -3874,18 +3865,18 @@ void sv_RefreshPanel(void)
         return;
     }
     SV_CLEAR_PANEL_WIDGETS(i)
-    if (sv_SelectedItem == 0 || ai_Goods[*sv_SelectedItem].type != 0x1d)
+    if (sv_SelectedItem == 0 || ai_Goods[sv_SelectedItem->id].type != 0x1d)
         return;
     if (sv_PanelCartBtn != -1 && d2_ClickedId != -1 && d2_PointerObj == sv_PanelCartBtn && (sv_FrameMask & 0x2000) != 0)
-        rt_EditCartRoute((AIOBJ *)sv_SelectedItem);
+        rt_EditCartRoute(sv_SelectedItem);
     if (sv_PanelHealthBar != -1)
-        d2_SetObjValue(sv_PanelHealthBar, 0, 100, SV_SELCART->fill);
+        d2_SetObjValue(sv_PanelHealthBar, 0, 100, sv_SelectedItem->fill);
     d2_SetForm(sv_PanelForm, 2);
     SV_CLEAR_PANEL_WIDGETS(i)
     d2_RemoveWindowObjects(d2_LastWindow, 1);
-    if (SV_SELCART->job24 != 0 && (bld = gm_BuildQuery(1, 1, SV_SELCART->job24->cartBld)) != 0)
+    if (sv_SelectedItem->job24 != 0 && (bld = gm_BuildQuery(1, 1, sv_SelectedItem->job24->cartBld)) != 0)
         io_PrintText((intptr_t)"$Y$Z%s", bld->type * 0xe + 0x48e);
-    load = gm_Query(SV_SELCART->list, 1, 0, 0x1dd);
+    load = gm_Query(sv_SelectedItem->list, 1, 0, 0x1dd);
     if (load == 0)
         return;
     goods = gm_Query(load->list, 1, 5);
@@ -3899,9 +3890,9 @@ void sv_RefreshPanel(void)
         *q = d2_WinOpenPicStyled(x, 0x28, goods->id + 0xdf, d2_LastWindow, -2);
         sprintf(amount, "%i", gm_ListAmount(load, goods));
         o = d2_CreateWinText(x - 2, 0x1c, amount, d2_LastWindow);
-        ((D2OBJ *)d2_Objs)[o].interactive = 1;
-        ((D2OBJ *)d2_Objs)[o].centred = 1;
-        ((D2OBJ *)d2_Objs)[o].w = 0x20;
+        d2_Objs[o].interactive = 1;
+        d2_Objs[o].centred = 1;
+        d2_Objs[o].w = 0x20;
         goods = gm_QueryNext();
         x += 0x20;
         q++;
@@ -3944,28 +3935,18 @@ int sv_ReturnZero(void)
 }
 
 /* ---- layout 2026-10-23 (session 5): drafts of the functions after 0x52a050 (ROUGH: absolute-address macros for the globals not declared above) ---- */
-#define SV_I(a) (*(int *)(a))
-#define SV_U(a) (*(unsigned *)(a))
-#define SV_S(a) (*(short *)(a))
-#define SV_US(a) (*(unsigned short *)(a))
-#define SV_B(a) (*(unsigned char *)(a))
-#define SV_C(a) (*(char **)(a))
-#define SV_W(i) ((char *)d2_Objs + (i) * 0x2ec)            /* widget i */
-#define SV_WI(i, o) (*(int *)(SV_W(i) + (o)))
-#define SV_WS(i, o) (*(short *)(SV_W(i) + (o)))
-#define SV_WB(i, o) (*(char *)(SV_W(i) + (o)))
 
 int d2_WinOpenPic(short x, short y, int pic, int win);                     /* 0x4731d0 */
 int d2_CreateWinText(short x, short y, char *text, int win);                     /* 0x473650 */
 int d2_CreateScreenText(short x, short y, char *text);                     /* 0x473860 */
 void d2_MoveObj(short x, short y, int obj);                     /* 0x46cda0 */
-void d2_DrawText(int x, int y, void *surf, char *text, unsigned char flags);                     /* 0x46f000 */
-void d2_DrawTextBox(int x, int y, int w, int h, void *surf, char *text, unsigned int flags);                     /* 0x46f1a0 */
+void d2_DrawText(int x, int y, struct D2SURF *surf, char *text, unsigned char flags);                     /* 0x46f000 */
+void d2_DrawTextBox(int x, int y, int w, int h, struct D2SURF *surf, char *text, unsigned int flags);                     /* 0x46f1a0 */
 void d2_SetClipRect(int x0, int y0, int x1, int y1);                     /* 0x47cb40 */
 void * d2_SetFont(int font);                     /* 0x476030 */
 int d2_SetForm(int view, int n);                     /* 0x475f70 */
-void gm_ClockToDate(struct AITIME *c, unsigned char *out);                     /* 0x4fe2c0 */
-int gm_Season(char *d);                     /* 0x4fe330, f3gm.h */
+void gm_ClockToDate(struct AITIME *c, struct GMDATE *out);                     /* 0x4fe2c0 */
+int gm_Season(struct GMDATE *d);                     /* 0x4fe330, f3gm.h */
 int gm_ClockSeason(AITIME *c);         /* 0x4fe350, f3gm.c */                     /* 0x4fe350 */
 int ls_GetLanguage();                     /* 0x5190a0 */
 struct AIOBJ *gm_PlayerSeat(int p);                     /* 0x504a80 */
@@ -3989,7 +3970,8 @@ void sv_UpdatePanel(void)
 {
     AIBLD *b, *sel;
     AIBTYPE *bt;
-    int cls, i, perms, room;
+    int cls, i, perms;
+    struct AIOBJ *room;
     AMOUNTCFG st;
 
     b = 0;
@@ -4008,8 +3990,8 @@ void sv_UpdatePanel(void)
             if (sv_PanelShown == 0)
                 perms = gm_PermissionBits(ai_PlayerId, ai_FallbackBuilding, 0, 0);
             else {
-                room = (int)gm_Query(ai_FallbackBuilding->objList, 1, 0, ai_FallbackBuilding->mainRoom);
-                perms = gm_PermissionBits(ai_PlayerId, 0, (struct AIOBJ *)room, 0);
+                room = gm_Query(ai_FallbackBuilding->objList, 1, 0, ai_FallbackBuilding->mainRoom);
+                perms = gm_PermissionBits(ai_PlayerId, 0, room, 0);
             }
         } else {
             if (sv_SelectedObject == 0)
@@ -4058,13 +4040,13 @@ void sv_UpdatePanel(void)
 refresh:
     sv_RefreshPanel();
     if (sv_SelectedObject == sv_ShownObject && ai_FallbackBuilding == sv_ShownFallback && ai_PlayerBuilding == sv_ShownBuilding
-        && (int)sv_PanelShown == sv_ShownRoom && (int)sv_SelectedItem == sv_ShownItem && sv_SelectedChar == sv_ShownChar
+        && (int)sv_PanelShown == sv_ShownRoom && sv_SelectedItem == sv_ShownItem && sv_SelectedChar == sv_ShownChar
         && sv_OtherSelected == sv_ShownOther && ai_SelectedCount == sv_ShownCount && sv_PanelRebuild == 0)
         return;
     sv_PanelRebuild = 0;
     sv_ClosePanel();
-    if (sv_SelectedItem != 0 && ai_Goods[*sv_SelectedItem].type == 0x1d && ai_SelectedCount == 0 && sv_SelectedChar == 0)
-        sv_OpenCartPanel((AIOBJ *)sv_SelectedItem);
+    if (sv_SelectedItem != 0 && ai_Goods[sv_SelectedItem->id].type == 0x1d && ai_SelectedCount == 0 && sv_SelectedChar == 0)
+        sv_OpenCartPanel(sv_SelectedItem);
     else if (sv_SelectedModel == 0 && sv_OtherSelected == 0 && ai_SelectedCount == 0) {
         if (sv_PanelShown == 0 && sv_SelectedChar == 0)
             sv_OpenDefaultPanel();
@@ -4082,7 +4064,7 @@ refresh:
     sv_ShownOther = sv_OtherSelected;
     sv_ShownCount = ai_SelectedCount;
     if (sv_SelectedModel == 0 && ai_FallbackBuilding == 0 && ai_PlayerBuilding == 0) {
-        sv_ShownItem = (int)sv_SelectedItem;
+        sv_ShownItem = sv_SelectedItem;
         sv_ShownFallback = 0;
         sv_ShownBuilding = 0;
         sv_ShownModel = 0;
@@ -4095,7 +4077,7 @@ refresh:
     sv_ShownBuilding = ai_PlayerBuilding;
     sv_ShownRoom = (int)sv_PanelShown;
     sv_ShownChar = sv_SelectedChar;
-    sv_ShownItem = (int)sv_SelectedItem;
+    sv_ShownItem = sv_SelectedItem;
     sv_ShownObject = sv_SelectedObject;
     if ((sv_SelectedItem != 0 || sv_PanelShown != 0) && sv_PanelForm == -1) {
         sv_ShownFallback = ai_FallbackBuilding;
@@ -4104,8 +4086,8 @@ refresh:
         sv_ShownRoom = (int)sv_PanelShown;
         if (sv_SelectedItem != 0) {
             sv_ShownModel = sv_SelectedModel;
-            sv_ShownItem = (int)sv_SelectedItem;
-            sv_OpenItemPanel((AIOBJ *)sv_SelectedItem);
+            sv_ShownItem = sv_SelectedItem;
+            sv_OpenItemPanel(sv_SelectedItem);
             sv_RefreshPanel();
         } else if (sv_PanelShown != 0) {
             sv_ShownRoom = (int)sv_PanelShown;
@@ -4163,7 +4145,7 @@ void sv_HoverPick(void)
             ai_PickedObject = d3if_Pick((float)dm_L.x, (float)dm_L.y, 0x40, 1);
     }
     if (ai_PickedObject == 0) {
-        if (d2_PointerObj == -1 || (((D2OBJ *)d2_Objs)[d2_PointerObj].style & 0x40) == 0)
+        if (d2_PointerObj == -1 || (d2_Objs[d2_PointerObj].style & 0x40) == 0)
             d2_CaptionCopy[0] = 0;
         if (d2_PointerSprite != -1) {
             d2_FreeAnim(d2_PointerSprite);
@@ -4191,13 +4173,13 @@ void sv_HoverPick(void)
         sv_HoverContact = 0;
         switch (ai_PickedObject->pickBytes[3]) {   /* the top byte of D3OBJECT.pickId: the record kind the object stands for */
         case 1:
-            sv_HoverItem = (int)ai_PickedObject->owner;
+            sv_HoverItem = ai_PickedObject->owner;
             if (ai_FallbackBuilding != 0)
-            sv_PanelPerms = gm_PermissionBits(ai_PlayerId, ai_FallbackBuilding, (struct AIOBJ *)sv_HoverItem, 0);
+            sv_PanelPerms = gm_PermissionBits(ai_PlayerId, ai_FallbackBuilding, sv_HoverItem, 0);
         else
-            sv_PanelPerms = gm_PermissionBits(ai_PlayerId, 0, (struct AIOBJ *)sv_HoverItem, 0);
+            sv_PanelPerms = gm_PermissionBits(ai_PlayerId, 0, sv_HoverItem, 0);
             if (sv_HoverItem != 0) {
-                n = ((AIOBJ *)sv_HoverItem)->id;
+                n = sv_HoverItem->id;
                 g = &ai_Goods[n];
                 if ((g->type == 6 || g->type == 2) && (sv_PanelPerms & 0x4000) != 0) {
                     sprintf(d2_CaptionCopy, "%s %s", txt_Ptrs[0x9a8 + n * 2], txt_Ptrs[0x83]);
@@ -4253,20 +4235,20 @@ void sv_HoverPick(void)
                     break;
             }
             if (it != 0)
-                sv_HoverContact = (int)it;
+                sv_HoverContact = it;
             else if (ai_FallbackBuilding != 0)
-                sv_HoverContact = (int)gm_Query(b->objList, 1, 0, 0xfd);
+                sv_HoverContact = gm_Query(b->objList, 1, 0, 0xfd);
             if (sv_HoverContact != 0) {
-                sv_PanelPerms = gm_PermissionBits(ai_PlayerId, b, (struct AIOBJ *)sv_HoverContact, 0);
+                sv_PanelPerms = gm_PermissionBits(ai_PlayerId, b, sv_HoverContact, 0);
                 if ((sv_PanelPerms & 1) != 0) {
                     d2_PointerLook = 0xb;
-                    if (((AIOBJ *)sv_HoverContact)->id == 0xfd) {
+                    if (sv_HoverContact->id == 0xfd) {
                         if (sv_PanelShown != 0)
                             sprintf(d2_CaptionCopy, "%s %s", txt_Ptrs[0x9a8 + sv_PanelShown->type * 2], txt_Ptrs[0x84]);
                         else
                             sprintf(d2_CaptionCopy, "%s %s", txt_Ptrs[0x48e + b->type * 14], txt_Ptrs[0x84]);
                     } else
-                        sprintf(d2_CaptionCopy, "%s %s", txt_Ptrs[0x9a8 + ((AIOBJ *)sv_HoverContact)->id * 2], txt_Ptrs[0x83]);
+                        sprintf(d2_CaptionCopy, "%s %s", txt_Ptrs[0x9a8 + sv_HoverContact->id * 2], txt_Ptrs[0x83]);
                 } else
                     sv_HoverContact = 0;
             }
@@ -4333,15 +4315,15 @@ void sv_ResetSelection(void)
 
 void sv_ClearSelection(void)
 {
-    char *q;
+    unsigned char *q;
 
-    q = (char *)(uintptr_t)&ai_Selected;
+    q = &ai_Chars[0].selected;
     sv_SelectedChar = 0;
     sv_SelectedModel = 0;
     do {
         *q = 0;
         q += 0x21c;
-    } while ((intptr_t)q < (intptr_t)((uintptr_t)&ai_Selected + 0x65400));
+    } while ((intptr_t)q < (intptr_t)&ai_Chars[0x300].selected);
     ai_SelectedCount = 0;
 }
 /* 0x52ae70, "sv_HandleObjects": turns a click into the selection. A pending quick jump (sv_QuickJump.panelFlag) looks up its
@@ -4405,7 +4387,7 @@ void sv_HandleObjects(void)
             sv_ClickedChar = ai_PickedChar;
             sv_ClickedContact = sv_HoverContact;
             if (sv_HoverItem != 0)
-                cls = &ai_Goods[((AIOBJ *)sv_HoverItem)->id];
+                cls = &ai_Goods[sv_HoverItem->id];
             if (strcmp(ai_PickedObject->name, "tp_TUER") == 0 || (cls != 0 && cls->type == 6) || sv_HoverContact != 0)
                 door = 1;
             if ((ai_PickedObject->objectFlags & 1) != 0 && door == 0) {
@@ -4424,18 +4406,18 @@ void sv_HandleObjects(void)
                     sv_SelectedChar = ai_PickedChar;
                     sv_PanelCartChar = (int)ai_Chars[ai_PickedChar->id].scene;
                     ai_SelectedCount = 1;
-                    snd_PlayWorkerClick((struct G16CHARCLICK *)ai_PickedChar);
+                    snd_PlayWorkerClick(ai_PickedChar);
                 }
                 sv_PanelCartChar = (int)ai_Chars[ai_PickedChar->id].scene;
             }
             if (ai_SelectedCount == 0 && sv_OtherSelected == 0 && sv_HoverBuilding != 0 && sv_SelectedItem == 0)
                 sv_SelectedModel = ai_PickedObject;
             sv_SelectedObject = sv_HoverBuilding;
-            sv_SelectedItem = (unsigned short *)sv_HoverItem;
+            sv_SelectedItem = sv_HoverItem;
             if (sv_HoverBuilding != 0)
                 sv_SelectedModel = ai_PickedObject;
             if (sv_HoverItem != 0) {
-                cls = &ai_Goods[((AIOBJ *)sv_HoverItem)->id];
+                cls = &ai_Goods[sv_HoverItem->id];
                 sv_SelectedModel = ai_PickedObject;
                 if (cls->type == 0x1d)
                     sv_ClearSelection();
@@ -4539,7 +4521,7 @@ void ai_CampaignStep(int a, void *b, int c, int d);                     /* 0x576
 int gm_BuildingClass(int kind);                /* 0x501d80, f3gm.c, the class of a building kind */
 void ai_TechTreeWindow(struct AIBLD *param_1, int param_2);                     /* 0x591bf0 */
 void d2_FreeAnim(int n);                     /* 0x47ce30 */
-void snd_PlayWorkerClick(struct G16CHARCLICK *c);                     /* 0x4c2c70 */
+void snd_PlayWorkerClick(struct AICHAR *c);                     /* 0x4c2c70 */
 
 
 struct D3OBJECT * d3if_Pick(float x, float y, int flags, int mask);   /* 0x448630 */
@@ -4865,10 +4847,11 @@ void sv_HandleSelectionMouse(void)
     AIBLD *b;
     AICHAR *c;
     int cx, cy, i, j, ix, iy, size, t;
+    EVTSCRIPT *sc;
 
     cx = -1;
     cy = -1;
-    map = (D3SM *)d3_DefaultScene->hmap;
+    map = d3_DefaultScene->hmap;
     b = 0;
     if (ai_PlayerBuilding != 0)
         b = ai_PlayerBuilding;
@@ -4907,8 +4890,8 @@ void sv_HandleSelectionMouse(void)
                         } while (ix < 0 || ix >= size || iy < 0 || iy >= size || cell == 0 || cell == 0xd);
                         if (ai_Chars[j].bld != 0)
                             sv_MoveToGroup(ai_Chars[j].bld, 0, ai_Chars[j].id, 0);
-                        if (ai_Chars[j].scene->scriptId != -1 && (t = (int)evt_FindById(ai_Chars[j].scene->scriptId)) != 0)
-                            evt_Stop((EVTSCRIPT *)t);
+                        if (ai_Chars[j].scene->scriptId != -1 && (sc = evt_FindById(ai_Chars[j].scene->scriptId)) != 0)
+                            evt_Stop(sc);
                         cm_SendChrWalkTo(ai_Chars[j].netId, ix, iy, d3_CurrentScene);
                     }
                 }
@@ -4928,8 +4911,8 @@ void sv_HandleSelectionMouse(void)
                     cm_SendChrStop(c->netId);
                     if (c->bld != 0)
                         sv_MoveToGroup(c->bld, 0, c->id, 0);
-                    if (((AIOBJ *)sv_ClickedContact)->id != 0xfd) {
-                        t = init_ObjectSceneUniverse((struct AIOBJ *)sv_ClickedContact);
+                    if (sv_ClickedContact->id != 0xfd) {
+                        t = init_ObjectSceneUniverse(sv_ClickedContact);
                         if (ai_FallbackBuilding != 0)
                             b = ai_FallbackBuilding;
                         else if (ai_PlayerBuilding != 0)
@@ -4950,7 +4933,7 @@ void sv_HandleSelectionMouse(void)
                         }
                     }
                     if (t >= 0)
-                        cm_SendChrUseGates(c->netId, b->id, ((AIOBJ *)sv_ClickedContact)->objId);
+                        cm_SendChrUseGates(c->netId, b->id, sv_ClickedContact->objId);
                 }
             }
             sv_ClearSelection();
@@ -5028,7 +5011,7 @@ void sv_ShowBubble(CHARACTER *ch, int text, char *name)
     if (ch == 0 || ch->scene != d3_DefaultScene)
         return;
     for (i = 0; i < 0x40; i++) {
-        if (sv_Bubbles[i].ch == (struct CHARACTER *)ch)
+        if (sv_Bubbles[i].ch == ch)
             return;
     }
     for (i = 0; i < 0x40; i++) {
@@ -5048,7 +5031,7 @@ void sv_ShowBubble(CHARACTER *ch, int text, char *name)
     }
     b = &sv_Bubbles[i];
     b->time = d3_Time;
-    b->ch = (struct CHARACTER *)ch;
+    b->ch = ch;
     b->text = text;
     ch->onDelete = (void (*)(struct CHARACTER *))sv_ReleaseBubble;
     if (name != 0)
@@ -5283,11 +5266,11 @@ void sv_DrawBubbles(void)
     }
     d2_SetFont(0x54);
     for (i = 0; i < 0x40; i++) {
-        ch = (CHARACTER *)sv_Bubbles[i].ch;
-        if (ch == 0 || ((CHARACTER *)sv_Bubbles[i].ch)->obj->scene != d3_DefaultScene)
+        ch = sv_Bubbles[i].ch;
+        if (ch == 0 || sv_Bubbles[i].ch->obj->scene != d3_DefaultScene)
             continue;
-        if (((CHARACTER *)sv_Bubbles[i].ch)->obj->type != 1) {
-            if (d3if_ScreenBox(((CHARACTER *)sv_Bubbles[i].ch)->obj, &box) == 0)
+        if (sv_Bubbles[i].ch->obj->type != 1) {
+            if (d3if_ScreenBox(sv_Bubbles[i].ch->obj, &box) == 0)
                 continue;
         } else {
             low = ch->lowPolyBody;
@@ -5484,7 +5467,7 @@ void sv_DrawBorderArrows(void)
         if (d3_VecEqual(&d3_Camera->views[2].pos, &d3_Origin.v, 0.2f) == 0)
             top = 1;
     }
-    d2_SetClipRect(0, 0, ((int *)d2_ScreenSurf)[1], ((int *)d2_ScreenSurf)[2]);
+    d2_SetClipRect(0, 0, d2_ScreenSurf->w, d2_ScreenSurf->h);
     if (bottom == 2)
         d2_DrawShape(d2_HalfScreenW - 0x10, d2_ScreenH - 0x20, d2_ScreenSurf, pic, 0);
     else if (bottom == 1)
@@ -5599,7 +5582,7 @@ void sv_HandleRightClick(unsigned fl)
             /* @original the slot's address is tested for null (a test VC6 keeps only when s
                is not the expression the other operands use) */
             s = &he_EventSlots[i];
-            if (he_EventSlots[i].obj != -1 && s != 0 && d2_PointerObj == ((D2OBJ *)d2_Objs)[he_EventSlots[i].obj].id) {
+            if (he_EventSlots[i].obj != -1 && s != 0 && d2_PointerObj == d2_Objs[he_EventSlots[i].obj].id) {
                 he_EventSlots[i].ev->stage = -1;
                 he_SlotConfirmed = 0;
                 di_ClearButtons();
@@ -5617,7 +5600,7 @@ void sv_HandleRightClick(unsigned fl)
         if (ai_PlayerBuilding != 0) {
             if (sv_ClickedContact != 0 && ai_SelectedCount == 0 && sv_OtherSelected == 0) {
                 sb_PlaySample(snd_RoomBank, "RaumWechseln_s", 1, 0x3f, 0x7f, 0, 0);
-                ai_PlayerBuilding->mainRoom = ((AIOBJ *)sv_ClickedContact)->id;
+                ai_PlayerBuilding->mainRoom = sv_ClickedContact->id;
                 sv_PopRequest = sv_FrameDepth - sv_FrameBase + 1;
                 d3_SetObjectPos(d3_Camera, &sv_ViewPos.v);
                 d3_SetObjectRot(d3_Camera, &sv_ViewRot.v);
@@ -5631,7 +5614,7 @@ void sv_HandleRightClick(unsigned fl)
             sv_BorderViewX = 0;
             sv_BorderViewY = 0;
         }
-        if (dm_L.rup != 0 && (sv_OtherSelected != 0 || (sv_SelectedItem != 0 && ai_Goods[*sv_SelectedItem].type == 0x1d))) {
+        if (dm_L.rup != 0 && (sv_OtherSelected != 0 || (sv_SelectedItem != 0 && ai_Goods[sv_SelectedItem->id].type == 0x1d))) {
             sv_ResetSelection();
             di_ClearEvents(0x10);
         }
@@ -5906,7 +5889,7 @@ void sv_ButtonRow(int f, int y, int *out, int n, ...)
     for (i = 0; i < n; i++) {
         id = d2_WinCreateSlider(x - wmax / 2, y, 0xbf, labels[i], f);
         out[i] = id;
-        ((D2OBJ *)d2_Objs)[id].font = 0x53;
+        d2_Objs[id].font = 0x53;
         d2_SetObjWidth(id, bw);
         x += step;
     }
@@ -5964,7 +5947,7 @@ void sv_TabButtonRow(int f, int y, int *out, int n, ...)
     for (i = 0; i < n; i++) {
         id = d2_WinCreateSlider(x - wmax / 2, y, 0xc5, labels[i], f);
         out[i] = id;
-        ((D2OBJ *)d2_Objs)[id].font = 0x54;
+        d2_Objs[id].font = 0x54;
         d2_SetObjWidth(id, wmax);
         x += step;
     }
@@ -5986,8 +5969,8 @@ void sv_DisableVisibleWidgets(int on)
             if (d2_Views[k].active != 0 && d2_Views[k].enabled != 0) {
                 v = &d2_Views[k];
                 for (i = 0; i < 0x300; i++) {
-                    o = &((D2OBJ *)d2_Objs)[i];
-                    if (o->type != 0 && o->buf == (D2CTRL *)v && o->disabled == 0) {
+                    o = &d2_Objs[i];
+                    if (o->type != 0 && o->buf == v && o->disabled == 0) {
                         sv_DisabledWidgets[sv_DisabledCount++] = i;
                         o->disabled = 1;
                     }
@@ -5997,7 +5980,7 @@ void sv_DisableVisibleWidgets(int on)
         return;
     }
     for (i = 0; i < sv_DisabledCount; i++)
-        ((D2OBJ *)d2_Objs)[sv_DisabledWidgets[i]].disabled = 0;
+        d2_Objs[sv_DisabledWidgets[i]].disabled = 0;
 }
 /* 0x52e6d0, puts the frame pictures into the building window f (ai_ProductionWindow, ai_TradeSearchWindow, ..): the
    title c at (0xb, 9) (0: the current building's kind picture 0x427 + type, 0x520 without a building), the kind
@@ -6054,21 +6037,21 @@ int sv_CreateScrollButtons(int x, int y, int f, int g, int step, int *down, int 
     id = d2_WinOpenPic(x, y, 3, f);
     *up = id;
     d2_Wins[f].btnup = id;
-    ((D2OBJ *)d2_Objs)[*up].interactive = 1;
-    ((D2OBJ *)d2_Objs)[*up].style = 3;
+    d2_Objs[*up].interactive = 1;
+    d2_Objs[*up].style = 3;
     id = d2_WinOpenPic(x, y + 0x2a, 4, f);
     *down = id;
     d2_Wins[f].btndown = id;
-    ((D2OBJ *)d2_Objs)[*down].interactive = 1;
-    ((D2OBJ *)d2_Objs)[*down].style = 3;
-    ((D2OBJ *)d2_Objs)[*down].winIndex = g;
-    ((D2OBJ *)d2_Objs)[*up].winIndex = g;
+    d2_Objs[*down].interactive = 1;
+    d2_Objs[*down].style = 3;
+    d2_Objs[*down].winIndex = g;
+    d2_Objs[*up].winIndex = g;
     id = d2_CreateWinText(x - 0x13, y + 0x19, ch_EmptyName, f);
     *bar = id;
     d2_Wins[f].bar = id;
-    ((D2OBJ *)d2_Objs)[*bar].font = 0x54;
-    ((D2OBJ *)d2_Objs)[*bar].centred = 1;
-    ((D2OBJ *)d2_Objs)[*bar].w = 0x30;
+    d2_Objs[*bar].font = 0x54;
+    d2_Objs[*bar].centred = 1;
+    d2_Objs[*bar].w = 0x30;
     w->scrollY = 0;
     w->visible = step;
     return 1;
@@ -6184,7 +6167,7 @@ void sv_EndBand(void)
    centre of the body's first 8 transformed vertices (the bounding box corners, camera space) projected with
    d3_ScaleX / d3_ScaleY around d3_CenterX / d3_CenterY (the 1 / z truncated to an int, as the original does).
    @deep deep s26: declaration set measured (dcp headers sample: 32 samples, one codegen, not sensitive).
-   climb round 1: nothing (82 mutants). = control: v = *(D3PVERT **)info, v from the whole chain, n = 8
+   climb round 1: nothing (82 mutants). = control: v = *(D3VERTEX **)info, v from the whole chain, n = 8
    before v, do/while(--n), index loop through info->keys[n], block-scoped walker + counter (for and
    do/while), info via an int local, info assigned through v in its own if, the body nested in if (..) {..}
    instead of continue (one or both tests). Worse: pointer-compare loop v < keys + 8 (18), v[n] index (16),
@@ -6209,7 +6192,7 @@ void sv_UpdateBand(void)
     unsigned bits;
     D3VECTOR4 p;
     AICHAR *c;
-    D3PVERT *v;
+    D3VERTEX *v;
     D3SURF *info;
 
     if (sv_BandActive == 0)
@@ -6231,7 +6214,7 @@ void sv_UpdateBand(void)
         p.x = 0.0f;
         p.y = 0.0f;
         p.z = 0.0f;
-        v = (D3PVERT *)info->keys;
+        v = info->keys;
         for (n = 8; n != 0; n--, v++) {
             p.x += v->x;
             p.y += v->y;
@@ -6262,7 +6245,7 @@ void sv_UpdateBandLed(void)
     unsigned bits;
     D3VECTOR4 p;
     AICHAR *c;
-    D3PVERT *v;
+    D3VERTEX *v;
     D3SURF *info;
 
     if (sv_BandActive == 0)
@@ -6284,7 +6267,7 @@ void sv_UpdateBandLed(void)
         p.x = 0.0f;
         p.y = 0.0f;
         p.z = 0.0f;
-        v = (D3PVERT *)info->keys;
+        v = info->keys;
         for (n = 8; n != 0; n--, v++) {
             p.x += v->x;
             p.y += v->y;
@@ -6565,8 +6548,8 @@ void sv_ScrollFormAnimate(void)
         f = ((d2_LastWindowPtr->scrollY) / 6) % 0xc;
         if (f < 0)
             f = 0;
-        ((D2OBJ *)d2_Objs)[sv_ScrollEndTop].input = f;
-        ((D2OBJ *)d2_Objs)[sv_ScrollEndBottom].input = f;
+        d2_Objs[sv_ScrollEndTop].input = f;
+        d2_Objs[sv_ScrollEndBottom].input = f;
     }
 }
 /* 0x52fb50, requests popping the frame stack down to the frame whose callback is cb: sets sv_PopRequest to its distance from the top sv_FrameDepth (nothing when cb is not on the stack) */
@@ -6708,8 +6691,8 @@ void sv_ChatConsole(void)
         if (ai_Chars[k].kind == 7) {
             w = d2_WinOpenPic(i * 0x30 + 100, 4, ai_Chars[k].ref54, d2_LastWindow);
             ids[i] = w;
-            ((D2OBJ *)d2_Objs)[w].checkable = 1;
-            ((D2OBJ *)d2_Objs)[w].user = &ai_Chars[k];
+            d2_Objs[w].checkable = 1;
+            d2_Objs[w].user = &ai_Chars[k];
             d2_SetObjValue(w, sv_ChatRecipients[i]);
             i++;
         }
@@ -6729,7 +6712,7 @@ void sv_ChatConsole(void)
         if ((d2_ClickedId != -1 || kb_Last == 0x1c) && (d2_PointerObj == w || kb_Last == 0x1c)) {
             for (i = 0; i < 8; i++) {
                 if (ids[i] != -1 && d2_GetObjValue(ids[i]) != 0)
-                    msg.to[i] = ((AICHAR *)((D2OBJ *)d2_Objs)[ids[i]].user)->netId;
+                    msg.to[i] = ((AICHAR *)d2_Objs[ids[i]].user)->netId;
             }
             sprintf(msg.text, "$%iFF ", ai_Chars[ai_PlayerId].ref54 - 0x59a);
             strcat(msg.text, (char *)d2_GetObjValue(ed));
@@ -7103,7 +7086,7 @@ l64:
         if ((mask & 0x10) == 0) {
             if (dm_L.rhold != 0)
                 goto l2;
-            if (d2_PointerObj == -1 || (((D2OBJ *)d2_Objs)[d2_PointerObj].style & 0x40) == 0)
+            if (d2_PointerObj == -1 || (d2_Objs[d2_PointerObj].style & 0x40) == 0)
                 d2_CopyCaption(ch_EmptyName);
             ai_PickedObject = 0;
             sv_HoverItem = 0;
@@ -7433,11 +7416,11 @@ int sv_UnreadBss4 = 0;  /* 0x6f22e0, no surviving instruction or pointer refers 
 D3OBJECT *ai_ClickedObject = 0;  /* 0x6f22e4: the object clicked in the scene (cm.h declares it for the units that include cm.h) */
 D3OBJECT *ai_PickedObject = 0;  /* 0x6f22e8 */
 D3OBJECT *sv_FocusObject = 0;  /* 0x6f22ec, the clicked object the camera was placed at (d3t_PlaceAtObject): its handler (+0x1d4) gets message 2 at the focus (+0x108) and 3 at the release (+0x18c) */
-int sv_HoverItem = 0;  /* 0x6f22f0, the item (AIOBJ) under the pointer, from the picked object's +0x200 (kind 1) */
+AIOBJ *sv_HoverItem = 0;  /* 0x6f22f0, the item (AIOBJ) under the pointer, from the picked object's +0x200 (kind 1) */
 struct AIBLD *sv_HoverBuilding = 0;  /* 0x6f22f4, the building (AIBLD) under the pointer (kind 2) */
 struct AICHAR *ai_PickedChar = 0;  /* 0x6f22f8 */
-int sv_ClickedContact = 0;  /* 0x6f22fc, sv_HoverContact at the last click (sv_HandleObjects) */
-int sv_HoverContact = 0;  /* 0x6f2300, the goods item a contact gate under the pointer resolves to */
+AIOBJ *sv_ClickedContact = 0;  /* 0x6f22fc, sv_HoverContact at the last click (sv_HandleObjects) */
+AIOBJ *sv_HoverContact = 0;  /* 0x6f2300, the goods item a contact gate under the pointer resolves to */
 D3OBJECT *sv_SelectedModel = 0;  /* 0x6f2304 */
 AIBLD *ai_PlayerBuilding = 0;  /* 0x6f2308 */
 AIBLD *ai_FallbackBuilding = 0;  /* 0x6f230c */
@@ -7486,7 +7469,7 @@ struct AIBLD *sv_ShownBuilding = 0;  /* 0x6f23bc, ai_PlayerBuilding when sv_Upda
 struct AIBLD *sv_ShownFallback = 0;  /* 0x6f23c0, ai_FallbackBuilding when sv_UpdatePanel last built the panel */
 struct AIBLD *sv_ShownObject = 0;  /* 0x6f23c4, sv_SelectedObject when sv_UpdatePanel last built the panel */
 int sv_ShownRoom = 0;  /* 0x6f23c8, sv_PanelShown when sv_UpdatePanel last built the panel */
-int sv_ShownItem = 0;  /* 0x6f23cc, sv_SelectedItem when sv_UpdatePanel last built the panel */
+AIOBJ *sv_ShownItem = 0;  /* 0x6f23cc, sv_SelectedItem when sv_UpdatePanel last built the panel */
 struct AICHAR *sv_ShownChar = 0;  /* 0x6f23d0, sv_SelectedChar when sv_UpdatePanel last built the panel */
 int sv_ShownOther = 0;  /* 0x6f23d4, sv_OtherSelected when sv_UpdatePanel last built the panel */
 int sv_ShownCount = 0;  /* 0x6f23d8, ai_SelectedCount when sv_UpdatePanel last built the panel */
@@ -7502,7 +7485,7 @@ SVQUICKJUMP sv_QuickJump;  /* 0x75e8c0, the info panel's flag (sv_QuickJump.pane
 unsigned char sv_SelectionFlags[0x300];  /* 0x75e920, the mirror of the character selection flags (byte i per character of ai_Chars) */
 int sv_SkyScene;  /* 0x75ec20 */
 MSG sv_Message;  /* 0x75ec40, the window message sv_PumpMessages reads (PeekMessageA / GetMessageA) */
-unsigned short * sv_SelectedItem;  /* 0x75ec5c */
+AIOBJ *sv_SelectedItem;  /* 0x75ec5c */
 SVACTIVITY sv_Activities[0x30];  /* 0x75ec80, the character activities the he.c scripts register (sv_RegisterActivity) */
 SVMEMBERROW sv_MemberRows[0x20];  /* 0x75f280, the member panel: the member list rows */
 SVFRAME sv_Frames[0x80];  /* 0x75f780, the frame stack, indexed by sv_FrameDepth (sv_RunFrame pushes and pops it) */
@@ -7512,7 +7495,7 @@ float sv_SkyScale;  /* 0x760420 */
 SVBAND sv_Band;  /* 0x760440, the rubber band: sv_BandActive and its corners */
 int sv_Season;  /* 0x760454, the season of the game clock (sv_ClockSeason's result), stored by main_EndRound / main_GameLoop (sv.c itself never reads it) */
 struct AIBLD *sv_ClickedBuilding;  /* 0x760458, sv_HoverBuilding at the last click (sv_HandleObjects) */
-int sv_ClickedItem;  /* 0x76045c, sv_HoverItem at the last click */
+AIOBJ *sv_ClickedItem;  /* 0x76045c, sv_HoverItem at the last click */
 struct AICHAR *sv_ClickedChar;  /* 0x760460, ai_PickedChar at the last click */
 int sv_SkyPhase;  /* 0x760464 */
 SVCLIMATE sv_Climate;  /* 0x760480, sv_CloudChance, sv_SeasonClimate (0x760484) and sv_Weather (0x760488) */

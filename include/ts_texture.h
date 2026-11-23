@@ -41,7 +41,7 @@ typedef struct TSTEXTURE {          /* 0x80 bytes, d3_TexCount of them at d3_Tex
     };
     union {                         /* 0x68 */
         struct {
-            unsigned char wrap : 1;     /* tex_Load opts bit 0: the triangles wrap their uv (D3PVERT.wrap) */
+            unsigned char wrap : 1;     /* tex_Load opts bit 0: the triangles wrap their uv (D3VERTEX.wrap) */
             unsigned char alias : 1;    /* shares the surfaces of d3_Textures[mask] */
             unsigned char hicolor : 1;  /* 16-bit surface (d3_TexFormat16) */
             unsigned char nomip : 1;    /* name contains "_NM": no mipmaps */
@@ -71,22 +71,6 @@ typedef struct TSTEXTURE {          /* 0x80 bytes, d3_TexCount of them at d3_Tex
     unsigned char filebpp;          /* 0x7d */
     char pad7e[0x2];
 } TSTEXTURE;
-
-/* Mesh data as far as used here (D3OBJECT.info; d3.h: D3SURF). */
-typedef struct TSTRI {              /* 0x28 bytes */
-    char pad00[0x14];
-    TSTEXTURE *tex;                 /* 0x14 */
-    char pad18[0x10];
-} TSTRI;
-
-typedef struct TSMESH {
-    void *keys;
-    TSTRI *tris;                    /* 0x04 */
-    int nkeys;                      /* 0x08 */
-    int ntris;                      /* 0x0c */
-    struct D3OPS *ops;              /* 0x10, the mesh driver (d3_engine.h: D3OPS); ops->count texture names */
-    TSTEXTURE **texs;               /* 0x14, ntex entries */
-} TSMESH;
 
 /* Inline-asm copy in the style of D3_ZERO (d3.h), both pointers named directly in the asm. */
 #define D3_COPY_AT(dst, src, size) {                                \

@@ -9,21 +9,9 @@ struct AICHAR;
 struct AMTKIND;
 
 #pragma pack(push, 1)
-typedef struct G10NPC {                 /* 0x21c bytes, the two opponents at 0xf837e0 (character-like records) */
-    char pad00[2];
-    unsigned char kind;                 /* 0x02, 10 */
-    char pad03[6];
-    unsigned char female;               /* 0x09 */
-    char pad0a[3];
-    unsigned char variant;              /* 0x0d, 1..4, rolled for each opponent at the start; no reader found (reasoned guess: a variant of the opponent's play or looks) */
-    char pad0e[0x22];
-    char vname[16];                     /* 0x30 */
-    char nname[16];                     /* 0x40 */
-    char pad50[0x1cc];
-} G10NPC;
 #pragma pack(pop)
 typedef struct G10SEAT {                /* 0x34 bytes; seat 0 is the player, 1 and 2 the NPCs */
-    void *who;                          /* 0x00, AICHAR (seat 0) / G10NPC */
+    AICHAR *who;                        /* 0x00, the player's character (seat 0) or an opponent (ai_PokerOpponents) */
     int model;                          /* 0x04, 0x639 + the model's index (0x4fb770) */
     int card[5];                        /* 0x08, indices into the deck, -1 = none */
     int bet;                            /* 0x1c, what the seat has put into the pot this round (+= stake2) */
@@ -56,7 +44,7 @@ typedef struct G10CARD {                /* 16 bytes, the deck at 0xf83660 (24 ca
 } G10CARD;
 extern G10GAME *ai_PokerTable;                                                    /* 0xf83654 */
 extern G10CARD ai_PokerDeck[24];                                                 /* 0xf83660 */
-extern G10NPC ai_PokerOpponents[2];                                                   /* 0xf837e0 */
+extern AICHAR ai_PokerOpponents[2];                                                   /* 0xf837e0 */
 
 
 

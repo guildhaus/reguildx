@@ -7,7 +7,7 @@ struct D3VECTOR4;
 
 typedef struct D3ANIMFRAME {        /* 0xc0 bytes, one key frame of a vertex animation */
     int time;                       /* 0x00, start time of the frame (ch_CheckAniMorph blends over half the gap) */
-    int count;                      /* 0x04 */
+    int count;                      /* 0x04, the time to the next frame (* 3 after loading) */
     D3VECTOR base;                  /* 0x08, packed positions: base + byte * scale */
     D3VECTOR scale;                 /* 0x14 */
     D3VECTOR move;                  /* 0x20, root motion of the whole segment (position) */
@@ -18,24 +18,31 @@ typedef struct D3ANIMFRAME {        /* 0xc0 bytes, one key frame of a vertex ani
     struct { D3VECTOR pos, rot; } bone[4];  /* 0x54, skeleton animations: bone transforms */
     unsigned char *packed;          /* 0xb4, 3 bytes per vertex */
     unsigned char *normals;         /* 0xb8, 3 bytes per vertex */
-    D3VECTOR *pos;                  /* 0xbc, 12 bytes per vertex */
+    D3VECTOR *pos;                  /* 0xbc, 12 bytes per vertex (the loader's points, freed after packing) */
 } D3ANIMFRAME;
 
 typedef struct D3ANIMDATA D3ANIMDATA;
-struct D3ANIMDATA {                 /* 0x16c bytes, cached animation (LRU list) */
-    char name[0x140];
+struct D3ANIMDATA {                 /* 0x16c bytes, cached animation (LRU list); d3_LoadBinaryAnimStream reads a
+                                       stream file ("tp_veranimstream") into it */
+    union {
+        char name[0x140];           /* the name in the first 0x40 bytes, the bone names after it (D3ANIM_BONENAME) */
+        struct {
+            char namePad[0x40];
+            char boneNames[4][0x40];    /* 0x040, the skeleton's bone names (the stream's link names, tag 0x38) */
+        };
+    };
     int nverts;                     /* 0x140 */
     int nbones;                     /* 0x144, skeleton animations: bone names follow the name */
     int nframes;                    /* 0x148 */
     int refs;                       /* 0x14c */
-    int first;                      /* 0x150, first frame of the animation range (D3BASTREAM.first) */
-    int last;                       /* 0x154, last frame, -1: nframes (D3BASTREAM.last) */
+    int first;                      /* 0x150, first frame of the animation range (the stream's chunks 0x29 / 0x2a, d3_LoadBinaryAnimStream) */
+    int last;                       /* 0x154, last frame, -1: nframes */
     unsigned int lastuse;           /* 0x158, d3_FrameCount at the last use */
     D3ANIMFRAME *frames;            /* 0x15c */
     D3ANIMDATA *next;               /* 0x160 */
     D3ANIMDATA *prev;               /* 0x164 */
     signed char normals;            /* 0x168, normals calculated */
-    signed char relative;           /* 0x169, points relative to the frame position (D3BASTREAM.relative) */
+    signed char relative;           /* 0x169, points relative to the frame position (d3_LoadBinaryAnimStream's relative) */
     char pad16a[0x2];
 };
 
@@ -49,38 +56,7 @@ int d3anim_NextFrame(D3ANIMFLAGS f, int frame, int a, int b, int c);            
 char d3anim_MapBones(D3OBJECT *obj);                                                       /* 0x4319e0 */
 void d3anim_PoseBones(D3OBJECT *obj);                                                       /* 0x431ae0 */
 
-/* Object path animations (d3anim_CreatePath; D3ANIM in d3.h is the same struct, D3ANIMKEY the same key). */
-typedef struct D3PATHKEY {          /* 0x58 bytes */
-    int time;                       /* frames; multiplied by 3 when the path is created */
-    D3VECTOR pos;                   /* 0x04 */
-    float unk10;
-    D3VECTOR rot;                   /* 0x14 */
-    D3VECTOR posin;                 /* 0x20, spline tangents (d3path_Tangents) */
-    float unk2c;
-    D3VECTOR posout;                /* 0x30 */
-    float timeout;
-    D3VECTOR rotin;                 /* 0x40 */
-    D3VECTOR rotout;                /* 0x4c */
-} D3PATHKEY;
-
-typedef struct D3PATH {             /* 0x44 bytes, at D3OBJECT + 0x1d0 */
-    int nkeys;
-    int key;                        /* 0x04 */
-    int next;                       /* 0x08 */
-    int time;                       /* 0x0c */
-    int maxStep;                    /* 0x10, the largest update step (ms) the path interpolates: a longer one
-                                       relights the object instead of moving it (d3_anim.c:759), 100 at creation */
-    D3VECTOR pos;                   /* 0x14, the object's position and angles at the start */
-    D3VECTOR rot;                   /* 0x20 */
-    D3ANIMFLAGS flags;              /* 0x2c */
-    float fadeEnd;
-    float frameTime;                /* 0x3c, sub-frame time accumulator (d3anim_StepObject's
-                                       `acc - (int)acc`; d3path_Init clears it) */
-    D3PATHKEY *keys;                /* 0x40 */
-} D3PATH;
-
-#define D3_OBJPATH(obj) (*(D3PATH **)((char *)(obj) + 0x1d0))
-
+/* Object path animations: D3PATH / D3PATHKEY in d3.h (D3ANIMKEY there is the same key as d3anim_CreatePath takes it). */
 /* Inline-asm copy as D3_COPY (d3.h), with the destination temp declared (and stored) first. */
 #define D3PATH_COPY(dst, src, size) {                               \
     void *_cd = (dst); int _cn = (size);                            \

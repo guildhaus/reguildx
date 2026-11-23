@@ -277,7 +277,6 @@ extern unsigned char kb_Last;
 extern int sv_FrameMask;
 
 
-#define U_I(a) (*(int *)(a))
 
 
 void ai_TutorialHideText2();
@@ -312,7 +311,6 @@ typedef struct SHOTRESULT {     /* 0x38 bytes, three of them in ai_ShotTable: th
     SHOTENTRY e[3];          /* +0x8 */
 } SHOTRESULT;
 extern int ai_TutorialChapterOn[5];
-extern int (*ai_TutorialChapterInit[5])(void);
 extern TUTRUN *ai_TutorialRuns;
 extern int ai_TutorialOn;
 extern int ai_TutorialRunning;
@@ -368,8 +366,6 @@ const float ai_CannonSwitchDist = 100.0f;  /* 0x5eec98, how far the cannon sinks
 #include "gfx.h"
 
 /* dcp unit split: the declarations of sv_t before the moved functions */
-int ai_TutorialInitMainIntro();
-int ai_TutorialInitMainOutro();
 void ai_TutorialStop();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
@@ -544,7 +540,7 @@ void ai_CannonScene(AIBLD *rec)
             vw = &d2_Views[v];
             if (vw->active != 0 && vw->enabled != 0) {
                 for (i = 0; i < 0x300; i++) {
-                    if (d2_Objs[i].type != 0 && (D2VIEW *)d2_Objs[i].buf == vw && d2_Objs[i].disabled == 0) {
+                    if (d2_Objs[i].type != 0 && d2_Objs[i].buf == vw && d2_Objs[i].disabled == 0) {
                         list[n++] = i;
                         d2_Objs[i].disabled = 1;
                     }
@@ -592,7 +588,7 @@ void ai_CannonScene(AIBLD *rec)
     sc.selected = gv_Cannon.selected;
     sc.zoom = 0.0f;
     d3_SetObjectPos(sc.obj98, &sc.pos);
-    d3_SetObjectRot(sc.obj98, (D3VECTOR *)&sc.rot);
+    d3_SetObjectRot(sc.obj98, &sc.rot);
     sc.obj9c = d3_CreateObject(sc.obj98, &ai_WimpelPos.v, &d3_ZeroRot, "AO_KANONE_WIMPEL_Aa");
     d3t_PlayAnim(sc.obj9c, "_ADDON\\AO_KANONE_WIMPEL_Aa.baf", 1);
     sc.obj9c->stateFlags = (sc.obj9c->stateFlags & 0xf7) | 4;
@@ -611,7 +607,7 @@ void ai_CannonScene(AIBLD *rec)
         d3if_Show(sc.obj8c[m], 0);
     d3if_Show(sc.obj8c[sc.selected], 1);
     d3if_ShowTree(rec->object, 0);
-    he_ShowObjectInfos((int)rec->object, 0);
+    he_ShowObjectInfos(rec->object, 0);
     d2_ClickedId = -1;
     ai_CannonAxes(&sc);
     ai_ShotTable[2].id = -1;
@@ -667,7 +663,7 @@ void ai_CannonScene(AIBLD *rec)
     if (sc.obj98)
         d3if_Delete(sc.obj98);
     d3if_ShowTree(rec->object, 1);
-    he_ShowObjectInfos((int)rec->object, 1);
+    he_ShowObjectInfos(rec->object, 1);
     for (m = 0; m < n; m++)
         d2_Objs[list[m]].disabled = 0;
     d3_SetViewport((float)(sv_ViewRectRight - sv_ViewRectLeft), (float)(sv_ViewRectBottom - sv_ViewRectTop), (float)sv_ViewRectLeft, (float)sv_ViewRectTop, d3_ZNear, d3_ZFar, d3_ScaleX, d2_ScreenW, d2_ScreenH);

@@ -51,19 +51,18 @@ extern AMTREC amt_Table[42];            /* 0x925120 */
 extern AMTKIND amt_Kinds[40];           /* 0x60ed58 */
 extern const float amt_Pay[];                 /* 0x5edfbc */
 extern float amt_Rates[];               /* 0x60ec90, 7 floats per row */
-/* views of the records as amt_Rating reads them (type debt) */
-typedef union AMTFLOATBITS { float f; int i; } AMTFLOATBITS;    /* a float read as its bit pattern */
-#define AMT_BITS(p) (((AMTFLOATBITS *)(p))->i)
-typedef struct AMTKINDF {               /* an AMTKIND's +0x14 dword read as a float */
-    char pad014[0x14];
-    float value;
-} AMTKINDF;
 int amt_FindOffice(struct AICHAR *c, struct AMTKIND *kind, struct AMTREC *office);  /* 0x4e6030 */
 int amt_GetOfficeRate(struct AICHAR *c, int x, float *out);  /* 0x4e60b0 */
 
 void amt_InitTable(void);               /* 0x4e5cd0 */
-extern const float amt_TabA[];                /* 0x5edc90, 15 rows of 10 floats (id, 9 columns by the rank) */
-extern const float amt_TabB[];                /* 0x5edef0, 5 rows of 10 */
+typedef struct AMTRATEROW {             /* 0x28 bytes, a row of amt_TabA / amt_TabB */
+    int id;                             /* 0x00, the job title group (amt_TabA) or the status key (amt_TabB) */
+    float col[9];                       /* 0x04, by the office kind's column (amt_KindColumn) */
+} AMTRATEROW;
+extern const AMTRATEROW amt_TabA[15];         /* 0x5edc90 */
+extern const int amt_TabARows;                /* 0x5edee8 */
+extern const AMTRATEROW amt_TabB[5];          /* 0x5edef0 */
+extern const int amt_TabBRows;                /* 0x5edfb8 */
 float amt_Rating(struct AICHAR *a, struct AICHAR *b, int mode, int flag);  /* 0x4e5e50 */
 
 typedef struct AMTRANGE {               /* 0x1c bytes, the ranges of 0x4e78f0 */
@@ -84,7 +83,6 @@ int sv_MessageBox(intptr_t text, unsigned flags); /* 0x521150, sv.c */
 extern int amt_Flip;                    /* 0x60f118, 2 at the start */
 #include "am_types.h"                /* G7GRP */
 extern G7GRP gm_BuildingItemGroups[];            /* 0x61a348 */
-#define AMT_CHARS_END (&ai_CharInts[0x300][0])  /* 0x7d5f84, the word past the last character record */
 int cm_SendMoveGoodsUnchecked(int a, int b, unsigned char c, int d);  /* 0x4c4830 */
 extern unsigned char ai_OwnPlayer;      /* 0x6f1bc5 */
 void cm_BeginFieldBlock(void *o, int id);     /* 0x4c3ba0 */
@@ -110,7 +108,7 @@ int amt_ClearOffices(struct AICHAR *c);             /* 0x4e6d80 */
 void amt_ClearOfficesIfAll(struct AICHAR *c, int all);   /* 0x4e6e20 */
 int amt_GetFirstOffice(unsigned int k, AMTREC *out);  /* 0x4e6ec0 */
 int amt_KindColumn(int k);                /* 0x4e6f10 */
-int amt_GetOffice(unsigned char i, AMTREC *out); /* 0x4e6f30, @original: cm.c 0x4dab50 passes its int index raw (push ebp, no zero-extension) where a caller compiled against this unsigned char parameter zero-extends; poker.c 0x4aad30 passes its unsigned char k as is */
+int amt_GetOffice(unsigned char i, AMTREC *out); /* 0x4e6f30 */
 int amt_GetKind(int k, struct AMTKIND *out);  /* 0x4e6f80 */
 int amt_GetColumnOffices(int col, int max, AMTREC *out);  /* 0x4e6fc0 */
 
@@ -136,8 +134,8 @@ int amt_IsColumnDecided(int col);       /* 0x4e83b0 */
 int amt_HasDeposalVote(int col, AMTREC *r);  /* 0x4e8530 */
 void amt_UpdateOffices(void);           /* 0x4e85d0 */
 int amt_HasColumn7Holder(void);         /* 0x4e86e0 */
-void amt_SendOfficeNews(unsigned short *p, int v);  /* 0x4e8730 */
-void amt_SendOfficeLost(unsigned short *p, int v);  /* 0x4e87e0 */
+void amt_SendOfficeNews(struct AICHAR *p, int v);  /* 0x4e8730 */
+void amt_SendOfficeLost(struct AICHAR *p, int v);  /* 0x4e87e0 */
 void amt_ElectDeputies(void);            /* 0x4e88a0 */
 void amt_ElectKind22(void);            /* 0x4e8c20 */
 

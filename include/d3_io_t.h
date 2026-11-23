@@ -64,79 +64,21 @@ void d3iot_CalcBounds(D3BGF *m);                                                
 void d3iot_Finish(D3BGF *m, char bounds);                                               /* 0x44d1c0 */
 void d3iot_LoadTexSet(char *name, char **out, int *w, int *h);                          /* 0x44d1f0 */
 D3BGF *d3iot_LoadBGF(char *path, char *name, char *texnames, int ntexsets, int ntex);     /* 0x44d330 */
-float d3iot_GetRadius(int unused, D3SURF *info);                                     /* 0x44df20 */
+float d3iot_GetRadius(D3OBJECT *obj, D3SURF *info);                                     /* 0x44df20 */
 
 /* 0x44df40..0x44e570 (worker d3io3, joined at the round-10 close) */
 
-typedef struct D3IOOBJ D3IOOBJ;
-struct D3IOOBJ {                    /* a D3OBJECT as d3_LoadObjectAnim sees it (the stock objects are D3BGF) */
-    char pad000[0x40];
-    int time;                       /* 0x40, d3_Time of the object's last animation update (D3OBJECT.animTime);
-                                       d3_LoadObjectAnim sets it when the path is attached */
-    char pad044[0x8];
-    float pos[3];                   /* 0x4c */
-    char pad058[0x2c];
-    float rot[3];                   /* 0x84 */
-    char pad090[0x140];
-    struct D3IOPATH *path;          /* 0x1d0 */
-    char pad1d4[0x44];
-    int type;                       /* 0x218, 3 / 4 = mesh */
-};
-
-typedef struct D3IOANIMFLAGS {      /* 12 bytes passed by value to d3anim_NextFrame */
-    unsigned char b0;
-    unsigned char c0 : 1;           /* 0x2d */
-    unsigned char rev : 1;          /* 0x2d bit 1: play backwards, starts at the last key */
-    unsigned char c2 : 3;
-    unsigned char c5 : 1;           /* 0x2d bit 5, cleared after loading */
-    unsigned char c6 : 2;
-    unsigned char b2;
-    unsigned char b3;
-    unsigned char b4;
-    unsigned char b5;
-    unsigned char b6;
-    unsigned char b7;
-    unsigned char d0 : 1;           /* 0x34 */
-    unsigned char d1 : 1;           /* set from the reload argument */
-    unsigned char d2 : 6;
-    unsigned char b9;
-    unsigned char b10;
-    unsigned char b11;
-} D3IOANIMFLAGS;
-
-typedef struct D3IOKEY {            /* 0x58 bytes */
-    int time;
-    char pad04[0x54];
-} D3IOKEY;
-
-typedef struct D3IOPATH {           /* 0x44 bytes, the animation of an object (obj->path) */
-    int nkeys;
-    int key;                        /* 0x04 */
-    int next;                       /* 0x08 */
-    int time;                       /* 0x0c */
-    int unk10;
-    float pos[3];                   /* 0x14, the object's position and angles at the start */
-    float rot[3];                   /* 0x20 */
-    union {
-        D3IOANIMFLAGS flags;        /* 0x2c, field-wise */
-        D3ANIMFLAGS animFlags;      /* the same 12 bytes as d3anim_NextFrame takes them */
-    };
-    float unk38;
-    int unk3c;
-    D3IOKEY *keys;                  /* 0x40 */
-} D3IOPATH;
-
-struct D3OBJECT; struct D3LINFO; void d3_TransformNormals(struct D3OBJECT *obj, struct D3LINFO *info);                                                        /* 0x4598d0, stock object callback */
+struct D3OBJECT; struct D3SURF; void d3_TransformNormals(struct D3OBJECT *obj, struct D3SURF *info);                                                        /* 0x4598d0, stock object callback */
 extern char d3_AnimDir[];                                                       /* 0x5fbf80, "animations/" */
 extern volatile unsigned long d3_Time;                                          /* 0x6333cc, milliseconds (tb.c) */
 
-struct D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative);   /* 0x44f8c0, d3_io_b.c */
+struct D3ANIMDATA *d3_LoadBinaryAnimStream(char *path, char *name, char relative);   /* 0x44f8c0, d3_io_b.c */
 
 D3BGF *d3io_LoadObjectFile(char *name, char *file);                           /* 0x44df40 */
 D3BGF *d3io_LoadObject(char *a, char *b);                                     /* 0x44e080 */
 D3BGF *d3io_LoadObjectRef(char *a, char *b);                                  /* 0x44e190 */
 void d3io_ReleaseObject(D3BGF *obj);                                          /* 0x44e2c0 */
-D3IOPATH *d3_LoadObjectAnim(char *file, D3IOOBJ *obj, char reload);             /* 0x44e2e0 */
+D3PATH *d3_LoadObjectAnim(char *file, D3OBJECT *obj, char reload);             /* 0x44e2e0 */
 struct D3ANIMDATA *d3_LoadAnimStream(char *name, char *file, char unk);              /* 0x44e4a0 */
 
 

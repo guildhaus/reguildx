@@ -32,9 +32,6 @@
    declaration set is not the original's yet.
    Open: the alchemist windows ai_AlchemistWindow / ai_AlchemistResearchWindow are @deep (allocation); their buttons call
    ai_AlchemistFundWindow / ai_AlchemistRescheduleWindow with (obj, record), the record parameter unread.
-   Open: type debt - the graveyard detail window record GVDETAILWIN is typed in the seance and contact functions
-   (ai_SeanceWindow .. ai_UpgradeWorkerWindow); ai_GraveDetailOpen / ai_RentGraveDetail / ai_GraveDetailButtons
-   still take int *w (the callers cast), the graveyard contacts before ai_GraveHauntContact take char *rec.
    Open: data: ai_TurnTable (0x6f5f60, 0x4000 bytes) is cleared once at engine open and no other code refers to
    it: what it holds, and so its true name and element type, is unknown (the name is ai_ClearTurnTable's).
    unit of rea 8cef7d5b (src/game/unk_575860.c); boundaries in decl/text.dcl */
@@ -334,7 +331,7 @@ typedef struct SHOTRESULT {     /* 0x38 bytes, three of them in ai_ShotTable: th
     SHOTENTRY e[3];          /* +0x8 */
 } SHOTRESULT;
 int ai_TutorialChapterOn[5] = { 1, 1, 1, 1, 1 };  /* 0x62918c, per chapter 1 = played (the start window's check boxes, ai_TutorialWindow) */
-int (*ai_TutorialChapterInit[5])(void) = { ai_TutorialInitChapter1, ai_TutorialInitChapter2, ai_TutorialInitChapter3, ai_TutorialInitChapter4, ai_TutorialInitChapter5 };  /* 0x6291a0, the chapter chain builders the start appends for every chapter played */
+TUTRUN *(*ai_TutorialChapterInit[5])(void) = { ai_TutorialInitChapter1, ai_TutorialInitChapter2, ai_TutorialInitChapter3, ai_TutorialInitChapter4, ai_TutorialInitChapter5 };  /* 0x6291a0, the chapter chain builders the start appends for every chapter played */
 char *ai_TutorialStateNames[18] = {  /* 0x6291b4, the names of the tutorial's 18 states (the FT* strings 0x6291fc.. in reverse order); no reader in the image (its users were removed); the name is ours */
     "FTDisabled", "FTStart", "FTViewing", "FTReviewing", "FTIdle", "FTBeginScript", "FTIdleScript", "FTEndScript",
     "FTRemind", "FTPartialSuccsess", "FTBeginSuccsess", "FTSuccsess", "FTEndSuccsess", "FTNoBezierAnim",
@@ -448,7 +445,7 @@ int ai_TutorialTick(void)
         ai_Tutorial->markerObj = -1;
         if (ai_Tutorial->run->hook)
             ai_Tutorial->run->hook(0);
-        he_ActivateSlot((int *)ai_Tutorial->host->slot);
+        he_ActivateSlot(ai_Tutorial->host->slot);
         d2_SetPointerSprite(0, 0);
         return 0;
     case 2:                     /* the intro window is answered: continue with the clocks reset */
@@ -572,7 +569,7 @@ int ai_TutorialTick(void)
                     sb_Stop(ai_Tutorial->voice, 0);
                 ai_Tutorial->voice = 0;
             }
-            ai_Tutorial->voice = (struct SBSAMPLE *)snd_PlayVoice(-7, 0, ai_Tutorial->run->voice, -1);
+            ai_Tutorial->voice = snd_PlayVoice(-7, 0, ai_Tutorial->run->voice, -1);
         }
         ai_Tutorial->statusShown = 1;
         ai_TutorialShowRunText();
@@ -601,7 +598,7 @@ int ai_TutorialTick(void)
                     sb_Stop(ai_Tutorial->voice, 0);
                 ai_Tutorial->voice = 0;
             }
-            ai_Tutorial->voice = (struct SBSAMPLE *)snd_PlayVoice(-7, 0, ai_Tutorial->run->voice, -1);
+            ai_Tutorial->voice = snd_PlayVoice(-7, 0, ai_Tutorial->run->voice, -1);
         }
         ai_Tutorial->statusShown = 1;
         ai_TutorialShowRunText();
@@ -1321,7 +1318,7 @@ void ai_HookChapter4Step(int arg)
 
     if (arg)
         return;
-    id = ai_CharInts[ai_PlayerId][0];
+    id = ai_Chars[ai_PlayerId].netId;
     cm_SendMoveGoodsUnchecked(id, -1, 0, 0x2bc0);
 }
 /* 0x5770e0, a transition callback (0x30 B; a start the ret+nop scan missed: it follows 0x5770a0's nop fill and
@@ -1395,7 +1392,7 @@ void ai_HookChapter5Step2(int arg)
     if (arg)
         return;
     r = gm_FindMarketObject(0x155);
-    id = ai_CharInts[ai_PlayerId][0];
+    id = ai_Chars[ai_PlayerId].netId;
     cm_SendMoveGoodsUnchecked(id, -1, 0, 0x2bc0);
     cm_SendExSellObject(r->objId, -1, 0x155, 3, ai_OwnPlayer, 0);
 }
@@ -1642,14 +1639,14 @@ void ai_HookChapter5Step6(int end)
    run record, else 0. The host -> slot -> window chain is reloaded before every call as in the original */
 int ai_TutorialOpenIntro(void)
 {
-    TUTHOST *host;
+    AIJOB *host;
 
     host = ai_Tutorial->host;
     if (!host)
         return -4;
     if (host->slot)
         return -4;
-    he_OpenEventSlot((struct AIJOB *)host, 0, 0, "tutorial\\main", 0x5ec);
+    he_OpenEventSlot(host, 0, 0, "tutorial\\main", 0x5ec);
     if (!ai_Tutorial->host->slot)
         return -1;
     d2_PlaceMainWindow(ai_Tutorial->host->slot->win, 3);
@@ -1666,14 +1663,14 @@ int ai_TutorialOpenIntro(void)
 
 int ai_TutorialCloseIntro(void)
 {
-    TUTHOST *host;
+    AIJOB *host;
 
     host = ai_Tutorial->host;
     if (!host)
         return -4;
     if (!host->slot)
         return -4;
-    he_ReleaseSlot((struct AIJOB *)host);
+    he_ReleaseSlot(host);
     return 0;
 }
 /* 0x577850, clears the run window's two text controls: -4 without a host / with no open event slot, else sets the
@@ -1681,7 +1678,7 @@ int ai_TutorialCloseIntro(void)
 
 int ai_TutorialClearRunWindow(void)
 {
-    TUTHOST *host;
+    AIJOB *host;
 
     host = ai_Tutorial->host;
     if (!host)
@@ -1723,7 +1720,7 @@ int ai_TutorialShowRunText(void)
                 sb_Stop(ai_Tutorial->voice, 0);
             ai_Tutorial->voice = 0;
         }
-        ai_Tutorial->voice = (struct SBSAMPLE *)snd_PlayVoice(-7, 0, ai_Tutorial->run->mainVoice, -1);
+        ai_Tutorial->voice = snd_PlayVoice(-7, 0, ai_Tutorial->run->mainVoice, -1);
     }
     return 0;
 }
@@ -1782,7 +1779,7 @@ void ai_TutorialShowText(void)
             sb_Stop(ai_Tutorial->voice, 0);
         ai_Tutorial->voice = 0;
     }
-    ai_Tutorial->voice = (struct SBSAMPLE *)snd_PlayVoice(-7, 0, ai_Tutorial->run->text1Voice, -1);
+    ai_Tutorial->voice = snd_PlayVoice(-7, 0, ai_Tutorial->run->text1Voice, -1);
 }
 /* 0x577b60, clears the first text window text1Win: control 0 turned off (0x475f70), the text cleared to "$C"
    (0x602568, 0x515960) and the window disabled (0x475590); no return value */
@@ -1815,7 +1812,7 @@ void ai_TutorialShowText2(void)
             sb_Stop(ai_Tutorial->voice, 0);
         ai_Tutorial->voice = 0;
     }
-    ai_Tutorial->voice = (struct SBSAMPLE *)snd_PlayVoice(-7, 0, ai_Tutorial->run->text2Voice, -1);
+    ai_Tutorial->voice = snd_PlayVoice(-7, 0, ai_Tutorial->run->text2Voice, -1);
 }
 /* 0x577c60, clears the second text window text2Win: control 0 turned off (0x475f70), the text cleared to "$C"
    (0x602568, 0x515960) and the window disabled (0x475590); then the playing voice is stopped (0x426f20 /
@@ -1939,7 +1936,7 @@ int ai_TutorialStepForm(void)
                 sb_Stop(ai_Tutorial->voice, 0);
             ai_Tutorial->voice = 0;
         }
-        ai_Tutorial->voice = (struct SBSAMPLE *)snd_PlayVoice(-7, 0, ai_Tutorial->run->steps[ai_Tutorial->step].voice, -1);
+        ai_Tutorial->voice = snd_PlayVoice(-7, 0, ai_Tutorial->run->steps[ai_Tutorial->step].voice, -1);
     }
     if (ai_Tutorial->run->stepShown)
         ai_Tutorial->run->stepShown();
@@ -1959,11 +1956,11 @@ int ai_TutorialStepClicked(void)
 /* 0x578120, attaches the tutorial's event record (host, the tutorial intro event 0x87's record) and resets the
    intro window's control object (continueObj) to -1 (43 B): -4 without the gate 0x6f265c, else 0 */
 
-int ai_TutorialSetHost(char *per)
+int ai_TutorialSetHost(AIJOB *per)
 {
     if (!ai_TutorialOn)
         return -4;
-    ai_Tutorial->host = (TUTHOST *)per;
+    ai_Tutorial->host = per;
     ai_Tutorial->continueObj = -1;
     return 0;
 }
@@ -1982,8 +1979,8 @@ int ai_TutorialOff(void)
     return !ai_TutorialOn;
 }
 
-int ai_TutorialInitMainIntro();
-int ai_TutorialInitMainOutro();
+TUTRUN *ai_TutorialInitMainIntro(void);
+TUTRUN *ai_TutorialInitMainOutro(void);
 void ai_TutorialStop();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
@@ -2011,14 +2008,14 @@ int ai_TutorialStart(void)
     }
     if (!cnt)
         return -2;
-    ai_TutorialRuns = (TUTRUN *)ai_TutorialInitMainIntro();
+    ai_TutorialRuns = ai_TutorialInitMainIntro();
     if (!ai_TutorialRuns)
         goto fail;
     for (tail = ai_TutorialRuns; tail->next; tail = tail->next)
         ;
     for (i = 0; i < 5; i++) {
         if (ai_TutorialChapterOn[i] == 1) {
-            r = (TUTRUN *)ai_TutorialChapterInit[i]();
+            r = ai_TutorialChapterInit[i]();
             tail->next = r;
             if (!r)
                 goto fail;
@@ -2026,7 +2023,7 @@ int ai_TutorialStart(void)
                 tail = tail->next;
         }
     }
-    r = (TUTRUN *)ai_TutorialInitMainOutro();
+    r = ai_TutorialInitMainOutro();
     tail->next = r;
     if (!r)
         goto fail;
@@ -2120,7 +2117,7 @@ void ai_TutorialFreeRuns(TUTRUN *rec)
    voice "TUTORIAL_MAIN_INTRO", no text windows, the tail of 0x8e ms and the goal state 0xb; its voice bank
    "TUTORIAL_INTRO_OUTRO.sbf" is loaded into ai_TutorialBanks[0]; the record */
 
-int ai_TutorialInitMainIntro(void)
+TUTRUN *ai_TutorialInitMainIntro(void)
 {
     TUTRUN *rec;
 
@@ -2150,7 +2147,7 @@ int ai_TutorialInitMainIntro(void)
     rec->allowMask2 = 0;
     rec->next = 0;
     ai_TutorialBanks[0] = snd_LoadVoiceBank("TUTORIAL_INTRO_OUTRO.sbf", 0);
-    return (int)rec;
+    return rec;
 }
 /* 0x578570, builds the run chain of the tutorial's chapter 1 (ai_TutorialChapterInit[0]): eleven run records
    (the intro 'ntr1', the steps 'c1sA' .. 'c1sJ', the outro 'utr1'), each allocated under its "FTInitChapter1*"
@@ -2158,7 +2155,7 @@ int ai_TutorialInitMainIntro(void)
    linked through next; the voice bank "TUTORIAL_CHAPTER_1.sbf" is loaded into ai_TutorialBanks[1]. The first
    record, or 0 after a failed allocation (the records built so far freed) */
 
-int ai_TutorialInitChapter1(void)
+TUTRUN *ai_TutorialInitChapter1(void)
 {
     TUTRUN *head;
     TUTRUN *r;
@@ -2462,7 +2459,7 @@ int ai_TutorialInitChapter1(void)
     r->allowMask2 = 0;
     r->next = 0;
     ai_TutorialBanks[1] = snd_LoadVoiceBank("TUTORIAL_CHAPTER_1.sbf", 0);
-    return (int)head;
+    return head;
 fail:
     ai_TutorialFreeRuns(head);
     return 0;
@@ -2473,7 +2470,7 @@ fail:
    callbacks, goal and allow masks, and linked through next; the voice bank "TUTORIAL_CHAPTER_2.sbf" is loaded
    into ai_TutorialBanks[2]. The first record, or 0 after a failed allocation (the records built so far freed) */
 
-int ai_TutorialInitChapter2(void)
+TUTRUN *ai_TutorialInitChapter2(void)
 {
     TUTRUN *head;
     TUTRUN *r;
@@ -2716,7 +2713,7 @@ int ai_TutorialInitChapter2(void)
     r->allowMask2 = 0x1e00;
     r->next = 0;
     ai_TutorialBanks[2] = snd_LoadVoiceBank("TUTORIAL_CHAPTER_2.sbf", 0);
-    return (int)head;
+    return head;
 fail:
     ai_TutorialFreeRuns(head);
     return 0;
@@ -2731,7 +2728,7 @@ fail:
    "TUTORIAL_CHAPTER_3.sbf" is loaded into ai_TutorialBanks[3]. The first record, or 0 after a failed allocation
    (the records built so far freed) */
 
-int ai_TutorialInitChapter3(void)
+TUTRUN *ai_TutorialInitChapter3(void)
 {
     TUTRUN *head;
     TUTRUN *r;
@@ -3369,7 +3366,7 @@ int ai_TutorialInitChapter3(void)
     r->allowMask2 = 0x1f70;
     r->next = 0;
     ai_TutorialBanks[3] = snd_LoadVoiceBank("TUTORIAL_CHAPTER_3.sbf", 0);
-    return (int)head;
+    return head;
 fail:
     ai_TutorialFreeRuns(head);
     return 0;
@@ -3382,7 +3379,7 @@ fail:
    steps 1, the outro 4). The voice bank "TUTORIAL_CHAPTER_4.sbf" is loaded into ai_TutorialBanks[4]. The first
    record, or 0 after a failed allocation (the records built so far freed) */
 
-int ai_TutorialInitChapter4(void)
+TUTRUN *ai_TutorialInitChapter4(void)
 {
     TUTRUN *head;
     TUTRUN *r;
@@ -3518,7 +3515,7 @@ int ai_TutorialInitChapter4(void)
     r->allowMask2 = 0x1f70;
     r->next = 0;
     ai_TutorialBanks[4] = snd_LoadVoiceBank("TUTORIAL_CHAPTER_4.sbf", 0);
-    return (int)head;
+    return head;
 fail:
     ai_TutorialFreeRuns(head);
     return 0;
@@ -3532,7 +3529,7 @@ fail:
    (800, 1024, else). The voice bank "TUTORIAL_CHAPTER_5.sbf" is loaded into ai_TutorialBanks[5]. The first
    record, or 0 after a failed allocation (the records built so far freed) */
 
-int ai_TutorialInitChapter5(void)
+TUTRUN *ai_TutorialInitChapter5(void)
 {
     TUTRUN *head;
     TUTRUN *r;
@@ -3814,7 +3811,7 @@ int ai_TutorialInitChapter5(void)
     r->allowMask2 = 0xbf78;
     r->next = 0;
     ai_TutorialBanks[5] = snd_LoadVoiceBank("TUTORIAL_CHAPTER_5.sbf", 0);
-    return (int)head;
+    return head;
 fail:
     ai_TutorialFreeRuns(head);
     return 0;
@@ -3824,7 +3821,7 @@ fail:
    voice "TUTORIAL_MAIN_OUTRO", no text windows, no tail, the goal state 0xb and every action but the bit 3
    allowed; the record (its voices are in the main intro's bank) */
 
-int ai_TutorialInitMainOutro(void)
+TUTRUN *ai_TutorialInitMainOutro(void)
 {
     TUTRUN *rec;
 
@@ -3852,7 +3849,7 @@ int ai_TutorialInitMainOutro(void)
     rec->goalState = 0xb;
     rec->allowMask = ~8;
     rec->next = 0;
-    return (int)rec;
+    return rec;
 }
 /* 0x57b810, a cubic Bezier of two floats (134 B): u = 1.0f (0x5eb780) - t, out[0] / out[1] =
    u^3 * a + 3 * u * t * (u * b + t * c) + t^3 * d for the components +0 / +4 of the float vectors a, b, c, d;
@@ -4108,7 +4105,7 @@ void ai_AlchemistCandidates(AIBLD *obj)
         step = ahm_WalkStep(i);
         if (step->on != 0) {
             steps[n] = step;
-            values[n] = ahm_StepValue((char *)step);
+            values[n] = ahm_StepValue(step);
             n++;
         }
     }
@@ -4167,7 +4164,7 @@ void ai_AlchemistCandidates(AIBLD *obj)
         txt_Format(line, 0x403f, step->grid.plr.attr[4]);
         t = d2_CreateWinText(0xfa, y - 0x1b, line, win2);
         d2_Objs[t].w = d2_Wins[win2].w - 0xfa;
-        txt_Format(line, 0x4040, ahm_StepValue((char *)step));
+        txt_Format(line, 0x4040, ahm_StepValue(step));
         t = d2_CreateWinText(0xfa, y - 0xe, line, win2);
         d2_Objs[t].w = d2_Wins[win2].w - 0xfa;
         txt_Format(line, 0x4041, step->grid.plr.id * 2 + 0x9a8);
@@ -4224,7 +4221,7 @@ int ai_AlchemistHire(AIBLD *obj, AHMSTEP *step, int value)
                     sv_RunFrame(0, 0x20007);
                 if (cm_GetSlotState(slot) == 1) {
                     ahm_ClearStep(step);
-                    cm_SendMoveGoods(-1, ai_CharInts[ai_PlayerId][0], ai_OwnPlayer, value);
+                    cm_SendMoveGoods(-1, ai_Chars[ai_PlayerId].netId, ai_OwnPlayer, value);
                     return 1;
                 }
             }
@@ -4809,7 +4806,7 @@ int ai_AlchemistFundWindow(AIBLD *obj, AHMREC *rec)
                     ahm_SendAddValue(owner, (float)v / (float)points * share * 0.75f);
                     done = 1;
                     sv_PopRequest = 1;
-                    cm_SendMoveGoods(owner->netId, ai_CharInts[ai_PlayerId][0], ai_OwnPlayer, v);
+                    cm_SendMoveGoods(owner->netId, ai_Chars[ai_PlayerId].netId, ai_OwnPlayer, v);
                 }
             } else if (d2_PointerObj == cancel) {
                 sv_PopRequest = 1;
@@ -4977,45 +4974,6 @@ TUTSTATE ai_TutorialState;  /* 0x6fa060, the tutorial state record ai_Tutorial p
 void ai_GraveDeadName(GVGRAVE *e, char *out);
 /* dcp unit split: the declarations that moved to svgrave (copies: drop what sv_t does not use) */
 struct GVENTRY *gv_FindEntry(void *a, struct AIBLD *bld, struct GVENTRY *after, int (*cb)(), int l); int gv_EntryIndex(struct GVYARD *g, struct GVENTRY *e);
-typedef struct GVROW {
-    int btn;                    /* 0x00, its button object, -1: an unused row */
-    GVENTRY *entry;             /* 0x04, the grave entry, 0: unused */
-    int size;                   /* 0x08, the entry's size (list), 0xff: unused */
-    unsigned char index;        /* 0x0c, the entry's index in its list (gv_EntryIndex), 0xff: unused */
-} GVROW;
-typedef struct GVITEM {
-    int btn;                    /* 0x00, its picture object, -1: none */
-    GVGRAVE *grave;             /* 0x04, the dead person, 0: an unused item */
-    int id;                     /* 0x08, the grave's id, -1: unused */
-} GVITEM;
-typedef struct GVWIN {                  /* 0x1a0 bytes, the graveyard contact window's list (ai_GraveWindow's w[0x68]) */
-    int head[0xc];                      /* 0x00, its windows: 0 the window, 2 the list's window, 3 the detail list's window,
-                                           5 / 6 their fonts, 8 .. 11 the size buttons (ai_GraveSizeButtons) */
-    int size;                           /* 0x30 (w[0xc]), the selected grave size */
-    GVROW rows[0x10];                   /* 0x34 (w[0xd]), the grave list's rows (ai_GraveList) */
-    int sel;                            /* 0x134 (w[0x4d]), the selected row */
-    int slider;                         /* 0x138 (w[0x4e]), the detail's slider */
-    GVITEM items[8];                    /* 0x13c (w[0x4f]), the detail's dead persons (ai_GraveDetail) */
-    int item;                           /* 0x19c (w[0x67]), the item last clicked */
-} GVWIN;
-typedef struct GVDETAILWIN {
-    int win;                    /* 0x00, the form */
-    int sections[6];            /* 0x04, the d2_LastWindow of its sections */
-    GVENTRY *entry;             /* 0x1c, the grave entry shown */
-    int size;                   /* 0x20, its size (list) */
-    unsigned char index;        /* 0x24, its index in that list (gv_EntryIndex) */
-    char pad25[3];
-    GVITEM items[8];            /* 0x28, the dead persons of the grave */
-    int selected;               /* 0x88, the item clicked (ai_SeancePick) */
-} GVDETAILWIN;
-void ai_GraveDeadName(GVGRAVE *e, char *out);
-typedef struct GVPICK {
-    GVENTRY *entry;             /* 0x00, the selected grave entry */
-    int size;                   /* 0x04, its size (list) */
-    unsigned char index;        /* 0x08, its index in that list (gv_EntryIndex) */
-    GVGRAVE *grave;             /* 0x0c, the dead person picked in it, 0: the grave itself (the slider) */
-    int id;                     /* 0x10, that dead person's id, -1: none */
-} GVPICK;
 int sv_MessageBoxGreen(intptr_t a, intptr_t b, unsigned flags); void sv_OpenPlayerBar(struct AIBLD *a, char k); void sv_ClosePlayerBar(void);
 int gv_RoomForRaised(struct AIBLD *o, int *n); void *cm_GetSlotValue(int h); int sprintf(char *buf, const char *fmt, ...);
 int sv_CheckCharacterFlag(struct AIBLD *id); struct AIJOB *he_FindEvent(int n, ...); struct AIJOB *he_NextEvent(void); void sv_OpenWindowFrame(int f, int b, int c);

@@ -475,7 +475,6 @@ extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 extern int sv_FrameMask;
 extern unsigned char ai_OwnPlayer;
-extern unsigned gm_OwnNameHeads[136];
 #include "gv_types.h"
 #include "ai_bld.h"                /* AIBLD, AIBTYPE */
 extern GAPDATA full_data_5fe7d0[];
@@ -521,28 +520,8 @@ struct AMTREC;  /* file-scope tag for the prototypes below */
 struct AITIME;  /* f3gm.h typedef; file-scope tag for the gm_AddTime prototype */
 
 
-#define U_I(a) (*(int *)(a))
-#define U_W(a) (*(unsigned short *)(a))
 
 
-#pragma pack(push, 1)
-typedef struct LCFIREEVENT {       /* the fire event 0x3d's word over AIJOB's union (its alloc 0x564860; the jail check
-                                      0x591ad0 reads the burning building here) */
-    char pad00[0xac];
-    int bld;                       /* 0xac, the building that burns, -1 / 0: none */
-} LCFIREEVENT;
-typedef struct LCAMBUSHEVENT {     /* the ambush event 0x48's word over AIJOB's union (he.c HEAMBUSH; ai_BreakInCallback
-                                      looks for one at a place) */
-    char pad00[0xac];
-    char place[0x20];              /* 0xac, the name of the scene object the gang lies in wait at */
-} LCAMBUSHEVENT;
-typedef struct LCSEARCHEVENT {     /* the search event 0x14's words over AIJOB's union (ai_TradeSearchWindow counts them) */
-    char pad00[0xac];
-    unsigned char count;           /* 0xac, how many characters search */
-    char padad;
-    unsigned short good;           /* 0xae, the good searched for */
-} LCSEARCHEVENT;
-#pragma pack(pop)
 
 
 
@@ -661,12 +640,7 @@ int cm_SendLongMessage(struct AIMSG *msg); int cm_EndGroup(const char *s); void 
 char *strupr(char *); void gm_CloseTechTree(void);
 void ai_GameFrame(void);
 void lc_PlayerInJail(void);
-typedef struct LCTREENODE {        /* a node of f3gm's research tree layout gm_TreeNodes (f3gm.c RTNODE, 0x34 bytes) */
-    char pad00[0x24];
-    int obj;                       /* 0x24, the node's button object (RTNODE.l[2]), -1 = none */
-    char pad28[0xc];
-} LCTREENODE;
-extern char gm_TreeNodes[3328];    /* 0x76fde0, LCTREENODE[64] (f3gm.c) */
+extern RTNODE gm_TreeNodes[64];    /* 0x76fde0, f3gmt.c */
 extern int ai_Difficulty;          /* 0x6f23fc, the game difficulty 0 .. 4 (ai.h) */
 int gm_BuildKindObjects(struct AIBLD *b);
 char *itoa(int, char *, int);
@@ -682,7 +656,7 @@ void ai_PamphletWindow(struct AIBLD *bld);
 void ai_FeastWindow(AIBLD *bld, AIOBJ *table); void ai_DenounceWindow(AIBLD *bld);
 struct AICHAR *gm_FindChar(int id);
 int cm_SendRelations(int a, int b, int c, int d); void cm_SendMoneyDelta(int a, int b);
-float gm_TitlePeriodServed(int n, int *out);
+float gm_TitlePeriodServed(int n, struct AITIME *out);
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);
 float gm_AddHealth(unsigned short id, int d); int ai_TutorialOff(); void ai_EvidenceBookWindow(struct AIBLD *bld);
 void d2_CreateScrollButtons(); int d2_RemoveWindowObjects();
@@ -723,7 +697,7 @@ int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f); int
 typedef struct CREDITLISTROW {      /* a row of the credit list window (ai_CreditListWindow) */
     int child;                      /* 0x0, the row's child window (d2_CreateChildWindow), -1: none */
     int pic;                        /* 0x4, its frame picture 0x75a (d2_WinOpenPic), -1: none; the radio group selects it */
-    HELOAN *loan;                   /* 0x8, the loan it shows (gm_CreditEvents) */
+    AIJOB *loan;                   /* 0x8, the loan it shows (gm_CreditEvents) */
 } CREDITLISTROW;
 int gm_SumSlotAmounts(void *list, unsigned char i); int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
 void gm_SortCharsByName(int n, int *ids, int flag); int d2_RemoveWindow();
@@ -764,7 +738,7 @@ int io_PrintText(intptr_t fmt, ...); int gm_ConvertMoney(int a, unsigned char k)
 int cm_SendMoveGoods(int a, int b, unsigned char c, int d); int cm_SendRelations(int a, int b, int c, int d); void txt_Format(char *out, intptr_t id0, ...);
 void d2_CloseView(int view); int _ftol();
 int gv_CulpritGuilt(int c); int gm_GetWorth(unsigned short id);
-int ai_InventoryHas(void *ch, int id); void d2_SetPointerSprite(int a, int pic); 
+int ai_InventoryHas(struct AICHAR *ch, int id); void d2_SetPointerSprite(int a, int pic); 
 int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
 void cm_BeginFieldBlock(void *o, int id); int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 int gv_RetireCrimesOf(int p, int n); int cm_SendMoveGoods(int a, int b, unsigned char c, int d);
@@ -778,8 +752,6 @@ void cm_SendMoneyDelta(int a, int b);
 int cm_SendObject1b5(int owner, G17B7 value); void *cm_GetSlotValue(int h); int cm_SendGroupState(); int cm_FlushSendQueue();
 int cm_ReceiveMessages(); int cm_ExecCommands(); int cm_SendLongMessage(struct AIMSG *msg);
 char *itoa(int, char *, int);
-#pragma pack(push, 1)
-#pragma pack(pop)
 int amt_GetFirstOffice(unsigned int k, struct AMTREC *out); void cm_BeginGroup(const char *s); int cm_EndGroup(const char *s);
 void snd_PlayFavourComment(void);
 struct AIJOB *he_NextEvent(void);
@@ -788,18 +760,6 @@ void d2_RadioClear(int g); int cm_SendMoveObject(int a, int b, int c); void cm_S
 void d2_CreateScrollButtons(); void d2_ClearInput(void);
 int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out);
 void cm_SendMessage5b(int a, int b, int c);
-typedef struct LCKIDNAPEVENT {          /* the kidnap event 0x3c's words over AIJOB's union (he.c HEEV3C, same layout) */
-    char pad00[0xac];
-    int victim;                         /* 0xac, the netId of the victim */
-    int target;                         /* 0xb0, the id of the building the gang goes to for the victim */
-    int guild;                          /* 0xb4, the thieves' guild's id */
-} LCKIDNAPEVENT;
-typedef struct LCRANSOMEVENT {          /* the ransom event 0x3d's words over AIJOB's union (he.c HEEV3D, same layout) */
-    char pad00[0xac];
-    int victim;                         /* 0xac, the netId of the kidnapped character */
-    int guild;                          /* 0xb0, the id of the thieves' guild that holds it */
-    AITIME since;                       /* 0xb4, the time of the kidnap */
-} LCRANSOMEVENT;
 float gm_GetSkill(struct AICHAR *c, int skill);
 void cm_RequestChrMoveToUniverse(int a, int b, int c, const char *s);
 
@@ -829,7 +789,7 @@ void ai_MapCellToScreen(LCMAPMARK *m, int originX, int originY)
     float edgeX;
     float edgeY;
 
-    half = ((D3SM *)d3_Scenes[0].hmap)->size * 0.5;
+    half = (d3_Scenes[0].hmap)->size * 0.5;
     x = (m->cellX - half) * ai_MapCellScale;
     y = (m->cellZ - (double)half) * ai_MapCellScale;    /* @original y alone is taken in double (half popped by fisubr) */
     edgeX = fabs(x) / (ai_MapSize * 0.5f);
@@ -893,7 +853,7 @@ void ai_BuildTownMap(LCMAPWIN *m)
     int j;
     int n;
 
-    hm = (struct D3SM *)d3_Scenes[0].hmap;
+    hm = d3_Scenes[0].hmap;
     originX = ai_PlayerSlots[ai_OwnPlayer].townX;
     originY = ai_PlayerSlots[ai_OwnPlayer].townY;
     for (i = 0; i < 0x100; i++) {
@@ -1272,7 +1232,7 @@ void ai_UpdateTownMap(LCMAPWIN *m)
     int i;
     unsigned char kind;
 
-    hm = (struct D3SM *)d3_Scenes[0].hmap;
+    hm = d3_Scenes[0].hmap;
     originX = ai_PlayerSlots[ai_OwnPlayer].townX;
     originY = ai_PlayerSlots[ai_OwnPlayer].townY;
     d2_LastWindow = m->screen;
@@ -1299,7 +1259,7 @@ void ai_UpdateTownMap(LCMAPWIN *m)
             continue;
         if (ch->scene == &d3_Scenes[0]) {
             d3_PointToWorld(ch->obj, &ch->obj->pos, &pos.v);
-            half = ((struct D3SM *)d3_Scenes[0].hmap)->size * 0.5;
+            half = (d3_Scenes[0].hmap)->size * 0.5;
             x = ((pos.x - hm->origin.x) / hm->cell.x - half) * ai_MapCellScale;
             y = ((pos.z - hm->origin.z) / hm->cell.z - (double)half) * ai_MapCellScale;   /* @original y alone in double (half popped by fsubrp) */
             edgeX = fabs(x) / (ai_MapSize * 0.5f);
@@ -1337,7 +1297,7 @@ void ai_UpdateTownMap(LCMAPWIN *m)
                     d2_Objs[m->controls[i]].clipx1 = d2_LastWindowPtr->w + d2_LastWindowPtr->x;
                     d2_Objs[m->controls[i]].clipy0 = d2_LastWindowPtr->y;
                     d2_Objs[m->controls[i]].clipy1 = d2_LastWindowPtr->h + d2_LastWindowPtr->y;
-                    d2_Objs[m->controls[i]].buf = (D2CTRL *)&d2_Views[m->view];
+                    d2_Objs[m->controls[i]].buf = &d2_Views[m->view];
                 }
             } else if (ch->obj->type != 1 || ch->transport != 0) {
                 d2_MoveObj(d2_LastWindowPtr->x - d2_LastWindowPtr->scrollx + px,
@@ -1374,9 +1334,8 @@ void ai_UpdateTownMap(LCMAPWIN *m)
    d2_BackgroundTile, d2_CloseView closes the window, the 0x300 control objects of +0x18dc are removed
    (d2_RemoveObj) and set to -1, and the window is set to -1 */
 
-void ai_CloseMapWindow(int *m_)
+void ai_CloseMapWindow(LCMAPWIN *m)
 {
-    LCMAPWIN *m = (LCMAPWIN *)m_;
     int i;
 
     d2_BackgroundTile = m->tile;
@@ -1414,7 +1373,7 @@ void ai_FreeSettingChain(G8SETTING *rec)
 
 void ai_FillSettingWeights(AIBLD *bld, G8SETTING *rec)
 {
-    G7GRP *grp;
+    const G7GRP *grp;
     unsigned int sum;
     int count;
     int left;
@@ -1423,7 +1382,7 @@ void ai_FillSettingWeights(AIBLD *bld, G8SETTING *rec)
     int i;
     int j;
 
-    grp = (G7GRP *)ai_FindItemGroup((char *)bld);
+    grp = ai_FindItemGroup(bld);
     if (grp == 0)
         return;
     for (i = 0; i < 10; i++) {
@@ -1484,27 +1443,27 @@ G8SETTING *ai_FindSetting(int id)
     }
     return 0;
 }
-/* 0x5a84d0, the item group of a good (102 B): the good's first byte is looked up as the key of a group (a
+/* 0x5a84d0, the item group of a building (102 B): its type byte is looked up as the key of a group (a
    G7GRP: the key byte and ten good ids) in the three special groups gm_SpecialItemGroups (the kinds ' ', 0x1e
    and 0x1f) first, then in the 37 groups of gm_BuildingItemGroups; the group or 0 */
 
-unsigned char *ai_FindItemGroup(char *good)
+const G7GRP *ai_FindItemGroup(AIBLD *bld)
 {
     char c;
     unsigned char *q;
     int i;
 
-    c = *good;
+    c = bld->type;
     if (c == ' ' || c == 0x1e || c == 0x1f) {
         i = 0;
-        for (q = (unsigned char *)(uintptr_t)&gm_SpecialItemGroups; (intptr_t)q < (intptr_t)((uintptr_t)&gm_SpecialItemGroups + 0x3f); q += 0x15, i++)
+        for (q = (unsigned char *)&gm_SpecialItemGroups[0].key; (intptr_t)q < (intptr_t)&gm_SpecialItemGroups[3].key; q += 0x15, i++)
             if ((char)*q == c)
-                return (unsigned char *)(uintptr_t)&gm_SpecialItemGroups + i * 0x15;
+                return &gm_SpecialItemGroups[i];
     }
     i = 0;
-    for (q = (unsigned char *)(uintptr_t)&gm_BuildingItemGroups; (intptr_t)q < (intptr_t)((uintptr_t)&gm_BuildingItemGroups + 0x309); q += 0x15, i++)
+    for (q = (unsigned char *)&gm_BuildingItemGroups[0].key; (intptr_t)q < (intptr_t)&gm_BuildingItemGroups[37].key; q += 0x15, i++)
         if ((char)*q == c)
-            return (unsigned char *)(uintptr_t)&gm_BuildingItemGroups + i * 0x15;
+            return &gm_BuildingItemGroups[i];
     return 0;
 }
 
@@ -1542,7 +1501,7 @@ void *ai_ProdSetting(AIBLD *bld)
     G8SLOT *slots;
 
     if (ai_Settings == 0) {
-        if (ai_FindItemGroup((char *)bld) == 0)
+        if (ai_FindItemGroup(bld) == 0)
             return 0;
         rec = (G8SETTING *)mem_Alloc(0x4c, "hp_AddProdSetting");
         if (rec != 0) {
@@ -1559,7 +1518,7 @@ void *ai_ProdSetting(AIBLD *bld)
     slots = ai_FindSettingSlots(bld->id);
     if (slots != 0)
         return slots;
-    if (ai_FindItemGroup((char *)bld) == 0)
+    if (ai_FindItemGroup(bld) == 0)
         return 0;
     rec = (G8SETTING *)mem_Alloc(0x4c, "hp_AddProdSetting");
     if (rec == 0)
@@ -1942,13 +1901,13 @@ void ai_ShowTavernHelperNews(AICHAR *ownerRec, AICHAR *helperRec, int bld)
         he_ShowNews(helper->netId, -1, ai_NewsText, 0, 0x5fb, ch_EmptyName);
     }
     txt_Format(ai_NewsText, 0x20c2, bld, owner->id, (owner->sex != 0) + 0x20c3, helper->id);
-    p = (char *)((uintptr_t)&ai_Chars + 0x2);
+    p = (char *)&ai_Chars[0].kind;
     do {
         c = (AICHAR *)(p - 2);
         if (c != owner && c != helper && (c->kind == 6 || c->kind == 7))
             he_ShowNews(c->netId, -1, ai_NewsText, 0, 0x5ec, ch_EmptyName);
         p += 0x21c;
-    } while ((intptr_t)p < (intptr_t)((uintptr_t)&ai_Chars + 0x65402));
+    } while ((intptr_t)p < (intptr_t)&ai_Chars[0x300].kind);
 }
 /* 0x5a8ee0, the parting news of a character pair (162 B, a reasoned guess at the texts' meaning): for a kind
    6 / 7 second character the text 0x132f is formatted with the first character's id, the text 0x1330 + 3 * (the
@@ -2092,7 +2051,7 @@ void ai_PlagueMessageAll(void)
     txt_Format(ai_NewsText, v + 0x20cd);
     for (i = 0; i < 0x300; i++) {
         if (ai_Chars[i].kind == 6)
-            he_ShowNews(ai_CharInts[i][0], -1, ai_NewsText, 0, 0x600, local);
+            he_ShowNews(ai_Chars[i].netId, -1, ai_NewsText, 0, 0x600, local);
     }
 }
 /* 0x5a9330, the swap text of an office swap (253 B; its only caller is amt.c amt_ExecuteSwapMessage 0x4e6c50,
@@ -2144,7 +2103,7 @@ void ai_ShowEvidenceVoidNews(AICHAR *toldRec, AICHAR *culpritRec)
    or more with 0x41bc) and the closing text (0x41be for several, 0x41bd for one), and shown to the sender
    ("_NACHRICHTEN_ZIGEUNER_05") */
 
-void ai_GypsyDeliveryText(AICHAR *from, int n, void **to)
+void ai_GypsyDeliveryText(AICHAR *from, int n, AICHAR **to)
 {
     char line[128];
     int i;
@@ -2155,8 +2114,8 @@ void ai_GypsyDeliveryText(AICHAR *from, int n, void **to)
         return;
     txt_Format(ai_NewsText, 0x41bf, from->id);
     for (i = 0; i < n; i++) {
-        if (((AICHAR *)to[i])->kind == 6 || ((AICHAR *)to[i])->kind == 7)
-            he_ShowNews(((AICHAR *)to[i])->netId, -1, ai_NewsText, 1, 0x5fb, "_NACHRICHTEN_ZIGEUNER_06");
+        if (to[i]->kind == 6 || to[i]->kind == 7)
+            he_ShowNews(to[i]->netId, -1, ai_NewsText, 1, 0x5fb, "_NACHRICHTEN_ZIGEUNER_06");
     }
     strcpy(ai_NewsText, txt_Ptrs[0x41ba]);
     if (n > 1) {
@@ -2164,14 +2123,14 @@ void ai_GypsyDeliveryText(AICHAR *from, int n, void **to)
         for (i = 0; i < 4; i++) {
             if (i >= last)
                 break;
-            txt_Format(line, 0x41bb, ((AICHAR *)to[i])->id);
+            txt_Format(line, 0x41bb, to[i]->id);
             strcat(ai_NewsText, line);
         }
         done = 0;
         for (; i < 4; i++) {
             if (done)
                 break;
-            txt_Format(line, 0x41bc, ((AICHAR *)to[i])->id);
+            txt_Format(line, 0x41bc, to[i]->id);
             strcat(ai_NewsText, line);
             done = 1;
         }
@@ -2180,7 +2139,7 @@ void ai_GypsyDeliveryText(AICHAR *from, int n, void **to)
         for (i = 0; i < 4; i++) {
             if (i >= 1)
                 break;
-            txt_Format(line, 0x41bb, ((AICHAR *)to[i])->id);
+            txt_Format(line, 0x41bb, to[i]->id);
             strcat(ai_NewsText, line);
         }
         strcat(ai_NewsText, txt_Ptrs[0x41bd]);
@@ -2361,17 +2320,15 @@ int gm_Opinion(int a, int b);
    then the quick-jump message 0x5ec to its netId with its building's id (+0x16c, +1), the object's id (+2) and
    the sound "_NACHRICHTEN_DOMIZIL_03"; he_RunTrainShare sends it when the research event 0x97 hands the result over */
 
-void ai_DomizilMessageResearch(AICHAR *toRec, AICHAR *cRec, int objRec, int kind)
+void ai_DomizilMessageResearch(AICHAR *toRec, AICHAR *cRec, AIOBJ *obj, int kind)
 {
     AICHAR *to;
     AICHAR *c;
-    AIOBJ *obj;
 
     to = toRec;
     if (to->kind != 6 && to->kind != 7)
         return;
     c = cRec;
-    obj = (AIOBJ *)objRec;
     txt_Format(ai_NewsText, 0x4074, c->name, c->family, kind + 0x4172);
     he_MessageBoxQuickjump(to->netId, -1, ai_NewsText, 0, 0x5ec, c->bld->id, obj->objId, 0,
                  "_NACHRICHTEN_DOMIZIL_03");
@@ -2380,17 +2337,15 @@ void ai_DomizilMessageResearch(AICHAR *toRec, AICHAR *cRec, int objRec, int kind
    and the kind text 0x9a8 + 2 * kind in place of the study name; he_LabIncident sends it when the research event
    0x98 sets the kind's place value */
 
-void ai_DomizilMessageResearchKind(AICHAR *toRec, AICHAR *cRec, int objRec, int kind)
+void ai_DomizilMessageResearchKind(AICHAR *toRec, AICHAR *cRec, AIOBJ *obj, int kind)
 {
     AICHAR *to;
     AICHAR *c;
-    AIOBJ *obj;
 
     to = toRec;
     if (to->kind != 6 && to->kind != 7)
         return;
     c = cRec;
-    obj = (AIOBJ *)objRec;
     txt_Format(ai_NewsText, 0x4075, c->name, c->family, kind * 2 + 0x9a8);
     he_MessageBoxQuickjump(to->netId, -1, ai_NewsText, 0, 0x5ec, c->bld->id, obj->objId, 0,
                  "_NACHRICHTEN_DOMIZIL_03");

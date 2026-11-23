@@ -31,7 +31,7 @@ unsigned short hmt_RecordCount(void);                                           
 unsigned short hmt_RandomRecord(short k);                                            /* 0x4ac150 */
 unsigned short hmt_RandomTextOffset(unsigned short k);                                   /* 0x4ac170 */
 unsigned short hmt_RecordTextId(unsigned short k, unsigned short n);                 /* 0x4ac1a0 */
-G11REC *hmt_GetRecord(unsigned short k);                                          /* 0x4ac1e0 */
+const G11REC *hmt_GetRecord(unsigned short k);                                          /* 0x4ac1e0 */
 int hmt_GetPrice(AICHAR *p);                                                     /* 0x4ac200, 500 * p's worth / the richest's, 1600..16000; 0 above p's goods value */
 void hmt_ApplyRecord(AICHAR *p, int d, unsigned short k);                           /* 0x4ac2f0 */
 extern HMTFILE hmt_File;                                                         /* 0x600f60, {-1, -1, 0, 0} */

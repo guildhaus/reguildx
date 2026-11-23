@@ -98,36 +98,22 @@ typedef struct AIINFO {                 /* given to ai_SendJobOrders */
 } AIINFO;
 
 typedef struct AIINFOP {                /* an AIINFO with the shuffled entry indices behind it (one local) */
-    int type;                           /* 0x00 */
-    AICHAR *ch;                         /* 0x04 */
-    AIENTRY *e;                         /* 0x08 */
-    AIOBJ *b;                           /* 0x0c */
-    AIOBJ *c;                           /* 0x10 */
-    int n1;                             /* 0x14 */
-    int n2;                             /* 0x18 */
-    int z1;                             /* 0x1c */
-    int z2;                             /* 0x20 */
+    union {
+        struct {
+            int type;                   /* 0x00 */
+            AICHAR *ch;                 /* 0x04 */
+            AIENTRY *e;                 /* 0x08 */
+            AIOBJ *b;                   /* 0x0c */
+            AIOBJ *c;                   /* 0x10 */
+            int n1;                     /* 0x14 */
+            int n2;                     /* 0x18 */
+            int z1;                     /* 0x1c */
+            int z2;                     /* 0x20 */
+        };
+        AIINFO head;                    /* 0x00, the AIINFO ai_SendJobOrders takes */
+    };
     int perm[32];                       /* 0x24 */
 } AIINFOP;
-
-typedef struct AIMAP {
-    int w;                              /* 0x00, width = height */
-    char pad04[0x10];
-    unsigned char *cells;               /* 0x14 */
-    char pad18[0x1a4c];
-    char names[8][0x40];                /* 0x1a64 */
-} AIMAP;
-
-typedef struct AIMAPREF {               /* 0x3e0 bytes */
-    AIMAP *map;                         /* 0x00 */
-    char pad04[0x3dc];
-} AIMAPREF;
-
-typedef struct AIPLANT {                /* a partial G15TREE (rd.h), what veg_FindType returns */
-    unsigned short id;                  /* 0x00, G15TREE.id (the plant type, 0 ends the table) */
-    char pad02[0x40];
-    unsigned char size;                 /* 0x42, G15TREE.size (its size in cells) */
-} AIPLANT;
 
 typedef struct AIWATCH {                /* 0xb00 bytes at 0xf895a0, what the watched building's masters did */
     AIBLD *bld;                         /* 0x000 */
@@ -159,20 +145,6 @@ typedef struct AIGRID {                 /* 24 bytes, a cell of the statistics gr
 
 extern AIFIN gm_PlayerRecords[16];     /* 0x7d5f80, the player records (gm_PlayerRecord finds a character's) */
 
-typedef struct AIMAPENT {               /* 24 bytes, the AI's view of the vegetation records at AIBLD.plants (rd.h
-                                           G15PLANT, the same 0x18-byte layout; ai.c includes rd.h now, so the readers
-                                           can take G15PLANT) */
-    int id;                             /* 0x00, G15PLANT.id */
-    int bldId;                          /* 0x04, G15PLANT.bldId, the building whose map holds it */
-    unsigned char x;                    /* 0x08, cell */
-    unsigned char z;                    /* 0x09 */
-    unsigned short type;                /* 0x0a, G15PLANT.type, the plant type (0 removes it) */
-    signed char size;                   /* 0x0c, size in cells */
-    signed char state;                       /* 0x0d, growth state; -1 free (veg_FindPlantId skips those) */
-    char pad0e[2];
-    int fallId;                         /* 0x10, G15PLANT.fallId, -1 for a plain plant (veg_SetPlant) */
-    int obj;                            /* 0x14, its 3D object */
-} AIMAPENT;
 
 
 extern AITIME ai_Time;                   /* 0x770ae0, the game clock */
@@ -185,9 +157,6 @@ extern int ai_NEntries;                 /* 0xf86a2c */
 extern AISLOT ai_Slots[128];            /* 0xf86a40 */
 extern AIENTRY ai_Entries[32];          /* 0xf88a40 */
 extern AIWATCH ai_Watch;                /* 0xf895a0 */
-#ifndef DATA_VIEWS_H
-extern AIMAPREF ai_MapRefs[];         /* 0xfd7c4c, @original: rd.h declares G15MAP * (its rd_BuildRoad 0x4bcc20 loads the first record's map: [0xfd7c4c], then [eax] and [eax+0x1a64]); ai.c indexes the 0x3e0-byte records (ai_MapRefs[bld].map) */
-#endif
 extern const unsigned int ai_BuildingTypeMasks[6];  /* 0x5eed70, lcmap.c: bit masks of building classes (three 64 bit masks) */
 extern float ai_DifficultyValue;              /* 0x5fef04 */
 extern float ai_DifficultyScale;              /* 0x5fef08 */

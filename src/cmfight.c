@@ -38,8 +38,6 @@ struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3S
 extern GAPDATA full_data_602568[];
 
 
-#define G17_I(m, o) (*(int *)&(m).data[o])
-#define G17_S(m, o) (*(short *)&(m).data[o])
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
 
@@ -96,41 +94,13 @@ typedef struct CMFIELD {            /* the head of one field of a field block (G
     unsigned short offset;          /* 0x02, the field's offset in the record */
     int values[1];                  /* 0x04, the values */
 } CMFIELD;
-typedef struct AIJOBTAIL {          /* AIJOB as message 0x1d sends and takes its data block: the record from 0xac */
-    char pad00[0xac];
-    char data[0xa0];                /* 0xac, the long message (cm_SetLongMsg 0xa0, cm_LongMsg) */
-} AIJOBTAIL;
-typedef struct CMNEWPARTYMSG {      /* 8 bytes, the data of message 0x27 (its handler cm_ExNewParty) */
-    int partyId;                    /* 0x00, the id the new scene party gets (ai_NextPartyId) */
-    int seed;                       /* 0x04, the party's random seed (G28REC.seed) */
-} CMNEWPARTYMSG;
-typedef struct CMJOINPARTYMSG {     /* 8 bytes, the data of message 0x29 (its handler cm_ExAddPartyMember) */
-    int partyId;                    /* 0x00, the scene party record (cm_PartyById) */
-    int member;                     /* 0x04, the member's netId (cm_AddPartyMember) */
-} CMJOINPARTYMSG;
-typedef struct CMWALKPATHMSG {      /* 0x24 bytes, the data of message 0x4f (its handler cm_ExWalkPath; no sender in
-                                       the sources, the path cells of a walk) */
-    char name[0x18];                /* 0x00, the character's object name ("sp_<id>") */
-    int from;                       /* 0x18, the first cell written */
-    int to;                         /* 0x1c, the cell past the path (the action's new path length) */
-    unsigned char cells[4];         /* 0x20, up to two cells, x and z bytes each */
-} CMWALKPATHMSG;
-typedef struct CMPOSMSG {           /* 0x10 bytes read, the data of message 0x32 (its handler cm_ExChrSetPos) */
-    int charId;                     /* 0x00, the character */
-    D3VECTOR pos;                   /* 0x04, its new position (ch_SetPos) */
-} CMPOSMSG;
 typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of cm_Grenades */
     D3OBJECT *obj;                  /* the object "ob_BOMBE", 0 = a free slot */
-    D3ANIM *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
+    D3PATH *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
     int x, y;                       /* 0x08, the target cell */
 } CMGRENADE;
 
 /* dcp unit split: the declarations of cm before the moved functions */
-typedef struct CMSPYREPORT {            /* an AIOBJ of kind 0xca (a spy report) as this unit reads it: the report's words
-                                           0x1c .. 0x37 (HESPYREPORT) after the object's head */
-    char pad1c[0x1c];
-    HESPYREPORT report;
-} CMSPYREPORT;
 
 AIWEAPON ai_WeaponRecords[10] = {  /* 0x60c7c0, the ten records ai_FindWeaponRecord searches; the last has id 0, the fallback */
     { 0x154, 120, 5, 20, 0, 1, 4, 1, 0, 80.0f, 2, "kampf/stich", 0x1163, 0 },
@@ -164,7 +134,7 @@ int cm_FightPaused = 0;  /* 0x6f0ce4, fight paused */
 AICHAR *cm_FightDefender = 0;  /* 0x6f0ce8, the defending side's leader */
 AICHAR *cm_FightAttacker = 0;  /* 0x6f0cec, the attacking side's leader */
 D3OBJECT *cm_PickMarker = 0;  /* 0x6f0cf0 */
-int cm_FightWinner = 0;  /* 0x6f0cf4 */
+AICHAR *cm_FightWinner = 0;  /* 0x6f0cf4 */
 int cm_FightSettled = 0;  /* 0x6f0cf8 */
 int cm_FightLootValue = 0;  /* 0x6f0cfc */
 int cm_UnreadBss = 0;  /* 0x6f0d00, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
@@ -289,7 +259,7 @@ char cm_FightWeaponLoss(AICHAR *ch)
             v = -neg;
             cm_DiscardWeapons(c);
             cm_BeginFieldBlock(c, c->netId);
-            cm_AddFieldValues(1, 1, (int)((char *)c - cm_FieldObject) + 0x1c5, &v);
+            cm_AddFieldValues(1, 1, (char *)&c->b1c5 - cm_FieldObject, &v);
             cm_SendFieldDeltas();
             if (c->bld != 0 && c->bld->owner != 0xffff) {
                 owner = &ai_Chars[c->bld->owner];
@@ -304,7 +274,7 @@ char cm_FightWeaponLoss(AICHAR *ch)
             return 1;
         }
         cm_BeginFieldBlock(c, c->netId);
-        cm_AddFieldValues(1, 1, (int)((char *)c - cm_FieldObject) + 0x1c5, &v);
+        cm_AddFieldValues(1, 1, (char *)&c->b1c5 - cm_FieldObject, &v);
         cm_SendFieldDeltas();
         cm_SendSetField(c->netId, 0x1c8, 4, 0, 0x20000000);
     }
@@ -420,7 +390,7 @@ CMCUTENTRY *cm_FightCutEntry(AICHAR *c)
 
 int cm_CellUsable(int x, int y)
 {
-    D3SM *g = (D3SM *)d3_DefaultScene->hmap;
+    D3SM *g = d3_DefaultScene->hmap;
     int w = g->size;
     int type;
 
@@ -439,7 +409,7 @@ int cm_CellUsable(int x, int y)
 
 int cm_FindNearCell(int a, int b, int *ox, int *oy)
 {
-    int w = ((D3SM *)d3_DefaultScene->hmap)->size;
+    int w = (d3_DefaultScene->hmap)->size;
     int d, y, x, k, ylo, yhi, xlo, xhi;
 
     for (d = 0; d < 0x40; d++) {
@@ -491,12 +461,12 @@ int ai_LedSelectBits(int idx, AICHAR *c)
 }
 /* 0x4ce1b0, the distance of the character c's model to the object o (x / z) */
 
-float cm_CharObjDistXZ(AICHAR *c, char *o)
+float cm_CharObjDistXZ(AICHAR *c, D3OBJECT *o)
 {
     D3VECTOR4 v, d;
 
-    v.x = ((D3OBJECT *)o)->pos.x;
-    v.z = ((D3OBJECT *)o)->pos.z;
+    v.x = o->pos.x;
+    v.z = o->pos.z;
     d.x = c->scene->obj->pos.x;
     d.z = c->scene->obj->pos.z;
     d.x = v.x - d.x;
@@ -510,7 +480,7 @@ float cm_CharCellDistXZ(AICHAR *c, int x, int y)
     D3VECTOR4 v, d;
     D3VECTOR b;
 
-    d3sm_GetVertex((struct D3SM *)d3_DefaultScene->hmap, x, y, &v.v);
+    d3sm_GetVertex(d3_DefaultScene->hmap, x, y, &v.v);
     v.y = 0;
     b.x = c->scene->obj->pos.x;
     b.z = c->scene->obj->pos.z;
@@ -557,7 +527,7 @@ int cm_UpdateBombs()
     AICHAR *c;
     CHARACTER *ch;
     D3OBJECT *bo;
-    struct { float x, y, z; int w; } a, b;   /* @original the pad word is an int: its 0 stores use the cached zero register */
+    struct { union { struct { float x, y, z; }; D3VECTOR v; }; int w; } a, b;   /* @original the pad word is an int: its 0 stores use the cached zero register */
     D3COLOR col;
     float dist;
     int i, j, t, amt;
@@ -587,9 +557,9 @@ int cm_UpdateBombs()
         a.x = rec->obj->pos.x;
         a.y = rec->obj->pos.y;
         a.z = rec->obj->pos.z;
-        d3t_CreateSmoke(0, (D3VECTOR *)&a, 0x1e, 15.0f, 50.0f, 100.0f, 150.0f, 140.0f, 35.0f, (D3VECTOR *)&b, 0x190, 6, col);
-        d3t_CreateEarth(0, (D3VECTOR *)&a, 0x1e, 5.0f, 2.5f, 1.0f, 3.0f, -3.0f, 4.0f, 7.0f, 8.0f, col);
-        d3t_CreateExplosion(0, (D3VECTOR *)&a, 0x1e, 120.0f, 80.0f, 20.0f, 60.0f, 0x3c);
+        d3t_CreateSmoke(0, &a.v, 0x1e, 15.0f, 50.0f, 100.0f, 150.0f, 140.0f, 35.0f, &b.v, 0x190, 6, col);
+        d3t_CreateEarth(0, &a.v, 0x1e, 5.0f, 2.5f, 1.0f, 3.0f, -3.0f, 4.0f, 7.0f, 8.0f, col);
+        d3t_CreateExplosion(0, &a.v, 0x1e, 120.0f, 80.0f, 20.0f, 60.0f, 0x3c);
         for (j = 0; j < 32; j++) {
             if (ai_SceneChars[j] == 0)
                 continue;
@@ -636,7 +606,7 @@ CMGRENADE *cm_ThrowGrenade(D3VECTOR *p, int x, int y)
     rot.x = 0;
     rot.y = 0;
     rot.z = 0;
-    g = (struct D3SM *)d3_DefaultScene->hmap;
+    g = d3_DefaultScene->hmap;
     for (i = 0; i < 32; i++) {
         if (cm_Grenades[i].obj != 0)
             continue;
@@ -687,7 +657,7 @@ CMGRENADE *cm_ThrowGrenade(D3VECTOR *p, int x, int y)
     }
     return 0;
 }
-/* 0x4ce830, updates the thrown bombs of cm_Grenades: one whose path has ended (flag 0x20 of D3ANIM.flags2d) explodes
+/* 0x4ce830, updates the thrown bombs of cm_Grenades: one whose path has ended (flag 0x20 of D3PATH.flags.b[1]) explodes
    (smoke, earth and explosion effects at its position), lowers the terrain at its cell by 5 and clears the cell's
    type there (the map rebuilt), sounds "Explosion_s" and hurts every scene character within 100.0 of the cell's
    vertex by a random weapon damage (0x176) scaled by its life value and the distance; returns the number of used
@@ -701,12 +671,12 @@ int cm_UpdateGrenades()
     CMGRENADE *rec;
     AICHAR *c;
     CHARACTER *ch;
-    struct { float x, y, z; int w; } a, b;   /* @original the pad word is an int: its 0 stores use the cached zero register */
+    struct { union { struct { float x, y, z; }; D3VECTOR v; }; int w; } a, b;   /* @original the pad word is an int: its 0 stores use the cached zero register */
     D3COLOR col;
     float dist;
     int i, j, t, amt;
 
-    g = (struct D3SM *)d3_DefaultScene->hmap;
+    g = d3_DefaultScene->hmap;
     cnt = 0;
     w = ai_FindWeaponRecord(0x176);
     for (i = 0; i < 32; i++) {
@@ -714,7 +684,7 @@ int cm_UpdateGrenades()
         if (rec->obj == 0)
             continue;
         cnt++;
-        if (!(rec->anim->flags2d & 0x20))
+        if (!(rec->anim->flags.b[1] & 0x20))
             continue;
         a.x = -243.0f;
         a.y = -90.0f;
@@ -731,16 +701,16 @@ int cm_UpdateGrenades()
         a.x = rec->obj->pos.x;
         a.y = rec->obj->pos.y;
         a.z = rec->obj->pos.z;
-        d3t_CreateSmoke(0, (D3VECTOR *)&a, 0x1e, 15.0f, 50.0f, 100.0f, 150.0f, 140.0f, 35.0f, (D3VECTOR *)&b, 0x190, 6, col);
-        d3t_CreateEarth(0, (D3VECTOR *)&a, 0x1e, 5.0f, 2.5f, 1.0f, 3.0f, -3.0f, 4.0f, 7.0f, 8.0f, col);
-        d3t_CreateExplosion(0, (D3VECTOR *)&a, 0x1e, 70.0f, 50.0f, 20.0f, 60.0f, 0x3c);
+        d3t_CreateSmoke(0, &a.v, 0x1e, 15.0f, 50.0f, 100.0f, 150.0f, 140.0f, 35.0f, &b.v, 0x190, 6, col);
+        d3t_CreateEarth(0, &a.v, 0x1e, 5.0f, 2.5f, 1.0f, 3.0f, -3.0f, 4.0f, 7.0f, 8.0f, col);
+        d3t_CreateExplosion(0, &a.v, 0x1e, 70.0f, 50.0f, 20.0f, 60.0f, 0x3c);
         /* @original the cell index reads x through the table and y through rec: written this way VC6 keeps the
            index as one value for both arrays */
-        if (((D3FLMAP *)d3_Terrain)->types[cm_Grenades[i].x + rec->y * ((D3FLMAP *)d3_Terrain)->size] != 0) {
-            ((D3FLMAP *)d3_Terrain)->height[cm_Grenades[i].x + rec->y * ((D3FLMAP *)d3_Terrain)->size] -= 5;
-            ((D3FLMAP *)d3_Terrain)->types[rec->x + rec->y * ((D3FLMAP *)d3_Terrain)->size] = 0;
-            d3fl_MakeDivide((D3FLMAP *)d3_Terrain);
-            d3fl_MakeLight((D3FLMAP *)d3_Terrain);
+        if (d3_Terrain->types[cm_Grenades[i].x + rec->y * d3_Terrain->size] != 0) {
+            d3_Terrain->height[cm_Grenades[i].x + rec->y * d3_Terrain->size] -= 5;
+            d3_Terrain->types[rec->x + rec->y * d3_Terrain->size] = 0;
+            d3fl_MakeDivide(d3_Terrain);
+            d3fl_MakeLight(d3_Terrain);
         }
         sb_PlaySample(cm_BombSounds, "Explosion_s", 1, 0x3f, 0x7f, 0, 0);
         for (j = 0; j < 32; j++) {
@@ -750,7 +720,7 @@ int cm_UpdateGrenades()
             c = ai_SceneChars[j];
             if (c->health == 0)
                 continue;
-            d3sm_GetVertex(g, rec->x, rec->y, (D3VECTOR *)&a);
+            d3sm_GetVertex(g, rec->x, rec->y, &a.v);
             a.x -= ch->obj->pos.x;
             a.y -= ch->obj->pos.y;
             a.z -= ch->obj->pos.z;
@@ -774,9 +744,9 @@ int cm_UpdateGrenades()
 }
 /* 0x4ceb70, the game record the object c stands for (its owner) */
 
-int cm_ObjectOwner(char *c)
+void *cm_ObjectOwner(D3OBJECT *c)
 {
-    return (int)((D3OBJECT *)c)->owner;
+    return c->owner;
 }
 /* 0x4ceb80, waits for the event id to end, then stops it */
 
@@ -1029,7 +999,7 @@ void cm_UpdateSceneChars()
                 for (j = 0; j < 32; j++) {
                     d = ai_SceneChars[j];
                     if (d != 0 && cm_OtherBuilding(c, d) != 0 && d->health != 0) {
-                        dist = cm_CharObjDistXZ(c, (char *)d->scene->obj);
+                        dist = cm_CharObjDistXZ(c, d->scene->obj);
                         if (dist < 100.0f) {
                             found = 1;
                             if (dist < best)
@@ -1107,7 +1077,7 @@ void cm_DrawScrollArrows(void)
         if (d3_VecEqual(&d3_Camera->views[2].pos, &d3_Origin.v, 0.2f) == 0)
             b = 1;
     }
-    d2_SetClipRect(0, 0, ((D2SURF *)d2_ScreenSurf)->w, ((D2SURF *)d2_ScreenSurf)->h);
+    d2_SetClipRect(0, 0, d2_ScreenSurf->w, d2_ScreenSurf->h);
     if (a == 2)
         d2_DrawShape(d2_ScreenW / 2 - 0x14, (int)(d2_ScreenScale * 525.0f - 30.0f), d2_ScreenSurf, t, 0);
     else if (a == 1)
@@ -1211,7 +1181,6 @@ void cm_UpdatePointer()
     d2_PointerLook = 0;
 }
 
-#define G19_E(e, o) (*(int *)((e) + (o)))
 
 /* 0x4cf9c0, refreshes the portrait boxes cm_Portraits: after a click a portrait's checked state becomes its
    character's selection; each box of a character whose body is of type 1 hides its window and frame, the others
@@ -1390,7 +1359,7 @@ void cm_ClickSceneChar()
 
 int cm_OrderAttack(CMCUTINFO *rec, AICHAR *c, AICHAR *tgt, int x, int z)
 {
-    D3SM *hmap = (D3SM *)d3_DefaultScene->hmap;
+    D3SM *hmap = d3_DefaultScene->hmap;
     AICHAR *ch = c;
     AICHAR *t = tgt;
     AIWEAPON *w;
@@ -1453,7 +1422,7 @@ int cm_OrderAttack(CMCUTINFO *rec, AICHAR *c, AICHAR *tgt, int x, int z)
     }
     if (ch->formation == 1 || ch->formation == 2 || ch->formation == 3)
         order.held = 1;
-    cm_SendCutEntry(((CMCUTINFO *)rec)->playerId, &order);
+    cm_SendCutEntry(rec->playerId, &order);
 }
 /* 0x4d0200, orders the character c of the cutscene record rec (CMCUTINFO) to flee to the escape object tgt
    ("sp_ESCAPE"): its entry (cm_CutEntrySlot, b0c cleared there) is copied with state 3 and the ground cell of tgt's
@@ -1462,7 +1431,7 @@ int cm_OrderAttack(CMCUTINFO *rec, AICHAR *c, AICHAR *tgt, int x, int z)
 
 int cm_OrderEscape(CMCUTINFO *rec, AICHAR *c, D3OBJECT *tgt)
 {
-    D3SM *hmap = (D3SM *)d3_DefaultScene->hmap;
+    D3SM *hmap = d3_DefaultScene->hmap;
     CMCUTENTRY *e;
     CMCUTENTRY order;
     D3VECTOR4 v;                        /* d3_PointToWorld writes the point and the angle after it */
@@ -1483,7 +1452,7 @@ int cm_OrderEscape(CMCUTINFO *rec, AICHAR *c, D3OBJECT *tgt)
     order.stateArg = x;
     order.state = 3;
     order.x = z;
-    cm_SendCutEntry(((CMCUTINFO *)rec)->playerId, &order);
+    cm_SendCutEntry(rec->playerId, &order);
 }
 /* 0x4d02d0, an order kind 4 (the walk to a named dummy) for the character c with the name of the object tgt
    (CMCUTENTRY.dummy) and its ground cell (cellX, cellZ); returns 1, 0 when the point is not on the ground. */
@@ -1516,7 +1485,7 @@ int cm_OrderConquer(CMCUTINFO *rec, AICHAR *c, D3OBJECT *tgt)
 
 int cm_OrderWare(CMCUTINFO *rec, AICHAR *c, D3OBJECT *tgt)
 {
-    D3SM *hmap = (D3SM *)d3_DefaultScene->hmap;
+    D3SM *hmap = d3_DefaultScene->hmap;
     CMCUTENTRY *q;
     CMCUTENTRY order;
     D3VECTOR4 v;
@@ -1535,7 +1504,7 @@ int cm_OrderWare(CMCUTINFO *rec, AICHAR *c, D3OBJECT *tgt)
     strcpy(order.dummy, tgt->name);
     order.storeX = (unsigned char)x;
     order.storeZ = (unsigned char)z;
-    return cm_SendCutEntry(((CMCUTINFO *)rec)->playerId, &order);
+    return cm_SendCutEntry(rec->playerId, &order);
 }
 /* 0x4d0460, orders the character c of the cutscene record rec (CMCUTINFO) to the best ground cell within 8 rings of
    its own (cm_BestCellNear, formation type 4): its entry (cm_CutEntrySlot, b0c cleared there) is copied with state 7 and
@@ -1544,7 +1513,7 @@ int cm_OrderWare(CMCUTINFO *rec, AICHAR *c, D3OBJECT *tgt)
 
 int cm_OrderToBestCell(CMCUTINFO *rec, AICHAR *c)
 {
-    D3SM *hmap = (D3SM *)d3_DefaultScene->hmap;
+    D3SM *hmap = d3_DefaultScene->hmap;
     AICHAR *ch = c;
     CMCUTENTRY *e;
     CMCUTENTRY order;
@@ -1559,7 +1528,7 @@ int cm_OrderToBestCell(CMCUTINFO *rec, AICHAR *c)
         order.stateArg = x;
         order.state = 7;
         order.x = z;
-        return cm_SendCutEntry(((CMCUTINFO *)rec)->playerId, &order);
+        return cm_SendCutEntry(rec->playerId, &order);
     }
     return -1;
 }
@@ -1577,7 +1546,7 @@ void cm_OrderWait(CMCUTINFO *rec, AICHAR *c)
     memcpy(&order, q, sizeof(order));
     order.charId = c->netId;
     order.state = 8;
-    cm_SendCutEntry(((CMCUTINFO *)rec)->playerId, &order);
+    cm_SendCutEntry(rec->playerId, &order);
 }
 
 /* 0x4d0570, the order of a mouse click (dm_L.lup) for the character c of the cutscene record rec (CMCUTINFO): on a
@@ -1615,7 +1584,7 @@ char cm_OrderClick(CMCUTINFO *rec, AICHAR *c)
                 ret = 1;
             }
         } else {
-            map = (D3SM *)d3_DefaultScene->hmap;
+            map = d3_DefaultScene->hmap;
             if (d3sm_Pick(map, dm_L.x + 0x1a, dm_L.y + 0x1a, &x, &z)) {
                 e = cm_CutEntrySlot(rec, c);
                 e->b0c = 0;
@@ -1624,7 +1593,7 @@ char cm_OrderClick(CMCUTINFO *rec, AICHAR *c)
                 order.stateArg = x;
                 order.state = 1;
                 order.x = z;
-                cm_SendCutEntry(((CMCUTINFO *)rec)->playerId, &order);
+                cm_SendCutEntry(rec->playerId, &order);
                 ret = 1;
             } else
                 sv_SetStatusText(txt_Ptrs[TXT_CLICK_NO_GROUND]);
@@ -1717,7 +1686,7 @@ struct AICHAR *cm_AddFighter(int id, char *dummy)
     for (i = 0; i < 32; i++) {
         if (cm_Fighters[i].id == 0xffff) {
             memcpy(&cm_Fighters[i], c, sizeof(AICHAR));
-            cm_Fighters[i].v1ac = 0;
+            cm_Fighters[i].fightWare = 0;
             cm_Fighters[i].scene = 0;
             gm_CreateCharModel(&cm_Fighters[i], d3_CurrentScene, 0, 0, 0, dummy);
             cm_Fighters[i].scene->pathType = 4;
@@ -1762,15 +1731,15 @@ void cm_CollectSceneChars(void)
 char cm_CreateDummyFlag(D3OBJECT *obj, void *ctx)
 {
     D3OBJECT *r;
-    float pos[4];
-    float rot[3];
+    D3VECTOR4 pos;
+    D3VECTOR rot;
 
     if (strstr(obj->name, "dummy_sp_ESCAPE") != 0) {
-        rot[0] = 0;
-        rot[1] = 0;
-        rot[2] = 0;
-        d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)pos);
-        r = d3_CreateObject(0, (D3VECTOR *)pos, (D3VECTOR *)rot, "ub_FLUCHTFLAGGE");
+        rot.x = 0;
+        rot.y = 0;
+        rot.z = 0;
+        d3_PointToWorld(obj, &obj->pos, &pos.v);
+        r = d3_CreateObject(0, &pos.v, &rot, "ub_FLUCHTFLAGGE");
         cm_FlagObjects[cm_FlagObjectCount] = r;
         strcpy(r->name, "sp_ESCAPE");
         cm_FlagObjects[cm_FlagObjectCount]->kind = 4;
@@ -1782,11 +1751,11 @@ char cm_CreateDummyFlag(D3OBJECT *obj, void *ctx)
         return 1;
     }
     if (strstr(obj->name, "dummy_CONQUER") != 0) {
-        rot[0] = 0;
-        rot[1] = 0;
-        rot[2] = 0;
-        d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)pos);
-        r = d3_CreateObject(0, (D3VECTOR *)pos, (D3VECTOR *)rot, "ub_CONQUER");
+        rot.x = 0;
+        rot.y = 0;
+        rot.z = 0;
+        d3_PointToWorld(obj, &obj->pos, &pos.v);
+        r = d3_CreateObject(0, &pos.v, &rot, "ub_CONQUER");
         cm_FlagObjects[cm_FlagObjectCount] = r;
         d3if_SelectTextureSet(r, r->info, 1, 1);
         sprintf(cm_FlagObjects[cm_FlagObjectCount]->name, "sp_CONQUER_%i", cm_FlagObjectCount);
@@ -1821,7 +1790,7 @@ int cm_FreeNetIdSlot(int *a)
 /* arms the next guard: takes the first free slot i of rec, the character ai_KindBChars[i] gives up its weapons and
    gets the item ITEM, loses its v024 health and its skill sk83 is set to SKILL (a field delta of the character).
    The original repeats this code inline (the four copies of 0x4d0cf0 reload ai_KindBChars[i] each time) */
-#define CM_ARM_GUARD(ITEM, SKILL)                                                                             i = cm_FreeNetIdSlot(rec->fight.defenders);                                                                           rec->fight.defenders[i] = ai_KindBChars[i]->netId;                                                               cm_DiscardWeapons(ai_KindBChars[i]);                                                            cm_SendExSellObject(ai_KindBChars[i]->netId, -1, ITEM, 1, ai_OwnPlayer, 0);                              gm_AddHealth(ai_KindBChars[i]->id, -ai_KindBChars[i]->v024);                                            skill = SKILL;                                                                                            cm_BeginFieldBlock(ai_KindBChars[i], ai_KindBChars[i]->netId);                                  cm_AddFieldDelta(1, 1, (unsigned short)((char *)ai_KindBChars[i] - cm_FieldObject + 0x83), &skill);      cm_SendFieldDeltas()
+#define CM_ARM_GUARD(ITEM, SKILL)                                                                             i = cm_FreeNetIdSlot(rec->fight.defenders);                                                                           rec->fight.defenders[i] = ai_KindBChars[i]->netId;                                                               cm_DiscardWeapons(ai_KindBChars[i]);                                                            cm_SendExSellObject(ai_KindBChars[i]->netId, -1, ITEM, 1, ai_OwnPlayer, 0);                              gm_AddHealth(ai_KindBChars[i]->id, -ai_KindBChars[i]->v024);                                            skill = SKILL;                                                                                            cm_BeginFieldBlock(ai_KindBChars[i], ai_KindBChars[i]->netId);                                  cm_AddFieldDelta(1, 1, (unsigned short)((char *)&ai_KindBChars[i]->sk83 - cm_FieldObject), &skill);      cm_SendFieldDeltas()
 
 /* 0x4d0cf0, arms the guards of the town gate event: kind 1 two guards with the item 0x156 (sk83 = 0xa8), kinds 2 / 3
    one with 0x158 and one with 0x160 (sk83 = 0xd2); a nonzero kind is kept in rec->fight.escort (the fight party of the ambush,
@@ -1871,7 +1840,7 @@ void cm_SetupFightScene(G28REC *rec)
 {
     char name[0x100];
     D3VECTOR4 pos;
-    char order[9];
+    signed char order[9];
     AIOBJ *goods[3];
     int k, n, border, i;
     int *cart;
@@ -1881,7 +1850,7 @@ void cm_SetupFightScene(G28REC *rec)
     AICHAR *r;
     D3SM *sc;
     AIBTYPE *t;
-    char *p;
+    signed char *p;
 
     border = 10;
     if (rec->fight.flags & 1) {
@@ -1920,7 +1889,7 @@ void cm_SetupFightScene(G28REC *rec)
                 cm_LoadEventScene("Kampfszenario_STADTWACHE_GROSS.ed3");
         }
     }
-    sc = (D3SM *)d3_DefaultScene->hmap;
+    sc = d3_DefaultScene->hmap;
     cm_ApplySeason();
     if (d3_Terrain != 0) {
         d3_Scenes[d3_CurrentScene].sky = d3_Scenes[0].sky;
@@ -1978,9 +1947,9 @@ void cm_SetupFightScene(G28REC *rec)
     }
     cm_BootsObject = d3io_LoadObjectRef("ub_STIEFEL", "ub_STIEFEL");
     if (sc == 0) {
-        d3_DefaultScene->hmap = d3sm_Create((struct D3TERRAIN *)d3_Terrain,
+        d3_DefaultScene->hmap = d3sm_Create(d3_Terrain,
                                                              d3_DefaultScene->mapSize, 2);
-        sc = (D3SM *)d3_DefaultScene->hmap;
+        sc = d3_DefaultScene->hmap;
     }
     cm_FightCellScale = sc->cell.x * 1.1;
     sv_ScrollSpeed = 0.15f;
@@ -2079,7 +2048,7 @@ void cm_SetupFightScene(G28REC *rec)
                 d3if_ShowTree(o, 0);
         }
     }
-    d3sm_Build((struct D3SM *)d3_DefaultScene->hmap, (struct D3TERRAIN *)d3_Terrain);
+    d3sm_Build(d3_DefaultScene->hmap, d3_Terrain);
     for (i = 0; i < border; i++) {
         for (k = i; k < sc->size; k++) {
             sc->entries[(sc->size - 1) * i + k].type = 0xd;
@@ -2173,7 +2142,7 @@ void cm_PlaceFighters(int *ids, char *side)
 
     ranged = 1;
     melee = 1;
-    sc = (D3SM *)d3_DefaultScene->hmap;
+    sc = d3_DefaultScene->hmap;
     for (i = 0; i < 16; i++) {
         if (ids[i] == -1)
             continue;
@@ -2272,7 +2241,7 @@ AICHAR *cm_NearestEnemy(AICHAR *c)
         for (i = 0; i < 32; i++) {
             if (ai_SceneChars[i] != 0 && cm_OtherBuilding(c, ai_SceneChars[i]) != 0 &&
                 ai_SceneChars[i]->health != 0) {
-                d = cm_CharObjDistXZ(c, (char *)ai_SceneChars[i]->scene->obj);
+                d = cm_CharObjDistXZ(c, ai_SceneChars[i]->scene->obj);
                 if (gm_HealthRatio(ai_SceneChars[i]) * d < best) {
                     res = ai_SceneChars[i];
                     best = d;
@@ -2283,7 +2252,7 @@ AICHAR *cm_NearestEnemy(AICHAR *c)
         for (i = 0; i < 32; i++) {
             if (ai_SceneChars[i] != 0 && cm_OtherBuilding(c, ai_SceneChars[i]) != 0 &&
                 ai_SceneChars[i]->health != 0) {
-                d = cm_CharObjDistXZ(c, (char *)ai_SceneChars[i]->scene->obj);
+                d = cm_CharObjDistXZ(c, ai_SceneChars[i]->scene->obj);
                 if (gm_HealthRatio(ai_SceneChars[i]) * d < best) {
                     res = ai_SceneChars[i];
                     best = d;
@@ -2307,7 +2276,7 @@ float cm_ThreatAt(AICHAR *c, int a, int b, float limit)
     float d, dx, dy, dz;
     int i;
 
-    sc = (D3SM *)d3_DefaultScene->hmap;
+    sc = d3_DefaultScene->hmap;
     threat = 0.0f;
     if (c->side == cm_FightAttacker) {      /* in a fight: the side's leader */
         own = cm_FightRecord->fight.attackers;
@@ -2364,7 +2333,7 @@ int cm_BestCellNear(AICHAR *c, int cx, int cy, int r, int *ox, int *oy)
     float f;
     int k, row, col, hi, hic, m, type;
 
-    sc = (D3SM *)d3_DefaultScene->hmap;
+    sc = d3_DefaultScene->hmap;
     k = 0;
     best = 1000000000.0f;
     for (; k < r; k++) {
@@ -2410,7 +2379,7 @@ int cm_MostThreatenedCellNear(AICHAR *c, int cx, int cy, int r, int *ox, int *oy
     float f;
     int k, row, col, hi, hic, m, type;
 
-    sc = (D3SM *)d3_DefaultScene->hmap;
+    sc = d3_DefaultScene->hmap;
     k = 0;
     best = 0.0f;
     for (; k < r; k++) {
@@ -2941,7 +2910,7 @@ void cm_CarryOutOrder(CMCUTINFO *rec, AICHAR *c)
         if ((k->kind == 1 || k->kind == 2) && cm_CharWeaponItem(c)->usesLeft <= 0)
             return;
         if (k->kind == 2) {
-            sc = (D3SM *)d3_DefaultScene->hmap;
+            sc = d3_DefaultScene->hmap;
             if ((char)d3_GetHeightAt(sc, &c->scene->obj->pos, &x, &y, &h) == 0)
                 return;
             if (cm_MostThreatenedCellNear(c, x, y, (int)(500.0f / sc->cell.x), &x, &y) == 0)
@@ -3023,12 +2992,12 @@ int cm_CheckDeath(AICHAR *c)
             c->v024 = (int)(10.0 - (int)c->f01c);
             txt_Format(buf, 0x1182, c->id);
         }
-        ware = (D3OBJECT *)c->v1ac;
+        ware = c->fightWare;
         if (ware != 0) {
             d3_SetWorldPosRot(ware, &c->scene->obj->pos, &c->scene->obj->matrix);
             d3if_Show(ware, 1);
-            c->v1ac = 0;
-            ((AIOBJ *)cm_ObjectOwner((char *)ware))->fightSide = cm_FightDefender->id;
+            c->fightWare = 0;
+            ((AIOBJ *)cm_ObjectOwner(ware))->fightSide = cm_FightDefender->id;
         }
         sv_SetStatusText(buf);
         return 1;
@@ -3070,7 +3039,7 @@ void cm_HitAction(CHACTION *a)
     vw = cm_CharWeapon(victim);
     hw = cm_CharWeapon(hitter);
     ch_GetHMap(victim->scene);
-    if (hw == 0 || cm_CharObjDistXZ(hitter, (char *)victim->scene->obj) > hw->range) {
+    if (hw == 0 || cm_CharObjDistXZ(hitter, victim->scene->obj) > hw->range) {
         damage = 0;
         ok = 0;
     }
@@ -3079,7 +3048,7 @@ void cm_HitAction(CHACTION *a)
         if (item != 0) {
             int v = -1;
             cm_BeginFieldBlock(item, item->objId);
-            cm_AddFieldValues(4, 1, (unsigned short)((char *)item - cm_FieldObject + 0x20), &v);
+            cm_AddFieldValues(4, 1, (unsigned short)((char *)&item->usesLeft - cm_FieldObject), &v);
             cm_SendFieldDeltas();
         }
     }
@@ -3139,9 +3108,9 @@ void cm_HitAction(CHACTION *a)
 }
 /* 0x4d3980, an explosion event: the fuse sound "ZuendschnurBrennt_l_01", the attacker's worker count synced, 0x4ce290 */
 
-void cm_LayBombAction(char *ev)
+void cm_LayBombAction(CHACTION *ev)
 {
-    AICHAR *att = ((CHACTION *)ev)->pot.thrower;
+    AICHAR *att = ev->pot.thrower;
     AIWEAPON *k;
     AIOBJ *r;
 
@@ -3155,9 +3124,9 @@ void cm_LayBombAction(char *ev)
 /* 0x4d3a30, a bomb event: for the player's side the thrower's used weapon item is synced (its uses field -1),
    then a grenade (cm_ThrowGrenade, 0x4ce5d0) is thrown from the thrower's body to the cell aimed at */
 
-void cm_ThrowBombAction(char *ev)
+void cm_ThrowBombAction(CHACTION *ev)
 {
-    CHACTION *b = (CHACTION *)ev;
+    CHACTION *b = ev;
     AICHAR *att = b->bomb.thrower;
     AIOBJ *r;
 
@@ -3169,26 +3138,26 @@ void cm_ThrowBombAction(char *ev)
 /* 0x4d3ac0, a fighter's cheer (fight command 1, cm_FightSlotCheer with "gestik/jubeln"): the cheering character's
    model is hidden (ch_SetVisible, 0x402480) */
 
-void cm_CheerAction(char *ev)
+void cm_CheerAction(CHACTION *ev)
 {
-    CHACTION *b = (CHACTION *)ev;
+    CHACTION *b = ev;
 
     ch_SetVisible(b->cheer.fighter->scene, 0);
 }
 /* 0x4d3ae0, the end of a pick-up (fight command 4, cm_FightSlotPickUp): the object picked up gets the fight's
    attacker side as its owner (AIOBJ.fightSide), is carried by the fighter (AICHAR.v1ac) and hidden on the ground */
 
-void cm_PickUpAction(char *ev)
+void cm_PickUpAction(CHACTION *ev)
 {
-    CHACTION *b = (CHACTION *)ev;
+    CHACTION *b = ev;
     AICHAR *att = b->pickUp.fighter;
     D3OBJECT *o = b->pickUp.object;
     AIOBJ *p;
 
-    p = (AIOBJ *)cm_ObjectOwner((char *)o);
+    p = cm_ObjectOwner(o);
     if (p != 0) {
         p->fightSide = cm_FightAttacker->id;
-        att->v1ac = (int)o;
+        att->fightWare = o;
     }
     d3if_ShowTree(o, 0);
 }
@@ -3213,7 +3182,7 @@ AICHAR *cm_CheckFightWinner(G28REC *rec)
     owned = 0;
     flags = 0;
     if (cm_FightWinner != 0)
-        return (AICHAR *)cm_FightWinner;
+        return cm_FightWinner;
     nDef = 0;
     for (i = 0; i < 16; i++) {
         if (rec->fight.defenders[i] != -1) {
@@ -3717,7 +3686,7 @@ void cm_FightEndDialog(G28REC *a)
         }
     }
     side = cm_FightWinner == 0 ? (nb > na ? cm_FightAttacker : cm_FightDefender)
-                               : (cm_FightWinner == (int)cm_FightAttacker ? cm_FightDefender : cm_FightAttacker);
+                               : (cm_FightWinner == cm_FightAttacker ? cm_FightDefender : cm_FightAttacker);
     win = d2_OpenForm(0, 0, "cutscenes\\combat_end");
     d2_PlaceMainWindow(win, 3);
     d2_SetForm(win, 2);
@@ -4262,7 +4231,7 @@ void cm_FightFrame(CMCUTINFO *r)
             memcpy(&sl, q, sizeof(CMCUTENTRY));
             sl.charId = cm_CutChar->netId;
             sl.state = 5;
-            cm_SendCutEntry(((CMCUTINFO *)r)->playerId, &sl);
+            cm_SendCutEntry(r->playerId, &sl);
         }
     } else
         sv_PopRequest = 1;
@@ -4307,7 +4276,7 @@ void cm_CloseFightUI(void)
    The pot queues cm_LayBombAction (the thrower's own fight places it at the free cell near him, cm_SendObjCell), the
    bomb cm_ThrowBombAction with the throw sound; both end the action. */
 
-void cm_FighterAct(CMFIGHTSLOT *f)
+void cm_FighterAct(CMCUTENTRY *f)
 {
     struct D3SM *h = d3_DefaultScene->hmap;
     AICHAR *c, *tgt, *side;
@@ -4317,16 +4286,16 @@ void cm_FighterAct(CMFIGHTSLOT *f)
     int dmg, lands, ox, oy;
     float py;
 
-    if (f->active == 0 || f->id == -1)
+    if (f->state == 0 || f->charId == -1)
         return;
-    c = cm_FindFighter(f->id);
+    c = cm_FindFighter(f->charId);
     k = cm_CharWeapon(c);
     side = c->side;  /* in a fight: the leader of the fighter's side */
-    tgt = cm_FindFighter(f->target);
+    tgt = cm_FindFighter(f->stateArg);
     if (tgt != 0)
         tgt->v024 = f->health;
     if (!(k != 0 && (k->id == 0x174 || k->id == 0x176))) {
-        if (f->hit != 0 && ((x = c->scene->actions) == 0 || x->type == 0x2d || x->type == 0x3a)) {
+        if (f->turn != 0 && ((x = c->scene->actions) == 0 || x->type == 0x2d || x->type == 0x3a)) {
             if (util_Random(10) > 8) {
                 if (side->netId == cm_FightAttacker->netId)
                     snd_QueueVoice(c->id, cm_AttackerAttackVoices, "_K_C2C_ANGRIFF", -1, 500);
@@ -4357,65 +4326,65 @@ void cm_FighterAct(CMFIGHTSLOT *f)
                 for (s = k->anim, d = ev->u.name; (*d++ = *s++) != 0;)
                     ;
                 if ((k->id == 0x16e || k->id == 0x172) && lands != 0) {
-                    f->id = -1;
-                    f->active = 0;
+                    f->charId = -1;
+                    f->state = 0;
                 }
             }
             ch_AddAction(c->scene, 0x3b, cm_Random(0x1e) + 0x8c);
         }
     }
     if (k->id == 0x174 && f->kill != 0) {
-        ev = ch_AddActionCB(c->scene, (CHACTFUNC)cm_LayBombAction, 6, 0x2e, 1);
+        ev = ch_AddActionCB(c->scene, cm_LayBombAction, 6, 0x2e, 1);
         ev->pot.victim = tgt;
         ev->pot.thrower = c;
         ev->pot.x = f->x;
-        ev->pot.y = f->y;
+        ev->pot.y = f->z;
         strcpy(ev->u.name, "spezial/einhaendig_vom_boden_nehmen");
         if (cm_CutChar->netId == cm_FightOwner) {
-            if (!d3_GetHeightAt((struct D3SM *)h, &c->scene->obj->pos, &cm_PickCellX, &cm_PickCellZ, &py))
+            if (!d3_GetHeightAt(h, &c->scene->obj->pos, &cm_PickCellX, &cm_PickCellZ, &py))
                 return;
             cm_BestCellNear(c, cm_PickCellX, cm_PickCellZ, 8, &ox, &oy);
             cm_SendObjCell(c->scene->obj->name, ox, oy, 0);
-            f->id = -1;
-            f->active = 0;
+            f->charId = -1;
+            f->state = 0;
         }
     }
-    if (k->id == 0x176 && f->hit != 0) {
-        ev = ch_AddActionCB(c->scene, (CHACTFUNC)cm_ThrowBombAction, 5, 0x2e, 1);
+    if (k->id == 0x176 && f->turn != 0) {
+        ev = ch_AddActionCB(c->scene, cm_ThrowBombAction, 5, 0x2e, 1);
         ev->bomb.thrower = c;
         ev->bomb.x = f->x;
-        ev->bomb.y = f->y;
+        ev->bomb.y = f->z;
         ev->bomb.sideId = side->netId;
         for (s = k->anim, d = ev->u.name; (*d++ = *s++) != 0;)
             ;
         ch_AddAction(c->scene, 0x3b, cm_Random(0x1e) + 0x8c);
         sb_PlaySample(cm_BombSounds, "topfwerfen_s", 1, 0x3f, 0x7f, 0, 0);
-        f->id = -1;
-        f->active = 0;
+        f->charId = -1;
+        f->state = 0;
     }
 }
 /* 0x4d6f60, stops the actions of the fighter in the fight slot f (id, active): 0x405610 on its scene character */
 
-void cm_FightSlotStop(CMFIGHTSLOT *f)
+void cm_FightSlotStop(CMCUTENTRY *f)
 {
     AICHAR *c;
 
-    if (f->active != 0 && f->id != -1) {
-        c = cm_FindFighter(f->id);
+    if (f->state != 0 && f->charId != -1) {
+        c = cm_FindFighter(f->charId);
         if (c != 0)
             ch_StopActions(c->scene);
     }
 }
 /* 0x4d6f90, the cheer of the winner in the fight slot f: event 0x4d3ac0 with the animation "gestik/jubeln" */
 
-void cm_FightSlotCheer(CMFIGHTSLOT *f)
+void cm_FightSlotCheer(CMCUTENTRY *f)
 {
     AICHAR *c;
     CHACTION *ev;
 
-    if (f->active != 0 && f->id != -1) {
-        c = cm_FindFighter(f->id);
-        ev = ch_AddActionCB(c->scene, (CHACTFUNC)cm_CheerAction, 5, 0x2e, 1);
+    if (f->state != 0 && f->charId != -1) {
+        c = cm_FindFighter(f->charId);
+        ev = ch_AddActionCB(c->scene, cm_CheerAction, 5, 0x2e, 1);
         ev->cheer.fighter = c;
         strcpy(ev->u.name, "gestik/jubeln");
     }
@@ -4423,20 +4392,20 @@ void cm_FightSlotCheer(CMFIGHTSLOT *f)
 /* 0x4d7000, the fighter slot f picks up the object lying at its place (dummy): the object (0x449690) is marked as
    owned by the character's side (AIOBJ.fightSide), event 0x4d3ae0 */
 
-void cm_FightSlotPickUp(CMFIGHTSLOT *f)
+void cm_FightSlotPickUp(CMCUTENTRY *f)
 {
     AICHAR *c, *side;
     D3OBJECT *o;
     CHACTION *ev;
 
-    if (f->active != 0 && f->id != -1) {
-        c = cm_FindFighter(f->id);
+    if (f->state != 0 && f->charId != -1) {
+        c = cm_FindFighter(f->charId);
         side = c->side;
         ch_StopActions(c->scene);
         o = d3_FindObject(0, 0x40, 0, f->dummy);
         if (o != 0) {
             ((AIOBJ *)o->owner)->fightSide = side->id;
-            ev = ch_AddActionCB(c->scene, (CHACTFUNC)cm_PickUpAction, 5, 0x2e, 1);
+            ev = ch_AddActionCB(c->scene, cm_PickUpAction, 5, 0x2e, 1);
             ev->pickUp.fighter = c;
             ev->pickUp.object = o;
             strcpy(ev->u.name, "spezial/einhaendig_vom_boden_nehmen");
@@ -4445,22 +4414,22 @@ void cm_FightSlotPickUp(CMFIGHTSLOT *f)
 }
 /* 0x4d70a0, the fighter slot f puts down the object it carries (AICHAR.v1ac) at its place */
 
-void cm_FightSlotPutDown(CMFIGHTSLOT *f)
+void cm_FightSlotPutDown(CMCUTENTRY *f)
 {
     AICHAR *c;
     D3OBJECT *o, *body;
     CHACTION *a;
 
-    if (f->active != 0 && f->id != -1) {
-        c = cm_FindFighter(f->id);
+    if (f->state != 0 && f->charId != -1) {
+        c = cm_FindFighter(f->charId);
         ch_StopActions(c->scene);
         d3_FindObject(0, 0x40, 0, f->dummy);
-        o = (D3OBJECT *)c->v1ac;
+        o = c->fightWare;
         if (o != 0) {
             body = c->scene->obj;
             d3_SetWorldPosRot(o, &body->pos, &body->matrix);
             d3if_Show(o, 1);
-            c->v1ac = 0;
+            c->fightWare = 0;
         }
         a = ch_AddAction(c->scene, 0x2e, 1);
         strcpy(a->u.name, "spezial/einhaendig_vom_boden_nehmen");
@@ -4468,13 +4437,13 @@ void cm_FightSlotPutDown(CMFIGHTSLOT *f)
 }
 /* 0x4d7150, the character in the fight slot f is the winner so far (cm_FightWinner): text 0x11b7 */
 
-void cm_FightSlotWinner(CMFIGHTSLOT *f)
+void cm_FightSlotWinner(CMCUTENTRY *f)
 {
     char buf[0x100];
     AICHAR *c;
 
-    c = gm_FindChar(f->id);
-    cm_FightWinner = (int)c;
+    c = gm_FindChar(f->charId);
+    cm_FightWinner = c;
     txt_Format(buf, 0x11b7, c->id);
     sv_SetStatusText(buf);
 }
@@ -4483,7 +4452,7 @@ void cm_FightSlotWinner(CMFIGHTSLOT *f)
    (animated, the texture set 'g' + ref54 of the side leader of the kinds 5 .. 7, named "CONQUER_FLAG") is put at the
    dummy's place (the name of the fled bit is a reasoned guess from the flag). */
 
-void cm_PlantEscapeFlag(CMFIGHTSLOT *f)
+void cm_PlantEscapeFlag(CMCUTENTRY *f)
 {
     AICHAR *c = 0;
     D3OBJECT *o, *r;
@@ -4493,10 +4462,10 @@ void cm_PlantEscapeFlag(CMFIGHTSLOT *f)
     D3VECTOR rot;
     char k;
 
-    if (f->active != 0) {
+    if (f->state != 0) {
         o = d3_FindObject(0, 0x40, 0, f->dummy);
-        if (f->id != -1) {
-            c = cm_FindFighter(f->id);
+        if (f->charId != -1) {
+            c = cm_FindFighter(f->charId);
             c->scene->flags.fled = 1;
             txt_Format(buf, 0x11b8, c->id);
             sv_SetStatusText(buf);
@@ -4544,7 +4513,7 @@ void cm_PlantEscapeFlag(CMFIGHTSLOT *f)
 int cm_Attack(CMCUTINFO *rec, AICHAR *c, AICHAR *g)
 {
     struct D3SM *h = d3_DefaultScene->hmap;
-    CMFIGHTSLOT s;
+    CMCUTENTRY s;
     AIWEAPON *k;
     AIOBJ *item;
     AICHAR *side;
@@ -4554,9 +4523,9 @@ int cm_Attack(CMCUTINFO *rec, AICHAR *c, AICHAR *g)
     int r;
 
     memset(&s, 0, sizeof(s));
-    s.id = c->netId;
-    s.active = 2;
-    s.target = g->netId;
+    s.charId = c->netId;
+    s.state = 2;
+    s.stateArg = g->netId;
     if (c->formation == 1 || c->formation == 2 || c->formation == 3)
         s.held = 1;
     k = cm_CharWeapon(c);
@@ -4567,7 +4536,7 @@ int cm_Attack(CMCUTINFO *rec, AICHAR *c, AICHAR *g)
     }
     if (!(k->id == 0x154 || k->id == 0x156 || k->id == 0x158 || k->id == 0x16e || k->id == 0x172 || k->id == 0 ||
           k->id == 0x176) ||
-        !(cm_CharObjDistXZ(c, (char *)g->scene->obj) > k->range)) {
+        !(cm_CharObjDistXZ(c, g->scene->obj) > k->range)) {
         if (c->scene->actions != 0)
             return -1;
         r = util_Random(0xff);
@@ -4582,7 +4551,7 @@ int cm_Attack(CMCUTINFO *rec, AICHAR *c, AICHAR *g)
             s.damage = 0;
         if (side != 0 && ai_InventoryHas(side, 0x2b9) != 0)
             s.damage = (int)(s.damage * 1.25f);
-        s.hit = 1;
+        s.turn = 1;
         s.kill = hit;
         if (cm_CutChar->netId == cm_FightOwner && k->kind == 0) {
             other = 0;
@@ -4613,7 +4582,7 @@ int cm_Attack(CMCUTINFO *rec, AICHAR *c, AICHAR *g)
 
         if (c->scene->actions != 0 || s.held != 0)
             return -1;
-        if (!d3_GetHeightAt((struct D3SM *)h, &g->scene->obj->pos, &ix, &iz, &py))
+        if (!d3_GetHeightAt(h, &g->scene->obj->pos, &ix, &iz, &py))
             return -1;
         if (cm_FindNearCell(ix, iz, &ix, &iz) == 0)
             return -1;

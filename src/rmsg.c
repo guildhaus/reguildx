@@ -1327,7 +1327,7 @@ int ai_MsgWorkerStop(G14MSG *m)
     if (util_Random(0x32) > f) {
         AIMSG msg;
 
-        txt_Format(buf, m->type + 0x12e7, (((char *)p)[9] ? 0x230 : 0x20d) + (unsigned char)p->title, p->id, b);
+        txt_Format(buf, m->type + 0x12e7, (p->sex ? 0x230 : 0x20d) + (unsigned char)p->title, p->id, b);
         he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x603, 0);
         memset(&msg, 0, sizeof(msg));
         msg.type = 0x31;
@@ -1809,7 +1809,7 @@ int ai_MsgSeasonAilingType3d(G14MSG *m)
 {
     AICHAR *c;
     AITIME t;
-    unsigned char d[10];                /* the calendar record gm_ClockToDate fills (f3gm.c's d[10]) */
+    GMDATE d;                           /* the calendar record gm_ClockToDate fills */
     char buf[0x100];
 
     c = gm_FindChar(m->id);
@@ -1818,8 +1818,8 @@ int ai_MsgSeasonAilingType3d(G14MSG *m)
     if (c->ailments == 0)
         return 0x400;
     t = ai_Time;
-    gm_ClockToDate(&t, d);
-    txt_Format(buf, m->type + 0x12e7, gm_Season(d) + 0x4c);
+    gm_ClockToDate(&t, &d);
+    txt_Format(buf, m->type + 0x12e7, gm_Season(&d) + 0x4c);
     he_ShowNews(c->netId, c->netId, buf, strlen(buf) > 0x100, 0x603, 0);
     return 0;
 }

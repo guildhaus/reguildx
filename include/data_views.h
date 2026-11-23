@@ -8,22 +8,7 @@
 #ifndef DATA_VIEWS_H
 #define DATA_VIEWS_H
 
-/* ai_Chars */
-#define ai_CharInts              (*(int (*)[768][0x87])((char *)&ai_Chars + 0x4))  /* 0x770b84 */
-#define ai_Selected              (*(char (*)[132])((char *)&ai_Chars + 0x188))  /* 0x770d08 */
-#define ai_Unk770d8c             (*(char (*)[414196])((char *)&ai_Chars + 0x20c))  /* 0x770d8c */
-
-/* d3_ParEnd */
-#define d3_ParTail               (*(struct D3PARTSYS **)((char *)&d3_ParEnd + 0x318))  /* 0xfb9598 */
-
-/* d3if_ParList (the head node: its next field) */
-#define d3_ParHead               (*(struct D3PARTSYS **)((char *)&d3if_ParList + 0x314))  /* 0xfb98f4 */
-
-/* d3_DefaultD3DConfig */
-#define d3if_SceneState0           (*(int *)((char *)&d3_DefaultD3DConfig + 0xc))  /* 0x5fb5c0 */
-
 /* d3_Scenes */
-#define ai_MapRefs               (*(void **)((char *)&d3_Scenes + 0xac))  /* 0xfd7c4c */
-#define init_SceneDirty          (*(char (*)[3])((char *)&d3_Scenes + 0x3d5))  /* 0xfd7f75 */
+#define ai_MapRefs               (d3_Scenes[0].map)  /* 0xfd7c4c, the town scene's terrain map */
 
 #endif

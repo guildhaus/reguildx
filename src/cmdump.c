@@ -27,8 +27,6 @@ struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3S
 extern GAPDATA full_data_602568[];
 
 
-#define G17_I(m, o) (*(int *)&(m).data[o])
-#define G17_S(m, o) (*(short *)&(m).data[o])
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
 
@@ -83,41 +81,13 @@ typedef struct CMFIELD {            /* the head of one field of a field block (G
     unsigned short offset;          /* 0x02, the field's offset in the record */
     int values[1];                  /* 0x04, the values */
 } CMFIELD;
-typedef struct AIJOBTAIL {          /* AIJOB as message 0x1d sends and takes its data block: the record from 0xac */
-    char pad00[0xac];
-    char data[0xa0];                /* 0xac, the long message (cm_SetLongMsg 0xa0, cm_LongMsg) */
-} AIJOBTAIL;
-typedef struct CMNEWPARTYMSG {      /* 8 bytes, the data of message 0x27 (its handler cm_ExNewParty) */
-    int partyId;                    /* 0x00, the id the new scene party gets (ai_NextPartyId) */
-    int seed;                       /* 0x04, the party's random seed (G28REC.seed) */
-} CMNEWPARTYMSG;
-typedef struct CMJOINPARTYMSG {     /* 8 bytes, the data of message 0x29 (its handler cm_ExAddPartyMember) */
-    int partyId;                    /* 0x00, the scene party record (cm_PartyById) */
-    int member;                     /* 0x04, the member's netId (cm_AddPartyMember) */
-} CMJOINPARTYMSG;
-typedef struct CMWALKPATHMSG {      /* 0x24 bytes, the data of message 0x4f (its handler cm_ExWalkPath; no sender in
-                                       the sources, the path cells of a walk) */
-    char name[0x18];                /* 0x00, the character's object name ("sp_<id>") */
-    int from;                       /* 0x18, the first cell written */
-    int to;                         /* 0x1c, the cell past the path (the action's new path length) */
-    unsigned char cells[4];         /* 0x20, up to two cells, x and z bytes each */
-} CMWALKPATHMSG;
-typedef struct CMPOSMSG {           /* 0x10 bytes read, the data of message 0x32 (its handler cm_ExChrSetPos) */
-    int charId;                     /* 0x00, the character */
-    D3VECTOR pos;                   /* 0x04, its new position (ch_SetPos) */
-} CMPOSMSG;
 typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of cm_Grenades */
     D3OBJECT *obj;                  /* the object "ob_BOMBE", 0 = a free slot */
-    D3ANIM *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
+    D3PATH *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
     int x, y;                       /* 0x08, the target cell */
 } CMGRENADE;
 
 /* dcp unit split: the declarations of cm before the moved functions */
-typedef struct CMSPYREPORT {            /* an AIOBJ of kind 0xca (a spy report) as this unit reads it: the report's words
-                                           0x1c .. 0x37 (HESPYREPORT) after the object's head */
-    char pad1c[0x1c];
-    HESPYREPORT report;
-} CMSPYREPORT;
 
 char ai_CharKindNames[10][24] = { "DUMMY_NPC", "MEISTER_NPC", "POLITICIAN_NPC", "AI_NPC", "NPC", "PLAYER", "REMOTE_PLAYER", "RELATIVE_PLAYER", "USED_PLAYER", "INVISIBLE_NPC" };  /* 0x60eae0, the names of the NPC kinds */
 

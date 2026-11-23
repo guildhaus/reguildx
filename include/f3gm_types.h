@@ -8,6 +8,12 @@ typedef struct JOBTALENTS {             /* 6 bytes, one per job at 0x61a688 */
     unsigned char rank;                 /* 0x5, 1..4 in the table: a guess from the values and the rank byte +0xd */
 } JOBTALENTS;
 
+typedef struct GMHANDOUT {              /* 12 bytes, gm_HandOutMoney's out record (he_RunTavern's local) */
+    int count;                          /* 0x0, the number of characters paid */
+    int sum;                            /* 0x4, the sum paid (the caller takes it from the owner) */
+    struct AICHAR *partner;             /* 0x8, the partner the relation is sent to, 0: none (the tavern's hired helper) */
+} GMHANDOUT;
+
 typedef struct GMHEAD {                 /* 0x44 bytes, a head record (gm_CharNameRecord's tables 0x6118a8 .. 0x617398) */
     int key;                            /* 0x00, the job / title id the record belongs to, 0 = the end of a table */
     char name[0x30];                    /* 0x04, the model name, "<name>_<suffix>" (bergmann3_MANN) */
@@ -23,51 +29,9 @@ typedef struct GMINCOME {               /* 0x38 bytes, a character's incomes (0x
 
 #include "ai_types.h"
 
-#pragma pack(push, 1)
-/* a goods prototype (ai.h AIGOOD, 0x41 bytes, ai_Goods) as this unit reads it: ai.h is not includable here */
-typedef struct GMGOOD {
-    signed char type;                   /* 0x00 */
-    char name[0x20];                    /* 0x01 */
-    unsigned char cls;                  /* 0x21, the goods class (gm_ClassBuilding's index) */
-    unsigned int workTime;              /* 0x22, AIGOOD.workTime, the production time of one unit */
-    unsigned short need[4];             /* 0x26 */
-    unsigned short in[4];               /* 0x2e, the goods it is made of */
-    unsigned short batch;               /* 0x36, AIGOOD.batch, the amount one production run makes */
-    int price;                          /* 0x38, the cached price of 100 pieces / 32 (gm_ItemPrice), 0: not computed yet */
-    char pad3c[4];
-    unsigned char b40;                  /* 0x40 */
-} GMGOOD;
-#pragma pack(pop)
-typedef char gm_AssertGMGOOD[sizeof(GMGOOD) == 0x41 ? 1 : -1];
-#define GM_GOOD(i) ((GMGOOD *)ai_Goods + (i))  /* the goods prototype i of ai_Goods (char *) */
-
-#pragma pack(push, 1)
-/* a building type (ai.h AIBTYPE, 0x24d bytes, ai_BTypes) as this unit reads it: ai.h is not includable here */
-typedef struct GMBTYPE {
-    unsigned char kind;                 /* 0x000 */
-    char name[0x20];                    /* 0x001, the type's name (gm_FindBuildingKind; ai.h AIBTYPE.name) */
-    unsigned char extensions;           /* 0x021, ai.h AIBTYPE.extensions */
-    unsigned char objCount;             /* 0x022, the entries of objs used (gm_LayoutTree) */
-    unsigned short objs[0x40];          /* 0x023, the objects the type can hold, goods ids (bit 15 = flag) */
-    unsigned short parents[0x40][2];    /* 0x0a3, the two goods each of objs needs first (gm_LayoutTree's tree) */
-    char pad1a3[0x8c];
-    unsigned char title;                       /* 0x22f, the title rank that suits the type's workers (AICHAR.title: +0.3 each, gm_StaffFactor) */
-    char pad230[0x17];
-    unsigned char level;                /* 0x247, the type's level 1 .. 3 (ai.h AIBTYPE.level / cap247) */
-    unsigned char maxLevel;             /* 0x248, the highest level of the type's line (ai.h AIBTYPE.maxLevel) */
-    int baseValue;                      /* 0x249, the type's own value, x 0xf00 the base of gm_EquipmentValue (reasoned: the worth before the equipment) */
-} GMBTYPE;
-#pragma pack(pop)
-typedef char gm_AssertGMBTYPE[sizeof(GMBTYPE) == 0x24d ? 1 : -1];
-#define GM_BTYPE(i) ((GMBTYPE *)ai_BTypes + (i))  /* the building type i of ai_BTypes (char *) */
+#include "ai_bld.h"                  /* AIBTYPE (ai_BTypes) */
 
 /* an event of the kind 0x23 (he_FindEvent(1, 0, 0x23)) as gm_BuildingEvents / gm_CreditEvents read it */
-typedef struct GMEVENT23 {
-    char pad000[0xac];
-    int bldId;                          /* 0x0ac, the building's id (AIBLD.id) */
-    int charId;                         /* 0x0b0, the character's netId (AICHAR.netId) */
-} GMEVENT23;
-
 
 /* the character statistics gm_CharacterStatistics (0x91b500, 0x68 bytes) as gm_CountCharacters (0x4fdfd0) fills
    them: per age bucket (gm_CharAge / 10, clamped to 0 .. 7) the count and the average health / base health */
@@ -79,16 +43,6 @@ typedef struct GMCHARSTATS {
     float baseHealth[8];                /* 0x48, per age bucket: gm_CharacterBaseHealth summed, then the average */
 } GMCHARSTATS;
 
-/* the payload of a character's skill-bonus event (he_FindEvent (2, 2, character, 0, 0x82)): the two skill
-   numbers of the event and the two float bonuses gm_GetSkill adds for them */
-typedef struct GMSKILLEV {
-    char pad00[0xac];
-    unsigned char skill1;               /* 0xac, the first skill number (0 .. 4) */
-    unsigned char skill2;               /* 0xad, the second skill number */
-    char pad0ae[2];
-    float bonus1;                       /* 0xb0, the bonus added for skill1 */
-    float bonus2;                       /* 0xb4, the bonus added for skill2 */
-} GMSKILLEV;
 
 /* a disease kind's record (12 bytes, ten of them at 0x617850, gm_GetDisease copies one out): kinds 1 .. 9 are the
    bit fields of a character's word +0x2c (gm_CatchDisease) */
@@ -125,9 +79,9 @@ typedef struct GMSTOCK {
     float price;                        /* 0x38, the stored price (gm_ItemPrice of the item, 100) */
     unsigned short marketKind;          /* 0x3c, the kind of the market object (0x92 .. 0x97, 0x2db) that holds the good (gm_SyncMarket) */
     char pad3e[2];
-    union {
-        unsigned char demandIsStock;    /* 0x40, set: gm_UpdatePrices takes the stock as the demand */
+    union {                             /* groups first: gm_DefaultStock's initialiser fills them */
         GMSTOCKGROUP groups[4];         /* 0x40, the four production groups (gm_GoodsStock) */
+        unsigned char demandIsStock;    /* 0x40, set: gm_UpdatePrices takes the stock as the demand */
     };
     char pad60[0x20];
 } GMSTOCK;
@@ -229,5 +183,15 @@ typedef struct GMDATE {
     int sec;                            /* 0x6, the clock's seconds field (unaligned) */
 } GMDATE;
 #pragma pack(pop)
+
+typedef struct RTNODE {                 /* 0x34 bytes, a node of the research tree layout gm_TreeNodes (f3gmt.c,
+                                           0x76fde0; gm_LayoutTree fills it, the tree window draws it) */
+    int id, p1, p2;                     /* 0x00, the item and its two parents */
+    unsigned short rank, pad;           /* 0x0c */
+    int x, y, z;                        /* 0x10 */
+    int l[5];                           /* 0x1c, l[2] (0x24) the node's button object, -1: none (the lc units' tree
+                                           windows find the clicked node by it) */
+    unsigned char flag;                 /* 0x30 */
+} RTNODE;
 
 #endif

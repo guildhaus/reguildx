@@ -6,9 +6,8 @@
    0x62d6bc and the subject changes from the action records of the table 0x62c420 to the screens. End: the
    end of the game code (the last function 0x5dd100 returns at 0x5dd3d6, nop fill to 0x5dd3e0); dinput.lib's
    c_dfDIKeyboard / c_dfDIMouse object tables follow, library data (config/symbols/game_range.toml).
-   Open: d2.h is not included yet: the unit's own declarations of d2_ScreenSurf / d2_Inputs / d2_LockSurface /
-   d2_UnlockSurface disagree with d2.h's, so the unit reads the d2 records through local views (D2INPUTVIEW,
-   D2SURFVIEW ...); the fades are d2_types.h's D2FADE.
+   Open: d2.h is not included yet: the unit declares d2_ScreenSurf / d2_Inputs / d2_LockSurface / d2_UnlockSurface
+   itself with d2.h's types (D2SURF, D2INPUT from d2_types.h); the fades are d2_types.h's D2FADE.
    Open: not included yet (dcp headers conflicts menu HEADER): ch.h cm.h d2.h d3_int_io.h gfx.h; held by
    own declarations that differ from the owner's: d2_ScreenSurf,
    d2_Inputs, d2_LockSurface, d2_UnlockSurface, ch_List, d3io_Lod.
@@ -58,7 +57,7 @@
 #include "d3_fl.h"
 #include "dd_vesa.h"
 #include "ch.h"
-unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
+int util_Random(unsigned short n);  /* 0x42ec00, tr.c (its two calls here store the result into AITIME.hour, a 16-bit field: the 16-bit declaration of the other units compiles the same) */
 
 extern OPTIONBYTES ai_GfxResolution;
 /* full rebuild: the symbols whose original addresses the code above spells literally */
@@ -96,8 +95,6 @@ extern struct D2OBJ *d2_Objs;              /* 0xf8f080, d2.h: D2OBJ * */
 extern int sv_PopRequest;               /* 0x6f22a0, nonzero: MASTER (sv_RunFrame) pops this screen */
 extern int sv_PopRequest;               /* 0x6f22a0, nonzero: MASTER (sv_RunFrame) pops this screen */
 
-#define U_I(a) (*(int *)(a))
-#define U_B(a) (*(unsigned char *)(a))
 
 int sprintf(char *buf, const char *fmt, ...); /* 0x5de652, the CRT's sprintf (no CRT symbol available) */
 /* 0x5d33b0, the file list of a directory (256 B): lists the files of dirPath whose extension equals ext
@@ -106,7 +103,7 @@ int sprintf(char *buf, const char *fmt, ...); /* 0x5de652, the CRT's sprintf (no
    caller's slot header). vfs_FindDir (dirPath, vfs_Root) gives the directory; each name is copied and
    formatted with "%s/%s" (0x62d7d8). Returns the number of entries written. */
 
-int ai_ListFiles(char *dirPath, const char *ext, char *records)
+int ai_ListFiles(char *dirPath, const char *ext, FILEREC *records)
 {
     VFSDIR *dir;
     VFSENTRY *entry;
@@ -122,7 +119,7 @@ int ai_ListFiles(char *dirPath, const char *ext, char *records)
     count = 0;
     i = 0;
     if (i < dir->nentries) {
-        out = records + 9;
+        out = records->name;
         do {
             entry = &dir->entries[i];
             dot = strrchr(entry->name, '.');
@@ -135,7 +132,7 @@ int ai_ListFiles(char *dirPath, const char *ext, char *records)
                 if (dot != 0)
                     *dot = '\0';
                 count++;
-                out += 0x210;
+                out += sizeof(FILEREC);
             }
             i++;
         } while (i < dir->nentries);
@@ -196,7 +193,7 @@ int ai_FilePickWindow(unsigned mask, int flags, char *caption, char *dir, char *
     d2_SetForm(win, 0);
     sv_CreateScrollButtons(0x140, 0x100, d2_LastWindow, d2_GetViewWin(win, 1), 0x18, &slidA, &slidB, &count);
     memset(recs, 0, sizeof(recs));
-    n = ai_ListFiles(dir, ext, (char *)recs);
+    n = ai_ListFiles(dir, ext, recs);
     direct = flags & 1;
     if (direct == 0) {
         d2_SetForm(win, 3);
@@ -318,12 +315,6 @@ int ai_MessageBox(intptr_t text, int flags)
 /* the two records 0x5d3ab0 builds: the request (a file entry of ai_ListFiles, or an empty slot) and one slot
    of the save / load window, which ai_RegisterSaveSlot (0x5d3a00) fills with a copy of the request */
 #pragma pack(push, 1)
-typedef struct SAVEREQUEST {                /* 0x210, a save file entry (ai_ListFiles) or an empty slot's request */
-    char pad00[9];
-    char name[0x80];                        /* +0x09, the slot caption (the file name without ".SAV") */
-    char title[0x80];                       /* +0x89, the save's title */
-    char path[0x107];                       /* +0x109, the file path (ai_FillSaveSlots opens it) */
-} SAVEREQUEST;                              /* 0x210 */
 typedef struct SAVESLOTVIEW {               /* 0x220, one slot of the save / load window */
     unsigned char kind;                     /* +0x00, the slot kind (ls_SaveSlot for a registered save) */
     char pad01[3];
@@ -331,14 +322,8 @@ typedef struct SAVESLOTVIEW {               /* 0x220, one slot of the save / loa
     int win;                                /* +0x08, the slot's child window, -1 = free */
     unsigned char used;                     /* +0x0c, 1: a filled slot, 0: an empty one */
     char pad0d[3];
-    union {
-        SAVEREQUEST req;                    /* +0x10, the request ai_RegisterSaveSlot copied */
-        struct {
-            char reqpad[9];
-            char name[0x80];                /* +0x19, the caption (the request's name) */
-            char title[0x80];               /* +0x99, the save's title (the header's +0x9c) */
-        };
-    };
+    FILEREC req;                            /* +0x10, the request ai_RegisterSaveSlot copied: req.name the caption,
+                                               req.title the save's title (the header's +0x9c) */
 } SAVESLOTVIEW;                             /* 0x220 */
 #pragma pack(pop)
 
@@ -370,7 +355,7 @@ typedef struct SAVESLOTVIEW {               /* 0x220, one slot of the save / loa
    condition: 18; goto-structured layouts (autosave label after the chain, fail label inside arm 0): 18.
    The previous want-local form (17) is gone. (tiebreak: insensitive) */
 
-int ai_RegisterSaveSlot(int count, SAVESLOTVIEW *slots, int slot, SAVEREQUEST *req)
+int ai_RegisterSaveSlot(int count, SAVESLOTVIEW *slots, int slot, FILEREC *req)
 {
     char *name;
     SAVESLOTVIEW *s;
@@ -404,9 +389,8 @@ done:
 
 /* views of d2.h's D2OBJ / D2INPUT (d2.h is not included yet: the unit's own d2_* declarations disagree with
    d2.h's, see the lead comment) */
-typedef struct D2INPUTVIEW { char pad0[0x10]; int w; char pad1[0x148]; int maxw; } D2INPUTVIEW;
 
-extern D2INPUTVIEW d2_Inputs[];         /* 0xfa6020, d2.h: D2INPUT [0x80] */
+extern D2INPUT d2_Inputs[0x80];         /* 0xfa6020, d2.h */
 extern int d2_FontHeight;               /* 0xf8f084, d2.h */
 extern struct D2INPUT *d2_FocusedInput;           /* 0x6ed9dc, d2.h: D2INPUT * */
 extern unsigned char kb_Last;           /* 0x1468410, d2.h */
@@ -481,12 +465,12 @@ char *itoa(int value, char *buf, int base); /* 0x5e56c4, the library's integer t
    money and difficulty (the texts 0x1cc5 / 0x1cc6, the difficulty name 0x14413f0). A second pass over
    the 16 records gives every still free slot an empty-slot caption ("Slot %i" 0x14414e0), the screen
    image 0x766320 and the text 0x1cc7. Returns nothing. */
-void ai_FillSaveSlots(int view, int form, SAVESLOTVIEW *slots, char *files, char *dir, int reserved)
+void ai_FillSaveSlots(int view, int form, SAVESLOTVIEW *slots, FILEREC *files, char *dir, int reserved)
 {
     LSHDR hdr;
     char timebuf[0x40];
-    SAVEREQUEST req;
-    SAVEREQUEST *rec;
+    FILEREC req;
+    FILEREC *rec;
     int n;
     int i;
     int slot;
@@ -503,7 +487,7 @@ void ai_FillSaveSlots(int view, int form, SAVESLOTVIEW *slots, char *files, char
     if (n > 0x10)
         n = 0x10;
     for (k = 0; k < n; k++) {
-        rec = (SAVEREQUEST *)files + k;
+        rec = files + k;
         file = vfs_Tfopen(rec->path, "rb", vfs_Root);
         if (file == 0)
             continue;
@@ -523,7 +507,7 @@ void ai_FillSaveSlots(int view, int form, SAVESLOTVIEW *slots, char *files, char
         d2_SetObjFont(slots[slot].obj, 0x53);
         {
             char *src = hdr.title;
-            char *dst = slots[slot].title;
+            char *dst = slots[slot].req.title;
 
             while ((*dst++ = *src++))
                 ;
@@ -570,7 +554,7 @@ void ai_FillSaveSlots(int view, int form, SAVESLOTVIEW *slots, char *files, char
         slots[slot].win = d2_CreateChildWindow(0, slot * 0x82, d2_LastWindowPtr->w - 0x10, 0x78, 0x10,
                                               d2_LastWindow);
         d2_Wins[slots[slot].win].font = 0x54;
-        slots[slot].obj = d2_CreateWinText(0xa8, 0, slots[slot].name, d2_LastWindow);
+        slots[slot].obj = d2_CreateWinText(0xa8, 0, slots[slot].req.name, d2_LastWindow);
         d2_SetObjFont(slots[slot].obj, 0x53);
         d2_WinOpenRaw(0, 0, 0xa0, 0x78, ai_ScreenImage, d2_LastWindow);
         d2_WinOpenPic(0x3c, 0x20, 0x4fb, d2_LastWindow);
@@ -602,7 +586,7 @@ int ai_LoadGameWindow(void)
     int up, bar, down;
     char path[0x104];
     SAVESLOTVIEW slots[0x10];
-    char list[0x4200];
+    FILEREC list[32];
     int i;
 
     ret = 0;
@@ -617,8 +601,7 @@ int ai_LoadGameWindow(void)
     io_PrintText(0x1c57);
     d2_SetForm(0, 0);
     sv_CreateScrollButtons(0x214, 0x168, d2_LastWindow, d2_GetViewWin(win, 1), 0x82, &down, &up, &bar);
-    ai_FillSaveSlots(win, 1, slots, list, "gamedata/saves", 0); /* @original: the original call pushes
-        a sixth argument 0 that 0x5d3ab0 never reads */
+    ai_FillSaveSlots(win, 1, slots, list, "gamedata/saves", 0);
     while (sv_RunFrame(ai_LoadGameWindow, mask) != 0) {
         if (dm_L.rup != 0)
             sv_PopRequest = 1;
@@ -629,7 +612,7 @@ int ai_LoadGameWindow(void)
                         || (d2_HitWindow != -1
                             && d2_Objs[d2_Wins[d2_HitWindow].parent].win == &d2_Wins[slots[i].win]))) {
                     if (ai_GameState == 0 || ai_MessageBox((intptr_t)txt_Ptrs[TXT_LOAD_GAME_CONFIRM], 0x101) != 0) {
-                        sprintf(path, "Gamedata\\Saves\\%s.SAV", slots[i].name);
+                        sprintf(path, "Gamedata\\Saves\\%s.SAV", slots[i].req.name);
                         strcpy(main_NetSaveName, path);
                         ai_GameFlags = 10;
                         sv_PopRequest = 1;
@@ -660,7 +643,7 @@ int ai_JoinGameWindow(void)
     int win;
     int up, bar, down;
     SAVESLOTVIEW slots[0x10];
-    char list[0x4200];
+    FILEREC list[32];
     int i;
 
     ret = 0;
@@ -686,7 +669,7 @@ int ai_JoinGameWindow(void)
                         || (d2_HitWindow != -1
                             && d2_Objs[d2_Wins[d2_HitWindow].parent].win == &d2_Wins[slots[i].win]))) {
                     if (ai_GameState == 0 || ai_MessageBox((intptr_t)txt_Ptrs[TXT_LOAD_GAME_CONFIRM], 0x101) != 0) {
-                        strcpy(main_NetSaveName, slots[i].name);
+                        strcpy(main_NetSaveName, slots[i].req.name);
                         sv_PopRequest = 1;
                         ret = 1;
                     }
@@ -990,7 +973,7 @@ void d3s_FreeShadows(struct D3OBJECT *obj);     /* 0x45ccd0, d3s.c */
 void d3_UpdateAll(unsigned char full);          /* 0x43b6e0, d3_engine.c */
 char d3if_SelectScene(int index, char keep);    /* 0x4478e0, d3_interface.c */
 void d3_ReloadMeshes(unsigned int mask, int type, void (*progress)(int a, int i, int n));  /* 0x43e090, d3_engine.c */
-void d3_ApplyGraphicsOptions(unsigned char a, unsigned char b, unsigned char c, unsigned char mode, int e); /* 0x43c4e0 */
+void d3_ApplyGraphicsOptions(unsigned char a, unsigned char b, unsigned char c, unsigned char mode, void (*progress)(int, int, int)); /* 0x43c4e0 */
 void ch_SetLowPoly(unsigned char mode);         /* 0x402af0, ch.c */
 void d3fl_SetMips(char a);                      /* 0x43f930, d3_fl.c */
 void ai_CheckBuildSites(void);                  /* 0x58fb60, lc.c */
@@ -1127,19 +1110,12 @@ void ai_ApplyVolumes(void)
     snd_MusicVolume = (float)(ai_SoundOptions.msxFreq & 0xff) * 0.25f;
 }
 
-#define U_W(a) (*(unsigned short *)(a))
 
 /* d2.h's D2SURF (the 0x40-byte screen surface): the two fields the screen shot reads. Type debt: d2.c
    defines d2_ScreenSurf as void * (D2SURF itself is in d2_types.h). */
-typedef struct D2SURFVIEW {
-    char pad0[0x10];
-    int pitch;                          /* +0x10, in pixels */
-    char pad1[8];
-    unsigned short *bits;               /* +0x1c, pixels (system memory, or while locked) */
-} D2SURFVIEW;
-extern D2SURFVIEW *d2_ScreenSurf;       /* 0x6ed924, d2.h: D2SURF * */
-int d2_LockSurface(D2SURFVIEW *surf);   /* 0x479020, d2.h: D2SURF *, locks the surface (pixels in bits) */
-int d2_UnlockSurface(D2SURFVIEW *surf); /* 0x4790e0, d2.h: D2SURF * */
+extern D2SURF *d2_ScreenSurf;       /* 0x6ed924, d2.h */
+int d2_LockSurface(D2SURF *surf);   /* 0x479020, d2.h: locks the surface (pixels in bits) */
+int d2_UnlockSurface(D2SURF *surf); /* 0x4790e0, d2.h */
 void *mem_Alloc(int size, char *tag);   /* 0x4223c0, d3.h */
 void mem_Free(void *p);                 /* 0x422620, d3.h */
 extern unsigned int dd_RMask;           /* 0x1464fa4, dd_vesa.h: the red channel mask of the display */
@@ -1380,10 +1356,7 @@ void ai_Quicksave(void)
         memset(&rec, 0, sizeof(rec));
         rec.slot = 1;
         strcpy(rec.name, "QUICKSAVE");
-        /* @original cm.h declares cm_SendExSysMessage void, but the original caller reads the call's
-           eax as the message handle (0x4c4db0 returns 0x4c39c0's int); the call goes through a
-           prototype that returns int and the handle is passed to cm_GetSlotState */
-        msg = ((int (__cdecl *)(unsigned char, void *))cm_SendExSysMessage)(0xf, &rec);
+        msg = cm_SendExSysMessage(0xf, &rec);
         r = cm_GetSlotState(msg);
         if (r == 0) {
             do {
@@ -1472,7 +1445,6 @@ void ai_SaveNetworkGame(char *saveName, char *name)
     ls_SaveGame(path, name, 5);
     sv_SetStatusText(ch_EmptyName);
 }
-#define U_F(a) (*(float *)(a))
 
 /* the callees of the front-end stretch (their units' headers are not included here, so their
    prototypes are repeated as the definitions spell them; the building pointers are this TU's ints) */
@@ -1649,7 +1621,7 @@ int ai_SaveOptionWindow(int *image)
     char path[0x104];
     char name[0x104];
     SAVESLOTVIEW slots[0x10];
-    char list[0x4200];
+    FILEREC list[32];
     int view;
 
     mask = sv_FrameMask;
@@ -1676,12 +1648,12 @@ int ai_SaveOptionWindow(int *image)
                     || (d2_HitWindow != -1
                         && d2_Objs[d2_Wins[d2_HitWindow].parent].win == &d2_Wins[slots[i].win])) {
                     exists = 0;
-                    sprintf(path, "Gamedata\\Saves\\%s.SAV", slots[i].name);
+                    sprintf(path, "Gamedata\\Saves\\%s.SAV", slots[i].req.name);
                     if (vfs_FindFile(path, vfs_Root, &found) != 0)
                         exists = 1;
                     d2_EnableObject(slots[i].obj, 0);
                     if (ai_EditText(d2_Objs[slots[i].obj].x, d2_Objs[slots[i].obj].y,
-                                    slots[i].title) == 0) {
+                                    slots[i].req.title) == 0) {
                         d2_EnableObject(slots[i].obj, 1);
                         break;
                     }
@@ -1690,7 +1662,7 @@ int ai_SaveOptionWindow(int *image)
                         memcpy(ai_ScreenImage, image, 0x9600);
                         ls_SaveSlot = i;
                         view = sv_OpenMessageBox((intptr_t)txt_Ptrs[TXT_SAVE_PROGRESS], 0);
-                        ls_SaveGame(name, slots[i].title, 1);
+                        ls_SaveGame(name, slots[i].req.title, 1);
                         d2_CloseView(view);
                         sv_PopRequest = 1;
                     }
@@ -1724,7 +1696,7 @@ int ai_SaveNameWindow(int *image)
     char path[0x104];
     CMQUICKSAVE rec;
     SAVESLOTVIEW slots[0x10];
-    char list[0x4200];
+    FILEREC list[32];
 
     (void)image;
     mask = sv_FrameMask;
@@ -1750,12 +1722,12 @@ int ai_SaveNameWindow(int *image)
                     || (d2_HitWindow != -1
                         && d2_Objs[d2_Wins[d2_HitWindow].parent].win == &d2_Wins[slots[i].win])) {
                     exists = 0;
-                    sprintf(path, "Gamedata\\network\\%s.SAV", slots[i].name);
+                    sprintf(path, "Gamedata\\network\\%s.SAV", slots[i].req.name);
                     if (vfs_FindFile(path, vfs_Root, &found) != 0)
                         exists = 1;
                     d2_EnableObject(slots[i].obj, 0);
                     if (ai_EditText(d2_Objs[slots[i].obj].x, d2_Objs[slots[i].obj].y,
-                                    slots[i].title) == 0) {
+                                    slots[i].req.title) == 0) {
                         d2_EnableObject(slots[i].obj, 1);
                         break;
                     }
@@ -1765,7 +1737,7 @@ int ai_SaveNameWindow(int *image)
                         } else {
                             memset(&rec, 0, sizeof rec);
                             rec.slot = i;
-                            strcpy(rec.name, slots[i].title);
+                            strcpy(rec.name, slots[i].req.title);
                             cm_SendExSysMessage(0xf, &rec);
                         }
                         sv_PopRequest = 1;
@@ -2531,7 +2503,8 @@ void ai_BloodRevengeWindow(AIBLD *building)
     char msg[0x800];
     LCAMOUNTROW rows[5];
     AMOUNTCFG cfg;                      /* the config of the amount menu */
-    int sel[9];                         /* 0 .. 4 the net id of the record in each row (-1 empty), 5 .. 8 the chosen records */
+    int sel[5];                         /* the net id of the record in each row (-1 empty) */
+    AICHAR *chosen[4];                  /* the chosen records */
     int ids[2];                         /* the two buttons the row of buttons creates */
     int tick, refresh, form, total;
     unsigned short *idp;
@@ -2540,7 +2513,7 @@ void ai_BloodRevengeWindow(AIBLD *building)
 
     refresh = 1;
     memset(rows, 0, sizeof(rows));
-    memset(sel, 0xff, 5 * sizeof(int));
+    memset(sel, 0xff, sizeof(sel));
     total = 0;
     tick = 0;
     if (ai_Chars[ai_PlayerId].flags1cc & 8) {
@@ -2617,13 +2590,13 @@ void ai_BloodRevengeWindow(AIBLD *building)
                         if (rows[i].rec != 0) {
                             r = 0x32 - (int)(gm_Mix(&ai_Chars[ai_PlayerId], rows[i].rec, 4) * -50.0f);
                             cm_SendRelations(rows[0].rec->id, rows[i].rec->id, -r, 1);
-                            sel[5 + k] = (int)rows[i].rec;
+                            chosen[k] = rows[i].rec;
                             k++;
                         }
                     }
                     gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -total);
                     cm_SendSetField(ai_Chars[ai_PlayerId].netId, 0x1cc, 4, 8, 0);
-                    ai_GypsyDeliveryText((struct AICHAR *)av, k, (struct AICHAR **)&sel[5]);
+                    ai_GypsyDeliveryText(av, k, chosen);
                     txt_Format(msg, 0x41b9, 0x41b2);
                     sv_MessageBox((intptr_t)msg, 0);
                     sv_PopRequest = 1;
@@ -2791,14 +2764,14 @@ void ai_CurseTargetWindow(AIBLD *building)
     int share, victim, form;
     int value, cls;
     unsigned tick;
-    CURSEEVENT *ev;
+    AIJOB *ev;
     int elapsed, total;
 
     tick = 0;
     cls = 2;
     value = 0;
     memcpy(&when, &ai_Time, sizeof(AITIME));
-    gm_AddTime((struct AITIME *)&when, 0x18, 0, 0);
+    gm_AddTime(&when, 0x18, 0, 0);
     when.hour = util_Random(cls) + 0x15;
     when.min = 0;
     form = d2_OpenForm(0, 0, "Locations\\zigeuner\\blutrache");
@@ -2818,16 +2791,16 @@ void ai_CurseTargetWindow(AIBLD *building)
     do {
         if (d3_Time > tick + 0x8c || d2_GetObjValue(victim) != value) {
             tick = d3_Time;
-            ev = (CURSEEVENT *)ai_FindCurseEvent(building);
+            ev = ai_FindCurseEvent(building);
             if (ev != 0) {
-                when = ev->due;
-                when.hour += ev->done ? 0 : 2;
-                elapsed = gm_MinutesBetween((struct AITIME *)&ev->from, (struct AITIME *)&ai_Time);
-                total = gm_MinutesBetween((struct AITIME *)&ev->from, (struct AITIME *)&when);
+                when = ev->end;
+                when.hour += ev->stage ? 0 : 2;
+                elapsed = gm_MinutesBetween(&ev->start, &ai_Time);
+                total = gm_MinutesBetween(&ev->start, &when);
                 d2_SetObjValue(share, 0, 100, (int)(min((float)elapsed / total, 1.0f) * 100.0f));
             } else {
                 memcpy(&when, &ai_Time, sizeof(AITIME));
-                gm_AddTime((struct AITIME *)&when, 0x18, 0, 0);
+                gm_AddTime(&when, 0x18, 0, 0);
                 when.hour = util_Random(2) + 0x15;
                 when.min = 0;
                 d2_SetObjValue(share, 0, 100, 0);
@@ -2835,8 +2808,8 @@ void ai_CurseTargetWindow(AIBLD *building)
             d2_SetForm(form, 1);
             io_PrintText((intptr_t)"$C");
             if (ev != 0) {
-                if (ev->done == 0)
-                    io_PrintText(0x41f8, 0x41f4, ev->victim + 0x41fb, &when);
+                if (ev->stage == 0)
+                    io_PrintText(0x41f8, 0x41f4, ev->trialCaseLevel + 0x41fb, &when);
                 else
                     io_PrintText(0x41f9, 0x41f4);
             } else {

@@ -9,7 +9,8 @@
 
 
 
-void gm_ClockToDate(struct AITIME *c, unsigned char *out);                                            /* 0x4fe2c0 */
+struct GMDATE;
+void gm_ClockToDate(struct AITIME *c, struct GMDATE *out);                                            /* 0x4fe2c0 */
 
 
 extern unsigned int ai_RandomSeed;       /* 0x6f0730, random seed of the messages */

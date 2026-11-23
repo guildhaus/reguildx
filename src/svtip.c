@@ -267,7 +267,6 @@ extern unsigned char kb_Last;
 extern int sv_FrameMask;
 
 
-#define U_I(a) (*(int *)(a))
 
 
 void ai_TutorialHideText2();
@@ -302,7 +301,6 @@ typedef struct SHOTRESULT {     /* 0x38 bytes, three of them in ai_ShotTable: th
     SHOTENTRY e[3];          /* +0x8 */
 } SHOTRESULT;
 extern int ai_TutorialChapterOn[5];
-extern int (*ai_TutorialChapterInit[5])(void);
 extern unsigned int ai_GraveChatterAt;
 extern int ai_DragObj;
 extern int ai_DragViewWin;
@@ -365,8 +363,6 @@ extern const float ai_CannonSwitchDist;
 #include "gfx.h"
 
 /* dcp unit split: the declarations of sv_t before the moved functions */
-int ai_TutorialInitMainIntro();
-int ai_TutorialInitMainOutro();
 void ai_TutorialStop();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
@@ -589,7 +585,7 @@ void ai_HandleItemDrag(void)
         di_SetMousePos(d2_MouseX, d2_MouseY);
     }
     if (ai_PickedObject != 0 && ai_DragPicked != ai_PickedObject && dm_L.rhold != 0) {
-        item = sv_HoverItem != 0 ? ((AIOBJ *)sv_HoverItem)->id : 0;  /* reasoned: the hovered object record, its goods item first */
+        item = sv_HoverItem != 0 ? sv_HoverItem->id : 0;  /* reasoned: the hovered object record, its goods item first */
         if (item == 0)
             sel = ai_PickedObject;
         ai_DragPicked = ai_PickedObject;
@@ -768,8 +764,8 @@ int ai_OpenItemTooltip(int idx)
     d2_SetForm(0, 1);
     io_PrintText(idx * 2 + 0x9a8);
     d2_SetForm(0, 3);
-    if (item->b40 != 0)
-        io_PrintText(0x21, item->b40);
+    if (item->noSale != 0)
+        io_PrintText(0x21, item->noSale);
     else
         io_PrintText(0x1f, (int)gm_GoodsPrice(idx, ai_OwnPlayer), (int)gm_ItemPrice(idx, 0x64));
     bld = ai_PlayerBuilding;
@@ -913,8 +909,8 @@ int ai_OpenUpgradeTooltip(int idx)
     io_PrintText(idx * 2 + 0x9a8);
     item = ai_Goods + idx;
     d2_SetForm(0, 3);
-    if (item->b40 != 0)
-        io_PrintText(0x21, item->b40);
+    if (item->noSale != 0)
+        io_PrintText(0x21, item->noSale);
     else {
         f = ai_Difficulty * 0.25 + 0.5;
         io_PrintText(0x23, (int)(gm_ItemPrice(idx, 0x64) * f));

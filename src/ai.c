@@ -33,6 +33,7 @@ typedef unsigned int SOCKET;
 #include "io_text.h"
 #include "ls.h"
 #include "rd.h"
+#include "d3_fl.h"                   /* D3FLMAP: a scene's terrain map */
 #include "sv.h"
 #include "tr.h"
 #include "mission.h"
@@ -790,7 +791,7 @@ done:
             if (ai_Entries[j].flags & 8) {
                 info.type = 4;
                 info.e = &ai_Entries[j];
-                ai_SendJobOrders((AIINFO *)&info);
+                ai_SendJobOrders(&info.head);
                 if (ai_Watch.bld == ch->bld && ai_Watch.nentries < 4) {
                     ai_Watch.entries[ai_Watch.nentries] = *info.e;
                     ai_Watch.nentries++;
@@ -1014,7 +1015,7 @@ done:
             if (e->flags & 0x20) {
                 info.e = e;
                 info.type = 0x14;
-                ai_SendJobOrders((AIINFO *)&info);
+                ai_SendJobOrders(&info.head);
                 if (ai_Watch.bld == ch->bld && ai_Watch.nentries < 4) {
                     ai_Watch.entries[ai_Watch.nentries] = *info.e;
                     ai_Watch.nentries++;
@@ -1022,7 +1023,7 @@ done:
             } else if (e->flags & 0x200) {
                 info.e = e;
                 info.type = 0x15;
-                ai_SendJobOrders((AIINFO *)&info);
+                ai_SendJobOrders(&info.head);
                 if (ai_Watch.bld == ch->bld && ai_Watch.nentries < 4) {
                     ai_Watch.entries[ai_Watch.nentries] = *info.e;
                     ai_Watch.nentries++;
@@ -1031,7 +1032,7 @@ done:
         } else if (e->flags & 8) {
             info.e = e;
             info.type = 4;
-            ai_SendJobOrders((AIINFO *)&info);
+            ai_SendJobOrders(&info.head);
             if (ai_Watch.bld == ch->bld && ai_Watch.nentries < 4) {
                 ai_Watch.entries[ai_Watch.nentries] = *info.e;
                 ai_Watch.nentries++;
@@ -1063,8 +1064,8 @@ void ai_EvaluateProductionCategory2(AICHAR *ch)
     AIOBJ *a, *b, *c, *o, *o2;
     AIJOB *job;
     AIGOOD *g;
-    AIMAP *map;
-    AIPLANT *plant;
+    D3FLMAP *map;
+    G15TREE *plant;
     void *x;
     AIINFO info;
     int i, j, k, n, id, found;
@@ -1254,12 +1255,12 @@ check:
             if (ai_Time.hour % 2 == 0) {
                 ch->flags1b4 &= ~0x20;
             } else if (!(ch->flags1b4 & 0x20)) {
-                map = ((AIMAPREF *)&ai_MapRefs)[init_BuildingSceneUniverse(ch->bld)].map;
+                map = d3_Scenes[init_BuildingSceneUniverse(ch->bld)].map;
                 if (!map)
                     return;
                 v71 = ch->bld->plants;
                 for (j = 0; j < 8; j++) {
-                    if (strstr(map->names[j], "PFLANZBAR"))
+                    if (strstr(map->typenames[j], "PFLANZBAR"))
                         idx = j;
                 }
                 for (i = 0; i < ai_NEntries * 4; i++) {
@@ -1271,10 +1272,10 @@ check:
                     plant = veg_FindType(ai_Entries[r].item);
                     n = 0;
                     for (y = 0; n < 4; y++) {
-                        if (y >= map->w)
+                        if (y >= map->size)
                             break;
-                        for (i = 0; n < 4 && i < map->w; i++) {
-                            if (map->cells[map->w * y + i] == idx && veg_Fits(v71, i, y, plant->size)) {
+                        for (i = 0; n < 4 && i < map->size; i++) {
+                            if (map->types[map->size * y + i] == idx && veg_Fits(v71, i, y, plant->size)) {
                                 cm_SetPlant(ch->bld->id, i, y, plant->id, 0, -1);
                                 n++;
                             }
@@ -2239,7 +2240,7 @@ void ai_CalcMeisterBank(AICHAR *ch)
         else
             v = ch->bld->interest + 1;
         cm_BeginFieldBlock(ch->bld, ch->bld->id);
-        cm_AddFieldDelta(4, 1, (short)ch->bld - (short)cm_FieldObject + 0x65, &v);
+        cm_AddFieldDelta(4, 1, (char *)&ch->bld->interest - cm_FieldObject, &v);
         cm_SendFieldDeltas();
     } else if (n == 0) {
         if (ch->bld->interest > rate.cur - 2) {
@@ -2249,7 +2250,7 @@ void ai_CalcMeisterBank(AICHAR *ch)
             if (v < 4)
                 v = 4;
             cm_BeginFieldBlock(ch->bld, ch->bld->id);
-            cm_AddFieldDelta(4, 1, (short)ch->bld - (short)cm_FieldObject + 0x65, &v);
+            cm_AddFieldDelta(4, 1, (char *)&ch->bld->interest - cm_FieldObject, &v);
             cm_SendFieldDeltas();
         }
     } else if (n > 3 && ch->bld->interest < rate.cur) {
@@ -2257,7 +2258,7 @@ void ai_CalcMeisterBank(AICHAR *ch)
         if (v >= rate.cur + 3)
             v = rate.cur + 3;
         cm_BeginFieldBlock(ch->bld, ch->bld->id);
-        cm_AddFieldDelta(4, 1, (short)ch->bld - (short)cm_FieldObject + 0x65, &v);
+        cm_AddFieldDelta(4, 1, (char *)&ch->bld->interest - cm_FieldObject, &v);
         cm_SendFieldDeltas();
     }
     sum = 0;
@@ -2670,7 +2671,7 @@ done:
                 if (ai_Entries[j].flags & 0x400) {
                     info.type = 0x8c;
                     info.e = &ai_Entries[j];
-                    ai_SendJobOrders((AIINFO *)&info);
+                    ai_SendJobOrders(&info.head);
                     if (ai_Watch.bld == ch->bld && ai_Watch.nentries < 4) {
                         ai_Watch.entries[ai_Watch.nentries] = *info.e;
                         ai_Watch.nentries++;
@@ -2679,7 +2680,7 @@ done:
             } else if (ai_Entries[j].flags & 8) {
                 info.type = 4;
                 info.e = &ai_Entries[j];
-                ai_SendJobOrders((AIINFO *)&info);
+                ai_SendJobOrders(&info.head);
                 if (ai_Watch.bld == ch->bld && ai_Watch.nentries < 4) {
                     ai_Watch.entries[ai_Watch.nentries] = *info.e;
                     ai_Watch.nentries++;
@@ -2906,7 +2907,7 @@ done:
                 if (ai_Entries[j].flags & 0x400) {
                     info.type = 0x8c;
                     info.e = &ai_Entries[j];
-                    ai_SendJobOrders((AIINFO *)&info);
+                    ai_SendJobOrders(&info.head);
                     if (ai_Watch.bld == ch->bld && ai_Watch.nentries < 4) {
                         ai_Watch.entries[ai_Watch.nentries] = *info.e;
                         ai_Watch.nentries++;
@@ -2915,7 +2916,7 @@ done:
             } else if (ai_Entries[j].flags & 8) {
                 info.type = 4;
                 info.e = &ai_Entries[j];
-                ai_SendJobOrders((AIINFO *)&info);
+                ai_SendJobOrders(&info.head);
                 if (ai_Watch.bld == ch->bld && ai_Watch.nentries < 4) {
                     ai_Watch.entries[ai_Watch.nentries] = *info.e;
                     ai_Watch.nentries++;
@@ -3577,7 +3578,7 @@ void ai_BuildTradeOffers(AICHAR *ch, AIOBJ *store, int f)
 
 void ai_CalcEntryCost(AIENTRY *e0)
 {
-    AIENTRY *e = (AIENTRY *)e0;
+    AIENTRY *e = e0;
     AISLOT *s;
     int k;
 
@@ -3990,11 +3991,11 @@ void ai_UpdateStaff(AICHAR *ch)
                     msg.fromId = ch->bld->id;
                     msg.flags = 1;
                     msg.time = ai_Time;
-                    msg.arg[1] = 1;
+                    msg.hireRows[0] = 1;
                     gm_IsHomeType(ch->bld);
                     msg.amount[1] = -1;
-                    ((unsigned char *)&msg.arg[0])[1] = 1;
-                    ((unsigned char *)&msg.arg[0])[0] = ai_BTypes[ch->bld->type].k230;
+                    msg.hireFlag = 1;
+                    msg.hireTitle = ai_BTypes[ch->bld->type].k230;
                     cm_SendLongMessage(&msg);
                     ch->budget -= v;
                 }
@@ -5124,7 +5125,7 @@ int ai_MeisterTrade(AICHAR *ch, AIOBJ *b)
             v = 4;
             if (o->reserve != v) {
                 cm_BeginFieldBlock(o, o->objId);
-                cm_AddFieldDelta(4, 1, (char *)o - cm_FieldObject + 0x1c, &v);
+                cm_AddFieldDelta(4, 1, (char *)&o->reserve - cm_FieldObject, &v);
                 cm_SendFieldDeltas();
             }
         }
@@ -5136,7 +5137,7 @@ int ai_MeisterTrade(AICHAR *ch, AIOBJ *b)
                 && o->reserve != 0) {
                 v = 0;
                 cm_BeginFieldBlock(o, o->objId);
-                cm_AddFieldDelta(4, 1, (char *)o - cm_FieldObject + 0x1c, &v);
+                cm_AddFieldDelta(4, 1, (char *)&o->reserve - cm_FieldObject, &v);
                 cm_SendFieldDeltas();
             }
         }

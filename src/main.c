@@ -56,7 +56,7 @@ void main_Nothing(void);  /* unlinked, defined at the end of the unit (an empty 
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 extern int main_Inactive;       /* 0x6f2584, 1 while the app is deactivated */
-extern unsigned char ai_GfxResolution;  /* 0x6f2f94 (menu.c: OPTIONBYTES): @original main_OpenScreen reads it as a byte object (0x531d43 mov al, byte ptr [0x6f2f94]); through the 4-byte union VC6 loads the dword and masks it (and eax, 0xff: 264 instead of 226 differing instructions) */
+extern unsigned char ai_GfxResolution;  /* 0x6f2f94 (menu.c: OPTIONBYTES): @original main_OpenScreen reads it as a byte object (0x531d43 mov al, byte ptr [0x6f2f94]); through the 4-byte union VC6 loads the dword and masks it (.word & 0xff, and eax, 0xff) or, as .byte[0], keeps the stores in memory (mov byte [x], 1 where the original holds al): main_OpenScreen / WinMain fall to draft */
 extern int ai_ScreenModeH;
 extern int ai_ScreenModeW;
 extern struct SCREENMODE { int w, h; } ai_ScreenModes[];
@@ -126,52 +126,6 @@ extern int sv_FrameMask;
 extern int sv_PopRequest;
 extern struct D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
 extern float gm_DayStartHours[], gm_DayEndHours[];  /* 0x617830 / 0x617840 (f3gm.c) */
-#pragma pack(push, 1)
-typedef struct MAINCARRY {          /* 0x21d bytes (+0x219 the entry count), what gm_CollectCarried collects for a character (f3gm.c: +0x31 the free capacity) */
-    int units;                      /* 0x00, counts the 0xe-byte units */
-    struct {
-        unsigned char good;         /* a good (its name is the text 0x253 + good), 0 ends the list */
-        int amount;
-    } goods[9];                     /* 0x04, what the round change lists on the balance page (main.c 0x5384e0) */
-    int capacity;                   /* 0x31, the free capacity (unaligned) */
-    char rest[0x1e8];
-} MAINCARRY;
-#pragma pack(pop)
-typedef struct MAINCHARNEW {        /* the AICHAR fields the character replacement writes (ai.h AICHAR: name is shorter than its 0x58 union) */
-    unsigned short id;              /* 0x00 */
-    unsigned char kind;             /* 0x02 */
-    char pad03;
-    unsigned int netId;             /* 0x04 */
-    unsigned char health;           /* 0x08 */
-    unsigned char flag9;            /* 0x09, 1: the female name table is used */
-    char pad0a[0x26];
-    union {
-        char name[0x20];            /* 0x30 */
-        struct {
-            char firstName[0x10];   /* 0x30 */
-            char familyName[0x10];  /* 0x40, the start couple's father gets the profile's family name (main_CreateStartCouple) */
-        };
-    };
-    short seq;                      /* 0x50, a running number (ai_NextCharNumber) */
-    char pad52[2];
-    int coat;                       /* 0x54, the coat of arms (AICHAR.ref54: the save adds the base 0x59a back, as INIT_PLAYER.coat's object ids); the start couple get the player's */
-    char pad58[4];
-    union {
-        int clear[8];               /* 0x5c, set to -1 */
-        struct {
-            int spouse;             /* 0x5c, the netId of the husband / wife (the start couple point at each other) */
-            int parent1;            /* 0x60, the netIds of the parents (the player gets the start couple) */
-            int parent2;            /* 0x64 */
-            int child;              /* 0x68, the netId of a child (the start couple get the player) */
-        } rel;
-    };
-    char pad7c[4];
-    unsigned char talents[5];       /* 0x80, the five talent values (from the profile, INIT_PLAYER.talents) */
-    char pad85[0x107];
-    int modelId;                    /* 0x18c, the model's id (INIT_PLAYER.modelId) */
-    char pad190[0x64];
-    char ownName[0x1c];             /* 0x1f4, the model name (AICHAR.ownName; from INIT_PLAYER.model) */
-} MAINCHARNEW;
 extern struct SBBANK *main_SoundBanks[0x80]; /* 0x75df20 */
 extern char cm_RequestedSaveName[0x40];
 extern int main_LastLoadProgress;  /* 0x6f2610 */
@@ -209,7 +163,7 @@ extern char main_MoviePath[0x104];   /* 0x624798, the movie directory */
 extern int main_Movie;               /* 0x6f241c, the playing movie's id */
 extern int di_Disabled;
 extern unsigned char snd_AmbientOn;     /* 0x6f0b60, 1: ambient sounds on */
-extern unsigned char ai_GfxResolution;  /* 0x6f2f94 (menu.c: OPTIONBYTES): @original main_OpenScreen reads it as a byte object (0x531d43 mov al, byte ptr [0x6f2f94]); through the 4-byte union VC6 loads the dword and masks it (and eax, 0xff: 264 instead of 226 differing instructions) */
+extern unsigned char ai_GfxResolution;  /* 0x6f2f94 (menu.c: OPTIONBYTES): @original main_OpenScreen reads it as a byte object (0x531d43 mov al, byte ptr [0x6f2f94]); through the 4-byte union VC6 loads the dword and masks it (.word & 0xff, and eax, 0xff) or, as .byte[0], keeps the stores in memory (mov byte [x], 1 where the original holds al): main_OpenScreen / WinMain fall to draft */
 extern char ai_OptionsFile[288];
 extern int ai_ScreenModeH;
 extern int ai_ScreenModeW;
@@ -231,7 +185,6 @@ extern int main_MoneyCheat;
 extern int sv_FrameDepth;
 extern int sv_PopRequest;
 
-#define U_I(a) (*(int *)(a))
 
 extern HWND main_Window;
 
@@ -356,8 +309,6 @@ void main_Exit(void)
         main_SetScreenSaver(1);
 }
 
-#define SCREEN ((struct D2SURF *)d2_ScreenSurf)
-#define BACK ((struct D2SURF *)d2_BackSurf)
 
 /* 0x531780, the window procedure of "Die Gilde": WM_DESTROY / WM_CLOSE post the quit message, WM_PAINT / WM_MOUSEWHEEL validate the window, WM_SYSCOLORCHANGE revalidates and repaints the screen
    (d2_BlitPart copies the back surface 0x6ed92c onto the screen surface 0x6ed924) when both surfaces are set, WM_ACTIVATEAPP restores the screen and reacquires the sound on activation (after
@@ -375,8 +326,8 @@ LRESULT CALLBACK main_WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
         return 0;
     case 0x14:
         ValidateRect(hwnd, 0);
-        if (SCREEN != 0 && BACK != 0)
-            d2_BlitPart(0, 0, SCREEN->w, SCREEN->h, BACK, 0, 0, SCREEN);
+        if (d2_ScreenSurf != 0 && d2_BackSurf != 0)
+            d2_BlitPart(0, 0, d2_ScreenSurf->w, d2_ScreenSurf->h, d2_BackSurf, 0, 0, d2_ScreenSurf);
         return 1;
     case 0x1c:
         if (wparam != 0) {
@@ -387,12 +338,12 @@ LRESULT CALLBACK main_WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
                     while (d3_Hardware != 0 && d3d_Restore() == 0)
                         ;
                     d2_FlushDirty();
-                    if (d2_LockSurface(SCREEN) != 0) {
-                        d2_BlitPart(0, 0, SCREEN->w, SCREEN->h, BACK, 0, 0, SCREEN);
+                    if (d2_LockSurface(d2_ScreenSurf) != 0) {
+                        d2_BlitPart(0, 0, d2_ScreenSurf->w, d2_ScreenSurf->h, d2_BackSurf, 0, 0, d2_ScreenSurf);
                         d2_DrawObjects();
-                        d2_UnlockSurface(SCREEN);
+                        d2_UnlockSurface(d2_ScreenSurf);
                         dd_Flip();
-                        d2_BlitPart(0, 0, SCREEN->w, SCREEN->h, BACK, 0, 0, SCREEN);
+                        d2_BlitPart(0, 0, d2_ScreenSurf->w, d2_ScreenSurf->h, d2_BackSurf, 0, 0, d2_ScreenSurf);
                     }
                     tb_Paused = 0;
                     sfx_ReacquireAll(hwnd, 0x7e7);
@@ -425,7 +376,7 @@ LRESULT CALLBACK main_WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
             return 0x424d5144;
         break;
     case 0x7e7:
-        sfx_Reacquire(wparam, hwnd, 0x7e7);
+        sfx_Reacquire((SFXDRIVER *)wparam, hwnd, 0x7e7);
         return 0;
     }
     return DefWindowProcA(hwnd, msg, wparam, lparam);
@@ -613,7 +564,7 @@ int main_OpenScreen(int m)
     cfg.zf = 12000.0f;
     d3io_Lod.all = 2;
     cfg.scale = (float)(512.0 / (640.0 / (double)cfg.w));
-    d3_DefaultD3DConfig[1] = (d3_DefaultD3DConfig[1] & 0xf9) | 1;
+    d3_DefaultD3DConfig.shadows = 1;
     if (d3_Init(&cfg, main_Window, (int)main_Instance) != 0) {
         d3if_CreateCameras();
         while (ShowCursor(0) > 0)
@@ -896,8 +847,8 @@ int main_HostNetworkGame(void)
                 ls_SavePath.net.name[i] = c;
                 i++;
             } while (c != 0);
-            memcpy(&cm_NetGame.hdr, &ls_SavePath.net, sizeof(NETHDR));
-            cm_NetGame.mode = 0x3f;
+            memcpy(&cm_NetGame.info.game, &ls_SavePath.net, sizeof(NETHDR));
+            cm_NetGame.flags = 0x3f;
             d3_SetViewport((float)(sv_ViewRectRight - sv_ViewRectLeft), (float)(sv_ViewRectBottom - sv_ViewRectTop), (float)sv_ViewRectLeft, (float)sv_ViewRectTop, d3_ZNear, d3_ZFar, d3_ScaleX, d2_ScreenW, d2_ScreenH);
             return 1;
         }
@@ -932,10 +883,10 @@ int main_JoinNetworkGame(void)
             strcpy(ls_SavePath.net.name, hdr.player);
             strcpy(ls_SavePath.net.save, main_NetSaveName);
             memcpy(ls_SavePath.net.party, hdr.party, sizeof(hdr.party));
-            memcpy(&cm_NetGame.hdr, &ls_SavePath.net, sizeof(NETHDR));
+            memcpy(&cm_NetGame.info.game, &ls_SavePath.net, sizeof(NETHDR));
             memset(&cm_JoinChar, 0, sizeof(CMJOIN));
             cm_JoinChar.char164 = hdr.char164;
-            cm_NetGame.mode = 0x7f;
+            cm_NetGame.flags = 0x7f;
             cm_JoinChar.char09 = hdr.char09;
             strcpy(cm_JoinChar.text1, hdr.charText1);
             if (hdr.version >= 0x10054) {
@@ -1119,7 +1070,7 @@ int main_SearchNetworkGame(int saved)
                         WritePrivateProfileStringA("Network", "Host", main_NetHost, ai_OptionsFile);
                         sv_PopRequest = 1;
                         ret = 1;
-                        memcpy(&cm_NetGame, &recs[sel], sizeof(CMNETGAME));
+                        memcpy(&cm_NetGame, &recs[sel], sizeof(cm_NetGame));
                         if (saved != 0 && recs[sel].flags == 0x7f) {
                             strcpy(ai_CityName, recs[sel].info.game.name);
                             strcpy(main_NetSaveName, recs[sel].info.game.save);
@@ -1628,7 +1579,6 @@ void main_GiveStartBuildings(int p)
     }
 }
 
-#define SV_WI2(i, o) (*(int *)(U_I((uintptr_t)&d2_Objs) + (i) * 0x2ec + (o)))
 
 /* 0x5344f0, puts a person (the template model name n of the list TXT_FAMILY_MODEL_NAMES, index k) at the dummy "a" of the scene: the dummy position (0x458a20), a character object (0x403390 (b, pos)) that
    looks along the dummy's heading (0x458810 / 0x4539f0, 0x43b860), walks ("bewegung/gehen", walkSpeed 0.7), is registered as a status text plate (0x52e1c0); returns the new object or 0 */
@@ -1637,21 +1587,21 @@ CHARACTER *main_PlaceFamilyModel(char *dummy, char *model, int k)
 {
     D3OBJECT *o;
     CHARACTER *ch;
-    float pos[4];
+    D3VECTOR4 pos;
 
     o = d3_FindObject(0, 0x100, 0, dummy);
     if (o == 0)
         return 0;
-    d3_PointToWorld(o, &o->pos, (D3VECTOR *)pos);
-    ch = ch_Create(model, (D3VECTOR *)pos);
+    d3_PointToWorld(o, &o->pos, &pos.v);
+    ch = ch_Create(model, &pos.v);
     if (ch != 0) {
-        float dir[3], loc[3];
-        dir[0] = 0;
-        dir[1] = 0.0f;
-        dir[2] = 0;
-        d3_DirToWorld(o, &d3_ZAxis.v, (D3VECTOR *)loc);
-        dir[1] = d3_VecAngle(&d3_ZAxis.v, (D3VECTOR *)loc);
-        d3_SetObjectRot(ch->obj, (D3VECTOR *)dir);
+        D3VECTOR dir, loc;
+        dir.x = 0;
+        dir.y = 0.0f;
+        dir.z = 0;
+        d3_DirToWorld(o, &d3_ZAxis.v, &loc);
+        dir.y = d3_VecAngle(&d3_ZAxis.v, &loc);
+        d3_SetObjectRot(ch->obj, &dir);
         ch_PlaceOnGround(ch, 0);
         ch->obj->owner = ch;
         d3_UpdateObject(ch->obj, 1);
@@ -1929,7 +1879,7 @@ int main_ChooseFamily(int unused)
         d3_DefaultScene->events[4].fn(d3_DefaultScene, 4, d3_DefaultScene->events[4].name, 0);
     scene = evt_LastId;
     if (d3_Terrain != 0)
-        ((D3FLMAP *)d3_Terrain)->lod = 2;
+        d3_Terrain->lod = 2;
     o1 = main_PlaceFamilyModel("dummy_NACHT_UND_NEBEL_MANN", "dieb_MANN2", 0);
     o2 = main_PlaceFamilyModel("dummy_NACHT_UND_NEBEL_FRAU", "zigeunerin_FRAU", 8);
     o3 = main_PlaceFamilyModel("dummy_HANDWERKSKUNST_MANN", "handwerker_MANN", 1);
@@ -2075,7 +2025,7 @@ lskip:
         sv_RunFramesUntilStopped(scene);
     }
     if (d3_DefaultScene->hmap != 0) {
-        d3sm_Destroy((D3SM *)d3_DefaultScene->hmap);
+        d3sm_Destroy(d3_DefaultScene->hmap);
         d3_DefaultScene->hmap = 0;
     }
     cm_DestroySceneSky();
@@ -2526,7 +2476,8 @@ int main_ChooseCity(int unused, int host)
     D3OBJECT *tower, *last, *sel, *h;
     D3OBJECT *cityobj[64];
     int diff[64];
-    char recs[64][0x210], name[0x40], objName[0x100];
+    FILEREC recs[64];
+    char name[0x40], objName[0x100];
     LSHDR hdr;
     char *s, *d;
     char c;
@@ -2542,11 +2493,11 @@ int main_ChooseCity(int unused, int host)
     d3_SetObjectRot(d3_Camera, &d3_Camera->savedRot);
     d3_SetLightSet(0, 0.0f, 1.0f, 0);
     if (host == 0)
-        n = ai_ListFiles(main_CitiesDir, ".CTY", (char *)recs);
+        n = ai_ListFiles(main_CitiesDir, ".CTY", recs);
     else
-        n = ai_ListFiles(main_CitiesDir, ".NET", (char *)recs);
+        n = ai_ListFiles(main_CitiesDir, ".NET", recs);
     for (i = 0; i < n; i++) {
-        f = vfs_Tfopen(recs[i] + 0x109, "rb", vfs_Root);
+        f = vfs_Tfopen(recs[i].path, "rb", vfs_Root);
         if (f == 0)
             return 0;
         if (ls_ReadSaveHeader(f, &hdr) == 0) {
@@ -2744,7 +2695,7 @@ void main_LoadingScreen(void)
     d2_SetForm(init_StatusForm, 1);
     d2_WinOpenSlider(0, 0, 0x246, 0, 0x246, 0x83, 0x42, d2_LastWindow);
     d2_DrawAll();
-    tb_OpenFunction(d3io_NoopCallback, 7);
+    tb_OpenFunction(main_Nothing, 7);
 }
 /* 0x537af0, sets the loading progress bar to pct percent (the bar 0x246 wide) */
 
@@ -2787,7 +2738,7 @@ void main_CloseLoadingScreen(void)
     mask = 0x24087;
     if (net_Conn.s == -1)
         mask = 0x24086;
-    tb_CloseFunction(d3io_NoopCallback);
+    tb_CloseFunction(main_Nothing);
     fade = d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x1e, 1);
     while ((fade->flags & 4) == 0)
         sv_RunFrame(0, mask);
@@ -2991,7 +2942,7 @@ void main_EndGame(void)
 
 void main_RundenBeginn(void)
 {
-    MAINCARRY carry;
+    GMCARRY carry;
     char b5[0x200], b6[0x200], b4[0x200];
     char b1[0x100], b2[0x100], b3[0x100], b0[0x100];
     char hdr[0x100] = "";
@@ -3054,7 +3005,7 @@ void main_RundenBeginn(void)
                 }
                 cm_SendSetField(ch->netId, 0x1cc, 4, 0, 0x200000);
             }
-            gm_CollectCarried(ch->id, (int *)&carry);
+            gm_CollectCarried(ch->id, &carry);
             if (ch->bld2 != 0 && (k = gm_BuildingSkill(ch->bld2, 3, 1)) != 0) {
                 txt_Format(b5, 0x2053, ch->bld2);
                 e = (char *)he_AddApEvent(ch->id, b5, k, 0);
@@ -3080,8 +3031,6 @@ void main_RundenBeginn(void)
 }
 
 /* message record (0xf8 bytes) of 0x4c4b70 / 0x4e4060: kind byte +4, owner id +8, target +0xc, time stamp (the 0x770ae0 clock, 14 bytes) +0x28 .. +0x36, flag +0x36 = 1 */
-#define MSG_B(m, o) (*(unsigned char *)((m) + (o)))
-#define MSG_I(m, o) (*(int *)((m) + (o)))
 int gm_CharacterIncomes(unsigned short id, GMINCOME *out, unsigned char flags);  /* 0x4fa4b0, @original why: f3gm.c
    defines `unsigned id` (it masks the id itself); main_RoundReport pushes ai_PlayerId as an unmasked dword (byte-matched), the
    code of a call through an unsigned short parameter (an unsigned / int one gives movzx); no header declares it */
@@ -3094,7 +3043,7 @@ extern unsigned char main_GameEnded;  /* 0x6f25ad, sv.c */
    buildings of the masters this machine runs (kind 0x1c message "renovieren") and spreads each character's goods value over its buildings as their work load (AIBLD.budget), then beams the figures of the characters home ("Beamed home") */
 void main_EndRound(void)
 {
-    MAINCARRY carry;   /* what gm_CollectCarried collects (the original's buffer sits at +0x1a8 of a 0x3b8 frame) */
+    GMCARRY carry;   /* what gm_CollectCarried collects (the original's buffer sits at +0x1a8 of a 0x3b8 frame) */
     struct {
         int clock0;
         int tick;
@@ -3141,7 +3090,7 @@ void main_EndRound(void)
     }
     if ((ai_GameFlags & 4) != 0)
         sv_NetworkSyncWait(0x24087);
-    gm_CollectCarried(ai_PlayerId, (int *)&carry);
+    gm_CollectCarried(ai_PlayerId, &carry);
     sv_FillDayPhases(&clk);
     sv_Season = sv_ClockSeason(&clk);
     gm_FindRichest(&rid, &k);
@@ -3280,7 +3229,7 @@ void main_EndRound(void)
         b = gm_BuildQuery(1, 0, 0x44);
         obj = gm_Query(b->objList, 1, 4, 0x1d);
         while (obj != 0) {
-            scene = (CHARACTER *)obj->sceneObj;
+            scene = obj->sceneObj;
             b = gm_BuildQuery(1, 1, obj->bldId);
             if (b != 0 && (ch = &ai_Chars[b->owner]) != 0 && ai_CanAct(ch) != 0)
                 ch_SetVisible(scene, 1);
@@ -3408,7 +3357,7 @@ void main_ReplaceFigure(unsigned p)
 {
     int la[15] = { 0x5d, 0x11, 0x30, 0x35, 0x42, 0x60, 0x4b, 0x5b, 0x5c, 0x5a, 0x46, 0x2e, 0x2d, 0x41, 0 };
     int lb[3] = { 0x45, 0x47, 0 };
-    MAINCHARNEW *ch;
+    AICHAR *ch;
     AIJOB *e;
     G28REC *pt;
     int i, j, n;
@@ -3425,7 +3374,7 @@ void main_ReplaceFigure(unsigned p)
         return;
     }
     if (ai_Chars[p].kind == 6 && ai_Chars[p].health == 0) {
-        ch = (MAINCHARNEW *)&ai_Chars[p];
+        ch = &ai_Chars[p];
         e = he_Events;
         do {
             if (e->kind != 0 && e->chr == p) {
@@ -3445,16 +3394,16 @@ void main_ReplaceFigure(unsigned p)
             e++;
         } while ((int)e < (int)(he_Events + 0x400));
         ch->kind = 5;
-        if (ch->flag9 == 0) {
+        if (ch->sex == 0) {
             strcpy(ch->name, txt_Ptrs[TXT_MALE_FIRST_NAMES + util_Random(0xbf)]);
         } else {
             strcpy(ch->name, txt_Ptrs[TXT_FEMALE_FIRST_NAMES + util_Random(0x70)]);
         }
-        ch->seq = (short)ai_NextCharNumber;
-        memset(ch->clear, 0xff, sizeof(ch->clear));
+        ch->w050 = (unsigned short)ai_NextCharNumber;
+        memset(ch->relatives, 0xff, sizeof(ch->relatives));
         ai_NextCharNumber = ai_NextCharNumber + 1;
         /* the original walks the records by their kind byte, 8 bytes into each */
-        for (pt = cm_Parties; (int)&pt->kind < (int)((unsigned)cm_Parties + 0x6788); pt++) {
+        for (pt = cm_Parties; (intptr_t)&pt->kind < (intptr_t)&cm_Parties[96].kind; pt++) {
             if (pt->used != 0) {
                 if (cm_IsPartyMember(ch->netId, pt) != 0 && (pt->kind == 3 || pt->kind == 5 || pt->kind == 4 || pt->kind == 6 || pt->kind == 9 || pt->kind == 7))
                     cm_ClearParty(pt->id);
@@ -3466,7 +3415,7 @@ void main_ReplaceFigure(unsigned p)
    sv_CreateScrollForm, the loop 0x5309a0 until a click or Enter): the character's wage and goods bought, the
    round record's (AIFIN, gm_PlayerRecord) costs and incomes (texts 0x2005 .. 0x204e), the balance of every
    building the player owns or masters (gm_BuildingBalance), the interest of the loans its banks gave and of its
-   own loans (HELOAN events, interest * 0.01 * amount, truncated per step), the office wages and the other
+   own loans (the loan events, interest * 0.01 * amount, truncated per step), the office wages and the other
    incomes (GMINCOME); then the round parts are rolled into AIFIN.missionMoney and cleared. When the balance goes
    negative (gm_IsBankrupt) a bankruptcy scene party (kind 9) runs and, with main_ReplaceFigureOn set, the
    figure is replaced (main_ReplaceFigure) */
@@ -3477,12 +3426,12 @@ void main_RoundReport(void)
     int bal[0x15];                  /* gm_BuildingBalance's summary: [3] / [0x10] costs, [0x11] income, [0x14] net */
     GMINCOME inc;
     GMDATE date;
-    HELOAN *loans[9];
+    AIJOB *loans[9];
     ORDWAGES wages;
     D2FADE *fade;
     AIFIN *fin;
     AIBLD *b;
-    HELOAN *o;
+    AIJOB *o;
     int iv, cash, v, t, win, nrow, i, j, k;
     int costs, net, income, wageCost, incomeSum;
 
@@ -3515,7 +3464,7 @@ void main_RoundReport(void)
         d2_StartFade(0, 0, d2_ScreenW, d2_ScreenH, "BLACK", 0x1e, 10);
         d2_SetForm(win, 2);
         io_PrintText(0x7d);
-        gm_ClockToDate(&ai_Time, (unsigned char *)&date);
+        gm_ClockToDate(&ai_Time, &date);
         d2_SetForm(win, 1);
         io_PrintText(0x2007);
         /* the character's own money: wage in, goods bought out */
@@ -3612,9 +3561,9 @@ void main_RoundReport(void)
         if (nrow > 0) {
             do {
                 o = loans[j];
-                income = (int)(income + (o->interest * 0.01) * o->amount);
-                v = (int)(v + (o->interest * 0.01) * o->amount);
-                net = (int)(net + (o->interest * 0.01) * o->amount);
+                income = (int)(income + (o->loanInterest * 0.01) * o->loanAmount);
+                v = (int)(v + (o->loanInterest * 0.01) * o->loanAmount);
+                net = (int)(net + (o->loanInterest * 0.01) * o->loanAmount);
                 j++;
             } while (j < nrow);
             if (v != 0)
@@ -3622,7 +3571,7 @@ void main_RoundReport(void)
         }
         /* the wages of the offices */
         if (ai_Chars[ai_PlayerId].officeKind != 0 || ai_Chars[ai_PlayerId].secondOffice != 0) {
-            gm_CharacterWages(ai_PlayerId, 0, (unsigned char *)&wages);
+            gm_CharacterWages(ai_PlayerId, 0, &wages);
             t = ai_Chars[ai_PlayerId].sex != 0 ? 0x27b : 0x253;
             if (ai_Chars[ai_PlayerId].officeKind != 0)
                 io_PrintText(0x2049, ai_Chars[ai_PlayerId].officeKind + t, wages.amount);
@@ -3655,9 +3604,9 @@ void main_RoundReport(void)
         if (0 < j) {
             do {
                 o = loans[k];
-                costs = (int)(costs + (o->interest * 0.01) * o->amount);
-                iv = (int)(iv + (o->interest * 0.01) * o->amount);
-                net = (int)(net - (o->interest * 0.01) * o->amount);
+                costs = (int)(costs + (o->loanInterest * 0.01) * o->loanAmount);
+                iv = (int)(iv + (o->loanInterest * 0.01) * o->loanAmount);
+                net = (int)(net - (o->loanInterest * 0.01) * o->loanAmount);
                 k++;
             } while (k < j);
         }
@@ -3733,8 +3682,7 @@ void main_RoundReport(void)
     }
 }
 
-#define PL(i) ((uintptr_t)&ai_Chars + (i) * 0x21c)
-float gm_TitlePeriodServed(int n, int *out);
+float gm_TitlePeriodServed(int n, struct AITIME *out);
 
 /* 0x53a250, the daily update of the figure i by its kind: kinds 6 / 7 get the field delta 0x174 (AICHAR.jobDays, the
    days in the job) = 1 sent; kinds 0 .. 9 otherwise the same delta when the character has a building or is of the
@@ -3767,7 +3715,7 @@ void main_UpdateFigure(int i)
             left = gm_TitlesLeft(ai_Chars[i].jobId);
             ev = he_FindEvent(2, 2, c->id, 0, 0x24);
             c->jobDays++;
-            f = gm_TitlePeriodServed(i, (int *)&when);
+            f = gm_TitlePeriodServed(i, &when);
             c->jobDays--;
             if (ev == 0 && left != 0 && left < 6 && f >= 1.0 && ai_Chars[i].money >= 0) {
                 memset(&msg, 0, sizeof(msg));
@@ -3869,7 +3817,7 @@ void main_SettleRound(unsigned short pl)
                             AIBLD *t = gm_FindBuildingById(o->reportBld);
 
                             if (t != 0) {
-                                char age = o->reportKnow - (char)gm_BuildingRank(t) * 2;
+                                signed char age = o->reportKnow - (signed char)gm_BuildingRank(t) * 2;
 
                                 age = age < 0 ? 0 : age;
                                 cm_BeginFieldBlock(o, o->objId);
@@ -4001,7 +3949,7 @@ void main_SettleRound(unsigned short pl)
 
                         if (workers[1 + pass * 12 + j] != 0xffff) {
                             AICHAR *q = &ai_Chars[workers[1 + pass * 12 + j]];
-                            char rel = 0;
+                            signed char rel = 0;
                             int m;
 
                             if (q->scene == 0) {
@@ -4027,23 +3975,23 @@ void main_SettleRound(unsigned short pl)
                                 m = (100 - p->wageRate) / 3;
                                 if (m < 1)
                                     m = 1;
-                                rel = -(char)m;
+                                rel = -(signed char)m;
                             } else if (p->wageRate > 100 && gm_Opinion(pl, q->id) < 100) {
                                 rel = 1;
                                 m = (p->wageRate - 100) / 3;
                                 if (m >= 1)
-                                    rel = (char)m;
+                                    rel = (signed char)m;
                             }
                             if (p->workRate < 100 && gm_Opinion(pl, q->id) > -0x78) {
                                 m = (p->workRate - 100) / 5;
                                 if (m < 1)
                                     m = 1;
-                                rel += (char)m;
+                                rel += (signed char)m;
                             } else if (p->workRate > 100 && gm_Opinion(pl, q->id) < 100) {
                                 m = (100 - p->workRate) / 5;
                                 if (m < 1)
                                     m = 1;
-                                rel -= (char)m;
+                                rel -= (signed char)m;
                             }
                             if (rel != 0) {
                                 cnt++;
@@ -4066,7 +4014,7 @@ void main_SettleRound(unsigned short pl)
                                         msg4.time = ai_Time;
                                         msg4.flags = 1;
                                         msg4.arg[0] = q->netId;
-                                        gm_AddTime((struct AITIME *)&msg4.time, util_Random(6) + 4, 0, 0);
+                                        gm_AddTime(&msg4.time, util_Random(6) + 4, 0, 0);
                                         cm_SendLongMessage(&msg4);
                                     } else {
                                         AIMSG msg1;     /* 0x1b to the master; 0x34 */
@@ -4078,7 +4026,7 @@ void main_SettleRound(unsigned short pl)
                                         msg1.time = ai_Time;
                                         msg1.flags = 1;
                                         msg1.arg[0] = q->netId;
-                                        gm_AddTime((struct AITIME *)&msg1.time, util_Random(6) + 4, 0, 0);
+                                        gm_AddTime(&msg1.time, util_Random(6) + 4, 0, 0);
                                         cm_SendLongMessage(&msg1);
                                     }
                                     cnt++;
@@ -4158,8 +4106,8 @@ void main_BeginPlayerRound(void)
     int i, w;
     AIBLD *b;
     AIBTYPE *bt;
-    char date[12];
-    int rec[9];
+    GMDATE date;
+    ORDMSGREC rec;
     char buf[256];
 
     ord_CountGridObjects();
@@ -4205,7 +4153,7 @@ void main_BeginPlayerRound(void)
         d2_PlaceMainWindow(w, 3);
         d2_SetForm(w, 1);
         io_PrintText(0x7d);
-        gm_ClockToDate((struct AITIME *)&ai_Time, date);
+        gm_ClockToDate(&ai_Time, &date);
         d2_SetForm(w, 0);
         d2_CloseView(w);
     }
@@ -4266,8 +4214,8 @@ void main_BeginPlayerRound(void)
         sv_PumpNet();
         Sleep(100);
         ord_UpdateStatistics();
-        ord_GetMessageRecord(rec);
-        if (rec[0] == -1)
+        ord_GetMessageRecord(&rec);
+        if (rec.enabled == -1)
             ord_InitMessageRecord(1, 1.0f, 0.5f, (float)(10.0 - (4 - ai_Difficulty) * 2.5));
         else
             ord_UpdateMessageEvent();
@@ -4321,7 +4269,7 @@ int main_CheckCD(void)
 
 void main_CreateStartCouple(void)
 {
-    MAINCHARNEW *a, *mother, *father;
+    AICHAR *a, *mother, *father;
     int h1, h2;
     char *d, *t;
     int k;
@@ -4334,44 +4282,44 @@ void main_CreateStartCouple(void)
         cm_EndSendGroup();
         while (cm_SendGroupState() == 0)
             sv_PumpNet();
-        a = (MAINCHARNEW *)cm_GetSlotValue(h1);
+        a = (AICHAR *)cm_GetSlotValue(h1);
         cm_BeginSendGroup();
         h1 = cm_SendCreateCharacter(9, -1, -1, util_Random(4) + 0x20, -1, init_PlayerProfile.tool2, 0, 1);
         h2 = cm_SendCreateCharacter(9, -1, -1, util_Random(4) + 0x20, -1, init_PlayerProfile.tool1, 0, 0);
         cm_EndSendGroup();
         while (cm_SendGroupState() == 0)
             sv_PumpNet();
-        mother = (MAINCHARNEW *)cm_GetSlotValue(h1);
-        father = (MAINCHARNEW *)cm_GetSlotValue(h2);
-        strncpy(father->familyName, init_PlayerProfile.familyName, 0x10);
-        mother->seq = a->seq;
-        mother->coat = a->coat;
-        mother->rel.child = a->netId;
+        mother = (AICHAR *)cm_GetSlotValue(h1);
+        father = (AICHAR *)cm_GetSlotValue(h2);
+        strncpy(father->family, init_PlayerProfile.familyName, 0x10);
+        mother->w050 = a->w050;
+        mother->ref54 = a->ref54;
+        mother->child = a->netId;
         t = txt_Ptrs[TXT_FEMALE_FIRST_NAMES + util_Random(0x70)];
-        d = mother->firstName;
+        d = mother->first;
         do {
             c = *t++;
             *d++ = c;
         } while (c != 0);
         gm_CharNameRecord(mother->id);
-        father->seq = a->seq;
-        father->coat = a->coat;
-        father->rel.child = a->netId;
+        father->w050 = a->w050;
+        father->ref54 = a->ref54;
+        father->child = a->netId;
         t = txt_Ptrs[TXT_MALE_FIRST_NAMES + util_Random(0xbf)];
-        d = father->firstName;
+        d = father->first;
         do {
             c = *t++;
             *d++ = c;
         } while (c != 0);
         gm_CharNameRecord(father->id);
-        mother->rel.spouse = father->netId;
-        father->rel.spouse = mother->netId;
-        a->rel.parent1 = father->netId;
-        a->rel.parent2 = mother->netId;
-        mother->rel.child = a->netId;
-        father->rel.child = a->netId;
+        mother->spouse = father->netId;
+        father->spouse = mother->netId;
+        a->parent1 = father->netId;
+        a->parent2 = mother->netId;
+        mother->child = a->netId;
+        father->child = a->netId;
         strcpy(a->ownName, init_PlayerProfile.model);
-        a->modelId = init_PlayerProfile.modelId;
+        a->picture = init_PlayerProfile.modelId;
         cm_SendRelations(a->netId, father->netId, 0x7f, 0);
         cm_SendRelations(father->netId, a->netId, 0x7f, 0);
         cm_SendRelations(a->netId, mother->netId, 0x7f, 0);
@@ -4383,7 +4331,7 @@ void main_CreateStartCouple(void)
         if (ai_MissionMode > -1)
             ai_NewMission(a->netId, init_PlayerProfile.mission, 0);
         for (k = 0; k < 5; k++)
-            a->talents[k] = init_PlayerProfile.talents[k];
+            a->skills[k] = init_PlayerProfile.talents[k];
     }
 }
 
@@ -5217,7 +5165,7 @@ char ai_DataPath[608];  /* 0x75dca0, the data path */
 LSSAVE ls_SavePath;  /* 0x75e640 */
 
 /* unlinked: an empty function; LINK folds it (/OPT:ICF) into d3io_NoopCallback, 0x44ee40, where the original's
-   calls of it in main_RunTitle .. main_GameLoop (no push) point */
+   calls of it in main_RunTitle .. main_GameLoop (no push) point; the loading form registers it with tb_OpenFunction */
 void main_Nothing(void)
 {
 }

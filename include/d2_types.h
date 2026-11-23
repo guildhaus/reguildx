@@ -1,5 +1,5 @@
-/* The record types of d2.c's tables d2_Wins, d2_Inputs, d2_Radios, d2_Views, d2_Pics, d2_Objs (and D2SURF /
-   D2CTRL they use), for the
+/* The record types of d2.c's tables d2_Wins, d2_Inputs, d2_Radios, d2_Views, d2_Pics, d2_Objs (and the D2SURF
+   they use), for the
    units that declare the tables without the rest of d2.h: types only. d2.h includes it. */
 #ifndef D2_TYPES_H
 #define D2_TYPES_H
@@ -31,7 +31,10 @@ typedef struct D2SURF {             /* 0x40 bytes, a GFX.C surface (made by d2_M
     unsigned char bpp;              /* 0x14, bits per pixel */
     char pad15[3];
     int unk18;
-    unsigned short *bits;           /* 0x1c, pixels (system memory, or while locked) */
+    union {
+        unsigned short *bits;       /* 0x1c, pixels (system memory, or while locked) */
+        unsigned char *bytes;       /* the same pixels by byte (8 / 24-bit surfaces, row offsets in rowbytes) */
+    };
     struct IDirectDrawSurface4 *DDSurface;  /* 0x20 */
     int left;                       /* 0x24, clip rectangle */
     int top;                        /* 0x28 */
@@ -74,7 +77,7 @@ typedef struct D2WIN {              /* 0x3c4 bytes, d2_Wins[0..0x60] */
     };
     int firstline;                  /* 0x238 */
     int nlines;                     /* 0x23c */
-    int pad240;
+    int keyidx;                     /* 0x240 */
     int contentHeight;              /* 0x244, height of the content */
     union {
         int scrollY;                /* 0x248, scroll offset y */
@@ -170,9 +173,10 @@ typedef struct D2VIEW {             /* 0x2ac bytes, a 3D view whose textures sho
     int loaded;                     /* 0x198, its two surfaces exist (D2VIEW.loaded) */
     int shown;                      /* 0x19c, the view is displayed (d2_OpenForm / d2_EnableViewObjects) */
     int enabled;                    /* 0x1a0, its objects are enabled (d2_SetViewEnabled) */
-    int viewSurf;                   /* 0x1a4, the composed view surface (blitted to the DD surface); int as the
-                                       original keeps the D2SURF pointer */
-    int texSurf;                    /* 0x1a8, the two view textures stacked on one surface */
+    D2SURF *viewSurf;               /* 0x1a4, the composed view surface (blitted to the DD surface); d2_RestoreShapes
+                                       restores the saved background into it */
+    D2SURF *texSurf;                /* 0x1a8, the two view textures stacked on one surface, the surface the shapes
+                                       were drawn on */
     char tex1[0x40];                /* 0x1ac */
     char tex2[0x40];                /* 0x1ec */
     char pad22c[0x80];
@@ -191,14 +195,6 @@ typedef struct D2PIC {              /* 0x54 bytes, one picture of the archive; d
     short w;                        /* 0x50 */
     short h;                        /* 0x52 */
 } D2PIC;
-
-typedef struct D2CTRL {             /* what D2OBJ::buf points to (a D2BUF) */
-    int view;                       /* 0x00, the view index (d2_RedrawView; a D2VIEW's id) */
-    char pad004[0x194];
-    int loaded;                     /* 0x198, nonzero: its two surfaces exist (D2VIEW.loaded), so the
-                                       pointer position is d2_PointerX / 0c, not the mouse */
-    int shown;                      /* 0x19c, the view is displayed (D2VIEW.shown) */
-} D2CTRL;
 
 typedef struct D2OBJ {              /* 0x2ec bytes, d2_Objs has 0x2ff: pictures, inputs, sliders, buttons */
     int id;                         /* 0x00, own index */
@@ -219,7 +215,8 @@ typedef struct D2OBJ {              /* 0x2ec bytes, d2_Objs has 0x2ff: pictures,
     int disabled;                   /* 0x38, 1: the object does not take the mouse */
     int clickDisabled;              /* 0x3c, 1: not clickable right now (set with greyed by d2_SetObjEnabled /
                                        d2_EnableViewObjects: the view or scroll button is inactive) */
-    D2CTRL *buf;                    /* 0x40, the object's drawing buffer (D2BUF); 0: none */
+    D2VIEW *buf;                    /* 0x40, the view the object is drawn into (its shapes and the loaded / shown
+                                       state, d2_AddShape); 0: none */
     int textShadow;                 /* 0x44, 1: the object's text is drawn with a shadow (d2_DrawTextBox flag 4) */
     int checkable;                  /* 0x48, nonzero: a checkbox / radio button, its state is in checked and a
                                        click toggles it (d2_SetObjValue); not 'interactive' */
@@ -243,7 +240,10 @@ typedef struct D2OBJ {              /* 0x2ec bytes, d2_Objs has 0x2ff: pictures,
     int picScale;                   /* 0x70, picture scale: 0 / 1 / -1 draw unscaled, > 1 larger, < -1 smaller (d2_ScaleObject) */
     short font;                     /* 0x74 */
     short pad76;
-    int input;                      /* 0x78, input index / picture shift */
+    union {
+        int input;                  /* 0x78, input index / picture shift / animation / window */
+        char *text;                 /* 0x78, of a text object (type 0x43): its 0x101-byte text (mem_Alloc, "d2:ShowTxt") */
+    };
     union {
         char text[0x20];            /* 0x7c, button caption */
         unsigned short *raw;        /* 0x7c, 16-bit pixels of a raw object (d2_OpenRaw) */

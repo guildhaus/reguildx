@@ -6,28 +6,11 @@ struct VFSFILE;
 #define D2_H
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 struct D3OBJECT;
+struct D2BANK;
 
 struct IDirectDrawSurface4;          /* <ddraw.h>, for the surface prototypes below */
 struct _DDSURFACEDESC2;
 #include "d2_types.h"
-
-typedef struct D2PICHDR {           /* start of the data of a picture (what d2_GetPic returns); also a font */
-    char pad00[0x2c];
-    unsigned short w, h;            /* 0x2c; h of a font is its line height */
-    char pad30[4];
-    unsigned char bpp;              /* 0x34, depth of the palette (0 = none) */
-} D2PICHDR;
-
-typedef struct D2FRAME {            /* a frame of a picture (d2_GetFrame), or a glyph of a font */
-    char pad0[6];
-    unsigned short w;               /* 0x06 */
-    char pad8[2];
-    unsigned short h;               /* 0x0a */
-    char pad0c[0xa];
-    unsigned short kern;            /* 0x16, glyph: overlap with the previous one */
-    char pad18[2];
-    unsigned short adv;             /* 0x1a, glyph: advance */
-} D2FRAME;
 
 typedef struct D2PICHDR11 {         /* start of the data of a type 0x11 picture */
     char pad00[0xc];
@@ -36,23 +19,11 @@ typedef struct D2PICHDR11 {         /* start of the data of a type 0x11 picture 
 
 typedef struct D2RECT { int x, y, w, h; } D2RECT;
 
-struct D2BUF;
-
 typedef struct D2SHAPE {            /* 0x14 bytes, a rectangle that belongs to an object */
     int x, y;
-    struct D2BUF *owner;            /* 0x08 */
+    struct D2VIEW *owner;           /* 0x08, the view the shape was drawn into */
     int w, h;
 } D2SHAPE;
-
-typedef struct D2BUF {              /* a drawing surface with its picture buffers (the D2VIEW offsets) */
-    char pad000[0x190];
-    int active;                     /* 0x190, nonzero: the buffer takes shapes (D2VIEW.active) */
-    char pad194[4];
-    int loaded;                     /* 0x198, nonzero: its two surfaces exist (D2VIEW.loaded) */
-    char pad19c[8];
-    D2SURF *dstSurf;                /* 0x1a4, where the saved background is restored to */
-    D2SURF *srcSurf;                /* 0x1a8, the surface the shapes were drawn on */
-} D2BUF;
 
 typedef struct D2RGB { unsigned char r, g, b; } D2RGB;
 
@@ -79,7 +50,12 @@ typedef struct D2FORMH {            /* start of one window of a form file, both 
     short pad0ce;
     int type[0x30];                 /* 0xd0, kind of an item: < 0x40 picture, 0x41 input, 0x43 text, 0x45 slider */
     char name[0x30][0x40];          /* 0x190, picture / text key of an item */
-    int kind[0x30];                 /* 0xd90, byte 0: flags, 1: w, 2: h of an input; 0x12 / 8: picture kinds */
+    union {
+        int kind[0x30];             /* 0xd90, 0x12 / 8: picture kinds */
+        struct {
+            unsigned char flags, w, h, pad;
+        } input[0x30];              /* 0xd90, of an input item (d2_WinOpenInput) */
+    };
     char key[0x40];                 /* 0xe50, text key of the window text */
 } D2FORMH;
 
@@ -100,36 +76,10 @@ typedef struct D2FORM2 {            /* 0x101c bytes, version 2 */
     short m[4];                     /* 0xf14, text margins */
     unsigned char slen[0x30];       /* 0xf1c, length of a slider item */
     char bg[0x40];                  /* 0xf4c, background picture of the window */
-    union {
-        float alpha;                /* 0xf8c */
-        int alphaBits;              /* 0xf8c, the same bytes as an int (stored into D2WINF.alpha) */
-    };
+    float alpha;                    /* 0xf8c, the window's D2WIN.alpha (0: 0.65 for a sprite window) */
     char frame[0x40];               /* 0xf90, frame picture */
     char pad0fd0[0x4c];
 } D2FORM2;
-
-typedef struct D2WINF {             /* full view of D2WIN (0x3c4 bytes, d2_Wins) */
-    int unk00;
-    short x, y, w, h;               /* 0x04 */
-    unsigned int flags;             /* 0x0c */
-    short m[4];                     /* 0x10, text margins */
-    int *objs;                      /* 0x18 */
-    short nobjs;                    /* 0x1c */
-    char pad1e[0xe];
-    char *text;                     /* 0x2c */
-    char pad30[0x210];
-    int keyidx;                     /* 0x240 */
-    char pad244[0x28];
-    int parent;                     /* 0x26c */
-    char pad270[8];
-    int frame;                      /* 0x278 */
-    short font;                     /* 0x27c */
-    char pad27e[0x10a];
-    int pic;                        /* 0x388 */
-    char pad38c[8];
-    int alpha;                      /* 0x394 */
-    char pad398[0x2c];
-} D2WINF;
 
 typedef struct D2DISSOLVE {         /* 0x20 bytes, a picture being copied to the screen in steps (d2_DissolveStep) */
     void *mask;                     /* 0x00 */
@@ -140,24 +90,13 @@ typedef struct D2DISSOLVE {         /* 0x20 bytes, a picture being copied to the
     int step;                       /* 0x1c */
 } D2DISSOLVE;
 
-#define D2VOP(o) ((D2VIEW *)((char *)d2_Views + (o)))
-
 typedef struct D2FRCT { int id, amount, unk; } D2FRCT;
 
-typedef struct D2PAINTWIN {         /* D2WIN as far as the paintbox functions use it */
-    int unk00;
-    short x, y, w, h;               /* 0x04 */
-    char pad0c[0x1c];
-    void *paint;                    /* 0x28 */
-    char pad2c[0x254];
-    int active;                     /* 0x280 */
-    char pad284[0x140];
-} D2PAINTWIN;
 
 extern D2PIC *d2_Pics;              /* 0x6ed918 */
 extern int d2_NPics;                /* 0x6ed91c */
 extern int d2_PicBytes;             /* 0x6ed920 */
-extern void *d2_ScreenSurf;         /* 0x6ed924, the screen surface the widgets are drawn on */
+extern D2SURF *d2_ScreenSurf;       /* 0x6ed924, the screen surface the widgets are drawn on */
 extern int d2_PicShift;             /* 0x6ed98c */
 extern D2OBJ *d2_Objs;              /* 0xf8f080 */
 extern int d2_FontHeight;            /* 0xf8f084, font height */
@@ -190,11 +129,11 @@ extern D2INPUT *d2_FocusedInput;       /* 0x6ed9dc, the focused input */
 extern int d2_ClipLeft;            /* 0x6f0458, clip left */
 extern int d2_ClipTop;            /* 0x6f045c, clip top */
 extern D3RECT d2_DirtyRect;         /* 0xfb9060, the rectangle d2_AddDirty tests against: left, top, right, bottom (one object: one memset clears it) */
-extern D2PICHDR *d2_FontPic;      /* 0x6ed948, the font "_FONT" */
+extern struct D2BANK *d2_FontPic;      /* 0x6ed948, the font "_FONT" */
 extern struct TSTEXTURE *d2_CaptionTex; /* 0x6ed960, sprite behind captions / texts */
 extern D2OBJ **d2_DrawOrder;        /* 0x6ed964, objects in drawing order (0x300) */
-extern void *d2_BackSurf;          /* 0x6ed92c */
-extern char d2_PicBase;             /* 0x6ed934 */
+extern D2SURF *d2_BackSurf;        /* 0x6ed92c */
+extern signed char d2_PicBase;      /* 0x6ed934 */
 extern int d2_FrameCounter;            /* 0x6ed940, frame counter */
 extern int d2_HighestObj;            /* 0x6ed94c, highest object index in use */
 extern int d2_TextSegCount;            /* 0x6ed954, number of text pieces */
@@ -249,8 +188,8 @@ void d2_SubRefcount(int pic);                                                   
 void d2_RemoveObj(int obj);                                                      /* 0x46e710, removes the object */
 void d2_DeleteObject(int obj);                                                   /* 0x46c9e0, forwards to d2_RemoveObj */
 int d2_TextWidth(char *text, int font);                                         /* 0x46ea10, text width */
-void d2_DrawText(int x, int y, void *surf, char *text, unsigned char flags);              /* 0x46f000, draws a text */
-void d2_DrawTextBox(int x, int y, int w, int h, void *surf, char *text, unsigned int flags); /* 0x46f1a0, text in a box */
+void d2_DrawText(int x, int y, D2SURF *surf, char *text, unsigned char flags);              /* 0x46f000, draws a text */
+void d2_DrawTextBox(int x, int y, int w, int h, D2SURF *surf, char *text, unsigned int flags); /* 0x46f1a0, text in a box */
 int d2_RemoveWindow(int win);                                                      /* 0x472ce0, 1 if the window was open */
 void d2_AddToDrawOrder(int obj, D2WIN *win);                                         /* 0x4730e0 */
 void d2_SetCaption(int obj, char *text);                                         /* 0x473540, button caption */
@@ -270,7 +209,7 @@ char d3if_DrawSprite(struct TSTEXTURE *t, int x, int y, float angle, float sx, f
 char d3_ScreenToUV(float sx, float sy, struct D3OBJECT *obj, void *tex, float *outu, float *outv); /* 0x448e60 */
 void d3io_NoopCallback(void *t);                                                            /* 0x44ee40, (x, y, surf, pic) */
 struct TSTEXTURE * tex_Find(char *name);                                                    /* 0x45f980 */
-void d2_DrawWindow(int win, void *surf);                                         /* 0x471a90, draws a window */
+void d2_DrawWindow(int win, D2SURF *surf);                                         /* 0x471a90, draws a window */
 int d2_CloseWindow(int win);                                                      /* 0x472e00, closes a window */
 int d2_GetObjPicSize(int obj, int *w, int *h);                                    /* 0x4759f0, size of a picture object, 0 if it has none */
 int d2_GetObjValue(int obj);                                                      /* 0x475980, slider value */
@@ -293,16 +232,16 @@ int d2_FindFreeObj(void);                                   /* 0x468860 */
 int d2_FindPic(char *name);                                 /* 0x468890 */
 int d2_LoadPic(int idx, char *path);                        /* 0x468900 */
 void d2_Exit(void);                                         /* 0x468a90 */
-void d2_RestoreShapes(D2BUF *buf);                          /* 0x468c70 */
+void d2_RestoreShapes(D2VIEW *buf);                          /* 0x468c70 */
 int d2_AddToWin(int obj, int win);                          /* 0x468cf0 */
 void d2_FlushDirty(void);                                   /* 0x468e30 */
 void d2_AddDirty(int x, int y, int w, int h);               /* 0x468eb0 */
-void d2_AddShape(int x, int y, int w, int h, D2BUF *buf);   /* 0x468fb0 */
+void d2_AddShape(int x, int y, int w, int h, D2VIEW *buf);   /* 0x468fb0 */
 void *d2_GetPic(int idx);                                   /* 0x4690b0 */
 int d2_GetPicEx(int idx, void **pic, int *real);            /* 0x469180 */
 void d2_SetObjPic(int obj, int pic);                        /* 0x469250 */
 void d2_DrawFrame(D2INPUT *dlg, void *arg);                 /* 0x469310 */
-void d2_DrawInput(int in, void *surf);                      /* 0x4694c0 */
+void d2_DrawInput(int in, D2SURF *surf);                      /* 0x4694c0 */
 int d2_OpenInputIcon(int x, int y, int icon, unsigned char flags);  /* 0x469ca0 */
 int d2_WinOpenInputIcon(int x, int y, int icon, unsigned char flags, int win);  /* 0x469ee0 */
 void d2_InputSetString(int in, int str);                    /* 0x469fe0 */
@@ -332,7 +271,7 @@ void d2_MenuNavigate(int g);                                   /* 0x46c6c0, keyb
 int d2_OpenPic(short x, short y, int pic);                    /* 0x46cb20, opens a picture object */
 int d2_CreatePicObj(short x, short y, int pic);                    /* 0x46cd80, d2_OpenPic (short x, y: callers add in 16 bits and push unextended) */
 void d2_ShowPicture(int pic);                                 /* 0x46cfd0 */
-void d2_DrawPic(int x, int y, int pic, void *surf);       /* 0x46d040, draws a picture */
+void d2_DrawPic(int x, int y, int pic, D2SURF *surf);       /* 0x46d040, draws a picture */
 void d2_DrawObjCaption(D2OBJ *o);                                /* 0x46d220, draws a caption */
 void d2_DrawObjects(void);                                    /* 0x46d3d0, draws all objects */
 void d2_DrawAll(void);                                    /* 0x46e150 */
@@ -340,12 +279,12 @@ int d2_FindWindowAt(short x, short y);                         /* 0x46e190 */
 int d2_HitTestViews(int x, int y);                             /* 0x46e260 */
 int d2_HitTest(short x, short y);                         /* 0x46e460 */
 void d2_ClearScreen(void);                                    /* 0x46e990 */
-void d2_DrawTextLine(int a, int y, void *surf, int win, char nojustify, int flags, int x, int right); /* 0x46ead0, draws one line of d2_TextSegs in a window */
+void d2_DrawTextLine(int a, int y, D2SURF *surf, int win, char nojustify, int flags, int x, int right); /* 0x46ead0, draws one line of d2_TextSegs in a window */
 void d2_SetTextColour(unsigned char r, unsigned char g, unsigned char b);   /* 0x46f180 */
 void d2_ScrollWindow(int win);                                 /* 0x46f840, scrolls a window one step */
 void d2_LayoutButtons(int win);                                 /* 0x46fad0, gives the buttons of a window one width */
-void d2_DrawWindowText(void *surf, int win);                     /* 0x46fba0, lays out and draws the text of a window */
-void d2_DrawWindowBackground(D2WIN *w, void *surf);                    /* 0x4713c0, draws the background of a window */
+void d2_DrawWindowText(D2SURF *surf, int win);                     /* 0x46fba0, lays out and draws the text of a window */
+void d2_DrawWindowBackground(D2WIN *w, D2SURF *surf);                    /* 0x4713c0, draws the background of a window */
 void d2_SetBackgroundTexture(char *name, int win);          /* 0x4721e0 */
 void d2_CreateScrollButtons(int x, int y, int win, int obj, int pic); /* 0x472270, creates the scroll buttons */
 int d2_CreateWindow();  /* 0x472390, creates a window, its index; -1 none free, 0 no surface. @original why: d2.c defines it K&R style (short x, y, w, h; unsigned int flags); every caller, d2.c's own after the definition too, pushes promoted ints (movsx; byte-matched d2_CreateChildWindow) */

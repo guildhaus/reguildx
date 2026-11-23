@@ -56,7 +56,7 @@ int d2_CountPointerItems(void);                             /* 0x476c90 */
 /* d2 functions of this file */
 void d2_SetPointerItem(int id, int amount);              /* 0x476c00 */
 void d2_ClearPointerItems(void);                            /* 0x476c70 */
-void d2_DrawPointer(void *surf, int x, int y, int a, int b);  /* 0x476cb0 */
+void d2_DrawPointer(D2SURF *surf, int x, int y, int a, int b);  /* 0x476cb0 */
 int d2_DrawMousePointer(int x, int y);                     /* 0x476f00 */
 void d2_SetPointerSprite(int a, int pic);                  /* 0x476f80 */
 void d2_UpdateHoverScroll(void);                            /* 0x477000 */

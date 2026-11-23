@@ -5,6 +5,7 @@
 struct VFSFILE;
 
 struct HEEVSLOT;
+struct AIJOB;
 struct SBSAMPLE;
 struct AHMSTEP;
 struct AIBLD;
@@ -70,10 +71,6 @@ typedef struct TUTRUN {                 /* 0x74 bytes, a run (chapter) record of
     struct TUTRUN *next;                /* 0x70, the next run record */
 } TUTRUN;
 
-typedef struct TUTHOST {                /* the record at TUTSTATE.host; only its event slot is known */
-    char pad00[0x74];
-    struct HEEVSLOT *slot;              /* 0x74, the event bar slot of the tutorial's window */
-} TUTHOST;
 
 typedef struct TUTSTATE {               /* the tutorial state record (0x6fa060, ai_Tutorial points to it) */
     int state;                          /* 0x00, 1 .. 0xc (ai_TutorialTick) */
@@ -83,7 +80,8 @@ typedef struct TUTSTATE {               /* the tutorial state record (0x6fa060, 
     int campaignSteps;                  /* 0x10, counts ai_CampaignStep's handled steps, 0 when a run starts */
     struct SBSAMPLE *voice;             /* 0x14, the playing voice */
     TUTRUN *run;                        /* 0x18, the current run record */
-    TUTHOST *host;                      /* 0x1c */
+    struct AIJOB *host;                 /* 0x1c, the tutorial intro event 0x87's record (ai_TutorialSetHost): its
+                                           event bar slot holds the tutorial's window */
     int continueObj;                    /* 0x20, the intro window's control 3 text object (0x577740; text 0x7d): a click on it answers the intro (ai_TutorialIntroAnswered), -1 = none */
     int text1Win;                       /* 0x24, the first text window */
     int text1Shown;                     /* 0x28 */
@@ -114,7 +112,7 @@ typedef struct AIBOOKMARK {             /* 0xc bytes, a building bookmark on a f
 
 void ai_GypsyHelperWindow(struct AIBLD *rec); /* 0x584d70, the helpers window of a building (HANDEL_SUCHEN form), opened by the gypsy production contact */
 extern int ai_TutorialChapterOn[5];     /* 0x62918c, per chapter 1 = played */
-extern int (*ai_TutorialChapterInit[5])(void);  /* 0x6291a0, the chapter chain builders */
+extern TUTRUN *(*ai_TutorialChapterInit[5])(void);  /* 0x6291a0, the chapter chain builders */
 extern int ai_DragObj;  /* 0x62a8d0, the right-held d2 object whose tooltip ai_DragWindow shows */
 extern int ai_DragViewWin;  /* 0x62a8d4, the first window of the tooltip view */
 extern struct D3OBJECT *ai_DragPicked;  /* 0x6f266c, the picked object the tooltip was last opened for */
@@ -192,19 +190,19 @@ void ai_TutorialCloseProgress(void);                /* 0x577d60, releases the pr
 void ai_TutorialProgressSlider(void);                /* 0x577d90, the progress slider (state 0xa) */
 int ai_TutorialStepForm(void);                 /* 0x577e50, the tutorial chapter form */
 int ai_TutorialStepClicked(void);                 /* 0x5780e0, the control predicate on S+0x4c */
-int ai_TutorialSetHost(char *per);            /* 0x578120, attaches the tutorial's event record (host) */
+int ai_TutorialSetHost(struct AIJOB *per);            /* 0x578120, attaches the tutorial's event record (host) */
 void ai_TutorialClearHost(void);                /* 0x578150, detaches the tutorial's event record (host) */
 int ai_TutorialOff(void);                 /* 0x578170, 1 while the tutorial does not run */
 int ai_TutorialStart(void);                 /* 0x578180, the tutorial start / record reset */
 void ai_TutorialStop(void);                /* 0x578370, the tutorial stop (handle + chain reset) */
 void ai_TutorialFreeRuns(TUTRUN *rec);         /* 0x578440, frees the tutorial record chain */
-int ai_TutorialInitMainIntro(void);                 /* 0x5784a0, allocates the main-intro record */
-int ai_TutorialInitChapter1(void);      /* 0x578570, the chapter 1 chain */
-int ai_TutorialInitChapter2(void);      /* 0x578e40, the chapter 2 chain */
-int ai_TutorialInitChapter3(void);                 /* 0x579570, the chapter 3 chain */
-int ai_TutorialInitChapter4(void);                 /* 0x57aa80, the chapter 4 chain */
-int ai_TutorialInitChapter5(void);                 /* 0x57aeb0, the chapter 5 chain */
-int ai_TutorialInitMainOutro(void);                 /* 0x57b750, the main-outro record */
+TUTRUN *ai_TutorialInitMainIntro(void);                 /* 0x5784a0, allocates the main-intro record */
+TUTRUN *ai_TutorialInitChapter1(void);      /* 0x578570, the chapter 1 chain */
+TUTRUN *ai_TutorialInitChapter2(void);      /* 0x578e40, the chapter 2 chain */
+TUTRUN *ai_TutorialInitChapter3(void);                 /* 0x579570, the chapter 3 chain */
+TUTRUN *ai_TutorialInitChapter4(void);                 /* 0x57aa80, the chapter 4 chain */
+TUTRUN *ai_TutorialInitChapter5(void);                 /* 0x57aeb0, the chapter 5 chain */
+TUTRUN *ai_TutorialInitMainOutro(void);                 /* 0x57b750, the main-outro record */
 void ai_TutorialBezier(float *a, float *b, float *c, float *d, float t, float *out);  /* 0x57b810, the Bezier */
 void ai_AlchemistCandidates(struct AIBLD *obj);  /* 0x57bf00, the alchemist's candidates window: hires one of the walk steps */
 int ai_AlchemistHire(struct AIBLD *obj, struct AHMSTEP *step, int value);  /* 0x57c560, hires the candidate step (ROUGH) */
@@ -216,7 +214,7 @@ int ai_AlchemistRescheduleWindow(struct AIBLD *obj, struct AHMREC *rec);  /* 0x5
 
 /* declared in other units' headers before (moved to the owner) */
 struct AICHAR;
-int ai_PermissionBits1d(struct AICHAR *ch, struct AIBLD *b, char *x);  /* 0x587b70, the permission bits of the character ch in the building b of the type class 0x1d (gm_PermissionBits) */
+int ai_PermissionBits1d(struct AICHAR *ch, struct AIBLD *b, struct AIOBJ *x);  /* 0x587b70, the permission bits of the character ch in the building b of the type class 0x1d (gm_PermissionBits) */
 void ai_EndCharExtra(struct AICHAR *ch, int f);  /* 0x587c40 */
 void ai_SetupTutorialPlayer(void);  /* 0x57bc30, sets up the tutorial player's profile */
 int ai_TutorialWindow(void);  /* 0x57bce0, the tutorial chooser window: 1 starts the tutorial, 0 is the back */

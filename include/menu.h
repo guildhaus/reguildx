@@ -6,11 +6,18 @@
 struct D3SM;
 
 #include "menu_types.h"        /* OPTIONBYTES */
+#include "shot_types.h"        /* EFFECTREC, SHOTVEL, SHOTREC */
 
 typedef struct FILEREC {            /* 0x210 bytes, a file of ai_ListFiles's list */
     int ctrl;                       /* 0x00, the caller's slot header: ai_FilePickWindow keeps the file's text control here */
     char pad04[5];
-    char name[0x100];               /* 0x09, the file name without its extension */
+    union {
+        char name[0x100];           /* 0x09, the file name without its extension */
+        struct {
+            char saveName[0x80];    /* 0x09, of a save slot's request (menu.c ai_FillSaveSlots): the name, its caption */
+            char title[0x80];       /* 0x89, of a save slot's copy: the save's title (LSHDR.title, ai_FillSaveSlots) */
+        };
+    };
     char path[0x107];               /* 0x109, "<dir>/<file name>" */
 } FILEREC;
 
@@ -29,13 +36,6 @@ extern float cm_SpeedFactor;        /* 0x5f1290, the game speed factor (cm.h) */
 extern int ai_CameraStep;           /* 0x623814, the camera move step, 100 - camera speed; sv.c converts
                                        it with fild at the float uses (the original loads an int) */
 
-typedef struct EFFECTREC {              /* 0x10 bytes at 0x62de60: the default effect (the wind): a vector and its scale */
-    D3VECTOR pos;                       /* +0x00, 0, 0, 1.0 at the start; ai_InitWind sets (sin, 0, cos) of the wind direction 6 */
-    union {
-        float scale;                    /* +0x0c, 25.0 at the start */
-        int scaleBits;                  /* the same bits as an int: 0x5dbc20 passes them through an int K&R view */
-    };
-} EFFECTREC;
 extern EFFECTREC ai_DefaultEffect;  /* 0x62de60 */
 extern float ai_ShotDrag;          /* 0x62de58, .data: the drag coefficient of a cannon ball, 1.5 */
 extern float ai_ShotHitHeight;     /* 0x62de5c, .data: 98.4 = 2.5 m in inches, the height above the ground that counts as a hit */
@@ -61,28 +61,6 @@ typedef struct SPHEREVOLUME {
     float volume;       /* +0x0c, 4/3 pi size^3 */
     float reach;        /* +0x10, volume * radius */
 } SPHEREVOLUME;
-typedef struct SHOTVEL {                /* 0x10 bytes: a velocity as direction * speed and the speed */
-    D3VECTOR v;
-    float speed;
-} SHOTVEL;
-typedef struct SHOTREC {                /* 0x68 bytes: a cannon ball in flight (am.c 0x4a6ae0 builds one per ball with ai_InitShot
-                                           from the barrel direction, the charge, the ball size and 7874 = the density of iron;
-                                           gv.c 0x4edf80 moves it with ai_StepShot); the units are meters and seconds, the
-                                           positions are in the world's units (inches: 39.37 per meter) */
-    SHOTVEL velStart;                   /* +0x00, the start velocity: barrel direction * speed, speed = charge / mass * 0.1 */
-    SHOTVEL vel;                        /* +0x10, the current velocity (m/s), the start velocity at first */
-    D3VECTOR posStart;                  /* +0x20, the start position */
-    float pad2c;
-    D3VECTOR pos;                       /* +0x30, the current position, the start position at first */
-    float pad3c;
-    EFFECTREC wind;                     /* +0x40, the wind (ai_DefaultEffect) with its scale clamped to 0 .. 60 and the vector scaled by it */
-    float area;                         /* +0x50, the ball's SPHEREVOLUME surface (2 pi size^2), the drag area */
-    float mass;                         /* +0x54, volume * density */
-    float energy;                       /* +0x58, set by ai_StepShot when the ball lands: 0.5 * mass * v^2 (0 when it left the map) */
-    int state;                          /* +0x5c, 1 in flight, 2 landed, 3 left the height map */
-    int time;                           /* +0x60, d3_Time (ms) of the last flight step (one step per ms) */
-    unsigned steps;                     /* +0x64, the flight steps made; ai_ScatterShot works only before the first */
-} SHOTREC;
 typedef struct POKERPANEL {             /* 0x1c bytes: one panel (form view) of the poker window */
     int win;                            /* +0x00, the window the form view made (d2_LastWindow after d2_SetForm) */
     int slot[5];                        /* +0x04, the panel's controls / seats, -1 = none yet */
@@ -94,41 +72,7 @@ typedef struct POKERUI {                /* 0x70 bytes at 0x62dda0: the poker win
     int betSlider;                      /* +0x18, the bet slider (made by ai_PokerBetControl), -1 until then */
     POKERPANEL panel[3];                /* +0x1c, the panels of the forms 3, 1 and 2, in memory order */
 } POKERUI;
-typedef struct POKERWHO {               /* a seat's character record, the two names the game prints (G10NPC / AICHAR: +0x30 / +0x40) */
-    char pad00[9];
-    unsigned char female;               /* +0x09, G10NPC.female: picks the title text row (+ 10) */
-    char pad0a[3];
-    unsigned char title;                /* +0x0d, G10NPC.unk0d (1 .. 4): the title text (txt_Ptrs[0x114 + 10 * female + title]) */
-    char pad0e[0x22];
-    char vname[16];                     /* +0x30, the first name */
-    char nname[16];                     /* +0x40, the family name */
-} POKERWHO;
-typedef struct POKERSEAT {              /* 0x34 bytes, poker.h's G10SEAT; seat 0 is the player, 1 and 2 the two opponents */
-    POKERWHO *who;                      /* +0x00 */
-    int model;                          /* +0x04 */
-    int card[5];                        /* +0x08, indices into the deck, -1 = none (what ai_PokerSeatPanel shows) */
-    int unk1c, unk20;                   /* +0x1c */
-    int dropped;                        /* +0x24, the deck index of the card the seat put away in the exchange (ai_PokerSwapCard sets it), -1 = none */
-    int foldPhase;                      /* +0x28, the phase the seat folded in (ai_PokerNpcFold), -1 = still in */
-    int unk2c, unk30;                   /* +0x2c */
-} POKERSEAT;
-typedef struct POKERGAME {              /* 0xc0 bytes at 0x6f3500, poker.h's G10GAME (ai_PokerStart fills it, ai_PokerStep steps it) */
-    int phase;                          /* +0x00, 1 .. 11: the step ai_PokerGame shows */
-    POKERSEAT seat[3];                  /* +0x04 */
-    int pot;                            /* +0xa0, G10GAME.unka0: the number printed with the text 0x4252 in every phase (reasoned: the pot) */
-    int minBet;                         /* +0xa4, G10GAME.stake: the opening stake (money / (random 3 + 7)); printed with the text 0x4251 */
-    int maxBet;                         /* +0xa8, G10GAME.money: the upper limit of the bet slider */
-    int bet;                            /* +0xac, G10GAME.stake2: the bet chosen with the slider (starts as minBet) */
-    int actor;                          /* +0xb0, G10GAME.unkb0: 0 = the player acts, 1 / 2 an opponent (reasoned) */
-    unsigned char left;                 /* +0xb4, cards left in the deck */
-    unsigned char unkb5;                /* +0xb5 */
-    short pad;
-    short winner;                       /* +0xb8, G10GAME.unkb8: the seat that won (0 = the player; 4 at the start) (reasoned) */
-    short padba;
-    int winRank;                        /* +0xbc, G10GAME.unkbc: the hand rank of the win, the text 0x4266 + rank names it (reasoned) */
-} POKERGAME;
 int gm_ConvertMoney(int a, unsigned char k);   /* 0x5085b0, f3gm.c: a / the divisor of the player slot k, rounded */
-extern POKERGAME ai_PokerState;     /* 0x6f3500 */
 void ai_PokerSeatPanel(int seat, int mode, int *cards);  /* 0x5dadf0, builds the seat panel (the three-string message) */
 void ai_PokerWindow2(void);            /* 0x5db110, the second poker window "Locations\zigeuner\poker2" */
 struct AICHAR;
@@ -182,17 +126,6 @@ void d2_SetObjValue(int obj, ...);                                     /* 0x475c
 #include "ai_types.h"                /* AITIME */
 
 
-#pragma pack(push, 2)
-typedef struct CURSEEVENT {             /* the event 0xa0 ai_FindCurseEvent finds: only the fields the curse target window reads */
-    char pad00[0x44];
-    AITIME from;                     /* +0x44, the clock the event started */
-    AITIME due;                      /* +0x52, the clock it is due */
-    char pad60[0x10];
-    int done;                           /* +0x70 */
-    char pad74[0x38];
-    int victim;                         /* +0xac */
-} CURSEEVENT;
-#pragma pack(pop)
 struct AITIME;
 struct AITIME;
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);   /* 0x4fe140, f3gm.c: adds hours / minutes / seconds to the clock */
@@ -326,6 +259,6 @@ void ai_UpdateWind(void);  /* 0x5dbed0, the wind option's update */
 struct VFSFILE; int ai_SaveWind(struct VFSFILE *f);  /* 0x5dbfc0, writes the wind option */
 int ai_LoadWind(struct VFSFILE *f);  /* 0x5dc0c0, reads the wind option from a save game */
 void ai_SaveNetworkGame(char *saveName, char *name);  /* 0x5d7530, the network game's save screen */
-int ai_ListFiles(char *dirPath, const char *ext, char *records);  /* 0x5d33b0, the file selector's list */
+int ai_ListFiles(char *dirPath, const char *ext, FILEREC *records);  /* 0x5d33b0, the file selector's list */
 
 #endif

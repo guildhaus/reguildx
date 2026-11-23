@@ -21,18 +21,6 @@ typedef struct D3QNODE {            /* 0x48 bytes, pool 0x633db0 (64 per block) 
     unsigned int mask;              /* 0x44, object mask the tree was made for */
 } D3QNODE;
 
-/* the object bounds in D3OBJECT::material (also used by the bounding helpers elsewhere) */
-typedef struct D3QMAT {
-    char pad00[0x8];
-    char box[0x88];                 /* 0x08, passed to d3_GetBoxVerts */
-    D3VECTOR4 min;                  /* 0x90 */
-    D3VECTOR4 max;                  /* 0xa0 */
-    int zone;                       /* 0xb0, id of the zone the object is in */
-    char padb4[0x40];
-    char list[0x10];                /* 0xf4 */
-    void *ops;                      /* 0x104 */
-} D3QMAT;
-#define D3Q_MAT(o) ((D3QMAT *)(o)->material)
 
 struct MPOOL;
 extern struct MPOOL *d3_QItemPool;  /* 0x633db4 */
@@ -43,10 +31,10 @@ char d3q_AddObject(D3OBJECT *obj, D3QNODE *n);                              /* 0
 D3QNODE *d3q_MakeChild(D3QNODE *parent, float *min, float *max);           /* 0x457d00 */
 char d3q_GetBounds(D3OBJECT *obj, float *min, float *max);                  /* 0x457db0 */
 void d3q_Build(D3QNODE *n, unsigned int minitems, volatile unsigned int depth, volatile unsigned int maxdepth);   /* 0x457f20 */
-extern D3BOXVERT d3_QBox[8];        /* 0x633b30 */
+extern D3VERTEX d3_QBox[8];        /* 0x633b30 */
 
 D3QNODE *d3q_Create(D3OBJECT *start, unsigned int mask, unsigned int minitems, unsigned int maxdepth);  /* 0x4582d0 */
-D3BOXVERT *d3q_BoxCorners(D3QNODE *n, float *pos, float *m);                /* 0x458360 */
+D3VERTEX *d3q_BoxCorners(D3QNODE *n, float *pos, float *m);                /* 0x458360 */
 void d3q_Mark(D3QNODE *n, D3OBJECT *cam, int zone);                         /* 0x458650 */
 char d3q_Remove(D3OBJECT *obj, D3QNODE *n);                                 /* 0x4586d0 */
 void d3q_RemoveObject(D3OBJECT *obj, D3QNODE *n);                           /* 0x458780 */

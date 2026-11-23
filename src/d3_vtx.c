@@ -12,10 +12,11 @@
 #include "d3_vtx.h"
 #include "bio.h"
 
-/* d3_EnvMapCoords (was d3_pose.c: only 0x459300 calls it) works on d3_pose.h's mesh part views (XPART / XVERT); its
+/* d3_EnvMapCoords (was d3_pose.c: only 0x459300 calls it) works on the mesh surface (D3SURF / D3VERTEX); its
    prototypes there are for the other file. */
 #include "d3_pose.h"
 #include "d3_engine.h"
+#include "ts_texture.h"
 #include "d3_vec.h"
 #include "cm.h"
 
@@ -32,7 +33,7 @@
    locals = control; b as block locals: draft (slots). nv sum orders with a plain function d: 14..24 ins.
    climb round 1 on the block-local text: nothing. Left: the same order hunk as before (fr reloaded from
    part's slot after the fmul of v->u where the original loads it before the call's add esp,4). */
-void d3_EnvMapCoords(D3OBJECT *obj, XPART *part)
+void d3_EnvMapCoords(D3OBJECT *obj, D3SURF *part)
 {
     D3MATRIX m;
     D3VECTOR4 b;
@@ -40,11 +41,11 @@ void d3_EnvMapCoords(D3OBJECT *obj, XPART *part)
     int n, i, k;
     D3ANIMSLOT *slot;
     D3ANIMFRAME *fr;
-    XVERT *v;
+    D3VERTEX *v;
 
-    if (obj && part && part->ops && (n = part->ops->count) > 0) {
+    if (obj && part && part->mesh && (n = part->mesh->ntex) > 0) {
         for (i = 0; i < n; i++) {
-            if (part->tex[i] && (part->tex[i]->flags & 1))
+            if (part->texHandles[i] && part->texHandles[i]->wrap)
                 break;
         }
         if (i < n) {
@@ -67,8 +68,8 @@ void d3_EnvMapCoords(D3OBJECT *obj, XPART *part)
                         b.y = d * nv.y + v->y;
                         b.z = nv.z * d + v->z;
                         d3_Normalize(&b.v);
-                        v->u = (b.x + 1.0f) * 0.5f;
-                        v->v = (b.y + 1.0f) * 0.5f;
+                        v->tu = (b.x + 1.0f) * 0.5f;
+                        v->tv = (b.y + 1.0f) * 0.5f;
                     }
                 }
                 return;
@@ -86,19 +87,16 @@ void d3_EnvMapCoords(D3OBJECT *obj, XPART *part)
                     b.y = d * nv.y + v->y;
                     b.z = nv.z * d + v->z;
                     d3_Normalize(&b.v);
-                    v->u = (b.x + 1.0f) * 0.5f;
-                    v->v = (b.y + 1.0f) * 0.5f;
+                    v->tu = (b.x + 1.0f) * 0.5f;
+                    v->tv = (b.y + 1.0f) * 0.5f;
                 }
             }
         }
     }
 }
 
-/* the other files see D3OBJECT / D3LINFO */
-#define D3_ENVMAPCOORDS(o, p) d3_EnvMapCoords((o), (XPART *)(p))
 
 /* 0x4591a0, blend weights of the two key frames around the current time of an animation slot */
-#define UNK64(s) (*(float *)&(s)->time)
 
 /* 0x4591a0, the blend weights of the two key frames around the current sub-frame time of a vertex animation
    slot s: *a the weight of its frame, *b of its nextFrame (flags bit 1 blends backwards and swaps them; at the
@@ -197,11 +195,11 @@ typedef struct D3MVEC2 {
    byte conversions are pushed and popped), 81 code, 14 regs, 12 order, 2 slots; the function's statements,
    constants and stores are the same, the fpu order is what the hill-climb could not reach. The prover's
    store difference pairs ours' q2 store with th... */
-void d3_TransformVerts(D3OBJECT *obj, D3LINFO *info, D3MATRIX *m)
+void d3_TransformVerts(D3OBJECT *obj, D3SURF *info, D3MATRIX *m)
 {
-    D3SURF *ctl = (D3SURF *)info;
-    D3LVERT *v;
-    D3VECTOR *sp;
+    D3SURF *ctl = info;
+    D3VERTEX *v;
+    D3BGFVERT *sp;
     D3ANIMSLOT *sl;
     D3ANIMFRAME *f1, *f2;
     unsigned char *p1, *p2;
@@ -304,7 +302,7 @@ void d3_TransformVerts(D3OBJECT *obj, D3LINFO *info, D3MATRIX *m)
                     i++;
                     v++;
                 } while (i < info->nkeys);
-                D3_ENVMAPCOORDS(obj, info);
+                d3_EnvMapCoords(obj, info);
                 return;
             }
         } else {
@@ -321,7 +319,7 @@ void d3_TransformVerts(D3OBJECT *obj, D3LINFO *info, D3MATRIX *m)
                     i++;
                     v++;
                 } while (i < info->nkeys);
-                D3_ENVMAPCOORDS(obj, info);
+                d3_EnvMapCoords(obj, info);
                 return;
             }
         }
@@ -344,7 +342,7 @@ void d3_TransformVerts(D3OBJECT *obj, D3LINFO *info, D3MATRIX *m)
                     i++;
                     v++;
                 } while (i < info->nkeys);
-                D3_ENVMAPCOORDS(obj, info);
+                d3_EnvMapCoords(obj, info);
                 return;
             }
         } else if (0 < info->nkeys) {
@@ -358,39 +356,39 @@ void d3_TransformVerts(D3OBJECT *obj, D3LINFO *info, D3MATRIX *m)
             } while (i < info->nkeys);
         }
     }
-    D3_ENVMAPCOORDS(obj, info);
+    d3_EnvMapCoords(obj, info);
 }
-/* 0x4598d0, D3LOPS::fn1ec of the stock mesh driver (d3_io_t.c): the normals of a mesh without key frames, from the
+/* 0x4598d0, D3BGF::fn1ec of the stock mesh driver (d3_io_t.c): the normals of a mesh without key frames, from the
    normal of each vertex's source point (a D3VECTOR at 0x0c of the source) in camera space */
 
-void d3_TransformNormals(D3OBJECT *obj, D3LINFO *info)
+void d3_TransformNormals(D3OBJECT *obj, D3SURF *info)
 {
     D3MATRIX m;
-    D3LVERT *v;
-    float *n;
+    D3VERTEX *v;
+    D3BGFVERT *n;
     int i;
 
     d3_WorldMatrix(obj, (obj->state & 0x80) ? 0 : d3_Camera, 0, &m);
     v = info->keys;
     for (i = 0; i < info->nkeys; i++, v++) {
-        n = (float *)v->src;
-        v->nx = m._11 * n[3] + m._21 * n[4] + m._31 * n[5];
-        v->ny = m._12 * n[3] + m._22 * n[4] + m._32 * n[5];
-        v->nz = m._13 * n[3] + m._23 * n[4] + m._33 * n[5];
+        n = v->src;
+        v->nx = m._11 * n->nx + m._21 * n->ny + m._31 * n->nz;
+        v->ny = m._12 * n->nx + m._22 * n->ny + m._32 * n->nz;
+        v->nz = m._13 * n->nx + m._23 * n->ny + m._33 * n->nz;
     }
 }
 /* 0x459980, normals of the object from the packed normals of key frame f (3 bytes per vertex) in camera space;
    without a frame the driver does it. Not the matrix d3_light.h declares for the third argument: it is a D3ANIMFRAME. */
 
-void d3_FrameNormals(D3OBJECT *obj, D3LINFO *info, D3ANIMFRAME *f)
+void d3_FrameNormals(D3OBJECT *obj, D3SURF *info, D3ANIMFRAME *f)
 {
     D3MATRIX m;
-    D3LVERT *v;
+    D3VERTEX *v;
     float x, y, z;
     int i;
 
     if (!f) {
-        info->ops->fn1ec(obj, (D3SURF *)info);
+        info->mesh->TransformNormals(obj, info);
         return;
     }
     d3_WorldMatrix(obj, (obj->state & 0x80) ? 0 : d3_Camera, 1, &m);
@@ -408,15 +406,15 @@ void d3_FrameNormals(D3OBJECT *obj, D3LINFO *info, D3ANIMFRAME *f)
    from the corners of the source (no animation) or of the union of the boxes of the key frames in use.
    Returns the corners (0 if the mesh has no vertices). info is a D3SURF (d3_anim.h) here. */
 
-D3BOXVERT *d3_GetBoxVerts(D3OBJECT *obj, D3SURF *info, void *unk)
+D3VERTEX *d3_GetBoxVerts(D3OBJECT *obj, D3SURF *info, D3MATRIX *mat)
 {
 /* d = s * m for a point (row vector, w = 1); the parenthesised components give VC6's operand order */
 #define XFORM(d, s, m) ((d)->x = ((s)->x) * (m)->_11 + ((s)->y) * (m)->_21 + ((s)->z) * (m)->_31 + (m)->_41, \
                         (d)->y = ((s)->x) * (m)->_12 + ((s)->y) * (m)->_22 + ((s)->z) * (m)->_32 + (m)->_42, \
                         (d)->z = ((s)->x) * (m)->_13 + ((s)->y) * (m)->_23 + ((s)->z) * (m)->_33 + (m)->_43)
-    D3SURF *ctl = (D3SURF *)info;
-    D3MATRIX *m = (D3MATRIX *)unk;
-    D3LVERT *v;
+    D3SURF *ctl = info;
+    D3MATRIX *m = mat;
+    D3VERTEX *v;
     D3VECTOR4 mn, mx;
     D3VECTOR4 c[8];
     D3ANIMFRAME *fr;
@@ -452,15 +450,15 @@ D3BOXVERT *d3_GetBoxVerts(D3OBJECT *obj, D3SURF *info, void *unk)
             c[5].x = mx.x; c[5].y = mn.y; c[5].z = mx.z;
             c[6].x = mn.x; c[6].y = mx.y; c[6].z = mx.z;
             c[7].x = mx.x; c[7].y = mx.y; c[7].z = mx.z;
-            v = (D3LVERT *)info->keys + n;
+            v = info->keys + n;
             for (i = 0; i < 8; i++, v++) {
                 XFORM(v, &c[i], m);
             }
     
         } else {
-            v = (D3LVERT *)info->keys + n;
+            v = info->keys + n;
             for (i = 0; i < 8; i++, v++) {
-                D3VECTOR *p = v->src;
+                D3BGFVERT *p = v->src;
 
                 /* the source point written out: its parentheses give the original's operand order (matching trick) */
                 v->x = p->x * m->_11 + (p->y) * m->_21 + p->z * m->_31 + m->_41;
@@ -468,7 +466,7 @@ D3BOXVERT *d3_GetBoxVerts(D3OBJECT *obj, D3SURF *info, void *unk)
                 v->z = p->x * m->_13 + (p->y) * (m->_23) + (p->z) * (m->_33) + m->_43;
             }
         }
-        return (D3BOXVERT *)((D3LVERT *)info->keys + info->nkeys);
+        return info->keys + info->nkeys;
     }
 #undef XFORM
 }

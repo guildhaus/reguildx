@@ -947,11 +947,12 @@ unsigned int vfs_fread(void *buf, int size, int n, VFSFILE *f)
     }
     return ret;
 }
-/* 0x430d90, reads one byte through vfs_fread; returns it as 0..255, or -1 at the end of the file */
+/* 0x430d90, reads one byte through vfs_fread; returns it sign-extended, or -1 at the end of the file (a 0xff byte
+   also reads as -1: the original's movsx) */
 
 int vfs_fgetc(VFSFILE *f)
 {
-    char c;
+    signed char c;
 
     if (vfs_fread(&c, 1, 1, f) == 1)
         return c;

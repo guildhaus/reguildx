@@ -49,7 +49,7 @@ typedef struct AIBUILDSITE {
         char name[0x40];           /* 0x00, the building name (ai_BuildingName), then the "bk_" site object's name */
         int nameHead;              /* 0x00, cleared before the name is written */
     };
-    float pos[4];                  /* 0x40, the owner's world position (d3_PointToWorld) */
+    D3VECTOR4 pos;                 /* 0x40, the owner's world position (d3_PointToWorld) */
     struct D3OBJECT *object;       /* 0x50, the "bk_" site object ai_FindBauplatz found */
 } AIBUILDSITE;
 char ai_VgFilter(struct D3OBJECT *obj, void *ctx);                       /* 0x58f920, d3_ForEachObject callback: collects "vg_" objects */
@@ -288,15 +288,6 @@ extern unsigned short ai_PlayerId;
 
 
 
-/* 0x5ba6b0, the view of ai_InventoryHas: the character's inventory (AICHAR +0x178, ai.h); the object found in
-   it is an AIOBJ */
-#pragma pack(push, 1)
-typedef struct G8INVCHAR {
-    char pad00[0x178];
-    int inventory;                      /* +0x178, the character's object list (AICHAR.inventory) */
-} G8INVCHAR;
-
-#pragma pack(pop)
 
 void ai_FreeSettings(void);                                        /* 0x5a8920 */
 int ai_LoadSettings(struct VFSFILE *f);  /* 0x5a8a20, reads the production settings chain back from the save f (ls_LoadGame); 0 on an error */
@@ -384,9 +375,9 @@ void ai_MapCellToScreen(LCMAPMARK *m, int originX, int originY);  /* 0x5a6b70, t
 void ai_BuildTownMap(LCMAPWIN *m);  /* 0x5a6cb0, places the marks of the town map window */
 int ai_OpenTownMap(LCMAPWIN *m);  /* 0x5a78a0, opens the town map window */
 void ai_UpdateTownMap(LCMAPWIN *m);  /* 0x5a7cd0, the town map window's per-frame update */
-void ai_CloseMapWindow(int *m_);  /* 0x5a82f0 */
-unsigned char *ai_FindItemGroup(char *good);  /* 0x5a84d0, the item group (am_types.h G7GRP) of a building's kind byte, 0 when none */
-void ai_GypsyDeliveryText(struct AICHAR *from, int n, void **to);  /* 0x5a9470, the gypsys' delivery news of the sender from (a character) about its n targets to */
+void ai_CloseMapWindow(LCMAPWIN *m);  /* 0x5a82f0 */
+const G7GRP *ai_FindItemGroup(struct AIBLD *bld);  /* 0x5a84d0, the item group (am_types.h G7GRP) of a building's type byte, 0 when none */
+void ai_GypsyDeliveryText(struct AICHAR *from, int n, struct AICHAR **to);  /* 0x5a9470, the gypsys' delivery news of the sender from (a character) about its n targets to */
 struct AICHAR; struct ORDMSG; int ai_BlackmailBuildingListener(struct AICHAR *me, struct ORDMSG *m);  /* 0x5c9550 */
 struct AICHAR; struct ORDMSG; int ai_BlackmailContact(struct AICHAR *me, struct ORDMSG *m);  /* 0x5c9c50 */
 struct AICHAR; struct ORDMSG; int ai_IntimidateContact(struct AICHAR *me, struct ORDMSG *m);  /* 0x5c9ff0 */
@@ -425,9 +416,9 @@ void ai_ShowFeudNews(struct AICHAR *param_1, struct AICHAR *param_2);  /* 0x5a8f
 void ai_ShowPartnerNews(struct AICHAR *param_1, struct AICHAR *param_2);  /* 0x5a9050 */
 int ai_GoodFitsBuilding(void *ch, int good);  /* 0x5bb2d0 */
 int ai_FindBauplaetze(char *prefix, struct D3OBJECT **list);  /* 0x58f7a0 */
-int ai_InventoryHas(void *ch, int id);  /* 0x5ba6b0 */
+int ai_InventoryHas(struct AICHAR *ch, int id);  /* 0x5ba6b0 */
 void ai_ObjectAngle(void *out_, struct D3OBJECT *plot);  /* 0x58fd90 */
-void ai_ObjectPosition(void *out, struct D3OBJECT *plot);  /* 0x58fd40 */
+void ai_ObjectPosition(struct D3VECTOR *out, struct D3OBJECT *plot);  /* 0x58fd40 */
 void ai_ShowIndulgenceNews(struct AICHAR *buyer, struct AICHAR *ownerRec, struct AIBLD *bld, int share, int amount);  /* 0x5a8b80 */
 void ai_ShowPaymentNews(struct AICHAR *buyer, struct AICHAR *ownerRec, struct AIBLD *bld);  /* 0x5a8c00 */
 struct G9DOMIZIL *ai_FindUsableGood(int id);  /* 0x5ba620 */

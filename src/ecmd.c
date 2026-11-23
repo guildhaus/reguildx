@@ -33,7 +33,7 @@ extern int d3_NoTextures;  /* 0x63345d, @original why: ocmd_SetNoTextures stores
 #include "mem.h"
 #include "d3_pose.h"
 
-extern const D3VECTOR d3_YAxis;         /* 0x5ebb94, @original why: ocmd_CreateEmitter (byte-matched) copies the axis as a 3-float vector; d3_vec.c defines it as a D3VECTOR4 (4 floats) */
+extern const D3VECTOR4 d3_YAxis;         /* 0x5ebb94, d3_vec.c */
 
 #define OCMD_DEG 0.017453292f       /* degrees to radians */
 
@@ -444,7 +444,7 @@ char ocmd_AttachAnimCB(D3OBJECT *obj, OCMDANIM *a)
             f.u.c.b0 = a->n;
             f.b = 0;
             f.a = 1;
-            s = (D3ANIMSLOT *)d3anim_StartAnim(obj->info, name, f.anim);
+            s = d3anim_StartAnim(obj->info, name, f.anim);
             if (s && a->rnd) {
                 s->frame = rand() % (s->data->nframes - 1);
                 s->nextFrame = s->frame + 1;
@@ -766,7 +766,7 @@ int ocmd_SetBlocked(D3OBJECT **obj, int *on)
         evt_Error(evt_Cur, evt_Cur->pc, "SetBlocked: Illegal object...");
         return 0;
     }
-    ((OCMDOBJBITS *)&(*obj)->stateFlags)->blocked = *on;
+    (*obj)->stateBits.blocked = *on;
     return 1;
 }
 /* 0x40ef40, sets the two transient bits of *obj's stateFlags from *mode; a script error (0) for a NULL object,
@@ -778,7 +778,7 @@ int ocmd_SetTransient(D3OBJECT **obj, int *mode)
         evt_Error(evt_Cur, evt_Cur->pc, "SetTransient: Illegal object...");
         return 0;
     }
-    ((OCMDOBJBITS *)&(*obj)->stateFlags)->transient = *mode;
+    (*obj)->stateBits.transient = *mode;
     return 1;
 }
 
@@ -795,7 +795,7 @@ int ocmd_CreateEmitter(int *a, int *count, int *parent, int *size, char **tex, i
     d3_EmitterCfg.f34 = 10.0f;
     d3_EmitterCfg.f38 = 50.0f;
     d3_EmitterCfg.f3c = 30.0f;
-    d3_EmitterCfg.dir = d3_YAxis;
+    d3_EmitterCfg.dir = d3_YAxis.v;
     d3_EmitterCfg.f80 = 1.0f;
     d3_EmitterCfg.f8c = 255.0f;
     d3_EmitterCfg.i90 = 20;
@@ -813,7 +813,7 @@ int ocmd_CreateEmitter(int *a, int *count, int *parent, int *size, char **tex, i
 }
 /* 0x40f0c0, deletes the emitter *e (par_Delete); an invalid handle is a script error; 0 */
 
-int ocmd_KillEmitter(D3EMITTER **e)
+int ocmd_KillEmitter(D3PARTSYS **e)
 {
     if (mem_IsValid(*e)) {
         par_Delete((D3PARTSYS *)*e);
@@ -825,9 +825,9 @@ int ocmd_KillEmitter(D3EMITTER **e)
 /* 0x40f110, sets the emitter's start amplitudes (*a..*c / 100), the end amplitude amp3 (*d / 100) and amp4
    (*f / 100); 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterAmplitude(D3EMITTER **e, int *a, int *b, int *c, int *d, int *f)
+int ocmd_SetEmitterAmplitude(D3PARTSYS **e, int *a, int *b, int *c, int *d, int *f)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterAmplitude: invalid handle...");
@@ -852,9 +852,9 @@ int ocmd_SetEmitterAmplitude(D3EMITTER **e, int *a, int *b, int *c, int *d, int 
 /* 0x40f1b0, sets the emitter's start phase speeds (*a..*c / 100), phase3 (*d / 100) and phase4 (*f / 100); 0,
    an invalid handle is a script error */
 
-int ocmd_SetEmitterPhasespeed(D3EMITTER **e, int *a, int *b, int *c, int *d, int *f)
+int ocmd_SetEmitterPhasespeed(D3PARTSYS **e, int *a, int *b, int *c, int *d, int *f)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterPhasespeed: invalid handle...");
@@ -878,9 +878,9 @@ int ocmd_SetEmitterPhasespeed(D3EMITTER **e, int *a, int *b, int *c, int *d, int
 }
 /* 0x40f250, sets the emitter's direction from *x / *y / *z (in hundredths); 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterDirection(D3EMITTER **e, int *x, int *y, int *z)
+int ocmd_SetEmitterDirection(D3PARTSYS **e, int *x, int *y, int *z)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterDirection: invalid handle...");
@@ -892,33 +892,33 @@ int ocmd_SetEmitterDirection(D3EMITTER **e, int *x, int *y, int *z)
         fx = *x * 0.01f;
         fy = *y * 0.01f;
         fz = *z * 0.01f;
-        em->dir[0] = fx;
-        em->dir[1] = fy;
-        em->dir[2] = fz;
+        em->dir.x = fx;
+        em->dir.y = fy;
+        em->dir.z = fz;
     }
     return 0;
 }
 /* 0x40f2c0, sets the emitter's start sizes from *x / *y / *z; 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterSize(D3EMITTER **e, int *x, int *y, int *z)
+int ocmd_SetEmitterSize(D3PARTSYS **e, int *x, int *y, int *z)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterSize: invalid handle...");
         return 0;
     }
-    em->size[0] = (float)*x;
-    em->size[1] = (float)*y;
-    em->size[2] = (float)*z;
+    em->psize[0] = (float)*x;
+    em->psize[1] = (float)*y;
+    em->psize[2] = (float)*z;
     return 0;
 }
 /* 0x40f320, sets the emitter's start velocities from *x / *y / *z (in hundredths); 0, an invalid handle is a script
    error */
 
-int ocmd_SetEmitterVelocity(D3EMITTER **e, int *x, int *y, int *z)
+int ocmd_SetEmitterVelocity(D3PARTSYS **e, int *x, int *y, int *z)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterVelocity: invalid handle...");
@@ -939,9 +939,9 @@ int ocmd_SetEmitterVelocity(D3EMITTER **e, int *x, int *y, int *z)
 /* 0x40f390, sets the emitter's accelerations from *x / *y / *z (in thousandths); 0, an invalid handle is a script
    error */
 
-int ocmd_SetEmitterAcceleration(D3EMITTER **e, int *x, int *y, int *z)
+int ocmd_SetEmitterAcceleration(D3PARTSYS **e, int *x, int *y, int *z)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterAcceleration: invalid handle...");
@@ -962,9 +962,9 @@ int ocmd_SetEmitterAcceleration(D3EMITTER **e, int *x, int *y, int *z)
 /* 0x40f400, sets the emitter's random velocity range from *x / *y / *z (in hundredths); 0, an invalid handle is a
    script error */
 
-int ocmd_SetEmitterRndVelocity(D3EMITTER **e, int *x, int *y, int *z)
+int ocmd_SetEmitterRndVelocity(D3PARTSYS **e, int *x, int *y, int *z)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterRndVelocity: invalid handle...");
@@ -985,9 +985,9 @@ int ocmd_SetEmitterRndVelocity(D3EMITTER **e, int *x, int *y, int *z)
 /* 0x40f470, sets the emitter's plane normal from *x / *y / *z (in hundredths) and the plane distance *d; 0, an
    invalid handle is a script error */
 
-int ocmd_SetEmitterPlane(D3EMITTER **e, int *x, int *y, int *z, int *d)
+int ocmd_SetEmitterPlane(D3PARTSYS **e, int *x, int *y, int *z, int *d)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterPlane: invalid handle...");
@@ -1009,9 +1009,9 @@ int ocmd_SetEmitterPlane(D3EMITTER **e, int *x, int *y, int *z, int *d)
 /* 0x40f4f0, sets the emitter's particle time (*t) and the three alpha values *a / *b / *c; 0, an invalid handle is
    a script error */
 
-int ocmd_SetEmitterTimeAndAlpha(D3EMITTER **e, int *a, int *b, int *c, int *t)
+int ocmd_SetEmitterTimeAndAlpha(D3PARTSYS **e, int *a, int *b, int *c, int *t)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterTimeAndAlpha: invalid handle...");
@@ -1026,9 +1026,9 @@ int ocmd_SetEmitterTimeAndAlpha(D3EMITTER **e, int *a, int *b, int *c, int *t)
 /* 0x40f560, sets the emitter's colour bytes r / g / b / a from *r / *g / *b / *a; 0, an invalid handle is a script
    error */
 
-int ocmd_SetEmitterColor(D3EMITTER **e, int *r, int *g, int *b, int *a)
+int ocmd_SetEmitterColor(D3PARTSYS **e, int *r, int *g, int *b, int *a)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterColor: invalid handle...");
@@ -1043,9 +1043,9 @@ int ocmd_SetEmitterColor(D3EMITTER **e, int *r, int *g, int *b, int *a)
 /* 0x40f5d0, sets the emitter's max trigger (*a / 100), texture mode *b, the init / rebirth fill flags *c / *d and
    the trigger flags *f / *g; 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterFlags(D3EMITTER **e, int *a, int *b, int *c, int *d, int *f, int *g)
+int ocmd_SetEmitterFlags(D3PARTSYS **e, int *a, int *b, int *c, int *d, int *f, int *g)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterFlags: invalid handle...");
@@ -1061,9 +1061,9 @@ int ocmd_SetEmitterFlags(D3EMITTER **e, int *a, int *b, int *c, int *d, int *f, 
 }
 /* 0x40f690, sets the emitter's init-fill flag from *on; 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterInitFill(D3EMITTER **e, int *on)
+int ocmd_SetEmitterInitFill(D3PARTSYS **e, int *on)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterInitFill: invalid handle...");
@@ -1074,9 +1074,9 @@ int ocmd_SetEmitterInitFill(D3EMITTER **e, int *on)
 }
 /* 0x40f6f0, sets the emitter's rebirth-fill flag from *on; 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterRebirthFill(D3EMITTER **e, int *on)
+int ocmd_SetEmitterRebirthFill(D3PARTSYS **e, int *on)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterRebirthFill: invalid handle...");
@@ -1087,9 +1087,9 @@ int ocmd_SetEmitterRebirthFill(D3EMITTER **e, int *on)
 }
 /* 0x40f750, sets the emitter's texture mode from *mode; 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterTextureMode(D3EMITTER **e, int *mode)
+int ocmd_SetEmitterTextureMode(D3PARTSYS **e, int *mode)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterTextureMode: invalid handle...");
@@ -1100,9 +1100,9 @@ int ocmd_SetEmitterTextureMode(D3EMITTER **e, int *mode)
 }
 /* 0x40f7a0, sets the emitter's is-trigger flag from *on; 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterIsTrigger(D3EMITTER **e, int *on)
+int ocmd_SetEmitterIsTrigger(D3PARTSYS **e, int *on)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterIsTrigger: invalid handle...");
@@ -1113,9 +1113,9 @@ int ocmd_SetEmitterIsTrigger(D3EMITTER **e, int *on)
 }
 /* 0x40f800, sets the emitter's trigger-once flag from *on; 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterTriggerOnce(D3EMITTER **e, int *on)
+int ocmd_SetEmitterTriggerOnce(D3PARTSYS **e, int *on)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterTriggerOnce: invalid handle...");
@@ -1126,9 +1126,9 @@ int ocmd_SetEmitterTriggerOnce(D3EMITTER **e, int *on)
 }
 /* 0x40f850, sets the emitter's max trigger from *n; 0, an invalid handle is a script error */
 
-int ocmd_SetEmitterMaxTrigger(D3EMITTER **e, int *n)
+int ocmd_SetEmitterMaxTrigger(D3PARTSYS **e, int *n)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "SetEmitterMaxTrigger: invalid handle...");
@@ -1139,9 +1139,9 @@ int ocmd_SetEmitterMaxTrigger(D3EMITTER **e, int *n)
 }
 /* 0x40f8a0, raises the emitter's trigger bit; 0, an invalid handle is a script error */
 
-int ocmd_TriggerEmitter(D3EMITTER **e)
+int ocmd_TriggerEmitter(D3PARTSYS **e)
 {
-    D3EMITTER *em = *e;
+    D3PARTSYS *em = *e;
 
     if (!mem_IsValid(em)) {
         evt_Error(evt_Cur, evt_Cur->pc, "TriggerEmitter: invalid handle...");

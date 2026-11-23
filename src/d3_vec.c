@@ -243,7 +243,7 @@ void d3_Normalize(D3VECTOR *v)
 }
 /* 0x4545c0, angles to matrix */
 
-void d3_MatFromAngles(D3VECTOR4 *v, D3MATRIX *m)
+void d3_MatFromAngles(const D3VECTOR *v, D3MATRIX *m)
 {
     double sx = sin(v->x), sy = sin(v->y), sz = sin(v->z);
     float cx = (float)cos(v->x), cy = (float)cos(v->y), t;
@@ -283,7 +283,7 @@ void d3_MatToAngles(const D3MATRIX *m, D3VECTOR *angles)
 }
 /* 0x454700, normal of the triangle a, b, c */
 
-void d3_TriNormal(const D3VECTOR *a, const D3VECTOR *b, const D3VECTOR *c, D3VECTOR4 *n)
+void d3_TriNormal(const D3VECTOR *a, const D3VECTOR *b, const D3VECTOR *c, D3VECTOR *n)
 {
     D3VECTOR4 u, v;
 
@@ -292,7 +292,7 @@ void d3_TriNormal(const D3VECTOR *a, const D3VECTOR *b, const D3VECTOR *c, D3VEC
     n->x = v.z * u.y - v.y * u.z;
     n->y = v.x * u.z - v.z * u.x;
     n->z = v.y * u.x - v.x * u.y;
-    d3_Normalize(&n->v);
+    d3_Normalize(n);
 }
 
 /* the engine's axes and origin, read-only (.rdata): 4-float vectors (D3VECTOR4, w = 0), 16 bytes each as the

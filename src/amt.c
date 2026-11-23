@@ -11,7 +11,6 @@
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 
-#define AMT_TABA_END ((int)&amt_TabA[15 * 10])  /* 0x5edee8, the end of the 15 rows of amt_TabA */
 #define AMT_MONEY_UNIT 64  /* money in the character messages counts in multiples of this: the amounts of the 0x4c4830 sites are built as n * 0x40 */
 
 #include "ahm.h"
@@ -33,7 +32,9 @@
 #include "d3_pose.h"
 unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defines it returning int; this unit's callers read the 16-bit result (mov si,ax / movzx): the original's units saw a 16-bit declaration */
 #pragma pack(push, 1)
-typedef struct AMTRANGEW {               /* an AMTRANGE's first pair read as the two overlapping dwords amt_CreateApplicant (0x4e7aa0) rolls its age from */
+/* @original why: amt_CreateApplicant (0x4e7aa0) rolls the age from AMTRANGE's two shorts read as the overlapping dwords
+   at +0 and +2 (mov esi, [esp+0xc]; mov edx, [esp+0xe]); no field of one record lies at both, so this view stays. */
+typedef struct AMTRANGEW {               /* an AMTRANGE's first pair read as two overlapping dwords */
     union {
         int word0;                       /* 0x0, s0 | s1 << 16 */
         struct {
@@ -119,10 +120,10 @@ float amt_Rating(AICHAR *a, AICHAR *b, int mode, int flag)
     r = 0.0f;
     if (k > 0 && k < 7) {
         for (i = 0; i < 15; i++) {
-            if (gm_TitleGroup(a->jobId) == AMT_BITS(&amt_TabA[i * 10])) {
-                r = amt_TabA[i * 10 + k + 1];
+            if (gm_TitleGroup(a->jobId) == amt_TabA[i].id) {
+                r = amt_TabA[i].col[k];
                 if ((unsigned int)mode >= 2)
-                    r = r + (float)abs((int)amt_TabA[i * 10 + k + 1]);
+                    r = r + (float)abs((int)amt_TabA[i].col[k]);
                 break;
             }
         }
@@ -153,8 +154,8 @@ float amt_Rating(AICHAR *a, AICHAR *b, int mode, int flag)
             akey = (f2 & 0x200) ? 0x23 : 0;
         if (akey == 0) {
             for (n = 0; n < 5; n++) {
-                if (AMT_BITS(&amt_TabB[n * 10]) == key) {
-                    r = r + amt_TabB[n * 10 + amt_KindColumn(a->officeKind) + 1];
+                if (amt_TabB[n].id == key) {
+                    r = r + amt_TabB[n].col[amt_KindColumn(a->officeKind)];
                     break;
                 }
             }
@@ -165,7 +166,7 @@ float amt_Rating(AICHAR *a, AICHAR *b, int mode, int flag)
     if (flag != 0) {
         amt_GetKind(b->officeKind, &rec.kind);
         gv_GetTableRecord(2, &rec.dec);
-        fl = ((AMTKINDF *)&rec.kind)->value;
+        fl = rec.kind.friendship;
         if (rec.dec.cur == 2)
             fl = fl * 0.75f;
         if (a->faith == b->faith)
@@ -536,7 +537,6 @@ int amt_ExecuteOfficeMessage(AMTMSG *p)
     unsigned int m, f;
     unsigned char k;
     AMTREC *q;
-    int *r;
 
     i = 0;
     owner = -1;
@@ -623,13 +623,10 @@ next:
         }
     } else if (k >= 0x1c && k <= 0x22) {
         if (c->secondOffice != 0) {
-            r = &amt_Table[30].owner;
-            do {
-                if (((unsigned char *)r)[4] == c->secondOffice &&
-                    *r == c->netId)
-                    *r = -1;
-                r += sizeof(AMTREC) / sizeof(int);
-            } while ((intptr_t)r < (intptr_t)&amt_Table[37].owner);
+            for (j = 30; j < 37; j++) {
+                if (amt_Table[j].kind == c->secondOffice && amt_Table[j].owner == c->netId)
+                    amt_Table[j].owner = -1;
+            }
         }
         c->secondOffice = amt_Table[i].kind;
     } else {
@@ -1212,11 +1209,13 @@ int amt_GetEligibleOffices(AICHAR *c, int n, int *out)
 }
 
 float amt_Rates[] = { 1.0f, -2.5f, -2.5f, -2.5f, -5.0f, -5.0f, -10.0f, 1.0f, 0.0f, -2.5f, -5.0f, -2.5f, -7.0f, -10.0f, 1.0f, -2.5f, 0.0f, -2.5f, -5.0f, -5.0f, -10.0f, 1.0f, -5.0f, -2.5f, 0.0f, -7.5f, -2.5f, -10.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, -5.0f, -10.0f, 1.0f, 1.0f, 1.0f, 1.0f, -5.0f, 0.0f, -10.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f };  /* 0x60ec90, 7 floats per row */
-AMTKIND amt_Kinds[40] = { { 0, 0, 0, "", 0, 0, 1084227584 }, { 1, 1, 1, "", 500, 1, 1084227584 }, { 2, 1, 2, "", 700, 0, 1084227584 }, { 3, 1, 3, "", 1000, 0, 1084227584 }, { 4, 2, 1, "", 500, 1, 1084227584 }, { 5, 2, 2, "", 700, 0, 1084227584 }, { 6, 2, 3, "", 1000, 0, 1084227584 }, { 7, 3, 1, "", 500, 1, 1084227584 }, { 8, 3, 2, "", 700, 0, 1084227584 }, { 9, 3, 3, "", 1000, 0, 1084227584 }, { 10, 4, 4, "", 2000, 0, 1084227584 }, { 11, 4, 4, "", 2000, 0, 1084227584 }, { 12, 4, 4, "", 2000, 0, 1084227584 }, { 13, 4, 5, "", 2500, 0, 1084227584 }, { 14, 4, 5, "", 2500, 0, 1084227584 }, { 15, 4, 6, "", 3000, 0, 1084227584 }, { 16, 5, 4, "", 2000, 0, 1086324736 }, { 17, 5, 4, "", 2000, 0, 1086324736 }, { 18, 5, 4, "", 2000, 0, 1086324736 }, { 19, 5, 5, "", 2500, 0, 1086324736 }, { 20, 5, 5, "", 2500, 0, 1090519040 }, { 21, 5, 6, "", 3000, 0, 1090519040 }, { 22, 6, 7, "", 5000, 0, 1088421888 }, { 23, 6, 7, "", 5000, 0, 1088421888 }, { 24, 6, 7, "", 5000, 0, 1092616192 }, { 25, 6, 8, "", 7000, 0, 1088421888 }, { 26, 6, 8, "", 7000, 0, 1094713344 }, { 27, 6, 9, "", 10000, 0, 1088421888 }, { 28, 7, 4, "", 3000, 0, 1084227584 }, { 29, 7, 4, "", 3000, 0, 1084227584 }, { 30, 7, 4, "", 3000, 0, 1084227584 }, { 31, 7, 4, "", 3000, 0, 1084227584 }, { 32, 7, 4, "", 3000, 0, 1084227584 }, { 33, 7, 4, "", 3000, 0, 1084227584 }, { 34, 7, 4, "", 3000, 0, 1090519040 }, { 35, 8, 10, "", 20000, 0, 1084227584 }, { 36, 8, 10, "", 20000, 0, 1084227584 }, { 37, 8, 11, "", 30000, 0, 1084227584 }, { 38, 8, 12, "", 50000, 0, 1084227584 }, { 39, 8, 12, "", 50000, 0, 1084227584 } };  /* 0x60ed58 */
+AMTKIND amt_Kinds[40] = { { 0, 0, 0, "", 0, 0, 5.0f }, { 1, 1, 1, "", 500, 1, 5.0f }, { 2, 1, 2, "", 700, 0, 5.0f }, { 3, 1, 3, "", 1000, 0, 5.0f }, { 4, 2, 1, "", 500, 1, 5.0f }, { 5, 2, 2, "", 700, 0, 5.0f }, { 6, 2, 3, "", 1000, 0, 5.0f }, { 7, 3, 1, "", 500, 1, 5.0f }, { 8, 3, 2, "", 700, 0, 5.0f }, { 9, 3, 3, "", 1000, 0, 5.0f }, { 10, 4, 4, "", 2000, 0, 5.0f }, { 11, 4, 4, "", 2000, 0, 5.0f }, { 12, 4, 4, "", 2000, 0, 5.0f }, { 13, 4, 5, "", 2500, 0, 5.0f }, { 14, 4, 5, "", 2500, 0, 5.0f }, { 15, 4, 6, "", 3000, 0, 5.0f }, { 16, 5, 4, "", 2000, 0, 6.0f }, { 17, 5, 4, "", 2000, 0, 6.0f }, { 18, 5, 4, "", 2000, 0, 6.0f }, { 19, 5, 5, "", 2500, 0, 6.0f }, { 20, 5, 5, "", 2500, 0, 8.0f }, { 21, 5, 6, "", 3000, 0, 8.0f }, { 22, 6, 7, "", 5000, 0, 7.0f }, { 23, 6, 7, "", 5000, 0, 7.0f }, { 24, 6, 7, "", 5000, 0, 10.0f }, { 25, 6, 8, "", 7000, 0, 7.0f }, { 26, 6, 8, "", 7000, 0, 12.0f }, { 27, 6, 9, "", 10000, 0, 7.0f }, { 28, 7, 4, "", 3000, 0, 5.0f }, { 29, 7, 4, "", 3000, 0, 5.0f }, { 30, 7, 4, "", 3000, 0, 5.0f }, { 31, 7, 4, "", 3000, 0, 5.0f }, { 32, 7, 4, "", 3000, 0, 5.0f }, { 33, 7, 4, "", 3000, 0, 5.0f }, { 34, 7, 4, "", 3000, 0, 8.0f }, { 35, 8, 10, "", 20000, 0, 5.0f }, { 36, 8, 10, "", 20000, 0, 5.0f }, { 37, 8, 11, "", 30000, 0, 5.0f }, { 38, 8, 12, "", 50000, 0, 5.0f }, { 39, 8, 12, "", 50000, 0, 5.0f } };  /* 0x60ed58 */
 int amt_Flip = 2;                       /* 0x60f118 */
 extern AMTREC amt_Table[42];
-const float amt_TabA[] = { 1.54142831e-44f, 0.0f, -3.0f, -5.0f, -3.0f, -8.0f, -8.0f, -12.0f, 0.0f, -15.0f, 1.68155816e-44f, 0.0f, -3.0f, -5.0f, -3.0f, -8.0f, -8.0f, -12.0f, 0.0f, -15.0f, 1.821688e-44f, 0.0f, -3.0f, -3.0f, -3.0f, -5.0f, -10.0f, -10.0f, 0.0f, -15.0f, 1.96181785e-44f, 0.0f, -5.0f, -5.0f, -5.0f, -8.0f, -12.0f, -12.0f, 0.0f, -15.0f, 1.40129846e-45f, 0.0f, 5.0f, 5.0f, 5.0f, 5.0f, 3.0f, 0.0f, 0.0f, -15.0f, 2.80259693e-45f, 0.0f, 5.0f, 5.0f, 5.0f, 5.0f, 3.0f, 0.0f, 0.0f, -15.0f, 4.20389539e-45f, 0.0f, 5.0f, 5.0f, 5.0f, 5.0f, 3.0f, 0.0f, 0.0f, -15.0f, 2.1019477e-44f, 0.0f, 5.0f, 5.0f, 5.0f, 5.0f, 3.0f, 0.0f, 0.0f, -15.0f, 9.80908925e-45f, 0.0f, 3.0f, 3.0f, -5.0f, -8.0f, 10.0f, 0.0f, 0.0f, -15.0f, 5.60519386e-45f, 0.0f, 3.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f, -15.0f, 1.12103877e-44f, 0.0f, 5.0f, -5.0f, 5.0f, 5.0f, -5.0f, -5.0f, 0.0f, -15.0f, 8.40779079e-45f, 0.0f, 5.0f, 0.0f, -5.0f, 0.0f, -12.0f, -5.0f, 0.0f, -15.0f, 7.00649232e-45f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, -10.0f, -5.0f, 0.0f, -15.0f, 1.26116862e-44f, 0.0f, 5.0f, 5.0f, 5.0f, 0.0f, -10.0f, -10.0f, 0.0f, -15.0f, 1.40129846e-44f, 0.0f, 5.0f, 10.0f, 5.0f, 5.0f, 5.0f, 5.0f, 0.0f, -15.0f, 2.1019477e-44f, 0.0f };  /* 0x5edc90, 15 rows of 10 floats (id, 9 columns by the rank) */
-const float amt_TabB[] = { 4.90454463e-44f, -15.0f, -10.0f, -10.0f, -10.0f, 0.0f, -5.0f, 0.0f, 0.0f, 0.0f, 5.04467447e-44f, -15.0f, -10.0f, -10.0f, -10.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 5.18480432e-44f, -15.0f, -10.0f, -10.0f, -10.0f, -5.0f, -5.0f, 0.0f, 0.0f, 0.0f, 5.46506401e-44f, -20.0f, -15.0f, -15.0f, -15.0f, -10.0f, -5.0f, -5.0f, 0.0f, 0.0f, 5.32493416e-44f, -20.0f, -15.0f, -15.0f, -15.0f, -5.0f, -10.0f, -5.0f, 0.0f, 0.0f, 7.00649232e-45f };  /* 0x5edef0, 5 rows of 10 */
+const AMTRATEROW amt_TabA[15] = { { 11, { 0.0f, -3.0f, -5.0f, -3.0f, -8.0f, -8.0f, -12.0f, 0.0f, -15.0f } }, { 12, { 0.0f, -3.0f, -5.0f, -3.0f, -8.0f, -8.0f, -12.0f, 0.0f, -15.0f } }, { 13, { 0.0f, -3.0f, -3.0f, -3.0f, -5.0f, -10.0f, -10.0f, 0.0f, -15.0f } }, { 14, { 0.0f, -5.0f, -5.0f, -5.0f, -8.0f, -12.0f, -12.0f, 0.0f, -15.0f } }, { 1, { 0.0f, 5.0f, 5.0f, 5.0f, 5.0f, 3.0f, 0.0f, 0.0f, -15.0f } }, { 2, { 0.0f, 5.0f, 5.0f, 5.0f, 5.0f, 3.0f, 0.0f, 0.0f, -15.0f } }, { 3, { 0.0f, 5.0f, 5.0f, 5.0f, 5.0f, 3.0f, 0.0f, 0.0f, -15.0f } }, { 15, { 0.0f, 5.0f, 5.0f, 5.0f, 5.0f, 3.0f, 0.0f, 0.0f, -15.0f } }, { 7, { 0.0f, 3.0f, 3.0f, -5.0f, -8.0f, 10.0f, 0.0f, 0.0f, -15.0f } }, { 4, { 0.0f, 3.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f, -15.0f } }, { 8, { 0.0f, 5.0f, -5.0f, 5.0f, 5.0f, -5.0f, -5.0f, 0.0f, -15.0f } }, { 6, { 0.0f, 5.0f, 0.0f, -5.0f, 0.0f, -12.0f, -5.0f, 0.0f, -15.0f } }, { 5, { 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, -10.0f, -5.0f, 0.0f, -15.0f } }, { 9, { 0.0f, 5.0f, 5.0f, 5.0f, 0.0f, -10.0f, -10.0f, 0.0f, -15.0f } }, { 10, { 0.0f, 5.0f, 10.0f, 5.0f, 5.0f, 5.0f, 5.0f, 0.0f, -15.0f } } };  /* 0x5edc90, the 15 rows of amt_Rating's rank columns by job title group */
+const int amt_TabARows = 15;  /* 0x5edee8, the row count; no reader (the loops count to 15 themselves) */
+const AMTRATEROW amt_TabB[5] = { { 35, { -15.0f, -10.0f, -10.0f, -10.0f, 0.0f, -5.0f, 0.0f, 0.0f, 0.0f } }, { 36, { -15.0f, -10.0f, -10.0f, -10.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f } }, { 37, { -15.0f, -10.0f, -10.0f, -10.0f, -5.0f, -5.0f, 0.0f, 0.0f, 0.0f } }, { 39, { -20.0f, -15.0f, -15.0f, -15.0f, -10.0f, -5.0f, -5.0f, 0.0f, 0.0f } }, { 38, { -20.0f, -15.0f, -15.0f, -15.0f, -5.0f, -10.0f, -5.0f, 0.0f, 0.0f } } };  /* 0x5edef0, the 5 rows of amt_Rating's status keys 0x23 .. 0x27 */
+const int amt_TabBRows = 5;  /* 0x5edfb8, the row count; no reader (the loops count to 5 themselves) */
 const float amt_Pay[5] = { 1.10000002f, 1.04999995f, 1.0f, 0.949999988f, 0.899999976f };  /* 0x5edfbc */
 int ai_Evidence[0x800][2]; /* 0x91b6e0 */
 CRIME ai_Crimes[0x200]; /* 0x91f700, the crime records (0x2d bytes each) up to 0x925100 */
@@ -1749,18 +1748,18 @@ int amt_HasColumn7Holder(void)
     }
     return 0;
 }
-/* 0x4e8730, sends the office news 0x1c19 about the office p (+0 the index as an unsigned short, +2 the kind 5 .. 7, +9 a flag) with the number
-   v + 0x253, or v + 0x27b (0x28 more) when the flag is set, to the characters of the kinds 6 and 7 (the text channels 0x5fd / 0x5fe) */
+/* 0x4e8730, sends the office news 0x1c19 about the character p (its id; only of the kinds 5 .. 7) with the office title
+   v + 0x253, or v + 0x27b (0x28 more: the female titles) when p->sex is set, to the characters of the kinds 6 and 7 (the text channels 0x5fd / 0x5fe) */
 
-void amt_SendOfficeNews(unsigned short *p, int v)
+void amt_SendOfficeNews(AICHAR *p, int v)
 {
     char buf[512];
     int i;
     char k;
 
-    k = ((char *)p)[2];
+    k = p->kind;
     if (k == 6 || k == 7 || k == 5) {
-        txt_Format(buf, 0x1c19, *p, 0x1c1b, (((char *)p)[9] != 0 ? 0x27b : 0x253) + v);
+        txt_Format(buf, 0x1c19, p->id, 0x1c1b, (p->sex != 0 ? 0x27b : 0x253) + v);
         i = 0;
         do {
             if (ai_Chars[i].kind == 6)
@@ -1774,14 +1773,14 @@ void amt_SendOfficeNews(unsigned short *p, int v)
 /* 0x4e87e0, amt_SendOfficeNews with the text 0x1c21 (no second text): the character p lost the office v (the election replaces it, or it no longer
    fits the kind, 0x4e9260); nothing when p is 0 */
 
-void amt_SendOfficeLost(unsigned short *p, int v)
+void amt_SendOfficeLost(AICHAR *p, int v)
 {
     char buf[512];
     int i;
     char k;
 
-    if (p != 0 && ((k = ((char *)p)[2]) == 6 || k == 7 || k == 5)) {
-        txt_Format(buf, 0x1c21, *p, (((char *)p)[9] != 0 ? 0x27b : 0x253) + v);
+    if (p != 0 && ((k = p->kind) == 6 || k == 7 || k == 5)) {
+        txt_Format(buf, 0x1c21, p->id, (p->sex != 0 ? 0x27b : 0x253) + v);
         i = 0;
         do {
             if (ai_Chars[i].kind == 6)
@@ -1910,8 +1909,8 @@ void amt_ElectDeputies(void)
         if (pick != 0 && pick != cur) {
             if (cur != 0) {
                 if (abs(cur->jobId - pick->jobId) < 6) {
-                    amt_SendOfficeLost((unsigned short *)cur, cur->secondOffice);
-                    amt_SendOfficeNews((unsigned short *)pick, cur->secondOffice);
+                    amt_SendOfficeLost(cur, cur->secondOffice);
+                    amt_SendOfficeNews(pick, cur->secondOffice);
                     if (pick->jobId >= 1 && pick->jobId <= 6) {
                         amt_SendOfficeMessage((char)b.idx, pick, 0, 1, 0xff);
                         return;
@@ -1928,8 +1927,8 @@ void amt_ElectDeputies(void)
                     amt_SendOfficeMessage((char)a.idx, pick, 0, 1, 0xff);
                     v = 0x1d;
                 }
-                amt_SendOfficeLost((unsigned short *)cur, cur->secondOffice);
-                amt_SendOfficeNews((unsigned short *)pick, v);
+                amt_SendOfficeLost(cur, cur->secondOffice);
+                amt_SendOfficeNews(pick, v);
                 return;
             }
             if (pick->jobId >= 1 && pick->jobId <= 6) {
@@ -1939,7 +1938,7 @@ void amt_ElectDeputies(void)
                 amt_SendOfficeMessage((char)a.idx, pick, 0, 1, 0xff);
                 v = 0x1d;
             }
-            amt_SendOfficeNews((unsigned short *)pick, v);
+            amt_SendOfficeNews(pick, v);
         }
     }
 }
@@ -2019,12 +2018,12 @@ void amt_ElectKind22(void)
     if (pick != 0 && pick != cur) {
         if (cur != 0) {
             amt_SendOfficeMessage((char)a.idx, pick, 0, 1, 0xff);
-            amt_SendOfficeLost((unsigned short *)cur, 0x22);
-            amt_SendOfficeNews((unsigned short *)pick, 0x22);
+            amt_SendOfficeLost(cur, 0x22);
+            amt_SendOfficeNews(pick, 0x22);
             return;
         }
         amt_SendOfficeMessage((char)a.idx, pick, 0, 1, 0xff);
-        amt_SendOfficeNews((unsigned short *)pick, 0x22);
+        amt_SendOfficeNews(pick, 0x22);
     }
 }
 /* 0x4e8dc0, fills the office of the kind `kind` (0x1e .. 0x21, the mayors of the four towns) from the owners of the buildings of the matching kind whose
@@ -2126,9 +2125,9 @@ void amt_CalcZuenfte(unsigned int kind)
             m.arg[0] = ai_PlayerChar->netId;
             m.arg[1] = bld;
             m.arg[2] = 0;
-            m.buildPos[0] = pos.x;
-            m.buildPos[1] = pos.y;
-            m.buildPos[2] = pos.z;
+            m.buildPos.x = pos.x;
+            m.buildPos.y = pos.y;
+            m.buildPos.z = pos.z;
             m.buildRot[0] = rot.x;
             m.buildRot[1] = rot.y;
             m.buildRot[2] = rot.z;
@@ -2170,12 +2169,12 @@ void amt_CalcZuenfte(unsigned int kind)
         return;
     if (cur != 0) {
         amt_SendOfficeMessage(a.idx, pick, 0, 1, 0xff);
-        amt_SendOfficeLost((unsigned short *)cur, kind);
-        amt_SendOfficeNews((unsigned short *)pick, kind);
+        amt_SendOfficeLost(cur, kind);
+        amt_SendOfficeNews(pick, kind);
         return;
     }
     amt_SendOfficeMessage(a.idx, pick, 0, 1, 0xff);
-    amt_SendOfficeNews((unsigned short *)pick, kind);
+    amt_SendOfficeNews(pick, kind);
 }
 /* 0x4e9260, the office check run at the start of a round (main 0x53b2e0): every holder of a column-7 office (0x4e70f0: the deputies 0x1c / 0x1d,
    the town offices 0x1e .. 0x21, 0x22) whose character is gone, dead, holds another kind (+0x169) or is outside the kind's rank range
@@ -2207,7 +2206,7 @@ void amt_CheckOffices(void)
             if (c != 0 && c->health != 0 && (char)c->secondOffice == (char)p->kind &&
                 c->jobId >= lo && c->jobId <= hi)
                 continue;
-            amt_SendOfficeLost((unsigned short *)c, p->kind);
+            amt_SendOfficeLost(c, p->kind);
             r = amt_SendOfficeMessage((char)p->idx, 0, 0, 4, 0xff);
             while (r != -1 && cm_GetSlotState(r) == 0)
                 sv_PumpNet();
@@ -2340,7 +2339,6 @@ int amt_ExecutePriceMessage(AICHAR *c, G8REQ *m)
     float f;
     GMSTOCK rec;
     GMSTOCK *p;
-    int *q;
     char buf[512], msg[2048];
 
     best = 0;
@@ -2414,9 +2412,8 @@ int amt_ExecutePriceMessage(AICHAR *c, G8REQ *m)
                                     txt_Format(msg, 0x1659, buf, id * 2 + 0x9a8, id2 * 2 + 0x9a8);
                                 }
                                 for (i = 0; i < 768; i++) {
-                                    q = ai_CharInts[i];
-                                    if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && c->netId != *q)
-                                        he_ShowNews(*q, -1, msg, 1, 0x5ec, ch_EmptyName);
+                                    if ((ai_Chars[i].kind == 7 || ai_Chars[i].kind == 6) && c->netId != ai_Chars[i].netId)
+                                        he_ShowNews(ai_Chars[i].netId, -1, msg, 1, 0x5ec, ch_EmptyName);
                                 }
                                 if (c->kind == 6)
                                     sv_MessageBox((intptr_t)msg, 0x10);
@@ -2441,7 +2438,6 @@ int amt_ExecuteShareMessage(AICHAR *c, G8REQ *m)
     AIBLD *o;
     int loss, cnt, i;
     float f;
-    int *q;
     char msg[1024];
 
     if (m->kind == 2) {
@@ -2456,7 +2452,7 @@ int amt_ExecuteShareMessage(AICHAR *c, G8REQ *m)
                 cnt = 0;
                 do {
                     if (ai_Chars[i].id != 0xffff && ai_Chars[i].bld == o && o->owner != i) {
-                        cm_SendRelations(ai_CharInts[o->owner][0], ai_Chars[i].netId, -loss, 1);
+                        cm_SendRelations(ai_Chars[o->owner].netId, ai_Chars[i].netId, -loss, 1);
                         cnt++;
                     }
                     i++;
@@ -2472,18 +2468,17 @@ int amt_ExecuteShareMessage(AICHAR *c, G8REQ *m)
                 cm_SendSetField(c->netId, 0x1c8, 4, 0x8000000, 0);
                 if (ai_Chars[o->owner].kind == 7 || ai_Chars[o->owner].kind == 6) {
                     txt_Format(msg, 0x1663, o);
-                    he_MessageBoxQuickjump(ai_CharInts[o->owner][0], -1, msg, 0, 0x5fb, o->id, -1, 0, ch_EmptyName);
+                    he_MessageBoxQuickjump(ai_Chars[o->owner].netId, -1, msg, 0, 0x5fb, o->id, -1, 0, ch_EmptyName);
                 }
                 txt_Format(msg, 0x1662, o->owner, o);
-                q = ai_CharInts[0];
+                i = 0;
                 do {
-                    if (((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) {
-                        if (c->netId != *q && *q != ai_CharInts[o->owner][0])
-                            he_ShowNews(*q, -1, msg, 0, 0x5fd, ch_EmptyName);
+                    if (ai_Chars[i].kind == 7 || ai_Chars[i].kind == 6) {
+                        if (c->netId != ai_Chars[i].netId && ai_Chars[i].netId != ai_Chars[o->owner].netId)
+                            he_ShowNews(ai_Chars[i].netId, -1, msg, 0, 0x5fd, ch_EmptyName);
                     }
-                    q += 0x87;
-                } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
-                if (((char *)c)[2] == 6) {
+                } while (++i < 768);
+                if (c->kind == 6) {
                     txt_Format(msg, 0x1661, o->owner, o);
                     sv_MessageBox((intptr_t)msg, 0);
                 }
@@ -2518,10 +2513,9 @@ int amt_ExecuteShareMessage(AICHAR *c, G8REQ *m)
 int amt_ExecuteMayorPowerMessage(AICHAR *c, G8REQ *m)
 {
     float rf, f;
-    int ret, n, dmg, i, j, id;
+    int ret, n, dmg, i, j, ci, id;
     char kind;
     AICHAR *t;
-    int *q;
     AMTREC o;
     AMTREC list[6];
     AMTKIND k;
@@ -2546,12 +2540,11 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, G8REQ *m)
                     he_ShowNews(t->netId, -1, msg, 0, 0x5fb, ch_EmptyName);
                 }
                 txt_Format(msg, 0x1682, t->id, t->id);
-                q = ai_CharInts[0];
+                ci = 0;
                 do {
-                    if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != t->netId && *q != c->netId)
-                        he_ShowNews(*q, -1, msg, 0, 0x5fe, ch_EmptyName);
-                    q += 0x87;
-                } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
+                    if ((ai_Chars[ci].kind == 7 || ai_Chars[ci].kind == 6) && ai_Chars[ci].netId != t->netId && ai_Chars[ci].netId != c->netId)
+                        he_ShowNews(ai_Chars[ci].netId, -1, msg, 0, 0x5fe, ch_EmptyName);
+                } while (++ci < 768);
                 if (c->kind == 6) {
                     txt_Format(msg, 0x1680, t->id, t->id);
                     sv_MessageBox((intptr_t)msg, 0);
@@ -2563,12 +2556,11 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, G8REQ *m)
                     he_ShowNews(t->netId, -1, msg, 0, 0x5fb, ch_EmptyName);
                 }
                 txt_Format(msg, 0x1683, t->id, t->id);
-                q = ai_CharInts[0];
+                ci = 0;
                 do {
-                    if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != t->netId && *q != c->netId)
-                        he_ShowNews(*q, -1, msg, 0, 0x5fe, ch_EmptyName);
-                    q += 0x87;
-                } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
+                    if ((ai_Chars[ci].kind == 7 || ai_Chars[ci].kind == 6) && ai_Chars[ci].netId != t->netId && ai_Chars[ci].netId != c->netId)
+                        he_ShowNews(ai_Chars[ci].netId, -1, msg, 0, 0x5fe, ch_EmptyName);
+                } while (++ci < 768);
                 if (c->kind == 6) {
                     txt_Format(msg, 0x1681, t->id, t->id);
                     sv_MessageBox((intptr_t)msg, 0);
@@ -2602,20 +2594,19 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, G8REQ *m)
             if (rf > 0.3f) {
                 txt_Format(msg, 0x1672, m->a + 0x1663);
                 txt_Format(msg2, 0x1670, m->a + 0x1663);
-                q = ai_CharInts[0];
+                ci = 0;
                 do {
-                    if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != c->netId) {
+                    if ((ai_Chars[ci].kind == 7 || ai_Chars[ci].kind == 6) && ai_Chars[ci].netId != c->netId) {
                         for (i = 0; i < n; i++) {
-                            if (list[i].owner == *q)
+                            if (list[i].owner == ai_Chars[ci].netId)
                                 break;
                         }
                         if (i < n)
-                            he_ShowNews(*q, -1, msg, 0, 0x5fb, ch_EmptyName);
+                            he_ShowNews(ai_Chars[ci].netId, -1, msg, 0, 0x5fb, ch_EmptyName);
                         else
-                            he_ShowNews(*q, -1, msg2, 0, 0x5fe, ch_EmptyName);
+                            he_ShowNews(ai_Chars[ci].netId, -1, msg2, 0, 0x5fe, ch_EmptyName);
                     }
-                    q += 0x87;
-                } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
+                } while (++ci < 768);
                 if (c->kind == 6) {
                     txt_Format(msg, 0x166e, m->a + 0x1663);
                     sv_MessageBox((intptr_t)msg, 0);
@@ -2624,20 +2615,19 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, G8REQ *m)
             } else {
                 txt_Format(msg, 0x1673, m->a + 0x1663);
                 txt_Format(msg2, 0x1671, m->a + 0x1663);
-                q = ai_CharInts[0];
+                ci = 0;
                 do {
-                    if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != c->netId) {
+                    if ((ai_Chars[ci].kind == 7 || ai_Chars[ci].kind == 6) && ai_Chars[ci].netId != c->netId) {
                         for (i = 0; i < n; i++) {
-                            if (list[i].owner == *q)
+                            if (list[i].owner == ai_Chars[ci].netId)
                                 break;
                         }
                         if (i < n)
-                            he_ShowNews(*q, -1, msg, 0, 0x5fb, ch_EmptyName);
+                            he_ShowNews(ai_Chars[ci].netId, -1, msg, 0, 0x5fb, ch_EmptyName);
                         else
-                            he_ShowNews(*q, -1, msg2, 0, 0x5fe, ch_EmptyName);
+                            he_ShowNews(ai_Chars[ci].netId, -1, msg2, 0, 0x5fe, ch_EmptyName);
                     }
-                    q += 0x87;
-                } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
+                } while (++ci < 768);
                 if (c->kind == 6) {
                     txt_Format(msg, 0x166f, m->a + 0x1663);
                     sv_MessageBox((intptr_t)msg, 0);
@@ -2661,24 +2651,22 @@ int amt_ExecuteMayorPowerMessage(AICHAR *c, G8REQ *m)
         cm_SendSetField(c->netId, 0x1c8, 4, 0x10000000, 0);
         if (rf > 0.3f) {
             txt_Format(msg, 0x167a, m->a + 0x1663);
-            q = ai_CharInts[0];
+            ci = 0;
             do {
-                if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != c->netId)
-                    he_ShowNews(*q, -1, msg, 0, 0x5fd, ch_EmptyName);
-                q += 0x87;
-            } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
+                if ((ai_Chars[ci].kind == 7 || ai_Chars[ci].kind == 6) && ai_Chars[ci].netId != c->netId)
+                    he_ShowNews(ai_Chars[ci].netId, -1, msg, 0, 0x5fd, ch_EmptyName);
+            } while (++ci < 768);
             if (c->kind == 6) {
                 txt_Format(msg, 0x1678, m->a + 0x1663);
                 sv_MessageBox((intptr_t)msg, 0);
             }
         } else {
             txt_Format(msg, 0x167b, m->a + 0x1663);
-            q = ai_CharInts[0];
+            ci = 0;
             do {
-                if ((((char *)q)[-2] == 7 || ((char *)q)[-2] == 6) && *q != c->netId)
-                    he_ShowNews(*q, -1, msg, 0, 0x5fe, ch_EmptyName);
-                q += 0x87;
-            } while ((intptr_t)q < (intptr_t)AMT_CHARS_END);
+                if ((ai_Chars[ci].kind == 7 || ai_Chars[ci].kind == 6) && ai_Chars[ci].netId != c->netId)
+                    he_ShowNews(ai_Chars[ci].netId, -1, msg, 0, 0x5fe, ch_EmptyName);
+            } while (++ci < 768);
             if (c->kind == 6) {
                 txt_Format(msg, 0x1679, m->a + 0x1663);
                 sv_MessageBox((intptr_t)msg, 0);

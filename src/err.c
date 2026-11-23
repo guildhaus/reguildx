@@ -360,17 +360,17 @@ unsigned char err_CheckCall(char *p, int n, int base, int *target)
         *target = *rel + base;
         return 1;
     }
-    if (n >= 3 && p[-3] == -1 && p[-2] == 0x14)
+    if (n >= 3 && (signed char)p[-3] == -1 && p[-2] == 0x14)
         return 2;
-    if (n >= 6 && p[-6] == -1 && p[-5] == 0x15)
+    if (n >= 6 && (signed char)p[-6] == -1 && p[-5] == 0x15)
         return 2;
-    if (n >= 2 && p[-2] == -1 && (unsigned char)p[-1] < 0x40)
+    if (n >= 2 && (signed char)p[-2] == -1 && (unsigned char)p[-1] < 0x40)
         return 2;
-    if (n >= 2 && p[-2] == -1 && (p[-1] & 0xf8) == 0xd0)
+    if (n >= 2 && (signed char)p[-2] == -1 && (p[-1] & 0xf8) == 0xd0)
         return 2;
-    if (n >= 3 && p[-3] == -1 && (p[-2] & 0xf8) == 0x50)
+    if (n >= 3 && (signed char)p[-3] == -1 && (p[-2] & 0xf8) == 0x50)
         return 2;
-    if (n >= 7 && p[-7] == -1 && (p[-6] & 0xf8) == 0x90)
+    if (n >= 7 && (signed char)p[-7] == -1 && (p[-6] & 0xf8) == 0x90)
         return 2;
     return 0;
 }

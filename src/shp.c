@@ -59,7 +59,7 @@ extern unsigned int d2_HighBitMask32;
    0xffff, pointer temp for the alloc, early return 0, return-flag. flip.py (want inc esi): deleting the r
    compare gives the right registers (2 ins), i.e. the temp has one block reference too many or i one too
    few; no meaning-keeping spelling found (tiebreak: not measured (dcp headers sample d2_MakeLightTable)) */
-int d2_MakeLightTable(char add)
+int d2_MakeLightTable(signed char add)
 {
     int i;
     unsigned char r = 0, g = 0, b = 0;
@@ -686,7 +686,7 @@ D2SHP *d2_GrabShape(int x, int y, int w, int h, D2SURF *surf, unsigned char mode
     if (grab8 != 0) {
         switch ((char)surf->bpp) {
         case 8:
-            r = d2_GrabShape8Runs(x, y, w, h, (unsigned char *)surf->bits, mode, (unsigned short)surf->w);
+            r = d2_GrabShape8Runs(x, y, w, h, surf->bytes, mode, (unsigned short)surf->w);
             type = 0;
             break;
         case 16:
@@ -694,7 +694,7 @@ D2SHP *d2_GrabShape(int x, int y, int w, int h, D2SURF *surf, unsigned char mode
             type = 1;
             break;
         case 24:
-            r = d2_GrabShape24Runs(x, y, w, h, surf->bits, mode, (unsigned short)surf->w);
+            r = d2_GrabShape24Runs(x, y, w, h, surf->bytes, mode, (unsigned short)surf->w);
             type = 2;
             break;
         default:
@@ -707,7 +707,7 @@ D2SHP *d2_GrabShape(int x, int y, int w, int h, D2SURF *surf, unsigned char mode
             type = 1;
             break;
         case 24:
-            r = d2_GrabShape24NoRuns(x, y, w, h, surf->bits, mode, (unsigned short)surf->w);
+            r = d2_GrabShape24NoRuns(x, y, w, h, surf->bytes, mode, (unsigned short)surf->w);
             type = 2;
             break;
         default:
@@ -1321,13 +1321,13 @@ void *d2_ShpConvertTo16(D2SHP *s, int p)
    copies, pointer and countdown loops, declaration order and size+total were tried in the d2s round (unit
    note), so what is left is the allocator, not the C */
 
-void *d2_BankConvertTo16(void *pic, int a, int b)
+void *d2_BankConvertTo16(D2BANK *pic, int a, int b)
 {
     D2BANK *bank, *nb;
     int i, total, size;
     D2SHP *sh;
 
-    bank = (D2BANK *)pic;
+    bank = pic;
     size = bank->size;
     total = 0;
     if (size == 0)
@@ -1378,9 +1378,9 @@ void *d2_BankConvertTo16(void *pic, int a, int b)
 }
 
 /* d2.h has other types for these three */
-int d2_DrawShapeHalfDark(int x, int y, void *surf, void *pic, char i);              /* 0x47c770, d2.h has void */
-int d2_StartAnim(short x, short y, void *data, unsigned char z);             /* 0x47cd20, starts an animation of a bank at (x, y); its number or -1 */
-int d2_DrawShapeMode2(int x, int y, void *surf, void *pic, unsigned char i);     /* 0x47c970, d2.h has void */
+int d2_DrawShapeHalfDark(int x, int y, D2SURF *surf, D2BANK *pic, char i);              /* 0x47c770, d2.h has void */
+int d2_StartAnim(short x, short y, D2BANK *data, unsigned char z);             /* 0x47cd20, starts an animation of a bank at (x, y); its number or -1 */
+int d2_DrawShapeMode2(int x, int y, D2SURF *surf, D2BANK *pic, unsigned char i);     /* 0x47c970, d2.h has void */
 
 /* 0x47c5e0, stores a palette into a bank */
 int d2_BankSetPalette(D2BANK *bank, void *pal)
@@ -1406,7 +1406,7 @@ int d2_BankAppendShape(D2SHP *s, D2BANK *bank)
         if (bank->kind == 0)
             d2_BankSetPalette(bank, d2_Palette);
     }
-    if ((unsigned char)bank->kind != s->type)
+    if (bank->kind != s->type)
         return 0;
     memcpy((char *)bank + bank->size, s, s->size);
     bank->offs[bank->n] = bank->size;
@@ -1420,9 +1420,8 @@ int d2_BankAppendShape(D2SHP *s, D2BANK *bank)
 }
 /* 0x47c6f0, draws shape i of a bank; 1 if drawn */
 
-int d2_DrawShape(int x, int y, void *surf, void *pic, unsigned char i)
+int d2_DrawShape(int x, int y, D2SURF *surf, D2BANK *bank, unsigned char i)
 {
-    D2BANK *bank = (D2BANK *)pic;
     char buf[128];
 
     if (bank == 0)
@@ -1431,14 +1430,13 @@ int d2_DrawShape(int x, int y, void *surf, void *pic, unsigned char i)
         sprintf(buf, "shp_ShowShapeFromBank:Shapenr is invalidate! Bank:%s", bank->name);
         return 0;
     }
-    d2_ShpBlit(x, y, (D2SURF *)surf, (D2SHP *)((char *)bank + bank->offs[i]));
+    d2_ShpBlit(x, y, surf, (D2SHP *)((char *)bank + bank->offs[i]));
     return 1;
 }
 /* 0x47c770, draws a half dark shape i of a bank */
 
-int d2_DrawShapeHalfDark(int x, int y, void *surf, void *pic, char i)
+int d2_DrawShapeHalfDark(int x, int y, D2SURF *surf, D2BANK *bank, char i)
 {
-    D2BANK *bank = (D2BANK *)pic;
     D2SHP *s;
     int old;
     char buf[128];
@@ -1452,12 +1450,12 @@ int d2_DrawShapeHalfDark(int x, int y, void *surf, void *pic, char i)
     s = (D2SHP *)((char *)bank + bank->offs[(unsigned char)i]);
     if (d2_LightTableExternal == 0) {
         old = d2_SurfPitch;
-        d2_SurfPitch = ((D2SURF *)surf)->pitch;
+        d2_SurfPitch = surf->pitch;
         switch (s->type) {
         case 0:
             return 0;
         case 1:
-            d2_ShpBlit16HalfDark(x, y, (D2SURF *)surf, s);
+            d2_ShpBlit16HalfDark(x, y, surf, s);
             return 1;
         case 2:
             return 1;
@@ -1468,9 +1466,8 @@ int d2_DrawShapeHalfDark(int x, int y, void *surf, void *pic, char i)
 }
 /* 0x47c830, draws shape i of a bank scaled down (mode < 0) */
 
-int d2_DrawShapeScaled(int x, int y, void *surf, void *pic, char i, char mode, int on)
+int d2_DrawShapeScaled(int x, int y, D2SURF *surf, D2BANK *bank, char i, signed char mode, int on)
 {
-    D2BANK *bank = (D2BANK *)pic;
     D2SHP *s;
     int n, old;
     int r = 1;
@@ -1485,16 +1482,16 @@ int d2_DrawShapeScaled(int x, int y, void *surf, void *pic, char i, char mode, i
     s = (D2SHP *)((char *)bank + bank->offs[(unsigned char)i]);
     if (d2_LightTableExternal == 0) {
         old = d2_SurfPitch;
-        d2_SurfPitch = ((D2SURF *)surf)->pitch;
+        d2_SurfPitch = surf->pitch;
         switch (s->type) {
         case 0:
             return 0;
         case 1:
             if (mode < 0) {
                 if (on != 0)
-                    r = d2_ShpBlit16ScaledLit(x, y, (D2SURF *)surf, s, abs(mode));
+                    r = d2_ShpBlit16ScaledLit(x, y, surf, s, abs(mode));
                 else
-                    r = d2_ShpBlit16Scaled(x, y, (D2SURF *)surf, s, abs(mode));
+                    r = d2_ShpBlit16Scaled(x, y, surf, s, abs(mode));
             }
             return r;
         case 2:
@@ -1509,9 +1506,8 @@ int d2_DrawShapeScaled(int x, int y, void *surf, void *pic, char i, char mode, i
 }
 /* 0x47c970, draws shape i of a bank in mode 2 (half dark) */
 
-int d2_DrawShapeMode2(int x, int y, void *surf, void *pic, unsigned char i)
+int d2_DrawShapeMode2(int x, int y, D2SURF *surf, D2BANK *bank, unsigned char i)
 {
-    D2BANK *bank = (D2BANK *)pic;
     D2SHP *s;
     char old;
     char buf[128];
@@ -1525,7 +1521,7 @@ int d2_DrawShapeMode2(int x, int y, void *surf, void *pic, unsigned char i)
     s = (D2SHP *)((char *)bank + bank->offs[i]);
     old = s->mode;
     s->mode = 2;
-    d2_ShpBlit(x, y, (D2SURF *)surf, (D2SHP *)((char *)bank + bank->offs[i]));
+    d2_ShpBlit(x, y, surf, (D2SHP *)((char *)bank + bank->offs[i]));
     s->mode = old;
     return 1;
 }
@@ -1539,9 +1535,8 @@ void d2_SetMode5Colour(unsigned char r, unsigned char g, unsigned char b)
 }
 /* 0x47ca40, draws shape i of a bank in mode 5 (one colour) */
 
-int d2_DrawShapeMode5(int x, int y, void *surf, void *pic, unsigned char i)
+int d2_DrawShapeMode5(int x, int y, D2SURF *surf, D2BANK *bank, unsigned char i)
 {
-    D2BANK *bank = (D2BANK *)pic;
     D2SHP *s;
     char old;
     char buf[128];
@@ -1555,15 +1550,14 @@ int d2_DrawShapeMode5(int x, int y, void *surf, void *pic, unsigned char i)
     s = (D2SHP *)((char *)bank + bank->offs[i]);
     old = s->mode;
     s->mode = 5;
-    d2_ShpBlit(x, y, (D2SURF *)surf, (D2SHP *)((char *)bank + bank->offs[i]));
+    d2_ShpBlit(x, y, surf, (D2SHP *)((char *)bank + bank->offs[i]));
     s->mode = old;
     return 1;
 }
 /* 0x47cae0, draws shape i of a bank in mode 3 (light table) */
 
-int d2_DrawShapeMode3(int x, int y, void *surf, void *pic, char i)
+int d2_DrawShapeMode3(int x, int y, D2SURF *surf, D2BANK *bank, char i)
 {
-    D2BANK *bank = (D2BANK *)pic;
     D2SHP *s;
     char old;
 
@@ -1572,7 +1566,7 @@ int d2_DrawShapeMode3(int x, int y, void *surf, void *pic, char i)
     s = (D2SHP *)((char *)bank + bank->offs[(unsigned char)i]);
     old = s->mode;
     s->mode = 3;
-    d2_ShpBlit(x, y, (D2SURF *)surf, (D2SHP *)((char *)bank + bank->offs[(unsigned char)i]));
+    d2_ShpBlit(x, y, surf, (D2SHP *)((char *)bank + bank->offs[(unsigned char)i]));
     s->mode = old;
     return 1;
 }
@@ -1587,13 +1581,12 @@ void d2_SetClipRect(int x0, int y0, int x1, int y1)
 }
 /* 0x47cb70, shape i of a bank */
 
-D2FRAME *d2_GetFrame(void *pic, short i)
+D2SHP *d2_GetFrame(D2BANK *bank, short i)
 {
-    D2BANK *bank = (D2BANK *)pic;
 
     if (bank == 0)
         return 0;
-    return (D2FRAME *)((char *)bank + bank->offs[(unsigned short)i]);
+    return (D2SHP *)((char *)bank + bank->offs[(unsigned short)i]);
 }
 /* 0x47cb90, steps all animations */
 
@@ -1667,7 +1660,7 @@ void d2_StepAnims(void)
 }
 /* 0x47cd20, starts an animation of a bank at (x, y): the first free of the 16 slots; its number or -1 */
 
-int d2_StartAnim(short x, short y, void *data, unsigned char z)
+int d2_StartAnim(short x, short y, D2BANK *data, unsigned char z)
 {
     int i;
 
@@ -1676,20 +1669,20 @@ int d2_StartAnim(short x, short y, void *data, unsigned char z)
             break;
     if (i >= 16)
         return -1;
-    d2_Anims[i].bank = (D2BANK *)data;
+    d2_Anims[i].bank = data;
     d2_Anims[i].x = x;
     d2_Anims[i].frame = 0;
     d2_Anims[i].timer = 0;
     d2_Anims[i].y = y;
     d2_Anims[i].shape = 0;
-    d2_Anims[i].shape = *((unsigned char *)data + ((D2BANK *)data)->pal);
+    d2_Anims[i].shape = *((unsigned char *)data + (data)->pal);
     if (z & 1)
         d2_Anims[i].shadow = 1;
     return i;
 }
 /* 0x47cdb0, draws animation n */
 
-void d2_DrawAnim(int n, void *surf)
+void d2_DrawAnim(int n, D2SURF *surf)
 {
     short x, y;
 
@@ -1709,10 +1702,10 @@ void d2_FreeAnim(int n)
 }
 /* 0x47ce60, fills a rectangle (clipped at the top and bottom) */
 
-void d2_FillRect(int x, int y, int w, int h, void *surf)
+void d2_FillRect(int x, int y, int w, int h, D2SURF *surf)
 {
     int old;
-    D2SURF *s = (D2SURF *)surf;
+    D2SURF *s = surf;
 
 #ifdef REA_FRAME_DUMP
     if (w > 300)

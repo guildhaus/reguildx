@@ -38,7 +38,8 @@ void gm_ResetCharacters(void);                                        /* 0x503e8
 void gm_FreeIconNames(void);                                          /* 0x4fdfb0 */
 void gm_Free(void);                                                   /* 0x4fe9c0 */
 int gm_TitlesLeft(int n);                                             /* 0x504ce0 */
-int gm_CollectCarried(int id, int *out);                                   /* 0x50af00 */
+struct GMCARRY;
+int gm_CollectCarried(int id, struct GMCARRY *out);                                   /* 0x50af00 */
 int gm_IsBankrupt(struct AICHAR *p, int n);                                  /* 0x50a6c0, p: an AICHAR */
 
 /* declared in other units' headers before (moved to the owner) */
@@ -48,7 +49,7 @@ struct AICHAR; int gm_CureDisease(struct AICHAR *c);  /* 0x505840, cures one dis
 struct AICHAR; int gm_CureMinorDisease(struct AICHAR *c);  /* 0x5059d0, cures one of the minor diseases 2 .. 5 of the character; the kind or 0 */
 struct AICHAR; int gm_CureUpperDisease(struct AICHAR *c);  /* 0x505ad0, cures one of the diseases 6, 7, 8, 3 of the character; the kind or 0 */
 int gm_CurseTargetCount(struct AIBLD *b);  /* 0x50d0b0 */
-int gm_Season(char *d);  /* 0x4fe330 */
+int gm_Season(struct GMDATE *d);  /* 0x4fe330 */
 struct AICHAR; int gm_CatchMinorDisease(struct AICHAR *c);  /* 0x5054f0, the character catches one of the minor diseases 2 .. 5; the kind or 0 */
 int gm_HeadIconNumber(char *name);  /* 0x4fb770 */
 int gm_FindRichest(short *id, int *rate);  /* 0x4fad60 */
@@ -86,14 +87,14 @@ void gm_MoveIntoHome(struct AICHAR *c, struct AIBLD *b);  /* 0x4fda10 */
 int gm_AddToTreasury(int a);  /* 0x50c4e0, gives the amount a to the town treasury */
 struct AICHAR; struct AIBLD; struct AICHAR *gm_FindApplicant(struct AIBLD *o, unsigned title, unsigned job);  /* 0x4fda70 */
 struct AIOBJ *gm_HomeObject(struct AIBLD *b);  /* 0x4fdc10 */
-short *gm_SpawnCharacter(unsigned char flags, int p2, int p3, unsigned char p4, unsigned char p5, struct AIBLD *p6);  /* 0x4fddb0 */
+struct AICHAR *gm_SpawnCharacter(unsigned char flags, int p2, int p3, unsigned char p4, unsigned char p5, struct AIBLD *p6);  /* 0x4fddb0 */
 void gm_CountCharacters(void);  /* 0x4fdfd0 */
-unsigned short *gm_AllocRaum(struct AIBLD *b, unsigned n);  /* 0x5031b0 */
+struct AIOBJ *gm_AllocRaum(struct AIBLD *b, unsigned n);  /* 0x5031b0 */
 int gm_BuildingGoodsList17(struct AIBLD *b, struct AIRECIPE *out, int kind);  /* 0x5099e0 */
 extern GMCHARSTATS gm_CharacterStatistics;  /* 0x91b500 */
-int gm_CharacterWages(unsigned short id, int flag, unsigned char *out);  /* 0x4fa700 */
+struct ORDWAGES; int gm_CharacterWages(unsigned short id, int flag, struct ORDWAGES *out);  /* 0x4fa700 */
 int gm_TakeObjekt(int id, int proto, int n);  /* 0x500a40 */
-unsigned short *gm_CreateObject(int id, int proto, int n);  /* 0x500190, the new object instance of the prototype proto with the amount n in the holder's list (gm_FindById); 0 on failure */
+struct AIOBJ *gm_CreateObject(int id, int proto, int n);  /* 0x500190, the new object instance of the prototype proto with the amount n in the holder's list (gm_FindById); 0 on failure */
 void gm_FreeObject(struct AIOBJ *obj);  /* 0x5034b0 */
 int gm_SkillPoints(struct AICHAR *c, int skill);  /* 0x504e00 */
 int gm_HasAdultRelative(struct AICHAR *c, int *n);  /* 0x506480 */
@@ -109,7 +110,7 @@ void gm_SetJob(int i, unsigned n);  /* 0x504790 */
 void gm_ShuffledBytes(unsigned char n, unsigned char *out);  /* 0x505be0 */
 int gm_FreeBuilding(struct AIBLD *b);  /* 0x5012e0 */
 int gm_RemoveObjectFromBuilding(struct AIBLD *b, int id);  /* 0x503480 */
-unsigned char *gm_CreateBuilding(unsigned char k, unsigned short own);  /* 0x501580 */
+struct AIBLD *gm_CreateBuilding(unsigned char k, unsigned short own);  /* 0x501580 */
 void gm_StockBuildingObjects(struct AIBLD *p);  /* 0x501400, stocks a new building p with the objects its building kind needs */
 void gm_SetCapacities(struct AIBLD *p);  /* 0x5014b0, sets the capacities of the objects of building p from its kind record */
 extern int gm_AllowAll;  /* 0x6f2448 */
@@ -205,14 +206,14 @@ struct AIBLD *gm_CharacterHome(struct AICHAR *c, int *out2, int *out3);  /* 0x4f
 struct AICHAR; int gm_DropRank(struct AICHAR *c);  /* 0x504840 */
 struct AIBLD *gm_FindPlayerBuilding(int p);  /* 0x501000 */
 struct GMDISEASE; int gm_GetDisease(int n, struct GMDISEASE *out);  /* 0x5051d0 */
-struct AIBLD; int gm_HandOutMoney(struct AIBLD *b, int *out);  /* 0x4fae50 */
+struct AIBLD; int gm_HandOutMoney(struct AIBLD *b, GMHANDOUT *out);  /* 0x4fae50 */
 int gm_JobSlots(int job, int *a, int *b);  /* 0x504100 */
 int gm_LikingChance(int a, int b, int c, int d);  /* 0x50b290 */
 struct AICHAR; int gm_MayRemoveChar(struct AICHAR *c);  /* 0x5075c0 */
 int gm_TrialBuildingKind(struct AIBLD *b);  /* 0x50d060 */
 void gm_StatisticsScreen(void);  /* 0x4f9e30, the city statistics screen */
-struct AITIME; void gm_ClockToDate(struct AITIME *c, unsigned char *out);  /* 0x4fe2c0, the calendar record of a clock */
-char *gm_ClassTreasury(struct AIBLD *b);  /* 0x5049e0, the treasury text of a building */
+struct AITIME; void gm_ClockToDate(struct AITIME *c, struct GMDATE *out);  /* 0x4fe2c0, the calendar record of a clock */
+struct AIOBJ *gm_ClassTreasury(struct AIBLD *b);  /* 0x5049e0, the treasury object of a building's class */
 int gm_CurrencyFactor(int a, int i);  /* 0x508620 */
 int gm_CurrencyDivide(int a, int i);  /* 0x508640 */
 int gm_BuildingCarts(struct AIBLD *b, struct AIOBJ **out);  /* 0x509060 */
@@ -221,8 +222,8 @@ int gm_CharMoney(int c);  /* 0x509f20 */
 int gm_GoodPicture(struct AIOBJ *o);  /* 0x502570, the string-table number (0x60e + n) of the good's picture, -1 when none */
 int gm_ResearchClass(int k, int *out);  /* 0x50b090 */
 int gm_DonationRank(int c, int d);  /* 0x50b170 */
-struct HELOAN; int gm_CreditEvents(int c, struct AIBLD *bld, struct HELOAN **out);  /* 0x50a150 */
-int gm_BuildingEvents(unsigned owner, struct AIBLD *b, int c, struct HELOAN **out);  /* 0x50a1c0 */
+struct AIJOB; int gm_CreditEvents(int c, struct AIBLD *bld, struct AIJOB **out);  /* 0x50a150 */
+int gm_BuildingEvents(unsigned owner, struct AIBLD *b, int c, struct AIJOB **out);  /* 0x50a1c0 */
 void gm_UpdateTechTree(struct AIBLD *bld, struct AIOBJ *item);  /* 0x50b9f0 */
 int gm_TechTreeWindow(char *form, struct AIBLD *bld, struct AIOBJ *item);  /* 0x50c340 */
 int gm_Homeless(struct AICHAR *c);  /* 0x50ccd0 */

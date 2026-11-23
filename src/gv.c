@@ -20,8 +20,7 @@
    Open: some functions index ai_PlayerSlots with the stride 0x5e8 where gv_ReserveGrave shows 0x2f4 (GMPLAYERSLOT).
    Open: head: cm.h redeclares gv functions (gv_GrowGraveyard as struct GVYARD *); cm.c cannot include gv.h yet (two
    calls conflict: gv_CrimeText, gv_PassSentence).
-   Open: GVEFFPART duplicates SHOTREC and UNKHITS-style copies remain (am.h G9KIND / G9CANNON view gv's records); gv.h
-   does not include menu.h, so the parts are cast to SHOTREC.
+   The effect slots' parts are SHOTREC (shot_types.h), the cannon balls gv_StartShot takes from GVSHOTMSG.shot.
    unit of rea 8cef7d5b (src/game/gv.c); boundaries in decl/text.dcl */
 #include "txt_views.h"
 #include <windows.h>
@@ -67,12 +66,10 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
 extern const float gv_SaleShares[];
 extern const float gv_GraveWear[];
 
-#define gv_FindEntryCb(cb) ((int (*)(void *, void *))(cb))  /* @original: gv_FindEntry's callback is int (*)() (gv.h, its callbacks take differing pointer types); the call pushes two pointers (0x4ef8df push esi, 0x4ef8e0 push ebx) and reads an int (0x4ef8e6 test eax) */
-
 /* 0x4ed170, picks a free avatar record (byte +0xf2 = 0) starting at a random one of the 32 (cyclic), marks it used (+0xf2 = 1) after setting the 14 floats at +0x30, +0x3c .. to the floats before them (+0x2c ..)
    times 0.001, and returns it; 0 when all are in use */
 
-char *gv_AllocAvatar(void)
+GVAVATAR *gv_AllocAvatar(void)
 {
     unsigned i;
     int n;
@@ -85,7 +82,7 @@ char *gv_AllocAvatar(void)
             for (j = 0; j < 0xe; j++)
                 gv_Avatars[i].mood[j][1] = (float)(gv_Avatars[i].mood[j][0] * 0.001);
             gv_Avatars[i].used = 1;
-            return (char *)&gv_Avatars[i];
+            return &gv_Avatars[i];
         }
         n--;
         i = (i + 1) & 0x1f;
@@ -94,7 +91,7 @@ char *gv_AllocAvatar(void)
 }
 /* 0x4ed1e0, writes the avatar table to the file f: the count 0x20, then per record the id (+0) and the used byte (+0xf2); 1 when all was written */
 
-int gv_WriteAvatars(void *f)
+int gv_WriteAvatars(struct VFSFILE *f)
 {
     unsigned n, i;
 
@@ -115,7 +112,7 @@ int gv_WriteAvatars(void *f)
    are reported (0x5de652, "Avatar >%s< not found in savegame, initializing to >unused<") and the count must be 0x20 ("Inconsisten Avatar count"); 1 when all was read. The reports are only
    formatted into a local buffer, never shown. */
 
-int gv_ReadAvatars(void *f)
+int gv_ReadAvatars(struct VFSFILE *f)
 {
     unsigned n, i, j;
     unsigned id;
@@ -196,102 +193,102 @@ int gv_EffectNotifyOwner(GVEFFARG *a)
    gv_Cannon*, then per slot of gv_Effects its saved fields (id, the three floats, the three parts without their v3 / time,
    the tail); 1 when all was written */
 
-int gv_WriteEffects(void *f)
+int gv_WriteEffects(struct VFSFILE *f)
 {
     int i;
     GVEFFECT *e;
-    GVEFFPART *p;
+    SHOTREC *p;
 
-    if (vfs_fwrite(&gv_LastTime.year, 4, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_LastTime.year, 4, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_LastTime.hour, 2, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_LastTime.hour, 2, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_LastTime.min, 4, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_LastTime.min, 4, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_LastTime.sec, 4, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_LastTime.sec, 4, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_Cannon.bld, 4, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_Cannon.bld, 4, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_Cannon.spare, 4, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_Cannon.spare, 4, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_Cannon.camTarget, 12, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_Cannon.camTarget, 12, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_Cannon.sliderA, 4, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_Cannon.sliderA, 4, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_Cannon.sliderB, 4, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_Cannon.sliderB, 4, 1, f) <= 0)
         return 0;
-    if (vfs_fwrite(&gv_Cannon.selected, 4, 1, (struct VFSFILE *)f) <= 0)
+    if (vfs_fwrite(&gv_Cannon.selected, 4, 1, f) <= 0)
         return 0;
     for (i = 0; i < 8; i++) {
         e = &gv_Effects[i];
-        if (vfs_fwrite(&e->id, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&e->id, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&e->f08, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&e->f08, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&e->f0c, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&e->f0c, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&e->f10, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&e->f10, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&e->f14, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&e->f14, 4, 1, f) <= 0)
             return 0;
         p = &e->parts[0];
-        if (vfs_fwrite(p->v0, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->velStart, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v1, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->vel, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v2, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->posStart, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v4, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->wind, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->a, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->area, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->b, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->mass, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->c, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->energy, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->state, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->state, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->steps, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->steps, 4, 1, f) <= 0)
             return 0;
         p = &e->parts[1];
-        if (vfs_fwrite(p->v0, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->velStart, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v1, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->vel, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v2, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->posStart, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v4, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->wind, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->a, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->area, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->b, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->mass, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->c, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->energy, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->state, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->state, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->steps, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->steps, 4, 1, f) <= 0)
             return 0;
         p = &e->parts[2];
-        if (vfs_fwrite(p->v0, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->velStart, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v1, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->vel, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v2, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->posStart, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(p->v4, 16, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->wind, 16, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->a, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->area, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->b, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->mass, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->c, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->energy, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->state, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->state, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(&p->steps, 4, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(&p->steps, 4, 1, f) <= 0)
             return 0;
-        if (vfs_fwrite(e->tail, 12, 1, (struct VFSFILE *)f) <= 0)
+        if (vfs_fwrite(e->tail, 12, 1, f) <= 0)
             return 0;
     }
     return 1;
@@ -300,12 +297,12 @@ int gv_WriteEffects(void *f)
    f0c / f10, they are 1.0); sets each slot's callback to gv_EffectNotifyOwner with its gv_EffectArgs record and the
    parts' time to d3_Time; 1 when all was read */
 
-int gv_ReadEffects(void *f, int v)
+int gv_ReadEffects(struct VFSFILE *f, int v)
 {
     int i;
     GVEFFECT *e;
     GVEFFARG *q;
-    GVEFFPART *p;
+    SHOTREC *p;
 
     if (ls_Read(&gv_LastTime.year, 4, 1, f) == 0)
         return 0;
@@ -346,19 +343,19 @@ int gv_ReadEffects(void *f, int v)
         if (ls_Read(&e->f14, 4, 1, f) == 0)
             return 0;
         p = &e->parts[0];
-        if (ls_Read(p->v0, 16, 1, f) == 0)
+        if (ls_Read(&p->velStart, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v1, 16, 1, f) == 0)
+        if (ls_Read(&p->vel, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v2, 16, 1, f) == 0)
+        if (ls_Read(&p->posStart, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v4, 16, 1, f) == 0)
+        if (ls_Read(&p->wind, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->a, 4, 1, f) == 0)
+        if (ls_Read(&p->area, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->b, 4, 1, f) == 0)
+        if (ls_Read(&p->mass, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->c, 4, 1, f) == 0)
+        if (ls_Read(&p->energy, 4, 1, f) == 0)
             return 0;
         if (ls_Read(&p->state, 4, 1, f) == 0)
             return 0;
@@ -366,19 +363,19 @@ int gv_ReadEffects(void *f, int v)
             return 0;
         p->time = d3_Time;
         p = &e->parts[1];
-        if (ls_Read(p->v0, 16, 1, f) == 0)
+        if (ls_Read(&p->velStart, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v1, 16, 1, f) == 0)
+        if (ls_Read(&p->vel, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v2, 16, 1, f) == 0)
+        if (ls_Read(&p->posStart, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v4, 16, 1, f) == 0)
+        if (ls_Read(&p->wind, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->a, 4, 1, f) == 0)
+        if (ls_Read(&p->area, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->b, 4, 1, f) == 0)
+        if (ls_Read(&p->mass, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->c, 4, 1, f) == 0)
+        if (ls_Read(&p->energy, 4, 1, f) == 0)
             return 0;
         if (ls_Read(&p->state, 4, 1, f) == 0)
             return 0;
@@ -386,19 +383,19 @@ int gv_ReadEffects(void *f, int v)
             return 0;
         p->time = d3_Time;
         p = &e->parts[2];
-        if (ls_Read(p->v0, 16, 1, f) == 0)
+        if (ls_Read(&p->velStart, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v1, 16, 1, f) == 0)
+        if (ls_Read(&p->vel, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v2, 16, 1, f) == 0)
+        if (ls_Read(&p->posStart, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(p->v4, 16, 1, f) == 0)
+        if (ls_Read(&p->wind, 16, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->a, 4, 1, f) == 0)
+        if (ls_Read(&p->area, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->b, 4, 1, f) == 0)
+        if (ls_Read(&p->mass, 4, 1, f) == 0)
             return 0;
-        if (ls_Read(&p->c, 4, 1, f) == 0)
+        if (ls_Read(&p->energy, 4, 1, f) == 0)
             return 0;
         if (ls_Read(&p->state, 4, 1, f) == 0)
             return 0;
@@ -546,14 +543,14 @@ void gv_UpdateEffects(void)
                         gv_ReleaseEffect(gv_Effects[i].id);
                 }
             } else if (gv_Effects[i].parts[j].state == 1) {
-                if (gv_Effects[i].f14 == 0 ? ai_StepShot((SHOTREC *)&gv_Effects[i].parts[j]) : ai_StepShotSlow((SHOTREC *)&gv_Effects[i].parts[j])) {
+                if (gv_Effects[i].f14 == 0 ? ai_StepShot(&gv_Effects[i].parts[j]) : ai_StepShotSlow(&gv_Effects[i].parts[j])) {
                     if (gv_Effects[i].objs[j] == 0) {
                         gv_Effects[i].objs[j] = d3_CreateObject(0, &d3_Origin.v, &d3_ZeroRot, "kugel");
                         gv_Effects[i].objs[j]->objectFlags |= 4;
                         gv_Effects[i].objs[j]->stateFlags |= 0xc;
                         gv_Effects[i].objs[j]->objectFlags &= ~8;
                     }
-                    d3_SetObjectPos(gv_Effects[i].objs[j], (D3VECTOR *)gv_Effects[i].parts[j].v3);
+                    d3_SetObjectPos(gv_Effects[i].objs[j], &gv_Effects[i].parts[j].pos);
                 }
                 if (gv_Effects[i].parts[j].state == 3) {
                     if (gv_Effects[i].objs[j] != 0) {
@@ -573,7 +570,7 @@ void gv_UpdateEffects(void)
                         d3if_Delete(gv_Effects[i].objs[j]);
                         gv_Effects[i].objs[j] = 0;
                     }
-                    gv_ExplodeShot(gv_Effects[i].flags & 1, gv_Effects[i].id, (SHOTREC *)&gv_Effects[i].parts[j], gv_Effects[i].arg);
+                    gv_ExplodeShot(gv_Effects[i].flags & 1, gv_Effects[i].id, &gv_Effects[i].parts[j], gv_Effects[i].arg);
                     if (gv_Effects[i].arg != 0)
                         gv_Effects[i].arg->cur = j;
                     if (gv_Effects[i].cb != 0)
@@ -828,16 +825,6 @@ found:
     gv_Effects[i].flags = 0;
     return 1;
 }
-typedef struct GVSHOTMSG {              /* 0x80 bytes, the data of message 0x67 (cm_SendShots): a cannon ball fired at a building; the receiver (0x4eee00) starts it as a part of the effect slot */
-    int id;                             /* 0x00, the building's id, the effect slot's id */
-    float v;                            /* 0x04, taken off the slot's fade value of the mode (only the first ball of a salvo carries it, then 0) */
-    int mode;                           /* 0x08, 0 one ball, 1 two, 2 three */
-    union {
-        SHOTREC shot;                   /* 0x0c, the ball as sent (gv_FireShots) */
-        GVEFFPART part;                 /* the same record as the slot's part it becomes (0x4eee00) */
-    };
-    int pad74[3];
-} GVSHOTMSG;
 
 /* 0x4eeb70, fires up to three cannon balls (a, b, d: SHOTREC, b and d may be 0) of the character ch at the building bld: unless the
    building's effect slot is busy (flag 2), the first ball pays (gm_SendMoneyDelta(-cost), cm_SendMoveGoodsUnchecked of x; the ball a
@@ -867,7 +854,7 @@ int gv_FireShots(AIBLD *bld, AICHAR *ch, SHOTREC *a, SHOTREC *b, SHOTREC *d, flo
     int first;
     int r;
     int mode;
-    char *e;
+    GVEFFECT *e;
     GVSHOTMSG m;
 
     v2 = v;
@@ -876,7 +863,7 @@ int gv_FireShots(AIBLD *bld, AICHAR *ch, SHOTREC *a, SHOTREC *b, SHOTREC *d, flo
     mode = 0;
     if (bld != 0) {
         e = gv_GetEffect(bld->id);
-        if (e != 0 && (((GVEFFECT *)e)->flags & 2) == 0) {
+        if (e != 0 && (e->flags & 2) == 0) {
             if (d != 0)
                 mode = 2;
             else if (b != 0)
@@ -925,36 +912,36 @@ int gv_FireShots(AIBLD *bld, AICHAR *ch, SHOTREC *a, SHOTREC *b, SHOTREC *d, flo
 }
 /* 0x4eedd0, the effect slot of the id or 0 */
 
-char *gv_GetEffect(int id)
+GVEFFECT *gv_GetEffect(int id)
 {
-    int *p;
+    GVEFFECT *p;
     int i;
 
     i = 0;
-    p = (int *)gv_Effects;
+    p = gv_Effects;
     do {
-        if (*p == id)
-            return (char *)&gv_Effects[i];
-        p += 0x5c;
+        if (p->id == id)
+            return &gv_Effects[i];
+        p++;
         i++;
-    } while ((intptr_t)p < (intptr_t)((uintptr_t)&gv_Effects + 0xb80));
+    } while ((intptr_t)p < (intptr_t)&gv_Effects[8]);
     return 0;
 }
 /* 0x4eee00, starts a received cannon ball (message 0x67, GVSHOTMSG) in the effect slot of m->id: the first free part (tail 0)
    takes it (tail 1, the SHOTREC copied, state 1 in flight, time d3_Time, steps 0), m->v is taken off the slot's charge of
-   m->mode (not below 0), the slot gets flag 2 (and 1 when w); 1 when started, 0 without a slot or a free part */
+   m->mode (not below 0), the slot gets flag 2 (and 1 when the handler has a status record st); 1 when started, 0 without a slot or a free part */
 
-int gv_StartShot(GVSHOTMSG *m, int w)
+int gv_StartShot(GVSHOTMSG *m, G17STAT *st)
 {
     float v, f;
     int mode, j;
     GVEFFECT *e;
-    GVEFFPART part;
+    SHOTREC part;
 
     v = m->v;
     mode = m->mode;
-    part = m->part;
-    e = (GVEFFECT *)gv_GetEffect(m->id);
+    part = m->shot;
+    e = gv_GetEffect(m->id);
     if (e == 0)
         return 0;
     for (j = 0; j < 3; j++) {
@@ -971,7 +958,7 @@ found:
     e->parts[j].time = d3_Time;
     e->parts[j].state = 1;
     e->parts[j].steps = 0;
-    if (w != 0)
+    if (st != 0)
         e->flags |= 1;
     return 1;
 }
@@ -982,7 +969,7 @@ void gv_SetEffectCallback(int id, void *cb, void *arg)
     GVEFFECT *e;
 
     if (id != -1) {
-        e = (GVEFFECT *)gv_GetEffect(id);
+        e = gv_GetEffect(id);
         if (e != 0) {
             if (cb != 0) {
                 e->cb = (int (*)(GVEFFARG *))cb;

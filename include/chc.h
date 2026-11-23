@@ -9,12 +9,6 @@
 
 #include "evt.h"
 
-/* CHACTION fields used by the animation-script callbacks */
-#define CHC_SCRIPT(a)   ((char *)(a) + 0x90)                        /* script to run, 0x5f chars */
-#define CHC_GROUP(a)    (*(int *)((char *)(a) + 0x17c))              /* EVTSCRIPT.group for it */
-#define CHC_ARG(a)      (*(int *)((char *)(a) + 0x180))              /* its int argument */
-#define CHC_UNK18C(a)   (*(int *)((char *)(a) + 0x18c))
-
 /* D3TEXFLAGS as built for d3_SetObjectAlpha by SetCharacterTransperancy */
 typedef union CHCALPHA {            /* d3_SetObjectAlpha's flags as chc_SetCharacterTransperancy builds them */
     D3TEXFLAGS f;

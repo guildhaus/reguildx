@@ -753,7 +753,7 @@ int ai_PlanLevel(AIPLAN *q)
 
 int ai_PlanRollTries(AIPLAN *q)
 {
-    AIREC10 *t;
+    const AIREC10 *t;
     float f, lim, scale, acc, v, sum;
     int i;
 
@@ -950,7 +950,7 @@ int ai_WealthRatingHalf(AICHAR *a, AICHAR *b)
 }
 /* 0x4948c0, the record of the torture-instrument table ai_TortureInstruments with this key */
 
-AIREC10 *ai_FindInstrumentRecord(int key)
+const AIREC10 *ai_FindInstrumentRecord(int key)
 {
     int i;
 
@@ -1214,7 +1214,7 @@ int ai_LoadActionTable(void)
 
 int am_RegisterMethod(AIACT *a, int ini)
 {
-    AIACT *act = (AIACT *)a;
+    AIACT *act = a;
     char key[64];
     char val[128];
     int i, found;
@@ -1881,18 +1881,18 @@ int ai_EvalLeastLikedOfEvent(float *a, float *b, int i, AICHAR *p, int f, AIARG 
     x = ai_JudgeCatholic ? ai_JudgeCatholic->netId : -1;
     y = ai_JudgeProtestant ? ai_JudgeProtestant->netId : -1;
     for (job = he_FindEvent(1, 0, 0x2c); job; job = he_NextEvent())
-        if (job->partner2 == p->netId)
+        if (job->offerWho[1] == p->netId)
             break;
-    if (!job || job->guests[0] == x || job->guests[0] == y)
+    if (!job || job->offerWho[2] == x || job->offerWho[2] == y)
         goto fallback;
     dist[0] = 100.0f;
     dist[1] = 100.0f;
     dist[2] = 100.0f;
     best = 100.0f;
     bi = -1;
-    c[0] = gm_FindChar(job->guests[0]);
-    c[1] = gm_FindChar(job->guests[1]);
-    c[2] = gm_FindChar(job->guests[2]);
+    c[0] = gm_FindChar(job->offerWho[2]);
+    c[1] = gm_FindChar(job->offerWho[3]);
+    c[2] = gm_FindChar(job->offerWho[4]);
     if (c[0] && c[0] != ai_Partner)
         dist[0] = gm_Liking(p->id, c[0]->id, 1);
     if (c[1] && c[1] != ai_Partner)
@@ -2156,9 +2156,9 @@ int ai_DecideProduceGood(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
     AIBTX *t;
     int i, v;
     unsigned short k;
-    AIGOODX *g;
+    AIGOOD *g;
 
-    if (b != 1 || o1->kind != 2 || AI_GOODX[o1->ref].noSale || AI_GOODX[o1->ref].type == 2)
+    if (b != 1 || o1->kind != 2 || ai_Goods[o1->ref].noSale || ai_Goods[o1->ref].type == 2)
         return 0;
     obj = 0;
     bld = 0;
@@ -2167,7 +2167,7 @@ int ai_DecideProduceGood(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
         obj = gm_FindObjectInst(o2->ref);
         if (!obj)
             return 0;
-        g = &AI_GOODX[obj->id];
+        g = &ai_Goods[obj->id];
         if (g->type == 2 || g->type == 6) {
             if (gm_Query(obj->list, 1, 0, o1->ref))
                 return 0;
@@ -2294,7 +2294,7 @@ int ai_DecideBuyRoom(int a, AICHAR *p, int b, AIARG *o1, AIARG *o2)
         return 0;
     if (o1->kind != 2)
         return 0;
-    if (AI_GOODX[o1->ref].type != 2)
+    if (ai_Goods[o1->ref].type != 2)
         return 0;
     if (o2->kind != 4)
         return 0;
@@ -5355,9 +5355,9 @@ int ai_DecideMayorUpgrade(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     LARGE_INTEGER m;
     int n, x, w, z, r;
 
-    if (f != 0 || ((unsigned char *)p)[0x166] != 0xf || o1->kind != 0)
+    if (f != 0 || p->officeKind != 0xf || o1->kind != 0)
         return 0;
-    if (a != 0 && ((unsigned char *)p)[0x130] != 6 && ((unsigned char *)p)[0x130] != 9)
+    if (a != 0 && p->sel != 6 && p->sel != 9)
         return 0;
     for (n = 4; n != 0; n--) {
         m.LowPart = 2;
@@ -5407,9 +5407,9 @@ int ai_DecideMayorTownHall(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
 
     m.LowPart = 0x8000;
     m.HighPart = 0;
-    if (f != 0 || ((unsigned char *)p)[0x166] != 0xf || o1->kind != 0)
+    if (f != 0 || p->officeKind != 0xf || o1->kind != 0)
         return 0;
-    if (a != 0 && ((unsigned char *)p)[0x130] != 7 && ((unsigned char *)p)[0x130] != 6)
+    if (a != 0 && p->sel != 7 && p->sel != 6)
         return 0;
     if (!ai_PickActionBuilding(p, 2, m.QuadPart, 0, 100.0f, &x))
         return 0;
@@ -5528,9 +5528,9 @@ int ai_DecideMayorPrison(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     gm_PlayerSeat(1);
     m.LowPart = 0x40;
     m.HighPart = 0;
-    if (f != 0 || ((unsigned char *)p)[0x166] != 0xf || o1->kind != 0)
+    if (f != 0 || p->officeKind != 0xf || o1->kind != 0)
         return 0;
-    if (a != 0 && ((unsigned char *)p)[0x130] != 7 && ((unsigned char *)p)[0x130] != 6)
+    if (a != 0 && p->sel != 7 && p->sel != 6)
         return 0;
     if (!ai_PickActionBuilding(p, 2, m.QuadPart, 0, 100.0f, &x))
         return 0;
@@ -5649,7 +5649,7 @@ int ai_DecideMasterBuilder(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     best[1] = 0;
     cnt[0] = 0;
     cnt[1] = 0;
-    if (ai_Time.year < 4 || f != 0 || ((unsigned char *)p)[0x166] != 0xa || a != 0)
+    if (ai_Time.year < 4 || f != 0 || p->officeKind != 0xa || a != 0)
         return 0;
     b = gm_FirstBuilding(1);
     if (b == 0)
@@ -5756,7 +5756,7 @@ int ai_ExecuteMasterBuilder(AICHAR *p, AIARG *s1, AIARG *s2)
     int n;
 
     c = gm_PlayerSeat(1);
-    if (c == 0 || ((unsigned char *)p)[0x166] != 0xa)
+    if (c == 0 || p->officeKind != 0xa)
         return 0;
     if (s2->kind == 4) {
         memset(&m, 0, sizeof(m));
@@ -5884,7 +5884,7 @@ int ai_DecideTakeCredit(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     float m;
 
     lim[0] = ai_RandomStrides[util_Random(0x10)];
-    if (((unsigned char *)p)[2] == 3)
+    if (p->kind == 3)
         return 0;
     if (a != 0x33 && a != 0x13 && a != 0x10 && a != 0x11)
         return 0;
@@ -6022,8 +6022,8 @@ int ai_ExecuteTakeCredit(AICHAR *p, AIARG *s1, AIARG *s2)
     cm_SendMoveGoods(p->netId, a->id, ai_OwnPlayer, s2->ref);
     cm_SendLongMessage(&m);
     if (b != 0) {
-        cm_BeginFieldBlock((AICHAR *)b, b->id);
-        cm_AddFieldValues(4, 1, (char *)b - cm_FieldObject + 0x39, &v);
+        cm_BeginFieldBlock(b, b->id);
+        cm_AddFieldValues(4, 1, (char *)&b->budget - cm_FieldObject, &v);
         cm_SendFieldDeltas();
     }
     cm_EndGroup("AI Kredit");
@@ -6043,9 +6043,9 @@ int ai_EvalChangeProfession(float *a, float *b, int i, AICHAR *p, int f, AIARG *
         *b = -1e30f;
         return 0;
     }
-    if (((unsigned char *)p)[2] != 5 || ((unsigned char *)p)[0x169] != 0)
+    if (p->kind != 5 || p->secondOffice != 0)
         return 0;
-    n = gm_TitlesLeft(((unsigned char *)p)[0x164]);
+    n = gm_TitlesLeft(p->jobId);
     if (n < 3)
         return 0;
     if (n < 6) {
@@ -6084,7 +6084,7 @@ int ai_DecideChangeProfession(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
         if (j->ownerCh == (int)p->netId)
             return 0;
     }
-    gm_TitlesLeft(((unsigned char *)p)[0x164]);
+    gm_TitlesLeft(p->jobId);
     for (k = 1; k < 16; k++) {
         cnt[k] = 0;
         own[k] = gm_TitlesLeft(q->jobByGroup[k]);
@@ -6140,17 +6140,17 @@ int ai_ExecuteChangeProfession(AICHAR *p, AIARG *s1, AIARG *s2)
     return 0;
 }
 /* 0x49f850, decide callback of "Stammtisch" (0x35), the regulars' table: finds up to four kind-0x37 buildings
-   of other owners with a table object 0x12d (G5STAMM). A member of one ('leav' it): alone there 1 in 4, else
+   of other owners with a table object 0x12d (AIOBJ.seats). A member of one ('leav' it): alone there 1 in 4, else
    when its mean liking of the others / 100 is above 0.666 and a random + 1/6 stays below it; not a member:
    'join' a table with a free seat 1 in 4 (o2 = its owner); 'noop' (kind 0) otherwise */
 
 int ai_DecideStammtisch(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
 {
     AIBLD *bl[4];
-    G5STAMM *ob[4];
+    AIOBJ *ob[4];
     int free[4];
     AIBLD *b;
-    G5STAMM *o;
+    AIOBJ *o;
     AICHAR *c;
     int found, step, i, j, n, k, m, v;
     float sum;
@@ -6169,7 +6169,7 @@ int ai_DecideStammtisch(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     while (n < 4 && i != 0) {
         b = &ai_Blds[j];
         if (b->type == 0x37 && b->owner != 0xffff && b->owner != p->id) {
-            o = (G5STAMM *)gm_Query(b->objList, 2, 6, 0, 0x12d);
+            o = gm_Query(b->objList, 2, 6, 0, 0x12d);
             if (o != 0) {
                 bl[n] = b;
                 ob[n] = o;
@@ -6187,7 +6187,7 @@ int ai_DecideStammtisch(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
     for (k = 0; k < n; k++) {
         free[k] = 0;
         for (m = 0; m < 4; m++) {
-            v = ob[k]->member[m];
+            v = ob[k]->seats[m];
             free[k] |= v == -1;
             if (found == -1)
                 found = v == (int)p->netId ? k : -1;
@@ -6197,7 +6197,7 @@ int ai_DecideStammtisch(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
         sum = 0.0f;
         k = 0;
         for (m = 0; m < 4; m++) {
-            c = gm_FindChar(ob[found]->member[m]);
+            c = gm_FindChar(ob[found]->seats[m]);
             if (c != 0 && c != p) {
                 k++;
                 sum = gm_Liking(p->id, c->id, 1) + sum;
@@ -6255,24 +6255,24 @@ noop:
 
 int ai_ExecuteStammtisch(AICHAR *p, AIARG *s1, AIARG *s2)
 {
-    G8TABLE r;
+    G17TABLEMSG r;
 
     if (s1->arg == 'join') {
-        r.tag = s1->arg;
-        r.ch = p->netId;
-        r.bld = s1->ref;
+        r.op = s1->arg;
+        r.charId = p->netId;
+        r.bldId = s1->ref;
         cm_BeginGroup("stammtisch join AI-Plr");
-        cm_SendTableRequest((G17TABLEMSG *)&r);
+        cm_SendTableRequest(&r);
         cm_SendSetField(p->netId, 0x1c8, 4, AI_CHF_STAMMTISCH, 0);
         cm_EndGroup("stammtisch join AI-Plr");
         return 0x35;
     }
     if (s1->arg == 'leav') {
-        r.tag = s1->arg;
-        r.ch = p->netId;
-        r.bld = s1->ref;
+        r.op = s1->arg;
+        r.charId = p->netId;
+        r.bldId = s1->ref;
         cm_BeginGroup("stammtisch leave AI-Plr");
-        cm_SendTableRequest((G17TABLEMSG *)&r);
+        cm_SendTableRequest(&r);
         cm_SendSetField(p->netId, 0x1c8, 4, AI_CHF_STAMMTISCH, 0);
         cm_EndGroup("stammtisch leave AI-Plr");
         return 0x35;
@@ -6656,7 +6656,7 @@ int ai_DecideGuildLevel3(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2)
         return 0;
     if (amt_CanUseMayorPower3(p) != 1)
         return 0;
-    k = ((unsigned char *)p)[0x169];
+    k = p->secondOffice;
     if (k == 0x1e) {
         c = ai_PickLeastLikedRival(p);
         if (c == 0)
@@ -6704,7 +6704,7 @@ int ai_EvalUpgradeGuild(float *a, float *b, int i, AICHAR *p, int f, AIARG *o1, 
 
     *a = -100.0f;
     *b = -100.0f;
-    k = ((unsigned char *)p)[0x169];
+    k = p->secondOffice;
     if (k < 0x1e && k > 0x21)
         return 0;
     if (k == 0x1e)

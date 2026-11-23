@@ -708,9 +708,9 @@ int evt_Else(void)
     }
     return 0;
 }
-/* 0x428d70 */
+/* 0x428d70, parses a function's parameter list into sc->funcs; returns tok (the caller's token value, so nonzero) */
 
-int evt_DefineFunc(EVTSCRIPT *sc, int unk)
+void *evt_DefineFunc(EVTSCRIPT *sc, void *tok)
 {
     EVTTOKEN t;
     EVTFUNC *f = &sc->funcs[sc->nfuncs];
@@ -738,7 +738,7 @@ int evt_DefineFunc(EVTSCRIPT *sc, int unk)
         evt_GetToken(evt_Cur->pc, &t);
     } while (t.type != EVT_OP || t.u.i != EVT_OP_RPAREN);
     sc->nfuncs++;
-    return unk;
+    return tok;
 }
 /* 0x428eb0 */
 
@@ -796,7 +796,7 @@ int evt_Declare(EVTSCRIPT *sc, int type)
                 }
             } else if (t.u.i == EVT_OP_LPAREN) {
                 pos = evt_Cur->pc;
-                if (!evt_DefineFunc(sc, (int)&t.u))
+                if (!evt_DefineFunc(sc, &t.u))
                     return 0;
                 sc->funcs[sc->nfuncs - 1].body = strchr(pos, '{');
                 strcpy(sc->funcs[sc->nfuncs - 1].name, name);
@@ -1073,7 +1073,7 @@ int evt_RunScriptArgs(EVTSCRIPT *sc, int n, ...)
             else if (f->argtype[i] == 1)
                 evt_Args[i] = va_arg(ap, int);
             else if (f->argtype[i] == 2)
-                evt_Args[i] = va_arg(ap, char);
+                evt_Args[i] = (signed char)va_arg(ap, int);
         }
     }
     evt_EnterFunction(sc, f);

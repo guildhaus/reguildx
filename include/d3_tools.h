@@ -7,9 +7,9 @@
 struct D3OBJECT;
 struct D3VECTOR;
 struct D3SCENE;
-struct D3TMAP;
+struct D3FLMAP;
 struct D3HQUERY;
-struct D3ANIM;
+struct D3PATH;
 struct D3TRAIN;
 struct D3PARTSYS;
 struct D3COLOR;
@@ -78,11 +78,11 @@ void d3t_UpdateCamera(void);                                                    
 int d3t_GetHeightRange(struct D3OBJECT *obj, float *lo, float *hi);                     /* 0x411c70, height range of a mesh's bounding box */
 int d3t_GetFootprint(struct D3OBJECT *obj, float t, struct D3VECTOR *c0, struct D3VECTOR *c1, struct D3VECTOR *c2, struct D3VECTOR *c3); /* 0x411d10, the four lower corners of the box around the mesh keys up to time t */
 char d3t_GetBoundingSphere(struct D3OBJECT *obj, struct D3OBJECT *camera, struct D3VECTOR *center, float *radius); /* 0x411eb0, center and radius of a mesh's 8-corner box as seen from the camera */
-int d3t_GetRowRange(struct D3TMAP *map, int *lo, int *hi, int x0, int x1, int y);       /* 0x412000, value range of row y between columns x0 and x1 */
-int d3t_GetTriRange(struct D3TMAP *map, float *lo, float *hi, struct D3VECTOR *a, struct D3VECTOR *b, struct D3VECTOR *c); /* 0x412090, height range of the map under the triangle a, b, c (x/z in world */
-int d3t_GetQuadRange(struct D3TMAP *map, float *lo, float *hi, struct D3VECTOR *a, struct D3VECTOR *b, struct D3VECTOR *c, struct D3VECTOR *d); /* 0x412480, height range of the map under the quad a, b, c, d */
+int d3t_GetRowRange(struct D3FLMAP *map, int *lo, int *hi, int x0, int x1, int y);       /* 0x412000, value range of row y between columns x0 and x1 */
+int d3t_GetTriRange(struct D3FLMAP *map, float *lo, float *hi, struct D3VECTOR *a, struct D3VECTOR *b, struct D3VECTOR *c); /* 0x412090, height range of the map under the triangle a, b, c (x/z in world */
+int d3t_GetQuadRange(struct D3FLMAP *map, float *lo, float *hi, struct D3VECTOR *a, struct D3VECTOR *b, struct D3VECTOR *c, struct D3VECTOR *d); /* 0x412480, height range of the map under the quad a, b, c, d */
 float d3t_GetMeanHeight(struct D3VECTOR *pos);                                          /* 0x412550, mean terrain height over the 8x8 cells around pos */
-int d3t_InTriBox(struct D3VECTOR **tri, struct D3VECTOR *a, struct D3VECTOR *b);                      /* 0x412640, does the triangle's bounding box overlap the box a..b in x/z and */
+int d3t_InTriBox(struct D3VERTEX **tri, struct D3VECTOR *a, struct D3VECTOR *b);                      /* 0x412640, does the triangle's bounding box overlap the box a..b in x/z and */
 int d3t_QueryHeight(struct D3HQUERY *q, struct D3OBJECT *obj);                                 /* 0x412800, widens q->lo/hi by the triangles of obj and its children that lie in */
 int d3t_DropObject(struct D3OBJECT *obj, int maponly, int top);                         /* 0x412a70, sets obj on the ground (the terrain map and all other meshes under */
 void d3t_GetBounds(struct D3VECTOR *mn, struct D3VECTOR *mx, struct D3OBJECT *obj);                   /* 0x413040, widens mn/mx by the bounding boxes of obj and its children */
@@ -92,7 +92,7 @@ void d3t_SetGrey(struct D3OBJECT *obj, int on);                                 
 void d3t_SetColor(struct D3OBJECT *obj, unsigned char r, unsigned char g, unsigned char b); /* 0x413550, sets every vertex color of obj to r/g/b */
 void d3t_SetTreeColor(struct D3OBJECT *obj, unsigned char r, unsigned char g, unsigned char b); /* 0x413640, d3t_SetColor on obj and its subtree */
 int d3t_MoveCameraPath(int time, int n, ...);                                    /* 0x4136d0, moves the camera along the n objects named in the varargs (an empty */
-struct D3ANIM *d3t_MoveObjectPath(struct D3OBJECT *obj, int time, int n, struct D3OBJECT **path);     /* 0x413960, moves obj along the n objects in path (null entries are skipped) */
+struct D3PATH *d3t_MoveObjectPath(struct D3OBJECT *obj, int time, int n, struct D3OBJECT **path);     /* 0x413960, moves obj along the n objects in path (null entries are skipped) */
 void d3t_InflateObjectTree(struct D3OBJECT *obj);                                       /* 0x413b00, inflates obj's geometry (d3_InflateObject) and then every object of */
 struct D3TRAIN *d3t_CreateRain(int count);                                              /* 0x413b30, allocates and initialises the rain system for count drops: the */
 void d3t_DeleteRain(struct D3TRAIN *rain);                                              /* 0x413d00, frees the rain system: its drop list (D3TRAIN.drops) and the struct D3TRAIN */
@@ -119,6 +119,6 @@ void d3t_FreeSnowMipmaps(void);                                                 
 
 extern int d3t_SunFadeStart;                                 /* 0x5f345c */
 extern int d3t_CamMoving;                                    /* 0x6310e4 */
-extern struct D3ANIM * d3t_CamMove;                                 /* 0x6310e8 */
+extern struct D3PATH * d3t_CamMove;                                 /* 0x6310e8 */
 extern struct D3OBJECT * d3t_SunRays;                               /* 0x631120 */
 #endif

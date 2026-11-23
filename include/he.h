@@ -5,6 +5,7 @@
 struct D3OBJECT;
 struct D3VECTOR;
 struct AIJOB;
+struct HEEVSLOT;
 struct AIMSG;
 struct AICHAR;
 struct AIBLD;
@@ -36,7 +37,7 @@ void he_CloseEventSlots(void);
 void he_ShowEventBar(int pl);
 void he_SetBarEnabled(int state);
 void he_PickActiveEvent(void);
-void he_ActivateSlot(int *sl);
+void he_ActivateSlot(struct HEEVSLOT *sl);
 
 typedef struct HEEVSLOT {               /* 12 bytes, a slot of the event bar (he_EventSlots) */
     struct AIJOB *ev;                   /* 0x00, the event record the slot shows (ai.h AIJOB: its kind at +0) */
@@ -91,11 +92,11 @@ void he_ShowConstruction(struct AIJOB *ev);               /* 0x56b780, the const
 void he_SpreadGfxInfos(struct D3OBJECT *obj);
 struct D3OBJECT *he_CreateGfxObject(HEGFXINFO *e, char *name, struct D3OBJECT *obj);
 void he_CreateGfxInfo(struct AIJOB *ev, char *name, struct D3OBJECT *parent);
-void he_FreeGfxInfo(int *e);
+void he_FreeGfxInfo(HEGFXINFO *g);
 void he_AddEventGfxInfo(struct AIJOB *ev);
 void he_RemoveStaleGfxInfos(void);
-void he_RemoveGfxInfos(int obj);
-void he_ShowObjectInfos(int obj, int a);
+void he_RemoveGfxInfos(struct D3OBJECT *obj);
+void he_ShowObjectInfos(struct D3OBJECT *obj, int a);
 void he_RecheckEventPerson(struct AIJOB *r);
 void he_RecheckPersonEvents(unsigned short *pl);
 void he_RunEvents(void);

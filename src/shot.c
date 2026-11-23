@@ -91,8 +91,6 @@ extern struct D2OBJ *d2_Objs;              /* 0xf8f080, d2.h: D2OBJ * */
 extern int sv_PopRequest;               /* 0x6f22a0, nonzero: MASTER (sv_RunFrame) pops this screen */
 extern int sv_PopRequest;               /* 0x6f22a0, nonzero: MASTER (sv_RunFrame) pops this screen */
 
-#define U_I(a) (*(int *)(a))
-#define U_B(a) (*(unsigned char *)(a))
 
 int sprintf(char *buf, const char *fmt, ...); /* 0x5de652, the CRT's sprintf (no CRT symbol available) */
 
@@ -115,32 +113,6 @@ int he_ShowNews(int pid, int fl, char *text, int unused, int ev, char *text2); /
 void d2_SetObjValue(int obj, ...); int d2_GetObjValue(int obj); int d2_CreateWinText(short x, short y, char *text, int win); void d2_SetObjText(int obj, char *text);
 char *itoa(int, char *, int); void d2_SetObjFont(int obj, int font); int sv_RunFrame(void (*cb)(), unsigned mask);
 int d2_CreateRadioGroup(int n, ...); void d2_RadioAdd(int g, int obj); void d2_MenuNavigate(int g); void d2_RaiseViewWindows(int view); void d2_RadioClear(int g);
-#pragma pack(push, 1)
-typedef struct SAVEREQUEST {                /* 0x210, a save file entry (ai_ListFiles) or an empty slot's request */
-    char pad00[9];
-    char name[0x80];                        /* +0x09, the slot caption (the file name without ".SAV") */
-    char title[0x80];                       /* +0x89, the save's title */
-    char path[0x107];                       /* +0x109, the file path (ai_FillSaveSlots opens it) */
-} SAVEREQUEST;                              /* 0x210 */
-typedef struct SAVESLOTVIEW {               /* 0x220, one slot of the save / load window */
-    unsigned char kind;                     /* +0x00, the slot kind (ls_SaveSlot for a registered save) */
-    char pad01[3];
-    int obj;                                /* +0x04, the slot's caption text object, -1 = none */
-    int win;                                /* +0x08, the slot's child window, -1 = free */
-    unsigned char used;                     /* +0x0c, 1: a filled slot, 0: an empty one */
-    char pad0d[3];
-    union {
-        SAVEREQUEST req;                    /* +0x10, the request ai_RegisterSaveSlot copied */
-        struct {
-            char reqpad[9];
-            char name[0x80];                /* +0x19, the caption (the request's name) */
-            char title[0x80];               /* +0x99, the save's title (the header's +0x9c) */
-        };
-    };
-} SAVESLOTVIEW;                             /* 0x220 */
-#pragma pack(pop)
-typedef struct D2INPUTVIEW { char pad0[0x10]; int w; char pad1[0x148]; int maxw; } D2INPUTVIEW;
-extern D2INPUTVIEW d2_Inputs[];         /* 0xfa6020, d2.h: D2INPUT [0x80] */
 extern int d2_FontHeight;               /* 0xf8f084, d2.h */
 extern struct D2INPUT *d2_FocusedInput;           /* 0x6ed9dc, d2.h: D2INPUT * */
 extern unsigned char kb_Last;           /* 0x1468410, d2.h */
@@ -211,7 +183,7 @@ void d3s_FreeShadows(struct D3OBJECT *obj);     /* 0x45ccd0, d3s.c */
 void d3_UpdateAll(unsigned char full);          /* 0x43b6e0, d3_engine.c */
 char d3if_SelectScene(int index, char keep);    /* 0x4478e0, d3_interface.c */
 void d3_ReloadMeshes(unsigned int mask, int type, void (*progress)(int a, int i, int n));  /* 0x43e090, d3_engine.c */
-void d3_ApplyGraphicsOptions(unsigned char a, unsigned char b, unsigned char c, unsigned char mode, int e); /* 0x43c4e0 */
+void d3_ApplyGraphicsOptions(unsigned char a, unsigned char b, unsigned char c, unsigned char mode, void (*progress)(int, int, int)); /* 0x43c4e0 */
 void ch_SetLowPoly(unsigned char mode);         /* 0x402af0, ch.c */
 void d3fl_SetMips(char a);                      /* 0x43f930, d3_fl.c */
 void ai_CheckBuildSites(void);                  /* 0x58fb60, lc.c */
@@ -228,15 +200,6 @@ typedef union INIT_LOD {
     } bits;
 } INIT_LOD;
 extern INIT_LOD d3io_Lod;          /* 0x5fbf78 */
-typedef struct D2SURFVIEW {
-    char pad0[0x10];
-    int pitch;                          /* +0x10, in pixels */
-    char pad1[8];
-    unsigned short *bits;               /* +0x1c, pixels (system memory, or while locked) */
-} D2SURFVIEW;
-extern D2SURFVIEW *d2_ScreenSurf;       /* 0x6ed924, d2.h: D2SURF * */
-int d2_LockSurface(D2SURFVIEW *surf);   /* 0x479020, d2.h: D2SURF *, locks the surface (pixels in bits) */
-int d2_UnlockSurface(D2SURFVIEW *surf); /* 0x4790e0, d2.h: D2SURF * */
 void *mem_Alloc(int size, char *tag);   /* 0x4223c0, d3.h */
 void mem_Free(void *p);                 /* 0x422620, d3.h */
 extern unsigned int dd_RMask;           /* 0x1464fa4, dd_vesa.h: the red channel mask of the display */
@@ -286,12 +249,6 @@ typedef struct CONTACTREQ {
     int b;                              /* +0x10 */
     char pad14[0x3c];
 } CONTACTREQ;
-#pragma pack(push, 1)
-typedef struct AIBLDVIEW {
-    char pad0[0x5d];
-    int objList;                        /* +0x5d, AIBLD.objList: the objects of the building */
-} AIBLDVIEW;
-#pragma pack(pop)
 extern struct D2PIC *d2_Pics;              /* 0x6ed918, d2.h: D2PIC * */
 void sv_ButtonRow(int f, int y, int *out, int n, ...); int sv_CheckGoodAmount(struct AICHAR *o, int n, unsigned char t);
 struct AITIME;
@@ -421,7 +378,7 @@ void ai_UpdateWind(void)
     last.hour = (unsigned short)ai_EffectState.hour;
     last.min = ai_EffectState.min;
     last.sec = 0;
-    hours = gm_MinutesBetween((struct AITIME *)&last, (struct AITIME *)&ai_Time) * (1.0f / 60.0f);
+    hours = gm_MinutesBetween(&last, &ai_Time) * (1.0f / 60.0f);
     if (!(hours < 0.0f)) {
         hour = now->hour;
         ai_DefaultEffect.pos.y = 0;

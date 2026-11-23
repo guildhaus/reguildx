@@ -66,11 +66,11 @@ D3OBJECT *d3_CreateObject(D3OBJECT *a, const D3VECTOR *pos, const D3VECTOR *rot,
         if (!d3io_FindStock(name))
             d3io_LoadObject(name, name);
         d3_AttachMesh(obj, 0, name);
-        if (D3_MESH(obj) && D3_MESH(obj)->surf[0].mesh) {
-            for (i = 0; i < D3_MESH(obj)->nsurf; i++) {
-                if (D3_MESH(obj)->surf[i].mesh) {
-                    n = D3_OPS(&D3_MESH(obj)->surf[i])->count;
-                    tex = (struct TSTEXTURE **)D3_MESH(obj)->surf[i].texHandles;
+        if (obj->material && obj->material->surf[0].mesh) {
+            for (i = 0; i < obj->material->nsurf; i++) {
+                if (obj->material->surf[i].mesh) {
+                    n = obj->material->surf[i].mesh->ntex;
+                    tex = (struct TSTEXTURE **)obj->material->surf[i].texHandles;
                     for (; n > 0; n--, tex++)
                         if (*tex)
                             tex_Reload(*tex, 0);
@@ -96,49 +96,49 @@ char d3if_SelectTextureSet(D3OBJECT *obj, D3SURF *surf, unsigned char set, char 
     TSTEXTURE *old;
     struct TSTEXTURE *tex;
     char *name;
-    int opts, fmt;
+    unsigned char opts, fmt;
     char buf1[256], buf2[256];
     int j, replaced;
-    D3OPS *ops;
+    D3BGF *ops;
 
-    if (!obj || !D3_MESH(obj) || !surf)
+    if (!obj || !obj->material || !surf)
         return 0;
     if (set == surf->texSet)
         return 1;
     obj->state |= 4;
-    D3_MESH(obj)->mirrorSource = 0;
-    if (D3_MESH(obj)->mirrorPoints) {
-        mem_Free(D3_MESH(obj)->mirrorPoints);
-        D3_MESH(obj)->mirrorPoints = 0;
+    obj->material->mirrorSource = 0;
+    if (obj->material->mirrorPoints) {
+        mem_Free(obj->material->mirrorPoints);
+        obj->material->mirrorPoints = 0;
     }
-    if (D3_MESH(obj)->mirrorPolys) {
-        mem_Free(D3_MESH(obj)->mirrorPolys);
-        D3_MESH(obj)->mirrorPolys = 0;
+    if (obj->material->mirrorPolys) {
+        mem_Free(obj->material->mirrorPolys);
+        obj->material->mirrorPolys = 0;
     }
-    ops = D3_OPS(surf);
+    ops = surf->mesh;
     if (set < ops->nsets) {
-        for (i = 0; i < ops->count; i++) {
+        for (i = 0; i < ops->ntex; i++) {
             surf->texSet = set;
-            name = ops->texnames + (ops->count * set + i) * 0x40;
+            name = ops->texnames + (ops->ntex * set + i) * 0x40;
             if (*name && (old = ((TSTEXTURE **)surf->texHandles)[i]) != 0) {
                 tex_GetParams(old, &opts, &fmt);
                 tex = tex_Load(name, old->flags, opts, fmt);
                 if (tex) {
-                    D3PTRI *t;
+                    D3TRI *t;
 
                     replaced = 0;
                     if (reload)
                         tex_Reload(tex, 0);
                     ((struct TSTEXTURE **)surf->texHandles)[i] = tex;
-                    t = (D3PTRI *)surf->tris;
+                    t = surf->tris;
                     for (j = 0; j < surf->ntris; j++, t++)
-                        if (((D3SRCPOLY *)t->src)->slot == i) {
-                            t->tex = (TSTEXTURE *)tex;
+                        if (t->src->mat == i) {
+                            t->tex = tex;
                             replaced++;
                         }
                     if (!replaced)
                         sprintf(buf2, "SelectTextureSet: no polys w/ %s found to replace w/ %s in %s", old->name, name, obj->name);
-                    tex_Release((struct TSTEXTURE *)old);
+                    tex_Release(old);
                 } else {
                     sprintf(buf1, "SelectTextureSet: cannot replace %s with %s (new not found) in %s", old->name, name, obj->name);
                     ok = 0;
@@ -254,7 +254,7 @@ char d3if_Reload(D3OBJECT *obj, char *name)
         d3io_LoadObject(name, name);
         d3_AttachMesh(obj, 0, name);
         tex_ReloadAll(0, 0);
-        if (D3_MESH(obj) && D3_MESH(obj)->surf[0].mesh) {
+        if (obj->material && obj->material->surf[0].mesh) {
             d3_RelightObject(obj);
             return 1;
         }
@@ -271,8 +271,8 @@ void d3if_Reset(void)
 
     while (d3_TopFirst != &d3_ObjEnd)
         d3_DisposeObject(d3_TopFirst);
-    while ((D3PARTSYS *)d3_ParHead != &d3_ParEnd)
-        par_Delete((D3PARTSYS *)d3_ParHead);
+    while (d3_ParHead != &d3_ParEnd)
+        par_Delete(d3_ParHead);
     if (d3_Terrain) {
         d3fl_FreeMap(d3_Terrain);
         d3_Terrain = 0;
@@ -339,13 +339,13 @@ char d3if_InitScene(D3SCENE *s)
         s->camrot.x = 0;
         s->camrot.z = 0;
         d3_SetObjectRot(cam, &s->camrot);
-        cam->scene = (D3SCENE *)s;
+        cam->scene = s;
         cam->next = &d3_ObjEnd;
         cam->prev = &d3_TopHead;
         cam->state |= 3;
         s->first = s->last = s->cam = cam;
         s->parHead = &d3_ParEnd;
-        s->parTail = d3if_ParList;
+        s->parTail = &d3if_ParList;
         s->hardware = d3_Hardware;
         s->sceneFlags = 0;
         s->amb.x = 200.0f;
@@ -391,8 +391,8 @@ void d3if_PrecacheCB(D3OBJECT *obj)
 
     info = obj->info;
     if (info && info->mesh) {
-        n = D3_OPS(info)->count;
-        tex = ((TSMESH *)info)->texs;
+        n = info->mesh->ntex;
+        tex = info->texHandles;
         for (i = 0; i < n; i++)
             if (tex[i] && tex[i]->d3dtex && !tex[i]->precached) {
                 d3d_PrecacheTexture(tex[i]->d3dtex);
@@ -417,7 +417,7 @@ void d3if_Prerender(char map)
 /* 0x4478e0, makes scene `index` the current one: saves the engine's global state into the old scene and
    loads the new scene's; with `keep` the objects, sky and map of the old state stay as they are */
 
-char d3if_SelectScene(int index, char keep)  /* @original: the definition returns char and takes a char keep (byte-matched); the headers declare void (int, int) */
+char d3if_SelectScene(int index, char keep)
 {
     D3OBJECT *cam;
 
@@ -459,7 +459,7 @@ char d3if_SelectScene(int index, char keep)  /* @original: the definition return
         d3_Scenes[d3_CurrentScene].state0 = d3if_SceneState0;
         d3_Scenes[d3_CurrentScene].state1 = d3if_SceneState1;
         d3_Scenes[d3_CurrentScene].hardware = d3_Hardware;
-        cam = (D3OBJECT *)d3if_MegaCam;
+        cam = d3if_MegaCam;
         d3_Scenes[d3_CurrentScene].cam = cam;
         if (cam) {
             d3_Scenes[d3_CurrentScene].campos.x = cam->pos.x;
@@ -493,12 +493,12 @@ char d3if_SelectScene(int index, char keep)  /* @original: the definition return
         d3_CurrentScene = index;
         d3_DefaultScene = &d3_Scenes[index];
         if (d3if_LastMegaCam == d3if_MegaCam)
-            d3if_LastMegaCam = (int)d3_Scenes[index].cam;
-        d3if_MegaCam = (int)d3_Scenes[index].cam;
+            d3if_LastMegaCam = d3_Scenes[index].cam;
+        d3if_MegaCam = d3_Scenes[index].cam;
         if (d3if_MegaCam) {
-            d3_SetObjectPos((D3OBJECT *)d3if_MegaCam, &d3_Scenes[index].campos);
-            d3_SetObjectRot((D3OBJECT *)d3if_MegaCam, &d3_Scenes[index].camrot);
-            d3_SetCamera((D3OBJECT *)d3if_MegaCam);
+            d3_SetObjectPos(d3if_MegaCam, &d3_Scenes[index].campos);
+            d3_SetObjectRot(d3if_MegaCam, &d3_Scenes[index].camrot);
+            d3_SetCamera(d3if_MegaCam);
         }
         if (!keep) {
             if (!d3_Terrain) {
@@ -541,8 +541,8 @@ char d3if_ClearScene(int index)
         d3if_SelectScene(index, 1);
         while (d3_TopFirst != &d3_ObjEnd)
             d3_DisposeObject(d3_TopFirst);
-        while ((D3PARTSYS *)d3_ParHead != &d3_ParEnd)
-            par_Delete((D3PARTSYS *)d3_ParHead);
+        while (d3_ParHead != &d3_ParEnd)
+            par_Delete(d3_ParHead);
         if (d3_Terrain) {
             d3fl_FreeMap(d3_Terrain);
             d3_Terrain = 0;
@@ -573,11 +573,11 @@ char d3if_MoveCB(D3OBJECT *obj, D3IFMOVE *m)
 {
     D3PARTSYS *p, *next;
 
-    d3_ForEachObject((D3SCENE *)m->from, 0, 7, (D3OBJECTCB)d3_LightRemoveRecords, obj);
-    obj->scene = (D3SCENE *)m->to;
+    d3_ForEachObject(m->from, 0, 7, (D3OBJECTCB)d3_LightRemoveRecords, obj);
+    obj->scene = m->to;
     for (p = m->from->parHead; p != &d3_ParEnd; p = next) {
         next = p->next;
-        if (p->parent == obj)
+        if (p->obj.parent == obj)
             par_Delete(p);
     }
     return 1;
@@ -620,7 +620,7 @@ char d3if_MoveObject(D3OBJECT *obj, D3SCENE *from, D3SCENE *to)
     }
     m.from = from;
     m.to = to;
-    d3_ForEachObject((D3SCENE *)from, obj, 0x3ff, (D3OBJECTCB)d3if_MoveCB, &m);
+    d3_ForEachObject(from, obj, 0x3ff, (D3OBJECTCB)d3if_MoveCB, &m);
     if (to == d3_DefaultScene) {
         to->first = d3_TopFirst;
         to->last = d3_TopLast;
@@ -745,9 +745,9 @@ char d3if_PickCB(D3OBJECT *obj, D3IFPICK *p)
 
     if (p->mask && !(obj->mask & p->mask))
         return 1;
-    if (D3_MESH(obj) && (D3_MESH(obj)->flags & 0x40) && D3_MESH(obj)->camera == p->cam)
+    if (obj->material && (obj->material->flags & 0x40) && obj->material->camera == p->cam)
         return 1;
-    if (obj->type == 4 && !D3_MESH(obj))
+    if (obj->type == 4 && !obj->material)
         return 1;
     if (!d3_GetBounds(obj, p->cam, &pos.v, &r))
         return 1;
@@ -796,7 +796,7 @@ D3OBJECT *d3if_Pick(float x, float y, int flags, int mask)
 char d3if_ScreenBox(D3OBJECT *obj, D3RECT *r)
 {
     D3VECTOR4 v;
-    D3BOXVERT *b;
+    D3VERTEX *b;
     D3SURF *info;
     float f, x, y, s;
     int i;
@@ -807,16 +807,16 @@ char d3if_ScreenBox(D3OBJECT *obj, D3RECT *r)
             f = 1.0f / v.z;
             x = d3_ScaleX * v.x * f + d3_CenterX;
             y = d3_ScaleY * v.y * f + d3_CenterY;
-            s = d3_ScaleX * D3IF_OBJ068(obj) * f * 0.5f;
+            s = d3_ScaleX * obj->radius * f * 0.5f;
             r->left = (int)(x - s);
             r->right = (int)(x + s);
             r->top = (int)(y - s);
             r->bottom = (int)(y + s);
             return 1;
         }
-        if (D3_MESH(obj) && !(D3_MESH(obj)->flags & 0x40) && (info = obj->info) && info->mesh) {
+        if (obj->material && !(obj->material->flags & 0x40) && (info = obj->info) && info->mesh) {
             d3_UpdateWorldMatrix(obj, (obj->state & 0x80) ? 0 : d3_Camera, 0);
-            b = D3_OPS(info)->GetBox(obj, info, &D3_MESH(obj)->cameraMatrix);
+            b = info->mesh->GetBox(obj, info, &obj->material->cameraMatrix);
             r->top = 0x10000;
             r->left = 0x10000;
             r->bottom = -0x10000;
@@ -844,26 +844,26 @@ char d3if_ScreenBox(D3OBJECT *obj, D3RECT *r)
 
 void d3if_CreateCameras(void)
 {
-    d3if_MegaCam = (int)d3_SpawnObject(3, "MegaCam");
-    d3_SetObjectPosXYZ((D3OBJECT *)d3if_MegaCam, 0, 0, -256.0f);
-    d3_SetObjectRotXYZ((D3OBJECT *)d3if_MegaCam, 0, 0, 0);
-    d3_LinkTop((D3OBJECT *)d3if_MegaCam);
+    d3if_MegaCam = d3_SpawnObject(3, "MegaCam");
+    d3_SetObjectPosXYZ(d3if_MegaCam, 0, 0, -256.0f);
+    d3_SetObjectRotXYZ(d3if_MegaCam, 0, 0, 0);
+    d3_LinkTop(d3if_MegaCam);
     if (d3_EditorMode) {
-        d3if_CamOben = (int)d3_SpawnObject(3, "Oben");
-        d3_SetObjectPosXYZ((D3OBJECT *)d3if_CamOben, 0, 256.0f, 0);
-        d3_SetObjectRotXYZ((D3OBJECT *)d3if_CamOben, -1.57079637f, 0, 0);
-        d3_LinkTop((D3OBJECT *)d3if_CamOben);
-        ((D3OBJECT *)d3if_CamOben)->objectFlags &= 0xfd;
-        d3if_CamVorne = (int)d3_SpawnObject(3, "Vorne");
-        d3_SetObjectPosXYZ((D3OBJECT *)d3if_CamVorne, 0, 0, -256.0f);
-        d3_SetObjectRotXYZ((D3OBJECT *)d3if_CamVorne, 0, 0, 0);
-        d3_LinkTop((D3OBJECT *)d3if_CamVorne);
-        ((D3OBJECT *)d3if_CamVorne)->objectFlags &= 0xfd;
-        d3if_CamSeite = (int)d3_SpawnObject(3, "Seite");
-        d3_SetObjectPosXYZ((D3OBJECT *)d3if_CamSeite, 256.0f, 0, 0);
-        d3_SetObjectRotXYZ((D3OBJECT *)d3if_CamSeite, 0, 1.57079637f, 0);
-        d3_LinkTop((D3OBJECT *)d3if_CamSeite);
-        ((D3OBJECT *)d3if_CamSeite)->objectFlags &= 0xfd;
+        d3if_CamOben = d3_SpawnObject(3, "Oben");
+        d3_SetObjectPosXYZ(d3if_CamOben, 0, 256.0f, 0);
+        d3_SetObjectRotXYZ(d3if_CamOben, -1.57079637f, 0, 0);
+        d3_LinkTop(d3if_CamOben);
+        d3if_CamOben->objectFlags &= 0xfd;
+        d3if_CamVorne = d3_SpawnObject(3, "Vorne");
+        d3_SetObjectPosXYZ(d3if_CamVorne, 0, 0, -256.0f);
+        d3_SetObjectRotXYZ(d3if_CamVorne, 0, 0, 0);
+        d3_LinkTop(d3if_CamVorne);
+        d3if_CamVorne->objectFlags &= 0xfd;
+        d3if_CamSeite = d3_SpawnObject(3, "Seite");
+        d3_SetObjectPosXYZ(d3if_CamSeite, 256.0f, 0, 0);
+        d3_SetObjectRotXYZ(d3if_CamSeite, 0, 1.57079637f, 0);
+        d3_LinkTop(d3if_CamSeite);
+        d3if_CamSeite->objectFlags &= 0xfd;
     }
 }
 /* 0x448a50, clears the viewport (and refreshes the screen) when the scene wants it: with the fog colour
@@ -923,14 +923,14 @@ float d3_YawTo(D3OBJECT *obj, const D3VECTOR *p)
 char d3_CornerCB(D3OBJECT *obj, D3CORNERCTX *c)
 {
     D3SURF *s = obj->info;
-    D3CORNERTRI *t;
+    D3TRI *t;
     void **tex;
     void *want;
     char fl;
     int i, n, np, x, y;
 
     if (s) {
-        n = D3_OPS(s)->count;
+        n = s->mesh->ntex;
         tex = (void **)s->texHandles;
         want = c->tex;
         for (i = 0; i < n; i++)
@@ -938,10 +938,10 @@ char d3_CornerCB(D3OBJECT *obj, D3CORNERCTX *c)
                 break;
         if (i < n) {
             np = s->ntris;
-            t = (D3CORNERTRI *)s->tris;
+            t = s->tris;
             if (np > 0) {
                 for (; np > 0; np--, t++) {
-                    if ((t->flag24 & 0x80) && !(t->flag26 & 2) && t->tex == want) {
+                    if ((t->flags & 0x80) && !(t->drawFlags & 2) && t->tex == want) {
                         c->found = 1;
                         for (i = 0; i < 3; i++) {
                             x = (int)t->v[i]->sx;
@@ -949,8 +949,8 @@ char d3_CornerCB(D3OBJECT *obj, D3CORNERCTX *c)
                             if (y + x < c->pt[0].y + c->pt[0].x) {
                                 c->pt[0].x = x;
                                 c->pt[0].y = y;
-                                c->uv[0][0] = t->uv[i * 2];
-                                c->uv[0][1] = t->uv[i * 2 + 1];
+                                c->uv[0][0] = t->src->uv[i][0];
+                                c->uv[0][1] = t->src->uv[i][1];
                                 c->v[0].x = t->v[i]->x;
                                 c->v[0].y = t->v[i]->y;
                                 c->v[0].z = t->v[i]->z;
@@ -958,8 +958,8 @@ char d3_CornerCB(D3OBJECT *obj, D3CORNERCTX *c)
                             if (dd_Width - x + y - 1 < c->pt[1].y - c->pt[1].x + dd_Width - 1) {
                                 c->pt[1].y = y;
                                 c->pt[1].x = x;
-                                c->uv[1][0] = t->uv[i * 2];
-                                c->uv[1][1] = t->uv[i * 2 + 1];
+                                c->uv[1][0] = t->src->uv[i][0];
+                                c->uv[1][1] = t->src->uv[i][1];
                                 c->v[1].x = t->v[i]->x;
                                 c->v[1].y = t->v[i]->y;
                                 c->v[1].z = t->v[i]->z;
@@ -967,8 +967,8 @@ char d3_CornerCB(D3OBJECT *obj, D3CORNERCTX *c)
                             if (dd_Height - y + x - 1 < c->pt[2].x - c->pt[2].y + dd_Height - 1) {
                                 c->pt[2].x = x;
                                 c->pt[2].y = y;
-                                c->uv[2][0] = t->uv[i * 2];
-                                c->uv[2][1] = t->uv[i * 2 + 1];
+                                c->uv[2][0] = t->src->uv[i][0];
+                                c->uv[2][1] = t->src->uv[i][1];
                                 c->v[2].x = t->v[i]->x;
                                 c->v[2].y = t->v[i]->y;
                                 c->v[2].z = t->v[i]->z;
@@ -976,8 +976,8 @@ char d3_CornerCB(D3OBJECT *obj, D3CORNERCTX *c)
                             if (dd_Height - y - x + dd_Width - 2 < dd_Height - c->pt[3].y - c->pt[3].x + dd_Width - 2) {
                                 c->pt[3].x = x;
                                 c->pt[3].y = y;
-                                c->uv[3][0] = t->uv[i * 2];
-                                c->uv[3][1] = t->uv[i * 2 + 1];
+                                c->uv[3][0] = t->src->uv[i][0];
+                                c->uv[3][1] = t->src->uv[i][1];
                                 c->v[3].x = t->v[i]->x;
                                 c->v[3].y = t->v[i]->y;
                                 c->v[3].z = t->v[i]->z;
@@ -1285,18 +1285,18 @@ char d3_SetParent(D3OBJECT *obj, D3OBJECT *parent)
         if (d3_FindObject(obj, 0x1ff, parent, 0))
             return 0;
     }
-    if (D3_X(obj)->type >= 5 && D3_X(obj)->light) {
-        rot.x = D3_X(obj)->rot.x;
-        rot.y = D3_X(obj)->rot.y;
-        rot.z = D3_X(obj)->rot.z;
+    if (obj->type >= 5 && obj->light) {
+        rot.x = obj->rotation.x;
+        rot.y = obj->rotation.y;
+        rot.z = obj->rotation.z;
         for (i = 0; i < 7; i++) {
-            d3_PointToWorld(obj, &D3O_LIGHT(obj)->k[i].pos, &kpos[i].v);
-            d3_SetObjectRot(obj, &D3O_LIGHT(obj)->k[i].rot);
+            d3_PointToWorld(obj, &obj->light->keys[i].pos, &kpos[i].v);
+            d3_SetObjectRot(obj, &obj->light->keys[i].rot);
             d3_WorldMatrix(obj, 0, 1, &km[i]);
         }
         d3_SetObjectRot(obj, &rot);
     }
-    d3_PointToWorld(obj, &D3_X(obj)->pos, &pos.v);
+    d3_PointToWorld(obj, &obj->pos, &pos.v);
     d3_WorldMatrix(obj, 0, 1, &m);
     d3_Unlink(obj);
     if (!parent)
@@ -1304,9 +1304,9 @@ char d3_SetParent(D3OBJECT *obj, D3OBJECT *parent)
     else
         d3_AddChild(parent, obj);
     d3_SetWorldPosRot(obj, &pos.v, &m);
-    if (D3_X(obj)->type >= 5 && D3_X(obj)->light) {
+    if (obj->type >= 5 && obj->light) {
         for (i = 0; i < 7; i++)
-            d3_WorldToParent(obj, &kpos[i].v, &km[i], &D3O_LIGHT(obj)->k[i].pos, &D3O_LIGHT(obj)->k[i].rot);
+            d3_WorldToParent(obj, &kpos[i].v, &km[i], &obj->light->keys[i].pos, &obj->light->keys[i].rot);
     }
     return 1;
 }
@@ -1315,13 +1315,13 @@ char d3_SetParent(D3OBJECT *obj, D3OBJECT *parent)
 
 char d3_SetLightKey(D3OBJECT *obj, unsigned int key, float t)
 {
-    float pos[4], rot[4];
-    D3LIGHTKEYS *l;
+    D3VECTOR4 pos, rot;
+    D3LIGHTINFO *l;
     D3LIGHTKEY *c, *nk;
     unsigned int i, n, p;
     int pon, con, non;
 
-    if (obj && key < 7 && t >= 0.0f && t <= 1.0f && D3_X(obj)->type >= 5 && (l = D3O_LIGHT(obj))) {
+    if (obj && key < 7 && t >= 0.0f && t <= 1.0f && obj->type >= 5 && (l = obj->light)) {
         t += l->phase;
         if (t > 1.0f) {
             t -= 1.0f;
@@ -1332,28 +1332,28 @@ char d3_SetLightKey(D3OBJECT *obj, unsigned int key, float t)
         }
         n = (key + 1) % 7;
         p = (key - 1) % 7;
-        pon = l->k[p].intensity != 0.0f || D3_X(obj)->type == 8;
-        c = &l->k[key];
-        con = c->intensity != 0.0f || D3_X(obj)->type == 8;
-        nk = &l->k[n];
-        non = nk->intensity != 0.0f || D3_X(obj)->type == 8;
+        pon = l->keys[p].intensity != 0.0f || obj->type == 8;
+        c = &l->keys[key];
+        con = c->intensity != 0.0f || obj->type == 8;
+        nk = &l->keys[n];
+        non = nk->intensity != 0.0f || obj->type == 8;
         if (pon && con && non)
-            D3IF_LIGHT(obj)->power = (nk->intensity - c->intensity) * t + c->intensity;
+            obj->power = (nk->intensity - c->intensity) * t + c->intensity;
         else if (con && t < 0.5f)
-            D3IF_LIGHT(obj)->power = c->intensity;
+            obj->power = c->intensity;
         else if (non && t >= 0.5f)
-            D3IF_LIGHT(obj)->power = nk->intensity;
+            obj->power = nk->intensity;
         else
-            D3IF_LIGHT(obj)->power = 0.0f;
-        D3IF_LIGHT(obj)->range = (nk->range - c->range) * t + c->range;
-        D3IF_LIGHT(obj)->atten = (nk->atten - c->atten) * t + c->atten;
+            obj->power = 0.0f;
+        obj->range = (nk->range - c->range) * t + c->range;
+        obj->atten = (nk->atten - c->atten) * t + c->atten;
         for (i = 0; i < 3; i++) {
-            pos[i] = (((float *)&l->k[n].pos)[i] - ((float *)&l->k[key].pos)[i]) * t + ((float *)&l->k[key].pos)[i];
-            ((float *)&D3IF_LIGHT(obj)->color)[i] = (((float *)&l->k[n].color)[i] - ((float *)&l->k[key].color)[i]) * t + ((float *)&l->k[key].color)[i];
-            rot[i] = (((float *)&l->k[n].rot)[i] - ((float *)&l->k[key].rot)[i]) * t + ((float *)&l->k[key].rot)[i];
+            pos.v.e[i] = (l->keys[n].pos.e[i] - l->keys[key].pos.e[i]) * t + l->keys[key].pos.e[i];
+            obj->lightColor.e[i] = (l->keys[n].color.e[i] - l->keys[key].color.e[i]) * t + l->keys[key].color.e[i];
+            rot.v.e[i] = (l->keys[n].rot.e[i] - l->keys[key].rot.e[i]) * t + l->keys[key].rot.e[i];
         }
-        d3_SetObjectPos(obj, (D3VECTOR *)pos);
-        d3_SetObjectRot(obj, (D3VECTOR *)rot);
+        d3_SetObjectPos(obj, &pos.v);
+        d3_SetObjectRot(obj, &rot.v);
         return 1;
     }
     return 0;
@@ -1362,7 +1362,7 @@ char d3_SetLightKey(D3OBJECT *obj, unsigned int key, float t)
 
 char d3_ScaleLightCB(D3OBJECT *obj, float *scale)
 {
-    D3IF_LIGHT(obj)->power *= *scale;
+    obj->power *= *scale;
     return 1;
 }
 /* 0x449da0, d3_ForEachObject callback: sets a light to the day time *time (key + fraction) */
@@ -1420,9 +1420,9 @@ char d3_SetLightSet(unsigned int set, float t, float scale, char calc)
         d3_LightInvalidate(calc);
         d3o_LightSet = set;
         if (d3_Sky) {
-            ((unsigned char *)d3_Sky)[0xaa6] = (int)(d3sky_Colors[n].c.r * t + d3sky_Colors[set].c.r * u);
-            ((unsigned char *)d3_Sky)[0xaa5] = (int)(d3sky_Colors[n].c.g * t + d3sky_Colors[set].c.g * u);
-            ((unsigned char *)d3_Sky)[0xaa4] = (int)(d3sky_Colors[n].c.b * t + d3sky_Colors[set].c.b * u);
+            d3_Sky->color.c.r = (int)(d3sky_Colors[n].c.r * t + d3sky_Colors[set].c.r * u);
+            d3_Sky->color.c.g = (int)(d3sky_Colors[n].c.g * t + d3sky_Colors[set].c.g * u);
+            d3_Sky->color.c.b = (int)(d3sky_Colors[n].c.b * t + d3sky_Colors[set].c.b * u);
         }
         return 1;
     }
@@ -1459,15 +1459,15 @@ void d3_WriteObject(VFSFILE *f, D3OBJECT *obj)
 
     bio_wr_c(f, obj->objectFlags >> 1 & 1);
     if (obj->objectFlags & 2) {
-        type = D3_X(obj)->type;
-        if (type == 1 && (type = D3_X(obj)->type0, obj->name[0] == '!'))
+        type = obj->type;
+        if (type == 1 && (type = obj->type0, obj->name[0] == '!'))
             bio_wr_s(f, obj->name + 1);
         else
             bio_wr_s(f, obj->name);
         bio_wr_i(f, (int)obj->owner);
         bio_wr_i(f, obj->kind);
         bio_wr_i(f, type);
-        bio_wr_c(f, D3_X(obj)->type == 1);
+        bio_wr_c(f, obj->type == 1);
         switch (type) {
         case 1:
         case 4:
@@ -1478,11 +1478,11 @@ void d3_WriteObject(VFSFILE *f, D3OBJECT *obj)
             bio_wr_c(f, obj->stateFlags >> 4 & 1);
             bio_wr_c(f, obj->stateFlags >> 5 & 1);
             bio_wr_c(f, obj->stateFlags >> 6 & 1);
-            bio_wr_i(f, D3_X(obj)->meshMode);
-            if (D3_X(obj)->mesh) {
-                bio_wr_i(f, D3_X(obj)->mesh->nsurf);
-                if (D3_X(obj)->mesh->nsurf > 0) {
-                    strcpy(buf, D3_X(obj)->mesh->surf[0].mesh->name);
+            bio_wr_i(f, obj->meshMode);
+            if (obj->material) {
+                bio_wr_i(f, obj->material->nsurf);
+                if (obj->material->nsurf > 0) {
+                    strcpy(buf, obj->material->surf[0].mesh->name);
                     p = strrchr(buf, '_');
                     if (p && strlen(p) == 2 && isdigit(p[1]))
                         *p = 0;
@@ -1492,22 +1492,22 @@ void d3_WriteObject(VFSFILE *f, D3OBJECT *obj)
                 bio_wr_i(f, 0);
         case 2:
         case 3:
-            bio_wr_v3(f, &D3_X(obj)->pos);
-            bio_wr_v3(f, &D3_X(obj)->rot);
+            bio_wr_v3(f, &obj->pos);
+            bio_wr_v3(f, &obj->rotation);
             bio_wr_c(f, obj->objectFlags & 1);
             if (obj->objectFlags & 1) {
                 bio_wr_v3(f, &obj->savedPos);
                 bio_wr_v3(f, &obj->savedRot);
             }
             for (i = 0; i < 10; i++) {
-                bio_wr_v3(f, &D3_X(obj)->views[i].pos);
-                bio_wr_v3(f, &D3_X(obj)->views[i].dir);
+                bio_wr_v3(f, &obj->views[i].pos);
+                bio_wr_v3(f, &obj->views[i].dir);
             }
             break;
         case 0:
             bio_wr_c(f, obj->objectFlags & 1);
-            bio_wr_i(f, D3_X(obj)->radiusBits);
-            bio_wr_v3(f, &D3_X(obj)->pos);
+            bio_wr_i(f, obj->radiusBits);
+            bio_wr_v3(f, &obj->pos);
             bio_wr_v3(f, &obj->savedPos);
             bio_wr_v3(f, &obj->savedRot);
             break;
@@ -1517,23 +1517,23 @@ void d3_WriteObject(VFSFILE *f, D3OBJECT *obj)
         case 8:
             bio_wr_c(f, obj->state >> 5 & 1);
             bio_wr_c(f, obj->objectFlags >> 4 & 1);
-            bio_wr_i(f, D3IF_LIGHT(obj)->rangeBits);
-            bio_wr_i(f, D3IF_LIGHT(obj)->powerBits);
-            bio_wr_i(f, D3IF_LIGHT(obj)->attenBits);
+            bio_wr_i(f, obj->rangeBits);
+            bio_wr_i(f, obj->powerBits);
+            bio_wr_i(f, obj->attenBits);
             bio_wr_v3(f, &obj->lightColor);
-            bio_wr_v3(f, &D3_X(obj)->pos);
-            bio_wr_v3(f, &D3_X(obj)->rot);
-            bio_wr_i(f, D3O_LIGHT(obj)->flickerBits);
-            bio_wr_i(f, D3O_LIGHT(obj)->interval);
+            bio_wr_v3(f, &obj->pos);
+            bio_wr_v3(f, &obj->rotation);
+            bio_wr_i(f, obj->light->flickerBits);
+            bio_wr_i(f, obj->light->interval);
             for (i = 0; i < 7; i++) {
-                bio_wr_i(f, D3O_LIGHT(obj)->k[i].rangeBits);
-                bio_wr_i(f, D3O_LIGHT(obj)->k[i].intensityBits);
-                bio_wr_i(f, D3O_LIGHT(obj)->k[i].attenBits);
-                bio_wr_v3(f, &D3O_LIGHT(obj)->k[i].color);
-                bio_wr_v3(f, &D3O_LIGHT(obj)->k[i].pos);
-                bio_wr_v3(f, &D3O_LIGHT(obj)->k[i].rot);
-                bio_wr_i(f, D3O_LIGHT(obj)->k[i].flickerBits);
-                bio_wr_i(f, D3O_LIGHT(obj)->k[i].interval);
+                bio_wr_i(f, obj->light->keys[i].rangeBits);
+                bio_wr_i(f, obj->light->keys[i].intensityBits);
+                bio_wr_i(f, obj->light->keys[i].attenBits);
+                bio_wr_v3(f, &obj->light->keys[i].color);
+                bio_wr_v3(f, &obj->light->keys[i].pos);
+                bio_wr_v3(f, &obj->light->keys[i].rot);
+                bio_wr_i(f, obj->light->keys[i].flickerBits);
+                bio_wr_i(f, obj->light->keys[i].interval);
             }
             break;
         default:
@@ -1552,7 +1552,7 @@ void d3_WriteObject(VFSFILE *f, D3OBJECT *obj)
     bio_wr_c(f, c != 0);
     if (c)
         d3_WriteObject(f, c);
-    d3e_SaveEvents(f, (D3EVENT *)D3_X(obj)->events);
+    d3e_SaveEvents(f, obj->events);
 }
 /* 0x44a770, writes the terrain map of the scene */
 
@@ -1586,9 +1586,9 @@ void d3_WriteMap(VFSFILE *f, D3FLMAP *map)
                 bio_wr_c(f, map->regions[i].flags.b[1]);
                 bio_wr_c(f, map->regions[i].flags.b[2] & 1);
                 bio_wr_c(f, map->regions[i].flags.b[2] >> 1 & 1);
-                bio_wr_i(f, ((D3IFREGION *)map->regions)[i].f14.bits);
-                bio_wr_i(f, ((D3IFREGION *)map->regions)[i].scrollSpeedU.bits);
-                bio_wr_i(f, ((D3IFREGION *)map->regions)[i].scrollSpeedV.bits);
+                bio_wr_i(f, map->regions[i].f14Bits);
+                bio_wr_i(f, map->regions[i].scrollSpeedUBits);
+                bio_wr_i(f, map->regions[i].scrollSpeedVBits);
                 bio_wr_v4(f, map->regions[i].speed);
                 bio_wr_v4(f, map->regions[i].amp);
                 bio_wr_i(f, map->regions[i].water);
@@ -1601,8 +1601,8 @@ void d3_WriteMap(VFSFILE *f, D3FLMAP *map)
         bio_wr_array(f, map->size, map->size, map->types);
     for (i = 0; i < 8; i++)
         bio_wr_s(f, map->typenames[i]);
-    bio_wr_i(f, ((D3IFMAP *)map)->scale.bits);
-    bio_wr_i(f, ((D3IFMAP *)map)->hscale.bits);
+    bio_wr_i(f, map->scaleBits);
+    bio_wr_i(f, map->hscaleBits);
     bio_wr_v3(f, &map->orgx);
 }
 /* 0x44a9e0, maps a scene file version (d3_SaveScene writes 0x3a6c00bb) to a format level 0 / 4 / 6 / 7;
@@ -1627,21 +1627,21 @@ void d3_SaveScene(char *name, VFSFILE *f)
     out = f;
     if (f || (out = vfs_Tfopen(name, "wb", vfs_Root))) {
         bio_wr_i(out, 0x3a6c00bb);
-        bio_wr_s(out, (char *)d3if_MegaCam);
-        bio_wr_i(out, ((D3IFBITS *)&d3if_Gray)->bits);
+        bio_wr_s(out, d3if_MegaCam->name);
+        bio_wr_f(out, d3if_Gray);
         bio_wr_v3(out, &d3_AmbientColor);
         bio_wr_v3(out, &d3_SunColor);
         bio_wr_i(out, d3_DefaultScene->mapSize);
         bio_wr_i(out, d3_fog_color.col);
-        bio_wr_i(out, ((D3IFBITS *)&d3_FogStart1)->bits);
-        bio_wr_i(out, ((D3IFBITS *)&d3_FogEnd2)->bits);
+        bio_wr_f(out, d3_FogStart1);
+        bio_wr_f(out, d3_FogEnd2);
         for (k = 0; k < 7; k++) {
             bio_wr_v3(out, &d3if_Levels[k].amb);
             bio_wr_v3(out, &d3if_Levels[k].sun);
             for (i = 0; i < 6; i++) {
                 bio_wr_i(out, d3if_Levels[k].fog[i].col.col);
-                bio_wr_i(out, ((D3IFBITS *)&d3if_Levels[k].fog[i].start)->bits);
-                bio_wr_i(out, ((D3IFBITS *)&d3if_Levels[k].fog[i].end)->bits);
+                bio_wr_f(out, d3if_Levels[k].fog[i].start);
+                bio_wr_f(out, d3if_Levels[k].fog[i].end);
             }
         }
         n = 0;
@@ -1659,9 +1659,8 @@ void d3_SaveScene(char *name, VFSFILE *f)
     }
 }
 
-extern char d3if_ParList[0x31c];
-/* d3if_SceneState0: view of d3_DefaultD3DConfig (tools/data_views.py) */
-/* d3if_SceneState1 is defined in d3_engine.c, right after that block (0x5fb5c4, the same unit) */
+/* d3if_SceneState0 / d3if_SceneState1 are defined in d3_engine.c, after d3_DefaultD3DConfig (0x5fb5c0 /
+   0x5fb5c4, that unit's data) */
 int d3o_LightSet = -1;  /* 0x5fbcfc, the current light set */
 int d3o_FogSet = -1;  /* 0x5fbd00, the current fog set */
 float d3o_FogScale = 1.0f;  /* 0x5fbd04, the factor d3_SetFogSet scales the fog distances by (1 - the fog option %; f3init, cm, menu set it) */
@@ -1669,17 +1668,17 @@ unsigned char d3if_UnreadHead[352] = {0};  /* 0x633758, the start of d3_interfac
                                               0x633751) up to d3if_CamOben: no surviving instruction or pointer reads it,
                                               so it is data of d3_interface functions the linker removed (a unit's .bss
                                               outlives /OPT:REF; layout, extent and type unknown: one unread byte block) */
-int d3if_CamOben = 0;  /* 0x6338b8 */
-int d3if_CamVorne = 0;  /* 0x6338bc */
-int d3if_CamSeite = 0;  /* 0x6338c0 */
-int d3if_MegaCam = 0;  /* 0x6338c4 */
+D3OBJECT *d3if_CamOben = 0;  /* 0x6338b8 */
+D3OBJECT *d3if_CamVorne = 0;  /* 0x6338bc */
+D3OBJECT *d3if_CamSeite = 0;  /* 0x6338c0 */
+D3OBJECT *d3if_MegaCam = 0;  /* 0x6338c4 */
 unsigned char d3if_UnreadMid[275] = {0};  /* 0x6338c8, the unread bytes between d3if_MegaCam and d3if_TexturesEvicted (same
                                               reasoning as d3if_UnreadHead; 8-aligned, the byte after it ends it) */
 unsigned char d3if_TexturesEvicted = 0;  /* 0x6339db */
 unsigned int d3if_SceneSwitches = 0;  /* 0x6339dc, counts the scene switches (an object of its own: 4-aligned after the byte d3if_TexturesEvicted) */
 int d3if_UnreadTail = 0;  /* 0x6339e0, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
-char d3if_ParList[0x31c];  /* 0xfb95e0, the default scene's particle list head node (a D3PARTSYS, 0x31c bytes: d3_ParHead is its next field, +0x318 its prev) */
-int d3if_LastMegaCam;  /* 0xfba944 (own object: d3io_StockDir is a 4-byte pointer) */
+D3PARTSYS d3if_ParList;  /* 0xfb95e0, the default scene's particle list head node (d3_ParHead is its next field) */
+D3OBJECT *d3if_LastMegaCam;  /* 0xfba944 (own object: d3io_StockDir is a 4-byte pointer) */
 D3FOGSET d3if_Fog[6]; /* 0xfba960 */
 D3LIGHTSET d3if_Levels[7]; /* 0xfba9c0 */
 D3MIRROR d3_Mirror;  /* 0xfb9900 (d3_Unkfb9900.. in d3_engine.h) */

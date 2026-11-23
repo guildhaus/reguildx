@@ -72,7 +72,7 @@ D3BGF *d3_FindBGF(char *path, char *name, char *texnames, int ntexsets, int ntex
                 bio_rd_i(f, &m->polys[a].mat);
             } else {
                 bio_rd_c(f, (char *)&cb);
-                if ((char)cb == -1)
+                if ((signed char)cb == -1)
                     m->polys[a].mat = -1;
                 else
                     m->polys[a].mat = cb & 0xff;
@@ -156,7 +156,7 @@ void d3_CalcNormals(D3BGF *m)
     for (i = 0; i < m->npolys; i++) {
         v = m->verts;
         d3_TriNormal((D3VECTOR *)(v + p[i].v[0] * 6), (D3VECTOR *)(v + p[i].v[1] * 6),
-                     (D3VECTOR *)(v + p[i].v[2] * 6), (D3VECTOR4 *)&p[i].n);
+                     (D3VECTOR *)(v + p[i].v[2] * 6), &p[i].n);
     }
     vt = m->vtx;
     for (i = 0; i < m->nverts; i++, vt++) {

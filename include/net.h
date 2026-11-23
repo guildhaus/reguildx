@@ -27,7 +27,12 @@ typedef struct NETCONN {            /* 0x1460ae0 */
 #define NET_TYPES 0x6a
 
 typedef struct NETSTAT {            /* per packet type */
-    unsigned int recvpk, recvbytes, sentpk, sentbytes;
+    union {
+        struct {
+            unsigned int recvpk, recvbytes, sentpk, sentbytes;
+        };
+        unsigned int count[4];      /* the same four by index: net_Count adds to [0] / [1] or [2] / [3] */
+    };
 } NETSTAT;
 
 extern NETCONN net_Conn;                    /* 0x1460ae0 */

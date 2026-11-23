@@ -1,7 +1,6 @@
 /* ls.c -- the save game (0x519010 ..): the tag "ls_" ("ls:tmp" 0x623654, "ls_LoadCharacter(): invalid next or prev-action pointer ...", "ls_SendGame"), the language number of a name (0x519010: the table "GERMAN" .. 0x5ee978), the save game writer 0x5190b0 (header 0x5194c0: "SCENARIO", the player, the party records and the screen shot of 0xe100 bytes, then one writer per subsystem), the pointer <-> index conversions before / after a save (0x519a00 / 0x519aa0 / 0x519b50) and the other writers (0x519bf0 ..), the readers (0x51c950 ..) and the network send / receive of a save game (0x520a30 / 0x520b80). The unit starts at its first global 0x62364c (the language number, -1); its strings run to "ls_SendGame" 0x62376c / "rbn" 0x623778, and it ends at 0x520ec0, sv.c's first function. Names are ours.
    unit of rea 8cef7d5b (src/game/ls.c); boundaries in decl/text.dcl */
 struct D3SM;
-struct D3TERRAIN;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +19,6 @@ struct D3TERRAIN;
 
 /* full rebuild: the symbols whose original addresses the code above spells literally */
 extern int gm_TreeNodeCount;
-extern unsigned gm_OwnNameHeads[136];
 #include "cm_types.h"
 extern void main_LoadProgressCallback(int kind, int cur, int total);
 extern int gm_TreeNodeCount;
@@ -450,14 +448,14 @@ int ls_WriteBuildings(VFSFILE *f)
             c = b->type;
             if (c == 0x1e) {
                 for (j = 0; j < 0x40; j++) {
-                    LS_W(&((AIMAPENT *)b->plants)[j].id, 4)
-                    LS_W(&((AIMAPENT *)b->plants)[j].bldId, 4)
-                    LS_W(&((AIMAPENT *)b->plants)[j].x, 1)
-                    LS_W(&((AIMAPENT *)b->plants)[j].z, 1)
-                    LS_W(&((AIMAPENT *)b->plants)[j].type, 2)
-                    LS_W(&((AIMAPENT *)b->plants)[j].fallId, 4)
-                    LS_W(&((AIMAPENT *)b->plants)[j].size, 1)
-                    LS_W(&((AIMAPENT *)b->plants)[j].state, 1)
+                    LS_W(&b->plants[j].id, 4)
+                    LS_W(&b->plants[j].bldId, 4)
+                    LS_W(&b->plants[j].x, 1)
+                    LS_W(&b->plants[j].z, 1)
+                    LS_W(&b->plants[j].type, 2)
+                    LS_W(&b->plants[j].fallId, 4)
+                    LS_W(&b->plants[j].size, 1)
+                    LS_W(&b->plants[j].state, 1)
                 }
             } else if (c == 'H' || c == 'I' || c == 'J') {
                 if (gv_WriteGraveyard(f, b) == 0)
@@ -779,9 +777,9 @@ int ls_WriteSceneRecords(VFSFILE *f)
     for (i = 0; i < CH_QUEUE; i++) {
         a = &ch_Queue[i];
         if (a->type != 0) {
-            a->ch = (CHARACTER *)a->ch->id;
-            a->prev = (CHACTION *)ls_ActionIndex(a->prev);
-            a->next = (CHACTION *)ls_ActionIndex(a->next);
+            a->chIdx = a->ch->id;
+            a->prevIdx = ls_ActionIndex(a->prev);
+            a->nextIdx = ls_ActionIndex(a->next);
         } else {
             memset(a, 0, sizeof(CHACTION));
         }
@@ -790,7 +788,7 @@ int ls_WriteSceneRecords(VFSFILE *f)
         flag = 0;
         memset(&rec, 0, sizeof(rec));
         a = &ch_Queue[i];
-        n = (int)a->ch;
+        n = a->chIdx;
         if (n >= 0 && n < CH_MAX) {
             c = ch_List[n];
             if (mem_IsValid(c) == 0)
@@ -808,16 +806,16 @@ int ls_WriteSceneRecords(VFSFILE *f)
             LS_W(&rec.args[8], 0x20)
             LS_W(rec.u.name, 0xa0)
             LS_W(&rec.stop, 1)
-            LS_W(&rec.prev, 4)
-            LS_W(&rec.next, 4)
+            LS_W(&rec.prevIdx, 4)
+            LS_W(&rec.nextIdx, 4)
         }
     }
     for (i = 0; i < CH_QUEUE; i++) {
         a = &ch_Queue[i];
         if (a->type != 0) {
-            a->ch = ch_List[(int)a->ch];
-            a->prev = ls_ActionAt((int)a->prev);
-            a->next = ls_ActionAt((int)a->next);
+            a->ch = ch_List[a->chIdx];
+            a->prev = ls_ActionAt(a->prevIdx);
+            a->next = ls_ActionAt(a->nextIdx);
         }
     }
     return 1;
@@ -1032,7 +1030,7 @@ int ls_WriteEventTables(VFSFILE *f)
       zero = 0;
       LS_W(&zero, 4)
     }
-    LS_W(&job->u, 0xa0)
+    LS_W(job->tail, 0xa0)
   }
 
   n = 0;
@@ -1150,9 +1148,9 @@ int ls_WriteMessageQueues(VFSFILE *f)
     for (i = 0; i < 0x2000; i++) {
         m = cm_RecvPool[i];
         idx = LS_MSG_INDEX(cm_RecvPool[i].prev, cm_RecvPool);
-        m.prev = (G17MSG *)idx;
+        m.prevIdx = idx;
         idx = LS_MSG_INDEX(cm_RecvPool[i].next, cm_RecvPool);
-        m.next = (G17MSG *)idx;
+        m.nextIdx = idx;
         LS_W(&m, sizeof(G17MSG))
     }
     idx = LS_MSG_INDEX(cm_RecvQueue, cm_RecvPool);
@@ -1162,9 +1160,9 @@ int ls_WriteMessageQueues(VFSFILE *f)
     for (i = 0; i < 0x8000; i++) {
         m = cm_SendRing[i];
         idx = LS_MSG_INDEX(cm_SendRing[i].prev, cm_SendRing);
-        m.prev = (G17MSG *)idx;
+        m.prevIdx = idx;
         idx = LS_MSG_INDEX(cm_SendRing[i].next, cm_SendRing);
-        m.next = (G17MSG *)idx;
+        m.nextIdx = idx;
         LS_W(&m, sizeof(G17MSG))
     }
     idx = LS_MSG_INDEX(cm_SendQueue, cm_SendRing);
@@ -1187,7 +1185,7 @@ int ls_WriteEnvironment(VFSFILE *f)
 {
     int i;
 
-    LS_W((char *)(uintptr_t)&sv_WinterWeather, 4)
+    LS_W(&sv_WinterWeather, 4)
     for (i = 0; i < 24; i++) {
         LS_W(&sv_Weather.clouds[i], 4)
         LS_W(&sv_Weather.storm[i], 4)
@@ -1402,14 +1400,14 @@ int ls_LoadScene(VFSFILE *f)
     d3_LoadScene(0, f, main_LoadProgressCallback);
     d3if_SelectScene(1, 0);
     d3if_SelectScene(0, 0);
-    if (((D3FLMAP *)d3_Terrain)->size == 0x80 || ((D3FLMAP *)d3_Terrain)->size != 0x40)
-        d3_Scenes[0].hmap = d3sm_Create((struct D3TERRAIN *)d3_Terrain, 0x100, 2);
+    if (d3_Terrain->size == 0x80 || d3_Terrain->size != 0x40)
+        d3_Scenes[0].hmap = d3sm_Create(d3_Terrain, 0x100, 2);
     else
-        d3_Scenes[0].hmap = d3sm_Create((struct D3TERRAIN *)d3_Terrain, 0x80, 2);
+        d3_Scenes[0].hmap = d3sm_Create(d3_Terrain, 0x80, 2);
     saved = d3_CurrentScene;
     d3if_SelectScene(0, 0);
     if (d3_Terrain != 0) {
-        ((D3FLMAP *)d3_Terrain)->lod = init_Detail;
+        d3_Terrain->lod = init_Detail;
         d3fl_SetDetail(0x80);
     }
     d3_ForEachObject2(d3_DefaultScene, 0, 0x1c0, (void (*)(D3OBJECT *))ls_HookBuildingCB);
@@ -1514,15 +1512,15 @@ int ls_ReadBuildings(VFSFILE *f)
         if (c == 0x1e) {
             b->plants = mem_Alloc(0x600, "f3g:PlantMap");
             for (j = 0; j < 0x40; j++) {
-                LS_R(&((AIMAPENT *)b->plants)[j].id, 4)
-                LS_R(&((AIMAPENT *)b->plants)[j].bldId, 4)
-                LS_R(&((AIMAPENT *)b->plants)[j].x, 1)
-                LS_R(&((AIMAPENT *)b->plants)[j].z, 1)
-                LS_R(&((AIMAPENT *)b->plants)[j].type, 2)
-                LS_R(&((AIMAPENT *)b->plants)[j].fallId, 4)
-                LS_R(&((AIMAPENT *)b->plants)[j].size, 1)
-                LS_R(&((AIMAPENT *)b->plants)[j].state, 1)
-                ((AIMAPENT *)b->plants)[j].obj = 0;
+                LS_R(&b->plants[j].id, 4)
+                LS_R(&b->plants[j].bldId, 4)
+                LS_R(&b->plants[j].x, 1)
+                LS_R(&b->plants[j].z, 1)
+                LS_R(&b->plants[j].type, 2)
+                LS_R(&b->plants[j].fallId, 4)
+                LS_R(&b->plants[j].size, 1)
+                LS_R(&b->plants[j].state, 1)
+                b->plants[j].obj = 0;
             }
         } else if (c == 'H' || c == 'I' || c == 'J') {
             if (ls_Version >= 0x10047) {
@@ -1722,7 +1720,7 @@ int ls_ReadCharacters(VFSFILE *f)
         if (ls_Version >= 0x10021)
             LS_R(&c->b1c5, 1)
         LS_R(&model, 4)
-        c->scene = (CHARACTER *)model;
+        c->sceneId = model;
         if (ls_Version >= 0x10021)
             LS_R(c->ownName, 0x18)
         if (ls_Version >= 0x10036) {
@@ -1930,26 +1928,26 @@ int ls_ReadSceneRecords(VFSFILE *f)
         LS_R(&type, 1)
         a->type = type;
         LS_R(&a->count, 4)
-        LS_R(&a->ch, 4)
+        LS_R(&a->chIdx, 4)
         LS_R(&a->args[0], 0x20)
         LS_R(&a->args[8], 0x20)
         LS_R(&a->u, 0xa0)
         LS_R(&a->stop, 1)
-        LS_R(&a->prev, 4)
-        LS_R(&a->next, 4)
+        LS_R(&a->prevIdx, 4)
+        LS_R(&a->nextIdx, 4)
         i++;
     } while (i < n);
     for (i = 0; i < CH_QUEUE; i++) {
         a = &ch_Queue[i];
         kind = a->type;
         if (kind != 0) {
-            a->ch = ch_List[(int)a->ch];
+            a->ch = ch_List[a->chIdx];
             if (a->ch == 0) {
                 memset(a, 0, sizeof(CHACTION));
                 continue;
             }
-            a->prev = ls_ActionAt((int)a->prev);
-            a->next = ls_ActionAt((int)a->next);
+            a->prev = ls_ActionAt(a->prevIdx);
+            a->next = ls_ActionAt(a->nextIdx);
             a->func = ch_ActDefs[kind].func;
             a->count = 0;
             if (a->prev == 0) {
@@ -1978,7 +1976,7 @@ int ls_ReadSceneRecords(VFSFILE *f)
                 a->u.walk.path = 0;
             }
         }
-        if ((int)a->prev == -1 || (int)a->next == -1) {
+        if (a->prevIdx == -1 || a->nextIdx == -1) {
             sprintf(file, "ls_LoadCharacter(): invalid next or prev-action pointer for action-type:%i", a->type);
             a->prev = 0;
             a->next = 0;
@@ -2225,7 +2223,7 @@ int ls_ReadEventTables(VFSFILE *f)
                 LS_R(&rec->u, size2)
                 rec->idbc = -1;
                 if (rec->stage == 6)
-                    ((char *)rec)[0xd0] = 0;
+                    rec->constructPlacing = 0;
             } else {
                 LS_R(&rec->u, size2)
             }
@@ -2338,8 +2336,8 @@ int ls_ReadMessageQueues(VFSFILE *f)
 
     for (i = 0; i < 0x2000; i++) {
         LS_R(&cm_RecvPool[i], sizeof(G17MSG))
-        LS_MSG_SET(cm_RecvPool[i].prev, cm_RecvPool[i].prev, cm_RecvPool)
-        LS_MSG_SET(cm_RecvPool[i].next, cm_RecvPool[i].next, cm_RecvPool)
+        LS_MSG_SET(cm_RecvPool[i].prev, cm_RecvPool[i].prevIdx, cm_RecvPool)
+        LS_MSG_SET(cm_RecvPool[i].next, cm_RecvPool[i].nextIdx, cm_RecvPool)
     }
     LS_R(&n, 4)
     LS_MSG_SET(cm_RecvQueue, n, cm_RecvPool)
@@ -2353,8 +2351,8 @@ int ls_ReadMessageQueues(VFSFILE *f)
     }
     for (i = 0; i < n; i++) {
         LS_R(&cm_SendRing[i], sizeof(G17MSG))
-        LS_MSG_SET(cm_SendRing[i].prev, cm_SendRing[i].prev, cm_SendRing)
-        LS_MSG_SET(cm_SendRing[i].next, cm_SendRing[i].next, cm_SendRing)
+        LS_MSG_SET(cm_SendRing[i].prev, cm_SendRing[i].prevIdx, cm_SendRing)
+        LS_MSG_SET(cm_SendRing[i].next, cm_SendRing[i].nextIdx, cm_SendRing)
     }
     LS_R(&n, 4)
     LS_MSG_SET(cm_SendQueue, n, cm_SendRing)

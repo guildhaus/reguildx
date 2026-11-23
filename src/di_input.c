@@ -76,7 +76,7 @@ int kb_BuildMap(void)
 }
 /* 0x410560, keyboard scan code of a character with the shift / ctrl / alt modifiers; the numpad scan codes map to the main row ('0'..'9', '-' 0x2d, '+' 0x2b), 0 when no key matches */
 
-unsigned char kb_FindKey(int shift, int ctrl, int alt, char code)
+unsigned char kb_FindKey(int shift, int ctrl, int alt, signed char code)
 {
     unsigned int v = code;
     int i;

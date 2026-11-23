@@ -216,8 +216,8 @@ void veg_LoadModel(G15PLANT *q, int fall)
     G15TREE *t;
     int n;
     D3OBJECT *o;
-    D3TERRAIN *tr;
-    float pos[3];
+    D3FLMAP *tr;
+    D3VECTOR pos;
     char path[0x100];
     char buf[0x100];
 
@@ -245,19 +245,19 @@ void veg_LoadModel(G15PLANT *q, int fall)
     o->mask = 1;
     tr = d3_Terrain;
     if (tr != 0) {
-        pos[0] = tr->origin.x;
-        pos[1] = tr->origin.y;
-        pos[2] = tr->origin.z;
-        pos[0] += q->x * tr->axisx.x;
-        pos[1] += q->x * tr->axisx.y;
-        pos[2] += q->x * tr->axisx.z;
-        pos[0] += q->z * tr->axisz.x;
-        pos[1] += q->z * tr->axisz.y;
-        pos[2] += q->z * tr->axisz.z;
-        pos[0] += tr->heights[q->z * tr->size + q->x] * tr->axisy.x;
-        pos[1] += tr->heights[q->z * tr->size + q->x] * tr->axisy.y;
-        pos[2] += tr->heights[q->z * tr->size + q->x] * tr->axisy.z;
-        d3_SetObjectPos(o, pos);
+        pos.x = tr->orgx;
+        pos.y = tr->orgy;
+        pos.z = tr->orgz;
+        pos.x += q->x * tr->scale;
+        pos.y += q->x * tr->xAxisY;
+        pos.z += q->x * tr->xAxisZ;
+        pos.x += q->z * tr->zAxisX;
+        pos.y += q->z * tr->zAxisY;
+        pos.z += q->z * tr->negScale;
+        pos.x += tr->height[q->z * tr->size + q->x] * tr->yAxisX;
+        pos.y += tr->height[q->z * tr->size + q->x] * tr->hscale;
+        pos.z += tr->height[q->z * tr->size + q->x] * tr->yAxisZ;
+        d3_SetObjectPos(o, &pos);
     }
     d3_RelightObjects(o);
 }
@@ -331,16 +331,16 @@ int rd_BuildRoad(struct D3OBJECT *obj, int name)
     int ok;
     char buf[0x40];
 
-    rd_Road.map = (G15MAP *)ai_MapRefs;
+    rd_Road.map = ai_MapRefs;
     if (ai_MapRefs == 0)
         return 0;
-    rd_Road.grid = d3sm_Create((struct D3TERRAIN *)ai_MapRefs, ((G15MAP *)ai_MapRefs)->w, 2);
+    rd_Road.grid = d3sm_Create(ai_MapRefs, ai_MapRefs->size, 2);
     if (rd_Road.grid == 0)
         return 0;
     rd_Road.prunk = -1;
     rd_Road.simple = -1;
     for (i = 0; i < 8; i++) {
-        strcpy(buf, rd_Road.map->ground[i]);
+        strcpy(buf, rd_Road.map->typenames[i]);
         strupr(buf);
         if (strstr(buf, "EINFACHER_WEG"))
             rd_Road.simple = i;
@@ -369,28 +369,28 @@ int rd_BuildRoad(struct D3OBJECT *obj, int name)
         d3sm_Destroy(rd_Road.grid);
         return 0;
     }
-    v.x = rd_Road.map->cw + bk->x0;
+    v.x = rd_Road.map->scale + bk->x0;
     v.y = bk->y0;
-    v.z = rd_Road.map->ch + bk->z0;
+    v.z = rd_Road.map->negScale + bk->z0;
     rd_WorldToCell(&ax, &az, &v.v, f.found, &rd_Road);
-    v.x = bk->x1 - rd_Road.map->cw;
+    v.x = bk->x1 - rd_Road.map->scale;
     v.y = bk->y0;
-    v.z = rd_Road.map->ch + bk->z0;
+    v.z = rd_Road.map->negScale + bk->z0;
     rd_WorldToCell(&bx, &bz, &v.v, f.found, &rd_Road);
     if (!rd_PathToRoad(&rd_Road, (int)ax, (int)az, -1, -1)) {
         d3sm_Destroy(rd_Road.grid);
         return 0;
     }
     memcpy(rd_Road.path2, rd_Road.path, sizeof(rd_Road.path));
-    rd_Road.n2 = rd_Road.n;
+    rd_Road.n2 = rd_Road.out.count;
     if (!rd_PathToRoad(&rd_Road, (int)bx, (int)bz, -1, -1))
         goto fail;
-    if (rd_Road.n2 > rd_Road.n && rd_Road.n2 >= 5) {
+    if (rd_Road.n2 > rd_Road.out.count && rd_Road.n2 >= 5) {
         memcpy(rd_Road.path2, rd_Road.path, sizeof(rd_Road.path));
-        rd_Road.n2 = rd_Road.n;
+        rd_Road.n2 = rd_Road.out.count;
     } else if (rd_Road.n2 < 5) {
         memcpy(rd_Road.path2[rd_Road.n2], rd_Road.path, sizeof(rd_Road.path));
-        rd_Road.n2 += rd_Road.n;
+        rd_Road.n2 += rd_Road.out.count;
     }
     dx = bx - ax;
     dz = bz - az;
@@ -403,7 +403,7 @@ int rd_BuildRoad(struct D3OBJECT *obj, int name)
             rd_Road.path2[rd_Road.n2][0] = (unsigned char)(int)x;
             rd_Road.path2[rd_Road.n2][1] = (unsigned char)(int)z;
             rd_Road.n2++;
-            rd_Road.grid->entries[(int)z * rd_Road.map->w + (int)x].type = 6;
+            rd_Road.grid->entries[(int)z * rd_Road.map->size + (int)x].type = 6;
             x += step;
             z += dz;
         }
@@ -416,7 +416,7 @@ int rd_BuildRoad(struct D3OBJECT *obj, int name)
             rd_Road.path2[rd_Road.n2][0] = (unsigned char)(int)x;
             rd_Road.path2[rd_Road.n2][1] = (unsigned char)(int)z;
             rd_Road.n2++;
-            rd_Road.grid->entries[rd_Road.map->w * (int)z + (int)x].type = 6;
+            rd_Road.grid->entries[rd_Road.map->size * (int)z + (int)x].type = 6;
             x += dx;
             z += step;
         }
@@ -439,23 +439,23 @@ fail:
     d3sm_Destroy(rd_Road.grid);
     if (ai_MapSize >= 0x780) {
         for (i = 0; i < rd_Road.n2; i++)
-            rd_Road.map->cells[rd_Road.path2[i][1] * rd_Road.map->w + rd_Road.path2[i][0]]
+            rd_Road.map->types[rd_Road.path2[i][1] * rd_Road.map->size + rd_Road.path2[i][0]]
                 = (unsigned char)rd_Road.simple;
-        for (i = 0; i < rd_Road.n; i++)
-            rd_Road.map->cells[rd_Road.path[i][1] * rd_Road.map->w + rd_Road.path[i][0]]
+        for (i = 0; i < rd_Road.out.count; i++)
+            rd_Road.map->types[rd_Road.path[i][1] * rd_Road.map->size + rd_Road.path[i][0]]
                 = (unsigned char)rd_Road.simple;
     } else {
         for (i = 0; i < rd_Road.n2; i++) {
             for (j = -1; j < 2; j++) {
                 for (k = -1; k < 2; k++)
-                    rd_Road.map->cells[(rd_Road.path2[i][1] + j) * rd_Road.map->w
+                    rd_Road.map->types[(rd_Road.path2[i][1] + j) * rd_Road.map->size
                         + k + rd_Road.path2[i][0]] = (unsigned char)rd_Road.simple;
             }
         }
-        for (i = 0; i < rd_Road.n; i++) {
+        for (i = 0; i < rd_Road.out.count; i++) {
             for (j = -1; j < 2; j++) {
                 for (k = -1; k < 2; k++)
-                    rd_Road.map->cells[(rd_Road.path[i][1] + j) * rd_Road.map->w
+                    rd_Road.map->types[(rd_Road.path[i][1] + j) * rd_Road.map->size
                         + k + rd_Road.path[i][0]] = (unsigned char)rd_Road.simple;
             }
         }
@@ -517,10 +517,10 @@ int rd_PathToRoad(G15ROAD *r, int x, int z, int tx, int tz)
         }
     }
     if (tx >= 0 && tz >= 0) {
-        r->max = 0x400;
-        r->pts = r->path;
-        r->n = 0;
-        return path_Find(&r->n, r->grid, x, z, tx, tz, 3) != 0xffff;
+        r->out.max = 0x400;
+        r->out.xy = r->path[0];
+        r->out.count = 0;
+        return path_Find(&r->out, r->grid, x, z, tx, tz, 3) != 0xffff;
     }
     return 0;
 }
@@ -612,8 +612,8 @@ void rd_WorldToCell(float *x, float *z, const D3VECTOR *v, D3OBJECT *obj, G15ROA
     D3VECTOR4 w;
 
     d3_LocalToWorld(obj, v, &w.v);
-    *x = (w.x - r->map->x0) / r->map->cw;
-    *z = (w.z - r->map->z0) / r->map->ch;
+    *x = (w.x - r->map->orgx) / r->map->scale;
+    *z = (w.z - r->map->orgz) / r->map->negScale;
 }
 /* 0x4bd760, fills the quad c (four cells x / z) on the town map with ground type v (0xff: not) and on the grid with
    type t (0xff: not), two steps per cell */
@@ -655,9 +655,9 @@ void rd_FillQuad(G15ROAD *r, float *c, unsigned char v, int t)
         fz /= m;
         for (; m > 0; m--) {
             if (v != 0xff)
-                r->map->cells[(int)z * r->map->w + (int)x] = v;
+                r->map->types[(int)z * r->map->size + (int)x] = v;
             if (t != 0xff)
-                r->grid->entries[r->map->w * (int)z + (int)x].type = t;
+                r->grid->entries[r->map->size * (int)z + (int)x].type = t;
             x += fx;
             z += fz;
         }

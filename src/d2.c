@@ -7,7 +7,6 @@
    Open: 0x476b70 (d2_ClearInput) may belong to gfx.c instead; the evidence does not decide, codegen neutral.
    Open: d2.h is not yet the only declaration of d2's functions (K&R copies in menu.c, sv_t.c, cm.h, rt.h and
    others), and it declares vfs_ / err_ functions itself.
-   Open: d2.h views D2WINF / D2PAINTWIN (of D2WIN) are still to be folded into their types.
    unit of rea 8cef7d5b (src/game/d2.c); boundaries in decl/text.dcl */
 #include "txt_views.h"
 #include <stdio.h>
@@ -24,7 +23,7 @@
 #include "dd_vesa.h"
 #include "d2.h"
 #include "shp_bank.h"
-void d2_DrawNothing(int x, int y, void *surf, void *data);  /* unlinked, defined at the end of the unit (an empty body above its callers would let VC6 drop the calls) */
+void d2_DrawNothing(int x, int y, D2SURF *surf, void *data);  /* unlinked, defined at the end of the unit (an empty body above its callers would let VC6 drop the calls) */
 
 #ifdef REA_FRAME_DUMP
 #include "rea_dump.h"           /* debug build: REA_DUMP_TRACE */
@@ -79,16 +78,16 @@ D2FORM2 d2_Forms2[96] = {0};  /* 0x68ce98 */
 D2PIC *d2_Pics = 0;                 /* 0x6ed918 */
 int d2_NPics = 0;                   /* 0x6ed91c */
 int d2_PicBytes = 0;                /* 0x6ed920 */
-void *d2_ScreenSurf = 0;               /* 0x6ed924 */
+D2SURF *d2_ScreenSurf = 0;               /* 0x6ed924 */
 void *d2_FrontSurf = 0;               /* 0x6ed928 */
-void *d2_BackSurf = 0;               /* 0x6ed92c, offscreen surface the layer draws into; blitted to d2_ScreenSurf */
+D2SURF *d2_BackSurf = 0;               /* 0x6ed92c, offscreen surface the layer draws into; blitted to d2_ScreenSurf */
 D2SURF *d2_BackgroundTile = 0;          /* 0x6ed930 */
-char d2_PicBase = 0;                /* 0x6ed934 */
+signed char d2_PicBase = 0;         /* 0x6ed934 */
 int d2_LastWindow = 0;  /* 0x6ed938, window created last */
 int d2_UnreadBss1 = 0;  /* 0x6ed93c, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 int d2_FrameCounter = 0;  /* 0x6ed940, frame counter */
 int d2_UnreadBss2 = 0;  /* 0x6ed944, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
-D2PICHDR *d2_FontPic = 0;        /* 0x6ed948 */
+D2BANK *d2_FontPic = 0;        /* 0x6ed948 */
 int d2_HighestObj = 0;  /* 0x6ed94c, highest object index in use */
 int d2_UnreadBss3 = 0;  /* 0x6ed950, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 int d2_TextSegCount = 0;  /* 0x6ed954, number of text pieces */
@@ -236,7 +235,7 @@ int d2_LoadPic(int idx, char *path)
         fread(d2_Pics[idx].data, d2_Pics[idx].size, 1, d2_File);
         if (d2_Pics[idx].type < 0x10) {
             data = d2_Pics[idx].data;
-            if (d2_PaletteDepth != ((D2PICHDR *)data)->bpp && ((D2PICHDR *)data)->bpp != 0)
+            if (d2_PaletteDepth != ((D2BANK *)data)->kind && ((D2BANK *)data)->kind != 0)
                 d2_Pics[idx].data = d2_BankConvertTo16(data, d2_PaletteDepth, 0);
         }
         d2_PicBytes += d2_Pics[idx].size;
@@ -262,7 +261,7 @@ void d2_Exit(void)
             d2_RemoveWindow(i);
         w += sizeof(D2WIN) / 4;
         i++;
-    } while ((intptr_t)w < (intptr_t)((uintptr_t)&d2_Wins + 0x16c00));
+    } while ((intptr_t)w < (intptr_t)&d2_Wins[0x60].active);
     i = 0;
     do {
         d2_RemoveObj(i);
@@ -336,7 +335,7 @@ void d2_Exit(void)
 }
 /* 0x468c70, draws the saved background back for the shapes of a buffer and removes them */
 
-void d2_RestoreShapes(D2BUF *buf)
+void d2_RestoreShapes(D2VIEW *buf)
 {
     D2SHAPE *s;
     int i;
@@ -345,7 +344,7 @@ void d2_RestoreShapes(D2BUF *buf)
         for (i = 0; i < 0x300; i++) {
             s = &d2_Shapes[i];
             if (s->owner == buf) {
-                d2_BlitPart(s->x, s->y, s->w, s->h, buf->srcSurf, s->x, s->y, buf->dstSurf);
+                d2_BlitPart(s->x, s->y, s->w, s->h, buf->texSurf, s->x, s->y, buf->viewSurf);
                 memset(s, 0, sizeof(D2SHAPE));
             }
         }
@@ -438,11 +437,11 @@ void d2_AddDirty(int x, int y, int w, int h)
 }
 /* 0x468fb0, adds a rectangle (clipped, x made even) to the shapes of a buffer */
 
-void d2_AddShape(int x, int y, int w, int h, D2BUF *buf)
+void d2_AddShape(int x, int y, int w, int h, D2VIEW *buf)
 {
     int i;
 
-    if (buf->active && buf->srcSurf) {
+    if (buf->active && buf->texSurf) {
         if (x > d2_ClipRight)
             x = d2_ClipRight;
         if (x & 1) {
@@ -545,9 +544,9 @@ void d2_DrawFrame(D2INPUT *dlg, void *arg)
 {
     D2OBJ *o = &d2_Objs[dlg->obj];
     void *pic = d2_GetPic(d2_FramePic);
-    D2FRAME *f0 = d2_GetFrame(pic, 0);
-    D2FRAME *f1 = d2_GetFrame(pic, 1);
-    D2FRAME *f3;
+    D2SHP *f0 = d2_GetFrame(pic, 0);
+    D2SHP *f1 = d2_GetFrame(pic, 1);
+    D2SHP *f3;
     int x, y;
     char buf[24];
 
@@ -573,13 +572,13 @@ void d2_DrawFrame(D2INPUT *dlg, void *arg)
 }
 /* 0x4694c0, draws an input field (and the slider-like frame around it) */
 
-void d2_DrawInput(int idx, void *surf)
+void d2_DrawInput(int idx, D2SURF *surf)
 {
     D2INPUT *in = &d2_Inputs[idx];
     D2OBJ *o;
-    D2PICHDR *pic;
-    D2PICHDR *ip;
-    D2FRAME *p0, *p1, *p2;
+    D2BANK *pic;
+    D2BANK *ip;
+    D2SHP *p0, *p1, *p2;
     unsigned int flags;
     int n, v, bw, i, hv, x0, y1, id;
     char text[32];
@@ -916,7 +915,7 @@ int d2_OpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned int f
     int i, cnt;
     int mw, mh;
     D2PIC *ic0, *ic1, *ic3;
-    D2PICHDR *frame;
+    D2BANK *frame;
     D2SURF desc;
 
     obj = d2_NewObject();
@@ -1023,7 +1022,7 @@ int d2_WinOpenSlider(int x, int y, int len, int p4, int p5, int pic, unsigned in
 void d2_DrawSlider(int id, D2SURF *surf)
 {
     D2OBJ *w;
-    D2FRAME *spr0, *spr1, *spr3, *spr6;
+    D2SHP *spr0, *spr1, *spr3, *spr6;
     void *sprites;
     unsigned int flags;
     int len, value, max, min, range, value2;
@@ -1336,7 +1335,7 @@ int d2_WinCreateSlider(int x, int y, int kind, char *caption, int dlg)
    so the order is VC6's reassociation rank, not the text: 36 regroupings of the two expressions
    (parenthesised, negated, commuted), len in two statements (len = w->w - r->w; len -= l->w), a temp for
    w->w - r->w, (int) casts, the 12 declaration orders of l / r / m: all = control. Next: what ranks the
-   operands (a probe on the operand types: D2FRAME.w / D2OBJ.w, or a use of r->w before len). prior: B
+   operands (a probe on the operand types: D2SHP.w / D2OBJ.w, or a use of r->w before len). prior: B
    draft: 222 instructions, 16 differ (26 code hunks) - register allocation / member load order, no meaning
    error. (1) 0x46c039..0x46c059 len = w->w - r->w - l->w: original subtracts l->w first (ecx = [esp+0x40]
    = l, ebx = r), ours r first; source form w->w - l->w - r->w compiles to identical bytes (VC6
@@ -1352,7 +1351,7 @@ int d2_WinCreateSlider(int x, int y, int kind, char *caption, int dlg)
 void d2_DrawButton(int id, D2SURF *surf)
 {
     D2OBJ *w;
-    D2FRAME *l, *r, *m;
+    D2SHP *l, *r, *m;
     unsigned int style;
     void *sprites;
     int len, i;
@@ -1602,7 +1601,7 @@ check:
             d2_PointerObj = id;
             o = &d2_Objs[id];
             if (o->type == 9)
-                if ((char)o->style & 0x10)
+                if ((signed char)o->style & 0x10)
                     d2_ClickedId = 1;
                 else
                     d2_ClickedId = 0;
@@ -1680,9 +1679,9 @@ int d2_OpenPic(short x, short y, int pic)
     D2OBJ *o;
     void *data = 0;
     int real, p;
-    D2PICHDR *set;
+    D2BANK *set;
     D2PICHDR11 *set17;
-    D2FRAME *spr;
+    D2SHP *spr;
 
     if (pic > d2_NPics)
         return -1;
@@ -1710,13 +1709,13 @@ int d2_OpenPic(short x, short y, int pic)
     o->icony = 0;
     switch (o->type) {
     case 1:
-        set = (D2PICHDR *)d2_Objs[n].data;
+        set = (D2BANK *)d2_Objs[n].data;
         o->w = set->w;
         o->h = set->h;
         return n;
     case 4:
         d2_Objs[n].input = d2_StartAnim(x, y, d2_Objs[n].data, 0);
-        set = (D2PICHDR *)d2_Objs[n].data;
+        set = (D2BANK *)d2_Objs[n].data;
         d2_Objs[n].w = set->w;
         d2_Objs[n].h = set->h;
         return n;
@@ -1729,7 +1728,7 @@ int d2_OpenPic(short x, short y, int pic)
     case 5:
     case 8:
         o->input = d2_PicShift;
-        set = (D2PICHDR *)d2_Objs[n].data;
+        set = (D2BANK *)d2_Objs[n].data;
         spr = d2_GetFrame(set, (short)d2_Objs[n].input);
         o->w = spr->w;
         o->h = spr->h;
@@ -1820,10 +1819,10 @@ void d2_MoveObj(short x, short y, int obj)
 void d2_ShowPicture(int pic)
 {
     d2_DrawPic(0, 0, pic, d2_ScreenSurf);
-    d2_BlitPart(0, 0, ((D2SURF *)d2_ScreenSurf)->w, ((D2SURF *)d2_ScreenSurf)->h, d2_ScreenSurf, 0, 0, d2_BackSurf);
+    d2_BlitPart(0, 0, d2_ScreenSurf->w, d2_ScreenSurf->h, d2_ScreenSurf, 0, 0, d2_BackSurf);
     d2_DrawFades();
     dd_Flip();
-    d2_BlitPart(0, 0, ((D2SURF *)d2_ScreenSurf)->w, ((D2SURF *)d2_ScreenSurf)->h, d2_BackSurf, 0, 0, d2_ScreenSurf);
+    d2_BlitPart(0, 0, d2_ScreenSurf->w, d2_ScreenSurf->h, d2_BackSurf, 0, 0, d2_ScreenSurf);
 }
 /* 0x46d040, draws a picture (or a frame of one) at x, y on a surface
    @deep deep s34: the only hunk class is the x / y register pair (original x esi, y edi; ours y esi, x
@@ -1849,7 +1848,7 @@ void d2_DrawPic(x, y, pic, surf)
 int x;
 int y;
 int pic;
-void *surf;
+D2SURF *surf;
 {
     int sel, type, t;
     void *data = 0;
@@ -1965,9 +1964,9 @@ void d2_DrawObjects(void)
 {
     D2OBJ *o, *p;
     D2WIN *win;
-    D2PICHDR *pic;
+    D2BANK *pic;
     void *frame;
-    D2FRAME *part;
+    D2SHP *part;
     unsigned int fx, fy;
     int i, x, y, x0, x1, y0, y1, yy, mode, font, tx, ty, tw, th;
     char buf[64];
@@ -2195,9 +2194,9 @@ void d2_DrawObjects(void)
                         mode |= 4;
                     if (o->u.text[0]) {
                         d2_SetTextColour(o->u.text[1], o->u.text[2], o->u.text[3]);
-                        d2_DrawTextBox(o->x, o->y, o->w, o->h, d2_ScreenSurf, (char *)o->input, mode | 0x40);
+                        d2_DrawTextBox(o->x, o->y, o->w, o->h, d2_ScreenSurf, o->text, mode | 0x40);
                     } else
-                        d2_DrawTextBox(o->x, o->y, o->w, o->h, d2_ScreenSurf, (char *)o->input, mode);
+                        d2_DrawTextBox(o->x, o->y, o->w, o->h, d2_ScreenSurf, o->text, mode);
                     o->h = (short)d2_TextDrawnH;
                     if (!o->win)
                         d2_AddDirty(o->x, o->y, o->w, o->h);
@@ -2389,7 +2388,7 @@ int d2_HitTest(short x, short y)
                             d2_PointerWin = o->win->id;
                         if (o->type == 9)
                         {
-                            if ((char)o->style & 0x10)
+                            if ((signed char)o->style & 0x10)
                                 return 1;
                             return 0;
                         }
@@ -2422,8 +2421,8 @@ void d2_RemoveObj(int obj)
         return;
     switch (o->type) {
     case 0x43:
-        if (o->input)
-            mem_Free(o->input);
+        if (o->text)
+            mem_Free(o->text);
         break;
     case 4:
         d2_FreeAnim(o->input);
@@ -2468,7 +2467,7 @@ void d2_RemoveObj(int obj)
     }
     if (o->buf) {
         if (o->buf->loaded)
-            d2_AddShape(o->x, o->y, o->w, o->h, (D2BUF *)o->buf);
+            d2_AddShape(o->x, o->y, o->w, o->h, o->buf);
         else
             d2_AddDirty(o->x, o->y, o->w, o->h);
     } else
@@ -2507,8 +2506,8 @@ void d2_ClearScreen(void)
 
 int d2_TextWidth(char *text, int font)
 {
-    D2PICHDR *f;
-    D2FRAME *g;
+    D2BANK *f;
+    D2SHP *g;
     int i, w, len;
     unsigned char c;
     w = 0;
@@ -2548,12 +2547,12 @@ int d2_TextWidth(char *text, int font)
    (the original puts c in x's dead slot [esp+0x5c] and the segment offset in win's [esp+0x50], ours the
    other way round); the start movsx; the SetTextColour byte loads (crossed M8). (tiebreak: not measured
    (dcp headers sample d2_DrawTextLine)) */
-void d2_DrawTextLine(int a, int y, void *surf, int win, char nojustify, int flags, int x, int right)
+void d2_DrawTextLine(int a, int y, D2SURF *surf, int win, char nojustify, int flags, int x, int right)
 {
     D2WIN *w;
     D2OBJ *o;
-    D2FRAME *g;
-    D2PICHDR *gfont;
+    D2SHP *g;
+    D2BANK *gfont;
     int (*draw)(int, int, void *, void *, unsigned char);
     int sw, gap, extra, saved, total, start, glyph, i, j, k, hl, savedflags;
     char skip;
@@ -2675,9 +2674,9 @@ void d2_DrawTextLine(int a, int y, void *surf, int win, char nojustify, int flag
 /* 0x46f000, draws text at (x, y) in the font "_FONT"; flags 4: shadow, 2 and 1: extra passes; '~' is skipped;
    stops at the right screen edge; leaves the size drawn in d2_TextDrawnW / d2_TextDrawnH */
 
-void d2_DrawText(int x, int y, void *surf, char *text, unsigned char flags)
+void d2_DrawText(int x, int y, D2SURF *surf, char *text, unsigned char flags)
 {
-    D2FRAME *g;
+    D2SHP *g;
     unsigned int i;
     int x0;
     unsigned char c;
@@ -2741,11 +2740,11 @@ void d2_SetTextColour(unsigned char a, unsigned char b, unsigned char c)
    epilogue (add esp/pops, no source form), cmp-test lead tried: if (ln > 1) -> if (ln >= 2) gives the
    original cmp reg,2; jl (kept, 586 ->... */
 
-void d2_DrawTextBox(int x, int y, int w, int h, void *surf, char *text, unsigned int flags)
+void d2_DrawTextBox(int x, int y, int w, int h, D2SURF *surf, char *text, unsigned int flags)
 {
     char lines[16][0x60];
     int (*draw)(int, int, void *, void *, unsigned char);
-    D2FRAME *g;
+    D2SHP *g;
     char *sp, *word;
     int right, lw, len, pos, ln, wd, x0, y0, bx, bw, bh, vis, sw, top, yy, k, wl, n, j, i, cx;
     unsigned char c;
@@ -2775,7 +2774,7 @@ void d2_DrawTextBox(int x, int y, int w, int h, void *surf, char *text, unsigned
             bh = h;
             bw = w;
         }
-        if ((char)flags < 0) {
+        if ((signed char)flags < 0) {
             sw = d2_ScreenW;
             if (bx + bw > sw) {
                 bx = sw - bw;
@@ -2973,7 +2972,7 @@ void d2_ScrollWindow(int win)
     }
     if (w->scrollY != w->appliedScrollY || w->scrollX != w->appliedScrollX) {
         f = w->flags;
-        if ((char)f & 8)
+        if ((signed char)f & 8)
             i = 1;
         else
             i = 0;
@@ -3043,7 +3042,7 @@ void d2_LayoutButtons(int win)
    +0x163d the fit-the-text MoveObj). One type-level lead: the original reads d2_ScreenH as a word (mov ax,
    word pt... */
 
-void d2_DrawWindowText(void *surf, int win)
+void d2_DrawWindowText(D2SURF *surf, int win)
 {
     char tmp1[256];
     char tmp2[256];
@@ -3486,7 +3485,7 @@ void d2_DrawWindowText(void *surf, int win)
                             }
                         }
                         w->nlines = w->firstline + nlines;
-                        for (t = ((int)(char)w->flags & 8U) >> 3; t < w->nobjs; t++) {
+                        for (t = ((int)(signed char)w->flags & 8U) >> 3; t < w->nobjs; t++) {
                             o = &d2_Objs[w->objs[t]];
                             while (!o->hidden && width + cm_PickCellX > o->x) {
                                 id = o->x + o->w;
@@ -3556,11 +3555,11 @@ void d2_DrawWindowText(void *surf, int win)
    d2_NoBackgroundRestore (char, role from its six tests: 1 draws the caption texture without the
    saved-background path; nothing in the sources writes it) forces the alternate path. */
 
-void d2_DrawWindowBackground(D2WIN *w, void *surf)
+void d2_DrawWindowBackground(D2WIN *w, D2SURF *surf)
 {
     int x0, y0, ww, hh;
     void *pic, *fp;
-    D2FRAME *fr;
+    D2SHP *fr;
     D2PIC *p;
     int top, left, c0, c1, c2, c3;
     int i, j, yy, xx, th, tw, rows, cols;
@@ -3650,13 +3649,16 @@ void d2_DrawWindowBackground(D2WIN *w, void *surf)
         d2_BlitPartMode(0, 0, w->surf2->w, w->surf2->h, w->surf2, w->x, w->y, surf, 1);
 }
 
-#define D2WOP(o) ((D2WIN *)((char *)d2_Wins + (o)))   /* window at byte offset o (win * 0x3c4); a pointer, so
-                                                         the original's offset-in-a-register addressing stays */
+/* @original why: d2_CreateScrollButtons computes the window's byte offset once, before its first test, and
+   addresses every field as [o + d2_Wins.field]; the index form d2_Wins[win] sinks the offset into the branch and
+   recomputes it (draft), a D2WIN * at the top adds the base (shape). o is win * sizeof(D2WIN), so the macro is
+   the window, not a layout offset. */
+#define D2WOP(o) ((D2WIN *)((char *)d2_Wins + (o)))
 
 /* 0x471a90, draws a window: its objects, scroll buttons, background and frame */
 void d2_DrawWindow(win, surf)
 int win;
-void *surf;
+D2SURF *surf;
 {
     int saved;
     D2WIN *w = &d2_Wins[win];
@@ -3806,9 +3808,8 @@ int win;
     }
 }
 /* 0x472270, creates the two scroll buttons of a window. The body reaches the window through D2WOP(o), the
-   window at the byte offset o = win * 0x3c4: the original computes the address as lea/shl from the byte
-   offset, so the offset form is what the bytes need (the index form d2_Wins[win] loses the match:
-   238/304 bytes differ). */
+   window at the byte offset o = win * sizeof(D2WIN) computed once at the top (see D2WOP; the index form
+   d2_Wins[win] is draft, a D2WIN * shape). */
 
 void d2_CreateScrollButtons(x, y, win, obj, pic)
 int x;
@@ -3818,7 +3819,7 @@ int obj;
 int pic;
 {
     int i;
-    int o = win * 0x3c4;
+    int o = win * sizeof(D2WIN);
 
     if (x == -1 && y == -1) {
         x = D2WOP(o)->w - 0x20;
@@ -3855,7 +3856,7 @@ int pic;
    early return 0, the window object (type 0x40, clip rectangle, data), the -1 / 0 / 1 initialisations,
    objs / text allocation and the scroll marker pictures all correspond. Fixed: h is a short (the
    original's movsx ecx, dx for contentHeight = h and the desc sizes); menu.c's caller keeps the original's
-   int pushes through a cast macro (@original, byte-matched ai_CreditsScreen). Left is allocation: the
+   int pushes through the K&R declaration (byte-matched ai_CreditsScreen). Left is allocation: the
    original keeps flags in ebx for the whole function (test bl / test bh, the final test bl, 8 without a
    reload) and materialises -1 per use (or eax,-1), ours caches -1 in ebx (or ebx,-1 at the found test, mov
    [esi+0x388], ebx ...) and holds flags in ecx, reloading its low byte at the end (mov bl, [esp+0x6c]);
@@ -3868,7 +3869,7 @@ unsigned int flags;
     D2SURF desc;
     int i, j, ob;
     D2WIN *win;
-    void *surf;
+    D2SURF *surf;
 
     d2_WindowsOpen++;
     if (d2_WindowsOpen > 0x60)
@@ -3976,31 +3977,30 @@ unsigned int flags;
     d2_LastWindow = i;
     return i;
 }
-/* 0x472760, scrolls the content of a window. The body reads/writes the window through D2WOP(o), the window
-   at the byte offset o = win * 0x3c4, eleven times - that form is what the bytes need (the index form
-   D2WOP(o) -> d2_Wins[win] costs 19/160 bytes); one access, d2_Wins[win].scrollRemY += t, is the index form
-   and is kept for the same reason (comment in the body). */
+/* 0x472760, scrolls the content of a window. The body reads/writes the window through w = &d2_Wins[win] (the
+   index form d2_Wins[win] everywhere is shape); one access, d2_Wins[win].scrollRemY += t, is the index form
+   (comment in the body). */
 
 void d2_ScrollWindowBy(a, b, win)
 int a;
 int b;
 int win;
 {
-    int o = win * 0x3c4;
+    D2WIN *w = &d2_Wins[win];
     int t;
 
-    if (D2WOP(o)->scrollY + D2WOP(o)->scrollRemY > 0 && b < 0) {
-        t = -(D2WOP(o)->scrollY + D2WOP(o)->scrollRemY);
+    if (w->scrollY + w->scrollRemY > 0 && b < 0) {
+        t = -(w->scrollY + w->scrollRemY);
         if (b > t)
             t = b;
-        D2WOP(o)->scrollRemY = t;
-    } else if (D2WOP(o)->h + D2WOP(o)->scrollY + D2WOP(o)->scrollRemY < D2WOP(o)->contentHeight && b > 0) {
-        t = D2WOP(o)->contentHeight - D2WOP(o)->h - D2WOP(o)->scrollY - D2WOP(o)->scrollRemY;
+        w->scrollRemY = t;
+    } else if (w->h + w->scrollY + w->scrollRemY < w->contentHeight && b > 0) {
+        t = w->contentHeight - w->h - w->scrollY - w->scrollRemY;
         if (b < t)
             t = b;
         d2_Wins[win].scrollRemY += t;     /* the index form: no reuse of the loaded scrollRemY, add [mem] */
     }
-    D2WOP(o)->scrollRemX += a;
+    w->scrollRemX += a;
 }
 /* 0x472800, resizes a window (grows in height so that all objects fit) */
 
@@ -4010,7 +4010,8 @@ void d2_ResizeWindow(short w, short h, int win)
     int delta, dw, i;
     D2SURF desc;
     D2OBJ *o;
-    void *ns, *old;
+    void *ns;
+    D2SURF *old;
 
     if (wn->active) {
         dw = w - wn->w;
@@ -4034,7 +4035,7 @@ void d2_ResizeWindow(short w, short h, int win)
             desc.h = h;
             ns = d2_MakeSurface(&desc, 0xb);
             old = wn->surf2;
-            d2_BlitPart(0, 0, ((int *)old)[1], ((int *)old)[2], old, 0, 0, ns);
+            d2_BlitPart(0, 0, old->w, old->h, old, 0, 0, ns);
             d2_FreeSurface(wn->surf2);
             wn->surf2 = ns;
         }
@@ -4365,7 +4366,7 @@ int d2_WinOpenPicStyled(short x, short y, int pic, int win, int a)
 void d2_SetObjText(int obj, char *text)
 {
 
-    strcpy((char *)d2_Objs[obj].input, text);
+    strcpy(d2_Objs[obj].text, text);
     if (d2_Objs[obj].centred == 0 && d2_Objs[obj].rightAligned == 0)
         d2_Objs[obj].w = d2_TextWidth(text, d2_Objs[obj].font);
 }
@@ -4375,7 +4376,7 @@ void d2_SetCaption(int obj, char *text)
 {
     D2OBJ *o = &d2_Objs[obj];
     void *pic;
-    D2FRAME *f0, *f1;
+    D2SHP *f0, *f1;
     int a, b;
 
     if (d2_Objs[obj].type == 9) {
@@ -4410,10 +4411,10 @@ int d2_CreateWinText(short x, short y, char *text, int win)
         return -1;
     }
     obj = d2_NewObject();
-    d2_Objs[obj].input = (int)mem_Alloc(0x101, "d2:ShowTxt");
-    if ((char *)d2_Objs[obj].input == 0)
+    d2_Objs[obj].text = mem_Alloc(0x101, "d2:ShowTxt");
+    if (d2_Objs[obj].text == 0)
         return -1;
-    strcpy((char *)d2_Objs[obj].input, text);
+    strcpy(d2_Objs[obj].text, text);
     if (w->font != 0)
         d2_Objs[obj].font = w->font;
     else
@@ -4445,10 +4446,10 @@ int d2_CreateScreenText(short x, short y, char *text)
     short tw;
 
     obj = d2_NewObject();
-    d2_Objs[obj].input = (int)mem_Alloc(0x101, "d2:ShowTxt");
-    if ((char *)d2_Objs[obj].input == 0)
+    d2_Objs[obj].text = mem_Alloc(0x101, "d2:ShowTxt");
+    if (d2_Objs[obj].text == 0)
         return -1;
-    strcpy((char *)d2_Objs[obj].input, text);
+    strcpy(d2_Objs[obj].text, text);
     d2_Objs[obj].font = d2_DefaultFont;
     d2_Objs[obj].type = 0x43;
     d2_Objs[obj].x = x;
@@ -4688,7 +4689,7 @@ int d2_OpenForm(short x, short y, char *name)
     unsigned char fl;
     void *f;
     int n, ver, view, i, k, win, pw, o, pic, idx, parent;
-    D2WINF *ww, *pww;
+    D2WIN *ww, *pww;
     D2FORMH *r;
 
     strcpy(buf, name);
@@ -4727,8 +4728,8 @@ int d2_OpenForm(short x, short y, char *name)
             r = &d2_Forms0[i].h;
             parent = d2_Forms0[i].parent;
             if (parent != 0) {
-                pw = ((int *)&d2_Views[view])[parent];
-                pww = (D2WINF *)&d2_Wins[pw];
+                pw = d2_Views[view].wins[parent - 1];
+                pww = &d2_Wins[pw];
             }
             if (parent != 0)
                 win = d2_CreateChildWindow(r->x - pww->x, r->y - pww->y, r->w, r->h, r->flags, pw);
@@ -4737,8 +4738,8 @@ int d2_OpenForm(short x, short y, char *name)
             d2_Views[view].wins[i] = win;
         } else if (ver == 2) {
             if (d2_Forms2[i].parent != 0) {
-                pw = ((int *)&d2_Views[view])[d2_Forms2[i].parent];
-                pww = (D2WINF *)&d2_Wins[pw];
+                pw = d2_Views[view].wins[d2_Forms2[i].parent - 1];
+                pww = &d2_Wins[pw];
                 win = d2_CreateChildWindow(r->x - pww->x, r->y - pww->y, r->w, r->h, r->flags, pw);
             } else
                 win = d2_CreateWindow(r->x, r->y, r->w, r->h, r->flags);
@@ -4746,11 +4747,11 @@ int d2_OpenForm(short x, short y, char *name)
             if (d2_Forms2[i].bg[0] != 0)
                 d2_SetBackgroundTexture(d2_Forms2[i].bg, d2_LastWindow);
             if ((d2_Wins[d2_LastWindow].flags & 1) && d2_Forms2[i].alpha == 0.0f)
-                ((D2WINF *)&d2_Wins[d2_LastWindow])->alpha = 0x3f266666;
+                d2_Wins[d2_LastWindow].alpha = 0.65f;
             else
-                ((D2WINF *)&d2_Wins[d2_LastWindow])->alpha = d2_Forms2[i].alphaBits;
+                d2_Wins[d2_LastWindow].alpha = d2_Forms2[i].alpha;
         }
-        ww = (D2WINF *)&d2_Wins[d2_Views[view].wins[i]];
+        ww = &d2_Wins[d2_Views[view].wins[i]];
         if (ver == 2) {
             char *fn = d2_Forms2[i].font;
 
@@ -4758,13 +4759,13 @@ int d2_OpenForm(short x, short y, char *name)
                 fn = "_FONT";
             ww->font = d2_FindPic(fn);
             if (d2_Forms2[i].pic[0] != 0) {
-                ww->pic = d2_FindPic(d2_Forms2[i].pic);
-                d2_AddRefcount(ww->pic);
+                ww->bgpic = d2_FindPic(d2_Forms2[i].pic);
+                d2_AddRefcount(ww->bgpic);
             }
-            ww->m[0] = d2_Forms2[i].m[0];
-            ww->m[1] = d2_Forms2[i].m[1];
-            ww->m[3] = d2_Forms2[i].m[3];
-            ww->m[2] = d2_Forms2[i].m[2];
+            ww->ml = d2_Forms2[i].m[0];
+            ww->mr = d2_Forms2[i].m[1];
+            ww->mb = d2_Forms2[i].m[3];
+            ww->mt = d2_Forms2[i].m[2];
             if (ww->flags & 4) {
                 idx = d2_FindPic(d2_Forms2[i].frame);
                 ww->frame = idx;
@@ -4773,7 +4774,7 @@ int d2_OpenForm(short x, short y, char *name)
             }
         }
         k = 0;
-        d2_Objs[ww->parent].buf = (D2CTRL *)&d2_Views[view];
+        d2_Objs[ww->parent].buf = &d2_Views[view];
         win = d2_Views[view].wins[i];
         d2_Views[view].nwins++;
         for (k = 0; k < r->n; k++) {
@@ -4787,7 +4788,7 @@ int d2_OpenForm(short x, short y, char *name)
                     d2_Objs[o].checkable = 0;
                     d2_Objs[o].interactive = 1;
                 }
-                d2_Objs[o].buf = (D2CTRL *)&d2_Views[view];
+                d2_Objs[o].buf = &d2_Views[view];
             }
             if (r->type[k] == 0x43) {
                 if (strcmp(r->name[k], "") != 0) {
@@ -4795,43 +4796,43 @@ int d2_OpenForm(short x, short y, char *name)
                     if (idx != -1) {
                         o = d2_CreateWinText(r->ix[k], r->iy[k], txt_Ptrs[idx], win);
                         d2_Objs[o].pic = txt_FindKey(r->name[k]);
-                        d2_Objs[o].buf = (D2CTRL *)&d2_Views[view];
+                        d2_Objs[o].buf = &d2_Views[view];
                     }
                     continue;
                 }
             }
             if (r->type[k] == 0x41) {
                 fl = (unsigned char)r->kind[k];
-                o = d2_WinOpenInput(r->ix[k], r->iy[k], ((unsigned char *)&r->kind[k])[1],
-                                    ((unsigned char *)&r->kind[k])[2], fl, win);
+                o = d2_WinOpenInput(r->ix[k], r->iy[k], r->input[k].w,
+                                    r->input[k].h, fl, win);
             } else if (r->type[k] == 0x45) {
                 fl = (unsigned char)r->kind[k];
                 o = d2_WinOpenSlider(r->ix[k], r->iy[k], d2_Forms2[i].slen[k], 0, 100, d2_FindPic(r->name[k]), fl, win);
             } else
                 continue;
-            d2_Objs[o].buf = (D2CTRL *)&d2_Views[view];
+            d2_Objs[o].buf = &d2_Views[view];
         }
         if (r->key[0] == 0)
-            ((int *)ww)[0x90] = -1;
+            ww->keyidx = -1;
         else {
             idx = txt_FindKey(r->key);
             if (idx != -1)
                 strcpy(ww->text, txt_Ptrs[idx]);
-            ((int *)ww)[0x90] = idx;
+            ww->keyidx = idx;
         }
         if (ver == 0) {
             short fnt;
 
-            ww->m[1] = d2_Forms0[i].m[1];
-            ww->m[0] = d2_Forms0[i].m[0];
-            ww->m[2] = d2_Forms0[i].m[2];
+            ww->mr = d2_Forms0[i].m[1];
+            ww->ml = d2_Forms0[i].m[0];
+            ww->mt = d2_Forms0[i].m[2];
             fnt = (short)d2_Forms0[i].font;
-            ww->m[3] = d2_Forms0[i].m[3];
+            ww->mb = d2_Forms0[i].m[3];
             if (fnt == 0)
                 fnt = d2_FindPic("_FONT");
             ww->font = fnt;
             if (d2_Forms0[i].bgpic > 0)
-                ww->pic = d2_Forms0[i].bgpic;
+                ww->bgpic = d2_Forms0[i].bgpic;
         }
     }
     d2_Views[view].active = 1;
@@ -4841,7 +4842,7 @@ int d2_OpenForm(short x, short y, char *name)
     d2_CurrentView = view;
     d2_FullFormPath = 0;
     strcpy(d2_Views[view].pad22c, name);
-    ww = (D2WINF *)&d2_Wins[d2_Views[view].wins[0]];
+    ww = &d2_Wins[d2_Views[view].wins[0]];
     if (x != 0 && y != 0)
         d2_MoveObj(x, y, ww->parent);
     if (d2_ScreenW < ww->x + ww->w)
@@ -4871,11 +4872,11 @@ int d2_LoadView(int x, int y, char *name)
     memset(&desc, 0, sizeof(desc));
     desc.w = w->w;
     desc.h = w->h;
-    v->viewSurf = (int)d2_MakeSurface(&desc, 3);
+    v->viewSurf = d2_MakeSurface(&desc, 3);
     memset(&desc, 0, sizeof(desc));
     desc.w = w->w;
     desc.h = w->h;
-    v->texSurf = (int)d2_MakeSurface(&desc, 3);
+    v->texSurf = d2_MakeSurface(&desc, 3);
     return view;
     }
     return 0;
@@ -4921,9 +4922,9 @@ void d2_ClearViewTextures(int view)
                 unsigned int sz = t->size;
 
                 if (i == 0)
-                    d2_BlitPartToDD(0, i, sz, sz, (void *)v->texSurf, 0, 0, t->surf);
+                    d2_BlitPartToDD(0, i, sz, sz, v->texSurf, 0, 0, t->surf);
                 else
-                    d2_BlitPartToDD(0, sz, sz, sz, (void *)v->texSurf, 0, 0, t->surf);
+                    d2_BlitPartToDD(0, sz, sz, sz, v->texSurf, 0, 0, t->surf);
             }
         }
     }
@@ -4952,7 +4953,7 @@ void d2_FillViewTextures(int view, char *tex1, char *tex2)
         t1 = tex_Find(tex1);
         if (t1 != 0) {
             tex_SetHiColor(t1, 1);
-            d2_BlitPartFromDD(0, 0, t1->size, t1->size, t1->surf, 0, 0, (void *)v->texSurf);
+            d2_BlitPartFromDD(0, 0, t1->size, t1->size, t1->surf, 0, 0, v->texSurf);
         }
     }
     if (tex2 != 0) {
@@ -4966,12 +4967,12 @@ void d2_FillViewTextures(int view, char *tex1, char *tex2)
         t2 = tex_Find(tex2);
         if (t2 != 0) {
             tex_SetHiColor(t2, 1);
-            d2_BlitPartFromDD(0, 0, t2->size, ((D2SURF *)v->texSurf)->h - t1->size, t2->surf, 0, t1->size,
-                         (void *)v->texSurf);
+            d2_BlitPartFromDD(0, 0, t2->size, v->texSurf->h - t1->size, t2->surf, 0, t1->size,
+                         v->texSurf);
         }
     }
-    d2_BlitPart(0, 0, ((D2SURF *)v->viewSurf)->w, ((D2SURF *)v->viewSurf)->h, (void *)v->texSurf, 0, 0,
-                 (void *)v->viewSurf);
+    d2_BlitPart(0, 0, v->viewSurf->w, v->viewSurf->h, v->texSurf, 0, 0,
+                 v->viewSurf);
 }
 /* 0x474e80, draws the windows of a view onto its image and copies the image onto the textures */
 
@@ -4981,13 +4982,13 @@ void d2_RedrawView(int view)
     D2OBJ *o;
     D2WIN *w;
     TSTEXTURE *t;
-    void *surf;
+    D2SURF *surf;
     int i, j, x, y, tx, ty, tw, th;
     unsigned int mode;
 
     if (v->active != 0 && v->loaded != 0) {
-        d2_RestoreShapes((D2BUF *)v);
-        surf = (void *)v->viewSurf;
+        d2_RestoreShapes(v);
+        surf = v->viewSurf;
         d2_LockSurface(surf);
         for (i = 0; i < v->nwins; i++) {
             int win = v->wins[i];
@@ -4995,7 +4996,7 @@ void d2_RedrawView(int view)
             w = &d2_Wins[win];
             d2_DrawWindow(win, surf);
             if (d2_Objs[w->parent].win == 0)
-                d2_AddShape(w->x - v->viewX, w->y - v->viewY, w->w, w->h, (D2BUF *)v);
+                d2_AddShape(w->x - v->viewX, w->y - v->viewY, w->w, w->h, v);
             for (j = 0; j < w->nobjs; j++) {
                 o = &d2_Objs[w->objs[j]];
                 x = o->x - v->viewX;
@@ -5008,7 +5009,7 @@ void d2_RedrawView(int view)
                         if (o->highlighted != 0)
                             d2_DrawShapeMode3(x, y, surf, o->data, 0);
                         if (o->win == 0)
-                            d2_AddShape(x, y, d2_ShpW, d2_ShpH, (D2BUF *)v);
+                            d2_AddShape(x, y, d2_ShpW, d2_ShpH, v);
                         break;
                     case 0x11:
                         if (o->drawFrames > 0 && d2_NoBackgroundRestore != 1)
@@ -5017,7 +5018,7 @@ void d2_RedrawView(int view)
                     case 4:
                         d2_DrawAnim(o->input, surf);
                         if (o->win == 0)
-                            d2_AddShape(x, y, d2_ShpW, d2_ShpH, (D2BUF *)v);
+                            d2_AddShape(x, y, d2_ShpW, d2_ShpH, v);
                         break;
                     case 5:
                     case 8:
@@ -5035,9 +5036,9 @@ void d2_RedrawView(int view)
                             d2_DrawShapeMode3(x, y, surf, o->data, (char)o->input);
                         if (o->win == 0) {
                             if (o->textShadow != 0)
-                                d2_AddShape(x, y, d2_ShpW + 8, d2_ShpH + 8, (D2BUF *)v);
+                                d2_AddShape(x, y, d2_ShpW + 8, d2_ShpH + 8, v);
                             else
-                                d2_AddShape(x, y, d2_ShpW, d2_ShpH, (D2BUF *)v);
+                                d2_AddShape(x, y, d2_ShpW, d2_ShpH, v);
                         }
                         if (o->u.text[0] != 0) {
                             int ex, ey;
@@ -5085,7 +5086,7 @@ void d2_RedrawView(int view)
                                 mode = 1;
                             if (o->centred != 0)
                                 mode |= 8;
-                            d2_DrawTextBox(o->x, o->y, o->w, o->h, surf, (char *)o->input, mode);
+                            d2_DrawTextBox(o->x, o->y, o->w, o->h, surf, o->text, mode);
                             d2_SetFont(font);
                         }
                         break;
@@ -5093,10 +5094,10 @@ void d2_RedrawView(int view)
                         d2_SetClipRect(o->clipx0, o->clipy0, o->clipx1, o->clipy1);
                         if (o->win != 0)
                             d2_SetSurfaceClip(o->clipx0, o->clipy0, o->win->w, o->win->h, surf);
-                        d2_DrawSlider(o->id, (D2SURF *)surf);
+                        d2_DrawSlider(o->id, surf);
                         if (o->win == 0)
-                            d2_AddShape(o->x, o->y - 4, o->w, o->h + 8, (D2BUF *)v);
-                        d2_SetSurfaceClip(0, 0, ((D2SURF *)surf)->w, ((D2SURF *)surf)->h, surf);
+                            d2_AddShape(o->x, o->y - 4, o->w, o->h + 8, v);
+                        d2_SetSurfaceClip(0, 0, surf->w, surf->h, surf);
                         break;
                     }
                 }
@@ -5109,7 +5110,7 @@ void d2_RedrawView(int view)
         if (v->tex1[0] != 0) {
             t = tex_Find(v->tex1);
             if (t != 0)
-                d2_BlitPartToDD(0, 0, t->size, t->size, (void *)v->viewSurf, 0, 0, t->surf);
+                d2_BlitPartToDD(0, 0, t->size, t->size, v->viewSurf, 0, 0, t->surf);
         }
         if (v->tex2[0] != 0) {
             TSTEXTURE *t2 = tex_Find(v->tex2);
@@ -5117,7 +5118,7 @@ void d2_RedrawView(int view)
             /* @original reads t->size even when tex1 is empty or not found: t is then
                uninitialized / 0 (the original reloads t's stale stack slot) */
             if (t2 != 0)
-                d2_BlitPartToDD(0, t->size, t2->size, ((D2SURF *)v->viewSurf)->h - t->size, (void *)v->viewSurf, 0, 0,
+                d2_BlitPartToDD(0, t->size, t2->size, v->viewSurf->h - t->size, v->viewSurf, 0, 0,
                              t2->surf);
         }
     }
@@ -5148,7 +5149,7 @@ void d2_SetViewEnabled(int view, int on)
 
     if (v->active) {
         for (i = 0; i < 0x300; i++) {
-            if (d2_Objs[i].type != 0 && d2_Objs[i].buf == (D2CTRL *)v)
+            if (d2_Objs[i].type != 0 && d2_Objs[i].buf == v)
                 d2_EnableObject(i, on);
         }
         v->enabled = on;
@@ -5230,8 +5231,8 @@ void d2_PlaceViewWindows(int view, unsigned char flags)
             d2_PlaceWindow(v->wins[i], flags);
     }
 }
-/* 0x4758f0, closes a view. The view is reached through D2VOP(view * 0x2ac), the original's byte-offset
-   form: the typed index access d2_Views[view] loses the byte match (the offset stays in a register). */
+/* 0x4758f0, closes a view. The active / nwins tests read d2_Views[view] by index, the rest through v (all
+   through v is shape). */
 
 void d2_CloseView(int view)
 {
@@ -5239,14 +5240,14 @@ void d2_CloseView(int view)
     int i;
 
     if (view <= 0x30 || view >= 1) {
-        v = D2VOP(view * 0x2ac);
-        if (D2VOP(view * 0x2ac)->active) {
-            for (i = D2VOP(view * 0x2ac)->nwins - 1; i >= 0; i--)
+        v = &d2_Views[view];
+        if (d2_Views[view].active) {
+            for (i = d2_Views[view].nwins - 1; i >= 0; i--)
                 d2_RemoveWindow(d2_Views[view].wins[i]);
             if (v->viewSurf)
-                d2_FreeSurface((void *)v->viewSurf);
+                d2_FreeSurface(v->viewSurf);
             if (v->texSurf)
-                d2_FreeSurface((void *)v->texSurf);
+                d2_FreeSurface(v->texSurf);
             memset(v, 0, sizeof(D2VIEW));
         }
     }
@@ -5279,22 +5280,22 @@ int d2_GetObjValue(int obj)
 int d2_GetObjPicSize(int obj, int *w, int *h)
 {
     D2OBJ *o;
-    char *p;
+    D2BANK *p;
     int *frameOffsets;
-    D2FRAME *f;
+    D2SHP *f;
 
     if (obj != -1) {
         o = &d2_Objs[obj];
         if (o->type == 1 || o->type == 8 || o->type == 5) {
-            p = (char *)d2_GetPic(o->pic);
+            p = d2_GetPic(o->pic);
             if (p) {
                 if (o->type != 8 && o->type != 5) {
-                    *w = ((D2PICHDR *)p)->w;
-                    *h = ((D2PICHDR *)p)->h;
+                    *w = p->w;
+                    *h = p->h;
                     return 1;
                 }
-                frameOffsets = ((D2BANK *)p)->offs;
-                f = (D2FRAME *)(p + frameOffsets[o->input]);
+                frameOffsets = p->offs;
+                f = (D2SHP *)((char *)p + frameOffsets[o->input]);
                 if (f) {
                     *w = f->w;
                     *h = f->h;
@@ -5502,7 +5503,6 @@ int d2_SetForm(int view, int n)
     return 0;
 }
 
-#define WIN(i) ((D2PAINTWIN *)&d2_Wins[i])
 
 /* 0x475ff0, window i of a view, -1 if out of range */
 int d2_GetViewWin(int view, int i)
@@ -5517,7 +5517,7 @@ void *d2_SetFont(int font)
 {
     if (d2_Pics[font].type != 7)
         return 0;
-    d2_FontPic = (D2PICHDR *)d2_GetPic(font);
+    d2_FontPic = d2_GetPic(font);
     d2_CurrentFont = font;
     d2_FontHeight = d2_FontPic->h;
     if (font == d2_DefaultFont || font == d2_DefaultFont + 2)
@@ -5557,11 +5557,11 @@ void d2_DissolveStep(D2DISSOLVE *d)
                         d->x, d->y, dd_PitchPixels));
 #endif
         if (d->step <= 0xff) {
-            d2_SetBlitParams(((D2SURF *)d2_ScreenSurf)->bits + d->y * dd_PitchPixels + d->x, d->src, d->mask,
+            d2_SetBlitParams(d2_ScreenSurf->bits + d->y * dd_PitchPixels + d->x, d->src, d->mask,
                          (short)d->w, (short)d->h, (short)d->step);
         } else {
             for (i = 0; i < d->h; i++) {
-                dst = ((D2SURF *)d2_ScreenSurf)->bits + (d->y + i) * dd_PitchPixels + d->x;
+                dst = d2_ScreenSurf->bits + (d->y + i) * dd_PitchPixels + d->x;
                 memcpy(dst, (unsigned short *)d->src + d->w * i, d->w * 2);
             }
         }
@@ -5584,47 +5584,47 @@ void d2_DissolveStep(D2DISSOLVE *d)
 
 void d2_Plot(int x, int y, unsigned char r, unsigned char g, unsigned char b)
 {
-    D2PAINTWIN *w = WIN(d2_LastWindow);
+    D2WIN *w = &d2_Wins[d2_LastWindow];
     int pen;
 
     if (w->active == 0)
         return;
-    if (w->paint == 0) {
+    if (w->surf2 == 0) {
         err_Message("d2_Plot:Window is not a paintbox!");
         return;
     }
     pen = d2_PenSize;
     if (x < pen || x > w->w - pen || y < pen || y > w->h - pen)
         return;
-    d2_LockSurface(w->paint);
+    d2_LockSurface(w->surf2);
     switch (d2_PenSize) {
     case 0:
-        d2_PutPixelRGB(x, y, r, g, b, w->paint);
+        d2_PutPixelRGB(x, y, r, g, b, w->surf2);
         break;
     case 1:
-        d2_PutPixelRGB(x - 1, y, r, g, b, w->paint);
-        d2_PutPixelRGB(x + 1, y, r, g, b, w->paint);
-        d2_PutPixelRGB(x, y + 1, r, g, b, w->paint);
-        d2_PutPixelRGB(x, y - 1, r, g, b, w->paint);
-        d2_PutPixelRGB(x, y, r, g, b, w->paint);
+        d2_PutPixelRGB(x - 1, y, r, g, b, w->surf2);
+        d2_PutPixelRGB(x + 1, y, r, g, b, w->surf2);
+        d2_PutPixelRGB(x, y + 1, r, g, b, w->surf2);
+        d2_PutPixelRGB(x, y - 1, r, g, b, w->surf2);
+        d2_PutPixelRGB(x, y, r, g, b, w->surf2);
         break;
     case 2:
-        d2_PutPixelRGB(x - 1, y, r, g, b, w->paint);
-        d2_PutPixelRGB(x + 1, y, r, g, b, w->paint);
-        d2_PutPixelRGB(x - 2, y, r, g, b, w->paint);
-        d2_PutPixelRGB(x + 2, y, r, g, b, w->paint);
-        d2_PutPixelRGB(x, y, r, g, b, w->paint);
-        d2_PutPixelRGB(x, y + 1, r, g, b, w->paint);
-        d2_PutPixelRGB(x, y - 1, r, g, b, w->paint);
-        d2_PutPixelRGB(x, y + 2, r, g, b, w->paint);
-        d2_PutPixelRGB(x, y - 2, r, g, b, w->paint);
-        d2_PutPixelRGB(x + 1, y + 1, r, g, b, w->paint);
-        d2_PutPixelRGB(x - 1, y - 1, r, g, b, w->paint);
-        d2_PutPixelRGB(x - 1, y + 1, r, g, b, w->paint);
-        d2_PutPixelRGB(x + 1, y - 1, r, g, b, w->paint);
+        d2_PutPixelRGB(x - 1, y, r, g, b, w->surf2);
+        d2_PutPixelRGB(x + 1, y, r, g, b, w->surf2);
+        d2_PutPixelRGB(x - 2, y, r, g, b, w->surf2);
+        d2_PutPixelRGB(x + 2, y, r, g, b, w->surf2);
+        d2_PutPixelRGB(x, y, r, g, b, w->surf2);
+        d2_PutPixelRGB(x, y + 1, r, g, b, w->surf2);
+        d2_PutPixelRGB(x, y - 1, r, g, b, w->surf2);
+        d2_PutPixelRGB(x, y + 2, r, g, b, w->surf2);
+        d2_PutPixelRGB(x, y - 2, r, g, b, w->surf2);
+        d2_PutPixelRGB(x + 1, y + 1, r, g, b, w->surf2);
+        d2_PutPixelRGB(x - 1, y - 1, r, g, b, w->surf2);
+        d2_PutPixelRGB(x - 1, y + 1, r, g, b, w->surf2);
+        d2_PutPixelRGB(x + 1, y - 1, r, g, b, w->surf2);
         break;
     }
-    d2_UnlockSurface(w->paint);
+    d2_UnlockSurface(w->surf2);
 }
 /* 0x4764f0, line on the paintbox (Bresenham) */
 void d2_PlotLine(int x0, int y0, int x1, int y1, unsigned char r, unsigned char g, unsigned char b)
@@ -5702,33 +5702,33 @@ void d2_PlotLine(int x0, int y0, int x1, int y1, unsigned char r, unsigned char 
 
 void d2_ClearPaintbox(void)
 {
-    D2PAINTWIN *w = WIN(d2_LastWindow);
+    D2WIN *w = &d2_Wins[d2_LastWindow];
 
     if (w->active == 0) {
         err_Message("d2_ClearPaintbox:Invalidate window!");
         return;
     }
-    if (w->paint == 0) {
+    if (w->surf2 == 0) {
         err_Message("d2_ClearPaintbox:Window has no paintbox!");
         return;
     }
-    d2_ClearSurface(w->paint);
+    d2_ClearSurface(w->surf2);
 }
 /* 0x476760, fills a rectangle of the paintbox of the current window */
 
 void d2_FillPaintbox(int x, int y, int w, int h)
 {
-    D2PAINTWIN *win = WIN(d2_LastWindow);
+    D2WIN *win = &d2_Wins[d2_LastWindow];
 
     if (win->active == 0) {
         err_Message("d2_ClearPaintbox:Invalidate window!");
         return;
     }
-    if (win->paint == 0) {
+    if (win->surf2 == 0) {
         err_Message("d2_ClearPaintbox:Window has no paintbox!");
         return;
     }
-    d2_ClearRect(x, y, w, h, win->paint);
+    d2_ClearRect(x, y, w, h, win->surf2);
 }
 /* 0x4767d0, starts a fade of a sprite over a rectangle; NULL if all 0x20 slots are used */
 
@@ -5854,6 +5854,6 @@ void d2_ClearInput(void)
 
 /* unlinked: an empty function; LINK folds it (/OPT:ICF) into d3io_NoopCallback, 0x44ee40, where the original's
    calls of it for the object type 0x11 in d2_DrawObject / d2_DrawAll (x, y, surface, data) point */
-void d2_DrawNothing(int x, int y, void *surf, void *data)
+void d2_DrawNothing(int x, int y, D2SURF *surf, void *data)
 {
 }

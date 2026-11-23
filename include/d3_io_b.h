@@ -46,52 +46,7 @@ void bgi_NextMat(void *f, BGIRD *c);                                            
 /* 0x44f8c0..0x450858: binary vertex animation stream reader and two chunk-file probes (was unk_44f8c0.h,
    worker anim). d3_io_t.h declares 0x44f8c0 and 0x4506f0 too (by the struct tag). */
 
-typedef struct D3BAVEC {            /* 16-byte vector (D3VECTOR4) */
-    float x, y, z, w;
-} D3BAVEC;
-
-typedef struct D3BAPOINT {
-    float x, y, z;
-} D3BAPOINT;
-
-typedef struct D3BALINK {           /* 0x18 bytes, per frame and link */
-    float a[3];                     /* tag 0x39 */
-    float b[3];                     /* tag 0x3a */
-} D3BALINK;
-
-typedef struct D3BAFRAME {          /* 0xc0 bytes */
-    int time;                       /* 0x00, tag 0x18 */
-    int dt;                         /* 0x04, time to the next frame, * 3 after loading */
-    float min[3];                   /* 0x08, bounding box origin of the packed points */
-    float scale[3];                 /* 0x14, box size / 255 */
-    float pos[3];                   /* 0x20, tag 0x31, relative to frame 0 after loading */
-    float rot[3];                   /* 0x2c */
-    char pad38[0x1c];
-    D3BALINK links[4];              /* 0x54 */
-    unsigned char *packed;          /* 0xb4, 3 bytes per point */
-    int unkb8;
-    D3BAPOINT *points;              /* 0xbc, freed after packing */
-} D3BAFRAME;
-
-typedef struct D3BASTREAM {         /* 0x16c bytes, "tp_veranimstream" */
-    char name[0x40];
-    char links[4][0x40];            /* 0x040, link names (tag 0x38) */
-    int nverts;                     /* 0x140 */
-    int nlinks;                     /* 0x144 */
-    int nframes;                    /* 0x148 */
-    int refs;                       /* 0x14c, D3ANIMDATA.refs (d3_anim.h): d3anim_StartAnim counts the users */
-    int first;                      /* 0x150 */
-    int last;                       /* 0x154 */
-    unsigned int lastuse;           /* 0x158, D3ANIMDATA.lastuse: d3_FrameCount at the last use */
-    D3BAFRAME *frames;              /* 0x15c */
-    struct D3BASTREAM *prev;        /* 0x160, list of the loaded animations */
-    struct D3BASTREAM *next;        /* 0x164 */
-    signed char normals;            /* 0x168, D3ANIMDATA.normals: d3anim_StartAnim sets it once it has calculated the normals */
-    signed char relative;           /* 0x169, points relative to the frame position */
-} D3BASTREAM;
-
-
-D3BASTREAM *d3_LoadBinaryAnimStream(char *path, char *name, char relative);             /* 0x44f8c0 */
+struct D3ANIMDATA; struct D3ANIMDATA *d3_LoadBinaryAnimStream(char *path, char *name, char relative);             /* 0x44f8c0 */
 char d3_BGFCanWeld(char *path);                                                          /* 0x4506f0 */
 VFSFILE *d3_OpenFastChunk(char *path);                                                      /* 0x4507a0 */
 

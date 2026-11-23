@@ -477,7 +477,6 @@ extern int d2_LastWindow;
 extern struct D2OBJ *d2_Objs;
 extern int sv_FrameMask;
 extern unsigned char ai_OwnPlayer;
-extern unsigned gm_OwnNameHeads[136];
 #include "gv_types.h"
 #include "ai_bld.h"                /* AIBLD, AIBTYPE */
 extern GAPDATA full_data_5fe7d0[];
@@ -523,28 +522,8 @@ struct AMTREC;  /* file-scope tag for the prototypes below */
 struct AITIME;  /* f3gm.h typedef; file-scope tag for the gm_AddTime prototype */
 
 
-#define U_I(a) (*(int *)(a))
-#define U_W(a) (*(unsigned short *)(a))
 
 
-#pragma pack(push, 1)
-typedef struct LCFIREEVENT {       /* the fire event 0x3d's word over AIJOB's union (its alloc 0x564860; the jail check
-                                      0x591ad0 reads the burning building here) */
-    char pad00[0xac];
-    int bld;                       /* 0xac, the building that burns, -1 / 0: none */
-} LCFIREEVENT;
-typedef struct LCAMBUSHEVENT {     /* the ambush event 0x48's word over AIJOB's union (he.c HEAMBUSH; ai_BreakInCallback
-                                      looks for one at a place) */
-    char pad00[0xac];
-    char place[0x20];              /* 0xac, the name of the scene object the gang lies in wait at */
-} LCAMBUSHEVENT;
-typedef struct LCSEARCHEVENT {     /* the search event 0x14's words over AIJOB's union (ai_TradeSearchWindow counts them) */
-    char pad00[0xac];
-    unsigned char count;           /* 0xac, how many characters search */
-    char padad;
-    unsigned short good;           /* 0xae, the good searched for */
-} LCSEARCHEVENT;
-#pragma pack(pop)
 
 
 
@@ -663,12 +642,7 @@ int cm_SendLongMessage(struct AIMSG *msg); int cm_EndGroup(const char *s); void 
 char *strupr(char *); void gm_CloseTechTree(void);
 void ai_GameFrame(void);
 void lc_PlayerInJail(void);
-typedef struct LCTREENODE {        /* a node of f3gm's research tree layout gm_TreeNodes (f3gm.c RTNODE, 0x34 bytes) */
-    char pad00[0x24];
-    int obj;                       /* 0x24, the node's button object (RTNODE.l[2]), -1 = none */
-    char pad28[0xc];
-} LCTREENODE;
-extern char gm_TreeNodes[3328];    /* 0x76fde0, LCTREENODE[64] (f3gm.c) */
+extern RTNODE gm_TreeNodes[64];    /* 0x76fde0, f3gmt.c */
 extern int ai_Difficulty;          /* 0x6f23fc, the game difficulty 0 .. 4 (ai.h) */
 int gm_BuildKindObjects(struct AIBLD *b);
 char *itoa(int, char *, int);
@@ -689,7 +663,7 @@ void ai_PamphletWindow(struct AIBLD *bld);
 void ai_FeastWindow(AIBLD *bld, AIOBJ *table); void ai_DenounceWindow(AIBLD *bld);
 struct AICHAR *gm_FindChar(int id);
 int cm_SendRelations(int a, int b, int c, int d); void cm_SendMoneyDelta(int a, int b);
-float gm_TitlePeriodServed(int n, int *out);
+float gm_TitlePeriodServed(int n, struct AITIME *out);
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);
 float gm_AddHealth(unsigned short id, int d); int ai_TutorialOff(); void ai_EvidenceBookWindow(struct AIBLD *bld);
 void d2_CreateScrollButtons(); int d2_RemoveWindowObjects();
@@ -730,7 +704,7 @@ int cm_SendExSellObject(int a, int b, int c, int d, unsigned char e, int f); int
 typedef struct CREDITLISTROW {      /* a row of the credit list window (ai_CreditListWindow) */
     int child;                      /* 0x0, the row's child window (d2_CreateChildWindow), -1: none */
     int pic;                        /* 0x4, its frame picture 0x75a (d2_WinOpenPic), -1: none; the radio group selects it */
-    HELOAN *loan;                   /* 0x8, the loan it shows (gm_CreditEvents) */
+    AIJOB *loan;                   /* 0x8, the loan it shows (gm_CreditEvents) */
 } CREDITLISTROW;
 int gm_SumSlotAmounts(void *list, unsigned char i); int gm_ConvertMoney(int a, unsigned char k); int gm_PlayerFactor(int a, unsigned char k);
 void gm_SortCharsByName(int n, int *ids, int flag); int d2_RemoveWindow();
@@ -771,7 +745,7 @@ int io_PrintText(intptr_t fmt, ...); int gm_ConvertMoney(int a, unsigned char k)
 int cm_SendMoveGoods(int a, int b, unsigned char c, int d); int cm_SendRelations(int a, int b, int c, int d); void txt_Format(char *out, intptr_t id0, ...);
 void d2_CloseView(int view); int _ftol();
 int gv_CulpritGuilt(int c); int gm_GetWorth(unsigned short id);
-int ai_InventoryHas(void *ch, int id); void d2_SetPointerSprite(int a, int pic); 
+int ai_InventoryHas(struct AICHAR *ch, int id); void d2_SetPointerSprite(int a, int pic); 
 int d2_SetForm(int view, int n); int io_PrintText(intptr_t fmt, ...);
 void cm_BeginFieldBlock(void *o, int id); int cm_AddFieldValues(unsigned char size, unsigned char n, unsigned short field, void *v); int cm_SendFieldDeltas(void);
 int gv_RetireCrimesOf(int p, int n); int cm_SendMoveGoods(int a, int b, unsigned char c, int d);
@@ -785,8 +759,6 @@ void cm_SendMoneyDelta(int a, int b);
 int cm_SendObject1b5(int owner, G17B7 value); void *cm_GetSlotValue(int h); int cm_SendGroupState(); int cm_FlushSendQueue();
 int cm_ReceiveMessages(); int cm_ExecCommands(); int cm_SendLongMessage(struct AIMSG *msg);
 char *itoa(int, char *, int);
-#pragma pack(push, 1)
-#pragma pack(pop)
 int amt_GetFirstOffice(unsigned int k, struct AMTREC *out); void cm_BeginGroup(const char *s); int cm_EndGroup(const char *s);
 void snd_PlayFavourComment(void);
 struct AIJOB *he_NextEvent(void);
@@ -795,18 +767,6 @@ void d2_RadioClear(int g); int cm_SendMoveObject(int a, int b, int c); void cm_S
 void d2_CreateScrollButtons(); void d2_ClearInput(void);
 int ai_PickActionBuilding(struct AICHAR *p, int a, __int64 mask, float lo, float hi, int *out);
 void cm_SendMessage5b(int a, int b, int c);
-typedef struct LCKIDNAPEVENT {          /* the kidnap event 0x3c's words over AIJOB's union (he.c HEEV3C, same layout) */
-    char pad00[0xac];
-    int victim;                         /* 0xac, the netId of the victim */
-    int target;                         /* 0xb0, the id of the building the gang goes to for the victim */
-    int guild;                          /* 0xb4, the thieves' guild's id */
-} LCKIDNAPEVENT;
-typedef struct LCRANSOMEVENT {          /* the ransom event 0x3d's words over AIJOB's union (he.c HEEV3D, same layout) */
-    char pad00[0xac];
-    int victim;                         /* 0xac, the netId of the kidnapped character */
-    int guild;                          /* 0xb0, the id of the thieves' guild that holds it */
-    AITIME since;                       /* 0xb4, the time of the kidnap */
-} LCRANSOMEVENT;
 float gm_GetSkill(struct AICHAR *c, int skill);
 void cm_RequestChrMoveToUniverse(int a, int b, int c, const char *s);
 char d3_GetHeightAt(struct D3SM *h, struct D3VECTOR *pos, int *px, int *pz, float *py);
@@ -841,12 +801,6 @@ struct AIBLD *gm_ObjectBuilding(struct AIOBJ *o);
 void d2_RadioSelect(int g, int sel);
 void gm_FreeObject(struct AIOBJ *obj); int gm_LevelPayout(int v, int kind);
 #pragma pack(push, 1)
-typedef struct G8SCENECHAR {            /* the scene character fields this unit reads (ch.h CHARACTER) */
-    char pad00[0x34];
-    D3OBJECT *body;                     /* 0x34, the body (CHARACTER.obj) */
-    char pad38[0xf0];
-    void *actions;                      /* 0x128, the action queue (CHARACTER.actions) */
-} G8SCENECHAR;
 #pragma pack(pop)
 typedef struct LCCARTROW {              /* 0xf0 bytes, a cart row of the transport window (ai_TransportWindow's 16) */
     AIOBJ *cart;                        /* 0x00, the cart, 0: a free row */
@@ -878,7 +832,7 @@ int gv_RankCulpritsAll(int *ids, int *open, int *total, unsigned short t);  /* 0
 void ai_RightAlignedText(char *text, int x, int y, int w, int font);
 int ai_BribeAmountCB(AICHAR *ch, int n);
 int gv_HeldCrimeCount(int culprit, unsigned short t);  /* 0x4f4130, gv.h's prototype (gv.h is not included yet: Open: head) */
-G11REC *hmt_GetRecord(unsigned short k);                    /* 0x4ac1e0, hmt.h's prototypes (hmt.h is not included yet: Open: head) */
+const G11REC *hmt_GetRecord(unsigned short k);                    /* 0x4ac1e0, hmt.h's prototypes (hmt.h is not included yet: Open: head) */
 unsigned short hmt_RecordTextId(unsigned short k, unsigned short n); /* 0x4ac1a0 */
 int hmt_GetPrice(struct AICHAR *p);                         /* 0x4ac200 */
 void hmt_ApplyRecord(struct AICHAR *p, int d, unsigned short k); /* 0x4ac2f0 */
@@ -980,9 +934,6 @@ void ai_LeftAlignedText(char *text, int x, int y, int w, int font)
     d2_Objs[ctrl].w = w;
     d2_SetObjFont(ctrl, font);
 }
-#pragma pack(push, 1)
-
-#pragma pack(pop)
 
 /* 0x5bd250, the pictures and text block of a window row (192 B): with the window set, the gv record (0x4f2720
    fills the AIDEC: one picture per guilt weight unit (+0xc), shown while cur (+0x18) is set) fills the picture page of the row with
@@ -1016,7 +967,7 @@ void ai_ShowWindowRow(AIWINDOWROW *row)
 
 int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win, int form)
 {
-    HELOAN *loans[9];
+    AIJOB *loans[9];
     int n;
     int w;
     int i;
@@ -1036,9 +987,9 @@ int ai_ShowLoanRows(AICHAR *ch, int max, CREDITLISTROW *rows, int win, int form)
         rows[i].loan = loans[i];
         d2_Wins[rows[i].child].font = 0x56;
         d2_Wins[rows[i].child].ml = 0x10;
-        bank = (int)gm_FindBuildingById(((AIJOB *)rows[i].loan)->bldId);
+        bank = (int)gm_FindBuildingById(rows[i].loan->bldId);
         if (bank != 0)
-            io_PrintText(0x1f41, bank, rows[i].loan->amount, rows[i].loan->interest, &rows[i].loan->due);
+            io_PrintText(0x1f41, bank, rows[i].loan->loanAmount, rows[i].loan->loanInterest, &rows[i].loan->loanDue);
     }
     return n;
 }
@@ -1988,16 +1939,6 @@ unsigned int ai_FillLoversTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, A
     }
     return n;
 }
-#pragma pack(push, 1)
-typedef struct LCOFFEREVENT {           /* the wedding offer event 0x2c's words over AIJOB's union (he.c HEOFFER, same
-                                           layout) */
-    char pad00[0xac];
-    int who[6];                         /* 0xac, the characters of the wedding: the suitor, the partner, then four
-                                           guests (the last -1 for none) */
-    char kind;                          /* 0xc4, the offer kind */
-    AITIME clock;                       /* 0xc5, when the wedding takes place */
-} LCOFFEREVENT;
-#pragma pack(pop)
 /* 0x5bf7c0, the fill of the special-amount window's wedding tab (tab 4, 717 B): the weddings (the offer events 0x2c)
    me takes part in whose six characters exist (the last guest may be missing). With max 0 it counts their
    characters (5 or 6 per wedding); else it fills rows with the characters of the soonest such wedding at most 200
@@ -2009,7 +1950,7 @@ unsigned int ai_FillWeddingTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, 
 {
     AICHAR *guests[6];
     int roles[6];
-    LCOFFEREVENT *ev;
+    AIJOB *ev;
     AICHAR *c;
     unsigned int n;
     int j;
@@ -2020,35 +1961,35 @@ unsigned int ai_FillWeddingTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, 
     soonest = 200;
     n = 0;
     if (max == 0) {
-        for (ev = (LCOFFEREVENT *)he_FindEvent(1, 0, 0x2c); ev != 0; ev = (LCOFFEREVENT *)he_NextEvent()) {
+        for (ev = he_FindEvent(1, 0, 0x2c); ev != 0; ev = he_NextEvent()) {
             mine = 0;
-            c = gm_FindChar(ev->who[0]);
+            c = gm_FindChar(ev->offerWho[0]);
             if (c == 0)
                 continue;
             if (c == me)
                 mine = 1;
-            c = gm_FindChar(ev->who[1]);
+            c = gm_FindChar(ev->offerWho[1]);
             if (c == 0)
                 continue;
             if (c == me)
                 mine = 1;
-            c = gm_FindChar(ev->who[2]);
+            c = gm_FindChar(ev->offerWho[2]);
             if (c == 0)
                 continue;
             if (c == me)
                 mine = 1;
-            c = gm_FindChar(ev->who[3]);
+            c = gm_FindChar(ev->offerWho[3]);
             if (c == 0)
                 continue;
             if (c == me)
                 mine = 1;
-            c = gm_FindChar(ev->who[4]);
+            c = gm_FindChar(ev->offerWho[4]);
             if (c == 0)
                 continue;
             k = 5;
             if (c == me)
                 mine = 1;
-            c = gm_FindChar(ev->who[5]);
+            c = gm_FindChar(ev->offerWho[5]);
             if (c != 0) {
                 k = 6;
                 if (c == me)
@@ -2059,41 +2000,41 @@ unsigned int ai_FillWeddingTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, 
         }
         return n;
     }
-    for (ev = (LCOFFEREVENT *)he_FindEvent(1, 0, 0x2c); ev != 0; ev = (LCOFFEREVENT *)he_NextEvent()) {
+    for (ev = he_FindEvent(1, 0, 0x2c); ev != 0; ev = he_NextEvent()) {
         mine = 0;
-        if (ev->clock.year - ai_Time.year > soonest)
+        if (ev->offerAt.clock.year - ai_Time.year > soonest)
             continue;
-        guests[0] = gm_FindChar(ev->who[0]);
+        guests[0] = gm_FindChar(ev->offerWho[0]);
         if (guests[0] == 0)
             continue;
         roles[0] = 0;
         if (guests[0] == me)
             mine = 1;
-        guests[1] = gm_FindChar(ev->who[1]);
+        guests[1] = gm_FindChar(ev->offerWho[1]);
         if (guests[1] == 0)
             continue;
         roles[1] = 1;
         if (guests[1] == me)
             mine = 1;
-        guests[2] = gm_FindChar(ev->who[2]);
+        guests[2] = gm_FindChar(ev->offerWho[2]);
         if (guests[2] == 0)
             continue;
         roles[2] = 2;
         if (guests[2] == me)
             mine = 1;
-        guests[3] = gm_FindChar(ev->who[3]);
+        guests[3] = gm_FindChar(ev->offerWho[3]);
         if (guests[3] == 0)
             continue;
         roles[3] = 3;
         if (guests[3] == me)
             mine = 1;
-        guests[4] = gm_FindChar(ev->who[4]);
+        guests[4] = gm_FindChar(ev->offerWho[4]);
         if (guests[4] == 0)
             continue;
         roles[4] = 3;
         if (guests[4] == me)
             mine = 1;
-        guests[5] = gm_FindChar(ev->who[5]);
+        guests[5] = gm_FindChar(ev->offerWho[5]);
         if (guests[5] != 0) {
             roles[5] = 4;
             if (guests[5] == me)
@@ -2101,12 +2042,12 @@ unsigned int ai_FillWeddingTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows, 
         }
         if (!mine)
             continue;
-        soonest = ev->clock.year - ai_Time.year;
+        soonest = ev->offerAt.clock.year - ai_Time.year;
         for (j = 0, k = 0; j < 6 && j < max; j++) {
             if (guests[j] != 0) {
                 rows[k].rec = guests[j];
                 rows[k].x2c = roles[j];
-                rows[k].x34 = ((AIJOB *)ev)->id;
+                rows[k].x34 = ev->id;
                 ai_AmountRowStatus(&rows[k]);
                 rows[k].pickable = ai_PassesPartnerFilter(me->id, rows[k].rec->id, filter, 0);
                 k++;
@@ -3516,7 +3457,7 @@ void ai_MasterLetterKindWindow(AIBLD *bld)
    for the mode 0x10 the texts 0x1949 / 0x194b and the hire button 0x194d, for 0x20 the two buttons of the text
    0x1938 (hire, close); any other mode closes the window at once. The hire button sends the master hire request
    (AIMSG type 7, hireMaster 1, the room the panel shows or -1 at home) unless a master hire event of the building
-   (he_FindEvent 2, 0, 7, 3, its hireTitle 0) already runs, shows the text 0x1939 (the type's first job) and closes
+   (he_FindEvent 2, 0, 7, 3, its hireJob 0) already runs, shows the text 0x1939 (the type's first job) and closes
    the window; the second button and a right click close it too */
 
 void ai_MasterHireWindow(AIBLD *bld, int mode)
@@ -3557,13 +3498,13 @@ void ai_MasterHireWindow(AIBLD *bld, int mode)
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == hireButton) {
                 for (job = he_FindEvent(2, 0, 7, 3, bld->id); job != 0; job = he_NextEvent())
-                    if (job->hireTitle == 0)
+                    if (job->hireJob == 0)
                         break;
                 if (job == 0) {
                     memset(&msg, 0, sizeof(msg));
                     msg.type = 7;
                     msg.flags = 1;
-                    msg.to = ai_CharInts[ai_PlayerId][0];
+                    msg.to = ai_Chars[ai_PlayerId].netId;
                     msg.fromId = bld->id;
                     msg.time = ai_Time;
                     msg.hireMaster = 1;
@@ -3792,7 +3733,7 @@ void ai_MasterLetterSettings(AIBLD *bld, AICHAR *ch)
    0x30 when the building has a master (gm_FindCharacterByMaster: ai_MasterLetterSettings), else 0x20, or 0x10 when
    the player's own job in the title group of the type's first job is one of the type's six jobs (the player is
    the master: ai_MasterHireWindow with that mode); a running master hire event (he_FindEvent 2, 0, 7, 3, its
-   hireTitle 0) makes it 0x50 (ai_MasterLetterNoticeWindow). sv_CameraFollow after the window */
+   hireJob 0) makes it 0x50 (ai_MasterLetterNoticeWindow). sv_CameraFollow after the window */
 
 void ai_MasterLetterWindow(AIBLD *bld)
 {
@@ -3827,7 +3768,7 @@ void ai_MasterLetterWindow(AIBLD *bld)
         }
     }
     for (job = he_FindEvent(2, 0, 7, 3, bld->id); job != 0; job = he_NextEvent()) {
-        if (job->hireTitle == 0) {
+        if (job->hireJob == 0) {
             mode = 0x50;
             break;
         }
@@ -5098,7 +5039,7 @@ unsigned int ai_FindCandidates(struct AICHAR *p, unsigned int n, unsigned int fl
 #define AI_CANDIDATE_FLAGS_SEX1 0xc05409    /* ditto for sex != 0 */
 /* 0x5c64c0, collects the candidate net ids of a kind 9 search into out[] and their count into *n: up to 10
    candidates of character p (ai_FindCandidates, the filter 0xc0540a, one less for a female character, sex +9);
-   the ids are the characters' net ids, ai_CharInts[id][0] (the caller finds them again with gm_FindChar) */
+   the ids are the characters' net ids, ai_Chars[id].netId (the caller finds them again with gm_FindChar) */
 
 void ai_FindCandidateIds(AICHAR *p, int *n, int *out)
 {
@@ -5109,7 +5050,7 @@ void ai_FindCandidateIds(AICHAR *p, int *n, int *out)
 
     *n = ai_FindCandidates(p, 9, fl, 0.0f, 100.0f, ids);
     for (i = 0; i < *n; i++)
-        out[i] = ai_CharInts[ids[i]][0];
+        out[i] = ai_Chars[ids[i]].netId;
 }
 /* 0x5c6530, the marriage test of two characters, idA / idB their net ids: gm_FindChar resolves both;
    the codes 0xfffffc00 (no record), 0xfffffbff / 0xfffffbfe (health 0), 0xfffffbfd / 0xfffffbfc (the partner
@@ -5201,7 +5142,7 @@ int ai_CourtshipRounds(int idA, int idB)
 void gm_AddTime(struct AITIME *c, int hours, int mins, int secs);
 
 /* 0x5c6910, the confirm dialog of the courtship (advertising) list 0x5c6aa0: the rating 0x5c6620 of the own
-   character (ai_CharInts[ai_PlayerId][0]) and the partner ch->netId; the window "privillegien\werbung2"
+   character (ai_Chars[ai_PlayerId].netId) and the partner ch->netId; the window "privillegien\werbung2"
    "privillegien\werbung2" with the text 0x1ce5 (ch->id, the rating); the frame loop 0x5309a0 (this, 0x657c7): a click 0
    sends the marriage proposal message 0x41 (the own netId as to / fromId / arg[0], the partner's as arg[1], the
    clock, flags 2) through 0x4c4b70 and waits for its slot (0x4c3ae0 / 0x52fe00), the result 1; click 1 only
@@ -5214,7 +5155,7 @@ int ai_CourtshipConfirm(AICHAR *ch)
     int v;
     int slot;
 
-    v = ai_CourtshipRounds(ai_CharInts[ai_PlayerId][0], ch->netId);
+    v = ai_CourtshipRounds(ai_Chars[ai_PlayerId].netId, ch->netId);
     win = d2_OpenForm(0, 0, "privillegien\\werbung2");
     d2_CentreViewWindows(win);
     d2_SetForm(win, 1);
@@ -5229,11 +5170,11 @@ int ai_CourtshipConfirm(AICHAR *ch)
                 memset(&msg, 0, sizeof(msg));
                 msg.type = 0x41;
                 msg.flags = 2;
-                msg.to = ai_CharInts[ai_PlayerId][0];
+                msg.to = ai_Chars[ai_PlayerId].netId;
                 msg.time = ai_Time;
                 msg.arg[1] = ch->netId;
-                msg.fromId = ai_CharInts[ai_PlayerId][0];
-                msg.arg[0] = ai_CharInts[ai_PlayerId][0];
+                msg.fromId = ai_Chars[ai_PlayerId].netId;
+                msg.arg[0] = ai_Chars[ai_PlayerId].netId;
                 slot = cm_SendLongMessage(&msg);
                 while (cm_GetSlotState(slot) == 0)
                     sv_PumpNet();
@@ -5713,7 +5654,7 @@ void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
         d2_Objs[obj].rightAligned = 1;
     }
     clock = ai_Time;
-    gm_ClockToDate(&clock, (unsigned char *)&date);
+    gm_ClockToDate(&clock, &date);
     if (date.month == 1) {
         txt_Format(buf, (intptr_t)"%i", date.year);
         textW = d2_TextWidth(buf, 0x55);
@@ -5721,7 +5662,7 @@ void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
         d2_Objs[obj].w = textW;
     }
     clock.year--;
-    gm_ClockToDate(&clock, (unsigned char *)&date);
+    gm_ClockToDate(&clock, &date);
     for (round = 15; round > 0; round--) {
         x = 0x2d + round * scale;
         d2_PlotLine(x, height - 0x13, x, height - 0x10, 0x10, 0x10, 0x10);
@@ -5733,7 +5674,7 @@ void ai_DrawStatisticsCharts(unsigned short flags, ORDSTATS stats, int win)
             d2_PlotLine(x, height - 0x13, x, height - 0xd, 0x10, 0x10, 0x10);
         }
         clock.year--;
-        gm_ClockToDate(&clock, (unsigned char *)&date);
+        gm_ClockToDate(&clock, &date);
     }
     if (date.month == 1) {
         txt_Format(buf, (intptr_t)"%i", date.year);
@@ -6925,7 +6866,7 @@ int ai_MisappropriationWindow(AICHAR *me, ORDMSG *m)
     } else {
         return 0x60;
     }
-    gm_CharacterWages(owner->id, 0, (unsigned char *)&wages);
+    gm_CharacterWages(owner->id, 0, &wages);
     sum = (int)(wages.amount * ((float)(util_Random(0xb0) + 0x19) * 0.005f));
     if (me->kind != 6) {
         if (me->money < 4)
@@ -7965,7 +7906,7 @@ void ai_Miracle(AICHAR *me, int which)
         }
         return;
     } else if (which == 2) {
-        char level;
+        signed char level;
         LARGE_INTEGER kinds;
 
         kinds.LowPart = 0xa07c43b0;

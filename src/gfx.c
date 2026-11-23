@@ -31,6 +31,7 @@
 #include "sblib.h"
 #include "sv.h"
 #include "d2.h"
+void d2_ScrolledNotify(int win);  /* unlinked, defined at the end of the unit (an empty body above its caller would let VC6 drop the call) */
 void d2_MoveObj(int x, int y, int obj);  /* 0x46cda0, @original: d2.c defines it with short x, y (d2.h does not declare it, cm.h is not included); this unit pushes int coordinates (movsx) */
 
 /* 0x476b90, adds amount to the item list drawn next to the pointer: the entry of picture id (first match, else
@@ -104,7 +105,7 @@ int d2_CountPointerItems(void)
    one is set, moved to x, y) and the item list drawn next to it, amounts under the pictures; locks the surface
    while it draws and unlocks it again unless the caller held it locked; no effect during a cutscene */
 
-void d2_DrawPointer(void *surf, int x, int y, int a, int b)
+void d2_DrawPointer(D2SURF *surf, int x, int y, int a, int b)
 {
     int n, px, py, saved, hold, i;
     int c0, c1, c2, c3;
@@ -114,12 +115,12 @@ void d2_DrawPointer(void *surf, int x, int y, int a, int b)
     char buf[0x40];
     char *s, *d;
 
-    if (d2_CutsceneActive == 0 && ((hold = ((D2SURF *)surf)->locked) != 0 || d2_LockSurface(surf) != 0)) {
+    if (d2_CutsceneActive == 0 && ((hold = surf->locked) != 0 || d2_LockSurface(surf) != 0)) {
         c0 = d2_ClipLeft;
         c1 = d2_ClipTop;
         c2 = d2_ClipRight;
         c3 = d2_ClipBottom;
-        d2_SetClipRect(0, 0, ((D2SURF *)surf)->w, ((D2SURF *)surf)->h);
+        d2_SetClipRect(0, 0, surf->w, surf->h);
         if (d2_PointerSprite == -1) {
             d2_DrawShape(x, y, surf, d2_PointerPic, (unsigned char)d2_PointerLook);
         } else {
@@ -534,7 +535,7 @@ void d2_SliderInput(void)
     D2OBJ *o;
     /* @original f6's initializer emits no code; it moves f6's first reference, after which VC6 computes
        the vertical drag test as the original (f6->h + o->y in eax, the code 10 hunk of the plain form) */
-    D2FRAME *f0, *f6 = 0;
+    struct D2SHP *f0, *f6 = 0;
     void *h;
     int px, py, v, mn, mx, len, v2, d, a, bottom;
     unsigned int fl;
@@ -798,7 +799,7 @@ void d2_FocusInput(int obj)
 void d2_MouseUpdate(void)
 {
     D2OBJ *o;
-    D2CTRL *c;
+    D2VIEW *c;
     D2HIT *h;
     D2WIN *w;
     int i, j, m, found, win, line;
@@ -827,7 +828,7 @@ void d2_MouseUpdate(void)
             c = o->buf;
             if (c != 0) {
                 if (c->shown != 0 && c->loaded == 0)
-                    d2_ClickedForm = c->view;
+                    d2_ClickedForm = c->id;
             } else {
                 d2_ClickedForm = -1;
             }
@@ -892,7 +893,7 @@ void d2_MouseUpdate(void)
             w->firstline = line;
             w->textPos = w->linePos[line];
             if (w->scrollY != w->appliedScrollY)
-                d3io_NoopCallback(win);
+                d2_ScrolledNotify(win);
         }
     }
 }
@@ -1064,7 +1065,7 @@ D2SURF *d2_LoadBmpSurface(char *name)
     s = d2_MakeSurface(&d, 0);
     if (s == 0)
         return 0;
-    d2_ReadBmpPixels(name, (unsigned char *)s->bits);
+    d2_ReadBmpPixels(name, s->bytes);
     return s;
 }
 /* 0x478bd0, rgb bytes (w x h) to the 16 bit pixels of surface s */
@@ -1135,7 +1136,7 @@ D2SURF *d2_MakeSurface(D2SURF *desc, int flags)
         if (flags & 1) {
             dd_BackBuffer->lpVtbl->GetSurfaceDesc(dd_BackBuffer, &ddsd);
             ddsd.dwFlags = 0x1007;
-            if ((char)flags & 8)
+            if ((signed char)flags & 8)
                 ddsd.ddsCaps.dwCaps = 0x840;
             else
                 ddsd.ddsCaps.dwCaps = 0x40;
@@ -1143,7 +1144,7 @@ D2SURF *d2_MakeSurface(D2SURF *desc, int flags)
             ddsd.dwWidth = s->w;
         } else {
             ddsd.dwFlags = 0x1007;
-            if ((char)flags & 8)
+            if ((signed char)flags & 8)
                 ddsd.ddsCaps.dwCaps = 0x840;
             else
                 ddsd.ddsCaps.dwCaps = 0x40;
@@ -1332,8 +1333,8 @@ int d2_BlitPartMode(int sx, int sy, int w, int h, D2SURF *src, int x, int y, D2S
         {
             for (i = 0; i < h; i++) {
                 len = (src->bpp >> 3) * w;
-                bs = (unsigned char *)src->bits + src->rowbytes * i + so;
-                bd = (unsigned char *)dst->bits + dst->rowbytes * i + d;
+                bs = src->bytes + src->rowbytes * i + so;
+                bd = dst->bytes + dst->rowbytes * i + d;
                 memcpy(bd, bs, len);
             }
         }
@@ -1363,8 +1364,8 @@ int d2_BlitPartMode(int sx, int sy, int w, int h, D2SURF *src, int x, int y, D2S
             {
                 for (i = 0; i < h; i++) {
                     len = (src->bpp >> 3) * w;
-                    bs = (unsigned char *)src->bits + src->rowbytes * i + so;
-                    bd = (unsigned char *)dst->bits + dst->rowbytes * i + d;
+                    bs = src->bytes + src->rowbytes * i + so;
+                    bd = dst->bytes + dst->rowbytes * i + d;
                     memcpy(bd, bs, len);
                 }
             }
@@ -1588,9 +1589,9 @@ void d2_GetPixelColour(int x, int y, D2SURF *surf, unsigned char *rgb)
         dd_SplitRGB(surf->bits[surf->pitch * y + x], &r, &g, &b);
         break;
     case 0x18:
-        r = ((unsigned char *)surf->bits)[(surf->pitch * y + x) * bytes];
-        g = ((unsigned char *)surf->bits)[(surf->pitch * y + x) * bytes + 1];
-        b = ((unsigned char *)surf->bits)[(surf->pitch * y + x) * bytes + 2];
+        r = surf->bytes[(surf->pitch * y + x) * bytes];
+        g = surf->bytes[(surf->pitch * y + x) * bytes + 1];
+        b = surf->bytes[(surf->pitch * y + x) * bytes + 2];
         break;
     case 0x20:
         r = (unsigned char)((DWORD *)surf->bits)[surf->pitch * y + x];
@@ -1616,7 +1617,7 @@ int d2_PutPixelRGB(int x, int y, unsigned char r, unsigned char g, unsigned char
         c = dd_RGB((unsigned char)r, (unsigned char)g, (unsigned char)b);
         switch (surf->bpp) {
         case 8:
-            ((unsigned char *)surf->bits)[surf->pitch * y + x] =
+            surf->bytes[surf->pitch * y + x] =
                 (unsigned char)((int)((r & 0xff) + (g & 0xff) + (b & 0xff)) / 3);
             break;
         case 0xf:
@@ -1625,9 +1626,9 @@ int d2_PutPixelRGB(int x, int y, unsigned char r, unsigned char g, unsigned char
             break;
         case 0x18:
             x = bpp * x;
-            ((unsigned char *)surf->bits)[surf->pitch * y + x] = (unsigned char)r;
-            ((unsigned char *)surf->bits)[surf->pitch * y + x + 1] = (unsigned char)g;
-            ((unsigned char *)surf->bits)[surf->pitch * y + x + 2] = (unsigned char)b;
+            surf->bytes[surf->pitch * y + x] = (unsigned char)r;
+            surf->bytes[surf->pitch * y + x + 1] = (unsigned char)g;
+            surf->bytes[surf->pitch * y + x + 2] = (unsigned char)b;
             break;
         case 0x20:
             ((DWORD *)surf->bits)[surf->pitch * y + x] = c;
@@ -1727,3 +1728,9 @@ int d2_HoverY = -1;  /* 0x5febe0 */
 int d2_LimitsChanged = -1;  /* 0x5febe4 */
 int d2_TextCursorSprite = -1;  /* 0x5febe8, sprite of the text cursor, -1: none */
 int d2_DragSlider = -1;  /* 0x5febec */
+
+/* unlinked: an empty function; LINK folds it (/OPT:ICF) into d3io_NoopCallback, 0x44ee40, where the original's call
+   of it in d2_MouseUpdate (a dragged scroll bar moved the window's text: the window index pushed) points */
+void d2_ScrolledNotify(int win)
+{
+}

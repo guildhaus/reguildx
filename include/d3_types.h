@@ -36,14 +36,14 @@ typedef struct D3TEXFLAGS {         /* passed by value to tex_Load (TSFLAGS in t
 typedef int (*D3EVHANDLER)(void *obj, int id, char *name, int arg);   /* obj: the object or scene, id: the event
                                        (sv fires 2 at an object's camera focus, 3 at its release, 6 at a scene),
                                        name: the handler's D3EVENT.name, arg: 0 at every known call */
-typedef struct D3EVENT {            /* 0x84 bytes, D3E_NEVENTS of them in D3OBJX::unk1d4 / D3_SCENE3C8 */
+typedef struct D3EVENT {            /* 0x84 bytes, D3E_NEVENTS of them in D3OBJECT.events / D3_SCENE3C8 */
     D3EVHANDLER fn;
     char name[0x80];                /* 0x04, name of the handler */
 } D3EVENT;
 
 typedef struct D3SORTENT {          /* 8 bytes, sorted by key with a radix sort (d3_RadixSort) */
     unsigned long key;
-    void *item;                     /* a D3PTRI (d3_engine), a D3SMTRI (d3_sm) */
+    void *item;                     /* a D3TRI (d3_engine; d3_sm: a height map triangle) */
 } D3SORTENT;
 
 typedef struct D3COLOR {            /* a B, G, R, A colour (passed by value) */
@@ -75,9 +75,9 @@ typedef struct D3SCENE {            /* 0x3e0 bytes, 64 of them in d3_Scenes: a s
     struct D3OBJECT *cam;           /* 0x088, d3if_MegaCam */
     D3VECTOR campos;                /* 0x08c, cam->pos */
     D3VECTOR camrot;                /* 0x098, cam->rotation */
-    void *parHead;                  /* 0x0a4, first of the particle list (d3_ParHead, D3PARTSYS * in d3_par.h) */
-    void *parTail;                  /* 0x0a8, last of the particle list (d3_ParTail) */
-    void *map;                      /* 0x0ac, the scene's terrain map (D3FLMAP, d3_Terrain; d3fl_ReloadTextures) */
+    struct D3PARTSYS *parHead;      /* 0x0a4, first of the particle list (d3_ParHead) */
+    struct D3PARTSYS *parTail;      /* 0x0a8, last of the particle list (d3_ParTail) */
+    struct D3FLMAP *map;            /* 0x0ac, the scene's terrain map (d3_Terrain; d3fl_ReloadTextures) */
     struct D3SM *hmap;            /* 0x0b0, terrain height map */
     int mapSize;                    /* 0x0b4, height map size: 0x80 with terrain, 0x40 without, from the file */
     struct D3SKY *sky;              /* 0x0b8, d3_Sky */

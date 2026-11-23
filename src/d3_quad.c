@@ -33,7 +33,7 @@ char d3q_AddObject(D3OBJECT *obj, D3QNODE *n)
 {
     D3QITEM *it;
 
-    if (!obj->material || !D3Q_MAT(obj)->ops || !(obj->flags & 4))
+    if (!obj->material || !obj->material->surf[0].mesh || !(obj->flags & 4))
         return 1;
     n->count++;
     it = pool_Alloc(&d3_QItemPool, 8, 0x80);
@@ -53,12 +53,12 @@ D3QNODE *d3q_MakeChild(D3QNODE *parent, float *min, float *max)
 {
     D3QNODE *n;
     D3QITEM *it;
-    D3QMAT *m;
+    D3MESH *m;
 
     n = pool_Alloc(&d3_QNodePool, 0x48, 0x40);
     for (it = parent->first; it; it = it->next) {
-        m = D3Q_MAT(it->obj);
-        if (m->min.x <= max[0] && m->max.x >= min[0] && m->min.z <= max[2] && m->max.z >= min[2])
+        m = it->obj->material;
+        if (m->boundsMin.x <= max[0] && m->boundsMax.x >= min[0] && m->boundsMin.z <= max[2] && m->boundsMax.z >= min[2])
             d3q_AddObject(it->obj, n);
     }
     if (n->count == 0) {
@@ -71,12 +71,12 @@ D3QNODE *d3q_MakeChild(D3QNODE *parent, float *min, float *max)
 
 char d3q_GetBounds(D3OBJECT *obj, float *min, float *max)
 {
-    D3BOXVERT *v;
+    D3VERTEX *v;
     int i;
 
     if (!(obj->stateFlags & 0x80))
         d3_UpdateWorldMatrix(obj, d3_Camera, 0);
-    v = d3_GetBoxVerts(obj, (struct D3SURF *)D3Q_MAT(obj)->list, D3Q_MAT(obj)->box);
+    v = d3_GetBoxVerts(obj, &obj->material->surf[0], &obj->material->worldMatrix);
     if (v) {
         min[0] = 1e10f;
         min[1] = 1e10f;
@@ -92,12 +92,12 @@ char d3q_GetBounds(D3OBJECT *obj, float *min, float *max)
             max[1] = max(max[1], v->y);
             max[2] = max(max[2], v->z);
         }
-        D3Q_MAT(obj)->min.x = min[0];
-        D3Q_MAT(obj)->min.y = min[1];
-        D3Q_MAT(obj)->min.z = min[2];
-        D3Q_MAT(obj)->max.x = max[0];
-        D3Q_MAT(obj)->max.y = max[1];
-        D3Q_MAT(obj)->max.z = max[2];
+        obj->material->boundsMin.x = min[0];
+        obj->material->boundsMin.y = min[1];
+        obj->material->boundsMin.z = min[2];
+        obj->material->boundsMax.x = max[0];
+        obj->material->boundsMax.y = max[1];
+        obj->material->boundsMax.z = max[2];
         return 1;
     }
     return 0;
@@ -137,12 +137,12 @@ void d3q_Build(D3QNODE *n, unsigned int minitems, volatile unsigned int depth, v
             }
         } else {
             for (it = n->first; it; it = it->next) {
-                n->min.x = min(n->min.x, D3Q_MAT(it->obj)->min.x);
-                n->min.y = min(n->min.y, D3Q_MAT(it->obj)->min.y);
-                n->min.z = min(n->min.z, D3Q_MAT(it->obj)->min.z);
-                n->max.x = max(n->max.x, D3Q_MAT(it->obj)->max.x);
-                n->max.y = max(n->max.y, D3Q_MAT(it->obj)->max.y);
-                n->max.z = max(n->max.z, D3Q_MAT(it->obj)->max.z);
+                n->min.x = min(n->min.x, it->obj->material->boundsMin.x);
+                n->min.y = min(n->min.y, it->obj->material->boundsMin.y);
+                n->min.z = min(n->min.z, it->obj->material->boundsMin.z);
+                n->max.x = max(n->max.x, it->obj->material->boundsMax.x);
+                n->max.y = max(n->max.y, it->obj->material->boundsMax.y);
+                n->max.z = max(n->max.z, it->obj->material->boundsMax.z);
             }
         }
     }
@@ -212,12 +212,12 @@ D3QNODE *d3q_Create(D3OBJECT *start, unsigned int mask, unsigned int minitems, u
         return 0;
     }
     for (it = n->first; it; it = it->next)
-        D3Q_MAT(it->obj)->zone = -1;
+        it->obj->material->frameStamp = -1;
     return n;
 }
 /* 0x458360, the 8 corners of the node's box relative to pos, rotated by m (the first one also moved by m's translation) */
 
-D3BOXVERT *d3q_BoxCorners(D3QNODE *n, float *pos, float *m)
+D3VERTEX *d3q_BoxCorners(D3QNODE *n, float *pos, float *m)
 {
     float x0 = n->min.x - pos[0];
     float y0 = n->min.y - pos[1];
@@ -261,7 +261,7 @@ void d3q_Mark(D3QNODE *n, D3OBJECT *cam, int zone)
     unsigned char r;
     unsigned int i;
     D3QITEM *it;
-    D3BOXVERT *box;
+    D3VERTEX *box;
 
     if (n) {
         box = d3q_BoxCorners(n, &cam->pos.x, &cam->matrix._11);
@@ -269,7 +269,7 @@ void d3q_Mark(D3QNODE *n, D3OBJECT *cam, int zone)
         if (r & 0x40) {
             for (it = n->first; it; it = it->next) {
                 if (it->obj->material)
-                    D3Q_MAT(it->obj)->zone = zone;
+                    it->obj->material->frameStamp = zone;
             }
         } else if (r & 0x3f) {
             for (i = 0; i < 4; i++) {
@@ -342,6 +342,6 @@ void d3q_Rebuild(D3OBJECT *start, D3QNODE *n)
     }
 }
 
-D3BOXVERT d3_QBox[8] = {0};  /* 0x633b30 */
+D3VERTEX d3_QBox[8] = {0};  /* 0x633b30 */
 struct MPOOL * d3_QNodePool = 0;  /* 0x633db0 */
 struct MPOOL * d3_QItemPool = 0;  /* 0x633db4 */

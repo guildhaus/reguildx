@@ -33,8 +33,6 @@ struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3S
 extern GAPDATA full_data_602568[];
 
 
-#define G17_I(m, o) (*(int *)&(m).data[o])
-#define G17_S(m, o) (*(short *)&(m).data[o])
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
 
@@ -90,41 +88,13 @@ typedef struct CMFIELD {            /* the head of one field of a field block (G
     unsigned short offset;          /* 0x02, the field's offset in the record */
     int values[1];                  /* 0x04, the values */
 } CMFIELD;
-typedef struct AIJOBTAIL {          /* AIJOB as message 0x1d sends and takes its data block: the record from 0xac */
-    char pad00[0xac];
-    char data[0xa0];                /* 0xac, the long message (cm_SetLongMsg 0xa0, cm_LongMsg) */
-} AIJOBTAIL;
-typedef struct CMNEWPARTYMSG {      /* 8 bytes, the data of message 0x27 (its handler cm_ExNewParty) */
-    int partyId;                    /* 0x00, the id the new scene party gets (ai_NextPartyId) */
-    int seed;                       /* 0x04, the party's random seed (G28REC.seed) */
-} CMNEWPARTYMSG;
-typedef struct CMJOINPARTYMSG {     /* 8 bytes, the data of message 0x29 (its handler cm_ExAddPartyMember) */
-    int partyId;                    /* 0x00, the scene party record (cm_PartyById) */
-    int member;                     /* 0x04, the member's netId (cm_AddPartyMember) */
-} CMJOINPARTYMSG;
-typedef struct CMWALKPATHMSG {      /* 0x24 bytes, the data of message 0x4f (its handler cm_ExWalkPath; no sender in
-                                       the sources, the path cells of a walk) */
-    char name[0x18];                /* 0x00, the character's object name ("sp_<id>") */
-    int from;                       /* 0x18, the first cell written */
-    int to;                         /* 0x1c, the cell past the path (the action's new path length) */
-    unsigned char cells[4];         /* 0x20, up to two cells, x and z bytes each */
-} CMWALKPATHMSG;
-typedef struct CMPOSMSG {           /* 0x10 bytes read, the data of message 0x32 (its handler cm_ExChrSetPos) */
-    int charId;                     /* 0x00, the character */
-    D3VECTOR pos;                   /* 0x04, its new position (ch_SetPos) */
-} CMPOSMSG;
 typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of cm_Grenades */
     D3OBJECT *obj;                  /* the object "ob_BOMBE", 0 = a free slot */
-    D3ANIM *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
+    D3PATH *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
     int x, y;                       /* 0x08, the target cell */
 } CMGRENADE;
 
 /* dcp unit split: the declarations of cm before the moved functions */
-typedef struct CMSPYREPORT {            /* an AIOBJ of kind 0xca (a spy report) as this unit reads it: the report's words
-                                           0x1c .. 0x37 (HESPYREPORT) after the object's head */
-    char pad1c[0x1c];
-    HESPYREPORT report;
-} CMSPYREPORT;
 
 extern float cm_DefenseFactor;
 extern int cm_FightOwner;
@@ -143,7 +113,7 @@ extern int cm_FightPaused;
 extern struct AICHAR *cm_FightDefender;
 extern struct AICHAR *cm_FightAttacker;
 extern struct D3OBJECT *cm_PickMarker;
-extern int cm_FightWinner;
+extern struct AICHAR *cm_FightWinner;
 extern int cm_FightSettled;
 extern int cm_FightLootValue;
 extern int cm_UnreadBss;
@@ -200,7 +170,7 @@ extern int cm_FightForm;
    at 0x4d7789 where ours join... */
 void cm_RunCutOrders(CMCUTINFO *rec)
 {
-    D3SM *h = (D3SM *)d3_DefaultScene->hmap;
+    D3SM *h = d3_DefaultScene->hmap;
     CMCUTENTRY m;
     CMCUTENTRY *p;
     AICHAR *c, *x;
@@ -244,7 +214,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
             p->orderSlot = -1;
             m.state = 0;
             m.charId = c->netId;
-            cm_SendFightCommand(c, 7, (CMFIGHTSLOT *)&m);
+            cm_SendFightCommand(c, 7, &m);
             res = cm_SendCutEntry(rec->playerId, &m);
             goto done;
         case 1:
@@ -256,7 +226,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                     break;
                 sprintf(name1, "cmb_%i", c->netId);
                 p->b0c = 1;
-                cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+                cm_SendFightCommand(c, 6, &m);
                 res = cm_SendObjCell(name1, ix, iz, 0);
                 goto done;
             }
@@ -265,7 +235,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                 break;
             m.charId = c->netId;
             m.state = 0;
-            cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+            cm_SendFightCommand(c, 6, &m);
             res = cm_SendCutEntry(rec->playerId, &m);
             goto done;
         case 2:
@@ -276,7 +246,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
             if (x != 0 && (x->health == 0 || x->scene->obj->type == 1 || c == 0 || c->health == 0)) {
                 m.state = 0;
                 m.charId = c->netId;
-                cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+                cm_SendFightCommand(c, 6, &m);
                 res = cm_SendCutEntry(rec->playerId, &m);
                 goto done;
             }
@@ -293,9 +263,9 @@ void cm_RunCutOrders(CMCUTINFO *rec)
             if (k->id != 0x174) {
                 if (k->id == 0x176) {
                     if (x != 0) {
-                        if (cm_CharObjDistXZ(c, (char *)x->scene->obj) > k->range)
+                        if (cm_CharObjDistXZ(c, x->scene->obj) > k->range)
                             b = 0;
-                        if (p->b0c == 0 && cm_CharObjDistXZ(c, (char *)x->scene->obj) < k->range * 0.1)
+                        if (p->b0c == 0 && cm_CharObjDistXZ(c, x->scene->obj) < k->range * 0.1)
                             b = 0;
                     } else {
                         if (cm_CharCellDistXZ(c, p->x, p->z) > k->range)
@@ -304,7 +274,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                             b = 0;
                     }
                 } else if (x != 0) {
-                    if (cm_CharObjDistXZ(c, (char *)x->scene->obj) > k->range)
+                    if (cm_CharObjDistXZ(c, x->scene->obj) > k->range)
                         b = 0;
                 } else if (cm_CharCellDistXZ(c, p->x, p->z) > k->range)
                     b = 0;
@@ -329,7 +299,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                         hit = 1;
                     else {
                         r = util_Random(0xff);
-                        if ((AICHAR *)c->bld == cm_FightDefender)
+                        if (c->side == cm_FightDefender)
                             st = (int)(k->accuracy * 0.01 * c->sk83 * cm_DefenseFactor);
                         else
                             st = (int)(k->accuracy * 0.01 * c->sk83);
@@ -344,7 +314,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                     } else
                         p->damage = 0;
                     p->kill = hit;
-                    if (hit != 0 && c->bld != 0 && ai_InventoryHas(c->bld, 0x2b9) != 0)
+                    if (hit != 0 && c->side != 0 && ai_InventoryHas(c->side, 0x2b9) != 0)
                         p->damage = (int)(p->damage * 1.25f);
                     if (cm_CutChar->netId == cm_FightOwner && k->kind == 0 && x != 0) {
                         other = 0;
@@ -398,7 +368,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                 if (c->scene->actions == 0) {
                     if (k->kind == 2 && p->kill != 0) {
                         cm_SendSetField(c->netId, 0x1c8, 4, 0x20000000, 0);
-                        cm_SendFightCommand(c, 2, (CMFIGHTSLOT *)p);
+                        cm_SendFightCommand(c, 2, p);
                         m.charId = c->netId;
                         m.state = 0;
                         if (!d3_GetHeightAt(h, &c->scene->obj->pos, &cm_PickCellX, &cm_PickCellZ, &py))
@@ -408,7 +378,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                         p->orderSlot = cm_SendCutEntry(rec->playerId, &m);
                     } else {
                         cm_SendSetField(c->netId, 0x1c8, 4, 0x20000000, 0);
-                        p->orderSlot = cm_SendFightCommand(c, 2, (CMFIGHTSLOT *)p);
+                        p->orderSlot = cm_SendFightCommand(c, 2, p);
                     }
                 }
             }
@@ -431,13 +401,13 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                 cm_FindNearCell(p->stateArg, p->x, &ix, &iz) != 0) {
                 sprintf(name3, "cmb_%i", c->netId);
                 p->b0c = 1;
-                p->orderSlot = cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+                p->orderSlot = cm_SendFightCommand(c, 6, &m);
                 p->orderSlot = cm_SendObjCell(name3, ix, iz, 0);
             }
             d3sm_GetVertex(h, p->stateArg, p->x, &q.v);
             if (!d3_VecEqual(&q.v, &c->scene->obj->pos, 50.0f))
                 break;
-            cm_SendFightCommand(c, 1, (CMFIGHTSLOT *)&m);
+            cm_SendFightCommand(c, 1, &m);
             m.state = 0;
             m.charId = c->netId;
             res = cm_SendCutEntry(rec->playerId, &m);
@@ -447,7 +417,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                 break;
             p->orderSlot = -1;
             if (d3_FindObject(0, 0x40, 0, p->dummy) == 0) {
-                cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+                cm_SendFightCommand(c, 6, &m);
                 m.charId = c->netId;
                 m.state = 0;
                 p->orderSlot = cm_SendCutEntry(rec->playerId, &m);
@@ -455,7 +425,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
             if (p->storeStep == 0) {
                 if (c->scene->actions == 0) {
                     p->b0c = 1;
-                    cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+                    cm_SendFightCommand(c, 6, &m);
                     if (cm_FindNearCell(p->storeX, p->storeZ, &ix, &iz) == 0)
                         break;
                     res = cm_SendObjCell(c->scene->obj->name, ix, iz, 0);
@@ -464,14 +434,14 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                 d3sm_GetVertex(h, p->storeX, p->storeZ, &q.v);
                 if (!d3_VecEqual(&q.v, &c->scene->obj->pos, 50.0f))
                     break;
-                cm_SendFightCommand(c, 4, (CMFIGHTSLOT *)&m);
+                cm_SendFightCommand(c, 4, &m);
                 m.storeStep = 1;
                 res = cm_SendCutEntryUpdate(rec->playerId, &m);
                 goto done;
             } else if (p->storeStep == 1) {
                 if (c->scene->actions != 0)
                     break;
-                if ((AICHAR *)c->bld == cm_FightAttacker)
+                if (c->side == cm_FightAttacker)
                     nm = "dummy_sp_OFF_WARENSAVE";
                 else
                     nm = "dummy_sp_DEF_WARENSAVE";
@@ -491,7 +461,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                 d3sm_GetVertex(h, p->storeX, p->storeZ, &q.v);
                 if (!d3_VecEqual(&q.v, &c->scene->obj->pos, 50.0f))
                     break;
-                cm_SendFightCommand(c, 5, (CMFIGHTSLOT *)&m);
+                cm_SendFightCommand(c, 5, &m);
                 m.charId = c->netId;
                 m.state = 0;
                 res = cm_SendCutEntry(rec->playerId, &m);
@@ -513,7 +483,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                         p->b0c = 1;
                         p->cellX = ix;
                         p->cellZ = iz;
-                        cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+                        cm_SendFightCommand(c, 6, &m);
                         res = cm_SendObjCell(c->scene->obj->name, ix, iz, 0);
                         goto done;
                     }
@@ -524,7 +494,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                     }
                     if (!d3_VecEqual(&q.v, &c->scene->obj->pos, 49.5f))
                         break;
-                    cm_SendFightCommand(c, 3, (CMFIGHTSLOT *)&m);
+                    cm_SendFightCommand(c, 3, &m);
                     m.state = 0;
                     m.charId = c->netId;
                     res = cm_SendCutEntry(rec->playerId, &m);
@@ -552,7 +522,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                     break;
                 sprintf(name7, "cmb_%i", c->netId);
                 p->b0c = 1;
-                cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+                cm_SendFightCommand(c, 6, &m);
                 res = cm_SendObjCell(name7, ix, iz, 0);
                 goto done;
             }
@@ -561,7 +531,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
                 break;
             m.charId = c->netId;
             m.state = 0;
-            cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+            cm_SendFightCommand(c, 6, &m);
             res = cm_SendCutEntry(rec->playerId, &m);
             goto done;
         case 8:
@@ -571,7 +541,7 @@ void cm_RunCutOrders(CMCUTINFO *rec)
             if (p->b0c != 0)
                 break;
             p->b0c = 1;
-            res = cm_SendFightCommand(c, 6, (CMFIGHTSLOT *)&m);
+            res = cm_SendFightCommand(c, 6, &m);
             goto done;
         }
         cm_OrderTicks += 0x1f;

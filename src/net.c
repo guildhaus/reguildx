@@ -109,8 +109,8 @@ void net_Count(NETPKT *pkt, unsigned int size, char recv)
     if (pkt) {
         if (size > pkt->type && pkt->type < NET_TYPES) {
             int k = recv ? 0 : 2;
-            ((unsigned int *)&net_Stats[pkt->type])[k]++;
-            ((unsigned int *)&net_Stats[pkt->type])[k + 1] += size;
+            net_Stats[pkt->type].count[k]++;
+            net_Stats[pkt->type].count[k + 1] += size;
         }
     }
 }

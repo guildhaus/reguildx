@@ -204,7 +204,7 @@ int chc_PlayAnimation(CHARACTER **ch, char **name, int *n)
 void chc_AniSoundCB(CHACTION *a)
 {
     CHARACTER *ch = a->ch;
-    void *snd = sb_GetSample(0, CH_ACTOBJ(a)->name2);
+    void *snd = sb_GetSample(0, a->u.obj.name2);
 
     if (snd) {
         if (d3_Terrain)
@@ -235,7 +235,7 @@ int chc_PlayAnimationSound(CHARACTER **ch, char **name, int *n, int *frame, char
     a = ch_AddActionCB(*ch, chc_AniSoundCB, *frame, 0x2e, *n);
     if (a) {
         strcpy(a->u.name, *name);
-        strcpy(CH_ACTOBJ(a)->name2, *sound);
+        strcpy(a->u.obj.name2, *sound);
     }
     if (evt_Cur->mode == 1)
         evt_Cur->waitfn = chc_PlayAnimationSound;
@@ -418,7 +418,7 @@ int chc_TakeObjectScript(CHARACTER **ch, char **name, int *n, D3OBJECT **obj, in
     if (a) {
         strcpy(a->u.name, *name);
         if (*obj && (*obj)->material && (*obj)->material->surf[0].mesh)
-            strcpy(CH_ACTOBJ(a)->name2, (*obj)->material->surf[0].mesh->name);
+            strcpy(a->u.obj.name2, (*obj)->material->surf[0].mesh->name);
         strcpy(a->scriptName, *script);
         a->scriptAction.group = evt_NoGroup;
     }
@@ -809,7 +809,7 @@ int chc_SetCharacterTransperancy(CHARACTER **ch, int *alpha)
     f.s.alpha = *alpha;
     d3_SetObjectAlpha((*ch)->obj, (*ch)->obj->info, f.f);
     if ((*ch)->transport)
-        d3_SetObjectAlpha(*(*ch)->transport, (*(*ch)->transport)->info, f.f);
+        d3_SetObjectAlpha((*ch)->transport->obj, (*ch)->transport->obj->info, f.f);
     return 0;
 }
 /* 0x40d1e0, CharacterSitsDown(ch): 1 when the character's sit flag (flags byte 0x10) is set, else 0 (also 0 after an error) */

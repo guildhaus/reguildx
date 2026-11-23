@@ -2,7 +2,7 @@
    no path string). Names are ours. */
 #ifndef UNK_43EAB0_H
 #define UNK_43EAB0_H
-#include "d3_engine.h"                /* D3CLIP / D3SRCPOLY / D3PTRI */
+#include "d3_engine.h"                /* D3CLIP / D3BGFPOLY / D3TRI */
 #include "d3.h"                       /* the D3 records and typedefs this header names */
 
 
@@ -35,26 +35,18 @@ typedef struct D3FLUV {             /* a texture coordinate of d3fl_Jitter, 3 pe
 typedef void (*D3FLBLEND)(unsigned short *dst, unsigned long *w, unsigned char **src, unsigned int n);
 
 /* ---- terrain map (d3_Terrain, D3SCENE.map); layout as far as this file uses it ---- */
-typedef struct D3FLPOINT {          /* 0x50 bytes, a tile vertex (D3PVERT as the floor code builds it) */
-    char pad00[0x40];
-    unsigned long color;            /* 0x40, D3PVERT.color (D3COLOR b,g,r,a packed) */
-    unsigned long specular;         /* 0x44, D3PVERT.specular */
-    void *src;                      /* 0x48, D3PVERT.src: source point (D3SRCPOINT) */
-    signed char flags;                   /* 0x4c, D3PVERT.flags: bit 7 = visible */
-    char pad4d[0x3];
-} D3FLPOINT;
 
-#define D3FL_WHITE 0xffffffL        /* a D3FLPOINT color: r = g = b = 255, alpha 0 */
+#define D3FL_WHITE 0xffffffL        /* a tile vertex's (D3VERTEX) color: r = g = b = 255, alpha 0 */
 
-typedef struct D3FLPOLY {           /* 0x28 bytes, a triangle (D3PTRI as the floor code sees it) */
-    D3FLPOINT *v[3];
-    void *clip;                     /* 0x0c, D3PTRI.clip: &d3_ClipInfo[clip code] */
+typedef struct D3FLPOLY {           /* 0x28 bytes, a triangle (D3TRI as the floor code sees it) */
+    D3VERTEX *v[3];
+    void *clip;                     /* 0x0c, D3TRI.clip: &d3_ClipInfo[clip code] */
     float *uv;                      /* 0x10, d3fl_UV[0] or [1] */
-    struct TSTEXTURE *tex;                   /* 0x14, D3PTRI.tex: d3fl_GetTexture / D3FLREGION.tex2 */
+    struct TSTEXTURE *tex;                   /* 0x14, D3TRI.tex: d3fl_GetTexture / D3FLREGION.tex2 */
     float zOfs;                     /* 0x18, depth offset added to the vertices (engine d3_ZOfs) */
     float uOfs;                     /* 0x1c, texture offset u (D3FLREGION.uOfs, mod 1) */
     float vOfs;                     /* 0x20, texture offset v (D3FLREGION.vOfs, mod 1) */
-    signed char flags;                   /* 0x24, bit 7: visible (read sign-extended here, d3fl_Draw; d3_engine.h D3PTRI.flags is unsigned) */
+    signed char flags;                   /* 0x24, bit 7: visible (read sign-extended here, d3fl_Draw; d3.h D3TRI.flags is unsigned) */
     unsigned char region;           /* 0x25, water region */
     unsigned char flip;             /* 0x26, bit 0: split along the other diagonal (d3fl_Draw) */
     char pad27;
@@ -72,8 +64,8 @@ typedef struct D3FLTILE {           /* 0x64 bytes, 8 x 8 of them in D3FLMAP */
     D3VECTOR4 center;               /* 0x00, of the world bounding box */
     int npoints;                    /* 0x10, points of this tile used by d3fl_Draw (nwpoints: water) */
     int nwpoints;                   /* 0x14 */
-    D3FLPOINT *points;              /* 0x18 */
-    D3FLPOINT *wpoints;             /* 0x1c */
+    D3VERTEX *points;              /* 0x18 */
+    D3VERTEX *wpoints;             /* 0x1c */
     int npolys;                     /* 0x20, triangles of this tile used by d3fl_Draw (nwpolys: water) */
     int nwpolys;                    /* 0x24 */
     D3FLPOLY *polys;                /* 0x28 */
@@ -81,14 +73,14 @@ typedef struct D3FLTILE {           /* 0x64 bytes, 8 x 8 of them in D3FLMAP */
     void *split;                    /* 0x30 */
     D3FLWREG *wregions;             /* 0x34 */
     int nsplit;                     /* 0x38, D3FLSPLIT records in split (the extra edge vertices, d3fl_Draw) */
-    void *bp;                       /* 0x3c */
+    struct D3FLTRIUV *bp;           /* 0x3c, the uv triples of the split triangles */
     int nbpUsed;                    /* 0x40, uv triples of bp in use (the split triangles, d3fl_Draw) */
     int nbp;                        /* 0x44 */
     float lodDistBias;              /* 0x48, added to both lod distance thresholds (nothing writes it: 0) */
     float centerDist;               /* 0x4c, length of center: the tile box's distance from the camera */
     float zmin, zmax;               /* 0x50, view depth range (d3_ClipBox) */
     int lodDelay;                   /* 0x58, frames the pending lod change has been postponed (switches after 8) */
-    unsigned char hmin;             /* 0x5c */
+    unsigned char hmin;             /* 0x5c, height range of the tile (d3sm_Build's bounding box) */
     unsigned char hmax;             /* 0x5d */
     unsigned char lodLevel;         /* 0x5e, detail level chosen this frame (0: culled; d3fl_UpdateTiles) */
     signed char lod;                /* 0x5f, level the current mesh was built at */
@@ -105,9 +97,18 @@ typedef struct D3FLREGION {         /* 0x158 bytes, a water region */
     struct TSTEXTURE *tex;
     struct TSTEXTURE *tex2;                  /* 0x04 */
     D3TEXFLAGS flags;               /* 0x08 */
-    float scrollSpeedU;             /* 0x0c, speed of the texture offset uOfs */
-    float scrollSpeedV;             /* 0x10, speed of the texture offset vOfs */
-    float f14;
+    union {
+        float scrollSpeedU;         /* 0x0c, speed of the texture offset uOfs */
+        int scrollSpeedUBits;       /* 0x0c, the same bits as an int: the scene file writes it with bio_wr_i (d3_WriteMap) */
+    };
+    union {
+        float scrollSpeedV;         /* 0x10, speed of the texture offset vOfs */
+        int scrollSpeedVBits;       /* 0x10, the same bits as an int (d3_WriteMap) */
+    };
+    union {
+        float f14;                  /* 0x14 */
+        int f14Bits;                /* 0x14, the same bits as an int (d3_WriteMap) */
+    };
     float speed[4];                 /* 0x18, of the wave phases */
     float amp[4];                   /* 0x28, wave amplitudes */
     float wave[4][4][4];            /* 0x38, 16 wave vectors */
@@ -124,7 +125,7 @@ typedef struct D3FLMAP {
         volatile int sizeFresh;     /* 0x00, size read anew: d3fl_LoadMap reloads it where VC6 would reuse the load
                                        (@original, two adjacent loads of [map] at 0x442580 / 0x442949) */
     };
-    int n;                          /* 0x04, points per tile side */
+    int n;                          /* 0x04, cells per tile side (x / n is the tile; d3s / d3_sm sample by tile) */
     int idxMask;                    /* 0x08, mask of a flat map index: size*size - 1 | size - 1 */
     unsigned int mask;              /* 0x0c, size - 1 */
     unsigned char *height;          /* 0x10 */
@@ -138,14 +139,20 @@ typedef struct D3FLMAP {
        one by one): xAxis = map x in world space, zAxis = map y, yAxis = height */
     float orgx, orgy, orgz;         /* 0x90, world position of map point (0, 0), height 0 */
     char pad9c[0x4];
-    float scale;                    /* 0xa0, world x per map x (xAxis.x) */
+    union {
+        float scale;                /* 0xa0, world x per map x (xAxis.x) */
+        int scaleBits;              /* 0xa0, the same bits as an int: the scene file writes it with bio_wr_i (d3_WriteMap) */
+    };
     float xAxisY, xAxisZ;           /* 0xa4, xAxis.y / xAxis.z */
     char padac[0x4];
     float zAxisX, zAxisY;           /* 0xb0, map y axis in world space */
     float negScale;                 /* 0xb8, -scale (zAxis.z) */
     char padbc[0x4];
     float yAxisX;                   /* 0xc0, height axis in world space */
-    float hscale;                   /* 0xc4, world height per height unit (yAxis.y) */
+    union {
+        float hscale;               /* 0xc4, world height per height unit (yAxis.y) */
+        int hscaleBits;             /* 0xc4, the same bits as an int (d3_WriteMap's bio_wr_i) */
+    };
     float yAxisZ;                   /* 0xc8 */
     char padcc[0x4];
     float ambient[3];               /* 0xd0 */
@@ -272,7 +279,7 @@ extern D3VECTOR4 d3fl_Origin;               /* 0xfbbd30, map point (0, 0, 0) in 
 extern D3VECTOR4 d3fl_AxisX;                /* 0xfc0d50, world step per map x */
 extern D3VECTOR4 d3fl_AxisY;                /* 0xfbbd00, world step per height unit */
 extern D3VECTOR4 d3fl_AxisZ;                /* 0xfbb8e0, world step per map y */
-extern D3BOXVERT d3fl_Box[8];               /* 0x6334b8, result of d3fl_TileBox */
+extern D3VERTEX d3fl_Box[8];               /* 0x6334b8, result of d3fl_TileBox */
 typedef struct D3FLDESC {           /* input of d3fl_LoadMap; null pointers / size <= 0 mean load from files */
     char name[0x40];                /* height map "boden/<name>.bmp", water map "boden/<name>_w.bmp" */
     unsigned char *height;          /* 0x40 */
@@ -322,7 +329,7 @@ struct TSTEXTURE; struct TSTEXTURE *tex_Prepare(struct TSTEXTURE *tex);         
 
 /* ---- 0x4439e0 (worker d3fl4) ---- */
 typedef struct D3FLSPLIT {          /* 12 bytes, D3FLTILE.split: a vertex added on a tile edge next to a finer tile */
-    D3FLPOINT *p;
+    D3VERTEX *p;
     int x, y;                       /* map position */
 } D3FLSPLIT;
 typedef struct D3FLTRIUV {          /* the texture coordinates of one triangle (D3FLPOLY.uv, D3FLTILE.bp) */

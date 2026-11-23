@@ -38,7 +38,7 @@ int ai_PokerStart(AICHAR *p, G10GAME *g)
     double d;
     int i, j, k;
     G10CARD *c;
-    G10NPC *n;
+    AICHAR *n;
 
     ai_PokerTable = 0;
     if (p == 0 || p->kind != 6 || g == 0)
@@ -64,13 +64,13 @@ int ai_PokerStart(AICHAR *p, G10GAME *g)
     for (i = 0; i < 2; i++) {
         n = &ai_PokerOpponents[i];
         if (i != 0)
-            n->female = ai_PokerOpponents[0].female == 0;
+            n->sex = ai_PokerOpponents[0].sex == 0;
         else
-            n->female = (unsigned char)util_Random(2);
-        n->variant = (unsigned char)util_Random(4) + 1;
-        strncpy(n->nname, txt_Ptrs[TXT_FAMILY_NAMES + util_Random(0x95)], 15);
-        if (n->female == 0) {
-            strncpy(n->vname, txt_Ptrs[TXT_MALE_FIRST_NAMES + util_Random(0xbf)], 15);
+            n->sex = (unsigned char)util_Random(2);
+        n->level = (unsigned char)util_Random(4) + 1;
+        strncpy(n->family, txt_Ptrs[TXT_FAMILY_NAMES + util_Random(0x95)], 15);
+        if (n->sex == 0) {
+            strncpy(n->first, txt_Ptrs[TXT_MALE_FIRST_NAMES + util_Random(0xbf)], 15);
             switch (util_Random(4)) {
             case 0:
                 ai_PokerTable->seat[i + 1].model = gm_HeadIconNumber("buerger_MANN") + 0x639;
@@ -86,7 +86,7 @@ int ai_PokerStart(AICHAR *p, G10GAME *g)
                 break;
             }
         } else {
-            strncpy(n->vname, txt_Ptrs[TXT_FEMALE_FIRST_NAMES + util_Random(0x70)], 15);
+            strncpy(n->first, txt_Ptrs[TXT_FEMALE_FIRST_NAMES + util_Random(0x70)], 15);
             switch (util_Random(4)) {
             case 0:
                 ai_PokerTable->seat[i + 1].model = gm_HeadIconNumber("buergerin_frau") + 0x639;
@@ -390,7 +390,7 @@ void ai_PokerPayStakes(void)
             ai_PokerTable->pot += ai_PokerTable->stake2;
             if (i == 0) {
                 gm_PlayerFactor(ai_PokerTable->stake2, ai_OwnPlayer);
-                cm_SendMoveGoodsUnchecked(-1, ((AICHAR *)ai_PokerTable->seat[0].who)->netId, ai_OwnPlayer,
+                cm_SendMoveGoodsUnchecked(-1, ai_PokerTable->seat[0].who->netId, ai_OwnPlayer,
                              ai_PokerTable->stake2);
             }
             ai_PokerTable->seat[i].bet += ai_PokerTable->stake2;
@@ -895,7 +895,7 @@ void ai_PokerExchange(int k)
 void ai_PokerAnte(void)
 {
     ai_PokerTable->pot = ai_PokerTable->stake2 * 3;
-    cm_SendMoveGoodsUnchecked(-1, ((AICHAR *)ai_PokerTable->seat[0].who)->netId, ai_OwnPlayer, ai_PokerTable->stake2);
+    cm_SendMoveGoodsUnchecked(-1, ai_PokerTable->seat[0].who->netId, ai_OwnPlayer, ai_PokerTable->stake2);
 }
 /* 0x4a8690, ends the round: the winner into winner, the pot to the player if he won, all cards back */
 
@@ -905,7 +905,7 @@ void ai_PokerEndRound(void)
 
     ai_PokerTable->winner = (short)ai_PokerShowdown();
     if (ai_PokerTable->winner == 0)
-        cm_SendMoveGoodsUnchecked(((AICHAR *)ai_PokerTable->seat[0].who)->netId, -1, ai_OwnPlayer,
+        cm_SendMoveGoodsUnchecked(ai_PokerTable->seat[0].who->netId, -1, ai_OwnPlayer,
                      ai_PokerTable->pot);
     for (i = 0; i < 24; i++) {
         ai_PokerDeck[i].owner = 3;
@@ -930,4 +930,4 @@ const int ai_CardBack = 0x18;  /* 0x5ed1bc, the picture offset of the card back 
 char ai_PokerHandNames[9][0x100] = { "H\xf6" "chste Karte", "Paar", "2 Paar", "Dreier", "Strasse", "Fullhouse", "Flush", "Poker", "Royal Flush" };  /* 0x600490, the hand names by ai_PokerRateHand's rank 0 .. 8; no reader in the image: the first datum of the unit's .data block, after am's strings */
 G10GAME * ai_PokerTable;  /* 0xf83654 */
 G10CARD ai_PokerDeck[24];  /* 0xf83660 */
-G10NPC ai_PokerOpponents[2];  /* 0xf837e0 */
+AICHAR ai_PokerOpponents[2];  /* 0xf837e0 */

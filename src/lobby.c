@@ -17,7 +17,7 @@
 #include <string.h>
 #include "d3.h"
 #include "d2.h"
-#include "cm.h"                           /* the lobby API, CMNETGAME cm_NetGame, CMLOBBYPLAYER */
+#include "cm.h"                           /* the lobby API, UDPSERVER cm_NetGame, CMLOBBYPLAYER */
 #include "sv.h"
 #include "f3gm.h"
 #include "io_text.h"
@@ -134,7 +134,7 @@ int lobby_Screen(void)
     lobby_Player.talents[2] = 0x78;
     lobby_Player.talents[3] = 0x46;
     lobby_Player.talents[4] = 0x5a;
-    if (cm_NetGame.mode == 0x7f) {
+    if (cm_NetGame.flags == 0x7f) {
         lobby_Player.job = (unsigned char)cm_JoinChar.char164;
         lobby_Player.sex = (unsigned char)cm_JoinChar.char09;
         lobby_Player.faith = (unsigned char)cm_JoinChar.char0c;
@@ -315,7 +315,7 @@ int lobby_Screen(void)
 char *itoa(int, char *, int); char *strupr(char *);
 
 /* 0x58a940, adds the lobby form's buttons: row 4 (sv_ButtonRow) the ready and character buttons into
-   lobby_Buttons, row 8 the leave button; in the single-player mode (cm_NetGame.mode 0x7f) the character button
+   lobby_Buttons, row 8 the leave button; in the single-player mode (cm_NetGame.flags 0x7f) the character button
    is not clickable */
 void lobby_AddButtons(void)
 {
@@ -323,7 +323,7 @@ void lobby_AddButtons(void)
     sv_ButtonRow(d2_LastWindow, 0, lobby_Buttons, 2, txt_Ptrs[TXT_LOBBY_READY], txt_Ptrs[TXT_LOBBY_CHARACTER]);
     d2_SetForm(lobby_Form, 8);
     sv_ButtonRow(d2_LastWindow, 0, &lobby_LeaveButton, 1, txt_Ptrs[TXT_LOBBY_LEAVE]);
-    if (cm_NetGame.mode == 0x7f)
+    if (cm_NetGame.flags == 0x7f)
         d2_Objs[lobby_Buttons[1]].clickDisabled = 1;
 }
 /* 0x58a9d0, adds the scroll buttons of the lobby's chat: the window of the form's part 5 scrolled by the
@@ -360,16 +360,16 @@ void lobby_ShowCity(void)
     io_PrintText((intptr_t)"$C");
     /* @original: both arms are the same code (each with its own players read: the callee-saved pushes stay
        in the prologue) */
-    if (cm_NetGame.mode == 0x3f) {
-        strcpy(name, cm_NetGame.hdr.name);
-        strcpy(city, cm_NetGame.hdr.name);
+    if (cm_NetGame.flags == 0x3f) {
+        strcpy(name, cm_NetGame.info.game.name);
+        strcpy(city, cm_NetGame.info.game.name);
         strupr(name);
-        players = cm_NetGame.hdr.players;
+        players = cm_NetGame.info.game.players;
     } else {
-        strcpy(name, cm_NetGame.hdr.name);
-        strcpy(city, cm_NetGame.hdr.name);
+        strcpy(name, cm_NetGame.info.game.name);
+        strcpy(city, cm_NetGame.info.game.name);
         strupr(name);
-        players = cm_NetGame.hdr.players;
+        players = cm_NetGame.info.game.players;
     }
     sprintf(pic, "_STADTWAPPEN_%s", name);
     obj = d2_FindPic(pic);
@@ -531,7 +531,7 @@ int lobby_ChoosePlayer(unsigned mask, int b)
     init_PlayerProfile.faith = GetPrivateProfileIntA("Network", "Glauben", 0, ai_OptionsFile);
     win = d2_OpenForm(0, 0, "Menu\\CHOOSEPLAYER");
     d2_CentreViewWindows(win);
-    io_TownDisplayName(cm_NetGame.hdr.name, town);
+    io_TownDisplayName(cm_NetGame.info.game.name, town);
     d2_SetForm(win, 1);
     io_PrintText(0x1acf, town);
     firstIn = d2_GetWinObj(win, 1, io_PrintText(0x1ad0, 0x1ad2));

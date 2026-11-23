@@ -15,6 +15,7 @@
 #include "data_views.h"
 #include "d3_types.h"
 #include "ahm.h"
+#include "f3gm_types.h"
 #include "ai.h"
 #include "anm.h"
 #include "cm.h"
@@ -123,7 +124,7 @@ char ord_RatingBytes[16];  /* 0x91b460, 5 + 1 bytes */
 AITIME ord_StatisticsClock; /* 0x91b470, the clock of the last rating step (ord_AdvanceRatingBase) */
 ORDMSGREC ord_MessageRecord;  /* 0x91b480, the record the messages carry */
 ORDSTATS ord_Statistics; /* 0x91b4c0, the last statistics (ord_UpdateStatistics) */
-unsigned gm_OwnNameHeads[136];  /* 0x91ac40 */
+GMHEAD gm_OwnNameHeads[8];  /* 0x91ac40, the ring of the heads of characters with their own name (gm_CharNameRecord) */
 AIGRID ai_Grid[8][8]; /* 0x91ae60 */
 GMCHARSTATS gm_CharacterStatistics;  /* 0x91b500, the character statistics (gm_CountCharacters fills them) */
 
@@ -137,9 +138,9 @@ GMCHARSTATS gm_CharacterStatistics;  /* 0x91b500, the character statistics (gm_C
 
 unsigned ord_ApplyForOffice(AICHAR *c, ORDMSG *m)
 {
-    ORDEVENT *ev;
+    AIJOB *ev;
     AICHAR *ch;
-    unsigned short *p;
+    AICHAR *p;
     int r, found;
 
     if (m->kind == 3 || m->kind == 1) {
@@ -152,15 +153,15 @@ unsigned ord_ApplyForOffice(AICHAR *c, ORDMSG *m)
                 r |= 2;
             } else if (m->kind == 1 && c->kind == 6) {
                 found = 0;
-                ev = (ORDEVENT *)he_FindEvent(1, 0, 0x41);
+                ev = he_FindEvent(1, 0, 0x41);
                 while (ev != 0) {
-                    if (ev->ownerId == ai_Chars[ai_PlayerId].netId) {
-                        p = (unsigned short *)gm_FindChar(ev->targetId);
-                        txt_Format(m->text, 0x1ce2, *p);
+                    if (ev->partner1 == ai_Chars[ai_PlayerId].netId) {
+                        p = gm_FindChar(ev->partner2);
+                        txt_Format(m->text, 0x1ce2, p->id);
                         found = 1;
                         break;
                     }
-                    ev = (ORDEVENT *)he_NextEvent();
+                    ev = he_NextEvent();
                 }
                 if (!found)
                     txt_Format(m->text, (intptr_t)"%s", 0x1ce1);
@@ -241,7 +242,7 @@ int ord_AccusationOrder(AICHAR *c, ORDMSG *m)
     o = he_FindEvent(1, 0, 0x2c);
     if (o != 0) {
         do {
-            if (((ORDEVENT *)o)->ownerId == c->netId)
+            if (o->offerWho[0] == c->netId)
                 return 1;
             o = he_NextEvent();
         } while (o != 0);
@@ -513,7 +514,7 @@ int ord_WageReportOrder(AICHAR *c, ORDMSG *m)
         char buf[0x400];
         int base;
 
-        gm_CharacterWages(c->id, 0, (unsigned char *)&o);
+        gm_CharacterWages(c->id, 0, &o);
         memset(buf, 0, sizeof buf);
         base = (c->sex != 0 ? 0x27b : 0x253);
         txt_Format(buf, (intptr_t)"$Z%s$N", 0x1d96);
@@ -565,11 +566,11 @@ int ord_DismissOfficeOrder(AICHAR *c, ORDMSG *m)
     }
     return 1;
 }
-/* 0x4f5d50, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f5d50: the table record 1 of 0x4f2870 (the byte rec[0] goes to m[1] and, for a player, into the text at m + 0x14 through 0x4f2fe0), the flag 0x80000 of +0x1c8 of the character (and of m[0x87] for 2 / 4) blocks; kind 3 / 4 sets m[0x85] = 1 and runs the law window 0x5ca150; result | 2 (| 0xa for 4 / 2) */
+/* 0x4f5d50, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f5d50: the table record 1 of 0x4f2870 (the record's id byte goes to m[1] and, for a player, into the text at m + 0x14 through 0x4f2fe0), the flag 0x80000 of +0x1c8 of the character (and of m[0x87] for 2 / 4) blocks; kind 3 / 4 sets m[0x85] = 1 and runs the law window 0x5ca150; result | 2 (| 0xa for 4 / 2) */
 
 int ord_LawOrder(AICHAR *c, ORDMSG *m)
 {
-    int rec[9];
+    AIDEC rec;
     int r;
     AICHAR *t;
 
@@ -577,15 +578,15 @@ int ord_LawOrder(AICHAR *c, ORDMSG *m)
     if (m->kind == 3 || m->kind == 1) {
         if (c->officeKind == 0)
             return 1;
-        if (gv_FindTableRecord(c, 1, rec) == 0)
+        if (gv_FindTableRecord(c, 1, &rec) == 0)
             return 1;
         if (c->kind == 6)
-            gv_TableRecordText(m->text, rec[0] & 0xff);
+            gv_TableRecordText(m->text, rec.id);
         if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if ((c->flags1c8 & 0x80000) != 0)
             return 1;
-        m->law = rec[0] & 0xff;
+        m->law = rec.id;
         if (m->kind == 3) {
             m->answerFlag = 1;
             r = ai_LawPrivilegeWindow(c, m);
@@ -599,23 +600,23 @@ int ord_LawOrder(AICHAR *c, ORDMSG *m)
             return 1;
         if ((t->flags1c8 & 0x80000) != 0)
             return 1;
-        if (gv_FindTableRecord(t, 1, rec) == 0)
+        if (gv_FindTableRecord(t, 1, &rec) == 0)
             return 1;
-        m->law = rec[0] & 0xff;
+        m->law = rec.id;
         if (m->kind == 4) {
             m->answerFlag = 1;
             r = ai_LawPrivilegeWindow(c, m);
         } else if (c->kind == 6)
-            gv_TableRecordText(m->text, rec[0] & 0xff);
+            gv_TableRecordText(m->text, rec.id);
         return r | 0xa;
     }
     return 1;
 }
-/* 0x4f5f00, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f5d50: the table record 2 of 0x4f2870 (the byte rec[0] goes to m[1] and, for a player, into the text at m + 0x14 through 0x4f2fe0), the flag 0x100000 of +0x1c8 of the character (and of m[0x87] for 2 / 4) blocks; kind 3 / 4 sets ORD_MSG(m)->answerFlag = 2 and runs 0x5ca150; result | 2 (| 0xa for 4 / 2) */
+/* 0x4f5f00, an order handler (c, m; kinds 1 / 3 and the answers 2 / 4) like 0x4f5d50: the table record 2 of 0x4f2870 (the record's id byte goes to m[1] and, for a player, into the text at m + 0x14 through 0x4f2fe0), the flag 0x100000 of +0x1c8 of the character (and of m[0x87] for 2 / 4) blocks; kind 3 / 4 sets ORD_MSG(m)->answerFlag = 2 and runs 0x5ca150; result | 2 (| 0xa for 4 / 2) */
 
 int ord_LawOrder2(AICHAR *c, ORDMSG *m)
 {
-    int rec[9];
+    AIDEC rec;
     int r;
     AICHAR *t;
 
@@ -623,15 +624,15 @@ int ord_LawOrder2(AICHAR *c, ORDMSG *m)
     if (m->kind == 3 || m->kind == 1) {
         if (c->officeKind == 0)
             return 1;
-        if (gv_FindTableRecord(c, 2, rec) == 0)
+        if (gv_FindTableRecord(c, 2, &rec) == 0)
             return 1;
         if (c->kind == 6)
-            gv_TableRecordText(m->text, rec[0] & 0xff);
+            gv_TableRecordText(m->text, rec.id);
         if ((c->flags1c8 & 0x200) != 0)
             return 9;
         if ((c->flags1c8 & 0x100000) != 0)
             return 1;
-        m->law = rec[0] & 0xff;
+        m->law = rec.id;
         if (m->kind == 3) {
             m->answerFlag = 2;
             r = ai_LawPrivilegeWindow(c, m);
@@ -645,14 +646,14 @@ int ord_LawOrder2(AICHAR *c, ORDMSG *m)
             return 1;
         if ((t->flags1c8 & 0x100000) != 0)
             return 1;
-        if (gv_FindTableRecord(t, 2, rec) == 0)
+        if (gv_FindTableRecord(t, 2, &rec) == 0)
             return 1;
-        m->law = rec[0] & 0xff;
+        m->law = rec.id;
         if (m->kind == 4) {
             m->answerFlag = 2;
             r = ai_LawPrivilegeWindow(c, m);
         } else if (c->kind == 6)
-            gv_TableRecordText(m->text, rec[0] & 0xff);
+            gv_TableRecordText(m->text, rec.id);
         return r | 0xa;
     }
     return 1;
@@ -1680,7 +1681,7 @@ int ord_GetGridCell(struct D3VECTOR *p, int *x, int *y)
     int n;
     float h;
 
-    hmap = (D3SM *)d3_Scenes[0].hmap;
+    hmap = d3_Scenes[0].hmap;
     n = hmap->size / 8;
     if (d3_GetHeightAt(hmap, p, x, y, &h) != 0) {
         *x = *x / n;
@@ -1745,13 +1746,6 @@ void ord_CountGridObjects(void)
         }
     }
 }
-
-/* the kind table 0x617468: one 8-byte record per kind (ORD_KIND reads the same pair as four shorts) */
-typedef struct ORDKIND {
-    int value;                      /* 0x0, the kind's value */
-    int flags;                      /* 0x4, the kind's flags */
-} ORDKIND;
-#define ORD_KINDS ((ORDKIND *)ord_KindTable)
 
 /* 0x4f8460, adds the guilt weight (+0x0c, AIDEC.guilt) of the decision record kind (gv_GetTableRecord) to the sums (+2, a short) of the cell of the 8 x 8 grid 0x91ae60 at the position of an object (gm_FindById gives the object of who; ord_GetGridCell the cell x, y of its +0x61 record's +0x4c), and to the +0 sums of its 3 x 3 neighbourhood, clamped to the grid; x, y start as random cells (util_Random(8)) for when ord_GetGridCell fails; the cell x, y go to *px / *py */
 
@@ -1828,7 +1822,7 @@ char ord_RandomCellPoint(int x, int y, D3VECTOR *out)
     unsigned a;
     unsigned b;
 
-    hmap = (D3SM *)d3_Scenes[0].hmap;
+    hmap = d3_Scenes[0].hmap;
     n = hmap->size / 8;
     a = util_Random(n) + n * x;
     b = util_Random(n) + n * y;
@@ -1900,12 +1894,12 @@ int ord_RandomObjectId(AICHAR *c)
     return list[util_Random(n)];
 }
 /* 0x4f8890, copies the kind record i (below 0x58) of ord_KindTable to out; 0 for a bad i */
-int ord_GetKindRecord(int i, int *out)
+int ord_GetKindRecord(int i, ORDKIND *out)
 {
     if (i >= 0x58)
         return 0;
-    out[0] = ORD_KINDS[i].value;
-    out[1] = ORD_KINDS[i].flags;
+    out->pair[0] = ord_KindTable[i].pair[0];
+    out->pair[1] = ord_KindTable[i].pair[1];
     return 1;
 }
 /* 0x4f88c0, shifts the 15 rounds of ord_StatisticsHistory down by one (the oldest drops out) and fills the last one from ord_Statistics (out[1] .. out[3] and the score out[9]) and ai_RatingBase truncated */
@@ -1984,14 +1978,8 @@ void ord_RebuildGridSums(void)
     }
 }
 
-#define ORD_GRID(c) ((char *)ai_Grid + (c) * 0x18)
-#define ORD_KIND(k) ((unsigned short *)(ord_KindTable + (k) * 8))
 float gm_IncomeRating();                       /* 0x4f9ec0 */
 void cm_SendMessage41(void *p);                         /* 0x4c5800 */
-
-/* ord_StatisticsRating as ord_ComputeStatistics calls it: @original the call pushes the record buffer (lea edx,
-   [esp+0x48]; push edx; call 0x4f9ce0; add esp, 8 together with ord_WeightedRecordSum's), which the callee does
-   not read */
 
 /* 0x4f8ae0, the statistics of the characters and buildings into the 10-dword record out (floats but for the ints
    out[4], out[7], out[8]): counts the characters of kind 0 / 1 and their two buildings (bld / bld2), adds 1.0 to
@@ -2000,17 +1988,17 @@ void cm_SendMessage41(void *p);                         /* 0x4c5800 */
    the grid cells and rates the result (ord_WeightedRecordSum, ord_StatisticsRating, gm_IncomeRating). out[0] the
    income rating, out[1] / out[3] the shares without a bld / bld2, out[2] the combined rating, out[4] the number of
 characters, out[5] the rating, out[7] / out[8] the kind sums, out[9] the overall score */
-void ord_ComputeStatistics(float *out)
+void ord_ComputeStatistics(ORDSTATS *out)
 {
     int cnt, n1, n0, i, j, k;
     int sumA, sumC, sumD, s58, s54, s50, s4c;
     float cntf, f, m, sum, w, g;
-    float q3, q1, q2, income;               /* the inverted shares and the income rating of out[9] */
+    float q3, q1, q2, income;               /* the inverted shares and the income rating of out->score */
     AICHAR *c;
     AIBLD *p;
     unsigned char *b;
     unsigned char *bt;
-    unsigned short *t;
+    ORDKIND *t;
     int rec[12];
 
     cnt = 0;
@@ -2054,33 +2042,33 @@ void ord_ComputeStatistics(float *out)
     for (i = 0; i < 0x100; i++, p++) {
         if (p->type == 0 || p->type >= 0x44 || p->owner == 0xffff)
             continue;
-        t = ORD_KIND(p->type);
+        t = &ord_KindTable[p->type];
         b = (unsigned char *)ai_BTypes + p->type * 0x24d;
-        sumA += t[0];
-        sumC += t[2];
-        sumD += t[1];
-        if (t[1] > 0) {
+        sumA += t->residents;
+        sumC += t->w4;
+        sumD += t->w2;
+        if (t->w2 > 0) {
             s58 += b[0x247];
             s54 += b[0x248];
         }
-        if (t[3] != 0) {
+        if (t->w6 != 0) {
             s50 += b[0x247];
             s4c += b[0x248];
         }
     }
-    k = (unsigned short)ORD_KINDS[1].value * 2;
+    k = ord_KindTable[1].residents * 2;
     if (sumA <= k)
         sumA = k;
     cntf = (float)cnt;
-    out[5] = cntf / sumA * ((float)s50 / s4c * ((float)s58 / s54) + 0.5) * sumD;
-    ((int *)out)[7] = sumC;
-    ((int *)out)[4] = cnt;
-    ((int *)out)[8] = sumA;
-    out[0] = gm_IncomeRating();
+    out->rating = cntf / sumA * ((float)s50 / s4c * ((float)s58 / s54) + 0.5) * sumD;
+    out->sumC = sumC;
+    out->chars = cnt;
+    out->sumA = sumA;
+    out->col[0] = gm_IncomeRating();
     /* @original the shares divide in double: two float divisions by cntf become one shared reciprocal (VC6), the
        original divides twice */
-    out[3] = 1.0f - (float)(n1 / (double)cntf);
-    out[1] = 1.0f - (float)(n0 / (double)cntf);
+    out->col[3] = 1.0f - (float)(n1 / (double)cntf);
+    out->col[1] = 1.0f - (float)(n0 / (double)cntf);
 
     for (i = 0; i < 8; i++) {
         for (j = 0; j < 8; j++) {
@@ -2094,12 +2082,12 @@ void ord_ComputeStatistics(float *out)
     }
     f = ord_WeightedRecordSum(rec);
     f = (float)((1.0 - (f * 0.7f + ord_StatisticsRating(rec) * 0.3)) * sum);
-    out[2] = f;
-    q3 = 1.0f - out[3];
-    q1 = 1.0f - out[1];
-    income = out[0];
+    out->col[2] = f;
+    q3 = 1.0f - out->col[3];
+    q1 = 1.0f - out->col[1];
+    income = out->col[0];
     q2 = 1.0f - f;
-    out[9] = ((q2 + income + q1 + q3) * 0.25f
+    out->score = ((q2 + income + q1 + q3) * 0.25f
               + q2 * income * q1 * q3 * 2) * 0.33333334f;
 }
 /* 0x4f8ed0, recomputes the statistics (ord_ComputeStatistics) into ord_Statistics, smooths the rating out[5] into
@@ -2110,17 +2098,17 @@ void ord_ComputeStatistics(float *out)
 
 void ord_UpdateStatistics(void)
 {
-    float st[10];
+    ORDSTATS st;
     ORDSAVE m;
 
-    ord_ComputeStatistics(st);
+    ord_ComputeStatistics(&st);
     if (ai_RatingBase == 0.0f) {
-        memcpy(&ord_Statistics, st, sizeof ord_Statistics);
-        ai_Rating = st[5];
-        ai_RatingBase = st[5] * 0.95;
+        memcpy(&ord_Statistics, &st, sizeof ord_Statistics);
+        ai_Rating = st.rating;
+        ai_RatingBase = st.rating * 0.95;
     } else {
-        memcpy(&ord_Statistics, st, sizeof ord_Statistics);
-        ai_Rating = (st[5] - ai_Rating) * 0.5f + ai_Rating;
+        memcpy(&ord_Statistics, &st, sizeof ord_Statistics);
+        ai_Rating = (st.rating - ai_Rating) * 0.5f + ai_Rating;
     }
     ord_Statistics.rating = ai_Rating;
     ord_Statistics.base = ai_RatingBase;
@@ -2203,13 +2191,8 @@ void ord_LoadStatistics(void *p)
     ord_ReportStatistics();
 }
 
-typedef struct ORDINITMSG {             /* the message 0x4c5e80 payload: the record and its tag at +0x24 */
-    ORDMSGREC record;                   /* 0x00 */
-    int tag;                            /* 0x24, 'init' / 'set ' */
-} ORDINITMSG;
-
 /* 0x4f9170, copies the 9 ints of the record 0x91b480 (the clear-able table of 0x4f82a0) to out */
-void ord_GetMessageRecord(int *out)
+void ord_GetMessageRecord(ORDMSGREC *out)
 {
     memcpy(out, &ord_MessageRecord, 0x24);
 }
@@ -2338,9 +2321,9 @@ void ord_UpdateMessageEvent(void)
    byte-swapped, as the message carries it) copies the 9 ints to the record 0x91b480 (1); 'dsbl' / 'enbl' clear /
    set its first int (1); anything else 0 */
 
-int ord_HandleMessageRecord(int *m)
+int ord_HandleMessageRecord(ORDINITMSG *m)
 {
-    switch ((unsigned)m[9]) {
+    switch ((unsigned)m->tag) {
     case 0x656e626c:                    /* 'enbl' */
         ord_MessageRecord.enabled = 1;
         break;
@@ -2488,9 +2471,7 @@ void ord_AdvanceRatingBase(void)
     int k;
     double lim;
 
-    k = gm_MinutesBetween(&ord_StatisticsClock, &ai_Time);  /* @original: gv.h's shared K&R declaration (the call
-         pushes the two clock pointers, 0x4f9c01 push 0x770ae0 / 0x4f9c06 push 0x91b470); a prototype in ord.c
-         is a lint cross-TU conflict with he.c / sv.c / gv.c, which call it with an int address literal */
+    k = gm_MinutesBetween(&ord_StatisticsClock, &ai_Time);
     if (k == 0) {
         ord_StatisticsClock = ai_Time;
         return;

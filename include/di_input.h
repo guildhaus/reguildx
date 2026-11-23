@@ -42,7 +42,7 @@ extern volatile int tb_Calls;           /* 0x6333d8, timer callbacks */
 
 #include "reg.h"                                                        /* the registry helpers (reg.c, 0x4103a0 .. 0x4104e0) */
 int kb_BuildMap(void);                                                  /* 0x4104e0 */
-unsigned char kb_FindKey(int shift, int ctrl, int alt, char code);                /* 0x410560 */
+unsigned char kb_FindKey(int shift, int ctrl, int alt, signed char code);         /* 0x410560 */
 void kb_SetBase(int v);                                                 /* 0x410610 */
 void di_ClearButtons(void);                                             /* 0x410620 */
 void di_ClearAxes(void);                                                /* 0x410690 */

@@ -66,58 +66,8 @@ typedef struct OCMDTEXSEL {
     unsigned char set;              /* 0xc8, texture set to select */
 } OCMDTEXSEL;
 
-/* the bits of D3OBJECT.stateFlags the commands set */
-typedef struct OCMDOBJBITS {
-    unsigned char b0 : 1, b1 : 1, transient : 2, blocked : 1, b5 : 3;
-} OCMDOBJBITS;
 
-/* the template par_CreateEmitter reads (global at 0x1468620, 0xa4 bytes) */
-typedef struct D3EMITTERCFG {
-    int type;                       /* 0x00, emitter type: 0/1/2 -> par_EmitterCB0/1/2 */
-    char pad04[0x30];
-    float f34, f38, f3c;
-    D3VECTOR dir;                   /* 0x40, d3_YAxis */
-    char pad4c[0x34];
-    float f80;
-    char pad84[0x8];
-    float f8c;
-    int i90, i94, i98;
-    unsigned char c9c, c9d, c9e, c9f;
-    unsigned char flags;            /* 0xa0 */
-    char pada1[3];
-} D3EMITTERCFG;
 
-/* a particle system created by par_CreateEmitter (0x457b30); the commands fill in its parameters */
-typedef struct D3EMITTER {
-    union {
-        struct {
-            char padcfg[0x2c];
-            D3EMITTERCFG cfg;       /* 0x2c..0xd0, the template par_CreateEmitter copies in */
-        };
-        struct {
-            char pad00[0x40];
-            float amp[3];                   /* 0x40 */
-            float amp3;                     /* 0x4c */
-            float phase[3];                 /* 0x50 */
-            float phase3;                   /* 0x5c */
-            float size[3];                  /* 0x60 */
-            float dir[3];                   /* 0x6c */
-            float vel[3];                   /* 0x78 */
-            float rnd[3];                   /* 0x84 */
-            float acc[3];                   /* 0x90 */
-            float plane[3];                 /* 0x9c */
-            float plane3;                   /* 0xa8 */
-            float maxtrigger;               /* 0xac, also set by SetEmitterFlags */
-            float amp4;                     /* 0xb0 */
-            float phase4;                   /* 0xb4 */
-            float time;                     /* 0xb8 */
-            int alpha[3];                   /* 0xbc */
-            unsigned char b, g, r, a;       /* 0xc8 */
-            unsigned char texmode : 5, initfill : 1, rebirthfill : 1, istrigger : 1;   /* 0xcc */
-            unsigned char triggeronce : 1, trigger : 1, bcd : 6;                        /* 0xcd */
-        };
-    };
-} D3EMITTER;
 
 typedef struct OCMDTEXFLAGS {       /* D3TEXFLAGS with the bits par_CreateEmitter's callers set */
     union {
@@ -135,7 +85,7 @@ extern D3EMITTERCFG d3_EmitterCfg;      /* 0x1468620 */
 D3PARTSYS *par_CreateEmitter(int count, const D3VECTOR *pos, int parent, char *tex, OCMDTEXFLAGS flags, float size,
                              D3EMITTERCFG *cfg);                                     /* 0x457b30 */
 struct D3OBJECT * d3t_FindObject(char *name, char flags);                                    /* 0x411900 */
-D3ANIM *d3t_MoveObjectPath(D3OBJECT *obj, int time, int n, D3OBJECT **path);         /* 0x413960 */
+D3PATH *d3t_MoveObjectPath(D3OBJECT *obj, int time, int n, D3OBJECT **path);         /* 0x413960 */
 struct D3TRAIN;
 struct D3TRAIN *d3t_CreateRain(int count);                                           /* 0x413b30 */
 
@@ -159,25 +109,25 @@ int ocmd_RenameObject(D3OBJECT **obj, char **name);                             
 int ocmd_SetBlocked(D3OBJECT **obj, int *on);                                        /* 0x40eef0 */
 int ocmd_SetTransient(D3OBJECT **obj, int *mode);                                    /* 0x40ef40 */
 int ocmd_CreateEmitter(int *a, int *count, int *parent, int *size, char **tex, int *f0, int *f1); /* 0x40ef90 */
-int ocmd_KillEmitter(D3EMITTER **e);                                                 /* 0x40f0c0 */
-int ocmd_SetEmitterAmplitude(D3EMITTER **e, int *a, int *b, int *c, int *d, int *f);  /* 0x40f110 */
-int ocmd_SetEmitterPhasespeed(D3EMITTER **e, int *a, int *b, int *c, int *d, int *f); /* 0x40f1b0 */
-int ocmd_SetEmitterDirection(D3EMITTER **e, int *x, int *y, int *z);                 /* 0x40f250 */
-int ocmd_SetEmitterSize(D3EMITTER **e, int *x, int *y, int *z);                      /* 0x40f2c0 */
-int ocmd_SetEmitterVelocity(D3EMITTER **e, int *x, int *y, int *z);                  /* 0x40f320 */
-int ocmd_SetEmitterAcceleration(D3EMITTER **e, int *x, int *y, int *z);              /* 0x40f390 */
-int ocmd_SetEmitterRndVelocity(D3EMITTER **e, int *x, int *y, int *z);               /* 0x40f400 */
-int ocmd_SetEmitterPlane(D3EMITTER **e, int *x, int *y, int *z, int *d);             /* 0x40f470 */
-int ocmd_SetEmitterTimeAndAlpha(D3EMITTER **e, int *a, int *b, int *c, int *t);      /* 0x40f4f0 */
-int ocmd_SetEmitterColor(D3EMITTER **e, int *r, int *g, int *b, int *a);             /* 0x40f560 */
-int ocmd_SetEmitterFlags(D3EMITTER **e, int *a, int *b, int *c, int *d, int *f, int *g); /* 0x40f5d0 */
-int ocmd_SetEmitterInitFill(D3EMITTER **e, int *on);                                 /* 0x40f690 */
-int ocmd_SetEmitterRebirthFill(D3EMITTER **e, int *on);                              /* 0x40f6f0 */
-int ocmd_SetEmitterTextureMode(D3EMITTER **e, int *mode);                            /* 0x40f750 */
-int ocmd_SetEmitterIsTrigger(D3EMITTER **e, int *on);                                /* 0x40f7a0 */
-int ocmd_SetEmitterTriggerOnce(D3EMITTER **e, int *on);                              /* 0x40f800 */
-int ocmd_SetEmitterMaxTrigger(D3EMITTER **e, int *n);                                /* 0x40f850 */
-int ocmd_TriggerEmitter(D3EMITTER **e);                                              /* 0x40f8a0 */
+int ocmd_KillEmitter(D3PARTSYS **e);                                                 /* 0x40f0c0 */
+int ocmd_SetEmitterAmplitude(D3PARTSYS **e, int *a, int *b, int *c, int *d, int *f);  /* 0x40f110 */
+int ocmd_SetEmitterPhasespeed(D3PARTSYS **e, int *a, int *b, int *c, int *d, int *f); /* 0x40f1b0 */
+int ocmd_SetEmitterDirection(D3PARTSYS **e, int *x, int *y, int *z);                 /* 0x40f250 */
+int ocmd_SetEmitterSize(D3PARTSYS **e, int *x, int *y, int *z);                      /* 0x40f2c0 */
+int ocmd_SetEmitterVelocity(D3PARTSYS **e, int *x, int *y, int *z);                  /* 0x40f320 */
+int ocmd_SetEmitterAcceleration(D3PARTSYS **e, int *x, int *y, int *z);              /* 0x40f390 */
+int ocmd_SetEmitterRndVelocity(D3PARTSYS **e, int *x, int *y, int *z);               /* 0x40f400 */
+int ocmd_SetEmitterPlane(D3PARTSYS **e, int *x, int *y, int *z, int *d);             /* 0x40f470 */
+int ocmd_SetEmitterTimeAndAlpha(D3PARTSYS **e, int *a, int *b, int *c, int *t);      /* 0x40f4f0 */
+int ocmd_SetEmitterColor(D3PARTSYS **e, int *r, int *g, int *b, int *a);             /* 0x40f560 */
+int ocmd_SetEmitterFlags(D3PARTSYS **e, int *a, int *b, int *c, int *d, int *f, int *g); /* 0x40f5d0 */
+int ocmd_SetEmitterInitFill(D3PARTSYS **e, int *on);                                 /* 0x40f690 */
+int ocmd_SetEmitterRebirthFill(D3PARTSYS **e, int *on);                              /* 0x40f6f0 */
+int ocmd_SetEmitterTextureMode(D3PARTSYS **e, int *mode);                            /* 0x40f750 */
+int ocmd_SetEmitterIsTrigger(D3PARTSYS **e, int *on);                                /* 0x40f7a0 */
+int ocmd_SetEmitterTriggerOnce(D3PARTSYS **e, int *on);                              /* 0x40f800 */
+int ocmd_SetEmitterMaxTrigger(D3PARTSYS **e, int *n);                                /* 0x40f850 */
+int ocmd_TriggerEmitter(D3PARTSYS **e);                                              /* 0x40f8a0 */
 int ocmd_SetParticlePos(D3PARTSYS **ps, int *x, int *y, int *z);                     /* 0x40f8f0 */
 
 void ocmd_Register(void);                                                /* 0x40f960 */

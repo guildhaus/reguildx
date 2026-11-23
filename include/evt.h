@@ -117,9 +117,13 @@ typedef struct EVTFRAME {           /* 0xb0 bytes */
 struct CHARACTER;                   /* ch.h, the character a script was started for */
 
 typedef struct EVTSCRIPT {          /* 0xc98 bytes, 128 at evt_Scripts */
-    char name[0x100];
+    union {
+        char name[0x100];
+        int tag[2];                 /* 0x00, a mark a game event writes over the name's first words: he_RunBard's
+                                       HE_BARD_MARK, the meeting scene's HE_MEET_MARK and building id (he_b.c) */
+    };
     int id;                         /* 0x100, 0 = free */
-    int group;                      /* 0x104, the group the script runs for (CHC_GROUP); evt_NoGroup = none */
+    int group;                      /* 0x104, the group the script runs for; evt_NoGroup = none */
     EVTVAR *vars;                   /* 0x108 */
     EVTFUNC *funcs;                 /* 0x10c */
     int nfuncs;                     /* 0x110 */
@@ -222,7 +226,7 @@ void evt_Mode1(void);                                                           
 void evt_Mode2(void);                                                                   /* 0x428cf0, #multistep: sets the script mode to 2 */
 void evt_Mode0(void);                                                                   /* 0x428d00, #normalstep: sets the script mode to 0 */
 int evt_Else(void);                                                                     /* 0x428d10, an "else": when the matching if was taken, skips the else body (a block when the next token is the else keyword, else the statement up to ';'); returns 0 */
-int evt_DefineFunc(EVTSCRIPT *sc, int unk);                                             /* 0x428d70, parses the parameter list "type name, ..." of a script function definition into sc->funcs[sc->nfuncs] (8 argument types and names); errors and stops on a duplicate or missing name; returns its argument (the nonzero token address from evt_Declare = ok) */
+void *evt_DefineFunc(EVTSCRIPT *sc, void *tok);                                             /* 0x428d70, parses the parameter list "type name, ..." of a script function definition into sc->funcs[sc->nfuncs] (8 argument types and names); errors and stops on a duplicate or missing name; returns its argument (the nonzero token address from evt_Declare = ok) */
 EVTVAR *evt_NewVar(EVTSCRIPT *sc, int type, int count);                                 /* 0x428eb0, creates the script variable (zeroed data of 1 int 4, 2 byte 1, 6 string 0x60 or 7 float 4 bytes times count) in sc->vars[sc->nvars]; returns the entry and advances nvars */
 int evt_Declare(EVTSCRIPT *sc, int type);                                               /* 0x428fa0, parses a global declaration "type name;", "type name = int;", "type name(args)" or "type name[count];" at evt_Cur->pc and creates it unless the name exists; reports "Illegal array size...", "Missing ']'!" and "Expecting ';'"; returns 1, 0 when evt_DefineFunc fails */
 int evt_LeaveFunction(EVTSCRIPT *sc);                                                   /* 0x4292b0, pops the current script function frame (locals, stack pointer, pc = the caller's ret) and clears the running flag and frame at the outermost call; the "exit" function or no frame returns 0, else 1 */

@@ -39,8 +39,6 @@ struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3S
 extern GAPDATA full_data_602568[];
 
 
-#define G17_I(m, o) (*(int *)&(m).data[o])
-#define G17_S(m, o) (*(short *)&(m).data[o])
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
 
@@ -101,42 +99,14 @@ typedef struct CMFIELD {            /* the head of one field of a field block (G
     unsigned short offset;          /* 0x02, the field's offset in the record */
     int values[1];                  /* 0x04, the values */
 } CMFIELD;
-typedef struct AIJOBTAIL {          /* AIJOB as message 0x1d sends and takes its data block: the record from 0xac */
-    char pad00[0xac];
-    char data[0xa0];                /* 0xac, the long message (cm_SetLongMsg 0xa0, cm_LongMsg) */
-} AIJOBTAIL;
-typedef struct CMNEWPARTYMSG {      /* 8 bytes, the data of message 0x27 (its handler cm_ExNewParty) */
-    int partyId;                    /* 0x00, the id the new scene party gets (ai_NextPartyId) */
-    int seed;                       /* 0x04, the party's random seed (G28REC.seed) */
-} CMNEWPARTYMSG;
-typedef struct CMJOINPARTYMSG {     /* 8 bytes, the data of message 0x29 (its handler cm_ExAddPartyMember) */
-    int partyId;                    /* 0x00, the scene party record (cm_PartyById) */
-    int member;                     /* 0x04, the member's netId (cm_AddPartyMember) */
-} CMJOINPARTYMSG;
-typedef struct CMWALKPATHMSG {      /* 0x24 bytes, the data of message 0x4f (its handler cm_ExWalkPath; no sender in
-                                       the sources, the path cells of a walk) */
-    char name[0x18];                /* 0x00, the character's object name ("sp_<id>") */
-    int from;                       /* 0x18, the first cell written */
-    int to;                         /* 0x1c, the cell past the path (the action's new path length) */
-    unsigned char cells[4];         /* 0x20, up to two cells, x and z bytes each */
-} CMWALKPATHMSG;
-typedef struct CMPOSMSG {           /* 0x10 bytes read, the data of message 0x32 (its handler cm_ExChrSetPos) */
-    int charId;                     /* 0x00, the character */
-    D3VECTOR pos;                   /* 0x04, its new position (ch_SetPos) */
-} CMPOSMSG;
 typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of cm_Grenades */
     D3OBJECT *obj;                  /* the object "ob_BOMBE", 0 = a free slot */
-    D3ANIM *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
+    D3PATH *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
     int x, y;                       /* 0x08, the target cell */
 } CMGRENADE;
 
 /* dcp unit split: the declarations of cm before the moved functions */
-typedef struct CMSPYREPORT {            /* an AIOBJ of kind 0xca (a spy report) as this unit reads it: the report's words
-                                           0x1c .. 0x37 (HESPYREPORT) after the object's head */
-    char pad1c[0x1c];
-    HESPYREPORT report;
-} CMSPYREPORT;
-#define G20_ME (ai_CharInts[ai_PlayerId][0])
+#define G20_ME (ai_Chars[ai_PlayerId].netId)
 
 int cm_DialogFrameFlags = 464838;  /* 0x60d360, the frame wait of the dialogs ( */
 int cm_SceneDuration = 10;  /* 0x60d364 */
@@ -146,8 +116,8 @@ int cm_DuelVariantCount = 1;  /* 0x60d370, the number of duel variants in cm_Due
 int cm_DialogLength = 1;  /* 0x60d374 */
 int cm_SavedScene;  /* 0x925510 */
 G28REC cm_Parties[96];  /* 0x925520 */
-int cm_DuelRight;  /* 0x92bca0 */
-int cm_DuelLeft;  /* 0x92bca4 */
+AICHAR *cm_DuelRight;  /* 0x92bca0, the right duellist: cm_RunDuel's copy of its character record */
+AICHAR *cm_DuelLeft;  /* 0x92bca4, the left duellist (the copy) */
 int cm_DuelVariants[128];  /* 0x92bcc0, the shuffled order of the duel variants (gm_Shuffled fills it) */
 int cm_OrderTicks;  /* 0x92bec0 */
 unsigned short cm_DisabledObjs[768];  /* 0x92bee0 */
@@ -2065,20 +2035,20 @@ void cm_DuelShotAction(CHACTION *a)
     acc = acc * 0.8;
     if (ai_InventoryHas(sh, 0x16f) != 0)
         acc = (float)(acc * 1.5);
-    if (((int)sh == cm_DuelLeft && cm_DuelRightInsultWon != 0) || ((int)sh == cm_DuelRight && cm_DuelLeftInsultWon != 0))
+    if ((sh == cm_DuelLeft && cm_DuelRightInsultWon != 0) || (sh == cm_DuelRight && cm_DuelLeftInsultWon != 0))
         acc = (float)(acc * 0.66);
     if ((float)cm_RandomFloat() < acc)
         hit = 1;
     else
         hit = 0;
     if (hit) {
-        if (((int)sh == cm_DuelLeft && cm_DuelRightRollWon != 0) || ((int)sh == cm_DuelRight && cm_DuelLeftRollWon != 0))
+        if ((sh == cm_DuelLeft && cm_DuelRightRollWon != 0) || (sh == cm_DuelRight && cm_DuelLeftRollWon != 0))
             dmg = cm_Random(0xf) + 5;
         else
             dmg = cm_Random(0x1e) + 0xf;
         if (ai_InventoryHas(tg, 0x2b5) != 0)
             dmg = (int)(dmg * 0.75f);
-        if ((int)tg == cm_DuelLeft)
+        if (tg == cm_DuelLeft)
             cm_DuelScore[0] += dmg;
         else
             cm_DuelScore[1] += dmg;
@@ -2147,7 +2117,7 @@ void cm_DuelRound(AICHAR *a, AICHAR *b, char *side)
                 io_PrintText(0x10f6, a->id);
             else
                 io_PrintText(0x10f7, a->id);
-            if ((int)a == cm_DuelLeft)
+            if (a == cm_DuelLeft)
                 cm_DuelLeftRollWon = 1;
             else
                 cm_DuelRightRollWon = 1;
@@ -2177,7 +2147,7 @@ void cm_DuelRound(AICHAR *a, AICHAR *b, char *side)
                 io_PrintText(0x10f2, b->id);
             else
                 io_PrintText(0x10f3, b->id);
-            if ((int)a == cm_DuelLeft)
+            if (a == cm_DuelLeft)
                 cm_DuelLeftInsultWon = 1;
             else
                 cm_DuelRightInsultWon = 1;
@@ -2307,8 +2277,8 @@ void cm_RunDuel(G28REC *m)
     b = gm_FindChar(m->members[1]);
     ca = *a;
     cb = *b;
-    cm_DuelLeft = (int)&ca;
-    cm_DuelRight = (int)&cb;
+    cm_DuelLeft = &ca;
+    cm_DuelRight = &cb;
     cm_DuelScore[0] = 0;
     cm_DuelScore[1] = 0;
     gm_CreateCharModel(&ca, d3_CurrentScene, 0, 0, 0, "dummy_DUELLANT_A_ENTRY");
@@ -2760,7 +2730,7 @@ void cm_RunExecution(G28REC *m)
     sprintf(end, "%s", CUT_NAMEREC(p3) + 4);
     cm_StartEventArg("cutscenes\\hinrichtung\\hinrichtung-create.esc", buf);
     cm_WaitEvent(cm_StartEventArg("cutscenes\\hinrichtung\\hinrichtung-intro.esc", ch_EmptyName));
-    if (m->host == ai_CharInts[ai_PlayerId][0])
+    if (m->host == ai_Chars[ai_PlayerId].netId)
         gm_AddHealth(v->id, (int)-(v->f01c + 5.0f));
     switch (m->variant) {
     case 0:
@@ -3172,7 +3142,7 @@ void cm_RunDeath(G28REC *m)
             revive = cm_MessageBox((intptr_t)buf, 0x10);
         }
         if (revive == 0)
-            ai_FamilyTreeWindow(ai_CharInts[ai_PlayerId][0], 0xa, (intptr_t)txt_Ptrs[TXT_DEATH_TREE_CAPTION], cm_DialogFrameFlags);
+            ai_FamilyTreeWindow(ai_Chars[ai_PlayerId].netId, 0xa, (intptr_t)txt_Ptrs[TXT_DEATH_TREE_CAPTION], cm_DialogFrameFlags);
         else {
             float life;
             int zero;
@@ -3348,7 +3318,7 @@ void cm_RunAuction(G28REC *m)
     AIOBJ *q;
     GMHEAD *rec;
     CMAUCTION req;
-    float pos[4];
+    D3VECTOR4 pos;
     int i, k, speaker;
     struct SBBANK *bankIntro, *bankBids, *bankRemarks;
     int behavior, enter, form;
@@ -3356,10 +3326,10 @@ void cm_RunAuction(G28REC *m)
 
     b = gm_BuildQuery(1, 1, m->auction.building);
     best = -1;
-    pos[0] = 0;
-    pos[1] = 0;
-    pos[2] = 0;
-    pos[3] = 0;
+    pos.x = 0;
+    pos.y = 0;
+    pos.z = 0;
+    pos.w = 0;
     speaker = cm_Random(3);  /* which auctioneer, then his speaker id */
     cm_PlaySpecialTrack(0);
     if (b == 0)
@@ -3416,8 +3386,8 @@ void cm_RunAuction(G28REC *m)
     }
     o = d3_FindObject(0, 0x100, 0, "dummy_AUKTIONATOR");
     if (o != 0)
-        d3_PointToWorld(o, &o->pos, (D3VECTOR *)pos);
-    auct = cm_CreateChar(model, (D3VECTOR *)pos);
+        d3_PointToWorld(o, &o->pos, &pos.v);
+    auct = cm_CreateChar(model, &pos.v);
     if (auct != 0) {
         ch_PlaceAtObject(auct, o);
         strcpy(auct->name, "Auktionator");
@@ -3428,7 +3398,7 @@ void cm_RunAuction(G28REC *m)
         sprintf(buf, "dummy_RP_%02i", i);
         o = d3_FindObject(0, 0x100, 0, buf);
         if (o != 0)
-            d3_PointToWorld(o, &o->pos, (D3VECTOR *)pos);
+            d3_PointToWorld(o, &o->pos, &pos.v);
         w = chars[i];
         if (w != 0 && (rec = gm_CharNameRecord(w->id)) != 0)
             sprintf(buf, "%s", rec->name);
@@ -3442,7 +3412,7 @@ void cm_RunAuction(G28REC *m)
                 strcpy(buf, "handwerker3_MANN");
         }
         if (w != 0) {
-            persons[i] = cm_CreateChar(buf, (D3VECTOR *)pos);
+            persons[i] = cm_CreateChar(buf, &pos.v);
             ch_PlaceAtObject(persons[i], o);
         } else
             persons[i] = 0;
@@ -3717,7 +3687,7 @@ void cm_ShowObjectScene(AIBLD *o, int id)
     if (gm_Query(b->objList, 1, 0, id) != 0) {
         if (gm_IsHomeType(o) == 0) {
             if (init_ObjectUniverse[id] != -2) {
-                if (init_ObjectUniverse[id] == -1 || init_SceneDirty[init_ObjectUniverse[id] * 0x3e0] != 0)
+                if (init_ObjectUniverse[id] == -1 || d3_Scenes[init_ObjectUniverse[id]].dirty != 0)
                     init_LoadObjectScene(id);
                 d3if_SelectScene(init_ObjectUniverse[id], 0);
                 init_ShowBuildingScene(b, id);
@@ -3725,7 +3695,7 @@ void cm_ShowObjectScene(AIBLD *o, int id)
         } else {
             k = (unsigned char)ai_BTypes[b->type].kind;
             if (init_BuildingUniverse[k] != 0) {
-                if (init_BuildingUniverse[k] == -1 || init_SceneDirty[init_BuildingUniverse[k] * 0x3e0] != 0)
+                if (init_BuildingUniverse[k] == -1 || d3_Scenes[init_BuildingUniverse[k]].dirty != 0)
                     init_LoadBuildingScene(k);
                 k = (unsigned char)ai_BTypes[b->type].kind;
                 d3if_SelectScene(init_BuildingUniverse[k], 0);
@@ -3904,15 +3874,15 @@ void cm_LoadEventScene(char *name)
     d3if_SelectScene(idx, 0);
     if (d3_Terrain != 0) {
         if (ai_GfxFloorLod == 0) {
-            ((D3FLMAP *)d3_Terrain)->lod = 2;
+            d3_Terrain->lod = 2;
             sh = 2;
             d3fl_SetDetail(0x40);
         } else {
-            ((D3FLMAP *)d3_Terrain)->lod = 1;
+            d3_Terrain->lod = 1;
             sh = 1;
             d3fl_SetDetail(0x40);
         }
-        d3fl_SetShift((struct D3FLMAP *)d3_Terrain, sh >> 1, 1);
+        d3fl_SetShift(d3_Terrain, sh >> 1, 1);
     }
     if (cm_CurrentFight->flags & 0x20) {
         d2_ClearSurface(d2_ScreenSurf);
@@ -4687,7 +4657,7 @@ void cm_ExecCutscene(G28REC *m)
                 int v = -1;
 
                 cm_BeginFieldBlock(c, c->netId);
-                cm_AddFieldValue(4, 1, (char *)c - cm_FieldObject + 0x20c, &v);
+                cm_AddFieldValue(4, 1, (char *)&c->partyId - cm_FieldObject, &v);
                 cm_SendFieldValues();
             }
         }
@@ -4697,7 +4667,7 @@ void cm_ExecCutscene(G28REC *m)
 
         if ((c = gm_FindChar(party->host)) != 0) {
             cm_BeginFieldBlock(c, c->netId);
-            cm_AddFieldValue(4, 1, (char *)c - cm_FieldObject + 0x20c, &v);
+            cm_AddFieldValue(4, 1, (char *)&c->partyId - cm_FieldObject, &v);
             cm_SendFieldValues();
         }
     }

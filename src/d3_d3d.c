@@ -288,17 +288,17 @@ char d3d_CreateDevice(DWORD texbpp, DWORD fourcc, DWORD texbpp2, DWORD zbpp)
     d3d_FindTextureFormats(texbpp, fourcc, texbpp2);
     return 1;
 }
-/* 0x4364f0, the vertex buffer and its size in vertices. */
+/* 0x4364f0, the vertex buffer and its size in vertices; returns 0 (the handle d3d_DrawTriangles takes). */
 
-int d3d_GetVertexBuffer(void **buf, int *n)
+int d3d_GetVertexBuffer(D3DTLVERTEX **buf, int *n)
 {
     *buf = d3d_VertexBuffer;
     *n = 0x800;
     return 0;
 }
-/* 0x436510, draws a triangle list from the vertex buffer. */
+/* 0x436510, draws a triangle list from the vertex buffer (vbh: d3d_GetVertexBuffer's result, not read). */
 
-void d3d_DrawTriangles(void *unk, D3DTLVERTEX *buf, DWORD num)
+void d3d_DrawTriangles(int vbh, D3DTLVERTEX *buf, DWORD num)
 {
     if (num > 2) {
 #line 496
@@ -835,7 +835,7 @@ void d3d_LoadTexture(char *name, DDPIXELFORMAT *pf, LPDIRECTDRAWSURFACE4 *surf, 
 }
 /* 0x438180, gives a palettized surface and its mip levels the palette and the color key. */
 
-void d3d_SetSurfacePalette(DDSURFACEDESC2 *desc, LPDIRECTDRAWSURFACE4 surf, DWORD n, BYTE *pal)
+void d3d_SetSurfacePalette(DDSURFACEDESC2 *desc, LPDIRECTDRAWSURFACE4 surf, DWORD n, const BYTE *pal)
 {
     PALETTEENTRY adw[256];
     DDSURFACEDESC2 ddsd_back;
@@ -891,7 +891,7 @@ void d3d_SetSurfacePalette(DDSURFACEDESC2 *desc, LPDIRECTDRAWSURFACE4 surf, DWOR
 /* 0x4383d0, creates a (dynamic) texture surface of size x size with mip levels down to 1 >> mips. */
 
 void d3d_CreateTexture(DWORD size, DDPIXELFORMAT *pf, LPDIRECTDRAWSURFACE4 *surf, LPDIRECT3DTEXTURE2 *surftext,
-                       DWORD n, BYTE *pal, unsigned char mips)
+                       DWORD n, const BYTE *pal, unsigned char mips)
 {
     DDSURFACEDESC2 ddsd;
     int levels;

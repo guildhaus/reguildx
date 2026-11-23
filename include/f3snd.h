@@ -49,10 +49,6 @@ typedef struct G16TRACKS {              /* 0x24c bytes, snd_BuildingTracks[]: tr
 
 #include "f3snd_types.h"               /* G16TRACKHANDLES */
 
-typedef struct G16CHARCLICK {           /* the click-comment view of the start of a character record (0x770b80) */
-    unsigned short id;                  /* 0x00, the character id */
-    unsigned char kind;                 /* 0x02, the building kind (0x14: none) */
-} G16CHARCLICK;
 
 extern G16SEASON snd_Gusts[];           /* 0x602ba8, by season */
 extern float snd_VoiceVolume;           /* 0x602b08, voice volume (1.0, scaled by 127) */
@@ -95,7 +91,7 @@ extern struct AIOBJ *sv_PanelShown;                /* 0x6f2310, its room */
 extern void *snd_AtmoTrack;              /* 0x6f0ba0, the atmosphere mp3 (MSXTRACK *) */
 extern int d3_CurrentScene;             /* 0x633444 */        /* 0x602ba8 */
 extern char snd_GustNames[3][0x32];     /* 0x602b10, "Boehe_Leicht_s", "Boehe_Mittel_s", "Boehe_Stark_s" */
-extern void *d3_Terrain;                /* 0x633738 */
+extern struct D3FLMAP *d3_Terrain;      /* 0x633738, d3_fl.c: the current terrain map */
 extern unsigned char snd_AmbientOn;     /* 0x6f0b60, 1: ambient sounds on */
 extern int snd_Season;                  /* 0x6f0b8c, the season */
 extern unsigned int snd_LastGust;       /* 0x6f0b90, time of the last gust */
@@ -158,7 +154,8 @@ struct SBSAMPLE *snd_QueueVoice(int id, struct SBBANK *bank, char *text, int var
 struct SBBANK *snd_LoadVoiceBank(char *name, int a);
 void snd_LoadBuildingVoices(struct AIBLD *b);
 void snd_UnloadBuildingVoices(void);
-void snd_PlayWorkerClick(G16CHARCLICK *c);
+struct AICHAR;
+void snd_PlayWorkerClick(struct AICHAR *c);
 void snd_PlaySelectedClick(void);
 void snd_PlayFavourComment(void);
 void snd_StartMarketAmbience(void);

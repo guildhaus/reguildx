@@ -1,5 +1,4 @@
 struct D2SHP;
-struct D2FRAME;
 struct D2SURF;
 /* Declarations of unk_47ab30.c (0x47ab30..0x47c5e0, the shape ("shp") part of D2.C): grabbing a rectangle of a
    surface into a run-length coded shape, clipped drawing of shapes, shape conversion between 8 / 16 / 24 bit.
@@ -19,7 +18,14 @@ typedef struct D2SHP {              /* a shape: this 0x32 byte header, then the 
     unsigned char type;             /* 0x0c, 0 = 8 bit, 1 = 16 bit, 2 = 24 bit */
     unsigned char mode;             /* 0x0d, 0 = copy, 1 = half dark (d2_ShpBlit16HalfDark / 47bec0), 2, 3 */
     unsigned short ax0, ay0, ax1, ay1;  /* 0x0e */
-    unsigned short bx0, by0, bx1, by1;  /* 0x16, marker points (colours at 0x5fed74 / 0x5fed78) */
+    union {
+        struct { unsigned short bx0, by0, bx1, by1; };  /* 0x16, marker points (colours at 0x5fed74 / 0x5fed78) */
+        struct {                    /* a glyph of a font (a bank of glyphs, d2_GetFrame) */
+            unsigned short kern;    /* 0x16, overlap with the previous glyph */
+            unsigned short pad18;
+            unsigned short adv;     /* 0x1a, advance */
+        };
+    };
     char pad1e[8];
     int nruns;                      /* 0x26, number of runs, -1 = plain rows */
     int lineoff;                    /* 0x2a, offset of the table of line offsets */
@@ -40,7 +46,8 @@ typedef struct D2BANK {             /* a bank of shapes: this 0x845 byte header,
     unsigned short n;               /* 0x2a, number of shapes */
     unsigned short w, h;            /* 0x2c, widest / highest shape added */
     int size;                       /* 0x30 */
-    signed char kind;               /* 0x34 */
+    unsigned char kind;             /* 0x34, the depth of the shapes: 0 = 8 bit, 1 = 16 bit, 2 = 24 bit (D2SHP.type; a
+                                       loaded bank of another depth than d2_PaletteDepth is converted) */
     char pad35[9];
     int pal;                        /* 0x3e */
     char pad42;
@@ -54,7 +61,13 @@ typedef struct D2COLKEY {           /* a colour key: the 3 compared bytes r, g, 
                                        when the object is no 4-byte container; with a pad byte it loads r + g as
                                        one dword and b as a byte) */
     unsigned char r;
-    unsigned short gb;              /* 0x01, g in the low byte, b in the high one */
+    union {
+        unsigned short gb;          /* 0x01, g in the low byte, b in the high one */
+        struct {
+            unsigned char g;        /* 0x01 */
+            unsigned char b;        /* 0x02 */
+        };
+    };
 } D2COLKEY;                         /* 0x03 */
 #pragma pack(pop)
 
@@ -92,7 +105,7 @@ void *d2_ShpConvertTo16(D2SHP *s, int p);
 /* views of gfx.c functions (unk_479610.h until layout 2026-10-22; gfx.h declares 0x478930 / 0x478960 with
    char * / D2RGB * parameters) */
 struct D2SURF * d2_CopySurface(struct D2SURF *surf);                         /* 0x479780 */
-int d2_MakeLightTable(char add);                                 /* 0x479d00 */
+int d2_MakeLightTable(signed char add);                          /* 0x479d00 */
 
 /* declared in other units' headers before (moved to the owner) */
 extern unsigned char d2_BlitN;  /* 0xf8a648 */
@@ -108,20 +121,20 @@ extern unsigned int d2_BlitH;  /* 0xf8a63c */
 void d2_StepAnims(void);  /* 0x47cb90 */
 int d2_SetColourFormat(int external, int paletteDepth);  /* 0x479df0 */
 void d2_SetMode5Colour(unsigned char r, unsigned char g, unsigned char b);  /* 0x47ca10 */
-int d2_StartAnim(short x, short y, void *data, unsigned char z);  /* 0x47cd20 */
-int d2_DrawShape(int x, int y, void *surf, void *pic, unsigned char i);  /* 0x47c6f0 */
+int d2_StartAnim(short x, short y, D2BANK *data, unsigned char z);  /* 0x47cd20 */
+int d2_DrawShape(int x, int y, D2SURF *surf, D2BANK *pic, unsigned char i);  /* 0x47c6f0 */
 void d2_SetClipRect(int x0, int y0, int x1, int y1);  /* 0x47cb40 */
-void *d2_BankConvertTo16(void *pic, int a, int b);  /* 0x47c410 */
-void d2_DrawAnim(int n, void *surf);  /* 0x47cdb0 */
-int d2_DrawShapeHalfDark(int x, int y, void *surf, void *pic, char i);  /* 0x47c770 */
-int d2_DrawShapeMode2(int x, int y, void *surf, void *pic, unsigned char i);  /* 0x47c970 */
-int d2_DrawShapeMode3(int x, int y, void *surf, void *pic, char i);  /* 0x47cae0 */
-int d2_DrawShapeMode5(int x, int y, void *surf, void *pic, unsigned char i);  /* 0x47ca40 */
-int d2_DrawShapeScaled(int x, int y, void *surf, void *pic, char i, char mode, int on);  /* 0x47c830 */
-void d2_FillRect(int x, int y, int w, int h, void *surf);  /* 0x47ce60 */
+void *d2_BankConvertTo16(D2BANK *pic, int a, int b);  /* 0x47c410 */
+void d2_DrawAnim(int n, D2SURF *surf);  /* 0x47cdb0 */
+int d2_DrawShapeHalfDark(int x, int y, D2SURF *surf, D2BANK *pic, char i);  /* 0x47c770 */
+int d2_DrawShapeMode2(int x, int y, D2SURF *surf, D2BANK *pic, unsigned char i);  /* 0x47c970 */
+int d2_DrawShapeMode3(int x, int y, D2SURF *surf, D2BANK *pic, char i);  /* 0x47cae0 */
+int d2_DrawShapeMode5(int x, int y, D2SURF *surf, D2BANK *pic, unsigned char i);  /* 0x47ca40 */
+int d2_DrawShapeScaled(int x, int y, D2SURF *surf, D2BANK *pic, char i, signed char mode, int on); /* 0x47c830 */
+void d2_FillRect(int x, int y, int w, int h, D2SURF *surf);  /* 0x47ce60 */
 void d2_FreeAnim(int n);  /* 0x47ce30 */
 void d2_FreeLightTable(void);  /* 0x479ee0 */
-struct D2FRAME *d2_GetFrame(void *pic, short i);  /* 0x47cb70 */
+D2SHP *d2_GetFrame(D2BANK *pic, short i);  /* 0x47cb70 */
 void d2_SetBlitParams(void *dst, void *src, void *mask, short w, short h, short n);  /* 0x47ced0 */
 
 #endif

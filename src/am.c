@@ -275,7 +275,7 @@ int ai_DecideSecretRoom1(AICHAR *p, AIARGX *s1, AIARGX *s2)
     if (!ai_PickPartnerChain(p, 1, &flags, 0, util_Random(0x20) + 25.0f, &cid))
         return 0;
     c = &ai_Chars[cid];
-    t = amt_GetKindLevel(((unsigned char *)c)[0x166]) / 3 + 2;
+    t = amt_GetKindLevel(c->officeKind) / 3 + 2;
     a[0] = t + 3;
     a[1] = t + 5;
     a[2] = t + 8;
@@ -306,7 +306,7 @@ int ai_DecideSecretRoom2(AICHAR *p, AIARGX *s1, AIARGX *s2)
     if (!ai_PickPartnerChain(p, 1, &flags, 0, util_Random(0x20) + 32.0f, &cid))
         return 0;
     c = &ai_Chars[cid];
-    f = (float)(amt_GetKindLevel(((unsigned char *)c)[0x166]) / 3 + 2);
+    f = (float)(amt_GetKindLevel(c->officeKind) / 3 + 2);
     a[0] = (int)f;
     a[1] = (int)(f * 1.5f);
     a[2] = (int)(f + f);

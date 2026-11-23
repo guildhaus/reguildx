@@ -3,8 +3,7 @@
    up to three animation slots per animated object, root motion, bone posing and object path animations.
    Extent in GildeGold.exe: 0x4315c0 (after vfs_Exit) .. 0x4359f0, where d3_d3d.c starts.
    Functions are kept in their original order. Names are ours.
-   The animation slots are the surfaces' (D3MESH.surf[k].slots, d3.h). D3OBJECT.path (0x1d0) is typed in d3.h and d3anim_CreatePath and d3anim_FreePath use it,
-   the other path users still go through the D3_OBJPATH raw cast.
+   The animation slots are the surfaces' (D3MESH.surf[k].slots, d3.h). D3OBJECT.path (0x1d0) is a D3PATH (d3.h).
    unit of rea 8cef7d5b (src/game/d3_anim.c); boundaries in decl/text.dcl */
 #include <stdio.h>
 #include <stdlib.h>
@@ -136,7 +135,7 @@ char d3anim_MapBones(D3OBJECT *obj)
                 n = 0;
                 for (k = 0; n < 4 && k < anim->nbones; k++) {
                     for (c = obj->child; c; c = c->next)
-                        if (!strcmp(D3_MESH(c)->boneName, D3ANIM_BONENAME(anim, k)))
+                        if (!strcmp(c->material->boneName, D3ANIM_BONENAME(anim, k)))
                             bs->map[n++] = k;
                 }
             }
@@ -216,8 +215,8 @@ void d3anim_PoseBones(D3OBJECT *obj)
                                     acc[n].pos.x = acc[n].pos.x + acc[n].base.x;
                                     acc[n].pos.y = acc[n].pos.y + acc[n].base.y;
                                     acc[n].pos.z = acc[n].pos.z + acc[n].base.z;
-                                    d3_MatFromAngles((D3VECTOR4 *)&data->frames[s->frame].bone[bone].rot, (D3MATRIX *)m0);
-                                    d3_MatFromAngles((D3VECTOR4 *)&data->frames[s->nextFrame].bone[bone].rot, (D3MATRIX *)m1);
+                                    d3_MatFromAngles(&data->frames[s->frame].bone[bone].rot, (D3MATRIX *)m0);
+                                    d3_MatFromAngles(&data->frames[s->nextFrame].bone[bone].rot, (D3MATRIX *)m1);
                                     for (r = 0; r < 3; r++)
                                         d3_Lerp3(&m0[r].v, &m1[r].v, t, &acc[n].m[r].v);
                                     acc[n].n = 1;
@@ -233,8 +232,8 @@ void d3anim_PoseBones(D3OBJECT *obj)
                                 acc[i].pos.x += (s->weight) * v.x;
                                 acc[i].pos.y += (s->weight) * v.y;
                                 acc[i].pos.z += (s->weight) * v.z;
-                                d3_MatFromAngles((D3VECTOR4 *)&data->frames[s->frame].bone[bone].rot, (D3MATRIX *)m0);
-                                d3_MatFromAngles((D3VECTOR4 *)&data->frames[s->nextFrame].bone[bone].rot, (D3MATRIX *)m1);
+                                d3_MatFromAngles(&data->frames[s->frame].bone[bone].rot, (D3MATRIX *)m0);
+                                d3_MatFromAngles(&data->frames[s->nextFrame].bone[bone].rot, (D3MATRIX *)m1);
                                 for (r = 0; r < 3; r++) {
                                     d3_Lerp3(&m0[r].v, &m1[r].v, t, &v.v);
                                     acc[i].m[r].x += v.x;
@@ -251,9 +250,9 @@ void d3anim_PoseBones(D3OBJECT *obj)
         if (!n) {
             mesh = obj->material->surf[0].mesh;
             for (c = obj->child; c; c = c->next) {
-                if (c->material && D3_MESH(c)->boneName[0]) {
+                if (c->material && c->material->boneName[0]) {
                     for (i = 0; i < mesh->nattach; i++)
-                        if (!strcmp(mesh->attach[i].name, D3_MESH(c)->boneName))
+                        if (!strcmp(mesh->attach[i].name, c->material->boneName))
                             break;
                     if (i < mesh->nattach) {
                         d3_SetObjectPos(c, &mesh->attach[i].pos);
@@ -274,7 +273,7 @@ void d3anim_PoseBones(D3OBJECT *obj)
                 }
                 d3_MatToAngles(&acc[i].mat, &rot);
                 for (c = obj->child; c; c = c->next) {
-                    if (c->material && !strcmp(acc[i].name, D3_MESH(c)->boneName)) {
+                    if (c->material && !strcmp(acc[i].name, c->material->boneName)) {
                         d3_SetObjectPos(c, &acc[i].pos.v);
                         d3_SetObjectRot(c, &rot);
                     }
@@ -457,8 +456,6 @@ void d3path_Tangents(D3PATHKEY *k0, D3PATHKEY *k1, D3PATHKEY *k2)
     k0->rotout.z = f * a.z;
 }
 
-#define FRAME_AT(d, i) ((D3ANIMFRAME *)((char *)(d)->frames + (i) * 0xc0))
-
 float d3_Hermite(float p0, float p1, float m0, float m1, float t);                      /* 0x453e20 */
 void d3_DirToWorld(struct D3OBJECT *obj, const struct D3VECTOR *in, struct D3VECTOR *out);                                /* 0x458810 */
 char tex_Animate(D3OBJECT *obj, unsigned int time);                                     /* 0x460b90 */
@@ -488,7 +485,7 @@ struct D3ANIMSLOT * d3anim_GetMainSlot(struct D3SURF *ctl);                     
    them and the 1074 code / 492 slots hunks are the same instructions reading other stack slots (e.g. the
    fade fraction temporaries at [esp+0x3c]/[esp+0x9c], the key pointer at [esp+0x18] vs [esp+0x70], the
    attach vector at [esp+0x64..] vs [esp+0x30..]). Q4 is settled from the reconstructed body: D3OBJECT+0x44
-   is D3_L(o)->time (the light view, d3_light.h), the D3ANIMSLOT float slots are the attach position 0x20
+   is o->lightTime (d3.h), the D3ANIMSLOT float slots are the attach position 0x20
    and the stop position 0x4c / radius 0x5c, the 2-bit field at 0x70 is the s... */
 char d3anim_StepObject(D3OBJECT *obj, void *ctx)
 {
@@ -520,7 +517,7 @@ char d3anim_StepObject(D3OBJECT *obj, void *ctx)
                 data = s->data;
                 if (!data || !(s->flags.b[8] & 2))
                     continue;
-                if (now - D3_L(obj)->time > (unsigned int)s->timeout)
+                if (now - obj->lightTime > (unsigned int)s->timeout)
                     over = 1;
                 last = data->first;
                 if (s->flags.b[1] & 0x10) {
@@ -577,17 +574,17 @@ normalize:
                                         s->flags.b[1] |= 0x10;
                                 }
                                 s->frame = limit;
-                                s->subFrame = FRAME_AT(data, limit)->count + n;
+                                s->subFrame = data->frames[limit].count + n;
                                 s->nextFrame = d3anim_NextFrame(s->flags, limit, last, limit, nframes);
                             }
                         } else {
                             s->frame--;
                             s->nextFrame = d3anim_NextFrame(s->flags, s->frame, last, limit, nframes);
-                            s->subFrame = FRAME_AT(data, s->nextFrame)->count + n;
+                            s->subFrame = data->frames[s->nextFrame].count + n;
                         }
                     }
                 } else {
-                    n = FRAME_AT(data, s->frame)->count;
+                    n = data->frames[s->frame].count;
                     if (s->subFrame >= n) {
                         if (s->frame + 1 < limit) {
                             s->frame++;
@@ -621,7 +618,7 @@ normalize:
                 }
                 if (s->flags.b[8] & 4) {
                     D3VECTOR4 out;
-                    n = FRAME_AT(data, s->frame)->count;
+                    n = data->frames[s->frame].count;
                     half = n / 2;
                     if (s->subFrame >= 0 && s->subFrame < n)
                         half = s->subFrame;
@@ -635,9 +632,9 @@ normalize:
                 if (!done) {
                     if (s->subFrame < 0)
                         goto normalize;
-                    if (s->subFrame >= FRAME_AT(data, s->frame)->count && !(s->flags.b[1] & 2))
+                    if (s->subFrame >= data->frames[s->frame].count && !(s->flags.b[1] & 2))
                         goto normalize;
-                    if (s->subFrame >= FRAME_AT(data, s->nextFrame)->count && (s->flags.b[1] & 2))
+                    if (s->subFrame >= data->frames[s->nextFrame].count && (s->flags.b[1] & 2))
                         goto normalize;
                 }
                 if (data->relative)
@@ -651,7 +648,7 @@ normalize:
                                 s->attachFirst = s->attachLast = s->attachBone = -1;
                             }
                         } else {
-                            D3OBJECT *att = (D3OBJECT *)s->attached;
+                            D3OBJECT *att = s->attached;
                             D3VECTOR4 v, w, out;
 
                             if (!(s->flags.b[8] & 0x40)) {
@@ -660,12 +657,12 @@ normalize:
                                 s->attachPos.y = att->pos.y;
                                 s->attachPos.z = att->pos.z;
                             }
-                            t = (float)s->subFrame / FRAME_AT(data, s->frame)->count;
-                            d3_Lerp3(&FRAME_AT(data, s->frame)->bone[s->attachBone].pos,
-                                         &FRAME_AT(data, s->nextFrame)->bone[s->attachBone].pos, t, &v.v);
-                            w.x = FRAME_AT(data, s->attachFirst)->bone[s->attachBone].pos.x - v.x;
-                            w.y = FRAME_AT(data, s->attachFirst)->bone[s->attachBone].pos.y - v.y;
-                            w.z = FRAME_AT(data, s->attachFirst)->bone[s->attachBone].pos.z - v.z;
+                            t = (float)s->subFrame / data->frames[s->frame].count;
+                            d3_Lerp3(&data->frames[s->frame].bone[s->attachBone].pos,
+                                         &data->frames[s->nextFrame].bone[s->attachBone].pos, t, &v.v);
+                            w.x = data->frames[s->attachFirst].bone[s->attachBone].pos.x - v.x;
+                            w.y = data->frames[s->attachFirst].bone[s->attachBone].pos.y - v.y;
+                            w.z = data->frames[s->attachFirst].bone[s->attachBone].pos.z - v.z;
                             d3_DirToWorld(obj, &w.v, &v.v);
                             out.x = v.z * att->matrix._31 + v.y * att->matrix._21 + v.x * att->matrix._11;
                             out.y = v.z * att->matrix._32 + v.y * att->matrix._22 + v.x * att->matrix._12;
@@ -689,7 +686,7 @@ normalize:
                         s->flags.b[1] |= 0x20;
                 }
                 if (over && !released)
-                    shown = FRAME_AT(s->data, s->frame);
+                    shown = &s->data->frames[s->frame];
             }
         }
     }
@@ -789,7 +786,7 @@ normalize:
             P->keys[P->nkeys - 2].rotout.y = 0;
             P->keys[P->nkeys - 2].rotout.z = 0;
         }
-        if (now - D3_L(obj)->time > (unsigned int)P->maxStep)
+        if (now - obj->lightTime > (unsigned int)P->maxStep)
             over2 = 1;
         acc = ((P->flags.b[8] >> 1) & 1) * P->fadeEnd * dt + P->frameTime;
         P->frameTime = acc;
@@ -901,7 +898,7 @@ stepped:
                 D3ANIMSLOT *main = d3anim_GetMainSlot(obj->info);
 
                 if (main)
-                    f = FRAME_AT(main->data, main->frame);
+                    f = &main->data->frames[main->frame];
             }
             d3_RelightObjectFrame(obj, f);
         }
@@ -998,7 +995,7 @@ void d3path_Init(D3PATH *p)
 }
 /* 0x433d70, gives the object a path animation through nkeys keys (copied; times in frames). */
 
-D3ANIM *d3anim_CreatePath(D3OBJECT *obj, D3ANIMFLAGS f, int nkeys, D3ANIMKEY *keys)
+D3PATH *d3anim_CreatePath(D3OBJECT *obj, D3ANIMFLAGS f, int nkeys, D3ANIMKEY *keys)
 {
     D3PATH *p = 0;
     int i;
@@ -1038,17 +1035,17 @@ D3ANIM *d3anim_CreatePath(D3OBJECT *obj, D3ANIMFLAGS f, int nkeys, D3ANIMKEY *ke
     }
     obj->path = p;
     obj->animTime = d3_Time;
-    return (D3ANIM *)p;
+    return p;
 }
 /* 0x433f40, the cached animation with this name, 0 if not loaded. */
 
-int d3_FindAnim(char *name)
+D3ANIMDATA *d3_FindAnim(char *name)
 {
     D3ANIMDATA *a;
 
     for (a = d3anim_Head.next; a != &d3anim_Tail; a = a->next)
         if (!strcmpi(name, a->name))
-            return (int)a;
+            return a;
     return 0;
 }
 /* 0x433f80, creates a two-frame morph animation from frame (of mesh) to dframe, or to the shape of dmesh;
@@ -1373,7 +1370,7 @@ void d3anim_CalculateAnimNormals(D3ANIMDATA *a, D3BGF *mesh)
         fr->radius = mesh->radius - d3anim_MaxRadius(points, mesh->nverts);
         for (i = 0; i < mesh->npolys; i++)
             d3_TriNormal(&points[mesh->polys[i].v[0]].v, &points[mesh->polys[i].v[1]].v,
-                         &points[mesh->polys[i].v[2]].v, &normals[i]);
+                         &points[mesh->polys[i].v[2]].v, &normals[i].v);
         mn.z = mn.y = mn.x = 1e10f;
         mx.z = mx.y = mx.x = -1e10f;
         for (i = 0; i < a->nverts; i++) {
@@ -1458,7 +1455,7 @@ D3ANIMSLOT *d3anim_StartAnim(D3SURF *ctl, char *name, D3ANIMFLAGS f)
     int i;
 
     if (ctl) {
-        data = (D3ANIMDATA *)d3_FindAnim(name);
+        data = d3_FindAnim(name);
         for (i = 0; i < 3; i++)
             if (!ctl->slots[i].data)
                 break;
@@ -1484,7 +1481,8 @@ D3ANIMSLOT *d3anim_StartAnim(D3SURF *ctl, char *name, D3ANIMFLAGS f)
             if (f.b[0] == 1)
                 s->flags.b[1] |= 0x10;
             s->attachFirst = s->attachLast = s->attachBone = -1;
-            s->fadeStart = s->fadeEnd = s->attached = 0;
+            s->attached = 0;
+            s->fadeStart = s->fadeEnd = 0;
             s->weight = s->fadeFrom = s->fadeTo = 1.0f;
             s->lastSub = 0;
             if (data->relative)

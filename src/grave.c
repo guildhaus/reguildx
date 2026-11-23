@@ -51,19 +51,7 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
 extern const float gv_SaleShares[];
 extern const float gv_GraveWear[];
 
-#define gv_FindEntryCb(cb) ((int (*)(void *, void *))(cb))  /* @original: gv_FindEntry's callback is int (*)() (gv.h, its callbacks take differing pointer types); the call pushes two pointers (0x4ef8df push esi, 0x4ef8e0 push ebx) and reads an int (0x4ef8e6 test eax) */
-
 /* dcp unit split: the declarations of gv before the moved functions */
-typedef struct GVSHOTMSG {              /* 0x80 bytes, the data of message 0x67 (cm_SendShots): a cannon ball fired at a building; the receiver (0x4eee00) starts it as a part of the effect slot */
-    int id;                             /* 0x00, the building's id, the effect slot's id */
-    float v;                            /* 0x04, taken off the slot's fade value of the mode (only the first ball of a salvo carries it, then 0) */
-    int mode;                           /* 0x08, 0 one ball, 1 two, 2 three */
-    union {
-        SHOTREC shot;                   /* 0x0c, the ball as sent (gv_FireShots) */
-        GVEFFPART part;                 /* the same record as the slot's part it becomes (0x4eee00) */
-    };
-    int pad74[3];
-} GVSHOTMSG;
 
 /* 0x4ef3c0, the number of small (0x44-byte) graves of the graveyard building o by its type's level (AIBTYPE +0x247) and the
    sizes in use (GVYARD.open): level 1: 8, 16 with open[1]; level 2: 12 / 24 with open[1], + 8 with open[2]; else 16 / 32 with
@@ -71,17 +59,17 @@ typedef struct GVSHOTMSG {              /* 0x80 bytes, the data of message 0x67 
 
 int gv_GraveCount(AIBLD *bld)
 {
-    char *bt;
+    AIBTYPE *bt;
     GVYARD *g;
     int n;
 
-    bt = (char *)ai_BTypes + bld->type + bld->type * 0x24c;
+    bt = &ai_BTypes[bld->type];
     g = bld->yard;
-    if (((AIBTYPE *)bt)->level == 1) {
+    if (bt->level == 1) {
         n = 8;
         if (g->open[1] == 1)
             return 0x10;
-    } else if (((AIBTYPE *)bt)->level == 2) {
+    } else if (bt->level == 2) {
         n = 0xc;
         if (g->open[1] == 1)
             n = 0x18;
@@ -126,17 +114,17 @@ int gv_GravesInUse(AIBLD *bld)
 
 int gv_EntryCount(AIBLD *bld)
 {
-    char *bt;
+    AIBTYPE *bt;
     GVYARD *g;
     int n;
 
-    bt = (char *)ai_BTypes + bld->type + bld->type * 0x24c;
+    bt = &ai_BTypes[bld->type];
     g = bld->yard;
-    if (((AIBTYPE *)bt)->level == 1) {
+    if (bt->level == 1) {
         n = 8;
         if (g->open[1] == 1)
             return 0xc;
-    } else if (((AIBTYPE *)bt)->level == 2) {
+    } else if (bt->level == 2) {
         n = 0xc;
         if (g->open[1] == 1)
             n = 0x12;
@@ -175,7 +163,7 @@ int gv_SizeOpen(GVYARD *g, int i)
    (gv_SizeOpen) and n is below the size's entry count for the record's kind (list 0: 8 / 12 / 16, list 1: 4 / 6 / 8,
    list 2: - / 2 / 4, list 3: - / - / 2 for kind 1 / 2 / 3); 0 when r->kind is not 1 .. 3 or n is out of range */
 
-int gv_ListEntry(GVYARD *r, int i, unsigned char n)
+GVENTRY *gv_ListEntry(GVYARD *r, int i, unsigned char n)
 {
     GVYARD *g = r;                      /* the original reads the yard through a local copy (r read directly: 20 bytes shorter, draft) */
     int kind;
@@ -192,7 +180,7 @@ int gv_ListEntry(GVYARD *r, int i, unsigned char n)
             return 0;
         if (kind == 3 && n >= 0x10)
             return 0;
-        return (int)&g->lists[0][n];
+        return &g->lists[0][n];
     }
     if (i == 1) {
         if (gv_SizeOpen(r, i) == 0)
@@ -203,7 +191,7 @@ int gv_ListEntry(GVYARD *r, int i, unsigned char n)
             return 0;
         if (kind == 3 && n >= 8)
             return 0;
-        return (int)&g->lists[1][n];
+        return &g->lists[1][n];
     }
     if (i == 2) {
         if (gv_SizeOpen(r, i) == 0)
@@ -214,7 +202,7 @@ int gv_ListEntry(GVYARD *r, int i, unsigned char n)
             return 0;
         if (kind == 3 && n >= 4)
             return 0;
-        return (int)&g->lists[2][n];
+        return &g->lists[2][n];
     }
     if (i == 3) {
         if (gv_SizeOpen(r, i) == 0)
@@ -225,7 +213,7 @@ int gv_ListEntry(GVYARD *r, int i, unsigned char n)
             return 0;
         if (kind == 3 && n >= 2)
             return 0;
-        return (int)&g->lists[3][n];
+        return &g->lists[3][n];
     }
     return 0;
 }
@@ -245,10 +233,9 @@ int gv_EntryIndex(GVYARD *g, GVENTRY *e)
 }
 /* 0x4ef710, 1 when the entry b is held by the character a (GVENTRY.w08 == AICHAR.w050) and the holder is not 0x7fff */
 
-int gv_EntryHeldBy(AICHAR *a, char *b)
+int gv_EntryHeldBy(AICHAR *a, GVENTRY *e)
 {
     AICHAR *ch = a;
-    GVENTRY *e = (GVENTRY *)b;
     unsigned short v;
 
     v = ch->w050;
@@ -301,22 +288,22 @@ int gv_EntryHasId(int *a, int *b)
 
 GVENTRY *gv_FindEntry(void *a, AIBLD *bld, GVENTRY *after, int (*cb)(), int l)
 {
-    char *bt;
+    AIBTYPE *bt;
     GVYARD *g;
     GVENTRY *end;
 
-    bt = (char *)ai_BTypes + bld->type + bld->type * 0x24c;
+    bt = &ai_BTypes[bld->type];
     g = bld->yard;
     if (l != 0xff && gv_SizeOpen(g, l) == 0)
         return 0;
     if (l == 0)
-        end = g->lists[0] + gv_ListEntries0[((AIBTYPE *)bt)->cap247];
+        end = g->lists[0] + gv_ListEntries0[bt->cap247];
     else if (l == 1)
-        end = g->lists[1] + gv_ListEntries1[((AIBTYPE *)bt)->cap247];
+        end = g->lists[1] + gv_ListEntries1[bt->cap247];
     else if (l == 2)
-        end = g->lists[2] + gv_ListEntries2[((AIBTYPE *)bt)->cap247];
+        end = g->lists[2] + gv_ListEntries2[bt->cap247];
     else if (l == 3)
-        end = g->lists[3] + gv_ListEntries3[((AIBTYPE *)bt)->cap247];
+        end = g->lists[3] + gv_ListEntries3[bt->cap247];
     else if (l == 0xff)
         end = g->entries + gv_EntryCount(bld);
     else
@@ -335,7 +322,7 @@ GVENTRY *gv_FindEntry(void *a, AIBLD *bld, GVENTRY *after, int (*cb)(), int l)
     } else
         after++;
     for (; after < end; after++) {
-        if (cb == 0 || gv_FindEntryCb(cb)(a, after) != 0)
+        if (cb == 0 || cb(a, after) != 0)
             return after;
     }
     return 0;
@@ -357,7 +344,7 @@ GVGRAVE *gv_RandomGrave(AIBLD *bld)
     GVYARD *g;
     int n, k, i;
 
-    bt = (AIBTYPE *)((char *)ai_BTypes + bld->type + bld->type * 0x24c);
+    bt = &ai_BTypes[bld->type];
     g = bld->yard;
     if (bt->kind == 0x1d && bt->cap247 >= 1 && bt->cap247 <= 3) {
         n = gv_GraveCount(bld);
@@ -385,7 +372,7 @@ int gv_BuryNewDead(AIBLD *bld, int n)
     GMHEAD *rec;
     int i, k, r;
 
-    bt = (AIBTYPE *)((char *)ai_BTypes + bld->type + bld->type * 0x24c);
+    bt = &ai_BTypes[bld->type];
     if (bt->kind == 0x1d && bt->cap247 >= 1 && bt->cap247 <= 3) {
         for (i = 0; i < n; i++) {
             e = gv_FindEntry(0, bld, 0, gv_EntryIsFree, 0);
@@ -440,7 +427,7 @@ GVYARD *gv_AllocGraveyard(AIBLD *bld)
     GVGRAVE *gr;
     int i, ok;
 
-    bt = (AIBTYPE *)((char *)ai_BTypes + bld->type + bld->type * 0x24c);
+    bt = &ai_BTypes[bld->type];
     if (bt->kind == 0x1d && bt->cap247 >= 1 && bt->cap247 <= 3) {
         g = (GVYARD *)mem_Alloc(sizeof(GVYARD), "gv_AllocGraveyardField");
         if (g == 0)
@@ -552,7 +539,7 @@ GVYARD *gv_GrowGraveyard(AIBLD *bld)
     int n[4], i;                            /* the entry count of each size (as lists[4]; [3] unused) */
 
     old = bld->yard;
-    bt = (AIBTYPE *)((char *)ai_BTypes + bld->type + bld->type * 0x24c);
+    bt = &ai_BTypes[bld->type];
     if (bt->kind == 0x1d && old != 0 && old->kind < 3 && bt->cap247 - old->kind == 1) {
         bld->yard = 0;
         nw = gv_AllocGraveyard(bld);
@@ -628,12 +615,11 @@ void gv_FreeGraveyard(int *g)
 }
 /* 0x4f01d0, the message 0x4c60b0 type 0 (graveyard id +4 of g, object id +1 of o, value v, byte b); -1 when g or o is 0 or b is -1 */
 
-int gv_OrderBury(int *g, AIBLD *bld, int v, int b)
+int gv_OrderBury(AICHAR *ch, AIBLD *bld, int v, int b)
 {
-    AICHAR *ch = (AICHAR *)g;
     GVORDER m;
 
-    if (g != 0 && bld != 0 && b != -1) {
+    if (ch != 0 && bld != 0 && b != -1) {
         m.chr = ch->netId;
         m.type = 0;
         m.bld = bld->id;
@@ -676,7 +662,7 @@ int gv_BuryCharacter(int *p)
     if (c == 0)
         return -6;
     list = p[3];
-    e = (GVENTRY *)gv_ListEntry(g, list, (unsigned char)p[4]);
+    e = gv_ListEntry(g, list, (unsigned char)p[4]);
     if (e == 0 || e->w08 != c->w050)
         return -7;
     lst = e->grave;
@@ -784,12 +770,11 @@ int gv_ReserveGrave(GVORDER *m)
 }
 /* 0x4f0700, the message 0x4c60b0 type 2 (graveyard id +4 of g, object id +1 of o, value v, byte b, short s, int x); -1 when g or o is 0 or b is -1 */
 
-int gv_OrderExtendGrave(int *g, AIBLD *bld, int v, int b, short s, int x)
+int gv_OrderExtendGrave(AICHAR *ch, AIBLD *bld, int v, int b, short s, int x)
 {
-    AICHAR *ch = (AICHAR *)g;
     GVORDER m;
 
-    if (g != 0 && bld != 0 && b != -1) {
+    if (ch != 0 && bld != 0 && b != -1) {
         m.chr = ch->netId;
         m.bld = bld->id;
         m.size = v;
@@ -826,7 +811,7 @@ int gv_ExtendGrave(GVORDER *m)
     gm_FindById(0, 0, &c, m->chr);
     if (c == 0)
         return -6;
-    e = (GVENTRY *)gv_ListEntry(g, m->size, m->entry);
+    e = gv_ListEntry(g, m->size, m->entry);
     if (e == 0)
         return -7;
     e->until += m->years;
@@ -892,7 +877,7 @@ int gv_SetGraveHolder(GVORDER *m)
         id = m->chr;
         key = c->w050;
     }
-    e = (GVENTRY *)gv_ListEntry(g, m->size, m->entry);
+    e = gv_ListEntry(g, m->size, m->entry);
     if (e == 0)
         return -7;
     e->w08 = key;
@@ -1002,7 +987,7 @@ int gv_AdjustEntry(GVORDER *m)
     size = m->size;
     if (gv_SizeOpen(bld->yard, size) == 0)
         return -4;
-    e = (GVENTRY *)gv_ListEntry(bld->yard, size, m->entry);
+    e = gv_ListEntry(bld->yard, size, m->entry);
     if (e == 0)
         return -7;
     v = e->b0c + m->price;
@@ -1029,9 +1014,8 @@ int gv_OrderNewDead(AIBLD *bld, int x)
 }
 /* 0x4f0dd0, graveyard order type 6 (p: +8 the object id, +0x13 the number): makes that many new dead (0x4ef9c0); 0 when some were made, else -4 */
 
-int gv_AddNewDead(unsigned char *p)
+int gv_AddNewDead(GVORDER *m)
 {
-    GVORDER *m = (GVORDER *)p;
     AIBLD *bld;
     int n;
 
@@ -1093,7 +1077,7 @@ int gv_MoveGrave(GVMOVE *m)
     from = m->from;
     if (gv_SizeOpen(bld->yard, from) == 0)
         return -4;
-    src = (GVENTRY *)gv_ListEntry(bld->yard, from, m->entry);
+    src = gv_ListEntry(bld->yard, from, m->entry);
     if (src == 0 || src->w08 != c->w050)
         return -7;
     s = src->grave;
@@ -1187,7 +1171,7 @@ unsigned gv_RaiseDead(GVRAISE *m)
     size = m->size;
     if (gv_SizeOpen(bld->yard, size) == 0)
         return (unsigned)-4;
-    e = (GVENTRY *)gv_ListEntry(bld->yard, size, m->entry);
+    e = gv_ListEntry(bld->yard, size, m->entry);
     if (e == 0)
         return 0xffff;
     i = 0;
@@ -1617,7 +1601,7 @@ void gv_GraveyardTurn(AIBLD *bld)
                 goto next;
             h = price = gv_LeasePrice(c, e->b0c, e->size, 0, &share);
             if (c == pl) {
-                h = gv_OrderExtendGrave((int *)c, bld, e->size, gv_EntryIndex(bld->yard, e), 10, 0);
+                h = gv_OrderExtendGrave(c, bld, e->size, gv_EntryIndex(bld->yard, e), 10, 0);
             } else if (c->kind == 6 || c->kind == 7) {
                 memset(&m, 0, sizeof(m));
                 m.to = c->netId;
@@ -1632,7 +1616,7 @@ void gv_GraveyardTurn(AIBLD *bld)
                 m.lease.years = 10;
                 h = cm_SendLongMessage(&m);
             } else if ((int)(gm_CharCurrency(c, ai_OwnPlayer) * 0.44f) > price) {
-                h = gv_OrderExtendGrave((int *)c, bld, e->size, gv_EntryIndex(bld->yard, e), 10, price);
+                h = gv_OrderExtendGrave(c, bld, e->size, gv_EntryIndex(bld->yard, e), 10, price);
                 rounds++;
                 paid++;
                 sum += share;

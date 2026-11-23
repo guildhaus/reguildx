@@ -36,7 +36,7 @@ extern RTPOINT *rt_EditRoute;           /* 0x6f0758, the route being edited */
 
 
 
-extern int rt_PickedBuilding;                /* 0x6f0754, the building shown */
+extern struct AIBLD *rt_PickedBuilding;      /* 0x6f0754, the building shown */
 
 
 
@@ -101,8 +101,8 @@ unsigned int rt_ChooseTabGood(struct AIBLD *b, int x, unsigned int def);
 int rt_OpenSlotControls(struct AIOBJ *cart, struct AIOBJ *a, int good, int k, int x, int y, int win, int *out);
 void rt_RemoveControls(int *out);
 void rt_InitControls(int *out);
-void rt_EditPointDialog(RTPOINT *p, int *win);
-void rt_CartSettingsDialog(struct AIOBJ *c, char *win);
+void rt_EditPointDialog(RTPOINT *p, struct LCMAPWIN *win);
+void rt_CartSettingsDialog(struct AIOBJ *c, struct LCMAPWIN *win);
 void rt_SetMarkPic(RTMARK *m);
 void rt_UpdateMarkPics(void);
 int rt_FindMark(RTPOINT *p);
@@ -110,7 +110,7 @@ void rt_RemoveMark(int i);
 void rt_HighlightRoute(RTPOINT *p, struct LCMAPWIN *m);
 void rt_EditCartRoute(struct AIOBJ *c);
 void rt_UnloadAtPoint(struct AIOBJ *c, char pl);
-void rt_LoadAtPoint(struct AIOBJ *c, char pl);
+void rt_LoadAtPoint(struct AIOBJ *c, signed char pl);
 int rt_SaveRoutes(void *f);
 int rt_LoadRoutes(void *f);
 

@@ -32,7 +32,7 @@ int rt_MarkGroup = -1;                  /* 0x602a90 */
 extern RTMARK rt_Marks[8];
 struct D2SURF *rt_MapSaved = 0;  /* 0x6f074c, rt_EditCartRoute's copy of rt_MapSurface, blitted back at its end */
 int rt_MarkCount = 0;  /* 0x6f0750, the marks used */
-int rt_PickedBuilding = 0;  /* 0x6f0754, the building shown */
+AIBLD *rt_PickedBuilding = 0;  /* 0x6f0754, the building shown */
 RTPOINT * rt_EditRoute = 0;  /* 0x6f0758, the route being edited */
 RTMARK rt_Marks[8];  /* 0xf812a0 */
 
@@ -170,20 +170,20 @@ int rt_PutRouteMark(LCMAPWIN *win, int cart, RTPOINT *list, RTPOINT *p)
     int originX;
     int originY;
     AIBLD *b;
-    float pos[4];           /* d3_PointToWorld writes the angles after the position */
+    D3VECTOR4 pos;          /* d3_PointToWorld writes the angles after the position */
     LCMAPMARK mark;
     float y;
     int o;
     int index;
 
-    hmap = (D3SM *)d3_Scenes[0].hmap;
+    hmap = d3_Scenes[0].hmap;
     originX = ai_PlayerSlots[ai_OwnPlayer].townX;
     originY = ai_PlayerSlots[ai_OwnPlayer].townY;
     b = gm_FindBuildingById(p->buildingId);
     if (b == 0)
         return -1;
-    d3_PointToWorld(b->object, &b->object->pos, (D3VECTOR *)pos);
-    if (!d3_GetHeightAt(hmap, (D3VECTOR *)pos, &mark.cellX, &mark.cellZ, &y))
+    d3_PointToWorld(b->object, &b->object->pos, &pos.v);
+    if (!d3_GetHeightAt(hmap, &pos.v, &mark.cellX, &mark.cellZ, &y))
         return -1;
     ai_MapCellToScreen(&mark, originX, originY);
     index = rt_PointIndex(list, p);
@@ -410,7 +410,7 @@ unsigned int rt_ChooseTabGood(AIBLD *b, int x, unsigned int def)
     int i;
     int y;
     AIOBJ *s;
-    unsigned short *e;
+    AIOBJ *e;
     int n;
     int o;
 
@@ -455,13 +455,13 @@ unsigned int rt_ChooseTabGood(AIBLD *b, int x, unsigned int def)
             else
                 s = gm_Query(b->objList, 1, 0, 0xff);
             if (s != 0) {
-                for (e = (unsigned short *)gm_Query(s->list, 1, 5); e != 0; e = gm_QueryNext(), n++) {
-                    o = d2_WinOpenPic(n % 4 << 6, n / 4 << 6, *e + 0xdf, d2_LastWindow);
+                for (e = gm_Query(s->list, 1, 5); e != 0; e = gm_QueryNext(), n++) {
+                    o = d2_WinOpenPic(n % 4 << 6, n / 4 << 6, e->id + 0xdf, d2_LastWindow);
                     objs[n] = o;
                     d2_Objs[o].interactive = 1;
                     d2_Objs[o].style = 3;
                     d2_Objs[o].icon = 0x525;
-                    goods[n] = *e;
+                    goods[n] = e->id;
                 }
             }
             goods[n] = 0;
@@ -549,7 +549,7 @@ void rt_InitControls(int *out)
    (loadSlots) and to unload (unloadSlots), up to three each (by the cart type), with their amounts; a button deletes the
    point and rebuilds the marks on window win */
 
-void rt_EditPointDialog(RTPOINT *p, int *win)
+void rt_EditPointDialog(RTPOINT *p, LCMAPWIN *win)
 {
     int cnt[3];
     int *sel;
@@ -586,7 +586,7 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
     cart = gm_FindObjectInst(p->cartId);
     if (cart == 0 || bld == 0)
         return;
-    d2_EnableViewObjects(*win, 0);
+    d2_EnableViewObjects(win->view, 0);
     t = &ai_BTypes[bld->type];
     w = d2_OpenForm(0, 0, "misc/routing_edit_point");
     d2_CentreViewWindows(w);
@@ -710,7 +710,7 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
                 rt_MarkCount = 0;
                 rt_ClearMarkGroup();
                 for (p = rt_EditRoute; p != 0; p = p->next)
-                    rt_PutRouteMark((LCMAPWIN *)win, (int)cart, rt_EditRoute, p);
+                    rt_PutRouteMark(win, (int)cart, rt_EditRoute, p);
                 d2_RadioSelect(rt_MarkGroup, 0);
                 sv_PopRequest = 1;
             }
@@ -727,14 +727,14 @@ void rt_EditPointDialog(RTPOINT *p, int *win)
         }
     }
     d2_CloseView(w);
-    d2_EnableViewObjects(*win, 1);
+    d2_EnableViewObjects(win->view, 1);
 }
 /* 0x4bf080, the dialog "misc\routing_settings" for cart c (title text 0x42e2): a 5-step slider for c->patrolLevel
    (TXT_PATROL_LEVEL_0..4), the button TXT_ROUTE_NEW that starts a new route at c's building (its mark on the town map
    window win), the button TXT_PATROL_TOGGLE + c->patrolOn that toggles c->patrolOn (text 0x42ec + patrolOn shows the
    state); changes go out as field updates */
 
-void rt_CartSettingsDialog(AIOBJ *c, char *win)
+void rt_CartSettingsDialog(AIOBJ *c, LCMAPWIN *win)
 {
     int w;
     int sl;
@@ -780,7 +780,7 @@ void rt_CartSettingsDialog(AIOBJ *c, char *win)
                 rt_EditRoute = rt_AddPoint(0);
                 rt_EditRoute->buildingId = c->bldId;
                 rt_EditRoute->cartId = c->objId;
-                rt_PutRouteMark((LCMAPWIN *)win, (int)c, rt_EditRoute, rt_EditRoute);
+                rt_PutRouteMark(win, (int)c, rt_EditRoute, rt_EditRoute);
                 d2_RadioSelect(rt_MarkGroup, 0);
                 sv_PopRequest = 2;
             }
@@ -789,7 +789,7 @@ void rt_CartSettingsDialog(AIOBJ *c, char *win)
 
                 v = c->patrolOn == 0;
                 cm_BeginFieldBlock(c, c->objId);
-                cm_AddFieldValue(1, 1, (char *)c - cm_FieldObject + 0x33, &v);
+                cm_AddFieldValue(1, 1, (char *)&c->patrolOn - cm_FieldObject, &v);
                 cm_SendFieldValues();
             }
         }
@@ -799,7 +799,7 @@ void rt_CartSettingsDialog(AIOBJ *c, char *win)
 
         v = (unsigned char)d2_GetObjValue(sl);
         cm_BeginFieldBlock(c, c->objId);
-        cm_AddFieldValue(1, 1, (char *)c - cm_FieldObject + 0x31, &v);
+        cm_AddFieldValue(1, 1, (char *)&c->patrolLevel - cm_FieldObject, &v);
         cm_SendFieldValues();
     }
     d2_CloseView(w);
@@ -860,7 +860,7 @@ void rt_HighlightRoute(RTPOINT *p, LCMAPWIN *m)
     for (i = 0; i < m->nMarks; i++) {
         mk = &m->marks[i];
         if (mk->bld != 0) {
-            if ((int)mk->bld != rt_PickedBuilding) {
+            if (mk->bld != rt_PickedBuilding) {
                 d2_Objs[mk->ctrl].style |= 1;
                 d2_Objs[mk->ctrl].highlighted = 0;
             } else {
@@ -927,7 +927,7 @@ void rt_EditCartRoute(AIOBJ *c)
     if (rt_EditRoute == 0) {
         v = 1;
         cm_BeginFieldBlock(c, c->objId);
-        cm_AddFieldValue(1, 1, (char *)c - cm_FieldObject + 0x33, &v);
+        cm_AddFieldValue(1, 1, (char *)&c->patrolOn - cm_FieldObject, &v);
         cm_SendFieldValues();
         rt_EditRoute = rt_AddPoint(0);
         rt_EditRoute->buildingId = c->bldId;
@@ -950,13 +950,13 @@ void rt_EditCartRoute(AIOBJ *c)
         ai_MapScrollEnabled = d2_FocusedInput == 0;
         if (d2_ClickedId != -1) {
             if (d2_PointerObj == settings)
-                rt_CartSettingsDialog(c, (char *)&m);
+                rt_CartSettingsDialog(c, &m);
             else if (d2_PointerObj == edit) {
                 if (rt_MarkGroup != -1 && d2_Radios[rt_MarkGroup].sel != -1)
-                    rt_EditPointDialog(rt_Marks[d2_Radios[rt_MarkGroup].sel].p, (int *)&m);
+                    rt_EditPointDialog(rt_Marks[d2_Radios[rt_MarkGroup].sel].p, &m);
             } else if (d2_PointerObj == add && rt_PickedBuilding != 0) {
                 q = rt_AddPoint(rt_EditRoute);
-                q->buildingId = ((AIBLD *)rt_PickedBuilding)->id;
+                q->buildingId = rt_PickedBuilding->id;
                 q->cartId = c->objId;
                 rt_PutRouteMark(&m, (int)c, rt_EditRoute, q);
                 d2_RadioSelect(rt_MarkGroup, rt_MarkCount - 1);
@@ -967,10 +967,10 @@ void rt_EditCartRoute(AIOBJ *c)
         if (dm_L.lclick != 0 && d2_PointerObj != -1) {
             for (i = 0; i < m.nMarks; i++) {
                 if (m.marks[i].ctrl == d2_PointerObj) {
-                    rt_PickedBuilding = (int)m.marks[i].bld;
+                    rt_PickedBuilding = m.marks[i].bld;
                     for (k = 0; k < 8; k++) {
                         if (rt_Marks[k].p != 0 && (id = rt_Marks[k].p->buildingId) != -1
-                            && rt_PickedBuilding == (int)gm_FindBuildingById(id)) {
+                            && rt_PickedBuilding == gm_FindBuildingById(id)) {
                             d2_RadioSelect(rt_MarkGroup, k);
                             rt_PickedBuilding = 0;
                         }
@@ -996,10 +996,10 @@ void rt_EditCartRoute(AIOBJ *c)
         v = 0;
         cm_SendClearRoute(c);
         cm_BeginFieldBlock(c, c->objId);
-        cm_AddFieldValue(1, 1, (char *)c - cm_FieldObject + 0x33, &v);
+        cm_AddFieldValue(1, 1, (char *)&c->patrolOn - cm_FieldObject, &v);
         cm_SendFieldValues();
     }
-    ai_CloseMapWindow((int *)&m);
+    ai_CloseMapWindow(&m);
     if (rt_MapSaved != 0) {
         d2_BlitPart(0, 0, rt_MapSurface->w, rt_MapSurface->h, rt_MapSaved, 0, 0, rt_MapSurface);
         d2_FreeSurface(rt_MapSaved);
@@ -1079,7 +1079,7 @@ void rt_UnloadAtPoint(AIOBJ *c, char pl)
    goods price at a warehouse or market) when the building is not the cart owner's, with a news to the owner when pl
    cannot afford it */
 
-void rt_LoadAtPoint(AIOBJ *c, char pl)
+void rt_LoadAtPoint(AIOBJ *c, signed char pl)
 {
     RTPOINT *q;
     AICHAR *o;

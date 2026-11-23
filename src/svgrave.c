@@ -274,7 +274,6 @@ extern unsigned char kb_Last;
 extern int sv_FrameMask;
 
 
-#define U_I(a) (*(int *)(a))
 
 
 void ai_TutorialHideText2();
@@ -309,7 +308,6 @@ typedef struct SHOTRESULT {     /* 0x38 bytes, three of them in ai_ShotTable: th
     SHOTENTRY e[3];          /* +0x8 */
 } SHOTRESULT;
 extern int ai_TutorialChapterOn[5];
-extern int (*ai_TutorialChapterInit[5])(void);
 extern unsigned int ai_GraveChatterAt;
 extern TUTRUN *ai_TutorialRuns;
 extern int ai_TutorialOn;
@@ -365,8 +363,6 @@ extern const float ai_CannonSwitchDist;
 #include "gfx.h"
 
 /* dcp unit split: the declarations of sv_t before the moved functions */
-int ai_TutorialInitMainIntro();
-int ai_TutorialInitMainOutro();
 void ai_TutorialStop();
 void * mem_Alloc(int size, char *tag);
 void ai_TutorialFreeRuns(TUTRUN *rec);
@@ -479,45 +475,7 @@ extern const int ai_GravePics[4];
 extern const int ai_GravePicsAlt[4];
 extern const int ai_GraveGoods[4];
 
-/* 0x582730, the four grave size buttons of the graveyard contact window: rec = the graveyard building (its yard),
-   w = the window list (0 the window, 4 the parent, 8 .. 0xb the buttons, 0xc the selected size). Section 6 gets
-   "$C" and the four picture buttons (ai_GravePics, 0x6c apart), interactive, style 3, each keeping its goods
-   record (ai_GraveGoods); the sizes 1 .. 3 are enabled while the yard has them open. The selected size stays
-   highlighted when it is open, else the first button is highlighted and the selection falls back to 0; the
-   selected button is checked */
-void ai_GraveSizeButtons(AIBLD *rec, int *w)
-{
-    GVYARD *yard;
-    int i;
-
-    yard = rec->yard;
-    d2_SetForm(w[0], 6);
-    io_PrintText((intptr_t)"$C");
-    for (i = 0; i < 4; i++) {
-        w[8 + i] = d2_WinOpenPic(i * 0x6c + 6, 0, ai_GravePics[i], w[4]);
-        d2_Objs[w[8 + i]].interactive = 1;
-        d2_Objs[w[8 + i]].style = 3;
-        d2_Objs[w[8 + i]].user = &ai_Goods[ai_GraveGoods[i]];
-    }
-    d2_SetObjEnabled(w[9], yard->open[1]);
-    d2_SetObjEnabled(w[10], yard->open[2]);
-    d2_SetObjEnabled(w[11], yard->open[3]);
-    if (w[12] == 3 && yard->open[3] == 1)
-        d2_Objs[w[11]].highlighted = 1;
-    else if (w[12] == 2 && yard->open[2] == 1)
-        d2_Objs[w[10]].highlighted = 1;
-    else if (w[12] == 1 && yard->open[1] == 1)
-        d2_Objs[w[9]].highlighted = 1;
-    else {
-        d2_Objs[w[8]].highlighted = 1;
-        w[12] = 0;
-    }
-    d2_Objs[w[w[12] + 8]].checked = 1;
-}
-
-struct GVENTRY *gv_FindEntry(void *a, struct AIBLD *bld, struct GVENTRY *after, int (*cb)(), int l); int gv_EntryIndex(struct GVYARD *g, struct GVENTRY *e);
-
-/* a row of the graveyard contact window's grave list (w + 0xd, 0x10 rows of 4 dwords; ai_GraveList fills them) */
+/* a row of the graveyard contact window's grave list (GVWIN.rows; ai_GraveList fills them) */
 typedef struct GVROW {
     int btn;                    /* 0x00, its button object, -1: an unused row */
     GVENTRY *entry;             /* 0x04, the grave entry, 0: unused */
@@ -525,28 +483,40 @@ typedef struct GVROW {
     unsigned char index;        /* 0x0c, the entry's index in its list (gv_EntryIndex), 0xff: unused */
 } GVROW;
 
-/* a dead person shown by the graveyard contact window's detail (w + 0x4f, 8 items of 3 dwords; ai_GraveDetail) */
+/* a dead person shown by the graveyard contact window's detail (GVWIN.items, GVDETAILWIN.items; ai_GraveDetail) */
 typedef struct GVITEM {
     int btn;                    /* 0x00, its picture object, -1: none */
     GVGRAVE *grave;             /* 0x04, the dead person, 0: an unused item */
     int id;                     /* 0x08, the grave's id, -1: unused */
 } GVITEM;
 
-typedef struct GVWIN {                  /* 0x1a0 bytes, the graveyard contact window's list (ai_GraveWindow's w[0x68]) */
-    int head[0xc];                      /* 0x00, its windows: 0 the window, 2 the list's window, 3 the detail list's window,
-                                           5 / 6 their fonts, 8 .. 11 the size buttons (ai_GraveSizeButtons) */
-    int size;                           /* 0x30 (w[0xc]), the selected grave size */
-    GVROW rows[0x10];                   /* 0x34 (w[0xd]), the grave list's rows (ai_GraveList) */
-    int sel;                            /* 0x134 (w[0x4d]), the selected row */
-    int slider;                         /* 0x138 (w[0x4e]), the detail's slider */
-    GVITEM items[8];                    /* 0x13c (w[0x4f]), the detail's dead persons (ai_GraveDetail) */
-    int item;                           /* 0x19c (w[0x67]), the item last clicked */
+typedef struct GVWIN {                  /* 0x1a0 bytes, the graveyard contact window (ai_GraveWindow's record) */
+    int win;                            /* 0x00, the form */
+    int title;                          /* 0x04, section 1 (each section its d2_LastWindow): the title line */
+    int list;                           /* 0x08, section 2: the grave list */
+    int detail;                         /* 0x0c, section 3: the detail's dead persons */
+    int sizes;                          /* 0x10, section 6: the size buttons */
+    int listScroll;                     /* 0x14, section 4: the list's scroll buttons */
+    int detailScroll;                   /* 0x18, section 5: the detail's scroll buttons */
+    int info;                           /* 0x1c, section 7: the holder, year and state of the grave */
+    int sizeBtns[4];                    /* 0x20, the size buttons (ai_GraveSizeButtons) */
+    int size;                           /* 0x30, the selected grave size */
+    GVROW rows[0x10];                   /* 0x34, the grave list's rows (ai_GraveList) */
+    int sel;                            /* 0x134, the selected row */
+    int slider;                         /* 0x138, the detail's slider */
+    GVITEM items[8];                    /* 0x13c, the detail's dead persons (ai_GraveDetail) */
+    int item;                           /* 0x19c, the item last clicked */
 } GVWIN;
 
-/* the window record of the graveyard detail windows (ai_GraveDetailOpen, ai_RentGraveDetail, ai_SeancePick: int[0x23]) */
+/* the graveyard detail window (ai_GraveDetailOpen, ai_RentGraveDetail, ai_SeancePick, ai_GraveDetailButtons) */
 typedef struct GVDETAILWIN {
     int win;                    /* 0x00, the form */
-    int sections[6];            /* 0x04, the d2_LastWindow of its sections */
+    int title;                  /* 0x04, section 1 (each section its d2_LastWindow): the title line */
+    int list;                   /* 0x08, section 2: the dead persons */
+    int pad0c;
+    int scroll;                 /* 0x10, section 3: the list's scroll buttons */
+    int info;                   /* 0x14, section 5: the holder, year and care */
+    int buttons;                /* 0x18, section 4: the button row (ai_GraveDetailButtons) */
     GVENTRY *entry;             /* 0x1c, the grave entry shown */
     int size;                   /* 0x20, its size (list) */
     unsigned char index;        /* 0x24, its index in that list (gv_EntryIndex) */
@@ -555,16 +525,54 @@ typedef struct GVDETAILWIN {
     int selected;               /* 0x88, the item clicked (ai_SeancePick) */
 } GVDETAILWIN;
 
-/* 0x5828c0, the grave list of the graveyard contact window: rec = the graveyard building, w = the window list (0 the
-   window, 2 the list's window, 5 its font, 0xc the selected grave size, 0xd the rows (GVROW), 0x4d the selected
-   row), sel = the size just clicked (-1: none; the list keeps its scroll position only when it is the selected
+/* 0x582730, the four grave size buttons of the graveyard contact window: rec = the graveyard building (its yard),
+   w = the window (its sizes section, sizeBtns, the selected size). Section 6 gets
+   "$C" and the four picture buttons (ai_GravePics, 0x6c apart), interactive, style 3, each keeping its goods
+   record (ai_GraveGoods); the sizes 1 .. 3 are enabled while the yard has them open. The selected size stays
+   highlighted when it is open, else the first button is highlighted and the selection falls back to 0; the
+   selected button is checked */
+void ai_GraveSizeButtons(AIBLD *rec, GVWIN *w)
+{
+    GVYARD *yard;
+    int i;
+
+    yard = rec->yard;
+    d2_SetForm(w->win, 6);
+    io_PrintText((intptr_t)"$C");
+    for (i = 0; i < 4; i++) {
+        w->sizeBtns[i] = d2_WinOpenPic(i * 0x6c + 6, 0, ai_GravePics[i], w->sizes);
+        d2_Objs[w->sizeBtns[i]].interactive = 1;
+        d2_Objs[w->sizeBtns[i]].style = 3;
+        d2_Objs[w->sizeBtns[i]].user = &ai_Goods[ai_GraveGoods[i]];
+    }
+    d2_SetObjEnabled(w->sizeBtns[1], yard->open[1]);
+    d2_SetObjEnabled(w->sizeBtns[2], yard->open[2]);
+    d2_SetObjEnabled(w->sizeBtns[3], yard->open[3]);
+    if (w->size == 3 && yard->open[3] == 1)
+        d2_Objs[w->sizeBtns[3]].highlighted = 1;
+    else if (w->size == 2 && yard->open[2] == 1)
+        d2_Objs[w->sizeBtns[2]].highlighted = 1;
+    else if (w->size == 1 && yard->open[1] == 1)
+        d2_Objs[w->sizeBtns[1]].highlighted = 1;
+    else {
+        d2_Objs[w->sizeBtns[0]].highlighted = 1;
+        w->size = 0;
+    }
+    d2_Objs[w->sizeBtns[w->size]].checked = 1;
+}
+
+struct GVENTRY *gv_FindEntry(void *a, struct AIBLD *bld, struct GVENTRY *after, int (*cb)(), int l); int gv_EntryIndex(struct GVYARD *g, struct GVENTRY *e);
+
+
+/* 0x5828c0, the grave list of the graveyard contact window: rec = the graveyard building, w = the window (its list and
+   listScroll sections, the selected size, the rows (GVROW), the selected row), sel = the size just clicked (-1: none; the list keeps its scroll position only when it is the selected
    size). Sections 2 and 4 get "$C"; the scroll buttons (sv_CreateScrollButtons, step 0x35); each entry of the size
    (gv_FindEntry) gets a row: the entry, its size and index, a button 0x35 apart with the size's picture
    (ai_GravePics when the grave is free, else ai_GravePicsAlt), interactive, style 3, and the marker 0x7de when an
    event of type 0x8d is pending for it (he_HasGraveWork). A selection past the rows falls back to row 0; it is
    highlighted and checked; the unused rows are cleared; the scroll position is restored, the step set and the
    window scrolled */
-void ai_GraveList(AIBLD *rec, int *w, int sel)
+void ai_GraveList(AIBLD *rec, GVWIN *w, int sel)
 {
     int up;
     int down;
@@ -575,40 +583,40 @@ void ai_GraveList(AIBLD *rec, int *w, int sel)
     int i;
 
     saved = 0;
-    if (sel == w[0xc])
-        saved = d2_Wins[w[2]].scrollY;
-    d2_SetForm(w[0], 2);
+    if (sel == w->size)
+        saved = d2_Wins[w->list].scrollY;
+    d2_SetForm(w->win, 2);
     io_PrintText((intptr_t)"$C");
-    d2_SetForm(w[0], 4);
+    d2_SetForm(w->win, 4);
     io_PrintText((intptr_t)"$C");
-    sv_CreateScrollButtons(0, 0, w[5], w[2], 0x35, &up, &down, &sel);
-    e = gv_FindEntry(0, rec, 0, 0, w[0xc]);
+    sv_CreateScrollButtons(0, 0, w->listScroll, w->list, 0x35, &up, &down, &sel);
+    e = gv_FindEntry(0, rec, 0, 0, w->size);
     n = 0;
     if (e) {
-        row = ((GVWIN *)w)->rows;
+        row = w->rows;
         do {
             row->entry = e;
             row->size = e->size;
             row->index = gv_EntryIndex(rec->yard, e);
             if (e->id == -1)
-                row->btn = d2_WinOpenPic(1, n * 0x35 + 2, ai_GravePics[w[0xc]], w[2]);
+                row->btn = d2_WinOpenPic(1, n * 0x35 + 2, ai_GravePics[w->size], w->list);
             else
-                row->btn = d2_WinOpenPic(1, n * 0x35 + 2, ai_GravePicsAlt[w[0xc]], w[2]);
+                row->btn = d2_WinOpenPic(1, n * 0x35 + 2, ai_GravePicsAlt[w->size], w->list);
             if (he_HasGraveWork(rec, e->size, row->index) != 0)
-                d2_WinOpenPic(0xf, n * 0x35 + 9, 0x7de, w[2]);
+                d2_WinOpenPic(0xf, n * 0x35 + 9, 0x7de, w->list);
             d2_Objs[row->btn].interactive = 1;
             d2_Objs[row->btn].style = 3;
-            e = gv_FindEntry(0, rec, e, 0, w[0xc]);
+            e = gv_FindEntry(0, rec, e, 0, w->size);
             n++;
             row++;
         } while (e);
     }
-    if (w[0x4d] >= n)
-        w[0x4d] = 0;
-    d2_Objs[w[0x4d]].highlighted = 1;
-    d2_Objs[((GVWIN *)w)->rows[w[0x4d]].btn].checked = 1;
+    if (w->sel >= n)
+        w->sel = 0;
+    d2_Objs[w->sel].highlighted = 1;
+    d2_Objs[w->rows[w->sel].btn].checked = 1;
     if (n < 0x10) {
-        row = ((GVWIN *)w)->rows;
+        row = w->rows;
         for (i = n; i < 0x10; i++) {
             row[i].entry = 0;
             row[i].size = 0xff;
@@ -616,17 +624,16 @@ void ai_GraveList(AIBLD *rec, int *w, int sel)
             row[i].btn = -1;
         }
     }
-    d2_Wins[w[2]].scrollY = saved;
-    d2_Wins[w[2]].visible = 0x35;
-    d2_ScrollWindow(w[2]);
+    d2_Wins[w->list].scrollY = saved;
+    d2_Wins[w->list].visible = 0x35;
+    d2_ScrollWindow(w->list);
 }
 
 void ai_GraveDeadName(GVGRAVE *e, char *out);
 
 
 /* 0x582b40, the detail of the selected grave in the graveyard contact window: rec = the graveyard building, w = the
-   window list (0 the window, 3 the detail list's window, 6 its font, 0x4d the selected row (GVROW at w + 0xd),
-   0x4e the slider, 0x4f the items (GVITEM)), clicked = the row just clicked (the list keeps its scroll position
+   window (its detail and detailScroll sections, the selected row, the slider, the items (GVITEM)), clicked = the row just clicked (the list keeps its scroll position
    only when it is the selected row), flag = 1: the window has the slider. The used graves of the entry
    (gv_EntryCounts[size] of them) become the items, the rest is cleared; sections 3 / 5 / 7 get "$C" and the
    scroll buttons (one window height per item). Per item, one window height apart: the frame picture 0x6c7
@@ -654,7 +661,7 @@ void ai_GraveDeadName(GVGRAVE *e, char *out);
    fill's grave = 0 constant is the reference that decides). Open: M10 100.0f vs ai_FloatHundred (no view
    of full_rdata_5ebb40 in sv_t). Next: c2trace.py on the const#0 pieces (ids 1/2/3 of 6 webs) to see which
    web takes ebp. (tiebreak: not measured (dcp headers sample ai_GraveDetail)) */
-void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
+void ai_GraveDetail(AIBLD *rec, GVWIN *w, int clicked, int flag)
 {
     int i;
     GVENTRY *e;
@@ -673,8 +680,8 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
 
     saved = 0;
     n = 0;
-    e = ((GVWIN *)w)->rows[w[0x4d]].entry;
-    items = ((GVWIN *)w)->items;
+    e = w->rows[w->sel].entry;
+    items = w->items;
     count = gv_EntryCounts[e->size];
     for (i = 0; i < count; i++) {
         if (e->grave[i].id != -1) {
@@ -685,54 +692,54 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
         }
     }
     for (i = n; i < 8; i++) {
-        ((GVWIN *)w)->items[i].grave = 0;
-        ((GVWIN *)w)->items[i].id = -1;
-        ((GVWIN *)w)->items[i].btn = -1;
+        w->items[i].grave = 0;
+        w->items[i].id = -1;
+        w->items[i].btn = -1;
     }
-    w[0x4e] = -1;
-    if (clicked == w[0x4d])
-        saved = d2_Wins[w[3]].scrollY;
-    d2_SetForm(w[0], 3);
+    w->slider = -1;
+    if (clicked == w->sel)
+        saved = d2_Wins[w->detail].scrollY;
+    d2_SetForm(w->win, 3);
     io_PrintText((intptr_t)"$C");
-    d2_SetForm(w[0], 5);
+    d2_SetForm(w->win, 5);
     io_PrintText((intptr_t)"$C");
-    d2_SetForm(w[0], 7);
+    d2_SetForm(w->win, 7);
     io_PrintText((intptr_t)"$C");
-    sv_CreateScrollButtons(0, 0, w[6], w[3], d2_Wins[w[3]].h, &up, &down, &bar);
-    d2_SetForm(w[0], 3);
+    sv_CreateScrollButtons(0, 0, w->detailScroll, w->detail, d2_Wins[w->detail].h, &up, &down, &bar);
+    d2_SetForm(w->win, 3);
     for (i = 0; i < n; i++) {
         char buf[0x100];
         char line2[0x100];
 
         item = &items[i];
-        x = (d2_Wins[w[3]].w - d2_Pics[0x6c7].w) / 2;
-        item->btn = d2_WinOpenPic(x, d2_Wins[w[3]].h * i + 2, 0x6c7, w[3]);
-        item->btn = d2_WinOpenPic(x + 2, d2_Wins[w[3]].h * i + 4, item->grave->icon, w[3]);
+        x = (d2_Wins[w->detail].w - d2_Pics[0x6c7].w) / 2;
+        item->btn = d2_WinOpenPic(x, d2_Wins[w->detail].h * i + 2, 0x6c7, w->detail);
+        item->btn = d2_WinOpenPic(x + 2, d2_Wins[w->detail].h * i + 4, item->grave->icon, w->detail);
         d2_Objs[item->btn].interactive = flag == 0;
         d2_Objs[item->btn].style = 3;
         ai_GraveDeadName(item->grave, buf);
         ai_GraveDeadDescription(item->grave, line2);
-        y = d2_Wins[w[3]].h * i + 0x38;
-        k = d2_CreateWinText(0, y, buf, w[3]);
+        y = d2_Wins[w->detail].h * i + 0x38;
+        k = d2_CreateWinText(0, y, buf, w->detail);
         d2_Objs[k].centred = 1;
-        d2_Objs[k].w = d2_Wins[w[3]].w;
+        d2_Objs[k].w = d2_Wins[w->detail].w;
         d2_SetObjFont(k, 0x54);
         y += 0xd;
-        k = d2_CreateWinText(0, y, line2, w[3]);
+        k = d2_CreateWinText(0, y, line2, w->detail);
         d2_Objs[k].centred = 1;
-        d2_Objs[k].w = d2_Wins[w[3]].w;
+        d2_Objs[k].w = d2_Wins[w->detail].w;
         d2_SetObjFont(k, 0x54);
         y += 0x12;
         for (k = 0; k < 5; k++, y += 0xd) {
             txt_Format(buf, (intptr_t)"%s:", 0x16b7 + k);
-            x = d2_CreateWinText(0x28, y, buf, w[3]);
+            x = d2_CreateWinText(0x28, y, buf, w->detail);
             d2_Objs[x].w = 300;
             d2_SetObjFont(x, 0x54);
             sv_ValueBar(0xa0, y, item->grave->traits[k], 0x4df);
         }
     }
-    d2_Wins[w[3]].scrollY = saved;
-    d2_SetForm(w[0], 7);
+    d2_Wins[w->detail].scrollY = saved;
+    d2_SetForm(w->win, 7);
     io_PrintText((intptr_t)"$C");
     if (e->id == -1) {
         char buf[0x100];
@@ -761,13 +768,13 @@ void ai_GraveDetail(AIBLD *rec, int *w, int clicked, int flag)
         txt_Format(buf, (intptr_t)"%i %%", (int)(100.0f * (e->b0c / 255.0f)));
         io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4103, buf);
         if (flag == 1) {
-            w[0x4e] = d2_WinCreateSlider((d2_Wins[d2_LastWindow].w - 0xb4) / 2, d2_Wins[d2_LastWindow].h - 0x21, 0xbf,
+            w->slider = d2_WinCreateSlider((d2_Wins[d2_LastWindow].w - 0xb4) / 2, d2_Wins[d2_LastWindow].h - 0x21, 0xbf,
                                          txt_Ptrs[0x42f1], d2_LastWindow);
-            d2_SetObjWidth(w[0x4e], 0xb4);
+            d2_SetObjWidth(w->slider, 0xb4);
         }
     }
-    d2_Wins[w[3]].scrollY = saved;
-    d2_ScrollWindow(w[3]);
+    d2_Wins[w->detail].scrollY = saved;
+    d2_ScrollWindow(w->detail);
 }
 /* 0x5830f0, the name line of a dead person in a grave (ai_GraveDetail, ai_RentGraveDetail): his office (v2c,
    1 .. 9) as a text id on top of the male 0x253 / female 0x27b base of the office titles by his sex, then his
@@ -855,7 +862,7 @@ void ai_GraveWindow(GVPICK *out, AIBLD *rec, char *title, int flag, void (*cb)(A
     int prevSize;
     GVPICK pick;
     GVPICK whole;
-    int w[0x68];
+    GVWIN w;
     int handled;
     int i;
     int win;
@@ -866,120 +873,119 @@ void ai_GraveWindow(GVPICK *out, AIBLD *rec, char *title, int flag, void (*cb)(A
         out->grave = 0;
     }
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\Graves");
-    w[0] = win;
+    w.win = win;
     d2_SetPointerSprite(0, 0);
     d2_CentreViewWindows(win);
     d2_SetForm(win, 0);
     sv_FitForm(d2_LastWindow);
     d2_SetForm(win, 1);
-    w[1] = d2_LastWindow;
+    w.title = d2_LastWindow;
     io_PrintText((intptr_t)"$C$Z%s", title);
     d2_SetForm(win, 2);
-    w[2] = d2_LastWindow;
+    w.list = d2_LastWindow;
     d2_SetForm(win, 3);
-    w[3] = d2_LastWindow;
+    w.detail = d2_LastWindow;
     d2_SetForm(win, 6);
-    w[4] = d2_LastWindow;
+    w.sizes = d2_LastWindow;
     d2_SetForm(win, 4);
-    w[5] = d2_LastWindow;
+    w.listScroll = d2_LastWindow;
     d2_SetForm(win, 5);
-    w[6] = d2_LastWindow;
+    w.detailScroll = d2_LastWindow;
     d2_SetForm(win, 7);
-    w[7] = d2_LastWindow;
-    w[0xc] = 0;
-    w[0x4d] = 0;
-    w[0x67] = 0;
-    ai_GraveSizeButtons(rec, w);
-    ai_GraveList(rec, w, -1);
-    ai_GraveDetail(rec, w, -1, flag);
+    w.info = d2_LastWindow;
+    w.size = 0;
+    w.sel = 0;
+    w.item = 0;
+    ai_GraveSizeButtons(rec, &w);
+    ai_GraveList(rec, &w, -1);
+    ai_GraveDetail(rec, &w, -1, flag);
     next += 0x96;
     d2_ClickedId = -1;
     do {
         redraw = 0;
         handled = 0;
-        prevSize = w[0xc];
-        detailRow = w[0x4d];
+        prevSize = w.size;
+        detailRow = w.sel;
         if (d3_Time > next)
             redraw = 7;
         if (dm_L.rup != 0) {
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             for (i = 0; !handled && i < 4; i++) {
-                if (d2_PointerObj == w[8 + i] && i != w[0xc]) {
+                if (d2_PointerObj == w.sizeBtns[i] && i != w.size) {
                     redraw |= 7;
-                    w[0xc] = i;
-                    w[0x4d] = 0;
+                    w.size = i;
+                    w.sel = 0;
                     detailRow = -1;
                     handled = 1;
                 }
             }
             for (i = 0; !handled && i < 0x10; i++) {
-                if (d2_PointerObj == ((GVWIN *)w)->rows[i].btn && i != w[0x4d]) {
-                    w[0x4d] = i;
+                if (d2_PointerObj == w.rows[i].btn && i != w.sel) {
+                    w.sel = i;
                     redraw |= 3;
                     handled = 1;
                 }
             }
             if (flag == 0) {
                 for (j = 0; !handled && j < 8; j++) {
-                    if (d2_PointerObj != ((GVWIN *)w)->items[j].btn)
+                    if (d2_PointerObj != w.items[j].btn)
                         continue;
-                    w[0x67] = j;
+                    w.item = j;
                     handled = 1;
                     if (out) {
-                        out->entry = ((GVWIN *)w)->rows[w[0x4d]].entry;
+                        out->entry = w.rows[w.sel].entry;
                         out->size = out->entry->size;
                         out->index = gv_EntryIndex(rec->yard, out->entry);
-                        out->grave = ((GVWIN *)w)->items[j].grave;
+                        out->grave = w.items[j].grave;
                         out->id = out->grave->id;
                     }
                     if (cb) {
-                        pick.entry = ((GVWIN *)w)->rows[w[0x4d]].entry;
+                        pick.entry = w.rows[w.sel].entry;
                         pick.size = pick.entry->size;
                         pick.index = gv_EntryIndex(rec->yard, pick.entry);
-                        pick.grave = ((GVWIN *)w)->items[j].grave;
+                        pick.grave = w.items[j].grave;
                         pick.id = pick.grave->id;
-                        d2_SetViewEnabled(w[0], 0);
+                        d2_SetViewEnabled(w.win, 0);
                         cb(rec, &pick);
-                        d2_SetViewEnabled(w[0], 1);
+                        d2_SetViewEnabled(w.win, 1);
                     } else if (out) {
                         sv_PopRequest = 1;
                     }
                 }
-            } else if (flag == 1 && d2_PointerObj == w[0x4e]) {
+            } else if (flag == 1 && d2_PointerObj == w.slider) {
                 if (out) {
-                    out->entry = ((GVWIN *)w)->rows[w[0x4d]].entry;
+                    out->entry = w.rows[w.sel].entry;
                     out->size = out->entry->size;
                     out->index = gv_EntryIndex(rec->yard, out->entry);
                     out->grave = 0;
                     out->id = -1;
                 }
                 if (cb) {
-                    whole.entry = ((GVWIN *)w)->rows[w[0x4d]].entry;
+                    whole.entry = w.rows[w.sel].entry;
                     whole.size = whole.entry->size;
                     whole.index = gv_EntryIndex(rec->yard, whole.entry);
                     whole.grave = 0;
                     whole.id = -1;
-                    d2_SetViewEnabled(w[0], 0);
+                    d2_SetViewEnabled(w.win, 0);
                     cb(rec, &whole);
-                    d2_SetViewEnabled(w[0], 1);
+                    d2_SetViewEnabled(w.win, 1);
                 } else if (out) {
                     sv_PopRequest = 1;
                 }
             }
         }
         if (redraw & 4)
-            ai_GraveSizeButtons(rec, w);
+            ai_GraveSizeButtons(rec, &w);
         if (redraw & 2)
-            ai_GraveList(rec, w, prevSize);
+            ai_GraveList(rec, &w, prevSize);
         if (redraw & 1)
-            ai_GraveDetail(rec, w, detailRow, flag);
+            ai_GraveDetail(rec, &w, detailRow, flag);
     } while (sv_RunFrame(ai_GraveWindow, 0x677c7) != 0);
-    d2_CloseView(w[0]);
+    d2_CloseView(w.win);
 }
-/* 0x583700, the detail of the grave in the rent-a-grave window (ai_GraveDetailOpen): w = its window list (0 the window,
-   2 the detail list's window, 4 its font, 7 .. 9 the grave (entry, size, index as in GVPICK), 0xa the items
-   (GVITEM)). As ai_GraveDetail without the selection: the used graves of the entry become the items, the rest
+/* 0x583700, the detail of the grave in the rent-a-grave window (ai_GraveDetailOpen): w = its window (GVDETAILWIN: the list
+   and scroll sections, the grave's entry, size and index as in GVPICK, the items (GVITEM)). As ai_GraveDetail without the selection: the used graves of the entry become the items, the rest
    is cleared; sections 2 / 3 / 5 get "$C" and the scroll buttons; per item, one window height apart, the frame
    picture 0x6c7 with the dead person's icon (interactive), the name and second line centred in font 0x54 and the
    five traits with their value bars. Section 5: the player's character as the holder, the year "AD %i" (until +
@@ -1010,7 +1016,7 @@ void ai_GraveWindow(GVPICK *out, AIBLD *rec, char *title, int flag, void (*cb)(A
    fill (= control), a GVGRAVE *g walk (50), id through items[n].grave (55), btn before id (66), the item
    pointer for-walk in the show loop (45). Open: M10 100.0f vs ai_FloatHundred (no view in sv_t) (tiebreak:
    not measured (dcp headers sample ai_RentGraveDetail)) */
-void ai_RentGraveDetail(int *w)
+void ai_RentGraveDetail(GVDETAILWIN *w)
 {
     GVENTRY *e;
     GVITEM *item;
@@ -1029,60 +1035,60 @@ void ai_RentGraveDetail(int *w)
     int k;
 
     n = 0;
-    e = (GVENTRY *)w[7];
+    e = w->entry;
     count = gv_EntryCounts[e->size];
     for (i = 0; i < count; i++) {
         if (e->grave[i].id != -1) {
-            ((GVDETAILWIN *)w)->items[n].grave = &e->grave[i];
-            ((GVDETAILWIN *)w)->items[n].id = e->grave[i].id;
-            ((GVDETAILWIN *)w)->items[n].btn = -1;
+            w->items[n].grave = &e->grave[i];
+            w->items[n].id = e->grave[i].id;
+            w->items[n].btn = -1;
             n++;
         }
     }
     for (i = n; i < 8; i++) {
-        ((GVDETAILWIN *)w)->items[i].grave = 0;
-        ((GVDETAILWIN *)w)->items[i].id = -1;
-        ((GVDETAILWIN *)w)->items[i].btn = -1;
+        w->items[i].grave = 0;
+        w->items[i].id = -1;
+        w->items[i].btn = -1;
     }
-    saved = d2_Wins[w[2]].scrollY;
-    d2_SetForm(w[0], 2);
+    saved = d2_Wins[w->list].scrollY;
+    d2_SetForm(w->win, 2);
     io_PrintText((intptr_t)"$C");
-    d2_SetForm(w[0], 3);
+    d2_SetForm(w->win, 3);
     io_PrintText((intptr_t)"$C");
-    d2_SetForm(w[0], 5);
+    d2_SetForm(w->win, 5);
     io_PrintText((intptr_t)"$C");
-    sv_CreateScrollButtons(0, 0, w[4], w[2], d2_Wins[w[2]].h, &up, &down, &bar);
-    d2_SetForm(w[0], 2);
+    sv_CreateScrollButtons(0, 0, w->scroll, w->list, d2_Wins[w->list].h, &up, &down, &bar);
+    d2_SetForm(w->win, 2);
     for (i = 0; i < n; i++) {
-        item = &((GVDETAILWIN *)w)->items[i];
-        x = (d2_Wins[w[2]].w - d2_Pics[0x6c7].w) / 2;
-        item->btn = d2_WinOpenPic(x, d2_Wins[w[2]].h * i + 2, 0x6c7, w[2]);
-        item->btn = d2_WinOpenPic(x + 2, d2_Wins[w[2]].h * i + 4, item->grave->icon, w[2]);
+        item = &w->items[i];
+        x = (d2_Wins[w->list].w - d2_Pics[0x6c7].w) / 2;
+        item->btn = d2_WinOpenPic(x, d2_Wins[w->list].h * i + 2, 0x6c7, w->list);
+        item->btn = d2_WinOpenPic(x + 2, d2_Wins[w->list].h * i + 4, item->grave->icon, w->list);
         d2_Objs[item->btn].interactive = 1;
         d2_Objs[item->btn].style = 3;
         ai_GraveDeadName(item->grave, buf);
         ai_GraveDeadDescription(item->grave, line2);
-        y = d2_Wins[w[2]].h * i + 0x38;
-        k = d2_CreateWinText(0, y, buf, w[2]);
+        y = d2_Wins[w->list].h * i + 0x38;
+        k = d2_CreateWinText(0, y, buf, w->list);
         d2_Objs[k].centred = 1;
-        d2_Objs[k].w = d2_Wins[w[2]].w;
+        d2_Objs[k].w = d2_Wins[w->list].w;
         d2_SetObjFont(k, 0x54);
         y += 0xd;
-        k = d2_CreateWinText(0, y, line2, w[2]);
+        k = d2_CreateWinText(0, y, line2, w->list);
         d2_Objs[k].centred = 1;
-        d2_Objs[k].w = d2_Wins[w[2]].w;
+        d2_Objs[k].w = d2_Wins[w->list].w;
         d2_SetObjFont(k, 0x54);
         y += 0x12;
         for (k = 0; k < 5; k++, y += 0xd) {
             txt_Format(buf, (intptr_t)"%s:", 0x16b7 + k);
-            x = d2_CreateWinText(0x28, y, buf, w[2]);
+            x = d2_CreateWinText(0x28, y, buf, w->list);
             d2_Objs[x].w = 300;
             d2_SetObjFont(x, 0x54);
             sv_ValueBar(0xa0, y, item->grave->traits[k], 0x4df);
         }
     }
-    d2_Wins[w[2]].scrollY = saved;
-    d2_SetForm(w[0], 5);
+    d2_Wins[w->list].scrollY = saved;
+    d2_SetForm(w->win, 5);
     io_PrintText((intptr_t)"$C");
     txt_Format(buf, (intptr_t)"%1N3", ai_Chars[ai_PlayerId].id);
     io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4101, buf);
@@ -1091,35 +1097,35 @@ void ai_RentGraveDetail(int *w)
     txt_Format(buf, (intptr_t)"%i %%", (int)(100.0f * (e->b0c / 255.0f)));
     io_PrintText((intptr_t)"$7<$R%s$0<$4>$L%s$A$0>", 0x4103, buf);
 }
-/* 0x583b70, opens the graveyard detail window (209 B): w = the window list (7 the selected entry record), title
+/* 0x583b70, opens the graveyard detail window (209 B): w = the window (GVDETAILWIN, its entry set), title
    = its title; 0 without a selected entry, else the form "Locations\Friedhof\RentAGrave2" (d2_OpenForm (0, 0),
    the pointer sprite off, centred, fitted), the title line "$C$Z%s" of the title, the five sections
-   1 / 2 / 3 / 5 / 4 (d2_LastWindow kept in w[1] / w[2] / w[4] / w[5] / w[6]), then the detail fill
+   1 / 2 / 3 / 5 / 4 (d2_LastWindow kept in title / list / scroll / info / buttons), then the detail fill
    ai_RentGraveDetail (w); 1 */
 
-int ai_GraveDetailOpen(int *w, char *title)
+int ai_GraveDetailOpen(GVDETAILWIN *w, char *title)
 {
     int win;
 
-    if (w[7] == 0)
+    if (w->entry == 0)
         return 0;
     win = d2_OpenForm(0, 0, "Locations\\Friedhof\\RentAGrave2");
-    w[0] = win;
+    w->win = win;
     d2_SetPointerSprite(0, 0);
-    d2_CentreViewWindows(w[0]);
-    d2_SetForm(w[0], 0);
+    d2_CentreViewWindows(w->win);
+    d2_SetForm(w->win, 0);
     sv_FitForm(d2_LastWindow);
-    d2_SetForm(w[0], 1);
-    w[1] = d2_LastWindow;
+    d2_SetForm(w->win, 1);
+    w->title = d2_LastWindow;
     io_PrintText((intptr_t)"$C$Z%s", title);
-    d2_SetForm(w[0], 2);
-    w[2] = d2_LastWindow;
-    d2_SetForm(w[0], 3);
-    w[4] = d2_LastWindow;
-    d2_SetForm(w[0], 5);
-    w[5] = d2_LastWindow;
-    d2_SetForm(w[0], 4);
-    w[6] = d2_LastWindow;
+    d2_SetForm(w->win, 2);
+    w->list = d2_LastWindow;
+    d2_SetForm(w->win, 3);
+    w->scroll = d2_LastWindow;
+    d2_SetForm(w->win, 5);
+    w->info = d2_LastWindow;
+    d2_SetForm(w->win, 4);
+    w->buttons = d2_LastWindow;
     io_PrintText((intptr_t)"$C");
     ai_RentGraveDetail(w);
     return 1;
@@ -1361,21 +1367,21 @@ int ai_GraveMoveWindow(AIBLD *rec, int a, unsigned char b)
         }
     }
 }
-/* 0x584410, the two buttons of the grave detail window (ai_GraveDetailOpen fills w: 0 the window, 6 the button
-   section, 7 the selected entry record, 8 / 9 the grave's size and entry) and its pump: the buttons txt 0x4118
+/* 0x584410, the two buttons of the grave detail window (ai_GraveDetailOpen fills w: the window, the button
+   section, the selected entry record, the grave's size and index) and its pump: the buttons txt 0x4118
    (ai_GraveFreeConfirm on the grave) and 0x4119 (ai_GraveMoveWindow, the move to another size; disabled when the entry is
    already of size 3), each run with the window disabled and closing it when it answers 1; a right click
    closes it */
-void ai_GraveDetailButtons(AIBLD *rec, int *w)
+void ai_GraveDetailButtons(AIBLD *rec, GVDETAILWIN *w)
 {
     int btns[2];
     int first;
     int move;
 
-    sv_ButtonRow(w[6], 0, btns, 2, txt_Ptrs[0x4118], txt_Ptrs[0x4119]);
+    sv_ButtonRow(w->buttons, 0, btns, 2, txt_Ptrs[0x4118], txt_Ptrs[0x4119]);
     first = btns[0];
     move = btns[1];
-    if (((GVENTRY *)w[7])->size == 3)
+    if (w->entry->size == 3)
         d2_SetObjEnabled(move, 0);
     d2_ClickedId = -1;
     do {
@@ -1383,15 +1389,15 @@ void ai_GraveDetailButtons(AIBLD *rec, int *w)
             sv_PopRequest = 1;
         } else if (d2_ClickedId != -1) {
             if (d2_PointerObj == first) {
-                d2_SetViewEnabled(w[0], 0);
-                if (ai_GraveFreeConfirm(rec, w[8], w[9]) == 1)
+                d2_SetViewEnabled(w->win, 0);
+                if (ai_GraveFreeConfirm(rec, w->size, w->index) == 1)
                     sv_PopRequest = 1;
-                d2_SetViewEnabled(w[0], 1);
+                d2_SetViewEnabled(w->win, 1);
             } else if (d2_PointerObj == move) {
-                d2_SetViewEnabled(w[0], 0);
-                if (ai_GraveMoveWindow(rec, w[8], w[9]) == 1)
+                d2_SetViewEnabled(w->win, 0);
+                if (ai_GraveMoveWindow(rec, w->size, w->index) == 1)
                     sv_PopRequest = 1;
-                d2_SetViewEnabled(w[0], 1);
+                d2_SetViewEnabled(w->win, 1);
             }
         }
     } while (sv_RunFrame(ai_GraveDetailButtons, 0x677c7));
@@ -2024,14 +2030,14 @@ int ai_SeanceWindow(AIBLD *unused, GVDETAILWIN *w, GVSEANCE *out)
 
 int sb_IsInit(); void d2_PlaceViewWindows(int view, unsigned char flags);
 
-/* 0x5859c0, the seance ritual of the seance kinds (ch unused, ev the seance window's result): rolls the eight
+/* 0x5859c0, the seance ritual of the seance kinds (rec unused, ev the seance window's result): rolls the eight
    formula texts (ai_SeanceRollFormulas from txt 0x40d7), opens "Locations\Friedhof\Seance2" and starts the script
    "LOCATIONS\KRYPTA\SEANCE_KRYPTA.esc" with the names of the player's character and of the dead person ("%s %s",
    each name record's own id, else the first of its sex). With the sound system: each formula is voiced
    ("_SEANCE_FORMEL_PART_%i_0%i", its pair and variant), and its text shown while it plays. Without: the texts
    appear one by one, the first after 0x47 ms, the rest 0xf8 ms apart, and the window closes after the last.
    Closes the form; returns the script */
-int ai_SeanceRitual(char *ch, GVSEANCE *ev)
+EVTSCRIPT *ai_SeanceRitual(AIBLD *rec, GVSEANCE *ev)
 {
     char buf[0x400];
     char text[0x100];
@@ -2039,7 +2045,7 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
     int ids[8];
     GMHEAD *name1;
     GMHEAD *name2;
-    int script;
+    EVTSCRIPT *script;
     int win;
     int i;
     struct SBSAMPLE *h;
@@ -2051,7 +2057,7 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
     d2_SetPointerSprite(0, 0);
     d2_PlaceViewWindows(win, 1);
     d2_SetForm(win, 0);
-    script = (int)evt_Load("LOCATIONS\\KRYPTA\\SEANCE_KRYPTA.esc");
+    script = evt_Load("LOCATIONS\\KRYPTA\\SEANCE_KRYPTA.esc");
     if (script != 0) {
         GVGRAVE *g = &ev->grave;
         name1 = gm_NameRecord(ai_Chars[ai_PlayerId].sex, ai_Chars[ai_PlayerId].jobId);
@@ -2061,7 +2067,7 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
         if (name2 == 0)
             name2 = gm_NameRecord(g->sex, 0);
         sprintf(buf, "%s %s", name1->name, name2->name);
-        evt_RunCommand((EVTSCRIPT *)script, buf);
+        evt_RunCommand(script, buf);
     }
     i = 0;
     if (sb_IsInit() != 0) {
@@ -2106,7 +2112,7 @@ int ai_SeanceRitual(char *ch, GVSEANCE *ev)
                     i++;
                 }
             }
-        } while (sv_RunFrame(ai_SeanceRitual, 0x743c7) != 0);
+        } while (sv_RunFrame((void (*)())ai_SeanceRitual, 0x743c7) != 0);
     }
     d2_CloseView(win);
     return script;
@@ -2148,13 +2154,13 @@ void ai_SeanceGhost(AIBLD *rec, GVSEANCE *ev)
     int win;
     int voice;
     int mode;
-    int script;
+    EVTSCRIPT *script;
     int i;
     unsigned short r;
     int n;
 
     snd_VoiceVariant(ev->grave.id, ev->grave.sex);
-    script = ai_SeanceRitual((char *)rec, ev);
+    script = ai_SeanceRitual(rec, ev);
     accuser = gv_FindAccused(&ai_Chars[ai_PlayerId], 4, ids, &cnt);
     mode = accuser == 0;
     f = gv_SeanceChance(rec);
@@ -2190,7 +2196,7 @@ void ai_SeanceGhost(AIBLD *rec, GVSEANCE *ev)
     } while (sv_RunFrame(ai_SeanceGhost, 0x777c7) != 0);
     d2_CloseView(win);
     if (script != 0)
-        evt_Stop((EVTSCRIPT *)script);
+        evt_Stop(script);
 }
 /* 0x585f30, the seance kind 3, the sacrifice (rec = the graveyard, ev = the seance window's result): the dead
    person's voice and the ritual as in ai_SeanceGhost; when util_RandomF() + gv_SeanceChance (rec) - 0.4 < 1 the
@@ -2203,7 +2209,7 @@ void ai_SeanceSacrifice(AIBLD *rec, GVSEANCE *ev)
 {
     AIMSG msg;
     int voice;
-    int script;
+    EVTSCRIPT *script;
     float f;
     int win;
     int amount;
@@ -2212,7 +2218,7 @@ void ai_SeanceSacrifice(AIBLD *rec, GVSEANCE *ev)
     amount = 0;
     mode = 0;
     voice = snd_VoiceVariant(ev->grave.id, ev->grave.sex);
-    script = ai_SeanceRitual((char *)rec, ev);
+    script = ai_SeanceRitual(rec, ev);
     f = gv_SeanceChance(rec);
     if (util_RandomF() + f - 0.4f < 1.0f) {
         mode = 2;
@@ -2249,7 +2255,7 @@ void ai_SeanceSacrifice(AIBLD *rec, GVSEANCE *ev)
     } while (sv_RunFrame(ai_SeanceSacrifice, 0x777c7) != 0);
     d2_CloseView(win);
     if (script != 0)
-        evt_Stop((EVTSCRIPT *)script);
+        evt_Stop(script);
 }
 
 void ai_FindWantedItems(struct AICHAR *p, int n, struct G9REC *rec, int *st);
@@ -2269,7 +2275,7 @@ void ai_SeanceGift(AIBLD *rec, GVSEANCE *ev)
     float f;
     int win;
     int voice;
-    int script;
+    EVTSCRIPT *script;
     int item;
     int mode;
     int i;
@@ -2278,7 +2284,7 @@ void ai_SeanceGift(AIBLD *rec, GVSEANCE *ev)
 
     item = 0;
     voice = snd_VoiceVariant(ev->grave.id, ev->grave.sex);
-    script = ai_SeanceRitual((char *)rec, ev);
+    script = ai_SeanceRitual(rec, ev);
     memset(gifts, 0, sizeof(gifts));
     gifts[0].item = 0x2b8;
     gifts[1].item = 0x2bb;
@@ -2336,7 +2342,7 @@ void ai_SeanceGift(AIBLD *rec, GVSEANCE *ev)
     } while (sv_RunFrame(ai_SeanceGift, 0x777c7) != 0);
     d2_CloseView(win);
     if (script != 0)
-        evt_Stop((EVTSCRIPT *)script);
+        evt_Stop(script);
 }
 /* 0x586560, the pick of the dead person for a seance in the graveyard detail window w (rec = the graveyard): each
    frame (pump 0x677c7) a right click closes it; a click on one of the eight items selects it (w->selected) and
@@ -2387,6 +2393,7 @@ void ai_GraveSeance(AIBLD *rec)
     GVDETAILWIN w;
     char line[0x100];
     GVENTRY *e;
+    int picked;
 
     e = gv_FindEntry((char *)&ai_Chars[ai_PlayerId], rec, 0, gv_EntrySameId, 0xff);
     if (e != 0) {
@@ -2394,13 +2401,13 @@ void ai_GraveSeance(AIBLD *rec)
         w.size = e->size;
         w.index = gv_EntryIndex(rec->yard, e);
         txt_Format(line, 0x4107, ai_GraveNames[e->size]);
-        if (ai_GraveDetailOpen((int *)&w, txt_Ptrs[0x40cc]) == 0) {
+        if (ai_GraveDetailOpen(&w, txt_Ptrs[0x40cc]) == 0) {
             sv_CameraFollow();
             return;
         }
-        e = (GVENTRY *)ai_SeancePick(rec, &w, &out);
+        picked = ai_SeancePick(rec, &w, &out);
         d2_CloseView(w.win);
-        if (e != 0) {
+        if (picked != 0) {
             cm_SendSetField(ai_Chars[ai_PlayerId].netId, 0x1cc, 4, SEANCE_HELD, 0);
             if (out.cost != 0)
                 gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -out.cost);
@@ -2437,7 +2444,7 @@ void ai_GraveyardSchlag(AIBLD *unused)
     if (c != 0 && (c->flags1b4 & 1) != 0 && dm_L.lup != 0) {
         ai_EndCharExtra(c, 0);
         c = ai_PickedChar;
-        cm_SendRelations(ai_CharInts[ai_PlayerId][0], c->netId, -5, 0);
+        cm_SendRelations(ai_Chars[ai_PlayerId].netId, c->netId, -5, 0);
         script = sv_StartPoseScript(ai_PickedChar, "locations/friedhof/schlag_FRIEDHOF.esc");
         if (script != 0)
             script->ownScene = 1;
@@ -2770,9 +2777,9 @@ void ai_GraveRentContact(AIBLD *rec)
         w.size = e->size;
         w.index = gv_EntryIndex(rec->yard, e);
         txt_Format(line, 0x4107, ai_GraveNames[e->size]);
-        if (ai_GraveDetailOpen((int *)&w, line) == 0)
+        if (ai_GraveDetailOpen(&w, line) == 0)
             return;
-        ai_GraveDetailButtons(rec, (int *)&w);
+        ai_GraveDetailButtons(rec, &w);
         d2_CloseView(w.win);
         sv_CameraFollow();
     } else if (gv_FindReservedEntry((char *)&ai_Chars[ai_PlayerId], &bld, &e) == 0) {
@@ -3088,7 +3095,7 @@ void ai_GraveyardFogContact(AIBLD *rec)
    prototypes 0x211 / 0x205 clears bit 0. When the building's owner is the character: 0x4461 set and, when one of
    the six job bytes at bldg + 0x223 is v (a 0 byte ends the scan), 0x2200; x of the prototype 0x21b -> 0x5000.
    gm_AllowAll set: -1 */
-int ai_PermissionBits1d(AICHAR *ch, AIBLD *b, char *x)
+int ai_PermissionBits1d(AICHAR *ch, AIBLD *b, AIOBJ *x)
 {
     AIBTYPE *bldg;
     int v;
@@ -3100,7 +3107,7 @@ int ai_PermissionBits1d(AICHAR *ch, AIBLD *b, char *x)
     f = 0x81;
     if (b->masterId == ch->id)
         f = 0x10bd;
-    if (x != 0 && (((AIOBJ *)x)->type == 0x211 || ((AIOBJ *)x)->type == 0x205))
+    if (x != 0 && (x->type == 0x211 || x->type == 0x205))
         f &= ~1;
     if (b->owner == ch->id) {
         f |= 0x4461;
@@ -3113,7 +3120,7 @@ int ai_PermissionBits1d(AICHAR *ch, AIBLD *b, char *x)
             }
         }
     }
-    if (x != 0 && ((AIOBJ *)x)->type == 0x21b)
+    if (x != 0 && x->type == 0x21b)
         f |= 0x5000;
     if (gm_AllowAll != 0)
         return -1;

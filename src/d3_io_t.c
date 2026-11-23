@@ -46,13 +46,13 @@ char *d3io_StockFile(char *name, char *ext)
 }
 /* 0x44c5d0, the loaded stock object of that name */
 
-int d3io_FindStock(char *name)
+D3BGF *d3io_FindStock(char *name)
 {
     D3BGF *s;
 
     for (s = d3_StockListStart.next; s != &d3_StockListEnd; s = s->next)
         if (!strnicmp(name, s->name, 0x3f))
-            return (int)s;
+            return s;
     return 0;
 }
 /* 0x44c610, builds surf from the stock object `name`: vertices and triangles, vertex colours from the colour
@@ -60,92 +60,92 @@ int d3io_FindStock(char *name)
 
 void d3io_AttachStock(D3OBJECT *obj, D3SURF *surf, char *name)
 {
-    D3IOCOL col;
-    D3IOSTOCK *stock;
-    D3IOSURF *s;
-    D3IOTRI *tri;
+    D3COLORU col;
+    D3BGF *stock;
+    D3SURF *s;
+    D3TRI *tri;
     TSTEXTURE *tex;
     D3MESH *mesh;
     char buf[0x100];
     int i, k;
 
-    stock = (D3IOSTOCK *)d3io_FindStock(name);
+    stock = d3io_FindStock(name);
     if (stock) {
-        s = (D3IOSURF *)surf;
-        s->nkeys = stock->npoints;
+        s = surf;
+        s->nkeys = stock->nverts;
         s->ntris = stock->npolys;
-        s->stock = stock;
-        s->f194 = 0;
-        d3_AllocObjectPolys((D3SURF *)s);
-        col.all = -1;
+        s->mesh = stock;
+        s->active = 0;
+        d3_AllocObjectPolys(s);
+        col.col = 0xffffffff;
         if (s->nkeys > 0)
             for (i = 0; i < s->nkeys + 8; i++) {
-                s->keys[i].src = stock->points + i * 0x18;
-                s->keys[i].f4c = 0;
-                s->keys[i].col40.all = -1;
-                s->keys[i].col44.all = -1;
+                s->keys[i].src = &stock->vtx[i];
+                s->keys[i].rawFlags = 0;
+                s->keys[i].color = 0xffffffff;
+                s->keys[i].specular = 0xffffffff;
             }
         tri = s->tris;
         for (i = 0; i < s->ntris; i++, tri++) {
-            tri->f20 = 0;
-            tri->fl.b0 = 0;
-            tri->f1c = 0;
-            tri->f18 = 0;
-            tri->src = (D3IOPOLY *)stock->polys + i;
+            tri->vofs = 0.0f;
+            tri->bits.b0 = 0;
+            tri->uofs = 0.0f;
+            tri->zofs = 0.0f;
+            tri->src = stock->polys + i;
             for (k = 0; k < 3; k++) {
-                D3IOVERT *v = &s->keys[tri->src->idx[k]];
+                D3VERTEX *v = &s->keys[tri->src->v[k]];
                 tri->v[k] = v;
-                v->f4c |= 0x80;
+                v->rawFlags |= 0x80;
             }
-            tri->f24 = 0;
+            tri->flags = 0;
             if (tri->src->tex >= 0) {
                 tex = d3_Textures + tri->src->tex;
                 tri->tex = d3_Textures + tri->src->tex;
                 if (tex->flags.b[0] < 0xff || (tex->flags.b[2] & 3)) {
-                    col.a = tex->flags.b[0];
+                    col.c.a = tex->flags.b[0];
                     if (tex->flags.b[2] & 1) {
-                        col.b = tex->flags.b[0];
-                        col.g = tex->flags.b[0];
-                        col.r = tex->flags.b[0];
+                        col.c.b = tex->flags.b[0];
+                        col.c.g = tex->flags.b[0];
+                        col.c.r = tex->flags.b[0];
                     } else {
-                        col.b = 0xff;
-                        col.g = 0xff;
-                        col.r = 0xff;
+                        col.c.b = 0xff;
+                        col.c.g = 0xff;
+                        col.c.r = 0xff;
                     }
                     for (k = 0; k < 3; k++) {
-                        tri->v[k]->col40 = col;
-                        tri->v[k]->col44 = col;
+                        tri->v[k]->c = col.c;
+                        tri->v[k]->s = col.c;
                     }
                 }
-                tri->fl.b3 = tex->bits;
+                tri->bits.b3 = tex->bits;
                 for (k = 0; k < 3; k++)
-                    tri->v[k]->f4d = tex->bits & 1;
+                    tri->v[k]->wrap = tex->bits & 1;
             } else
                 tri->tex = 0;
         }
         s->texSet = 0;
-        s->texset = mem_Alloc(stock->ntex * sizeof(*s->texset), "d3_io:CurTexSet");
+        s->texHandles = mem_Alloc(stock->ntex * sizeof(*s->texHandles), "d3_io:CurTexSet");
         for (i = 0; i < stock->ntex; i++)
             for (k = 0; k < s->ntris; k++)
-                if (s->tris[k].src && s->tris[k].src->slot == i) {
+                if (s->tris[k].src && s->tris[k].src->mat == i) {
                     if (s->tris[k].tex) {
-                        s->texset[i] = s->tris[k].tex;
-                        tex_AddRef(s->texset[i], 1);
+                        s->texHandles[i] = s->tris[k].tex;
+                        tex_AddRef(s->texHandles[i], 1);
                     } else
-                        sprintf(buf, "stock object %s, texture %s not found", stock, stock->texnames[i]);
+                        sprintf(buf, "stock object %s, texture %s not found", stock->name, stock->texnames + i * 0x40);
                     break;
                 }
         for (i = 0; i < stock->ntex; i++)
-            if (!s->texset[i]) {
+            if (!s->texHandles[i]) {
                 strcpy(buf, "Error attaching Stock-Object \"");
                 strcat(buf, stock->name);
                 strcat(buf, "\": Not all Textures used/found!");
                 break;
             }
-        mesh = D3_MESH(obj);
+        mesh = obj->material;
         if (surf != &mesh->surf[3]) {
             mesh->nsurf++;
-            D3IO_214(obj) = 4;
+            obj->meshMode = 4;
             if (!obj->info) {
                 obj->info = d3_SelectSurf(obj);
                 if (!obj->info) {
@@ -153,9 +153,9 @@ void d3io_AttachStock(D3OBJECT *obj, D3SURF *surf, char *name)
                     do {
                         if (k >= 3)
                             break;
-                        if (D3_MESH(obj)->surf[k].ntris > 0 && D3_MESH(obj)->surf[k].nkeys > 0 &&
-                            D3_MESH(obj)->surf[k].mesh)
-                            obj->info = &D3_MESH(obj)->surf[k];
+                        if (obj->material->surf[k].ntris > 0 && obj->material->surf[k].nkeys > 0 &&
+                            obj->material->surf[k].mesh)
+                            obj->info = &obj->material->surf[k];
                         k++;
                     } while (!obj->info);
                 }
@@ -228,15 +228,15 @@ void d3_AttachMesh(D3OBJECT *obj, D3SURF *surf, char *name)
         if (d3io_FindStock(buf)) {
             if (!obj->material)
                 d3_AddObjectDrawData(obj);
-            d3io_AttachStock(obj, &D3_MESH(obj)->surf[0], buf);
+            d3io_AttachStock(obj, &obj->material->surf[0], buf);
             if (d3io_LodName(name, 0, -1, buf, 0) && d3io_FindStock(buf))
-                d3io_AttachStock(obj, &D3_MESH(obj)->surf[3], buf);
+                d3io_AttachStock(obj, &obj->material->surf[3], buf);
             if (d3io_Lod.mode == 1) {
                 for (i = 1, n = 1; i < 3; i++) {
                     if (n >= 3)
                         break;
                     if (d3io_LodName(name, 0, i, buf, 0) && d3io_FindStock(buf)) {
-                        d3io_AttachStock(obj, &D3_MESH(obj)->surf[n], buf);
+                        d3io_AttachStock(obj, &obj->material->surf[n], buf);
                         n++;
                     }
                 }
@@ -652,10 +652,10 @@ D3BGF *d3iot_LoadBGF(char *path, char *name, char *texnames, int ntexsets, int n
 }
 /* 0x44df20, radius of the mesh behind an object info (the first argument is not used) */
 
-float d3iot_GetRadius(int unused, D3SURF *info)
+float d3iot_GetRadius(D3OBJECT *obj, D3SURF *info)
 {
     if (info && info->mesh)
-        return ((D3BGF *)info->mesh)->radius;
+        return info->mesh->radius;
     return 0.0f;
 }
 /* 0x44df40, loads an object file (name + ".bgf") and links it into the stock list */
@@ -708,7 +708,7 @@ D3BGF *d3io_LoadObject(char *a, char *b)
     char x[256];
     char y[256];
     D3BGF *ret;
-    int t;
+    D3BGF *t;
     int i;
 
     d3io_LodName(a, b, 0, y, x);
@@ -726,7 +726,7 @@ D3BGF *d3io_LoadObject(char *a, char *b)
         }
         return ret;
     }
-    return (D3BGF *)t;
+    return t;
 }
 /* 0x44e190, the same, counting a reference on every object loaded */
 
@@ -736,7 +736,7 @@ D3BGF *d3io_LoadObjectRef(char *a, char *b)
     char y[256];
     D3BGF *ret;
     D3BGF *o;
-    int t;
+    D3BGF *t;
     int i;
 
     d3io_LodName(a, b, 0, y, x);
@@ -756,7 +756,7 @@ D3BGF *d3io_LoadObjectRef(char *a, char *b)
         }
         return ret;
     }
-    return (D3BGF *)t;
+    return t;
 }
 /* 0x44e2c0, frees a stock object that still has references */
 
@@ -767,24 +767,24 @@ void d3io_ReleaseObject(D3BGF *obj)
 }
 /* 0x44e2e0, loads the animation file (name + ".oam") of an object: keys of a path */
 
-D3IOPATH *d3_LoadObjectAnim(char *file, D3IOOBJ *obj, char reload)
+D3PATH *d3_LoadObjectAnim(char *file, D3OBJECT *obj, char reload)
 {
-    D3IOPATH *p = 0;
+    D3PATH *p = 0;
     char *path;
     void *f;
     int magic;
-    D3IOKEY **keys;
+    D3PATHKEY **keys;
     int i;
     int n;
 
     if (obj->path != 0)
-        d3anim_FreePath((D3OBJECT *)obj);
+        d3anim_FreePath(obj);
     path = d3io_StockFile(file, ".oam");
     if ((path != 0 && obj->type == 4) || obj->type == 3) {
         f = vfs_Tfopen(path, "rb", vfs_Root);
         bio_rd_i(f, &magic);
         if (magic == 0x3a610001) {
-            p = (D3IOPATH *)mem_Alloc(0x44, "d3_io:ObjAnim");
+            p = mem_Alloc(0x44, "d3_io:ObjAnim");
             bio_rd_i(f, &p->nkeys);
             bio_rd_i(f, &p->flags);
             p->flags.c5 = 0;
@@ -794,19 +794,19 @@ D3IOPATH *d3_LoadObjectAnim(char *file, D3IOOBJ *obj, char reload)
             if (n != p->nkeys)
                 err_Message("d3_LoadObjectAnim: Wrong number of KeyFrames in saved array!");
             (*keys)[p->nkeys - 1].time = (*keys)[p->nkeys - 2].time;
-            p->pos[0] = obj->pos[0];
-            p->pos[1] = obj->pos[1];
-            p->pos[2] = obj->pos[2];
-            p->rot[0] = obj->rot[0];
-            p->rot[1] = obj->rot[1];
-            p->rot[2] = obj->rot[2];
+            p->pos.x = obj->pos.x;
+            p->pos.y = obj->pos.y;
+            p->pos.z = obj->pos.z;
+            p->rot.x = obj->rotation.x;
+            p->rot.y = obj->rotation.y;
+            p->rot.z = obj->rotation.z;
             for (i = 0; i < p->nkeys; i++)
                 (*keys)[i].time *= 3;
             if (p->flags.rev) {
                 n = p->nkeys - 1;
                 p->key = n;
                 p->time = p->keys[n].time - 1;
-                p->next = d3anim_NextFrame(p->animFlags, n, 0, n, p->nkeys);
+                p->next = d3anim_NextFrame(p->flags, n, 0, n, p->nkeys);
             } else {
                 p->next = 1;
                 p->key = 0;
@@ -816,7 +816,7 @@ D3IOPATH *d3_LoadObjectAnim(char *file, D3IOOBJ *obj, char reload)
         vfs_fclose(f);
     }
     obj->path = p;
-    obj->time = d3_Time;
+    obj->animTime = d3_Time;
     return p;
 }
 /* 0x44e4a0, loads an animation stream "animations/" + name and links it into the animation list, before its
@@ -829,12 +829,12 @@ D3ANIMDATA *d3_LoadAnimStream(char *name, char *file, char unk)
 
     strcpy(buf, d3_AnimDir);
     strcat(buf, name);
-    a = (D3ANIMDATA *)d3_FindAnim(file);
+    a = d3_FindAnim(file);
     if (a != 0) {
         sprintf(buf, "d3_LoadAnimStream(): animation already in stock: %s", name);
         return a;
     }
-    a = (D3ANIMDATA *)d3_LoadBinaryAnimStream(buf, file, unk);
+    a = d3_LoadBinaryAnimStream(buf, file, unk);
     if (a != 0) {
         a->prev = d3anim_Tail.prev;
         d3anim_Tail.prev = a;

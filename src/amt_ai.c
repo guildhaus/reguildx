@@ -352,7 +352,7 @@ int ai_EvalMoodWeights(float *a, float *b, int i, AICHAR *p, int f, void *x, voi
     *a = 0.0f;
     *b = 0.0f;
     act = &ai_Actions[i];
-    if (act->flags & G7_MASK(p)) {
+    if (act->flags & p->mask) {
         d1 = 40.0f;
         d2 = 50.0f;
         found = 1;
@@ -390,7 +390,7 @@ int ai_EvalCurrentNeed(float *a, float *b, int i, AICHAR *p, int f, void *x, voi
     *a = 0.0f;
     *b = 0.0f;
     act = &ai_Actions[i];
-    if (act->flags & G7_MASK(p)) {
+    if (act->flags & p->mask) {
         d1 = 40.0f;
         found = 1;
     } else {
@@ -432,7 +432,7 @@ int ai_EvalGuiltWeights(float *a, float *b, int i, AICHAR *p, AIDEC *dec)
     *a = 0.0f;
     *b = 0.0f;
     act = &ai_Actions[i];
-    if (act->flags & G7_MASK(p)) {
+    if (act->flags & p->mask) {
         d1 = 40.0f;
         d2 = 50.0f;
         found = 1;
@@ -502,8 +502,8 @@ D3OBJECT *ai_PickBuildSite(AICHAR *p, int name)
     int scene = d3_CurrentScene;
     char buf[64];
     D3OBJECT *list[256];
-    float o[4];                         /* the positions d3_PointToWorld writes: 16-byte slots in the original's frame */
-    float q[4];
+    D3VECTOR4 o;                        /* the positions d3_PointToWorld writes: 16-byte slots in the original's frame */
+    D3VECTOR4 q;
     float dx, dy, dz, d, best;
     struct D3OBJECT *obj;
     int n, i;
@@ -517,15 +517,15 @@ D3OBJECT *ai_PickBuildSite(AICHAR *p, int name)
         if (n != 0) {
             if (p->bld2 != 0 && (p->bld2)->object != 0 && util_Random(3) != 0) {
                 obj = (p->bld2)->object;
-                d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)o);
+                d3_PointToWorld(obj, &obj->pos, &o.v);
                 r = 0;
                 best = 1e21f;
                 for (i = 0; i < n; i++) {
                     if (list[i] != 0) {
-                        d3_PointToWorld(list[i], &list[i]->pos, (D3VECTOR *)q);
-                        dx = q[0] - o[0];
-                        dy = q[1] - o[1];
-                        dz = q[2] - o[2];
+                        d3_PointToWorld(list[i], &list[i]->pos, &q.v);
+                        dx = q.x - o.x;
+                        dy = q.y - o.y;
+                        dz = q.z - o.z;
                         d = (float)sqrt(dx * dx + dy * dy + dz * dz) * (util_RandomF() * 0.5f + 0.75f);
                         if (d < best) {
                             best = d;
@@ -537,15 +537,15 @@ D3OBJECT *ai_PickBuildSite(AICHAR *p, int name)
                 return r;
             }
             if (ai_MarketBuilding != 0 && (obj = (ai_MarketBuilding)->object) != 0) {
-                d3_PointToWorld(obj, &obj->pos, (D3VECTOR *)o);
+                d3_PointToWorld(obj, &obj->pos, &o.v);
                 r = 0;
                 best = 1e21f;
                 for (i = 0; i < n; i++) {
                     if (list[i] != 0) {
-                        d3_PointToWorld(list[i], &list[i]->pos, (D3VECTOR *)q);
-                        dx = q[0] - o[0];
-                        dy = q[1] - o[1];
-                        dz = q[2] - o[2];
+                        d3_PointToWorld(list[i], &list[i]->pos, &q.v);
+                        dx = q.x - o.x;
+                        dy = q.y - o.y;
+                        dz = q.z - o.z;
                         d = (float)sqrt(dx * dx + dy * dy + dz * dz) * (util_RandomF() * 0.5f + 0.75f);
                         if (d < best) {
                             best = d;
@@ -667,7 +667,7 @@ int ai_ExecBuildBuilding(AICHAR *p, AIARG *s1, AIARG *s2)
     m.flags = 2;
     m.arg[1] = s1->ref;
     m.arg[2] = gm_BuildingKindCost(p, s1->ref);
-    ai_ObjectPosition(m.buildPos, plot);
+    ai_ObjectPosition(&m.buildPos.v, plot);
     ai_ObjectAngle(m.buildRot, plot);
     cm_SendLongMessage(&m);
     return 1;

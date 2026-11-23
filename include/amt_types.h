@@ -23,7 +23,7 @@ typedef struct AMTKIND {                /* 0x18 bytes, a kind of office (the tab
     char pad09[3];
     int salary;                         /* 0x0c */
     int two;                            /* 0x10, the office takes two persons */
-    int pad14;
+    float friendship;                   /* 0x14, the friendship value amt_Rating adds or takes off (5.0 .. 12.0) */
 } AMTKIND;
 
 typedef struct AMTCAND {                /* 12 bytes: a kind of office, its rate for a character, its level */

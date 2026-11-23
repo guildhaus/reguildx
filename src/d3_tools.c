@@ -40,20 +40,10 @@ struct D3OBJECT;
 #include "d3_vtx.h"
 #include "ch.h"
 
-/* the pose a camera / zoom target stores in D3OBJECT 0x5c and 0x90 (serialized for object types 2/3;
-   objectFlags bit 0 marks a key). For a light the same bytes are D3LOBJ.color and D3LOBJ.range/power/atten;
-   a union view in D3OBJECT flips other units' code, so this is a local cast view (type debt). */
-typedef struct D3OBJPOSE {
-    char pad000[0x5c];
-    D3VECTOR pos;                   /* 0x5c */
-    char pad068[0x28];
-    D3VECTOR rot;                   /* 0x90, the camera angles in degrees */
-} D3OBJPOSE;
-#define D3_POSE(o) ((D3OBJPOSE *)(o))
 
 
 int d3t_CamMoving = 0;                   /* 0x6310e4 */
-D3ANIM *d3t_CamMove = 0;                 /* 0x6310e8, running camera animation */
+D3PATH *d3t_CamMove = 0;                 /* 0x6310e8, running camera animation */
 static D3OBJECT *d3t_FoundObject = 0;    /* 0x6310ec */
 int d3t_UnreadBss[12] = {0};  /* 0x6310f0, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 D3OBJECT *d3t_SunRays = 0;               /* 0x631120, reached from main.c by its address */
@@ -77,7 +67,7 @@ int d3t_PlaceObject(D3OBJECT *camera, float px, float py, float pz,
     D3VECTOR rot;
     D3ANIMFLAGS af;
     D3VECTOR dir;
-    D3ANIM *anim;
+    D3PATH *anim;
 
     if (d3t_CamMoving && d3_Camera == camera)
         return 0;
@@ -121,7 +111,7 @@ int d3t_PlaceObject(D3OBJECT *camera, float px, float py, float pz,
     if (camera == d3_Camera) {
         d3t_CamMoving = 1;
         d3t_CamMove = anim;
-        anim->flags2d |= 8;
+        anim->flags.b[1] |= 8;
     }
     return 1;
 }
@@ -135,7 +125,7 @@ int d3t_PlaceObjectV(D3OBJECT *camera, D3VECTOR *pos, D3VECTOR *dir, int unk, ch
 
 int d3t_PlaceAtObject(D3OBJECT *obj, int unk)
 {
-    return d3t_PlaceObjectV(d3_Camera, &D3_POSE(obj)->pos, &D3_POSE(obj)->rot, unk, 8);
+    return d3t_PlaceObjectV(d3_Camera, &obj->savedPos, &obj->savedRot, unk, 8);
 }
 /* 0x4118d0, d3_FindObject callback: keeps the object whose name matches (case-insensitive) and stops the search */
 
@@ -167,7 +157,7 @@ int d3t_PlayAnim(D3OBJECT *obj, char *name, unsigned int flags)
     char buf[256];
     char *base;
     D3ANIMFLAGS af;
-    D3ANIM *anim;
+    D3PATH *anim;
 
     if (!obj || !name)
         return 0;
@@ -191,19 +181,19 @@ int d3t_PlayAnim(D3OBJECT *obj, char *name, unsigned int flags)
     if (obj->material && d3anim_StartAnim(&obj->material->surf[0], base, af))
         return 1;
     sprintf(msg, "%s%s.oam", d3io_StockDir, name);
-    anim = (D3ANIM *)d3_LoadObjectAnim(msg, obj, 1);
+    anim = d3_LoadObjectAnim(msg, obj, 1);
     if (!anim)
         return 0;
     if (flags & 2)
-        anim->flags2d |= 0x10;
+        anim->flags.b[1] |= 0x10;
     if (flags & 1)
-        anim->flags2d &= ~0x10;
+        anim->flags.b[1] &= ~0x10;
     if (flags & 4)
-        anim->flags2d |= 2;
+        anim->flags.b[1] |= 2;
     if (flags & 0x10)
-        anim->flags2d |= 8;
+        anim->flags.b[1] |= 8;
     if (flags & 0x20)
-        anim->flags2d |= 4;
+        anim->flags.b[1] |= 4;
     return 1;
 }
 /* 0x411b00, releases the named texture of the object's material (up to 3) and updates the object */
@@ -256,7 +246,7 @@ void d3t_UpdateCamera(void)
 {
     if (d3t_CamMove) {
         d3t_CamMoving = 1;
-        if (d3t_CamMove->flags2d & 0x20) {
+        if (d3t_CamMove->flags.b[1] & 0x20) {
             d3anim_FreePath(d3_Camera);
             d3t_CamMoving = 0;
             d3t_CamMove = 0;
@@ -269,7 +259,7 @@ void d3t_UpdateCamera(void)
 
 int d3t_GetHeightRange(D3OBJECT *obj, float *lo, float *hi)
 {
-    D3BOXVERT *v;
+    D3VERTEX *v;
     int i;
 
     *hi = 0.0f;
@@ -296,7 +286,7 @@ int d3t_GetFootprint(D3OBJECT *obj, float t, D3VECTOR *c0, D3VECTOR *c1, D3VECTO
     D3VECTOR4 v;
     float mn[4];
     float mx[4];
-    D3MESHKEY *k;
+    D3VERTEX *k;
     int i, j;
 
     if (obj->type != 4)
@@ -304,21 +294,21 @@ int d3t_GetFootprint(D3OBJECT *obj, float t, D3VECTOR *c0, D3VECTOR *c1, D3VECTO
     d3_TransformSurf(obj);
     k = obj->info->keys;
     for (i = 0; i < obj->info->nkeys; k++, i++) {
-        if (k->time <= t) {
-            mn[0] = k->pos[0];
-            mn[1] = k->pos[1];
-            mn[2] = k->pos[2];
-            mx[0] = k->pos[0];
-            mx[1] = k->pos[1];
-            mx[2] = k->pos[2];
+        if (k->y <= t) {
+            mn[0] = k->src->pos.e[0];
+            mn[1] = k->src->pos.e[1];
+            mn[2] = k->src->pos.e[2];
+            mx[0] = k->src->pos.e[0];
+            mx[1] = k->src->pos.e[1];
+            mx[2] = k->src->pos.e[2];
             break;
         }
     }
     for (; i < obj->info->nkeys; i++, k++) {
-        if (k->time <= t) {
+        if (k->y <= t) {
             for (j = 0; j < 3; j++) {
-                mn[j] = min(mn[j], k->pos[j]);
-                mx[j] = max(mx[j], k->pos[j]);
+                mn[j] = min(mn[j], k->src->pos.e[j]);
+                mx[j] = max(mx[j], k->src->pos.e[j]);
             }
         }
     }
@@ -347,10 +337,10 @@ char d3t_GetBoundingSphere(D3OBJECT *obj, D3OBJECT *camera, D3VECTOR *center, fl
 {
     char ok = 0;
     D3SURF *list;
-    D3BOXVERT *v;
+    D3VERTEX *v;
     D3VECTOR4 c;
     float dx, dy, dz, r, d;
-    D3BOXVERT *w;
+    D3VERTEX *w;
     int i;
 
     if (obj && (center || radius) && obj->material->surf[0].mesh) {
@@ -393,22 +383,8 @@ char d3t_GetBoundingSphere(D3OBJECT *obj, D3OBJECT *camera, D3VECTOR *center, fl
     return ok;
 }
 
-typedef struct D3TMAP {             /* square 8-bit height map */
-    int size;
-    char pad04[0xc];
-    unsigned char *data;            /* 0x10 */
-    char pad14[0x7c];
-    D3VECTOR org;                   /* 0x90, world position of cell 0 */
-    char pad9c[0x4];
-    float cellx;                    /* 0xa0 */
-    char pada4[0x14];
-    float cellz;                    /* 0xb8 */
-    char padbc[0x8];
-    float scale;                    /* 0xc4, height per unit */
-} D3TMAP;
-
 /* 0x412000, value range of row y between columns x0 and x1 */
-int d3t_GetRowRange(D3TMAP *map, int *lo, int *hi, int x0, int x1, int y)
+int d3t_GetRowRange(D3FLMAP *map, int *lo, int *hi, int x0, int x1, int y)
 {
     unsigned char *p;
     int t;
@@ -422,7 +398,7 @@ int d3t_GetRowRange(D3TMAP *map, int *lo, int *hi, int x0, int x1, int y)
         if (x0 < map->size && x1 >= 0) {
             x0 = max(0, x0);
             x1 = min(x1, map->size - 1);
-            p = map->data + map->size * y + x0;
+            p = map->height + map->size * y + x0;
             for (; x0 <= x1; x0++, p++) {
                 *lo = min(*lo, *p);
                 *hi = max(*hi, *p);
@@ -434,7 +410,7 @@ int d3t_GetRowRange(D3TMAP *map, int *lo, int *hi, int x0, int x1, int y)
 }
 /* 0x412090, height range of the map under the triangle a, b, c (x/z in world units) */
 
-int d3t_GetTriRange(D3TMAP *map, float *lo, float *hi, D3VECTOR *a, D3VECTOR *b, D3VECTOR *c)
+int d3t_GetTriRange(D3FLMAP *map, float *lo, float *hi, D3VECTOR *a, D3VECTOR *b, D3VECTOR *c)
 {
     float sx, sz;
     int x[3], z[3];
@@ -442,14 +418,14 @@ int d3t_GetTriRange(D3TMAP *map, float *lo, float *hi, D3VECTOR *a, D3VECTOR *b,
     int mn, mx, ret;
     float xl, xr, dl, dr;
 
-    sx = 1.0f / map->cellx;
-    x[0] = (int)((a->x - map->org.x) * sx);
-    sz = 1.0f / map->cellz;
-    z[0] = (int)((a->z - map->org.z) * sz);
-    x[1] = (int)((b->x - map->org.x) * sx);
-    z[1] = (int)((b->z - map->org.z) * sz);
-    x[2] = (int)((c->x - map->org.x) * sx);
-    z[2] = (int)((c->z - map->org.z) * sz);
+    sx = 1.0f / map->scale;
+    x[0] = (int)((a->x - map->orgx) * sx);
+    sz = 1.0f / map->negScale;
+    z[0] = (int)((a->z - map->orgz) * sz);
+    x[1] = (int)((b->x - map->orgx) * sx);
+    z[1] = (int)((b->z - map->orgz) * sz);
+    x[2] = (int)((c->x - map->orgx) * sx);
+    z[2] = (int)((c->z - map->orgz) * sz);
     if (z[0] > z[1]) {
         t = x[0]; x[0] = x[1]; x[1] = t;
         t = z[0]; z[0] = z[1]; z[1] = t;
@@ -505,8 +481,8 @@ int d3t_GetTriRange(D3TMAP *map, float *lo, float *hi, D3VECTOR *a, D3VECTOR *b,
             }
         }
         if (!ret) {
-            *lo = mn * map->scale + map->org.y;
-            *hi = mx * map->scale + map->org.y;
+            *lo = mn * map->hscale + map->orgy;
+            *hi = mx * map->hscale + map->orgy;
         }
         return ret;
     }
@@ -514,7 +490,7 @@ int d3t_GetTriRange(D3TMAP *map, float *lo, float *hi, D3VECTOR *a, D3VECTOR *b,
 }
 /* 0x412480, height range of the map under the quad a, b, c, d */
 
-int d3t_GetQuadRange(D3TMAP *map, float *lo, float *hi, D3VECTOR *a, D3VECTOR *b, D3VECTOR *c, D3VECTOR *d)
+int d3t_GetQuadRange(D3FLMAP *map, float *lo, float *hi, D3VECTOR *a, D3VECTOR *b, D3VECTOR *c, D3VECTOR *d)
 {
     float lo1, hi1, lo2, hi2;
     int r1, r2;
@@ -564,7 +540,7 @@ float d3t_GetMeanHeight(D3VECTOR *pos)
 }
 /* 0x412640, does the triangle's bounding box overlap the box a..b in x/z and reach below b.y? */
 
-int d3t_InTriBox(D3VECTOR **tri, D3VECTOR *a, D3VECTOR *b)
+int d3t_InTriBox(D3VERTEX **tri, D3VECTOR *a, D3VECTOR *b)
 {
     D3VECTOR4 mn, mx;
 
@@ -597,7 +573,7 @@ typedef struct D3HQUERY {           /* height query over a box */
 int d3t_QueryHeight(D3HQUERY *q, D3OBJECT *obj)
 {
     D3VECTOR4 mx, mn;
-    D3BOXVERT *v;
+    D3VERTEX *v;
     D3TRI *tri;
     D3OBJECT *child;
     int i, r = 1;
@@ -607,7 +583,7 @@ int d3t_QueryHeight(D3HQUERY *q, D3OBJECT *obj)
             return r;
         d3_TransformSurf(obj);
         d3_UpdateObject(obj, 1);
-        v = (D3BOXVERT *)(obj->info->keys + obj->info->nkeys);
+        v = obj->info->keys + obj->info->nkeys;
         mn.x = v->x;
         mn.y = v->y;
         mn.z = v->z;
@@ -755,7 +731,7 @@ found:
 
 void d3t_GetBounds(D3VECTOR *mn, D3VECTOR *mx, D3OBJECT *obj)
 {
-    D3BOXVERT *v;
+    D3VERTEX *v;
     D3OBJECT *child;
     int i;
 
@@ -763,7 +739,7 @@ void d3t_GetBounds(D3VECTOR *mn, D3VECTOR *mx, D3OBJECT *obj)
         return;
     d3_TransformSurf(obj);
     d3_UpdateObject(obj, 1);
-    v = (D3BOXVERT *)(obj->info->keys + obj->info->nkeys);
+    v = obj->info->keys + obj->info->nkeys;
     for (i = 0; i < 8; i++, v++) {
         mn->x = min(mn->x, v->x);
         mn->y = min(mn->y, v->y);
@@ -781,7 +757,7 @@ void d3t_GetObjectBounds(D3VECTOR *mn, D3VECTOR *mx, D3OBJECT *obj)
 {
     D3VECTOR rot;
     D3VECTOR4 pos;
-    D3BOXVERT *v;
+    D3VERTEX *v;
     D3OBJECT *child;
     int i;
 
@@ -798,7 +774,7 @@ void d3t_GetObjectBounds(D3VECTOR *mn, D3VECTOR *mx, D3OBJECT *obj)
     d3_TransformSurf(obj);
     d3_UpdateObject(obj, 1);
     d3_UpdateWorldMatrix(obj, d3_Camera, 1);
-    v = (D3BOXVERT *)(obj->info->keys + obj->info->nkeys);
+    v = obj->info->keys + obj->info->nkeys;
     mn->x = v->x;
     mn->y = v->y;
     mn->z = v->z;
@@ -824,7 +800,7 @@ void d3t_GetMeshBounds(D3VECTOR *mn, D3VECTOR *mx, D3OBJECT *obj)
 {
     D3VECTOR rot;
     D3VECTOR4 pos;
-    D3BOXVERT *v;
+    D3VERTEX *v;
     int i;
 
     if (!obj->info)
@@ -839,7 +815,7 @@ void d3t_GetMeshBounds(D3VECTOR *mn, D3VECTOR *mx, D3OBJECT *obj)
     d3_SetObjectRotXYZ(d3_Camera, 0, 0, 0);
     d3_TransformSurf(obj);
     d3_UpdateObject(obj, 1);
-    v = (D3BOXVERT *)(obj->info->keys + obj->info->nkeys);
+    v = obj->info->keys + obj->info->nkeys;
     mn->x = v->x;
     mn->y = v->y;
     mn->z = v->z;
@@ -869,9 +845,9 @@ void d3t_SetGrey(D3OBJECT *obj, int on)
             tri = obj->info->tris;
             for (i = 0; i < obj->info->ntris; tri++, i++) {
                 for (j = 0; j < 3; j++) {
-                    ((D3VERTEX *)tri->v[j])->r = 0x80;
-                    ((D3VERTEX *)tri->v[j])->g = 0x80;
-                    ((D3VERTEX *)tri->v[j])->b = 0x80;
+                    tri->v[j]->base.r = 0x80;
+                    tri->v[j]->base.g = 0x80;
+                    tri->v[j]->base.b = 0x80;
                 }
             }
             obj->stateFlags |= 2;
@@ -899,9 +875,9 @@ void d3t_SetColor(D3OBJECT *obj, unsigned char r, unsigned char g, unsigned char
             tri = obj->info->tris;
             for (i = 0; i < obj->info->ntris; tri++, i++) {
                 for (j = 0; j < 3; j++) {
-                    ((D3VERTEX *)tri->v[j])->r = r;
-                    ((D3VERTEX *)tri->v[j])->g = g;
-                    ((D3VERTEX *)tri->v[j])->b = b;
+                    tri->v[j]->base.r = r;
+                    tri->v[j]->base.g = g;
+                    tri->v[j]->base.b = b;
                 }
             }
             obj->stateFlags |= 2;
@@ -981,12 +957,12 @@ int d3t_MoveCameraPath(int time, int n, ...)
     for (i = 0; i < count; i++) {
         if (o = objs[i]) {
             if (o->objectFlags & 1) {
-                keys[k].pos.x = D3_POSE(o)->pos.x;
-                keys[k].pos.y = D3_POSE(o)->pos.y;
-                keys[k].pos.z = D3_POSE(o)->pos.z;
-                keys[k].rot.x = D3_POSE(o)->rot.x;
-                keys[k].rot.y = D3_POSE(o)->rot.y;
-                keys[k].rot.z = D3_POSE(o)->rot.z;
+                keys[k].pos.x = o->savedPos.x;
+                keys[k].pos.y = o->savedPos.y;
+                keys[k].pos.z = o->savedPos.z;
+                keys[k].rot.x = o->savedRot.x;
+                keys[k].rot.y = o->savedRot.y;
+                keys[k].rot.z = o->savedRot.z;
                 keys[k].pos.x -= d3_Camera->pos.x;
                 keys[k].pos.y -= d3_Camera->pos.y;
                 keys[k].pos.z -= d3_Camera->pos.z;
@@ -1043,7 +1019,7 @@ int d3t_MoveCameraPath(int time, int n, ...)
    out i++ in both arms; preferences cannot give i edx or k ecx (no copy with ecx, none with an assigned
 candidate); k references that work as probes: one in the head or the entry block, two in the exit block, one in an else arm (`else { step = time / n; p1 = k; }` is the original but for the one probe store); identical return arms double the exit references (exact but for their compare); 21 callee prototypes, 9 D3ANIMKEY layouts, 8 ways to pass the flags: no lever. Open: one ordinary construct that leaves a k reference in the entry block, the head or an else arm (or two in the exit block) without an instruction; every dead or duplicate k form is removed before allocation, and k (a constant and ++) has no recomputable value as step has. Later the same session: (1) compiler options are not it (50 variations of /O2 on the unit, with and without the step line: none closer; /Op and /G6 move other code). (2) 2,900 single assignments (9 targets x 36 values, 9 positions, on the step base): none flips i / k without an instruction; the ones that flip are the known probes (a store of k's value in the head or in front of the call, 1 ins). (3) New closest form without a probe, 10 listing lines = ONE instruction: a second index `last` that copies k behind the increment and is used after the loop (`for (i = 0, k = 1, last = 1; ..)`, body `..; k++; step = time / n; last = k;`, exit `keys[last].time = 0;`). last is defined behind the call, so it is not live across it: it takes ecx in the first pass (prio 67, all six registers), i then takes edx, the entry store, the head, the latch and the whole exit block are the original's. Left: the k temporary behind the call (load, inc, store, copy; a piece of prio 88 chosen before last) takes eax, so `mov eax,[k]; inc eax; mov [k],eax; mov ecx,eax` stands for `mov ecx,[k]; inc ecx; mov [k],ecx`. It becomes exact (but for the probe store) with one more reference of last in the head, i.e. when last is chosen before the temporary and the temporary follows the copy. Needed: last >= 88, now 67 (two more uses or two more distinct candidates in the exit block, or one in the head), or step chosen before the temporary while both are live (equal priority 88, the temporary goes first). No lever on this base: statement orders of the body (90), the time store behind the increment (the temporary and step swap: k eax, step ecx), 24 declaration orders, k / last defined in front of the division, `last = k + 1` in front of the increment (the optimizer makes its own induction value, entry store of 2), the copy outside the if (reload in the latch), a previous-key index in the time store (108 forms), the callee declared with a result, eleven exit spellings, the time parameter itself as the stored counter (the index loses its induction pointer). On the last form, continued: the k temporary (k#2: load, inc, store, copy; 2 counted uses at the body's second-pass P 11 = 88) is chosen before last (first-pass terms: entry +22, body copy +32 at P 8, exit +24 = 59) and takes eax, the first free register; last then prefers eax, cannot have it (o) and takes ecx. A candidate's own preference counts (score -1), so the temporary would follow last if last were chosen first. (a) With the step line in an else arm step's tie value (the position of its last definition) is above k's and step is chosen first among the two 88s; if the time store then stands behind the increment (`..; k++; keys[k - 2].time = step; last = k; } else step = time / n;`) step holds eax while the temporary is live, the temporary takes ecx, the copy is deleted and EVERY register is the original's: 5 listing lines left, all of them the time store standing at the end of the body instead of behind the call. With the time store in its place the two ranges do not overlap. (b) A definition of last at the loop top (`last = 0;` / `last = i;` as probes) also gives the original but for that one instruction. Needed, one of: step still in use behind the increment; k loaded in front of the time store; last >= 88 (+29: a second reference of last in the body block is +32); the body's second-pass P <= 6. No lever: the step line also behind the time store, in the for-increment or at the loop end (52: last loses ecx); `last = k + 1` in front of the time store with `k++` or `k = last` at the end (the optimizer builds its own induction value); the increment right behind the call (another allocation altogether, 106); 1,700 single assignments at nine positions on this base (redundant definitions of last from k are removed before allocation). Deletion log (new: C2TRACE_DEL=1 on c2trace --raw logs every instruction the back end unlinks, FUN_10702ae5, with the caller): once allocation has started the only real instructions deleted in this function are self copies (`mov eax,eax` behind idiv and in front of ret, from 0xafd3); everything else deleted there is a load / store pseudo-op of a piece that ends in memory (ops 0x264 / 0x265) or a split mark (0x2b4). The 300 deletions before allocation are the optimizer's. So a reference that leaves no instruction can only be a COPY whose two sides end in one register or one slot (step = CSE temp is that); k, a constant and ++, has no copy unless the text has a second variable: the `last` forms are the only kind that can work, not one guess among many. Also: an int constant used three times as a copy source becomes a candidate of its own (shown as a second const#0). Key pointer form (readable, no step line, same instruction count as the original): `D3ANIMKEY *key = &keys[1]`, body `d3_PointToWorld(o, &o->pos, &key->pos.v); key[-1].time = step; key->rot.x -= ..; last = k + 1; k = last; key++;`, exit `keys[last].time = 0`. Here last has prio 93 and takes ecx first, i edx, k lives in memory with NO piece behind the call: its load is a scratch temporary. 15 listing lines left = the scratch rotation behind the call (order eax -> ecx -> edx, the lea in front of the call took ecx, so the next is edx): the step load takes edx and the k load eax (`mov eax,[k]; lea ecx,[eax+1]`) where the original has step eax, k ecx (`mov ecx,[k]; inc ecx`). With `last = k + 1; k = last;` in front of the time store: k edx, step eax (11 lines). Exact would be: the time store first and ONE more scratch step (or edx busy = i live in its register) between the call and the step load. No lever there: the step line in any position (in front of the time store it also switches off every later one), the callee with a result (used or not), i++ written in both arms (the copies do not merge), 504 statement orders. The temporary-register picker, read in c2.dll (FUN_1070c32b(temp operand, instruction); found by a branch-flip run on the key pointer form: 0x1070c536 / 0x1070c54d / 0x1070d3d3 shift every temporary by one step): a temporary first takes its HINT register (descriptor + 0x2c) when that is free: the source register of a copy (ops 1, 0x11f, 0x1dd, 0x17f, 0x181) it is defined by, or the base of the lea that defines it; a hinted temporary does not move the rotation. Without a hint it takes the next register of a cyclic list from one global pointer per type (0x107b1418, read by 0x1070c62e, advanced by 0x1070c64b), skipping a register that holds another temporary (0x107b12e8[reg]) or whose occupancy set (0x107b11c0[reg]) meets the temporary's range. A load from memory has no hint. So on the key pointer form the lea in front of the call takes ecx and the pointer stands at edx: the step load takes edx, the k load eax. Confirmed by probes: one more unhinted temporary behind the call (`p2 = p3`) or i read there (`p2 = i`: edx occupied) gives the original's code but for the probe's own instructions. Nothing ordinary found that does it: memory-to-memory copies between slot-sharing variables (`time = k`, the parameter as the stored counter) are removed before code generation; `last = k; last++; k = last;` is folded to `last = k + 1` (a temporary load and a lea). Also ruled out on the key pointer form: a second loop index copying i (11 spellings: the copy is removed or adds code); i++ in both arms with the if arm's copy behind the call (the two increments do not cross-jump, one is not at the arm's end); 1,860 single statements at five positions around the call (assignments among i, k, n, step, time, last, o, key, path, obj and block-local copies): none exact, every one that moves the rotation leaves an instruction. prior: s31 (one-function session; source unchanged, 49 ins / 132 bytes, raw 418 vs 416). New: the two levers of s8 are two piece EXTENTS, and two minimal probes together give every register of the original: (I) a k reference in the loop head (`{ extern int p1; p1 = k; }` before `if (o = path[i])`: k#2 51 > i#2 47 -> k ecx, i edx) or two in the tail (`p1 = k; p3 = k;`: k#2 45 > 43); (II) an i reference in the found body right behind the call (`{ extern int p2; p2 = i; }` before the time store): i's piece then starts behind the call (reloaded there, not at the block end), edx is busy at the step load and the step temp takes eax, the tail starts at edx. ph-i-aftercall (head k probe + body i probe) differs from the original only by the two probe stores and the order the probe store causes (vdiff: 10 ins); pt-i-aftercall (tail k probes + i probe) the same (11). With i at the body END instead (`p2 = i` behind k++): 9 ins but step edx / i eax swapped. So the original's text references k in head (or tail) and i behind the call, and both references leave no instruction. Ruled out s31 (= control unless named): initializers `= 0` on o, i, k, step, every subset, on six bases (control, `k = 1;` statement, time store before the call, `time / n` CSE, `time /= n`, k = 1 statement + CSE; 72 + 42 variants): only `int i = 0` moves code (49 / 129, raw 419); `k = 1` at the declaration 132 ins; declaration orders; k++ at every body position with shifted indices (73..109); the time store at every position among the subtractions, pos / rot order (224: time position is no lever, pos first 108); block scopes of i and o around / inside the loop (128, 4 codes); a local for n + 1, the anim result, the bound (cnt), ++n / n++ in the call, a key pointer in the tail, a rotation pointer; while / do-while / ++i / ++k / k += 1 / n > i / `!= 0` / split test; an in-loop exit or break (`for (;;) if (i >= n) ..`); i++ in both arms (52, not merged); path[i] written out; time reused as k (with initializers); no-op statements on k (`k = k`, `k += 0`, `k |= 0` .. 13 forms in head, latch, tail, for increment: all removed); types of i / k (int, unsigned, long, short, char, unsigned short / char: 48, unsigned i 53, the rest 62+); climb 4 rounds beam 6 (1379 mutants: best the time store before the call, 45 ins, raw 419); flip.py --want "mov ecx, 1 .. inc edx / cmp edx, ebx": only that swap. Open: an ordinary construct whose k reference (head / tail) and i reference (behind the call) survive to allocation but emit nothing (a copy coalesced after allocation, code merged by cross-jumping); none found. */
 
-D3ANIM *d3t_MoveObjectPath(D3OBJECT *obj, int time, int n, D3OBJECT **path)
+D3PATH *d3t_MoveObjectPath(D3OBJECT *obj, int time, int n, D3OBJECT **path)
 {
     D3ANIMKEY keys[64];
     D3ANIMFLAGS af;
@@ -1229,7 +1205,7 @@ void d3t_UpdateRain(D3TRAIN *rain, float dt)
     d.x = rain->campos.x - d3_Camera->rotation.x;
     d.y = rain->campos.y - d3_Camera->rotation.y;
     d.z = rain->campos.z - d3_Camera->rotation.z;
-    d3_MatFromAngles(&d, &m);
+    d3_MatFromAngles(&d.v, &m);
     rain->campos.x = d3_Camera->rotation.x;
     rain->campos.y = d3_Camera->rotation.y;
     rain->campos.z = d3_Camera->rotation.z;
@@ -1590,7 +1566,7 @@ void d3t_UpdateSnow(D3TSNOW *snow, float dt)
     d.x = snow->campos.x - d3_Camera->rotation.x;
     d.y = snow->campos.y - d3_Camera->rotation.y;
     d.z = snow->campos.z - d3_Camera->rotation.z;
-    d3_MatFromAngles(&d, &m);
+    d3_MatFromAngles(&d.v, &m);
     snow->campos.x = d3_Camera->rotation.x;
     snow->campos.y = d3_Camera->rotation.y;
     snow->campos.z = d3_Camera->rotation.z;
@@ -2487,7 +2463,7 @@ void d3t_FadeInSunRays(D3OBJECT *unused)
 void d3t_UpdateSunRays(D3OBJECT *obj);
 void d3t_RemoveSunRays(D3OBJECT *obj);
 
-#define D3T_VSET(v, a, b, c) ((v).x = (a), (v).y = (b), (v).z = (c), (D3VECTOR *)&(v))
+#define D3T_VSET(v, a, b, c) ((v).x = (a), (v).y = (b), (v).z = (c), &(v))
 
 /* 0x417190, creates the "sonnenstrahlen" object at the camera position, rotated to the light "pLicht" (yaw of
    the sun), marks it kind 5 / mask 1 / state flags 0xc and fades it in; returns it */
@@ -2498,7 +2474,7 @@ D3OBJECT *d3t_CreateSunRays(void)
     D3OBJECT *light;
 
     light = d3_FindObject(0, 8, 0, "pLicht");
-    d3t_SunRays = d3_CreateObject(0, D3T_VSET(pos, d3_Camera->pos.x, d3_Camera->pos.y, d3_Camera->pos.z),
+    d3t_SunRays = d3_CreateObject(0, D3T_VSET(pos.v, d3_Camera->pos.x, d3_Camera->pos.y, d3_Camera->pos.z),
                                         D3T_VSET(rot, 0.0f, light->rotation.y, 0.0f), "sonnenstrahlen");
     d3t_SunRays->stateFlags |= 0xc;
     d3t_SunRays->objectFlags &= ~2;
@@ -2530,7 +2506,7 @@ void d3t_UpdateSunRays(D3OBJECT *obj)
 
     if (!obj || !obj->info || !d3_Camera)
         return;
-    if (!d3_VecEqual(D3T_VSET(pos, d3_Camera->pos.x, d3_Camera->pos.y, d3_Camera->pos.z), &obj->pos, 0.0001f))
+    if (!d3_VecEqual(D3T_VSET(pos.v, d3_Camera->pos.x, d3_Camera->pos.y, d3_Camera->pos.z), &obj->pos, 0.0001f))
         d3_SetObjectPos(obj, &pos.v);
     light = d3_FindObject(0, 8, 0, "pLicht");
     if (light) {

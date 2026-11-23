@@ -1,8 +1,8 @@
 /* ts_texture -- the texture manager (original path D:\develop\Units\d3\ts_texture.c, the #line below; bounded by
    the d3_sm.c and d2.c tags): the texture slot table, the hardware surface cache and the 16-bit colour tables of
    the software renderer, 0x45f610..0x4616d0.
-   Open: not included yet (dcp headers conflicts ts_texture HEADER): bio.h; held by own declarations that differ
-   from the owner's: file_Exists.
+   Open: not included yet (dcp headers conflicts ts_texture HEADER): bio.h; held by an own copy of the owner's
+   prototype: file_Exists.
    Open: typing: TSTEXTURE.reserved (0x58) is only ever cleared (slot created / evicted / re-rendered / unloaded),
    no reader - role unknown; the views of the slot (d3.h D3TEXTURE, d3_fl.h D3FLTEX) are gone.
    unit of rea 8cef7d5b (src/game/ts_texture.c); boundaries in decl/text.dcl */
@@ -63,9 +63,9 @@ const unsigned int d3_AnimDiv[11] = { 15, 13, 11, 9, 8, 7, 5, 3, 2, 1, 0 };  /* 
                                                   (d3_AnimDiv[speed - 1]; the 0 ends the table) */
 
 
-void d3d_CreateTexture(DWORD size, DDPIXELFORMAT *pf, LPDIRECTDRAWSURFACE4 *surf, LPDIRECT3DTEXTURE2 *surftext, DWORD n, BYTE *pal, unsigned char mips);           /* 0x4383d0 */
-void d3d_SetSurfacePalette(DDSURFACEDESC2 *desc, LPDIRECTDRAWSURFACE4 surf, DWORD n, BYTE *pal);                        /* 0x438180 */
-char file_Exists(char *path);                                                               /* 0x401090, @original: the callers here read the result as a char (byte-matched ts_LoadAnim: test al, al), against bio.h's int view */
+void d3d_CreateTexture(DWORD size, DDPIXELFORMAT *pf, LPDIRECTDRAWSURFACE4 *surf, LPDIRECT3DTEXTURE2 *surftext, DWORD n, const BYTE *pal, unsigned char mips);           /* 0x4383d0 */
+void d3d_SetSurfacePalette(DDSURFACEDESC2 *desc, LPDIRECTDRAWSURFACE4 surf, DWORD n, const BYTE *pal);                        /* 0x438180 */
+char file_Exists(char *path);                                                               /* 0x401090, bio.c */
 unsigned int util_Hash(unsigned char *buf, unsigned int len);                                                /* 0x401000 */
 
 void d3d_LoadTexture(char *name, DDPIXELFORMAT *pf, LPDIRECTDRAWSURFACE4 *surf, LPDIRECT3DTEXTURE2 *surftext, unsigned char mips, DWORD w, DWORD h, int bpp);                  /* 0x437390 */
@@ -204,7 +204,7 @@ void ts_CacheRelease(TSTEXTURE *tex)
 /* 0x45f860, creates tex's D3D texture: the 16-bit format when hicolor, else the 8-bit one with npal, pal passed
    through, and mips from ts_Mips unless tex->nomip */
 
-void ts_CreateSurface(TSTEXTURE *tex, int npal, unsigned char *pal)
+void ts_CreateSurface(TSTEXTURE *tex, int npal, const unsigned char *pal)
 {
     unsigned char mips = tex->nomip ? 0 : ts_Mips;
 
@@ -216,7 +216,7 @@ void ts_CreateSurface(TSTEXTURE *tex, int npal, unsigned char *pal)
 /* 0x45f8d0, gives tex the surfaces of a cache entry of the same size, palettization and mip setting (the entry
    freed, its palette applied), the 8-bit palette set on it; with no such entry, creates a new surface */
 
-void ts_CacheFetch(TSTEXTURE *tex, int npal, unsigned char *pal)
+void ts_CacheFetch(TSTEXTURE *tex, int npal, const unsigned char *pal)
 {
     TSCACHE *sce;
     unsigned int i;
@@ -422,10 +422,10 @@ unsigned char ts_AddColor(unsigned char r, unsigned char g, unsigned char b, TSH
 }
 /* 0x45ff70, finds or creates a colour table holding the n colours of pal; map receives their indices */
 
-unsigned short *ts_GetHiColTab(unsigned char *pal, unsigned int n, unsigned char *map)
+unsigned short *ts_GetHiColTab(const unsigned char *pal, unsigned int n, unsigned char *map)
 {
     TSHICOL *h = 0;
-    unsigned char *p;
+    const unsigned char *p;
     unsigned int i, j, k, found;
 
     if (ts_HiColCount > 0) {
@@ -739,21 +739,21 @@ char tex_Animate(D3OBJECT *obj, unsigned int time)
 {
     TSTEXTURE **texs;
     TSTEXTURE *tex, *f;
-    TSTRI *tri;
+    D3TRI *tri;
     unsigned int seed;
     int i, k, n, ntris, group;
 
-    if (obj->info && ((TSMESH *)obj->info)->ops && ((TSMESH *)obj->info)->nkeys > 0) {
-        texs = ((TSMESH *)obj->info)->texs;
+    if (obj->info && obj->info->mesh && obj->info->nkeys > 0) {
+        texs = obj->info->texHandles;
         seed = util_Hash((unsigned char *)&obj, sizeof(obj));
-        ntris = ((TSMESH *)obj->info)->ntris;
-        n = ((TSMESH *)obj->info)->ops->count;
+        ntris = obj->info->ntris;
+        n = obj->info->mesh->ntex;
         for (i = 0; i < n; i++) {
             tex = texs[i];
             if (tex && tex->frames > 0 && !tex->frame && tex->speed > 0 && tex->refs > 0) {
                 group = tex->group;
                 f = tex_GetFrame(tex - d3_Textures, (time / d3_AnimDiv[tex->speed - 1] + seed) % tex->frames);
-                for (k = ntris, tri = ((TSMESH *)obj->info)->tris; k > 0; k--, tri++) {
+                for (k = ntris, tri = obj->info->tris; k > 0; k--, tri++) {
                     if (tri->tex && tri->tex->group == group)
                         tri->tex = f;
                 }
@@ -950,7 +950,7 @@ char tex_SetHiColor(TSTEXTURE *tex, unsigned char hicolor)
    and 16-bit colour table); the field stores are in this order for VC6's bitfield / zero-register code (see tex_CreateHi) */
 
 TSTEXTURE *tex_Create(char *name, int size, char hicol, TSFLAGS flags, unsigned char f0, unsigned char f6a,
-                      int npal, unsigned char *pal, char mips)
+                      int npal, const unsigned char *pal, char mips)
 {
     unsigned char map[0x100];
     TSTEXTURE *tex;

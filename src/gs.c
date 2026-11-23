@@ -55,19 +55,7 @@ unsigned short util_Random(unsigned short n);  /* 0x42ec00, @original: tr.c defi
 extern const float gv_SaleShares[];
 extern const float gv_GraveWear[];
 
-#define gv_FindEntryCb(cb) ((int (*)(void *, void *))(cb))  /* @original: gv_FindEntry's callback is int (*)() (gv.h, its callbacks take differing pointer types); the call pushes two pointers (0x4ef8df push esi, 0x4ef8e0 push ebx) and reads an int (0x4ef8e6 test eax) */
-
 /* dcp unit split: the declarations of gv before the moved functions */
-typedef struct GVSHOTMSG {              /* 0x80 bytes, the data of message 0x67 (cm_SendShots): a cannon ball fired at a building; the receiver (0x4eee00) starts it as a part of the effect slot */
-    int id;                             /* 0x00, the building's id, the effect slot's id */
-    float v;                            /* 0x04, taken off the slot's fade value of the mode (only the first ball of a salvo carries it, then 0) */
-    int mode;                           /* 0x08, 0 one ball, 1 two, 2 three */
-    union {
-        SHOTREC shot;                   /* 0x0c, the ball as sent (gv_FireShots) */
-        GVEFFPART part;                 /* the same record as the slot's part it becomes (0x4eee00) */
-    };
-    int pad74[3];
-} GVSHOTMSG;
 
 AIDEC gv_Decisions[0x1d] = {  /* 0x611258 */
     { 0, 1, 0, 0, 4, 0, 0, 1, 2, 0x18, 1, -1, 0, ai_DecideLawSeverity },
@@ -162,14 +150,14 @@ int gv_OnDecisionValue(GVDECMSG *p)
 }
 /* 0x4f2870, finds the AI decision record of the office held by the character c (AICHAR.officeKind, +0x166) with the number b and copies it to out; 0 when none */
 
-int gv_FindTableRecord(AICHAR *c, unsigned b, int *out)
+int gv_FindTableRecord(AICHAR *c, unsigned b, AIDEC *out)
 {
     AIDEC *rec;
     int i;
 
     for (i = 0; i < 0x1d; i++) {
         if (c->officeKind == gv_Decisions[i].office && b == gv_Decisions[i].officeNo) {
-            rec = (AIDEC *)out;
+            rec = out;
             *rec = gv_Decisions[i];
             return 1;
         }
@@ -311,14 +299,14 @@ int gv_ReadCrimes(VFSFILE *f)
 }
 /* 0x4f2da0, the highest level (0x5092e0 (b, 10, 1)) among the school buildings (kind 7) of the character *c's, times 0.01; 0.75 when one has exactly 0x4b */
 
-float gv_SchoolLevelFactor(unsigned short *c)
+float gv_SchoolLevelFactor(AICHAR *c)
 {
     int best, i, v;
     AIBLD *b;
 
     best = 0;
     for (i = 0, b = ai_Blds; i < 0x100; i++, b++) {
-        if (b->type != 0 && b->owner == *c && ai_BTypes[b->type].kind == 7) {
+        if (b->type != 0 && b->owner == c->id && ai_BTypes[b->type].kind == 7) {
             v = gm_BuildingSkill(b, 10, 1);
             if (v == 0x4b)
                 return 0.75f;
@@ -336,14 +324,14 @@ float gv_SchoolLevelFactor(unsigned short *c)
 int gv_Accuse(int i, int v, int a, int b, int obj)
 {
     AIDEC rec;
-    char *culprit;
+    AICHAR *culprit;
     AIBLD *place;
     float escape;
     CRIME m;
 
     if (gv_GetTableRecord(i, &rec) == 0)
         return -1;
-    culprit = (char *)gm_FindChar(a);
+    culprit = gm_FindChar(a);
     gm_FindChar(b);
     gm_FindById(&place, 0, 0, obj);
     switch ((unsigned char)rec.rule) {
@@ -380,7 +368,7 @@ int gv_Accuse(int i, int v, int a, int b, int obj)
     default:
         goto unreported;
     }
-    escape = gv_SchoolLevelFactor((unsigned short *)culprit);
+    escape = gv_SchoolLevelFactor(culprit);
     if (util_RandomF() < escape)
         goto unreported;
     if (ai_InventoryHas(culprit, 0x22a) != 0 && util_RandomF() > 0.5)
@@ -1242,7 +1230,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         m.type = 0x5c;
         m.flags = 1;
         m.time = ai_Time;
-        gm_AddTime((struct AITIME *)&m.time, 1, 0, 0);
+        gm_AddTime(&m.time, 1, 0, 0);
         m.to = c->netId;
         m.fromId = -1;
         m.arg[0] = 3;
@@ -1253,7 +1241,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         m.type = 0x5b;
         m.flags = 1;
         m.time = ai_Time;
-        gm_AddTime((struct AITIME *)&m.time, 1, 0, 0);
+        gm_AddTime(&m.time, 1, 0, 0);
         m.to = c->netId;
         m.fromId = -1;
         m.arg[0] = (int)(worth * 0.03f);
@@ -1264,7 +1252,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         m.type = 0x5c;
         m.flags = 1;
         m.time = ai_Time;
-        gm_AddTime((struct AITIME *)&m.time, 1, 0, 0);
+        gm_AddTime(&m.time, 1, 0, 0);
         m.to = c->netId;
         m.fromId = -1;
         m.arg[0] = 3;
@@ -1275,7 +1263,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         m.type = 0x5b;
         m.flags = 1;
         m.time = ai_Time;
-        gm_AddTime((struct AITIME *)&m.time, 1, 0, 0);
+        gm_AddTime(&m.time, 1, 0, 0);
         m.to = c->netId;
         m.fromId = -1;
         m.arg[0] = (int)(worth * 0.03f);
@@ -1315,7 +1303,7 @@ void gv_PassSentence(AICHAR *c, int a, AICHAR *judge, AICHAR *assessor1, AICHAR 
         party.host = ai_Chars[ai_PlayerId].netId;
         party.thing = -1;
         party.time = ai_Time;
-        gm_AddTime((struct AITIME *)&party.time, 0x18, 0, 0);
+        gm_AddTime(&party.time, 0x18, 0, 0);
         party.time.hour = 10;
         party.time.min = 0;
         party.kind = 5;
@@ -1422,7 +1410,7 @@ void gv_CheckRankUp(unsigned i)
                 m.time.hour = 7;
                 m.time.min = 0;
                 if (c->kind == 5)
-                    gm_AddTime((struct AITIME *)&m.time, util_Random(4), util_Random(8) * 7, 0);
+                    gm_AddTime(&m.time, util_Random(4), util_Random(8) * 7, 0);
                 m.rankUp.rank = nb;
                 m.rankUp.ch = c->netId;
                 cm_SendLongMessage(&m);

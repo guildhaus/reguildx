@@ -14,7 +14,7 @@
    callbacks registered by cm_InitScenes (cm_RunDuel, cm_RunExecution, cm_RunWedding, cm_RunBirth, cm_RunDeath,
    cm_RunBankruptcy, cm_RunAuction, their checks and member callbacks) read the party record G28REC; the auction's
    member callbacks (cm_AuctionAskPlayer / cm_AuctionAskAI) read its state CMAUCTION. The spy report objects (AIOBJ
-   kind 0xca) are read as CMSPYREPORT (defined above cm_ExSpyReport: the report's words 0x1c .. 0x37, HESPYREPORT).
+   kind 0xca) are read as AIOBJ.report (the report's words 0x1c .. 0x37, HESPYREPORT).
    Open: not included yet (dcp headers conflicts cm HEADER): anm.h hmt.h hst.h rt.h menu.h;
    held by calls whose argument count differs from the definition (read the original's pushes):
    gv_PassSentence takes five arguments here (gv_PassSentenceK).
@@ -24,7 +24,7 @@
    cm_WaitEventOrClick, cm_ClearParty, cm_ResetCutInfos, cm_ShowPartyTexts, cm_AllocParty, cm_AddPartyMember,
    cm_WaitEventFull and cm_CreateChar; cm.h's declaration changes still flip the register tie-breaks of
    ai_TutorialInitChapter2 / ai_TutorialInitChapter3 in sv_t and of ord_CountGridObjects. Types only
-   cm.c uses (CMCUTTYPEMSG, CMFIELD, CMWALKPATHMSG) stay in its head for that reason. cm.h still
+   cm.c uses (CMCUTTYPEMSG, CMFIELD) stay in its head for that reason. cm.h still
    repeats ord_AddGridAmount, gm_RemoveOwned, gm_BuildingSkill, gm_HealthRatio, rt_FreePoints and rt_CopyPoints
    (the owner headers' prototypes: gv.h, f3gm.h, rt.h; RTPOINT from rt_types.h).
    Open: head: message 0x3f has no record type in cm_types.h (a struct typedef there flips
@@ -32,8 +32,7 @@
    read the player / item head of the goods record through G17GOODSMSG.goods.
    The fight scene (cm_SetupFightScene .. cm_MostThreatenedCellNear) reads its fight record as a G28REC party
    (G28REC.fight, cm_types.h; cm_FightRecord points to it).
-   Open: types: CMFIGHTSLOT and CMCUTENTRY (cm_types.h) are one 0x2c-byte record in two views (a cutscene entry is sent
-   as the fight command's slot, cm_RunCutOrders casts between them); one type for both is unsettled.
+   A fight command's fighter slot (message 0x55) is a cutscene entry CMCUTENTRY (cm_types.h; cm_RunCutOrders sends one).
    unit of rea 8cef7d5b (src/game/cm.c); boundaries in decl/text.dcl */
 #include "d2_types.h"
 #include "txt_views.h"
@@ -61,8 +60,6 @@ struct D3SKYLAYER; struct D3SKY; struct D3SKYLAYER *d3sky_CreateLayer(struct D3S
 extern GAPDATA full_data_602568[];
 
 
-#define G17_I(m, o) (*(int *)&(m).data[o])
-#define G17_S(m, o) (*(short *)&(m).data[o])
 /* the block at 0x936420 is 0x24 bytes: the count then the eight player states at +4 (one object, so the
    0x24-byte memset / memcpy in 0x4cd580 and 0x4cdxx cannot run over a neighbour that LINK placed there) */
 
@@ -117,32 +114,9 @@ typedef struct CMFIELD {            /* the head of one field of a field block (G
     unsigned short offset;          /* 0x02, the field's offset in the record */
     int values[1];                  /* 0x04, the values */
 } CMFIELD;
-typedef struct AIJOBTAIL {          /* AIJOB as message 0x1d sends and takes its data block: the record from 0xac */
-    char pad00[0xac];
-    char data[0xa0];                /* 0xac, the long message (cm_SetLongMsg 0xa0, cm_LongMsg) */
-} AIJOBTAIL;
-typedef struct CMNEWPARTYMSG {      /* 8 bytes, the data of message 0x27 (its handler cm_ExNewParty) */
-    int partyId;                    /* 0x00, the id the new scene party gets (ai_NextPartyId) */
-    int seed;                       /* 0x04, the party's random seed (G28REC.seed) */
-} CMNEWPARTYMSG;
-typedef struct CMJOINPARTYMSG {     /* 8 bytes, the data of message 0x29 (its handler cm_ExAddPartyMember) */
-    int partyId;                    /* 0x00, the scene party record (cm_PartyById) */
-    int member;                     /* 0x04, the member's netId (cm_AddPartyMember) */
-} CMJOINPARTYMSG;
-typedef struct CMWALKPATHMSG {      /* 0x24 bytes, the data of message 0x4f (its handler cm_ExWalkPath; no sender in
-                                       the sources, the path cells of a walk) */
-    char name[0x18];                /* 0x00, the character's object name ("sp_<id>") */
-    int from;                       /* 0x18, the first cell written */
-    int to;                         /* 0x1c, the cell past the path (the action's new path length) */
-    unsigned char cells[4];         /* 0x20, up to two cells, x and z bytes each */
-} CMWALKPATHMSG;
-typedef struct CMPOSMSG {           /* 0x10 bytes read, the data of message 0x32 (its handler cm_ExChrSetPos) */
-    int charId;                     /* 0x00, the character */
-    D3VECTOR pos;                   /* 0x04, its new position (ch_SetPos) */
-} CMPOSMSG;
 typedef struct CMGRENADE {          /* 0x10 bytes, one of the 32 thrown bombs of cm_Grenades */
     D3OBJECT *obj;                  /* the object "ob_BOMBE", 0 = a free slot */
-    D3ANIM *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
+    D3PATH *anim;                   /* 0x04, its flight path (d3anim_CreatePath) */
     int x, y;                       /* 0x08, the target cell */
 } CMGRENADE;
 /* 0x4c3180, the size in bytes of the game message m by its type: fixed per type, the lists 0x16 / 0x17 a 0x15-byte
@@ -908,7 +882,7 @@ int cm_SendPlayerId(void)
 {
     int buf[31];
 
-    buf[0] = ai_CharInts[ai_PlayerId][0];
+    buf[0] = ai_Chars[ai_PlayerId].netId;
     cm_SendExSysMessage(0x13, buf);
 }
 /* 0x4c3fd0, receives the waiting messages into the receive list; 1: no free record */
@@ -1441,7 +1415,7 @@ int cm_SendExSetHE(int k, AIJOB *p)
     m.setHE.clock60 = ev->clock60;
     m.setHE.kind = k;
     strcpy(m.setHE.name, cm_EventNames[(unsigned char)ev->kind]);
-    cm_SetLongMsg(0xa0, ((AIJOBTAIL *)ev)->data);
+    cm_SetLongMsg(0xa0, ev->tail);
     return cm_QueueSend(&m);
 }
 /* 0x4c4d40, message 0x1e with the time t; -1: t is not valid (0x4fe210) */
@@ -1957,13 +1931,13 @@ int cm_SendDecisionValue(GVDECMSG *p)
 }
 /* 0x4c5970, sends message 0x47 (character a, b, c); the event handlers send (a, 0, 0) before they walk a character away (reasoned: clears what it is doing) */
 
-void cm_SendCharClear(int a, int b, int c)
+void cm_SendCharClear(int a, struct AIOBJ *room, int c)
 {
     G17MSG m;
 
     m.clear.charId = a;
     m.type = 0x47;
-    m.clear.room = b;
+    m.clear.room = room;
     m.clear.spare = c;
     cm_QueueSend(&m);
 }
@@ -2129,7 +2103,7 @@ int cm_SendTableRequest(G17TABLEMSG *p)
 /* 0x4c5dc0, message 0x55: the command cmd of the fighter slot f of the current fight, with the position and rotation
    of the fighter c's body and its health; for an attack (2) also the target's current health */
 
-int cm_SendFightCommand(AICHAR *c, int cmd, CMFIGHTSLOT *f)
+int cm_SendFightCommand(AICHAR *c, int cmd, CMCUTENTRY *f)
 {
     G17MSG m;
     D3OBJECT *b;
@@ -2149,7 +2123,7 @@ int cm_SendFightCommand(AICHAR *c, int cmd, CMFIGHTSLOT *f)
         m.fight.rot.z = b->rotation.z;
         m.fight.health = c->v024;
         if (cmd == 2) {
-            t = cm_FindFighter(m.fight.slot.target);
+            t = cm_FindFighter(m.fight.slot.stateArg);
             if (t != 0)
                 m.fight.slot.health = t->v024;
         }
@@ -2158,7 +2132,7 @@ int cm_SendFightCommand(AICHAR *c, int cmd, CMFIGHTSLOT *f)
 }
 /* 0x4c5e80, message 0x56 (0x28 bytes of p) */
 
-void cm_SendMessage56(void *p)
+void cm_SendMessage56(ORDINITMSG *p)
 {
     G17MSG m;
 
@@ -2404,7 +2378,7 @@ int cm_CheckSellObject(G17MSG *m)
     AIBLD *b;
     AIOBJ *o;
     AICHAR *c;
-    char *p;
+    AIOBJ *p;
     AICHAR *r;
     AIOBJ **list;
     AIBLD *bb;                 /* the buyer's building: its own slot in the original, not b again */
@@ -2419,10 +2393,10 @@ int cm_CheckSellObject(G17MSG *m)
             list = &o->list;
         else
             list = &c->inventory;
-        p = (char *)gm_Query(*list, 1, 0, m->sell.item);
+        p = gm_Query(*list, 1, 0, m->sell.item);
         if (p == 0)
             return 1;
-        if (((AIOBJ *)p)->count < m->sell.count)
+        if (p->count < m->sell.count)
             return 1;
     }
     if (m->sell.buyer != -1) {
@@ -2724,7 +2698,7 @@ int cm_ExCreateBuilding(G17MSG *m, G17STAT *s)
         if (k >= 0x300)
             return 1;
     }
-    b = (AIBLD *)gm_CreateBuilding(m->build.kind, k);
+    b = gm_CreateBuilding(m->build.kind, k);
     if (b == 0)
         return 1;
     cm_LastBuildingId = b->id;
@@ -2833,7 +2807,7 @@ int cm_ExTakeOverCharacter(G17MSG *m, G17STAT *s)
 
             c = gm_FindChar(m->takeover.taken);
             if (gv_FindHeldEntry(c, &y, &x) != 0)     /* y the graveyard building, x the entry (gv.h GVENTRY, its size first) */
-                gv_OrderBury((int *)c, y, x->size, (unsigned char)gv_EntryIndex(y->yard, x));
+                gv_OrderBury(c, y, x->size, (unsigned char)gv_EntryIndex(y->yard, x));
             s->kind = 1;
             s->ref = &ai_Chars[k];
         } else {
@@ -3085,11 +3059,11 @@ int cm_ExSellObjekt(G17MSG *m, G17STAT *s)
             o2->count += m->sell.count;
         } else if (ai_Goods[m->sell.item].type == 2 || ai_Goods[m->sell.item].type == 6) {
             if (x2 != 0)
-                o2 = (AIOBJ *)gm_AllocRaum(x2, m->sell.item);
+                o2 = gm_AllocRaum(x2, m->sell.item);
             if (o2 == 0)
                 return 1;
         } else {
-            o2 = (AIOBJ *)gm_CreateObject(m->sell.buyer, m->sell.item, m->sell.count);
+            o2 = gm_CreateObject(m->sell.buyer, m->sell.item, m->sell.count);
             if (o2 == 0)
                 return 1;
             if (y2 != 0) {
@@ -3202,7 +3176,7 @@ int cm_ExMakeGoods(G17MSG *m, G17STAT *s)
     if (o != 0) {
         o->count += g->batch * n;
     } else {
-        o = (AIOBJ *)gm_CreateObject(y->objId, m->make.item, g->batch * n);
+        o = gm_CreateObject(y->objId, m->make.item, g->batch * n);
         if (o == 0) {
             if (s != 0)
                 s->kind = 6;
@@ -3317,7 +3291,7 @@ int cm_ExCreateObject(G17MSG *m, G17STAT *s)
     if (net_Conn.s != INVALID_SOCKET)
         ai_NextObjectId = m->createObj.objectId;
     m->createObj.holder = cm_ResolveId((int)m, m->createObj.holder);
-    o = (AIOBJ *)gm_CreateObject(m->createObj.holder, m->createObj.item, 1);
+    o = gm_CreateObject(m->createObj.holder, m->createObj.item, 1);
     if (o == 0)
         return 1;
     cm_LastObjectId = o->objId;
@@ -3707,7 +3681,7 @@ int cm_ExSetHE(G17MSG *m, G17STAT *s)
     ev->end = m->setHE.end;
     ev->clock60 = m->setHE.clock60;
     ev->stage = (signed char)m->setHE.kind;
-    memcpy(&ev->u, cm_LongMsg, 0xa0);
+    memcpy(ev->tail, cm_LongMsg, 0xa0);
     if (s != 0) {
         s->state = 1;
         s->kind = 4;
@@ -3785,7 +3759,7 @@ int cm_ExSysMessage(G17MSG *m, G17STAT *s)
             memset(&t, 0, sizeof(t));
             t.year = msg.sys.arg[0];
             util_Seed(msg.sys.arg[1]);
-            sv_SetupWeather((struct AITIME *)&t, 1);
+            sv_SetupWeather(&t, 1);
             break;
         }
         case 2:
@@ -3854,7 +3828,7 @@ int cm_ExSysMessage(G17MSG *m, G17STAT *s)
         case 12:
             save = d3_CurrentScene;
             d3if_SelectScene(0, 1);
-            d3sm_Build((struct D3SM *)d3_DefaultScene->hmap, d3_Terrain);
+            d3sm_Build(d3_DefaultScene->hmap, d3_Terrain);
             d3if_SelectScene(save, 1);
             ch_Saved0 = 0;
             break;
@@ -4099,7 +4073,7 @@ int cm_ExNewParty(G17MSG *m, G17STAT *s)
     int ret = 0;
 
     memcpy(buf, cm_LongMsg, 0x114);
-    d = (CMNEWPARTYMSG *)m->data;
+    d = &m->newParty;
     if (net_Conn.s != -1)
         ai_NextPartyId = d->partyId;
     o = cm_AllocParty(buf);
@@ -4117,7 +4091,7 @@ int cm_ExNewParty(G17MSG *m, G17STAT *s)
         }
     }
     if (o->kind == 5) {
-        if (ai_CharInts[ai_PlayerId][0] != o->members[0] && !(ai_GameFlags & 4))
+        if (ai_Chars[ai_PlayerId].netId != o->members[0] && !(ai_GameFlags & 4))
             o->flags &= 0x7f;
     }
     ai_NextPartyId++;
@@ -4151,7 +4125,7 @@ int cm_ExAddPartyMember(G17MSG *m, G17STAT *s)
 {
     CMJOINPARTYMSG *d;
 
-    d = (CMJOINPARTYMSG *)m->data;
+    d = &m->joinParty;
     if (cm_PartyById(d->partyId) == 0)
         return 1;
     if (cm_AddPartyMember(d->partyId, d->member) == 0)
@@ -4246,7 +4220,7 @@ int cm_ExSetPlant(G17MSG *m, G17STAT *s)
             o = veg_FindPlantAt(b->plants, m->plant.x, m->plant.z);
             if (o != 0 && o->fallId == m->plant.fallId) {
                 d3if_SelectScene(init_BuildingUniverse[(unsigned char)ai_BTypes[b->type].kind], 1);
-                d3if_Delete((struct D3OBJECT *)o->obj);
+                d3if_Delete(o->obj);
                 o->obj = 0;
                 veg_LoadModel(o, 0);
                 o->fallId = -1;
@@ -4290,7 +4264,7 @@ int cm_ExCreateSermon(G17MSG *m, G17STAT *s)
         ai_NextObjectId = m->obj.objectId;
     k = cm_ResolveId((int)m, m->obj.owner);
     m->obj.owner = k;
-    o = (AIOBJ *)gm_CreateObject(k, 0x1b5, 1);
+    o = gm_CreateObject(k, 0x1b5, 1);
     if (o == 0)
         return 1;
     cm_LastObjectId = o->objId;
@@ -4355,7 +4329,7 @@ int cm_ExChrWalkToDummy(G17MSG *m, G17STAT *s)
         i = 0;
     if (i == -1)
         return 2;
-    if (init_SceneDirty[i * 0x3e0] != 0)
+    if (d3_Scenes[i].dirty != 0)
         return 3;
     if (m->place.name[0] != 0) {
         d3if_SelectScene(i, 1);
@@ -4480,7 +4454,7 @@ int cm_ExChrSetPos(G17MSG *m, G17STAT *s)
     CHARACTER *p;
     CMPOSMSG *d;
 
-    d = (CMPOSMSG *)m->data;
+    d = &m->chrPos;
     sprintf(buf, "sp_%i", d->charId);
     p = ch_FindByName(buf);
     if (p == 0)
@@ -4906,7 +4880,7 @@ int cm_ExOwnership(G17MSG *m, G17STAT *s)
    (fails when full), the former home counts one down */
 int cm_ExSetHome(G17MSG *m, G17STAT *s)
 {
-    int kind[2];
+    ORDKIND kind;
     AIBLD *b, *o;
     AICHAR *c;
 
@@ -4917,8 +4891,8 @@ int cm_ExSetHome(G17MSG *m, G17STAT *s)
     if (c == 0 && m->home.charId != -1)
         return 1;
     if (ai_BTypes[b->type].kind == 1) {
-        ord_GetKindRecord(b->type, kind);
-        if (b->residents >= (unsigned short)kind[0])
+        ord_GetKindRecord(b->type, &kind);
+        if (b->residents >= kind.residents)
             return 1;
         b->residents++;
     }
@@ -5146,7 +5120,7 @@ int cm_ExHire(G17MSG *m, G17STAT *s)
     } else if (c != 0)
         home = c->bld2;
     if (c == 0 || c->bld != 0)
-        c = (AICHAR *)gm_SpawnCharacter(6, m->hire.kind, 0x12, m->hire.job, m->hire.title, home);
+        c = gm_SpawnCharacter(6, m->hire.kind, 0x12, m->hire.job, m->hire.title, home);
     if (c == 0) {
         if (s != 0) {
             s->state = 2;
@@ -5412,7 +5386,7 @@ int cm_ExChangePlayerHe(G17MSG *m, G17STAT *s)
     if (c == 0)
         err_Message("cm_ExChangePlayerHe(): invalid sp->id");
     if (c->id != 0xffff)
-        sv_MoveToGroup(c->bld, (struct AIOBJ *)m->clear.room, c->id, 0);
+        sv_MoveToGroup(c->bld, m->clear.room, c->id, 0);
     if (s != 0) {
         s->state = 1;
         s->kind = 0;
@@ -5569,7 +5543,7 @@ int cm_ExCreateGeb(G17MSG *m, G17STAT *s)
         return 1;
     if (net_Conn.s != -1)
         ai_NextObjectId = m->geb.objectId;
-    b = (AIBLD *)gm_CreateBuilding(m->geb.kind, c->id);
+    b = gm_CreateBuilding(m->geb.kind, c->id);
     if (b == 0)
         return 1;
     cm_LastBuildingId = b->id;
@@ -5690,7 +5664,7 @@ int cm_ExWalkPath(G17MSG *m, G17STAT *s)
     CHACTION *a;
     int idx, i;
 
-    p = ch_FindByName(((CMWALKPATHMSG *)m->data)->name);
+    p = ch_FindByName(m->walkPath.name);
     if (p == 0)
         return 1;
     a = p->actions;
@@ -5698,11 +5672,11 @@ int cm_ExWalkPath(G17MSG *m, G17STAT *s)
         return 2;
     i = 0;
     if (a->u.walk.path != 0) {
-        a->u.walk.pathLen = ((CMWALKPATHMSG *)m->data)->to;
-        idx = ((CMWALKPATHMSG *)m->data)->from;
+        a->u.walk.pathLen = m->walkPath.to;
+        idx = m->walkPath.from;
         for (; i < 2 && idx < a->u.walk.pathLen; i++, idx++) {
-            ((unsigned char *)a->u.walk.path)[idx * 2] = ((CMWALKPATHMSG *)m->data)->cells[i * 2];
-            ((unsigned char *)a->u.walk.path)[idx * 2 + 1] = ((CMWALKPATHMSG *)m->data)->cells[i * 2 + 1];
+            a->u.walk.path[idx].x = m->walkPath.cells[i * 2];
+            a->u.walk.path[idx].z = m->walkPath.cells[i * 2 + 1];
         }
     }
     if (s != 0) {
@@ -5961,7 +5935,7 @@ int cm_ExFightCommand(G17MSG *m, G17STAT *s)
 
     if (cm_CurrentFight == 0 || cm_CurrentFight->id != m->fight.fight)
         return 1;
-    c = cm_FindFighter(m->fight.slot.id);
+    c = cm_FindFighter(m->fight.slot.charId);
     switch (m->fight.cmd) {
     case 2:                                         /* attack */
         if (c->health != 0) {
@@ -6014,7 +5988,7 @@ int cm_ExMessageRecord(G17MSG *m, G17STAT *s)
         s->kind = 0;
         s->ref = 0;
     }
-    if (ord_HandleMessageRecord(&m->data[0]) == 0)
+    if (ord_HandleMessageRecord(&m->record) == 0)
         return 1;
     if (s != 0)
         s->state = 1;
@@ -6204,11 +6178,6 @@ int cm_ExAddSkill(G17MSG *m, G17STAT *s)
         s->state = 1;
     return 0;
 }
-typedef struct CMSPYREPORT {            /* an AIOBJ of kind 0xca (a spy report) as this unit reads it: the report's words
-                                           0x1c .. 0x37 (HESPYREPORT) after the object's head */
-    char pad1c[0x1c];
-    HESPYREPORT report;
-} CMSPYREPORT;
 
 /* 0x4ccce0, handler of message 0x5e, the spy report m->spy (a HESPYREPORT, sent by cm_SendSpyReport) on the building
    m->spy.bldId: stores it in the report object 0xca of that building (a new one when it has none yet, m->spy.objId
@@ -6219,7 +6188,7 @@ int cm_ExSpyReport(G17MSG *m, G17STAT *s)
 {
     AIBLD *a, *b;
     AIOBJ *q;
-    CMSPYREPORT *r;
+    AIOBJ *r;
     int v;
 
     if (net_Conn.s != -1)
@@ -6237,16 +6206,16 @@ int cm_ExSpyReport(G17MSG *m, G17STAT *s)
         return 1;
     q = gm_Query(b->objList, 1, 0, 0xca);
     while (q != 0) {
-        if (((CMSPYREPORT *)q)->report.bld == a->id)
+        if (q->report.bld == a->id)
             goto found;
         q = gm_QueryNext();
     }
-    q = (AIOBJ *)gm_CreateObject(b->id, 0xca, 1);
+    q = gm_CreateObject(b->id, 0xca, 1);
     if (q == 0)
         return 1;
     cm_LastObjectId = q->objId;
 found:
-    r = (CMSPYREPORT *)q;
+    r = q;
     r->report.when = m->spy.rep.when;
     r->report.bld = m->spy.rep.bld;
     r->report.goods = m->spy.rep.goods;
@@ -6282,30 +6251,30 @@ int cm_ExGraveOrder(G17MSG *m, G17STAT *s)
         s->ref = 0;
     }
     if (net_Conn.s != -1)
-        ai_NextObjectId = ((GVORDER *)m->data)->objId;
+        ai_NextObjectId = m->graveOrder.objId;
     else
-        ((GVORDER *)m->data)->seed = rand();
-    switch (((GVORDER *)m->data)->type) {
+        m->graveOrder.seed = rand();
+    switch (m->graveOrder.type) {
     case 0:
         r = gv_BuryCharacter((int *)m->data);
         break;
     case 1:
-        r = gv_ReserveGrave((GVORDER *)m->data);
+        r = gv_ReserveGrave(&m->graveOrder);
         break;
     case 2:
-        r = gv_ExtendGrave((GVORDER *)m->data);
+        r = gv_ExtendGrave(&m->graveOrder);
         break;
     case 3:
-        r = gv_SetGraveHolder((GVORDER *)m->data);
+        r = gv_SetGraveHolder(&m->graveOrder);
         break;
     case 4:
-        r = gv_OpenSize((GVORDER *)m->data);
+        r = gv_OpenSize(&m->graveOrder);
         break;
     case 5:
-        r = gv_AdjustEntry((GVORDER *)m->data);
+        r = gv_AdjustEntry(&m->graveOrder);
         break;
     case 6:
-        r = gv_AddNewDead(m->data);
+        r = gv_AddNewDead(&m->graveOrder);
         break;
     default:
         return -1;
@@ -6346,11 +6315,11 @@ int cm_ExRaiseDead(G17MSG *m, G17STAT *s)
         s->ref = 0;
     }
     if (net_Conn.s != -1)
-        ai_NextObjectId = ((GVRAISE *)m->data)->objId;
+        ai_NextObjectId = m->raiseDead.objId;
     else
-        ((GVRAISE *)m->data)->seed = rand();
-    util_Seed(((GVRAISE *)m->data)->seed);
-    id = gv_RaiseDead((GVRAISE *)m->data);
+        m->raiseDead.seed = rand();
+    util_Seed(m->raiseDead.seed);
+    id = gv_RaiseDead(&m->raiseDead);
     if (id == 0xffff)
         return -1;
     if (s != 0) {
@@ -6375,11 +6344,11 @@ int cm_ExCreateAlchemist(G17MSG *m, G17STAT *s)
         s->ref = 0;
     }
     if (net_Conn.s != -1)
-        ai_NextObjectId = ((AHMCREATEMSG *)m->data)->charId;
+        ai_NextObjectId = m->ahmCreate.charId;
     else
-        ((AHMCREATEMSG *)m->data)->seed = rand();
-    util_Seed(((AHMCREATEMSG *)m->data)->seed);
-    id = ahm_CreateAlchemist((AHMCREATEMSG *)m->data);
+        m->ahmCreate.seed = rand();
+    util_Seed(m->ahmCreate.seed);
+    id = ahm_CreateAlchemist(&m->ahmCreate);
     if (id == 0xffff)
         return -1;
     if (s != 0) {
@@ -6406,33 +6375,33 @@ int cm_ExAlchemistOrder(G17MSG *m, G17STAT *s)
         s->kind = 0;
         s->ref = 0;
     }
-    c = gm_FindChar(((AHMORDER *)m->data)->charId);
+    c = gm_FindChar(m->ahmOrder.charId);
     if (c == 0)
         return -1;
     if (ahm_HasRecord(c) == 0)
         return -2;
-    o = (AHMORDER *)m->data;
+    o = &m->ahmOrder;
     switch ((unsigned int)o->tag) {
     case AHM_CMD_ADD_VALUE:
-        r = ahm_AddValue((int *)o, c->bld->ahm);
+        r = ahm_AddValue(o, c->bld->ahm);
         break;
     case AHM_CMD_DELETE:
         g = c->bld;
-        r = ahm_DeleteAlchemist((int)o, (int *)g->ahm, g);
+        r = ahm_DeleteAlchemist(o, g->ahm, g);
         break;
     case AHM_CMD_SET_SHARE:
-        r = ahm_SetShare((int *)o, c->bld->ahm);
+        r = ahm_SetShare(o, c->bld->ahm);
         break;
     case AHM_CMD_SET_PLACE:
-        r = ahm_SetPlaceValue((int *)o, c->bld->ahm);
+        r = ahm_SetPlaceValue(o, c->bld->ahm);
         break;
     case AHM_CMD_ADD_PLACE:
         g = c->bld;
-        r = ahm_AddPlace((int *)o, g->ahm, g);
+        r = ahm_AddPlace(o, g->ahm, g);
         break;
     case AHM_CMD_REMOVE_PLACE:
         g = c->bld;
-        r = ahm_RemovePlace((int *)o, g->ahm, g);
+        r = ahm_RemovePlace(o, g->ahm, g);
         break;
     default:
         return -3;
@@ -6497,7 +6466,7 @@ int cm_ExShots(G17MSG *m, G17STAT *s)
         s->kind = 0;
         s->ref = 0;
     }
-    r = gv_StartShot((struct GVSHOTMSG *)&m->data[0], s);
+    r = gv_StartShot(&m->shots, s);
     if (s != 0 && r != 0)
         s->state = 1;
     if (r != 0)
@@ -6565,21 +6534,21 @@ int cm_ExClearRoute(G17MSG *m, G17STAT *s)
 }
 /* 0x4cd350, a free slot of the eight CMLOBBYPLAYER records of cm_LobbyPlayers (id 0), 0: none */
 
-char *cm_LobbyFreeRecord()
+CMLOBBYPLAYER *cm_LobbyFreeRecord()
 {
     int i = 0;
     CMLOBBYPLAYER *p;
 
     for (p = cm_LobbyPlayers; (int)p < (int)(cm_LobbyPlayers + 8); p++) {
         if (p->id == 0)
-            return (char *)&cm_LobbyPlayers[i];
+            return &cm_LobbyPlayers[i];
         i++;
     }
     return 0;
 }
 /* 0x4cd380, the lobby record (CMLOBBYPLAYER) with the id, else a free one (cm_LobbyFreeRecord); 0 for id 0 */
 
-char *cm_LobbyRecord(int id)
+CMLOBBYPLAYER *cm_LobbyRecord(int id)
 {
     int i;
     CMLOBBYPLAYER *p;
@@ -6589,7 +6558,7 @@ char *cm_LobbyRecord(int id)
     i = 0;
     for (p = cm_LobbyPlayers; (int)p < (int)(cm_LobbyPlayers + 8); p++) {
         if (p->id == id)
-            return (char *)&cm_LobbyPlayers[i];
+            return &cm_LobbyPlayers[i];
         i++;
     }
     return cm_LobbyFreeRecord();
@@ -6668,10 +6637,10 @@ int cm_LobbyAllReady(void)
     int cnt, i;
     CMLOBBYPLAYER *q;
 
-    if (cm_NetGame.mode == 0x3f)
-        n = cm_NetGame.hdr.players;
+    if (cm_NetGame.flags == 0x3f)
+        n = cm_NetGame.info.game.players;
     else
-        n = cm_NetGame.hdr.players;
+        n = cm_NetGame.info.game.players;
     if (cm_LobbyList[0] < n)
         return 0;
     cnt = 0;
@@ -6708,13 +6677,13 @@ unsigned int *cm_LobbyPlayerList(void)
 
 CMLOBBYPLAYER *cm_LobbyFindPlayer(int id)
 {
-    return (CMLOBBYPLAYER *)cm_LobbyRecord(id);
+    return cm_LobbyRecord(id);
 }
 /* 0x4cd5f0, this player's lobby record (the one of the id cm_LobbyPlayerId) */
 
 CMLOBBYPLAYER *cm_LobbyMyPlayer(void)
 {
-    return (CMLOBBYPLAYER *)cm_LobbyRecord(cm_LobbyPlayerId);
+    return cm_LobbyRecord(cm_LobbyPlayerId);
 }
 /* 0x4cd600, the lobby state: [0] the lobby is open (cm_LobbyStart), [1] a lobby message came in (cm_ExLobby) */
 
@@ -6832,19 +6801,19 @@ int cm_ExLobby(G17MSG *m, G17STAT *s)
         memcpy(cm_LobbyList, m->lobby.list, sizeof(m->lobby.list));
         break;
     case 1:
-        p = (CMLOBBYPLAYER *)cm_LobbyRecord(m->lobby.state.id);
+        p = cm_LobbyRecord(m->lobby.state.id);
         if (p == 0)
             return -2;
         memcpy(p, &m->lobby.state, sizeof(m->lobby.state));
         break;
     case 2:
-        p = (CMLOBBYPLAYER *)cm_LobbyFreeRecord();
+        p = cm_LobbyFreeRecord();
         if (p == 0)
             return -1;
         memcpy(p, &m->lobby.player, sizeof(CMLOBBYPLAYER));
         break;
     case 3:
-        p = (CMLOBBYPLAYER *)cm_LobbyRecord(m->lobby.state.id);
+        p = cm_LobbyRecord(m->lobby.state.id);
         if (p == 0)
             return -2;
         if (m->lobby.state.value == 1)
@@ -6852,13 +6821,13 @@ int cm_ExLobby(G17MSG *m, G17STAT *s)
         memset(p, 0, sizeof(CMLOBBYPLAYER));
         break;
     case 4:
-        p = (CMLOBBYPLAYER *)cm_LobbyRecord(m->lobby.player.id);
+        p = cm_LobbyRecord(m->lobby.player.id);
         if (p == 0)
             return -2;
         memcpy(p, &m->lobby.player, sizeof(CMLOBBYPLAYER));
         break;
     case 5:
-        p = (CMLOBBYPLAYER *)cm_LobbyRecord(m->lobby.player.id);
+        p = cm_LobbyRecord(m->lobby.player.id);
         if (p == 0)
             return -2;
         memcpy(p, &m->lobby.player, sizeof(CMLOBBYPLAYER));
@@ -6884,8 +6853,8 @@ extern char cm_ChatLog[2048];
 extern int cm_SaveAcks[8][2];
 extern int ai_Evidence[0x800][2];
 extern int cm_SavedScene;
-extern int cm_DuelRight;
-extern int cm_DuelLeft;
+extern struct AICHAR *cm_DuelRight;
+extern struct AICHAR *cm_DuelLeft;
 extern int cm_DuelVariants[128];
 extern int cm_OrderTicks;
 extern unsigned short cm_DisabledObjs[768];
@@ -6905,7 +6874,7 @@ extern int cm_CharInfoWins[32];
 extern G18LOG cm_LobbyChat[15];
 extern int cm_LobbyChatNext;
 extern unsigned int cm_LobbyList[9];
-extern CMNETGAME cm_NetGame;
+extern UDPSERVER cm_NetGame;
 extern CMLOBBYPLAYER cm_LobbyPlayers[8];
 extern int cm_LobbyPlayerId;
 extern int cm_LobbyHelloValue;
@@ -6955,14 +6924,14 @@ extern unsigned int ai_MissionSeed;
 extern struct AIBLD *sv_SelectedObject;
 extern char cm_ChatLog[2048];
 extern int cm_SaveAcks[8][2];
-/* ai_Unk770d8c: view of ai_Chars (tools/data_views.py) */
+/* ai_Unk770d8c (0x770d8c): inside ai_Chars[0] (+0x20c), no reader left (data_views.h has no view of it) */
 G18LOG cm_LobbyChat[15];  /* 0x935da0 */
 int cm_LobbyChatNext;  /* 0x9363f4 */
 CMLOBBYSTATE cm_LobbyStateFlags;  /* 0x936400, the lobby state cm_LobbyState hands out (open, changed, closed): one object of
                                     17..32 bytes, LINK's common pad puts it at 0x936400 after cm_LobbyChatNext's end 0x9363f8
                                     (tools/exe/commongaps.py); 20 taken */
 unsigned int cm_LobbyList[9];  /* 0x936420, the count then the eight player states (0x24 bytes) */
-CMNETGAME cm_NetGame;  /* 0x936460, the network game (hdr.players 0x936496, mode 0x9364dc) */
+UDPSERVER cm_NetGame;  /* 0x936460, the network game (info.game.players 0x936496, flags 0x9364dc) */
 CMLOBBYPLAYER cm_LobbyPlayers[8];  /* 0x9364e0, the eight lobby player records */
 CMJOIN cm_JoinChar;  /* 0x9367a0, the joined character (main_JoinNetworkGame) */
 int cm_LobbyPlayerId;  /* 0x9367d0, this player's lobby id */

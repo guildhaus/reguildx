@@ -1022,7 +1022,7 @@ void snd_UnloadBuildingVoices(void)
 /* 0x4c2c70, a click comment of the character c (half the time a click noise; never for the building kind
    0x14): plays one of the worker banks loaded by snd_LoadBuildingVoices */
 
-void snd_PlayWorkerClick(G16CHARCLICK *c)
+void snd_PlayWorkerClick(AICHAR *c)
 {
     int r;
 
@@ -1042,11 +1042,11 @@ void snd_PlayWorkerClick(G16CHARCLICK *c)
 void snd_PlaySelectedClick(void)
 {
     int i;
-    char *p;
+    unsigned char *p;
 
-    for (i = 0, p = ai_Selected; (int)p < (int)(ai_Selected + 0x300 * 0x21c); p += 0x21c, i++) {
+    for (i = 0, p = &ai_Chars[0].selected; (intptr_t)p < (intptr_t)&ai_Chars[0x300].selected; p += 0x21c, i++) {
         if (*p != 0) {
-            snd_PlayWorkerClick((G16CHARCLICK *)&ai_Chars[i]);
+            snd_PlayWorkerClick(&ai_Chars[i]);
             return;
         }
     }
@@ -1238,7 +1238,7 @@ struct SBBANK *snd_VoiceBankNoise = 0;  /* 0x6f0cc4, voice bank: click noises */
 int snd_UnreadBss = 0;  /* 0x6f0cc8, no surviving instruction or pointer refers to it: data of functions /OPT:REF removed; size from the neighbours' addresses */
 struct SBBANK *snd_VoiceBankGreeting = 0;  /* 0x6f0ccc, voice bank: greeting */
 extern struct D3TRAIN *d3t_Rain;
-/* ai_Selected: view of ai_Chars (tools/data_views.py) */
+/* ai_Selected (0x770d08): ai_Chars[0].selected, read as the AICHAR field (data_views.h has no view of it) */
 SNDRAIN snd_Rain;  /* 0xf81240, the rain sounds' state: one common of 72 bytes (tools/exe/commongaps.py: the copy of
                       ai_Time, 14 bytes, starts the f3snd group 32-aligned at 0xf81240 and each loop handle lies 8 after
                       the previous one, with no reader between them; 4-byte commons would be packed) */
