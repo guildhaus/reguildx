@@ -45,7 +45,7 @@ Cache variables, all with defaults:
 | `LLVM_MINGW_ROOT` | the `LLVM_MINGW_ROOT` environment variable, else the newest `C:/Tools/llvm-mingw-*-x86_64`, else `PATH` |
 | `REGUILDX_GAME_DIR` | `C:/Program Files/GOG Galaxy/Games/The Guild Gold` (the install, never written) |
 | `REGUILDX_RUN_DIR` | `run` in the build directory |
-| `REGUILDX_DEBT_WARNINGS` | `OFF`: hides the ~11k loose-typing warnings (see below) |
+| `REGUILDX_DEBT_WARNINGS` | `OFF`: hides the ~410 loose-typing warnings (see below) |
 
 Staging (`cmake/stage-run.cmake`, also the `stage` target) links the install's folders into the run
 directory and copies its ini / dll / asi files once. The run directory's `game.ini` is its own copy and
@@ -64,9 +64,9 @@ follow-up step:
 - `-fms-extensions`: `__declspec`, MS-style `__asm { }` blocks and the `i64` literal suffix (`shp.c`,
   `shp_asm.c`, `d2.c` / `d3_engine.c` fill macros, ...). Replacing them with C makes the code portable
   beyond x86.
-- `-Wno-error=incompatible-pointer-types`, `int-conversion`, `return-mismatch`: loose typing from the
-  decompilation (about 100, 19 and 5 sites). Together with `incompatible-function-pointer-types` and
-  `deprecated-non-prototype` these are ~550 warnings, hidden unless `REGUILDX_DEBT_WARNINGS=ON`.
+- `-Wno-error=incompatible-pointer-types`: 4 COM out-parameters passed as `void **` (`d3_d3d.c`,
+  `Dd_vesa.c`). Together with `incompatible-function-pointer-types` (232) and `deprecated-non-prototype`
+  (175) these are ~410 warnings, hidden unless `REGUILDX_DEBT_WARNINGS=ON`.
 - `-fno-strict-aliasing -fwrapv -fno-delete-null-pointer-checks`: type punning and other UB assumed safe.
 - `-fno-auto-import`: needed because the asm blocks use every register.
 - `--disable-dynamicbase`: fixed image base until the code is known to be ASLR-clean.

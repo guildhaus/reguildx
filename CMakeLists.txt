@@ -33,16 +33,13 @@ target_compile_options(reguildx PRIVATE
   -fno-auto-import   # extern data is addressed directly (the asm blocks need every register)
   # Loose typing MSVC 6 accepted with a warning; modern clang rejects it by default.
   -Wno-error=incompatible-pointer-types
-  -Wno-error=int-conversion
-  -Wno-error=return-mismatch
 )
-# The four warnings that make most of the build output are that same loose typing (~550 of them).
+# The three warnings that make most of the build output are that same loose typing (~410 of them).
 # Off by default so the rest (format, return-type, ...) stays readable; ON shows the debt.
 option(REGUILDX_DEBT_WARNINGS "show the loose-typing warnings of the decompilation" OFF)
 if(NOT REGUILDX_DEBT_WARNINGS)
   target_compile_options(reguildx PRIVATE
     -Wno-deprecated-non-prototype
-    -Wno-int-conversion
     -Wno-incompatible-pointer-types
     -Wno-incompatible-function-pointer-types)
 endif()
