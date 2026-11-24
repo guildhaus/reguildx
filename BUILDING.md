@@ -65,7 +65,10 @@ follow-up step:
   `shp_asm.c`, `d2.c` / `d3_engine.c` fill macros, ...). Replacing them with C makes the code portable
   beyond x86.
 - `-Wno-error=incompatible-pointer-types`: 4 COM out-parameters passed as `void **` (`d3_d3d.c`,
-  `Dd_vesa.c`). Together with `incompatible-function-pointer-types` (232) and `deprecated-non-prototype`
+  `Dd_vesa.c`).
+- `-Wno-error=return-mismatch`: upstream keeps a bare `return;` in an `int` function where it matches the
+  original's code (`cm_RunWedding`'s two guards, `@original`).
+- Together with `incompatible-function-pointer-types` (232) and `deprecated-non-prototype`
   (175) these are ~410 warnings, hidden unless `REGUILDX_DEBT_WARNINGS=ON`.
 - `-fno-strict-aliasing -fwrapv -fno-delete-null-pointer-checks`: type punning and other UB assumed safe.
 - `-fno-auto-import`: needed because the asm blocks use every register.
