@@ -820,22 +820,7 @@ int ai_DecideAcquittal(AICHAR *ch, AIPLAN *q) {
   return 0;
 }
 /* 0x4945c0, the rank (0..7) of the plan's score rounded minus one: 4..5 -> 1, 6..7 -> 2 .. 14..16 -> 6, more -> 7; one less
-   for a character with flag 0x22e
-   @deep deep s34: two hunks. (1) regs: the original pops n (or r) before q: n / r esi, q edi. c2trace: q#1
-   18 (block 0, P 3, three refs), r#1 17 (seven case stores at P 1, -1 through the ai_InventoryHas block,
-   r-- and return), n#1 16 (def +6, n++ +2, switch +8); tie keys n 1c > q 1b, r 3f > q 1b, so n +2 or r +1
-   or q -2 decides it. flip.py --want 'mov edi, _q': only constant changes keep the count (0x22e -> 7, r =
-   1 -> 0, the clamp's 0 -> 1: a constant used twice becomes a candidate and raises P of r's blocks) - no
-   ordinary form found yet. A float local t = q->score gives the registers (q 2 refs) but the x87 code
-   differs (fpu 14: the original reads q->score twice). = control: n reused as the rank, the clamp into a
-   named r / k, n = n < 0 ? 0 : n, n >= 0 ? n : 0, n = n + 1, r = r - 1, a break after default; worse: if
-   (n < 0) n = 0 (17 / 98 bytes), n > 0 ? n : 0, return r - 1 / ?: forms (22), c first or between (M8), fl
-   first, fl double (M10), (float)floor. (2) order: fstp fl after push edx in the original (both before
-   gm_FindChar); unchanged by the t local. climb round 1: only the int t (meaning change). prior: read
-   against the original: same statements, same switch (tables equal), same calls and constants; renamed
-   AIPLAN.unk04 to score. Left is allocation: esi/edi swapped (original q in edi, n in esi; ours q in esi,
-   n in edi) which moves 'mov reg,[esp+arg]' after 'push edi' in the original, plus the fstp [esp+0x20]
-   scheduled after 'push edx' (0x4945f3..0x4945f7). Same instruction count. */
+   for a character with flag 0x22e */
 
 int ai_PlanRank(AIPLAN *q) {
   int n, r;
@@ -843,7 +828,7 @@ int ai_PlanRank(AIPLAN *q) {
   AICHAR *c;
 
   n = (int)(q->score - 1.0f);
-  fl = (float)(q->score - floor(q->score));
+  fl = q->score - floor(q->score);
   c = gm_FindChar(q->c18);
   if (fl >= 0.5f)
     n++;
@@ -852,7 +837,8 @@ int ai_PlanRank(AIPLAN *q) {
   case 1:
   case 2:
   case 3:
-    return 0;
+    r = 0;
+    break;
   case 4:
   case 5:
     r = 1;
@@ -881,7 +867,7 @@ int ai_PlanRank(AIPLAN *q) {
   default:
     r = 7;
   }
-  if (ai_InventoryHas(c, 0x22e))
+  if (r > 0 && ai_InventoryHas(c, 0x22e))
     r--;
   return r;
 }
@@ -5690,19 +5676,7 @@ int ai_DecideMasterBuilder(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2) {
 }
 /* 0x49ea90, execute callback of "Baumeister" (0x2f): upgrades the well ("upgr_brunnen", s2->kind 4: pays 0.3
    of the new type's value, sends the upgrade message 0x1e) or builds it ("bau_brunnen"), paid from the seat
-   object of player 1; then doubles weight s1->arg2 (1..3) of the action's second weight set
-   @deep deep s26: climb round 1 (42 mutants): nothing. = control: n in a block of its own, n set inside
-   the if from a re-read s1->arg2, nested ifs, 2.0f * w, w + w, return through n. flip.py --want 'mov
-   eax,[esi+16]': only swapping n = s1->arg2 with its test (meaning) and moving the else's return 0 out.
-   c2trace: s1#1 (4 refs, prio 32) takes esi first, n#1 (prio 18, avail eax..edi) then takes esi (n's def
-   is s1's last use); the original's eax for n means n was served before s1 (n's priority above s1's) or s1
-   lived past n's def. Left: n in esi vs eax (4 lines, 4 bytes). prior: read whole against the original:
-   the guards, the upgrade message (AIMSG fromId / flags / arg[0]), both payment paths, the failure path
-   placed last (if (build) {...} else {end group; return 0}) and the weight doubling all match, 105/105
-   instructions. Left is one register choice: n = s1->arg2 goes to esi (s1's register, dead) in ours, to
-   eax in the original: '- mov esi, dword ptr [esi + 0x10] / test esi, esi / cmp esi, 4 / fstp [esi*8 + X]'
-   vs '+ mov eax, dword ptr [esi + 0x10] / test eax, eax / cmp eax, 4 / fstp [eax*8 + X]'; reading s1->arg2
-   without a local gives the same code. */
+   object of player 1; then doubles weight s1->arg2 (1..3) of the action's second weight set */
 
 int ai_ExecuteMasterBuilder(AICHAR *p, AIARG *s1, AIARG *s2) {
   AIMSG m;
@@ -5725,6 +5699,10 @@ int ai_ExecuteMasterBuilder(AICHAR *p, AIARG *s1, AIARG *s2) {
                      (int)(gm_BuildingKindValue(s1->ref) * 0.3f));
     cm_SendLongMessage(&m);
     cm_EndGroup("upgr_brunnen");
+    n = s1->arg2;
+    if (n > 0 && n < 4)
+      ai_Actions[0x2f].w3[n].w = ai_Actions[0x2f].w1[0].w * 2.0f;
+    return 0x2f;
   } else {
     cm_BeginGroup("bau_brunnen");
     if (ai_ExecBuildBuilding(ai_PlayerChar, s1, s2) != 0) {
@@ -6982,22 +6960,7 @@ int ai_ExecuteApprenticeship(AICHAR *p, AIARG *s1, AIARG *s2) {
 }
 /* 0x4a13e0, decide callback 0x3b: the oldest married child (0x164, not 0x10000 in 0x1c8) gets one of three
    offers of 0x4948f0 (o2 kind 0xe), the best or the worst by the child's ratio 0x80.. to the family's 0x503ee0
-   values; the character needs ten times the price
-   @deep deep s43: the addressing order is a CSE effect: with rec[n].c unnamed (a CSE temp, no sk) VC6
-   addresses it [edi+esi+0x80] as the original, but then (a) in one sum s[n] = b/va + c/vb VC6 puts the c
-   term first (fpu 22, 8 ins, every operand order / parens the same code), (b) as s[n] = b/va; s[n] += c/vb
-   the order is right but the strength-reduced rec pointer is based on .c (lea edx,[esp+0x2c], [edx-4])
-   instead of .b (6 ins): the IV base seems to follow the last-referenced field. Tried this session: sk
-   named in vb only / s only (mixes), b named (m or sk) 14, a G8OFFER *r loop pointer (= the index forms),
-   va/vb as term temps (va = b/va; s = va + c/vb: 6), s[n] = s[n] + .. (6), the max statements interleaved
-   with the terms (84), reversed index spellings *(sk + p), sk[p], raw byte offsets, (float) casts: all =
-   control. climb --base v0s0f2 2 rounds: back to the control (named t). Open: a form where the b term is
-   first on the FPU and the last rec reference is .b with .c as a CSE. prior: deep s23: the c index as a
-   named local sk (climb local op) and the sum b/va first: 8 -> 2 ins. Left: best->skills[sk] addressed
-   [esi+edi+0x80] where the original has [edi+esi+0x80] (index register first). sk as
-   unsigned/long/short/char, *(skills + sk), parens, both indexes named, 30 orders of the va / sk / vb
-   statements x sum forms, sk = .. inside the max argument: no lever or worse; flip.py: only sk first
-   (worse elsewhere) and type changes flip it. */
+   values; the character needs ten times the price */
 
 int ai_DecideStudy(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2) {
   JOBTALENTS x;
@@ -7038,7 +7001,8 @@ int ai_DecideStudy(int a, AICHAR *p, int f, AIARG *o1, AIARG *o2) {
     va = max((float)x.skills[rec[n].subject], 1.0f);
     sk = rec[n].level;
     vb = max((float)x.skills[sk], 1.0f);
-    s[n] = best->skills[rec[n].subject] / va + best->skills[sk] / vb;
+    s[n] = (float)(best->skills[rec[n].subject] / va) +
+           best->skills[rec[n].level] / vb;
   }
   if (util_Random(2) != 0) {
     m = s[0] > s[1] ? 0 : 1;

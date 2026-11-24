@@ -1993,27 +1993,7 @@ unsigned int ai_FillEnemiesTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
 /* 0x5bf6f0, the fill of the special-amount window's lovers tab (tab 3, 195 B): the partners (gm_FindChar) of up to
    four pair events 0x6f of me (AIJOB.partner1 me's netId); with max set it clears max rows of rows and fills the
    first min(max, count) of them (LCAMOUNTROW.rec) with the corner icons (ai_AmountRowStatus) and the partner
-   filter filter (ai_PassesPartnerFilter, pickable); returns the count
-   @deep deep s34: c2trace --prio: n#1 9 against max#1 14 (max +16 in the memset block, P 4); n is
-   live-through in the gm_FindChar block (-6) and referenced only in the store block (+16, P 2). The scan
-   written as lovers[n] = gm_FindChar(..); if (lovers[n] != 0) n++; puts an n reference in the call block
-   (+16 there): n 19 > max 14, n = ebx / max = ebp, and with the min as max < n ? max : n (the original's
-   cmp ebp,ebx / mov eax,ebp / jb / mov eax,ebx) the variant is 2 ins (order 6): the only hunk left is the
-   store, which the original makes after the test (test eax,eax / je / mov [esp+ebx*4+0xc],eax / inc ebx) -
-   so that form is provably not the original's, not kept. = control: initgen (n i c ev), an early return
-   for max == 0, lovers[n] = c; n++ in braces; worse: n >= 4 break in the body (22), max < n ? max : n
-   alone (26). climb round 1 and climb --base on the 2-ins variant (2 rounds): nothing. Open: an n
-   reference in the gm_FindChar / test block that keeps the store behind the test. prior: match-deep
-   2026-11-17 (s8): draft -> shape, size 195 = 195: the fill loop walks rows (i++, rows++; rows->rec,
-   ai_AmountRowStatus(rows)): the original's esi row pointer and frame 0x10 (n in a register all through,
-   filter and me reloaded). Left: n and max swapped (the original n = ebx, max = ebp; ours n = ebp, max =
-   ebx): c2trace --prio: max#1 prio 14 (memset's max * 56 counts 2 refs in a P = 4 block) > n#1 prio 9
-   (lives unreferenced through the scan's call blocks 3/4 and the fill body 14), so max is served first and
-   takes ebx. With the regs swapped the min reads n < max ? n : max (20 ins, kept); max < n ? max : n gives
-   the same allocation plus an order hunk (26). Rounds: index form with count local 63, unsigned n 57,
-   while scan = control, row local = control, row-walk (row = rows; row++) 59, lovers[n] stored before the
-   test (no c) 26 but the store order is wrong, split n++ / nested if = control; climb --base rowp 2
-   rounds: nothing. Next: what raises n above max (an n reference the original has, or max's memset refs). */
+   filter filter (ai_PassesPartnerFilter, pickable); returns the count */
 
 unsigned int ai_FillLoversTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
                               AMOUNTCFG *filter) {
@@ -2024,16 +2004,21 @@ unsigned int ai_FillLoversTab(AICHAR *me, unsigned int max, LCAMOUNTROW *rows,
   AIJOB *ev;
 
   n = 0;
-  for (ev = he_FindEvent(1, 0, 0x6f); ev != 0 && n < 4; ev = he_NextEvent()) {
+  ev = he_FindEvent(1, 0, 0x6f);
+  while (ev != 0 && n < 4) {
     if (ev->partner1 == me->netId) {
       c = gm_FindChar(ev->partner2);
-      if (c != 0)
+      if (c != 0) {
         lovers[n++] = c;
+        ev = he_NextEvent();
+        continue;
+      }
     }
+    ev = he_NextEvent();
   }
   if (max != 0) {
     memset(rows, 0, max * sizeof(LCAMOUNTROW));
-    for (i = 0; i < (n < max ? n : max); i++, rows++) {
+    for (i = 0; i < (max < n ? max : n); i++, rows++) {
       rows->rec = lovers[i];
       ai_AmountRowStatus(rows);
       rows->pickable = ai_PassesPartnerFilter(me->id, rows->rec->id, filter, 0);
@@ -3488,13 +3473,31 @@ void ai_LawBookInfoWindow(int textId, int lawText) {
    0x1957 / 0x195a, bits 1 .. 3; else those controls are -1), the budget counter (text 0x1953, 1000 .. 9000, the
    converted budget *budget) and, for a class other than 5 with a production setting, the weight factor slider
    (text 0x42c2, 50 .. 150, the setting's factor in percent) into *factorCtrl (else -1)
-   @deep deep s38: left set.flags (the field web k#b, 8 refs, prio 186) in edi and checks (prio 198) in esi
-   where the original has them the other way round (checks is served first and takes esi). flags as a named
-   local (at the top or at the first use), checks[0] as *checks, the -1 stores first / reversed, (flags &
-   4) != 0 spellings, every subset of the four on values inlined into their two uses (15 variants): =
-   control or worse; climb round 1 (49 mutants): nothing. Open: a set.flags reference more in the first
-   block (P 15, +30 each) or one checks reference fewer would flip them; the original's parameter may have
-   been the four words of AIWORKSET as scalars (flags a parameter candidate). */
+   @deep deep s39: race checks#1 198 over the flags field web k#b 186 (served first, checks takes esi).
+   Exact form: flags - checks = 6 (P1 - P0), P0 = 15 candidates in the entry block (ai_BTypes, charId,
+   checks, ctrl#1, on#1, type, win, the constants 1 / 2 / 0 / -1 / 5, flags, two type-index CSE temps), P1
+   = 13 in the option arm (charId, checks, ctrl x3, on x3, win, 1, 2, 0, flags); equal priority goes to k#b
+   (probe: -1 and 5 uses added to the arm tie at 238 and give flags esi / checks edi, the original's). So
+   the original has P1 >= P0, or the entry block split by a branch that leaves no code. flip.py --want 'mov
+   esi, DWORD PTR _set$': every mutant that drops one checks reference flips it. Canonicalised to the
+   control's IR (= control, margin 12): checks[k] = d2_GetWinObj(..); d2_SetObjValue(checks[k], ..) (the
+   sibling ai_ShowSettingGoods' style, all subsets, on kept or inlined), on spellings (!= 0, ?:, % 2, !!,
+   if-else), a named flags local (shifted in place for the last box too, or set.flags itself), -1 stores as
+   a chain / through opt = checks + 1 / under if (checks != 0), do { } while (0) around any part, type
+   spellings, kind casts, local types / scopes / order, *factorCtrl = -1 as else. Worse: -1 stores as any
+   loop or memset (61..128), the -1 stores in both arms (52), type != 0 (34), no type local (80), kind
+   local (81). The budget block in both arms (je target 0x5c25d8 is exactly where a cross-jumped copy would
+   start) gives P1 14 (ctrl#5; single-use params / byte globals do not count), margin 6, but the copies are
+   not merged under our allocation (92); flip on that base: nothing natural. The scalar-parameter idea is
+   dead (the byte caller ai_MasterLetterSettings copies a 16-byte struct). climb 3 rounds: nothing. Open:
+   which candidate(s) the original's arm has more, or what splits the entry block. prior: deep s38: left
+   set.flags (the field web k#b, 8 refs, prio 186) in edi and checks (prio 198) in esi where the original
+   has them the other way round (checks is served first and takes esi). flags as a named local (at the top
+   or at the first use), checks[0] as *checks, the -1 stores first / reversed, (flags & 4) != 0 spellings,
+   every subset of the four on values inlined into their two uses (15 variants): = control or worse; climb
+   round 1 (49 mutants): nothing. Open: a set.flags reference more in the first block (P 15, +30 each) or
+   one checks reference fewer would flip them; the original's parameter may have been the four words of
+   AIWORKSET as scalars (flags a parameter candidate). */
 
 void ai_ShowWorkSettingsPage(int win, int *budgetCtrl, int *budget, int *checks,
                              AIBLD *bld, int charId, AIWORKSET set,
@@ -3660,13 +3663,7 @@ void ai_MasterHireWindow(AIBLD *bld, int mode) {
 /* 0x5c2a10, fills the master letter window's goods page (400 B): the title text 0x1949, then one row per slot of
    the production setting (seven, 0x30 pixels apart): the good's picture (d2 style 3, its AIGOOD record as the
    object's user data, interactive, checked while the slot is not locked) into locks[i] and the weight slider
-   (0 .. 100, the slot's weight, disabled while locked) into sliders[i]; an empty slot gives -1 in both
-   @deep deep s38: the empty-slot arm as the else and y, i stepped in the for's increment (y += 0x30 first)
-   put y into win's dead parameter slot as in the original (32 -> 6 ins). Left: the latch's inc edi comes
-   before add eax,0x30 in the original, and at the loop entry the slider cursor is stored to sliders' slot
-   before y = 0xc. i++ written before y += 0x30 (in the increment or in the body) makes the cursor temp
-   reach its count 4 before y in the walk and y loses win's slot (24 ins); 36 init x increment orders: 3
-   codegens; i < 7 as the bound: 8 ins; climb 2 rounds (341 mutants): nothing. */
+   (0 .. 100, the slot's weight, disabled while locked) into sliders[i]; an empty slot gives -1 in both */
 
 void ai_ShowSettingGoods(int win, G8SLOT *slots, int *sliders, int *locks) {
   int i;
@@ -3678,7 +3675,7 @@ void ai_ShowSettingGoods(int win, G8SLOT *slots, int *sliders, int *locks) {
   io_PrintText(0x1949);
   d2_SetForm(win, 2);
   io_PrintText((intptr_t)"$C");
-  for (i = 0, y = 0xc; y < 0x15c; y += 0x30, i++) {
+  for (i = 0; i < 7; i++) {
     if (slots[i].good != 0) {
       pic = d2_WinOpenPic(0xf, i * 0x30, slots[i].good + 0xdf, d2_LastWindow);
       d2_Objs[pic].style = 3;
@@ -3688,7 +3685,7 @@ void ai_ShowSettingGoods(int win, G8SLOT *slots, int *sliders, int *locks) {
       d2_Objs[pic].checked = slots[i].lock == 0;
       locks[i] = pic;
       sliders[i] =
-          d2_WinOpenSlider(100, y, 200, 0, 0x64, 0x7b, 0x802, d2_LastWindow);
+          d2_WinOpenSlider(100, i * 0x30 + 0xc, 200, 0, 0x64, 0x7b, 0x802, d2_LastWindow);
       d2_SetObjValue(sliders[i], 0, 0x64, slots[i].weight);
       d2_SetObjEnabled(sliders[i], slots[i].lock == 0);
     } else {
@@ -6680,16 +6677,7 @@ int ai_BlackmailContactWindow(AICHAR *ch, int n) {
    order message m. Of another kind than 6 / 7 (the AI): no character m->target: 0x60; else the letter 0x47 to it
    as ai_BlackmailContactWindow sends it (not waited for), me pays 2: 0x10. A player picks the victim in the amount
    menu (mode 0x400, kind 6, the gypsy filter, the caption 0x1d66) with the letter window ai_BlackmailContactWindow
-   as its pick callback: 0x81 when the picked character is marked (powerFlags 0x400) afterwards, else 2
-   @deep deep s29: the original emits the letter fill as: the ai_Time dwords, me->netId into to / fromId /
-   letter.from, text1, the victim->netId load, lea / push &msg, and only then the type 0x47, flags 2, the
-   time's last word, text2 and the victim store (five stores after the push); ours puts every store before
-   the push (order 30). The byte sibling ai_BlackmailContactWindow has the same statement order (type, to,
-   fromId, flags, time, from, text1, text2, victim) and keeps its stores before the push. Tried: msg at
-   function scope / cfg in the else block (= control); victim->netId into a local before the memset (64);
-   no memset (diagnostic, 85); 1500 sampled orders of the nine fill statements (permute.py, best 12 ins /
-   63 bytes); climb 2 rounds: 10 ins / 71 bytes (victim, flags, text2 last; the same order 30 hunks, bytes
-   worse, not kept). */
+   as its pick callback: 0x81 when the picked character is marked (powerFlags 0x400) afterwards, else 2 */
 
 int ai_BlackmailContact(AICHAR *me, ORDMSG *m) {
   int ret;
@@ -6701,24 +6689,26 @@ int ai_BlackmailContact(AICHAR *me, ORDMSG *m) {
 
   ret = 2;
   if (me->kind != 6 && me->kind != 7) {
-    AIMSG msg;
-
     victim = gm_FindChar(m->target);
     if (victim == 0)
       return 0x60;
     text2 = util_Random(9) + 0x1d76;
     text1 = util_Random(9) + 0x1d6d;
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x47;
-    msg.to = me->netId;
-    msg.fromId = me->netId;
-    msg.flags = 2;
-    msg.time = ai_Time;
-    msg.letter.from = me->netId;
-    msg.letter.text1 = text1;
-    msg.letter.text2 = text2;
-    msg.letter.victim = victim->netId;
-    cm_SendLongMessage(&msg);
+    {
+      AIMSG msg;
+
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x47;
+      msg.to = me->netId;
+      msg.fromId = me->netId;
+      msg.flags = 2;
+      msg.time = ai_Time;
+      msg.letter.from = me->netId;
+      msg.letter.text1 = text1;
+      msg.letter.text2 = text2;
+      msg.letter.victim = victim->netId;
+      cm_SendLongMessage(&msg);
+    }
     cm_SendMoneyDelta(me->netId, -2);
     return 0x10;
   } else {
@@ -6790,17 +6780,7 @@ int ai_IntimidateWindow(AICHAR *ch, int n) {
 /* 0x5c9ff0, the intimidation order's ask (ord_IntimidateOrder, kind 3) for the character me with the order message
    m. Of another kind than 6 / 7 (the AI): no character m->target: 0x60; else me pays 2 and sends the message 0x4b
    to it as ai_IntimidateWindow does: 0x10. A player picks the victim in the amount menu (mode 0x400, kind 6, the
-   gypsy filter, the caption 0x1d61) with ai_IntimidateWindow as its pick callback: 1 when one was picked, else 0
-   @deep deep s43: climb --ops move,swap 4 rounds ends at the s23 best (to, time, arg[1], type, fromId,
-   flags, arg[0]: 4 ins), where only msg.to and msg.arg[1] are stored before the push of &msg (the original
-   stores type / to / fromId / flags, then arg[1], arg[0] after the push). Chained stores: every order of
-   the 3-chains of to / fromId / arg[0] (720, best 20) and of the 2-chains starting with to (1440, best 6):
-   no lever. Open: what makes the push of &msg rank above the constant stores (an escape of &msg before the
-   fill, another block extent). prior: deep s23: left four AIMSG stores (type 0x4b, to, fromId, flags 2)
-   that the original schedules after the arg[1] load and the push of &msg, ours before the last time-copy
-   store. All 5040 orders of the seven fill statements (best 4 ins / 39 bytes), climb 2 rounds (8 ins / 29
-   bytes), msg at function scope (= control), the money call after the fill and arg[0] before arg[1] (far
-   worse): no lever found. he_AllocMeeting's fill is scheduled the original's way with the same statements. */
+   gypsy filter, the caption 0x1d61) with ai_IntimidateWindow as its pick callback: 1 when one was picked, else 0 */
 
 int ai_IntimidateContact(AICHAR *me, ORDMSG *m) {
   int ret;
@@ -6808,21 +6788,23 @@ int ai_IntimidateContact(AICHAR *me, ORDMSG *m) {
 
   ret = 0;
   if (me->kind != 6 && me->kind != 7) {
-    AIMSG msg;
-
     victim = gm_FindChar(m->target);
     if (victim == 0)
       return 0x60;
     cm_SendMoneyDelta(me->netId, -2);
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x4b;
-    msg.to = me->netId;
-    msg.fromId = me->netId;
-    msg.flags = 2;
-    msg.time = ai_Time;
-    msg.arg[1] = victim->netId;
-    msg.arg[0] = me->netId;
-    cm_SendLongMessage(&msg);
+    {
+      AIMSG msg;
+
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x4b;
+      msg.to = me->netId;
+      msg.fromId = me->netId;
+      msg.flags = 2;
+      msg.time = ai_Time;
+      msg.arg[1] = victim->netId;
+      msg.arg[0] = me->netId;
+      cm_SendLongMessage(&msg);
+    }
     return 0x10;
   } else {
     AMOUNTCFG cfg;

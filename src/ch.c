@@ -3016,18 +3016,10 @@ int ch_PathToTarget(CHACTION *a) {
 
 /* ---- 0x408690..0x40a900 (worker ch5) ---- */
 
-/* 0x408690, walk actions: drops the current animation and finds the path to args[0], args[1] in scene args[2]
-   @deep deep s38: the frame says y is the third word of one 12-byte local with t: the original's order z,
-   x, t[0], t[1], y, name cannot come from separate locals (y size 4 sorts before t size 8; separate tx/tz
-   ints count 7 > x/z 5 and sort first). int t[3] with GetHeightAt(.., (float *)&t[2]) or struct { int
-   t[2]; float y; } c: frame exact, 6 ins left (order 12): the two t stores are emitted before mov
-   edx,[ebp+0x88] (ch->scene) where the original loads the scene and pushes it first: c2dag shows an edge
-   store -> load (the aggregate counts as aliased), which int t[2] / int t[3] without the cast do not have
-   (int t[3] + separate y: order right, frame 0x78). Moving the two stores (19 positions): no better. Open:
-   which 12-byte form leaves the load free (a typed record of the game? an array of a union?). */
+/* 0x408690, walk actions: drops the current animation and finds the path to args[0], args[1] in scene args[2] */
 int ch_InitWalk(CHACTION *a, D3SM *h) {
   CHARACTER *ch = a->ch;
-  int x, z, t[2]; /* t: target cell x, z */
+  int x, z, gx, gz, ox, oz; /* g: the target cell, o: the free cell found */
   float y;
   D3ANIMDATA *ad;
   char name[0x60];
@@ -3049,8 +3041,8 @@ int ch_InitWalk(CHACTION *a, D3SM *h) {
   a->u.walk.started = 0;
   a->u.walk.retryAt = -1;
   memset(ch->contacts, 0, sizeof ch->contacts);
-  t[0] = a->args[0];
-  t[1] = a->args[1];
+  gx = a->args[0];
+  gz = a->args[1];
   if (d3t_SceneIndex(ch->scene) != a->args[2]) {
     ch_RemoveAction(a);
     return 0;
@@ -3078,14 +3070,14 @@ int ch_InitWalk(CHACTION *a, D3SM *h) {
   if (ch->kind & 4)
     a->u.walk.flags &= ~CH_WALK_DEST;
   if (a->u.walk.flags & CH_WALK_DEST)
-    ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, t[0], t[1], &t[1], &t[0],
+    ch_FindFreeCell(h, &ch->obj->pos, &a->u.walk.dest, gx, gz, &ox, &oz,
                     8, a->u.walk.flags);
   else
-    ch_FindFreeCell(h, &ch->obj->pos, &ch->obj->pos, t[0], t[1], &t[1], &t[0],
+    ch_FindFreeCell(h, &ch->obj->pos, &ch->obj->pos, gx, gz, &ox, &oz,
                     8, a->u.walk.flags);
   ch_Path.xy = ch_PathBuf;
   ch_Path.max = 0x200;
-  if (path_Find(&ch_Path, h, x, z, t[1], t[0], ch->pathType) == 0xffff) {
+  if (path_Find(&ch_Path, h, x, z, ox, oz, ch->pathType) == 0xffff) {
     a->ch->pathState = 0;
     if (ch_MarkWalkErrors)
       a->ch->flags.bytes.lo |= 8;
@@ -3111,7 +3103,7 @@ int ch_InitWalk(CHACTION *a, D3SM *h) {
     a->u.walk.tpos.y = a->u.walk.target->pos.y;
     a->u.walk.tpos.z = a->u.walk.target->pos.z;
   } else {
-    d3sm_GetVertex(h, t[1], t[0], &a->u.walk.tpos);
+    d3sm_GetVertex(h, ox, oz, &a->u.walk.tpos);
     a->u.walk.end.x += ch_PathOffset.x; /* sic: end, not tpos */
     a->u.walk.end.y += ch_PathOffset.y;
     a->u.walk.end.z += ch_PathOffset.z;

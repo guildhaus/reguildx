@@ -2939,18 +2939,7 @@ int cm_EndWedding(void *arg) {
    "KIRCHE_HOCHZEIT.ed3", the track "Hochzeit", the sample bank "ADDON\\HOCHZEIT_NEU.sbf", the scenes hochzeit-create (the
    names "a b 1") / -intro and the speeches -reden1 .. -reden4 with their texts 0x1aa9 .. 0x1aad and voices, the pauses
    between; st holds the scene, the view, the bank and the voice for cm_EndWedding. A click ends it at once through
-   cm_EndWedding (its result returned); 0 when one of the couple is not found
-   @deep deep s28: climb round 1 (183 mutants, 159 codes): nothing below 12 ins. Not re-run: the s11/s12
-   guard forms. Left as the s12 note says: the two guards' own epilogue copies (jne + pop edi/esi/add/ret)
-   where the original je's into the main exit after the ebx region. prior: size queue s12 (no change):
-   c2tail --il pre shows the mechanism of the guard copies: the two 'if (x == 0) return 0' guards lie
-   before the ebx save (opba ebx after them, the name heads in ebx up to the sprintf) and return through
-   their own exit label (ret; jmp L9fbc: the epilogue without ebx) while every WED_STEP / WED_WAIT return
-   and the final return go to the main exit L6fa4; the guard label's short epilogue is then copied into
-   both guards. The original's guards je to the main exit, so there the two exits were one label (or merged
-   before the copy). c2tail's merger log shows only the sprintf call merge (no pair / move of the
-   epilogues). Next: what makes VC6 give the pre-save returns the main exit label (a guard after the first
-   ebx use? the save region's start?). */
+   cm_EndWedding (its result returned); no result set when one of the couple is not found (a bare return) */
 
 int cm_RunWedding(G28REC *m) {
   CMWEDDING st;
@@ -2959,12 +2948,14 @@ int cm_RunWedding(G28REC *m) {
   GMHEAD *ha, *hb;
   int r;
 
+  /* @original both guards are a bare `return;` in this int function: no return value is set, eax still
+     holds the find's 0 (the guards je straight into the main exit; `return 0` gives each an epilogue copy) */
   a = gm_FindChar(m->members[0]);
   if (a == 0)
-    return 0;
+    return;
   b = gm_FindChar(m->members[1]);
   if (b == 0)
-    return 0;
+    return;
   if (a->kind == 6)
     ai_CountMissionEvent(a, 0x28);
   if (b->kind == 6)

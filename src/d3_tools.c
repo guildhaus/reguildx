@@ -1560,21 +1560,18 @@ void d3t_SetSnow(D3TSNOW *snow, int n, ...) {
   }
   va_end(ap);
 }
-/* 0x414ea0, moves the snow flakes with the camera, the wind and the fall, and projects them. The locals x and y
-keep the x update on the FPU stack and fix the sy2 operand order. Initializing fall at the top puts it below wind on the stack. @deep deep s48: c2dag: the head block is cut at 81 nodes right after move.z's fmul; the fstp move.z is the first node of the second region (h 161 against the cam04c copies' 169..171), so its place there is a height question in region 2 (flip.py's wx / wz deletions lowered it). Rounds: one parenthesised term (or the first two grouped) in each of o.x, o.y, move.x/y/z (17: best = control 4, others 10..29), each term of the wind / fall lines parenthesised (18: 6..8+), wx / wz written inline (= control), the cam04c copies after the wind lines, move.N = move.N * 0.0025f (= control), initgen: = control. Left: the move.z fstp at 0x415000. prior: deep s23: wz = snow->windz without the parentheses: 8 -> 4 ins (the viewport loads now at the original's place). Left: the move.z store (fstp) one load later than the original (after mov ecx,[eax+0x50] instead of before). All 720 orders of the move scaling / cam04c copies: no lever; climb round 1 nothing; flip.py: deleting wx = / wz = (a load fewer) or dup of a cam04c copy flips it. The fall / wind transforms through vector temporaries (fall in place via x / y, the wind source as d): worse. */
+/* 0x414ea0, moves the snow flakes with the camera, the wind and the fall, and projects them, as d3t_UpdateRain
+does (the vel vector per flake). fall's initializer (0, -1, 0) puts it below wind on the stack. @deep deep s50: 2 ins: move.z = (move.z * 0.0025f) (the parenthesised product, also (float)(..), is an IL node op 263 in front of the fstp) and the loop as d3t_UpdateRain's (vel per flake, no x / y temporaries, the same code), fall's initializer instead of top stores (same code). Left: the fstp move.z one step LATE: mov edx; store cam04c.x; reload d3_Camera; mov ecx,[eax+0x50]; fstp; the original has fmul (region 1) | mov edx; store; reload; fstp; mov ecx. Plain *= gives it one step EARLY (mov edx; fstp; store). c2dag reading: the scheduler is latency-aware (mov ecx needs 2 cycles after the reload: control fills the slot with fld windx); the region-2 fstp (161*8192+65537) beats the store (169*8192) by ONE unit whenever ready, and both chains meet at wind.x's first fmul [eax+0x18c] (fstp -> fld windx -> fld windz -> fld st(1) -> fmul = 8; store -> reload / copy y / reload / copy z / reload -> fmul = 16, all fixed by the code); a cast on wind.x's first product lowers both by one (still one unit apart); a 263 in front of the fstp is issued only in the reload's stall slot and then loses to mov ecx; a cut one node earlier (any no-code node in region 1, e.g. (float)(move.x * k)) gives d3t_UpdateRain's order (mov edx; fmul; store; reload; mov ecx; fstp). So the original's DAG differs in a way no tried spelling reaches. No lever this session (= or worse): copy placements among the move / scale rows (83, x2), (m * k) / (float)(..) / (m) * k per row with every order and inline subset (186 + 63), whole-RHS paren / cast on each head statement and pairs (190 + 54 + 126), a cast on each product term of o / move / wind / fall (66), 1-3 labels before every head statement (186), block scopes for ex..ez / wx, wz / gy, wy / gx / gz locals, -1.0f literal, fall = {0, -1}, move as d (escaped), mz / t temporaries for the z scale at every copy position, casts on the copies (42), viewport orders (119); climb 3 / 6 / 4 / 10 rounds (seeds 7, 11, 23, --unsafe, ~5000 mutants): nothing. Next: find what else orders an fstp after an unrelated store and reload (a byte function with fmul; mov; store; reload; fstp: grep_orig), or what makes the original's fstp wait. prior: deep s48: c2dag: the head block is cut at 81 nodes right after move.z's fmul; the fstp move.z is the first node of the second region (h 161 against the cam04c copies' 169..171), so its place there is a height question in region 2 (flip.py's wx / wz deletions lowered it). Rounds: one parenthesised term (or the first two grouped) in each of o.x, o.y, move.x/y/z (17: best = control 4, others 10..29), each term of the wind / fall lines parenthesised (18: 6..8+), wx / wz written inline (= control), the cam04c copies after the wind lines, move.N = move.N * 0.0025f (= control), initgen: = control. Left: the move.z fstp at 0x415000. */
 
 void d3t_UpdateSnow(D3TSNOW *snow, float dt) {
-  D3VECTOR4 d, o, move, wind, fall;
+  D3VECTOR4 d, o, move, wind, fall = {0.0f, -1.0f, 0.0f}, vel;
   D3MATRIX m;
   float ex, ey, ez, wx, wz;
-  float hw, hh, size, cx, cy, f, s, x, y;
+  float hw, hh, size, cx, cy, f, s;
   float gy; /* -1.0f: a literal -1.0f * x is folded, the original multiplies */
   D3TSNOWFLAKE *flake;
   int i;
 
-  fall.x = 0.0f;
-  fall.y = -1.0f;
-  fall.z = 0.0f;
   d.x = snow->campos.x - d3_Camera->rotation.x;
   d.y = snow->campos.y - d3_Camera->rotation.y;
   d.z = snow->campos.z - d3_Camera->rotation.z;
@@ -1596,7 +1593,7 @@ void d3t_UpdateSnow(D3TSNOW *snow, float dt) {
            ez * d3_Camera->matrix._33;
   move.x *= 0.0025f;
   move.y *= 0.0025f;
-  move.z *= 0.0025f;
+  move.z = (move.z * 0.0025f);
   snow->cam04c.x = d3_Camera->pos.x;
   snow->cam04c.y = d3_Camera->pos.y;
   snow->cam04c.z = d3_Camera->pos.z;
@@ -1625,25 +1622,22 @@ void d3t_UpdateSnow(D3TSNOW *snow, float dt) {
 
   flake = snow->flakes;
   for (i = 0; i < snow->count; flake++, i++) {
-    x = flake->pos.x =
-        (wind.x * flake->windScale + fall.x * flake->fallScale) * dt +
-        flake->pos.x + move.x + o.x;
-    while (x < -1.0)
-      flake->pos.x = x += 2.0;
+    vel.x = wind.x * flake->windScale + fall.x * flake->fallScale;
+    flake->pos.x = vel.x * dt + flake->pos.x + move.x + o.x;
+    while (flake->pos.x < -1.0)
+      flake->pos.x += 2.0;
     while (flake->pos.x >= 1.0)
       flake->pos.x -= 2.0;
 
-    flake->pos.y =
-        (wind.y * flake->windScale + fall.y * flake->fallScale) * dt +
-        flake->pos.y + move.y + o.y;
+    vel.y = wind.y * flake->windScale + fall.y * flake->fallScale;
+    flake->pos.y = vel.y * dt + flake->pos.y + move.y + o.y;
     while (flake->pos.y < -1.0)
       flake->pos.y += 2.0;
     while (flake->pos.y >= 1.0)
       flake->pos.y -= 2.0;
 
-    flake->pos.z +=
-        (wind.z * flake->windScale + fall.z * flake->fallScale) * dt +
-        move.z * 2.0f;
+    vel.z = wind.z * flake->windScale + fall.z * flake->fallScale;
+    flake->pos.z += vel.z * dt + move.z * 2.0f;
     while (flake->pos.z < -1.0f)
       flake->pos.z += 2.0f;
     while (flake->pos.z >= 1.0f)
@@ -1651,10 +1645,10 @@ void d3t_UpdateSnow(D3TSNOW *snow, float dt) {
 
     f = size * 3.0f / (flake->pos.z * 2.0f + 3.0f);
     flake->sx1 = flake->pos.x * f + cx;
-    flake->sy1 = y = cy - flake->pos.y * f;
+    flake->sy1 = cy - flake->pos.y * f;
     s = ((1.0f - flake->pos.z) * 13.5f + 1.0f) * flake->pos.w;
     flake->sx2 = flake->sx1 + s;
-    flake->sy2 = y + s;
+    flake->sy2 = flake->sy1 + s;
   }
 }
 /* 0x415380, per frame: eases count and wind toward their targets over time60..time64 / time68..time6c,
@@ -2130,11 +2124,11 @@ D3PARTSYS *d3t_CreateSmoke(void *parent, D3VECTOR *pos, int count, float size,
   return ps;
 }
 /* 0x416550, callback of d3t_CreateEarth.
-Clods are thrown up once, bounce on the ground at v00.w and fade out. @deep deep s48: c2dag of the c-copy block: c.a's load (h 6) outranks the tex load (h 5) because its and ebx,0xff has a flags edge into the tex cmp; the original issues the tex load first. Rounds: frames as ?: of the tex test with c / mask before or after (5 / 13), unsigned char mask (80), c / c, mask, frames as block locals of the flag block (= control), mask = ps->color24.a (74), mask = c.a & 0xff (= control), tex != 0 && frames != 0 (4), frames >= 1 (6), initgen (= 0 initializers on every local): all = control; the p walks as index loops with p = &ps->particles[i] (frame +4, 11..37). Left: the 2-ins load order at 0x41657c. prior: deep s29: the fade value is no local: p->start.x -= dt * ps->v00.z; if (p->start.x > 0.0) p->a = (unsigned char)p->start.x; - VC6's CSE temp of the stored field sits in memory (fst / fld / fld, packed with s, dead in the ps slot): slots 22 -> byte there (the volatile float a was the old stand-in; a plain float a at function or block scope lifts it onto the x87 stack, draft 9). Left (2 ins, order): the original loads ps->tex (mov eax,[edi+0xd4]) before c.a (mov ebx,[esp+0x1f]; and ebx,0xff) in the block after the c copy; ours c.a first. Tried: all 12 orders of flags / frames / c / mask (c before mask): = or draft; mask = c.a after the frames if (the load moves to the join block, 4 ins); if / else for frames (5); a tex local (=), tex local first (draft 14); != 0 / != NULL spellings; unsigned mask (=); climb 1 round from the field form: nothing. */
+Clods are thrown up once, bounce on the ground at v00.w and fade out. */
 
 int d3t_EarthCB(D3PARTSYS *ps, unsigned long time) {
   D3PARTICLE *p;
-  D3COLOR c;
+  D3COLORU c;
   unsigned int frames;
   int mask, i, dead;
   float len, s, k, dt;
@@ -2142,15 +2136,15 @@ int d3t_EarthCB(D3PARTSYS *ps, unsigned long time) {
   if (ps->flags & 1) {
     ps->flags &= ~1;
     frames = 1;
-    c = ps->color24;
-    mask = c.a;
+    c.col = ps->color24.col;
+    mask = c.c.a;
     if (ps->tex && ps->tex->frames > 0)
       frames = ps->tex->frames;
     for (i = 0, p = ps->particles; i < ps->count; i++, p++) {
       if (!(p->flags & 1)) {
-        p->r = (rand() & mask) + c.r;
-        p->g = (rand() & mask) + c.g;
-        p->b = (rand() & mask) + c.b;
+        p->r = (rand() & mask) + c.c.r;
+        p->g = (rand() & mask) + c.c.g;
+        p->b = (rand() & mask) + c.c.b;
         p->frame = i % frames;
         p->pos.x = (float)((float)rand() / RAND_MAX * 4.0) - 2.0f;
         p->pos.y = (float)((float)rand() / RAND_MAX) * 1.5f;
@@ -2230,7 +2224,7 @@ D3PARTSYS *d3t_CreateEarth(void *parent, D3VECTOR *pos, int count, float size,
     ps->v10.y = f;
     ps->v10.z = g;
     ps->flags = 1;
-    ps->color24 = color;
+    ps->color24.c = color;
   }
   return ps;
 }

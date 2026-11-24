@@ -923,16 +923,7 @@ int ai_OpenItemTooltip(int idx) {
    0x23) and the work time (text 0x20). In a building (ai_PlayerBuilding, ai_FallbackBuilding, sv_SelectedObject)
    and for an item type other than 2 / 6: when the building's type lists the item among its objects, the
    object's effect (text 0x24) by its class: 3 "+%a" (text 0xf9e), 0x24 "+%i" (text 0xfe0), else "%i%%" (text
-   class * 2 + 0xf98), with the object's value; returns the view
-   @deep deep s28: only slots differ: the original keeps view in the local slot [esp+8] and puts f into
-   idx's dead argument slot; ours packs view into the argument slot and f into the local. c2frame --names:
-   view count 6 opens slot 0, f (2) opens 1, idx (param, count 1, only its first load) joins slot 0 (it
-   passed slot 1 for a reason the tool does not show). Tried: f a block local of the price else, f folded
-   into the call argument (draft 18: the call moves before the fild), f = .. * f / f *= .. / f assigned
-   inside the argument (= control), view declared after item, view = -1 before the type guard (folded, =
-   control), the loop's returns as break / one guarded print / the type test as an if around the loop (=
-   control); climb 3 rounds (47 / 284 / 92 mutants): nothing. Left: slots 16 (view / f / the returns' view
-   reloads). */
+   class * 2 + 0xf98), with the object's value; returns the view */
 int ai_OpenUpgradeTooltip(int idx) {
   int view;
   AIGOOD *item;
@@ -968,29 +959,28 @@ int ai_OpenUpgradeTooltip(int idx) {
   bld = ai_PlayerBuilding;
   if (bld == 0) {
     bld = ai_FallbackBuilding;
-    if (bld == 0) {
+    if (bld == 0)
       bld = sv_SelectedObject;
-      if (bld == 0)
-        return view;
-    }
   }
-  if (item->type == 2 || item->type == 6)
-    return view;
-  bt = ai_BTypes + bld->type;
-  for (i = 0; i < 0x40; i++) {
-    if ((bt->objs[i] & 0x7fff) == idx) {
-      cls = bt->objClass[i];
-      value = bt->objValue[i];
-      if (cls == 0 || cls == -1 || cls == 0xff)
-        return view;
-      io_PrintText(0x24);
-      if (cls == 3)
-        io_PrintText((intptr_t)"+%a %s$N", value, 0xf9e);
-      else if (cls == 0x24)
-        io_PrintText((intptr_t)"+%i %s$N", value, 0xfe0);
-      else
-        io_PrintText((intptr_t)"%i%% %s$N", value, cls * 2 + 0xf98);
-      return view;
+  if (bld != 0) {
+    if (item->type != 2 && item->type != 6) {
+      bt = ai_BTypes + bld->type;
+      for (i = 0; i < 0x40; i++) {
+        if ((bt->objs[i] & 0x7fff) == idx) {
+          cls = bt->objClass[i];
+          value = bt->objValue[i];
+          if (cls != 0 && cls != -1 && cls != 0xff) {
+            io_PrintText(0x24);
+            if (cls == 3)
+              io_PrintText((intptr_t)"+%a %s$N", value, 0xf9e);
+            else if (cls == 0x24)
+              io_PrintText((intptr_t)"+%i %s$N", value, 0xfe0);
+            else
+              io_PrintText((intptr_t)"%i%% %s$N", value, cls * 2 + 0xf98);
+          }
+          break;
+        }
+      }
     }
   }
   return view;
@@ -1351,19 +1341,13 @@ void d2_RadioClear(int g);
    each bookmark's building (its picture 0x427 + type, "%2N8~ %1G" with its owner) or the text 0x205d, and its
    room (picture 0xdf + id, its name) unless none or 0xfd. The right button, F12 (0x58) or escape close it; the
    set button stores the current building in the selected bookmark (ai_SetBookmark), the clear button clears it;
-   the bookmark keys work while it is open (ai_SelectBookmark)
-   @deep deep s38: left i in ebx / o in ebp where the original has i in ebp (it shares ebp with rebuild)
-   and o in ebx, plus the view slot [esp+0x28] against the group*20 temp's [esp+0x24] (two count-2 slots of
-   a 0x128 frame: the unstable density sort). c2trace: o#1 prio 148 (its block-16 use o->id * 2 + 0x9a8, P
-   13) outranks i#1 132 (i is only referenced at the loop top and latch; the bookmark walk is an IV in
-   [esp+0x10]), so o is served first and takes ebp. climb round 1 (96 mutants): nothing; o = 0 / b = 0
-   placed elsewhere or as else arms: far worse (M8). flip --want 'inc ebp' flips on kb_Last == 1 -> 0 / 2
-   (the const 1 web: rebuild = 1 in ebp is also d2_GetViewWin's 1 at the top) and on b = 0 / o = 0 -> 1:
-   the constant 0 / 1 webs decide it, not i's references. */
+   the bookmark keys work while it is open (ai_SelectBookmark) */
 void ai_BookmarkWindow(void) {
   char line[0x100];
   int buttons[2];
-  int scroll[3];
+  int down;
+  int up;
+  int bar;
   int view;
   int group;
   int sel;
@@ -1386,7 +1370,7 @@ void ai_BookmarkWindow(void) {
   io_PrintText(0x205b);
   d2_SetForm(view, 0);
   sv_CreateScrollButtons(0x214, 0x168, d2_LastWindow, d2_GetViewWin(view, 1),
-                         0x38, &scroll[0], &scroll[1], &scroll[2]);
+                         0x38, &down, &up, &bar);
   d2_SetForm(view, 3);
   sv_ButtonRow(d2_LastWindow, 0, buttons, 2, txt_Ptrs[0x206b],
                txt_Ptrs[0x206a]);
@@ -1404,8 +1388,8 @@ void ai_BookmarkWindow(void) {
       for (i = 0; i < 11; i++) {
         b = 0;
         o = 0;
-        d2_RadioAdd(
-            group, d2_WinOpenPic(0x10, i * 0x38 + 4, i + 0x769, d2_LastWindow));
+        t = d2_WinOpenPic(0x10, i * 0x38 + 4, i + 0x769, d2_LastWindow);
+        d2_RadioAdd(group, t);
         if (ai_Bookmarks[i].building != -1)
           b = gm_FindBuildingById(ai_Bookmarks[i].building);
         if (ai_Bookmarks[i].object != -1)

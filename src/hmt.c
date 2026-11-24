@@ -64,35 +64,26 @@ unsigned short hmt_RandomTextOffset(unsigned short k) {
   }
   return ret;
 }
-/* 0x4ac1a0, the text id of line n (at most 9) of record k: 0x1e2b + n, or 0x1e35 + n if textSet is set
-   @deep deep s28: the mechanism: ours copy-propagates m = n into the clamp compare (cmp di,9 on n, then
-   mov esi,edi), so n has 3 references (c2trace n#1 prio 10 sav 4 -> edi); the original compares m (mov
-   esi,[n]; cmp si,9) and keeps n in memory for the null return (mov ax,[esp+0xc]). Tried this session: m >
-   8 (19), (m = n) >= 9 / n < 9 ? n : 9 / min(n, 9) (= control), n >= 9 ? 9 : n and if/else (draft 15), m
-   int / unsigned int (draft 14..16); flip.py --want 'mov ax, WORD PTR _n' over every single statement
-   mutation: 0 hits; climb round 1: nothing. Left: code 21 / slots 2, the edi push and the n register.
-   prior: size queue s7: tried (no lever): n declared int in the prototype and the definition (= control,
-   same code); roles swapped (m = n; clamp n itself; return m): 9 ins, the copy m then takes edi instead of
-   n (the same push/pop edi); n assigned in the arms and returned once (if/else, ?:) = control, with the
-   test flipped 19. Read: the original never holds the unclamped n in a register (mov esi,dword [n] for the
-   clamp, mov ax,word [n] for the null return), so n must not be a candidate with savings >= 1; the twin
-   hmt_RandomTextOffset's dead e->textSet load says both come from one shape where the textSet test's arms
-   merge. */
+/* 0x4ac1a0, the text id of line n (at most 9) of record k: 0x1e2b + n, or 0x1e35 + n if textSet is set;
+   for an unknown record the result is undefined (in the binary: the caller's n, see below) */
 
 unsigned short hmt_RecordTextId(unsigned short k, unsigned short n) {
-  unsigned short m;
+  unsigned short ret;
   const G11REC *e;
 
-  m = n;
-  if (m >= 9)
-    m = 9;
+  if (n >= 9)
+    n = 9;
   e = hmt_GetRecord(k);
+  /* @original ret is not set when there is no record k: VC6 packs ret into n's parameter slot, dead
+     once n is clamped in a register, so the binary returns the caller's unclamped n there (mov
+     ax,word [n]) */
   if (e != 0) {
     if (e->textSet == 0)
-      return m + 0x1e2b;
-    return m + 0x1e35;
+      ret = n + 0x1e2b;
+    else
+      ret = n + 0x1e35;
   }
-  return n;
+  return ret;
 }
 /* 0x4ac1e0, record k, 0 if out of range */
 
@@ -738,22 +729,16 @@ void hmt_FillCouncils(void) {
     }
   }
 }
-/* 0x4ada80, loads the hmt state from the savegame f; on failure it is reset; 1 or 0
-   @deep deep s26: every exit form is one code (19 variants): and / or conditions, the reset in the then /
-   else arm, return in either arm or after, nested ifs, goto fail, a ret variable assigned in both arms, a
-   ret chain (if (ret) ret = ls_Read(..)), a static __inline reset helper; only the ok-flag forms differ
-   (14 / 18). c2tail --il: ours has the success return (mov eax,1; jmp exit) first and the reset block
-   falling into the exit label, VC6 then copies the exit into the success arm; the original's IL had the
-   success block in front of the exit label (last test jne over the inline reset block). Left: that block
-   order (tail 5, code 3). prior: code hunks 8: the original's success return is out of line (jne over the
-   success block), ours returns inline (je); if / else with an empty then tried before, no change
-   (match-deep) */
+/* 0x4ada80, loads the hmt state from the savegame f; on failure it is reset; 1 or 0 */
 
 int hmt_Load(void *f, int version) {
+  int ok = 0;
+
   if (ls_Read(&hmt_CurrentPerson, 4, 1, f) && ls_Read(&hmt_Person, 4, 1, f) &&
       ls_Read(&hmt_CurrentEvent, 4, 1, f) && ls_Read(&hmt_Event, 4, 1, f) &&
-      ls_Read(&hmt_PendingElection, 4, 1, f)) {
-  } else {
+      ls_Read(&hmt_PendingElection, 4, 1, f))
+    ok = 1;
+  if (!ok) {
     hmt_CurrentPerson = -1;
     hmt_CurrentEvent = -1;
     hmt_Person = -1;

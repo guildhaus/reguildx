@@ -977,26 +977,22 @@ void d3anim_FreePath(D3OBJECT *obj) {
   }
 }
 /* 0x433b50, spline tangents of all keys (flags.b[1] & 4: smooth); b[8] & 1 wraps the angles first.
-   @deep s36: left: only the sib operand order of loop 1's twelve zero stores (ours [edi+ecx+0x20], the
-   original [ecx+edi+0x20]; edi = the strength-reduced i*0x58). Lead: a local t = p->flags.b[1] read after
-   the null test (if (p == 0) return; t = ...; if (t & 4) ..; the two else-branch tests through t) puts
-   loop 1 in the original's order exactly; left then only the three flag tests (ours mov bl,[esi+0x2d] /
-   test bl, the original test byte ptr [esi+0x2d] each time): 8 ins. So a candidate created before i flips
-   the sib order; the original had no register for it. No lever (= control): p != 0, the early return
-   alone, block-scoped i, one i per branch, a j for loop 1, 0.0f. (p->flags.b[1] & 0x11) in one test: 29
-   ins, every sib flipped. climb round 1: best the t local before the null test (10, meaning-changing).
-   prior: B draft: 46 code hunks, dominated by the strength-reduced key offset in the first loop
-   ([edi+ecx+0x20] ours vs [ecx+edi+0x20] original); the attempts ((p->keys + i)->, i[p->keys], 0.0f vs 0)
-   failed - deep matching. Q2: the callee 0x453d60 is d3_UnwrapAngles in d3_vec.c, but d3.h declares the
-   D3VECTOR* view as d3_UnwrapAngles, so naming it needs a shared-header decision. */
+   The flags are read through a pointer to them (f), which puts loop 1's strength-reduced key offset after
+   the keys base ([ecx+edi+0x20]) as in the original.
+   Q2: the callee 0x453d60 is d3_UnwrapAngles in d3_vec.c, but d3.h declares the D3VECTOR* view as
+   d3_UnwrapAngles, so naming it needs a shared-header decision. */
 
 void d3path_Init(D3PATH *p) {
   int i;
+  D3ANIMFLAGS *f;
 
-  if (p && (p->flags.b[1] & 4)) {
+  if (p == 0)
+    return;
+  f = &p->flags;
+  if (f->b[1] & 4) {
     if (p->nkeys <= 2) {
       for (i = 0; i < p->nkeys; i++) {
-        if ((p->flags.b[8] & 1) && i < p->nkeys - 1)
+        if ((f->b[8] & 1) && i < p->nkeys - 1)
           d3_UnwrapAngles(&p->keys[i + 1].rot, &p->keys[i].rot,
                           &p->keys[i + 1].rot, &p->keys[i].rot);
         p->keys[i].posin.x = 0;
@@ -1014,7 +1010,7 @@ void d3path_Init(D3PATH *p) {
       }
     } else {
       for (i = 0; i < p->nkeys; i++) {
-        if ((p->flags.b[8] & 1) && i < p->nkeys - 1)
+        if ((f->b[8] & 1) && i < p->nkeys - 1)
           d3_UnwrapAngles(&p->keys[i + 1].rot, &p->keys[i].rot,
                           &p->keys[i + 1].rot, &p->keys[i].rot);
         if (i == 0) {
@@ -1026,7 +1022,7 @@ void d3path_Init(D3PATH *p) {
           p->keys[0].rotin.z = 0;
         } else if (i < p->nkeys - 1) {
           if (i == p->nkeys - 2 &&
-              ((p->flags.b[1] & 1) || (p->flags.b[1] & 0x10))) {
+              ((f->b[1] & 1) || (f->b[1] & 0x10))) {
             p->keys[i].posout.x = 0;
             p->keys[i].posout.y = 0;
             p->keys[i].posout.z = 0;
@@ -1035,7 +1031,7 @@ void d3path_Init(D3PATH *p) {
             p->keys[i].rotout.z = 0;
           }
           d3path_Tangents(&p->keys[i - 1], &p->keys[i], &p->keys[i + 1]);
-        } else if (!(p->flags.b[1] & 1) && !(p->flags.b[1] & 0x10))
+        } else if (!(f->b[1] & 1) && !(f->b[1] & 0x10))
           d3path_Tangents(&p->keys[i - 1], &p->keys[i], &p->keys[0]);
         else {
           p->keys[i].posin.x = 0;

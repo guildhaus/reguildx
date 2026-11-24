@@ -149,60 +149,70 @@ gm_CharacterStatistics; /* 0x91b500, the character statistics (gm_CountCharacter
    (its result | 2), the do of a player (kind 6) looks for the player's first office event (0x53e400 (1, 0,
    0x41)) and writes the text 0x1ce2 with the event's target id, else the text 0x1ce1, into m + 5; returns 1
    (not handled) or 2
-@deep s42 (36 -> 15 ins, size 242 -> 246 of 251): the event search as a found flag (found = 1; break; .. if (!found) the 0x1ce1 text) gives the original's loop return through r (mov eax,esi); the outer form if (m[0] == 3 || m[0] == 1) { r = 1; if (partner ok) { r = 2; .. } return r; } return 1; gives the original's registers m ebx / c edi / r esi and the RET1 block at the end. Left: the m-test failure returns early before push esi/edi (shrink-wrapped, its own return-1 copy; the original pushes all three first and jne's to the one RET1 at the end) and the partner failure goes through mov esi,1 (r = 1) where the original jumps straight into RET1 (mov eax,1: r = 1 known on both failure paths). Rounds (scratch af1..af7): r = 1 at the top (r1def, 40: const 1 becomes a register candidate, cmp eax,edi), else r = 1 / Y1-Y4 / N1-N4 / ok flags / r = 1 per failure (X5, 51: two RET1 copies inline): all worse; climb 2 rounds from r1def: nothing. Next: a form where both failures reach one return with r = 1 known and the m guard is no early return (pushes in the prologue). prior: meaning settled, only allocation/layout left: the original's m = ebx, c = edi, r = esi (ours m = edi, c = ebx, r = esi), its return-1 block sits at the end of the function (ours inline before the body), and its loop return is mov eax,esi where ours constant-folds mov eax,2. Read vs tools/disasm.py 0x4f4e20. Tried and kept (no WORSE, 240 -> 191 differing bytes): r = 2 + if/else-if with a shared return r (the 0x4f4ff0 idiom), typed AICHAR/ORDEVENT views (gv.h). Tried and reverted (build shows the same m = edi allocation): spell.py menu push-pop/dup-tail/reload leads; early-return guard if (!(...)) return 1; explicit else return 1; goto fail: label at the end; int partner = c->partner temp; char kind = c->kind temp; partner + kind temps; declaration-order permutations of o/p/r; unsigned r; unsigned char *o; int *m copy (int *msg = m, copy-propagated back). Needs match-deep's register-allocation toolbox (spell 'push-pop: the block the callee-saved register crosses' / vargen ren). */
+   */
 
 unsigned ord_ApplyForOffice(AICHAR *c, ORDMSG *m) {
   AIJOB *ev;
   AICHAR *ch;
   AICHAR *p;
-  int r, found;
+  int r, found, ok;
 
+  ok = 0;
   if (m->kind == 3 || m->kind == 1) {
-    r = 1;
-    if (c->relatives[0] == -1 || ((ch = gm_FindChar(c->relatives[0])) != 0 &&
-                                  (ch->health == 0 || ch->kind == 0x0f))) {
-      r = 2;
-      if (m->kind == 3) {
-        r = ai_CourtshipWindow(c, m);
-        r |= 2;
-      } else if (m->kind == 1 && c->kind == 6) {
-        found = 0;
-        ev = he_FindEvent(1, 0, 0x41);
-        while (ev != 0) {
-          if (ev->partner1 == ai_Chars[ai_PlayerId].netId) {
-            p = gm_FindChar(ev->partner2);
-            txt_Format(m->text, 0x1ce2, p->id);
-            found = 1;
-            break;
-          }
-          ev = he_NextEvent();
+    if (c->relatives[0] == -1 ||
+        ((ch = gm_FindChar(c->relatives[0])) != 0 &&
+         (ch->health == 0 || ch->kind == 0x0f)))
+      ok = 1;
+  }
+  if (ok) {
+    r = 2;
+    if (m->kind == 3) {
+      r = ai_CourtshipWindow(c, m);
+      r |= 2;
+    } else if (m->kind == 1 && c->kind == 6) {
+      found = 0;
+      ev = he_FindEvent(1, 0, 0x41);
+      while (ev != 0) {
+        /* @original a null test the loop condition already decides: it leaves no code, but its return
+           inside the loop keeps the callee-saved pushes in the prologue (VC6 no longer wraps esi around
+           the r = 2 block) and puts m in ebx / c in edi */
+        if (ev == 0)
+          return 1;
+        if (ev->partner1 == ai_Chars[ai_PlayerId].netId) {
+          p = gm_FindChar(ev->partner2);
+          txt_Format(m->text, 0x1ce2, p->id);
+          found = 1;
+          break;
         }
-        if (!found)
-          txt_Format(m->text, (intptr_t)"%s", 0x1ce1);
+        ev = he_NextEvent();
       }
+      if (!found)
+        txt_Format(m->text, (intptr_t)"%s", 0x1ce1);
     }
     return r;
   }
   return 1;
 }
-/* 0x4f4f20, an order handler (c the character, m the message, kind 1 or 3): characters of level 3 or more: 4; a player (+2 = 6) with kind 3 gets the text 0x1d34 (level + 0x114, + 10 with +9) shown through 0x4f8200; kind 1 writes text 0x1d33 into m + 0x14; 1 for other kinds, else 2 @deep s42: original layout (dcp disasm): guard; lvl test jae -> r=4 block; r=2 (edi) + kind-3 test (jne -> kind-1 test at the end); kind-3 body + return copy; THEN the r = 4 block (mov edi,4 / mov eax,edi / own epilogue copy); then kind-1 test + body, whose failures jne into its own return copy. One shared return r (r unfolded in edi), m in esi. Rounds (scratch lo1..lo6, ~120 whole-function forms): lt-else (if lvl < 3 {..} else r = 4) gives jae but r=4 at the very end (32, m/r swapped); r = 4 default + if (lvl < 3) {r = 2; ..} (29, same); chain-r2guard (r = 2 before the guard) gives the original's registers m esi / r edi (r lives longer -> prio below m) but r=4 inline (21); returns per arm (D: 22) fold r into constants (no edi); switch (m[0]) inner, guard as if (m[0]==3 || m[0]==1) {..} return 1 / r = 1 default, kind-1 as a separate if after the if/else with r == 2 / lvl < 3 re-tests: all worse. climb 3 rounds: only the r = 2 move (24, meaning kept). Left: a source whose IL puts the r = 4 block between the kind-3 and the kind-1 code with one shared return (c2tail --il merge shows IL = source order), and r's priority below m's. prior: meaning settled and readable; remaining diff is allocation/scheduling only (97/208 bytes, 38 code bytes): the original keeps m in esi and r in edi (ours m = edi, r = esi, the same rank order), its r = 4 return block sits at 0x4f4fad between the kind-3 text block and the kind-1 text block (ours puts it after the if/else), and the r = 2 setup order differs. Won by the last-bytes pass: the complete-constant ternary (c[9] != 0 ? 0x11e : 0x114) + level instead of (c[9] ? 10 : 0) + 0x114 + level gives the original's and eax,0xa; add eax,0x114; add eax,ecx (notes/vc6-matching.md round entry; the same spelling is owed to the other level/job handlers, 0x253 variants: (c[9] ? 0x27b : 0x253) + job), and dropping the unsigned char lv local (read c[0xd] twice) keeps the byte load in cl and removes the 4-byte frame slot. Tried and reverted: level check forms (>=3 with r=4 inline, nested if/else, inverted <3 with else r=4, early return 4), r = 2 before/after the level check, a single final return r vs early returns, declaration order of r and buf. The 0x4f4ff0 idiom and the else-if chain gave the best byte counts. Needs match-deep's allocation toolbox (vargen ren / the push-pop: block the callee-saved register crosses lead). */
+/* 0x4f4f20, an order handler (c the character, m the message, kind 1 or 3): characters of level 3 or more: 4; a player (+2 = 6) with kind 3 gets the text 0x1d34 (level + 0x114, + 10 with +9) shown through 0x4f8200; kind 1 writes text 0x1d33 into m + 0x14; 1 for other kinds, else 2 @deep deep s59: kept (36 -> 30 ins): ok flag for the kind-1 text (ok = 0; if (level < 3) { r = 2; if (kind 3 && player) {..} else ok = 1; } else r = 4; if (ok && kind 1 && player) ..; return r;): every instruction is the original's, only esi / edi swapped (ours m edi / r esi, the original m esi / r edi; asmdiff --regs auto: 0 differing). Mechanism (c2trace --seq/--prio): r#1 prio 3 is served before m#1 prio -5 and takes esi. Two probes put m in esi: r = 2 before the guard (r live through the guard blocks; lo13 r2top, 7 ins, but mov edi,2 / push edi at the entry) and a volatile reread of m->kind in the kind-3 test (lo30 vk3: m referenced in the block of cmp eax,3 / mov edi,2). So the original has a reference of m in that block, or r live above the level test, that leaves no code. Tried without effect (all the same code): labels / do-while / blocks around r = 2, decided tests (r == 2, ok, c->level, m != 0, c == 0, as conditions or statements with returns), r types, register, dead initialisers, r = 1 at the top, an uninitialised path (r goes to memory), copies of c / m, k = m->kind, a text pointer local (r2: m in edx), block-local buf, declaration orders, while-break wrappers; climb 3 rounds; flip --want m esi: only meaning changes. prior: s42: original layout (dcp disasm): guard; lvl test jae -> r=4 block; r=2 (edi) + kind-3 test (jne -> kind-1 test at the end); kind-3 body + return copy; THEN the r = 4 block (mov edi,4 / mov eax,edi / own epilogue copy); then kind-1 test + body, whose failures jne into its own return copy. One shared return r (r unfolded in edi), m in esi. Rounds (scratch lo1..lo6, ~120 whole-function forms): lt-else (if lvl < 3 {..} else r = 4) gives jae but r=4 at the very end (32, m/r swapped); r = 4 default + if (lvl < 3) {r = 2; ..} (29, same); chain-r2guard (r = 2 before the guard) gives the original's registers m esi / r edi (r lives longer -> prio below m) but r=4 inline (21); returns per arm (D: 22) fold r into constants (no edi); switch (m[0]) inner, guard as if (m[0]==3 || m[0]==1) {..} return 1 / r = 1 default, kind-1 as a separate if after the if/else with r == 2 / lvl < 3 re-tests: all worse. climb 3 rounds: only the r = 2 move (24, meaning kept). Left: a source whose IL puts the r = 4 block between the kind-3 and the kind-1 code with one shared return (c2tail --il merge shows IL = source order), and r's priority below m's. */
 
 int ord_LevelOrder(AICHAR *c, ORDMSG *m) {
   char buf[0x100];
-  int r;
+  int r, ok;
 
   if (m->kind != 3 && m->kind != 1)
     return 1;
-  if (c->level >= 3) {
-    r = 4;
-  } else {
+  ok = 0;
+  if (c->level < 3) {
     r = 2;
     if (m->kind == 3 && c->kind == 6) {
       txt_Format(buf, 0x1d34, (c->sex != 0 ? 0x11e : 0x114) + c->level);
       ord_PrivilegeDialog(buf, 0, 0x657c7);
-    } else if (m->kind == 1 && c->kind == 6)
-      txt_Format(m->text, (intptr_t)"%s", 0x1d33);
-  }
+    } else
+      ok = 1;
+  } else
+    r = 4;
+  if (ok && m->kind == 1 && c->kind == 6)
+    txt_Format(m->text, (intptr_t)"%s", 0x1d33);
   return r;
 }
 /* 0x4f4ff0, an order handler for a player (+2 = 6) or a kind 5 character; kind 3 of a player goes to ai_ChangeProfessionWindow (| 2), kind 1 of a player writes text 0x1d35 into m + 0x14; 1 when not handled, else 2 */
@@ -1852,7 +1862,7 @@ char ord_RandomCellPoint(int x, int y, D3VECTOR *out) {
 /* 0x4f8700, picks a random object id for the character c (-1 without one): the ids of its two buildings
    (bld / bld2, when their object is present) and, up to 0x20 times, of up to 3 random buildings (3 of 4
    chances each) of a random one of the 20 kinds of the table (4 x 5), through gm_BuildQuery(1, 5, kind),
-until 16 are collected; then one of them at random @deep deep s43: flip.py --want 'mov eax, DWORD PTR _kinds' names only meaning changes and idx as short / char (one temp fewer: the rotation is decided at the idx expression). Tried, = control: idx = U(4)*5; idx += U(5), the inner loop as for, list[n++], the first id stored as list[n] / n++ / n = 1 first, tries before n; worse: idx inline (30), a k temp for U(5) (13), n++ / k++ swapped (10), n = 0 in an else (66), kinds as int [4][5] with [U(4)][U(5)] (30-35), climb 3 rounds (nothing). prior: near-byte sweep s22: goto done -> break (same code, kept). Left regs 8: kinds[idx] loaded into edx (original eax) and the list store's [esi+1] in eax (original edx): one scratch rotation step. = control: break / n < 16 in the inner condition, the kinds as an initializer; worse: k = 0 before idx (10), return in the loop (60), the c == 0 guard first (72). climb round 1: nothing. */
+until 16 are collected; then one of them at random */
 
 int ord_RandomObjectId(AICHAR *c) {
   int kinds[20];
@@ -1861,6 +1871,7 @@ int ord_RandomObjectId(AICHAR *c) {
   int tries;
   int k;
   int idx;
+  int kind;
   AIBLD *o;
 
   kinds[0] = 1;
@@ -1898,8 +1909,9 @@ int ord_RandomObjectId(AICHAR *c) {
   while (n < 16 && tries != 0) {
     tries--;
     idx = util_Random(4) * 5 + util_Random(5);
+    kind = kinds[idx];
     k = 0;
-    o = gm_BuildQuery(1, 5, kinds[idx]);
+    o = gm_BuildQuery(1, 5, kind);
     while (o != 0 && k < 3) {
       if (n >= 16)
         break;

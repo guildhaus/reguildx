@@ -81,18 +81,12 @@ int io_TrailingDigits(char *s, int n, char *out) {
    (else the first) name, 7 first + family name, 8 / 9 the profession (9: the privilege's office from flags1cc)
    or level title + first name; c 2 makes it a genitive ("'" after s / z / ss / x, else "s"), c is also the
    case txt_Field picks for 8 / 9. The player's own character is the player slot's name. Returns 0 for no
-   character (the text TXT_NO_CHARACTER)
-   @deep deep s23: left case 4's first txt_Ptrs index sum (original add eax,ecx: rec[0x164] + sel; its
-   second arm and every other case have add ecx,eax as ours) and case 6's two inline strcpy stores
-   [edx+eax] (ours [eax+edx], as lines 213/245 have). Index operand swap, (char *) casts, &rec[0x40], the
-   test reversed, a ternary: = control or worse; climb round 1 nothing; flip.py on the whole function: only
-   far mutations (case 5's + -> -, a deleted case) flip the add, i.e. a value-numbering tie, no spelling of
-   the hunk's own statement. */
+   character (the text TXT_NO_CHARACTER) */
 int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out) {
   char A[0x100], B[0x100], C[0x100];
   char tmp[0x21c];
   unsigned char *rec;
-  int v;
+  unsigned v;
 
   A[0] = ch_EmptyName[0];
   memset(A + 1, 0, 0xff);
@@ -166,11 +160,10 @@ int io_CharacterName(int id, unsigned char c, unsigned char kind, char *out) {
     }
     break;
   case 4:
-    if (rec[0x164])
-      sprintf(out, "%s %s",
-              txt_Field(txt_Ptrs[(rec[9] ? 0x18f : 0x130) + rec[0x164]], 1, 4),
-              CH_NAME(rec));
-    else if (rec[0x165])
+    if (rec[0x164]) {
+      v = (rec[9] ? 0x18f : 0x130) + rec[0x164];
+      sprintf(out, "%s %s", txt_Field(txt_Ptrs[v], 1, 4), CH_NAME(rec));
+    } else if (rec[0x165])
       sprintf(out, "%s %s",
               txt_Field(txt_Ptrs[(rec[9] ? 0x230 : 0x20d) + rec[0x165]], 1, 4),
               CH_NAME(rec));

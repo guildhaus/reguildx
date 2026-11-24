@@ -4930,25 +4930,7 @@ void ai_RestartMission(struct AICHAR *c); /* 0x4b3a90 */
 
 /* 0x506180, the ranking of the players: the up to 8 characters of the kinds 5 / 6 / 7 into out (*count of them),
    each with its talents, title, office, reputation and worth (see GMRANK), the weighted sum 0.15 * (title + office +
-   reputation) + 0.3 * worthShare + 0.25 * talents and the points; every line is formatted into a log buffer
-   @deep deep s48: best = 0 moved right before the second loop (22) or after the n == 0 return (34+), the
-   skill sum as an index loop over ai_Chars[r->id].skills[j] (34), the first loop as out[n].id = i
-   (r_index1, 20 with best late), r = &out[i] per pass in the second loop (27), and their combinations (19
-   variants): none below the control's 4. Left: best = 0 stored from n's zero (edx) in the original, from
-   edi in ours (prologue, 4 ins). prior: deep s32: draft 16 -> shape 4 ins. Kept: the sum as (r->reputation
-   + (r->title + r->office)) * 0.15f (VC6 orders a left-assoc float chain itself: all 6 orders of title +
-   office + reputation are one code with fld reputation first; the original's fld title; fadd office; fadd
-   reputation comes from the right-nested grouping), acc = 0.0f then for (j = 0, liked = 0; ..) (j's xor
-   ebx ahead of liked's xor ebp and the acc store, the original's order), best = 0 before n = 0, the first
-   loop as for (i = 0; i < 0x300 && n < 8; i++) (= the break form). Left (4 ins, the prologue): the
-   original stores best = 0 from edx (n's zero: xor edx; push edi; mov [esp+0x1c],edx; xor edi,edi), ours
-   from edi (push edi; xor edi,edi; mov [esp+0x1c],edi; xor edx,edx): c2trace const#0#16 (pass 5, lines
-   best/n/i, savings 0) took edi. = control or worse: all 6 orders of best/n/r, n = best = 0, best = n, = 0
-   initializers (initgen), int/unsigned types of n/i/best, out[n].id = i, a c pointer in loop 1, n < 8
-   first in the for (26 ins). climb round 1 + 2 from this text: nothing. flip --want 'xor edx, edx\s+push
-   edi': only i = 1 and r->id = i moved out of the if (both meaning changes). (declaration set: no
-   declaration set makes this text byte (every symbol-count shift 0..63 at the unit's start and before the
-   function) */
+   reputation) + 0.3 * worthShare + 0.25 * talents and the points; every line is formatted into a log buffer */
 
 void gm_RankPlayers(int *count, GMRANK *out) {
   char buf[256];
@@ -4960,9 +4942,10 @@ void gm_RankPlayers(int *count, GMRANK *out) {
   float office1, acc, scale;
 
   best = 0;
+  i = 0;
   n = 0;
   r = out;
-  for (i = 0; i < 0x300 && n < 8; i++) {
+  for (; i < 0x300 && n < 8; i++) {
     if (ai_Chars[i].kind == 6 || ai_Chars[i].kind == 7 ||
         ai_Chars[i].kind == 5) {
       r->id = i;
@@ -6333,35 +6316,29 @@ int gm_BuildingCarts(AIBLD *b, AIOBJ **out) {
   return n;
 }
 /* 0x5090b0, the rank byte (+0x247) of the building b's kind record. The original switches on the kind's class
-   (the record's first byte) into three groups, 2 / 5 / 7, 4 / 0xb .. 0xd / 0x10 / 0x13 and the rest, that all
-   return the same byte (its jump table: two bodies, the second shared by the last group and the default)
-   @deep deep s43: the original's table is [0] = 2/5/7 -> body ecx (0x5090e9), [1] = the 4 group and [2] =
-   default -> body edx (0x5090f4, cross-jumped): A ecx, B edx, default edx. Ours: A ecx, B edx, default ecx
-   (merged with A), so only the default body's scratch register is one rotation step off. All 6 orders of
-   the three groups, break + one return r, ai_BTypes[*b].kind / .level, an AIBTYPE *bt, an int i = *b: all
-   = control (VC6 builds the arms in its own order). Open: what gives the default body one temp step more
-   (or the B body one fewer). prior: near-byte sweep s22: left the two return bodies' registers (the
-   original's first body uses ecx, the second edx). = control: the case groups swapped, the default return
-   after the switch; one body for the last group and default: 26. */
+   (the record's first byte) into case bodies listed by their first class, 2, 4 / 0xb .. 0xd / 0x10 / 0x13, 5 / 7
+   and the default, that all return the same byte (VC6 cross-jumps the equal bodies into two: 2 / 5 / 7 and the
+   rest) */
 
 int gm_BuildingRank(AIBLD *b) {
-  unsigned char *p;
+  AIBTYPE *bt;
 
-  p = (unsigned char *)ai_BTypes + (unsigned)b->type * 0x24d;
-  switch (*p) {
+  bt = &ai_BTypes[b->type];
+  switch (bt->kind) {
   case 2:
-  case 5:
-  case 7:
-    return p[0x247];
+    return bt->level;
   case 4:
   case 0xb:
   case 0xc:
   case 0xd:
   case 0x10:
   case 0x13:
-    return p[0x247];
+    return bt->level;
+  case 5:
+  case 7:
+    return bt->level;
   default:
-    return p[0x247];
+    return bt->level;
   }
 }
 /* 0x509120, 1 when the rank of the building c (gm_BuildingRank) fits the limit that the kind rank of the
@@ -7280,15 +7257,11 @@ int gm_FreeCapacity(AIOBJ *s, int id, int n) {
 }
 /* 0x50acf0, how many of the goods id the stall object l can still take, at most n, as gm_FreeCapacity without the
    goods groups: the room left on its stock (gm_ListStock less the held object's count) when it holds the goods
-   already; else none when its goods fill cap[0], else the stock
-   @deep deep s38: stock (prio 18) and cnt (16) take edi / ebx, the original ebx / edi: cnt must outrank
-   stock (a probe with one more cnt reference flips both). Loop forms, clamp forms, cnt init placement,
-   declaration order: = control or worse (details in the session note text: for / while / do-while, cnt in
-   for init / increment, ternary / >= / n = stock, nested cap test). (declaration set: no declaration set
-   makes this text byte (every symbol-count shift 0..63 at the unit's start and before the function) */
+   already; else none when its goods fill cap[0], else the stock */
 
 int gm_FreeStallCapacity(AIOBJ *s, int id, int n) {
   AIOBJ *o;
+  AIGOOD *g;
   int stock, cnt;
 
   stock = gm_ListStock(s, id);
@@ -7299,8 +7272,14 @@ int gm_FreeStallCapacity(AIOBJ *s, int id, int n) {
     return stock - o->count;
   }
   cnt = 0;
-  for (o = gm_Query(s->list, 1, 5); o != 0; o = gm_QueryNext())
+  for (o = gm_Query(s->list, 1, 5); o != 0; o = gm_QueryNext()) {
+    /* @original: an unused goods record per object (gm_FreeCapacity's group count without its tests); the
+       dead g leaves no code but makes cnt outrank stock for the callee-saved registers; no plain spelling
+       found (for-init / while / else-block like gm_FreeCapacity's: shape 32; cap <= cnt, cap - cnt <= 0,
+       an early return in the loop, a ternary tail, held in cnt or stock -= count: all further) */
+    g = &ai_Goods[o->type];
     cnt++;
+  }
   if (cnt >= s->cap[0])
     return 0;
   if (stock < n)

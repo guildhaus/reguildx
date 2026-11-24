@@ -10502,18 +10502,10 @@ void ai_LawBookContact(AIBLD *bld, AIOBJ *room) {
    hall of the class 0x17 / 0x18 / 0x19 / 0x1a) also gets the city's text (0x1a1b), an amount slider from 0x640 to
    the player's limit (ai_AmountLimit of his goods value) and a pay button: a click moves the slider's amount
    (gm_PlayerFactor) from the player to the box when sv_CheckGoodAmount allows it; the cancel button and a right
-   click close the window
-   @deep deep s28: only slots differ: amount and cancelBtn swap [esp+0x10] / [esp+0x14] (the original:
-   cancelBtn nearest esp, it gets the first -1 store at [esp+4] before push ebp). c2frame --refs: amount
-   count 4 (the store, the 0x1a1a print, &amount, gm_ConvertMoney), cancelBtn 3, payBtn 2: the packer
-   (size, then count descending) puts amount first; the original needs cancelBtn above amount. Tried:
-   payBtn = cancelBtn = -1 (= control), cancelBtn = payBtn = -1 (slots 16), the rup click as if / else-if
-   before the master test (draft 17); climb 3 rounds (61 / 353 / 213 mutants): nothing. twin.py: no byte
-   twin. Next: a source form that gives cancelBtn two more references without code (a statement VC6 merges,
-   written in two arms) or amount fewer. */
+   click close the window */
 
 void ai_GuildCashPayWindow(AIBLD *bld) {
-  int amount;
+  int cash;
   int cancelBtn;
   int payBtn;
   AIOBJ *box;
@@ -10529,7 +10521,7 @@ void ai_GuildCashPayWindow(AIBLD *bld) {
   text = 0;
   type = &ai_BTypes[bld->type];
   box = gm_Query(bld->objList, 2, 6, 0, 0x142);
-  amount = gm_SumListAmounts(box->list, ai_OwnPlayer);
+  cash = gm_SumListAmounts(box->list, ai_OwnPlayer);
   worth = gm_GetGoodsValue(&ai_Chars[ai_PlayerId]);
   if (type->kind == 0x17 && ai_Chars[ai_PlayerId].secondOffice == 0x1e)
     master = 1;
@@ -10545,14 +10537,16 @@ void ai_GuildCashPayWindow(AIBLD *bld) {
   d2_CentreViewWindows(win);
   d2_SetPointerSprite(0, 0);
   d2_SetForm(win, 1);
-  io_PrintText(0x1a1a, amount);
+  io_PrintText(0x1a1a, cash);
   if (master) {
+    int limit;
+
     text = io_PrintText(0x1a1b,
                         ai_PlayerSlots[ai_OwnPlayer].moneyGood * 2 + 0x9a8);
-    ai_AmountLimit(0x640, worth, 0x20, &amount);
+    ai_AmountLimit(0x640, worth, 0x20, &limit);
     d2_SetObjValue(d2_GetWinObj(win, 1, text),
                    gm_ConvertMoney(0x640, ai_OwnPlayer),
-                   gm_ConvertMoney(amount, ai_OwnPlayer),
+                   gm_ConvertMoney(limit, ai_OwnPlayer),
                    gm_ConvertMoney(0x640, ai_OwnPlayer));
     payBtn = d2_GetWinObj(win, 1, text + 1);
     cancelBtn = d2_GetWinObj(win, 1, text + 2);
@@ -11526,24 +11520,17 @@ char *itoa(int, char *, int);
    while the event's stage is below 1) picks a priest (ai_AmountMenu, the gypsy filter, the text 0x19a2) and sets
    the two random texts (util_Random 8). State 2: the text 0x198e (the end, the texts 0x1990 + text1 / 0x1998 +
    text2, the priest) with the priest's amount row and the buttons 0x198f: the first clears the sermon. Each
-   change waits for its slot (sv_RunFrame)
-   @deep Read whole against the original and reconstructed (614 = 614 instructions, all calls and stores in
-   order). Left: at +0x60d the original hoists the gypsyFilter high dword load (mov edx, [0x5eed6c]) above
-   the AMOUNTCFG memset (rep stosd) and pushes 0x19a2 after it; ours loads both halves after the memset and
-   pushes 0x19a2 before it (scheduling; ai_RobberContact byte-matches the same cfg.classMask = gypsyFilter halves
-   with a hoisted low dword). Tried: filter assigned first (worse, code 26). The rest is slots / order (the
-   G17B7 init, the clear-button bytes). The prover stops at the 4-byte store of AISERMON.priest across two
-   cells of the G17B7 block (+0x60), the same on both sides. */
+   change waits for its slot (sv_RunFrame) */
 void ai_SermonWindow(AIBLD *bld) {
-  char flag;
+
   char text1;
   char text2;
   int state;
   AIJOB *ev;
   int cancelBtn;
   AICHAR *priest;
-  signed char none;
-  int noPriest;
+
+
   int payBtn;
   int pickBtn;
   int clearBtn;
@@ -11559,10 +11546,10 @@ void ai_SermonWindow(AIBLD *bld) {
   int i;
   int slot;
 
-  payBtn = 0;
   pickBtn = 0;
-  cancelBtn = 0;
   clearBtn = 0;
+  cancelBtn = 0;
+  payBtn = 0;
   if (bld == 0 || bld->owner == 0xffff || bld->owner != ai_PlayerId)
     return;
   sermon = gm_Query(bld->objList, 1, 0, 0x1b5);
@@ -11579,8 +11566,8 @@ void ai_SermonWindow(AIBLD *bld) {
   }
   ev = he_FindEvent(2, 0, 0x2b, 3, bld->id);
   if (ev == 0) {
-    msg.time = ai_Time;
     msg.type = 0x2b;
+    msg.time = ai_Time;
     msg.flags = 2;
     msg.to = ai_PlayerChar->netId;
     msg.fromId = bld->id;
@@ -11686,10 +11673,12 @@ void ai_SermonWindow(AIBLD *bld) {
     } else if (d2_ClickedId != -1) {
       if (d2_PointerObj == payBtn) {
         if (sv_CheckMoney(&ai_Chars[ai_PlayerId], 1) != 0) {
-          flag = 1;
+          char enabled;
+
+          enabled = 1;
           gm_SendMoneyDelta(ai_Chars[ai_PlayerId].netId, -1);
           cm_BeginFieldBlock(sermon, sermon->objId);
-          cm_AddFieldDelta(1, 1, 0x22, &flag);
+          cm_AddFieldDelta(1, 1, 0x22, &enabled);
           slot = cm_SendFieldDeltas();
           changed = 1;
           state = 1;
@@ -11723,17 +11712,21 @@ void ai_SermonWindow(AIBLD *bld) {
             sv_RunFrame(0, 0x677c7);
         }
       } else if (d2_PointerObj == clearBtn) {
-        none = -1;
+        signed char noText1;
+        signed char noText2;
+        int noPriest;
+
+        noText1 = -1;
+        noText2 = -1;
         noPriest = -1;
-        text1 = -1;
         cm_BeginFieldBlock(sermon, sermon->objId);
         cm_AddFieldDelta(4, 1, 0x1e, &noPriest);
         cm_SendFieldDeltas();
         cm_BeginFieldBlock(sermon, sermon->objId);
-        cm_AddFieldDelta(1, 1, 0x1c, &none);
+        cm_AddFieldDelta(1, 1, 0x1c, &noText1);
         cm_SendFieldDeltas();
         cm_BeginFieldBlock(sermon, sermon->objId);
-        cm_AddFieldDelta(1, 1, 0x1d, &text1);
+        cm_AddFieldDelta(1, 1, 0x1d, &noText2);
         slot = cm_SendFieldDeltas();
         changed = 1;
         state = 1;

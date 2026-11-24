@@ -408,21 +408,18 @@ int cm_CellUsable(int x, int y) {
   return 1;
 }
 /* 0x4ce040, the nearest usable cell (cm_CellUsable) of the current scene's height map around the cell (a, b), in
-   diamonds of the distance d = 0 .. 0x3f, rows top to bottom: *ox, *oy, returns 1; 0: none
-   @deep near-byte sweep s22: left the w load chain (ours hmap in ecx, the original eax -> eax) and mov
-   edx,ebp placed after it. climb round 1: nothing; w as a statement / via a D3SM local = control; w - 1 as
-   w: 12; ylo / xlo first: far worse. */
+   diamonds of the distance d = 0 .. 0x3f, rows top to bottom: *ox, *oy, returns 1; 0: none */
 
 int cm_FindNearCell(int a, int b, int *ox, int *oy) {
-  int w = (d3_DefaultScene->hmap)->size;
+  D3SM *hmap = d3_DefaultScene->hmap;
   int d, y, x, k, ylo, yhi, xlo, xhi;
 
   for (d = 0; d < 0x40; d++) {
-    yhi = w - 1 < b + d ? w - 1 : b + d;
+    yhi = hmap->size - 1 < b + d ? hmap->size - 1 : b + d;
     ylo = b - d < 0 ? 0 : b - d;
     for (y = ylo; y <= yhi; y++) {
       k = d - abs(b - y);
-      xhi = w - 1 < k + a ? w - 1 : k + a;
+      xhi = hmap->size - 1 < k + a ? hmap->size - 1 : k + a;
       xlo = a - k < 0 ? 0 : a - k;
       for (x = xlo; x <= xhi; x++) {
         if (cm_CellUsable(x, y) != 0) {
@@ -845,19 +842,19 @@ void cm_ShowDamage(AICHAR *c, int v, int kind) {
 }
 /* 0x4cee20, shows / moves the damage numbers of cm_ShowDamage over their characters (created on first show, kind 1 /
    2 between sign glyphs); each rises half a pixel a step and is removed after 128 steps; a character off screen hides
-   its number and ends the pass
-   @deep near-byte sweep s22: left the ScreenBox call's two temps swapped (original: c chain in eax, &box
-   in ecx). climb round 1: nothing; the body under if (v != 0) instead of continue = control. */
+   its number and ends the pass */
 
 void cm_UpdateDamagePops(void) {
   char buf[0x40];
   D3RECT box;
   int i, x, y0;
+  AICHAR *c;
 
   for (i = 0; i < 16; i++) {
     if (cm_DamagePops[i].v == 0)
       continue;
-    if (d3if_ScreenBox(cm_DamagePops[i].c->scene->obj, &box) == 0) {
+    c = cm_DamagePops[i].c;
+    if (d3if_ScreenBox(c->scene->obj, &box) == 0) {
       if (cm_DamagePops[i].h != -1)
         d2_EnableObject(cm_DamagePops[i].h, 0);
       return;
@@ -922,23 +919,7 @@ void cm_CloseFightView() {
    ticks, a character whose health is 2..4 loses one point and the damage of weapon 0x16e (the poison, reasoned) is
    sent for it (health 1 is reset to 100); a character holding weapon 0x172 is shown to the others only near them
    (faded by the distance to the nearest one in another building, rest 255) or half-transparent when cm_CutChar
-   sees it (0x800); a fighter in cutscene state 2 turns towards its partner; ends with the damage numbers
-   @deep deep s44: 41 -> 8 ins, size right. Kept: n = cm_Random(..) + w->dmgMin as one statement (the add
-   into eax, 41 -> 33); ang *= 0.25; as its own statement before body = g->obj (fld ang / fmul / fadd
-   rotation.y, the fpu hunk); no goto turn: the stateFlags |= 2 written in each arm, the found part under
-   if (found != 0) (the scratch rotation from 1095 on). Left (8 ins): the original pushes c->health (xor
-   edx / mov dl,[esi+8] / push edx) after the _ftol of the damage, ours before the fild (c2dag: the IL has
-   the push before the _ftol call node and the scheduler keeps it; with dmg as its own statement the
-   scheduler still hoists it). Tried: dmg local, (int)c->health, ai_SceneChars[i]->health, b, the product
-   spellings (/ 100.0, c->f01c * n, (float)n: same code; (double), 0.01f, 0.01 * n: fpu hunks), cm_Random
-   inline in the call (worse, health loaded before the call); climb 3 rounds from this text: nothing.
-   prior: Read whole against 0x4cf000..0x4cf370: the same calls with the same arguments (VecEqual c then o,
-   SetObjectAlpha with the info pointer and the D3TEXFLAGS by value, SetObjectRotXYZ with the float angles,
-   fabs(ang) > 0.08), constants (255 - 255 * (best * 0.01f)) and stores. Left: the hunk at +0x77..+0xa1, a
-   scheduling difference: the original loads c->health (xor edx,edx; mov dl,[esi+8]; push edx) after the
-   _ftol of the damage, ours before the fild (xor ecx,ecx; mov cl,[esi+8]; push ecx), with the qword temp
-   at [esp+0x20] vs [esp+0x24] by that push; tried v as a separate statement and inline, n int / unsigned:
-   the same code. Besides: regs hunks and an fpu hunk (fld rotation.y before / fadd after the fmul 0.25). */
+   sees it (0x800); a fighter in cutscene state 2 turns towards its partner; ends with the damage numbers */
 
 void cm_UpdateSceneChars() {
   AICHAR *c, *d, *o;
@@ -947,7 +928,7 @@ void cm_UpdateSceneChars() {
   CHARACTER *g;
   D3OBJECT *body;
   D3TEXFLAGS col;
-  int i, j, fl, found;
+  int i, j, fl, found, dmg;
   unsigned int n;
   float best, dist, ang;
   unsigned char b;
@@ -962,13 +943,15 @@ void cm_UpdateSceneChars() {
         continue;
       b--;
       c->health = b;
-      if (b == 1) {
+      if (b == 1)
         c->health = 100;
-        continue;
+      else {
+        w = ai_FindWeaponRecord(0x16e);
+        n = cm_Random(w->dmgMax - w->dmgMin) + w->dmgMin;
+        dmg = (int)(n * c->f01c * 0.01);
       }
-      w = ai_FindWeaponRecord(0x16e);
-      n = cm_Random(w->dmgMax - w->dmgMin) + w->dmgMin;
-      cm_SendDamage(c->netId, (int)(n * c->f01c * 0.01), c->health);
+      if (b != 1)
+        cm_SendDamage(c->netId, dmg, c->health);
     }
   }
   for (i = 0; i < 32; i++) {
@@ -2326,15 +2309,7 @@ float cm_ThreatAt(AICHAR *c, int a, int b, float limit) {
 }
 /* 0x4d2170, the safest cell around (cx, cy) for the fighter c: walks the diamond rings 0 .. r - 1 around it inside the
    height map, rates every cell whose ground type is not 0 / 0xd (the border) with cm_ThreatAt (limit r cells: r * the
-   cell size * 2) and puts the least rated one into (*ox, *oy); returns 0 when no cell was rated
-   @deep s40: min-ternary hi / hic (sc->size - 1 < cy + k ? sc->size - 1 : cy + k, as cm_FindNearCell) and
-   k = 0 before best (the k / best stores in the original order) took 41 -> 2 ins, size 348 -> 352 right.
-   Left: the two reloads of the k-loop latch's reload block (the row loop's exit, its own 2-instruction
-   block) in another order: the original loads cy into ebp before the strength-reduced cy - k (edx); ours
-   the IV first (split pieces, pass 2 ids k#154#2 before cy#2; the block keeps list order). Same hunk as
-   cm_MostThreatenedCellNear; flip.py finds no single change that flips it here. (declaration set: no
-   declaration set makes this text byte (every symbol-count shift 0..63 at the unit's start and before the
-   function) */
+   cell size * 2) and puts the least rated one into (*ox, *oy); returns 0 when no cell was rated */
 
 int cm_BestCellNear(AICHAR *c, int cx, int cy, int r, int *ox, int *oy) {
   D3SM *sc;
@@ -2353,7 +2328,7 @@ int cm_BestCellNear(AICHAR *c, int cx, int cy, int r, int *ox, int *oy) {
       for (col = cx - m < 0 ? 0 : cx - m; col <= hic; col++) {
         type = sc->entries[sc->size * row + col].type;
         if (type != 0 && type != 0xd) {
-          f = cm_ThreatAt(c, col, row, r * sc->cell.x * 2);
+          f = cm_ThreatAt(c, col, row, r * sc->cell.x * 2.0);
           if (f < best) {
             best = f;
             *ox = col;
@@ -2367,19 +2342,7 @@ int cm_BestCellNear(AICHAR *c, int cx, int cy, int r, int *ox, int *oy) {
 }
 /* 0x4d22d0, the most threatened cell around (cx, cy) for the fighter c: the rings of cm_BestCellNear, the cell with the
    greatest cm_ThreatAt rating goes into (*ox, *oy); returns 1 when that rating is above 5 (0 too when no cell rated
-   above 0)
-   @deep s40: min-ternary hi / hic (sc->size - 1 < cy + k ? sc->size - 1 : cy + k, as cm_FindNearCell) and
-   k = 0 before best (best's 0 stored from k's zero register) took 41 -> 2 ins, size right. Left: the two
-   reloads of the k-loop latch's reload block (the row loop's exit, its own 2-instruction block) in another
-   order: the original loads cy into ebp before the strength-reduced cy - k (edx); ours the IV first. They
-   are split pieces (pass 2 ids: k#154#2 id b before cy#2 id 16) and the block keeps list order. Tried
-   without result: if-forms of the row / col lower bounds (draft), lo / loc locals (= or far), every
-   operand order of the two ternaries, the final test spelled 7 ways (best != 0 / 0.0 / ==, return of the
-   &&), best = 0 / 0.0, climb 3 rounds; flip.py names only the float 0.0f constants (best = 1.0f, or the
-   final compare's 0.0f: identical instructions with another constant) and the 0 of the row bound, i.e. the
-   const-0 web decides the split order. Probes of cy / cy - k references move far more than the order.
-   (declaration set: no declaration set makes this text byte (every symbol-count shift 0..63 at the unit's
-   start and before the function) */
+   above 0) */
 
 int cm_MostThreatenedCellNear(AICHAR *c, int cx, int cy, int r, int *ox,
                               int *oy) {
@@ -2399,7 +2362,7 @@ int cm_MostThreatenedCellNear(AICHAR *c, int cx, int cy, int r, int *ox,
       for (col = cx - m < 0 ? 0 : cx - m; col <= hic; col++) {
         type = sc->entries[sc->size * row + col].type;
         if (type != 0 && type != 0xd) {
-          f = cm_ThreatAt(c, col, row, r * sc->cell.x * 2);
+          f = cm_ThreatAt(c, col, row, r * sc->cell.x * 2.0);
           if (f > best) {
             best = f;
             *ox = col;

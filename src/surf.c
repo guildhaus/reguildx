@@ -336,25 +336,20 @@ void surf_Up32(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src) {
     }
   }
 }
-/* 0x420140
-   @deep deep s35: one register swap through the function: pal8 (the original's edi) and the CSE temp of
-   src->dwWidth (the original's esi). c2trace --prio: pal8#1 26 (block 1, the assignment inside the
-   condition, +30 at P 5) is served before temp#d4#1 22 and takes esi (free order esi, edi); the width temp
-   needs +5. = control: initgen (bpp, pal8, y), climb round 1, pal8 as int, != 0, 2 * w factors, the
-   up-scale arms as else-if; pal8 assigned before the if (all three spellings): 75 ins (another layout); a
-   w local or src->dwWidth > dst->dwWidth: order 10 + the same swap; the == operands swapped: worse. */
+/* 0x420140, scales src into dst of the same pixel format (8-bit palette-indexed, 16, 24 or 32 bits): the
+   shrink or enlarge helper of the format, or a row copy when the widths match */
 
 void surf_ScaleBlit(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src) {
   int bpp;
-  unsigned int pal8, y;
+  unsigned int y;
   int n;
 
   bpp = src->ddpfPixelFormat.dwRGBBitCount;
   if (bpp == dst->ddpfPixelFormat.dwRGBBitCount &&
-      ((pal8 = src->ddpfPixelFormat.dwFlags & DDPF_PALETTEINDEXED8) ||
+      ((src->ddpfPixelFormat.dwFlags & DDPF_PALETTEINDEXED8) ||
        bpp == 16 || bpp == 24 || bpp == 32)) {
     if (dst->dwWidth < src->dwWidth) {
-      if (pal8) {
+      if (src->ddpfPixelFormat.dwFlags & DDPF_PALETTEINDEXED8) {
         surf_Scale8(dst, src);
         return;
       }
@@ -371,7 +366,7 @@ void surf_ScaleBlit(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src) {
         return;
       }
     } else if (dst->dwWidth == src->dwWidth) {
-      if (pal8)
+      if (src->ddpfPixelFormat.dwFlags & DDPF_PALETTEINDEXED8)
         n = src->dwWidth;
       else if (bpp == 16)
         n = src->dwWidth * 2;
@@ -383,7 +378,7 @@ void surf_ScaleBlit(DDSURFACEDESC2 *dst, DDSURFACEDESC2 *src) {
         SURF_COPY((char *)dst->lpSurface + dst->lPitch * y,
                   (char *)src->lpSurface + src->lPitch * y, n);
     } else {
-      if (pal8) {
+      if (src->ddpfPixelFormat.dwFlags & DDPF_PALETTEINDEXED8) {
         surf_Up8(dst, src);
         return;
       }

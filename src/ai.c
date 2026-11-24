@@ -1153,24 +1153,11 @@ done:
 /* 0x4801f0, evaluates the production of a master's workshop of the building category 2 (the dispatcher
    0x47e990 comes here when gm_BuildingClass(type) == 2): buys slots / capacity / upgrades, starts the entries'
    production, sends the job orders and finishes with the trade (ai_MeisterCollectTrans / ai_MeisterTrade);
-   the same production steps as ai_EvaluateProduction for this category's AIENTRY flags
-   @deep size queue s6: the r = util_Random(ai_NEntries) site of the PFLANZBAR walk: the original keeps r
-   in edx inside the loop (mov dx, ax / and edx, 0xffff, the loop-skip path reads its home [esp+0x18]);
-   ours stores it to [esp+0x1c] after and eax, 0xffff. r is already an int local: no 16-bit spelling lever,
-   it is the same allocation race as the c/ch swap. prior: B3 far draft (970/975 instructions, 447
-   differing; diffclass 708 code / 42 regs / 38 slots / 5 fill): every hunk read against
-   build/ghidra/4801f0.c and tools/asmdiff - no missing / extra statement, constant, callee or field
-   offset; the whole diff is the c/ch register swap (ours c=ebp ch=ebx, original c=ebx ch=ebp) with the
-   [esp+0x10]/[0x1c]/[0x20]/[0x24] slot rotation and the reloads it causes, i.e. allocation / scheduling.
-   spell.py: the reload (19x) and dup-tail (6x) entries all describe that same allocation; no meaning-class
-   lead (wrong type / signedness / offset / width) exists to try one edit on, so the last-bytes pass leaves
-   nothing to measure. Q1 named by role (0x47e990 dispatches here on gm_BuildingClass(type) == 2). Q2 gap:
-   AIMSG.unk14 is only ever written 0 by the ai.c senders (hst.c -1) and has no reader that names it. */
+   the same production steps as ai_EvaluateProduction for this category's AIENTRY flags */
 
 void ai_EvaluateProductionCategory2(AICHAR *ch) {
   AIOBJ *a, *b, *c, *o, *o2;
   AIJOB *job;
-  AIGOOD *g;
   D3FLMAP *map;
   G15TREE *plant;
   void *x;
@@ -1206,7 +1193,6 @@ void ai_EvaluateProductionCategory2(AICHAR *ch) {
   ai_BuySlots(b, ch, 10);
   ai_BuyCapacity(b, ch, 0x19);
   ai_BuyUpgrade(ch);
-  o = a;
   if (!(ch->flags1c8 & 0x10) && ai_BTypes[ch->bld->type].kind != 11) {
     for (o = gm_Query(a->list, 1, 4, 0x17); o; o = gm_QueryNext()) {
       if (o->count == 1) {
@@ -1229,6 +1215,9 @@ void ai_EvaluateProductionCategory2(AICHAR *ch) {
     }
     ch->flags1c8 |= 0x10;
   }
+  /* @original o is never set when the message was already sent (flags1c8 &
+     0x10) or for kind 11: the original reads the stack slot it shares with a
+     (mov esi, [a]), so the setting-good test below sees the workshop object */
   found = 0;
   job = he_FindEvent(2, 0, 9, 3, ch->bld->id);
   if (job) {
@@ -1250,10 +1239,9 @@ void ai_EvaluateProductionCategory2(AICHAR *ch) {
           if (!x)
             break;
           r = gm_FreeCapacity(x, ai_Entries[i].item, 1000000);
-          g = &ai_Goods[ai_Entries[i].item];
-          if (r < g->batch + ai_Entries[i].amount)
+          if (r < ai_Goods[ai_Entries[i].item].batch + ai_Entries[i].amount)
             break;
-          if (g->type == 0x17) {
+          if (ai_Goods[ai_Entries[i].item].type == 0x17) {
             o2 = gm_Query(c->list, 1, 0, ai_Entries[i].item);
             if (!o2 || o2->count < ai_Goods[ai_Entries[i].item].batch)
               break;
@@ -1277,9 +1265,8 @@ void ai_EvaluateProductionCategory2(AICHAR *ch) {
         ai_Entries[i].capacity >= ai_Goods[ai_Entries[i].item].batch &&
         (x = gm_FindMarketObject(ai_Entries[i].item)) != 0) {
       r = gm_FreeCapacity(x, ai_Entries[i].item, 1000000);
-      g = &ai_Goods[ai_Entries[i].item];
-      if (r >= g->batch + ai_Entries[i].amount) {
-        if (g->type == 0x17) {
+      if (r >= ai_Goods[ai_Entries[i].item].batch + ai_Entries[i].amount) {
+        if (ai_Goods[ai_Entries[i].item].type == 0x17) {
           o2 = gm_Query(c->list, 1, 0, ai_Entries[i].item);
           if (!o2 || o2->count < ai_Goods[ai_Entries[i].item].batch)
             continue;
@@ -1300,9 +1287,8 @@ void ai_EvaluateProductionCategory2(AICHAR *ch) {
         ai_Entries[i].capacity >= ai_Goods[ai_Entries[i].item].batch &&
         (x = gm_FindMarketObject(ai_Entries[i].item)) != 0) {
       r = gm_FreeCapacity(x, ai_Entries[i].item, 1000000);
-      g = &ai_Goods[ai_Entries[i].item];
-      if (r >= g->batch + ai_Entries[i].amount) {
-        if (g->type == 0x17) {
+      if (r >= ai_Goods[ai_Entries[i].item].batch + ai_Entries[i].amount) {
+        if (ai_Goods[ai_Entries[i].item].type == 0x17) {
           ai_Entries[i].flags |= 0x10;
           break;
         }
@@ -1316,8 +1302,7 @@ void ai_EvaluateProductionCategory2(AICHAR *ch) {
 check:
   for (i = 0; i < ai_NEntries; i++) {
     if (ai_Entries[i].flags & 8) {
-      g = &ai_Goods[ai_Entries[i].item];
-      if (g->type == 0x17) {
+      if (ai_Goods[ai_Entries[i].item].type == 0x17) {
         if (ai_BTypes[ch->bld->type].kind == 11) {
           ai_Entries[i].flags |= 0x10;
         } else {
@@ -1327,7 +1312,8 @@ check:
         }
       } else {
         for (k = 0; k < 4; k++) {
-          if (ai_Slots[ai_Entries[i].slot[k]].amount < g->need[k])
+          if (ai_Slots[ai_Entries[i].slot[k]].amount <
+              ai_Goods[ai_Entries[i].item].need[k])
             ai_Entries[i].flags &= ~8;
         }
       }
@@ -1360,9 +1346,9 @@ check:
   if (info.n1 >= info.n2)
     info.n1 = info.n2;
   if (info.n2 && info.n1) {
+    info.ch = ch;
     info.b = b;
     info.c = c;
-    info.ch = ch;
     info.z2 = 0;
     info.z1 = 0;
     if (ai_BTypes[ch->bld->type].kind == 11) {
@@ -1938,27 +1924,32 @@ spying:
    of his thieves idle picks a job by random: a kidnapping (message 0x3c, the richest owner by worth and the grid's
    guard weight, only while the guild holds no hostage), a break-in on his target building (message 0x3f, once a report
    knows enough, else a spying job 0x40), an attack (ai_CalcAngriff) or, by default, pickpocketing (message 0x61)
-   @deep Read whole against the original 0x481ef0..0x482ef3 and fixed: the burgle scan as the original's
-   countdown with bt = &ai_BTypes[type] taken before the owner tests (1195 -> 1181 instructions, equal to
-   the original's 1181), the report search as a break-search followed by the report test (the found body
-   now right after the loop as in the original), the report test as !(know < rnd(20) + guard * 2) (and
-   eax,0x4100 / je as the original), target = best ? best->id : -1 with the goto pick threaded (the target
-   = -1 block after the report loop as in the original), min() for the thief counts (the kidnap count
-   min(n, rnd(3) + 1) calls util_Random twice as the original), the hostage test named (AIBLD.hostage).
-   Statements, constants, callees, strings and field offsets all match; both sides make the same calls
-   block for block. Left is block layout and allocation: the original lays the kidnap branch (r == 1) out
-   split - its 0.95 test, sprintf and the first grid iteration up to the max store inline at +0x32f, the
-   rest (the grid loop latch, the 256-building class scan, the kidnap message) after the r == 3 call to
-   ai_CalcAngriff at +0xacf..+0xead; ours keeps the whole branch inline (the code hunks at +0x3af / +0x519
-   / +0xe9a, 548 lines). Tried: goto pick for the 0.95 test (identical code), a switch on r (worse, 890
-   code lines), the goto report / if (o) / nested-if forms of the report test (identical code). Further:
-   obj in edi vs ebp (the jne / jge at +0xc9 / +0xd6 reach the original's reload of obj at +0x10f), edi = 8
-   hoisted at +0x18b in the original. (references: M8 at +0xbba: ours refers to ai_Time (0x770ae0), the
-   original's field to 0x770ae4 (ai_TimeHourW) (and 1 more), explained: the two M8 lines are the msg.time =
-   ai_Time copy of the break-in message: both sides load ai_Time, ai_TimeHourW, 0x770ae8 and the word
-   0x770aec in that order and store them to msg.time (+0x28 .. +0x34); the copy is scheduled one load
-   earlier in the original (mov eax, [ai_Time] before the fromId store), so the alignment pairs each load
-   with its neighbour (crossed: both sides refer to both)) */
+   @deep s(this) match-deep: proven byte under a declaration set (16 unused typedefs at the unit's start,
+   ledger/tiebreak.tsv). Levers: the job pick as r values (r = 0 / r = 3 instead of goto burgle / goto
+   other; a 95% kidnap becomes r = 2 before the r chain), the kidnap arm after the attack arm in the chain
+   (the original lays the kidnap's grid loop latch and the rest after ai_CalcAngriff), the running-job
+   searches as break loops tested by if (!job) (no goto unfinished / spying), the watch copy loop as for (c
+   = 0; nslots < 4 && c < ai_NSlots; c++). prior: Read whole against the original 0x481ef0..0x482ef3 and
+   fixed: the burgle scan as the original's countdown with bt = &ai_BTypes[type] taken before the owner
+   tests (1195 -> 1181 instructions, equal to the original's 1181), the report search as a break-search
+   followed by the report test (the found body now right after the loop as in the original), the report
+   test as !(know < rnd(20) + guard * 2) (and eax,0x4100 / je as the original), target = best ? best->id :
+   -1 with the goto pick threaded (the target = -1 block after the report loop as in the original), min()
+   for the thief counts (the kidnap count min(n, rnd(3) + 1) calls util_Random twice as the original), the
+   hostage test named (AIBLD.hostage). Statements, constants, callees, strings and field offsets all match;
+   both sides make the same calls block for block. Left is block layout and allocation: the original lays
+   the kidnap branch (r == 1) out split - its 0.95 test, sprintf and the first grid iteration up to the max
+   store inline at +0x32f, the rest (the grid loop latch, the 256-building class scan, the kidnap message)
+   after the r == 3 call to ai_CalcAngriff at +0xacf..+0xead; ours keeps the whole branch inline (the code
+   hunks at +0x3af / +0x519 / +0xe9a, 548 lines). Tried: goto pick for the 0.95 test (identical code), a
+   switch on r (worse, 890 code lines), the goto report / if (o) / nested-if forms of the report test
+   (identical code). Further: obj in edi vs ebp (the jne / jge at +0xc9 / +0xd6 reach the original's reload
+   of obj at +0x10f), edi = 8 hoisted at +0x18b in the original. (references: M8 at +0xbba: ours refers to
+   ai_Time (0x770ae0), the original's field to 0x770ae4 (ai_TimeHourW) (and 1 more), explained: the two M8
+   lines are the msg.time = ai_Time copy of the break-in message: both sides load ai_Time, ai_TimeHourW,
+   0x770ae8 and the word 0x770aec in that order and store them to msg.time (+0x28 .. +0x34); the copy is
+   scheduled one load earlier in the original (mov eax, [ai_Time] before the fromId store), so the
+   alignment pairs each load with its neighbour (crossed: both sides refer to both)) */
 void ai_CalcMeisterDiebe(AICHAR *ch) {
   AIOBJ *o, *obj;
   AIBLD *bb, *best;
@@ -1984,9 +1975,7 @@ void ai_CalcMeisterDiebe(AICHAR *ch) {
     ai_AddEquipmentNeeds(ch, obj, ch->bld->budget);
     ai_MeisterBewaffnen(ch, obj);
     if (ai_Watch.bld == ch->bld) {
-      for (c = 0; ai_Watch.nslots < 4; c++) {
-        if (c >= ai_NSlots)
-          break;
+      for (c = 0; ai_Watch.nslots < 4 && c < ai_NSlots; c++) {
         ai_Watch.slots[ai_Watch.nslots] = ai_Slots[c];
         ai_Watch.nslots++;
       }
@@ -2035,84 +2024,16 @@ void ai_CalcMeisterDiebe(AICHAR *ch) {
       ai_Chars[ch->bld->owner].kind == 7) {
     r = util_Random(2);
     if (r && ch->target != -1 && util_Random(2))
-      goto burgle;
+      r = 0;
   } else {
     if (util_RandomF() > 0.85 && n >= 3 && ai_Time.year >= 7 - ai_Difficulty)
-      goto other;
-    r = util_Random(3);
+      r = 3;
+    else
+      r = util_Random(3);
   }
-  if (r == 1) {
-    if (!(util_RandomF() < 0.95)) {
-      sprintf(buf,
-              "ai_CalcMeisterDiebe(): Meister %s m\xf6"
-              "chte entf\xfc"
-              "hren",
-              ch->name);
-      max = 0.0f;
-      for (j = 0; j < 8; j++) {
-        for (i = 0; i < 8; i++) {
-          v = ai_Grid[i][j].a * 0.125f + ai_Grid[i][j].b;
-          if (!(max > v))
-            max = v;
-        }
-      }
-      if (max == 0.0f)
-        max = 1.0f;
-      best = 0;
-      bb = ai_Blds;
-      for (t = 0; t < 256; t++, bb++) {
-        if (bb->type) {
-          r = gm_BuildingClass(bb->type);
-          if (bb->owner != ch->bld->owner && bb->owner != 0xffff &&
-              !(bb->flags5a & 1) && r != 3 && r != 5 && r != 0 &&
-              (!ai_Chars[bb->owner].bld ||
-               ai_Chars[bb->owner].bld->owner != ch->bld->owner) &&
-              ai_Chars[bb->owner].kind <= 7) {
-            if (!bb->object || !ord_GetGridCell(&bb->object->pos, &i, &j))
-              w = 0.0f;
-            else
-              w = 1.0f - (ai_Grid[i][j].a * 0.125f + ai_Grid[i][j].b) / max;
-            w = util_Random(100) * w * 0.01;
-            if (!best) {
-              bestw = w;
-              best = bb;
-            } else if ((float)gm_GetGoodsValue(&ai_Chars[bb->owner]) * w >
-                       (float)gm_GetGoodsValue(&ai_Chars[best->owner]) *
-                           bestw) {
-              bestw = w;
-              best = bb;
-            }
-          }
-        }
-      }
-      if (gm_Query(ch->bld->objList, 1, 0, 0x65) && best &&
-          ch->bld->hostage == -1) {
-        if (he_FindEvent(2, 0, 0x3c, 3, ch->bld->id))
-          return;
-        sprintf(buf,
-                "ai_CalcMeisterDiebe(): Meister %s entf\xfc"
-                "hrt %s aus '%s'",
-                ch->name, ai_Chars[best->owner].name, best->name);
-        memset(&msg, 0, sizeof(msg));
-        msg.type = 0x3c;
-        msg.to = ai_Chars[ch->bld->owner].netId;
-        msg.fromId = ch->bld->id;
-        msg.time = ai_Time;
-        msg.flags = 1;
-        msg.arg[0] = ai_Chars[best->owner].netId;
-        msg.arg[1] = best->id;
-        msg.arg[2] = ch->bld->id;
-        t = min(n, util_Random(3) + 1);
-        AI_FILL_IDS(t)
-        if (msg.ids[0] != -1) {
-          cm_SendLongMessage(&msg);
-          ch->target = -1;
-        }
-        return;
-      }
-    }
-  } else if (r == 0) {
-  burgle:
+  if (r == 1 && util_RandomF() < 0.95)
+    r = 2;
+  if (r == 0) {
     name = ch->name;
     sprintf(buf,
             "ai_CalcMeisterDiebe(): Meister %s m\xf6"
@@ -2179,29 +2100,31 @@ void ai_CalcMeisterDiebe(AICHAR *ch) {
       for (job = he_FindEvent(2, 0, 0x40, 3, ch->bld->id); job;
            job = he_NextEvent())
         if (job->targetBld == best->id)
-          goto unfinished;
-      for (job = he_FindEvent(2, 0, 0x3f, 3, ch->bld->id); job;
-           job = he_NextEvent())
-        if (job->targetBld == best->id)
-          goto unfinished;
-      sprintf(buf, "ai_CalcMeisterDiebe(): Meister %s bricht bei '%s' ein",
-              name, best->name);
-      memset(&msg, 0, sizeof(msg));
-      msg.type = 0x3f;
-      msg.to = ai_Chars[ch->bld->owner].netId;
-      msg.fromId = ch->bld->id;
-      msg.time = ai_Time;
-      msg.flags = 1;
-      msg.arg[0] = best->id;
-      msg.arg[1] = ch->bld->id;
-      t = min(n, 8);
-      AI_FILL_IDS(t)
-      if (msg.ids[0] != -1) {
-        cm_SendLongMessage(&msg);
-        ch->target = -1;
+          break;
+      if (!job)
+        for (job = he_FindEvent(2, 0, 0x3f, 3, ch->bld->id); job;
+             job = he_NextEvent())
+          if (job->targetBld == best->id)
+            break;
+      if (!job) {
+        sprintf(buf, "ai_CalcMeisterDiebe(): Meister %s bricht bei '%s' ein",
+                name, best->name);
+        memset(&msg, 0, sizeof(msg));
+        msg.type = 0x3f;
+        msg.to = ai_Chars[ch->bld->owner].netId;
+        msg.fromId = ch->bld->id;
+        msg.time = ai_Time;
+        msg.flags = 1;
+        msg.arg[0] = best->id;
+        msg.arg[1] = ch->bld->id;
+        t = min(n, 8);
+        AI_FILL_IDS(t)
+        if (msg.ids[0] != -1) {
+          cm_SendLongMessage(&msg);
+          ch->target = -1;
+        }
+        return;
       }
-      return;
-    unfinished:
       sprintf(buf,
               "ai_CalcMeisterDiebe(): Meister %s hat aber noch eine Spionage "
               "bei '%s' nicht beendet",
@@ -2211,34 +2134,103 @@ void ai_CalcMeisterDiebe(AICHAR *ch) {
     for (job = he_FindEvent(2, 0, 0x40, 3, ch->bld->id); job;
          job = he_NextEvent())
       if (job->targetBld == best->id)
-        goto spying;
-    for (job = he_FindEvent(2, 0, 0x3f, 3, ch->bld->id); job;
-         job = he_NextEvent())
-      if (job->targetBld == best->id)
-        goto spying;
-    sprintf(buf, "ai_CalcMeisterDiebe(): Meister %s spioniert bei '%s'", name,
-            best->name);
-    memset(&msg, 0, sizeof(msg));
-    msg.type = 0x40;
-    msg.to = ai_Chars[ch->bld->owner].netId;
-    msg.fromId = ch->bld->id;
-    msg.time = ai_Time;
-    msg.flags = 1;
-    msg.arg[0] = best->id;
-    msg.arg[1] = ch->bld->id;
-    t = min(n, 8);
-    AI_FILL_IDS(t)
-    cm_SendLongMessage(&msg);
-    return;
-  spying:
+        break;
+    if (!job)
+      for (job = he_FindEvent(2, 0, 0x3f, 3, ch->bld->id); job;
+           job = he_NextEvent())
+        if (job->targetBld == best->id)
+          break;
+    if (!job) {
+      sprintf(buf, "ai_CalcMeisterDiebe(): Meister %s spioniert bei '%s'", name,
+              best->name);
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x40;
+      msg.to = ai_Chars[ch->bld->owner].netId;
+      msg.fromId = ch->bld->id;
+      msg.time = ai_Time;
+      msg.flags = 1;
+      msg.arg[0] = best->id;
+      msg.arg[1] = ch->bld->id;
+      t = min(n, 8);
+      AI_FILL_IDS(t)
+      cm_SendLongMessage(&msg);
+      return;
+    }
     sprintf(buf,
             "ai_CalcMeisterDiebe(): Meister %s hat schon eine Spionage bei "
             "'%s' laufen",
             name, best->name);
     return;
   } else if (r == 3) {
-  other:
     ai_CalcAngriff(ch, n);
+  } else if (r == 1) {
+    sprintf(buf,
+            "ai_CalcMeisterDiebe(): Meister %s m\xf6"
+            "chte entf\xfc"
+            "hren",
+            ch->name);
+    max = 0.0f;
+    for (j = 0; j < 8; j++) {
+      for (i = 0; i < 8; i++) {
+        v = ai_Grid[i][j].a * 0.125f + ai_Grid[i][j].b;
+        if (!(max > v))
+          max = v;
+      }
+    }
+    if (max == 0.0f)
+      max = 1.0f;
+    best = 0;
+    bb = ai_Blds;
+    for (t = 0; t < 256; t++, bb++) {
+      if (bb->type) {
+        r = gm_BuildingClass(bb->type);
+        if (bb->owner != ch->bld->owner && bb->owner != 0xffff &&
+            !(bb->flags5a & 1) && r != 3 && r != 5 && r != 0 &&
+            (!ai_Chars[bb->owner].bld ||
+             ai_Chars[bb->owner].bld->owner != ch->bld->owner) &&
+            ai_Chars[bb->owner].kind <= 7) {
+          if (!bb->object || !ord_GetGridCell(&bb->object->pos, &i, &j))
+            w = 0.0f;
+          else
+            w = 1.0f - (ai_Grid[i][j].a * 0.125f + ai_Grid[i][j].b) / max;
+          w = util_Random(100) * w * 0.01;
+          if (!best) {
+            bestw = w;
+            best = bb;
+          } else if ((float)gm_GetGoodsValue(&ai_Chars[bb->owner]) * w >
+                     (float)gm_GetGoodsValue(&ai_Chars[best->owner]) *
+                         bestw) {
+            bestw = w;
+            best = bb;
+          }
+        }
+      }
+    }
+    if (gm_Query(ch->bld->objList, 1, 0, 0x65) && best &&
+        ch->bld->hostage == -1) {
+      if (he_FindEvent(2, 0, 0x3c, 3, ch->bld->id))
+        return;
+      sprintf(buf,
+              "ai_CalcMeisterDiebe(): Meister %s entf\xfc"
+              "hrt %s aus '%s'",
+              ch->name, ai_Chars[best->owner].name, best->name);
+      memset(&msg, 0, sizeof(msg));
+      msg.type = 0x3c;
+      msg.to = ai_Chars[ch->bld->owner].netId;
+      msg.fromId = ch->bld->id;
+      msg.time = ai_Time;
+      msg.flags = 1;
+      msg.arg[0] = ai_Chars[best->owner].netId;
+      msg.arg[1] = best->id;
+      msg.arg[2] = ch->bld->id;
+      t = min(n, util_Random(3) + 1);
+      AI_FILL_IDS(t)
+      if (msg.ids[0] != -1) {
+        cm_SendLongMessage(&msg);
+        ch->target = -1;
+      }
+      return;
+    }
   } else if (r <= 1)
     return;
 pick:

@@ -1208,11 +1208,10 @@ void snd_PlayFavourComment(void) {
 /* 0x4c2f30, plays the greeting of the character a's building: the player's favour for the building's owner
    (gm_Liking / 33) picks "_SCHLECHTE_GUNST" (0), "_MITTLERE_GUNST" (1) or "_GUTE_GUNST" (2 and up); with the
    building's goods list empty (AIRECIPE.count 0) the variation is 3, else the random r. a is the character's
-   scene record (CHARACTER). x is volatile because the original reloads it from its slot before every use
-(matching trick, do not clean). @deep deep s43: without volatile (int x, int x[1], an ok flag from an if / else of the two list calls: all one code, 12 ins) VC6 threads the decided x test: on the count == 0 path x is known 1, so it keeps x in eax (mov eax,1 before the je) and drops the arm-0 reload; the original stores 1 to the slot, joins, and reloads x in each of the three level arms, i.e. nothing in the original let VC6 know x at the join. With volatile only the pop esi placement is left (ours before the je, the original between test ebx and jne). Also tried: x = 0 after util_Random (14), the three arms as one call with x ? 3 : r each (91). Open: the ordinary construct that blocks the jump threading (x's address escaping, x set through a pointer / another variable, a different flag form). prior: near-byte sweep s22: left the pop esi placed before je (ours) vs after the test ebx (original) around the goods-list call; not worked (the volatile x is the open question: an ordinary form that spills x is the first lever). */
+   scene record (CHARACTER). */
 
 void ai_FavourComment(CHARACTER *a) {
-  volatile int x;
+  int x;
   AIRECIPE out;
   unsigned int r;
   AICHAR *c;
@@ -1227,11 +1226,16 @@ void ai_FavourComment(CHARACTER *a) {
   g = c->bld;
   level = (int)gm_Liking((unsigned short)ai_PlayerId, g->owner, 1) / 33;
   /* the three building kinds with their own goods list, all others the generic one */
-  if ((g->type == 0x20 || g->type == 0x1f || g->type == 0x1e)
-          ? gm_BuildingGoodsList17(g, &out, 0)
-          : gm_BuildingGoodsList(g, &out, 0)) {
-    if (out.count == 0)
-      x = 1;
+  if (g->type == 0x20 || g->type == 0x1f || g->type == 0x1e) {
+    if (gm_BuildingGoodsList17(g, &out, 0)) {
+      if (out.count == 0)
+        x = 1;
+    }
+  } else {
+    if (gm_BuildingGoodsList(g, &out, 0)) {
+      if (out.count == 0)
+        x = 1;
+    }
   }
   if (level == 0) {
     if (x)

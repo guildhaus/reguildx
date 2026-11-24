@@ -4879,36 +4879,31 @@ void he_AllocGeselle(AIJOB *e) {
 /* 0x547f90, a Ghidra miss (disassembled): the run handler of the "RndGeselle" event 0x4a (a random journeyman):
    pushes the end four units ahead, frees the event at stage -2 or when its building is gone; at stage 0, once the
    cm slot is answered, sends the new character it holds to the building ("RndGeselle"), shows the news newsId
-   (the character, its title text 0x20d / 0x230 by sex + title, the receiver) in a quick-jump message box and frees
-   the event
-   @deep near-byte sweep s22: left only bld / chr in each other's slot (frame 0x200 > 0x80: unstable
-   density sort of two count-3 locals, c2frame L bld, chr -> A chr, bld; the original needs bld one
-   reference more or chr one fewer). Declaration order / init order / init statements late / text as a
-   block local: = control or order hunks only. */
+   (the character, its title text 0x20d / 0x230 by sex + title, the building) to the receiver in a quick-jump
+   message box and frees the event; the receiver's record (chr) is looked up but never used */
 
 void he_RunGeselle(AIJOB *e) {
-  AIJOB *g = e;
   char text[0x200];
-  AIBLD *bld = 0;
   AICHAR *chr = 0;
+  AIBLD *bld = 0;
   AICHAR *c;
   int title;
 
   e->end = ai_Time;
   gm_AddTime(&e->end, 0, 4, 0);
-  gm_FindById(&bld, 0, 0, g->geselleBldId);
-  gm_FindById(0, 0, &chr, g->geselleChrId);
+  gm_FindById(&bld, 0, 0, e->geselleBldId);
+  gm_FindById(0, 0, &chr, e->geselleChrId);
   if (e->stage == -2 || bld == 0)
     he_FreeEvent(e);
-  if (e->stage == 0 && cm_GetSlotState(g->geselleSlot) != 0) {
-    c = (AICHAR *)cm_GetSlotValue(g->geselleSlot);
+  if (e->stage == 0 && cm_GetSlotState(e->geselleSlot) != 0) {
+    c = (AICHAR *)cm_GetSlotValue(e->geselleSlot);
     if (c != 0) {
       title = (c->sex ? 0x230 : 0x20d) + (unsigned char)c->title;
-      cm_SendChrGotoBuilding(c->netId, g->geselleBldId, g->geselleBldArg, 0, 0,
+      cm_SendChrGotoBuilding(c->netId, e->geselleBldId, e->geselleBldArg, 0, 0,
                              "RndGeselle");
-      txt_Format(text, g->geselleNewsId, c->id, title, chr);
-      he_MessageBoxQuickjump(g->geselleChrId, g->geselleChrId, text, 0, 0x5ec,
-                             g->geselleBldId, g->geselleBldArg, 0,
+      txt_Format(text, e->geselleNewsId, c->id, title, bld);
+      he_MessageBoxQuickjump(e->geselleChrId, e->geselleChrId, text, 0, 0x5ec,
+                             e->geselleBldId, e->geselleBldArg, 0,
                              "_NACHRICHTEN_HS_00");
     }
     he_FreeEvent(e);
@@ -6375,42 +6370,16 @@ void he_StartProtection(AIJOB *e) {
    1 (pays) for an owner whose sel is 0xb or when a roll stays below 0.001 * its mood[11][2], else a coin toss.
    Stage 3 reports: paid, the building gets the flag 0x100, the owner pays the collector, the home building
    counts it, the news 0x1a8d, stage 4 in 48 hours; refused (0x1a8e) or else (0x1a8f), stage 4 in five minutes.
-   Stage 4 shows the news 0x1a90 to both when paid and sends the collector home
-   @deep s49: draft 148 -> shape 8. Fixed: the 0x63 question's wait is gm_AddTime(&e->end, 3, 0, 0) (3
-   hours; the original pushes 0, 0, 3). Levers: the owner as an int index local read at each use (owner =
-   b->owner; ai_Chars[owner].kind / .netId) instead of an AICHAR pointer: the original's byte-offset CSE
-   (lea edx,[eax+eax*8]; shl edx,2) kept across the memset (148 -> 28); the fill order fromId, to, type,
-   flags, arg[0], time (719 orders: shape 8). Left: the original loads b->id (mov ecx,[ebp+1]) before the
-   netId (mov eax,[edx+ai_CharInts]); ours the other way, so the to / fromId stores swap ecx / eax. No
-   lever: unsigned short owner (10), to re-read through b->owner (208), owner read before the amount (65),
-   msg as a block local, memset(.., sizeof(AIMSG)), every fill order (p1-0-.. = 8 with order 20), climb
-   round 1 (155 mutants: nothing). prior: Read all of it against the original and rewrote it typed (AIJOB /
-   AIJOB.protection* / AIMSG / AIBLD / AICHAR): fixed the meaning errors - stage 3 goes to stage 4 with
-   cm_SendExSetHE(4) (the original's ebx = 4, not 1), the AIMSG fields (to +8, fromId +0xc, time, flags
-   +0x36, arg[0]; no store at +0x34), the owner's sel / mood[11][2] at stride 0x21c (was 0x14), the roll's
-   direction (!(mood * 0.001f > util_RandomF()): test ah,5 / jnp), the refused / other branches as two full
-   copies, text[0x200] (frame 0x2fc equal). 580 = 580 instructions, the frame and switch table equal. Left,
-   scheduling and allocation only: the owner record addressed as a byte offset kept in edx (lea
-   edx,[eax+eax*8]; shl edx,2; mov al,[edx+ai_Chars+2], reused for [edx+ai_CharInts] after the memset)
-   where ours forms the pointer (lea edx,[eax*4+ai_Chars]); the AIMSG stores and the ai_Time copies in
-   another order / with ecx<->edx swapped (tried 8 field orders, the best kept); the cm_SendSetField /
-   amount load order in the paid branch and the 0x1a8d txt_Format argument loads. The M8 at +0x20a is the
-   aligner pairing ours' mov edx,[ai_Time+8] with the original's mov edx,[ai_TimeHourW] inside the same
-   14-byte ai_Time copy, both copying in the same order (registers swapped) (references: M8 at +0x20a: ours
-   refers to ai_Time+0x8 (0x770ae8), the original's field to 0x770ae4 (ai_TimeHourW), explained: the ref:
-   line is the ai_Time struct copy into e->end, the same four loads in the same order on both sides with
-   ecx/edx/eax renamed; the aligner pairs different loads, no other object is referenced) */
+   Stage 4 shows the news 0x1a90 to both when paid and sends the collector home */
 
 void he_RunProtection(AIJOB *e) {
-  AIJOB *q = e;
   AIBLD *b, *home;
   AICHAR *c;
   int owner;
-  AIMSG msg;
   char text[0x200];
 
-  b = gm_BuildQuery(1, 1, q->protectionVictim);
-  c = gm_FindChar(q->protectionCollector);
+  b = gm_BuildQuery(1, 1, e->protectionVictim);
+  c = gm_FindChar(e->protectionCollector);
   if (e->stage == -1 || e->stage == -2) {
     if (b != 0 && (e->opts & 2) != 0)
       cm_SendSetField(b->id, 0x5a, 2, 0, 0x100);
@@ -6447,13 +6416,15 @@ void he_RunProtection(AIJOB *e) {
       e->exSlot = cm_SendExSetHE(2, e);
       return;
     }
-    q->protectionAmount = (int)((float)gm_EquipmentValue(b, 100) * 0.065f);
+    e->protectionAmount = (int)((float)gm_EquipmentValue(b, 100) * 0.065f);
     owner = b->owner;
     if (ai_Chars[owner].kind == 6 || ai_Chars[owner].kind == 7) {
+      AIMSG msg;
+
       memset(&msg, 0, sizeof(msg));
-      msg.fromId = b->id;
-      msg.to = ai_Chars[owner].netId;
       msg.type = 0x63;
+      msg.to = ai_Chars[owner].netId;
+      msg.fromId = b->id;
       msg.flags = 9;
       msg.arg[0] = e->id;
       msg.time = ai_Time;
@@ -6461,7 +6432,7 @@ void he_RunProtection(AIJOB *e) {
       e->end = ai_Time;
       gm_AddTime(&e->end, 3, 0, 0);
       e->stage = 3;
-      q->protectionAnswer = 2;
+      e->protectionAnswer = 2;
       e->exSlot = cm_SendExSetHE(3, e);
       return;
     }
@@ -6469,35 +6440,35 @@ void he_RunProtection(AIJOB *e) {
     gm_AddTime(&e->end, 0, util_Random(0x10) + 2, 0);
     e->stage = 3;
     if ((b->flags5aw & 0x100) != 0)
-      q->protectionAnswer = 2;
+      e->protectionAnswer = 2;
     else if (ai_Chars[b->owner].sel != 0xb &&
              !(ai_Chars[b->owner].mood[11][2] * 0.001f > util_RandomF()))
-      q->protectionAnswer = util_Random(2);
+      e->protectionAnswer = util_Random(2);
     else
-      q->protectionAnswer = 1;
+      e->protectionAnswer = 1;
     e->exSlot = cm_SendExSetHE(3, e);
     return;
   case 3:
-    if (q->protectionAnswer == 1) {
+    if (e->protectionAnswer == 1) {
       cm_SendSetField(b->id, 0x5a, 2, 0x100, 0);
       cm_SendMoveGoodsUnchecked(ai_Chars[e->chr].netId,
                                 ai_Chars[b->owner].netId, 0,
-                                q->protectionAmount);
-      if (q->protectionHome != -1) {
-        home = gm_BuildQuery(1, 1, q->protectionHome);
-        home->roundSums[0] += q->protectionAmount;
+                                e->protectionAmount);
+      if (e->protectionHome != -1) {
+        home = gm_BuildQuery(1, 1, e->protectionHome);
+        home->roundSums[0] += e->protectionAmount;
       }
       e->end = ai_Time;
       e->start = ai_Time;
       gm_AddTime(&e->end, 0x30, 0, 0);
       e->stage = 4;
       e->exSlot = cm_SendExSetHE(4, e);
-      txt_Format(text, 0x1a8d, b->owner, b, q->protectionAmount);
+      txt_Format(text, 0x1a8d, b->owner, b, e->protectionAmount);
       he_ShowNews(ai_Chars[e->chr].netId, ai_Chars[e->chr].netId, text, 0,
                   0x5f3, "_NACHRICHTEN_HS_84");
       return;
     }
-    if (q->protectionAnswer == 0) {
+    if (e->protectionAnswer == 0) {
       e->end = ai_Time;
       gm_AddTime(&e->end, 0, 5, 0);
       e->stage = 4;
@@ -6516,7 +6487,7 @@ void he_RunProtection(AIJOB *e) {
                 "_NACHRICHTEN_HS_85");
     return;
   case 4:
-    if (q->protectionAnswer == 1) {
+    if (e->protectionAnswer == 1) {
       txt_Format(text, 0x1a90, b);
       he_ShowNews(ai_Chars[e->chr].netId, ai_Chars[e->chr].netId, text, 0,
                   0x5f3, (char *)0);
@@ -6525,7 +6496,7 @@ void he_RunProtection(AIJOB *e) {
     }
     sv_MoveToGroup(b, 0, c->id, 0);
     cm_SendChrStop(c->netId);
-    cm_SendChrGotoBuilding(c->netId, q->protectionHome, q->protectionHomeRoom,
+    cm_SendChrGotoBuilding(c->netId, e->protectionHome, e->protectionHomeRoom,
                            0, 0, "Schutzgeld");
     e->end = ai_Time;
     gm_AddTime(&e->end, 0, 2, 0);
@@ -8527,18 +8498,7 @@ int he_CreateReaper(AIJOB *e) {
    reaperTo's object: closer than 45 (horizontally) the flight ends (reaperPlaced = 0, returns 2); otherwise the
    object moves along the direction by the time since reaperClock times a speed of 0.5 + 0.25 per cm_SpeedLevel,
    rising (0.978 per time unit, with a tenth of the step) while it is less than 80 above the ground there, and its
-   position and angles are cached; 1 = flying, 0 = the object or the building missing
-   @deep deep s48: all 64 operand orders of the three dir *= step and target = dir + at lines are one code
-   (VC6 orders the operands itself); (dir.y) / (at.y) parentheses, a (float) cast: = control; the
-   assignment inside the sum (target.y = (dir.y = step * dir.y) + at.y: fpu 23, all three: 19), the scale
-   and sum interleaved (20), dir.y scaled first (12); dist as sqrt(x*x + z*z) with dir.y = 0.0f anywhere: =
-   control (same code, plainer). Left: target.y's fld at.y / fadd dir.y at 0x5505bf. prior: deep s24: dist
-   written as the full length sqrt(x*x + y*y + z*z) with dir.y = 0.0f (VC6 folds the zero term: every term
-   order = control; kept, it gives the dir.y = 0 store its use). flip.py --want the original's fld dir.y /
-   fadd at.y for target.y: 5 hits, the only non-local one deletes dir.y = 0.0f (then the order is right but
-   the original's zero store is missing: draft 1); dir.y = 0.0f at each position of the first dir block: =
-   control or worse (5..19). Left: target.y = dir.y + at.y emitted as fld at.y / fadd dir.y (the original
-   dir.y first, as x and z). */
+   position and angles are cached; 1 = flying, 0 = the object or the building missing */
 int he_MoveReaper(AIJOB *e) {
   int scene = d3_CurrentScene;
   AIBLD *bld;
@@ -8559,6 +8519,10 @@ int he_MoveReaper(AIJOB *e) {
       d3_PointToWorld(bld->object, &bld->object->pos, &target.v);
       d3_PointToWorld(e->reaper, &e->reaper->pos, &at.v);
       dir.x = target.x - at.x;
+      /* @original: the full difference, then flattened; the dead y difference
+         reads at.y before dir.y's first store, which sets the fld order of
+         target.y = dir.y + at.y below */
+      dir.y = target.y - at.y;
       dir.y = 0.0f;
       dir.z = target.z - at.z;
       dist = (float)sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
@@ -16274,45 +16238,14 @@ void he_RunBurglary(AIJOB *ev) {
    stall goods, its skill 7 and the knowledge: n * the mean skill 2 points (at least 42) / 4 by the target's rank,
    + a random -2 .. 1, within 2 .. 100; a player master (kind 6 / 7) without a character of the building with the
    flag 1 (+0x1b4) gets the message box 0x19f8 ("_NACHRICHTEN_HS_78", a quick jump to the main object). The record is
-   freed. Stages -2 / -1 send the spies back and free it
-   @deep s52: shape, only frame slots differ (dcp asmdiff: the stores / loads of two slots). Done this
-   session, each read from the original with the pushes pending: the stall amount as a float local (a
-   meaning fix: fild / fstp dword before the price call), all = 1 before case 1's building query, case 2
-   with its own exits (if (n == 0) { he_FreeEvent(ev); return; } and he_FreeEvent(ev); return; at its end
-   instead of break: ev's split pieces then keep edi, owner / master stay in memory / ebx as the original),
-   the main object fetched into a local before the message box (obj = gm_BuildingMainObject(g): the call
-   ahead of every push, master->netId loaded late into ecx), sum = 0 before n = 0 in cases 1 and 2 (the 0
-   register in ebx through cases 1 / 2; with it the knowledge product is fild n; fimul sum as written).
-   Left: the original's +0x10 holds n with case 1's two loop countdowns, case 2's countdown and the v temp,
-   +0x14 room / all / worth / goods; ours has the two case 1 countdowns with room / goods / worth at +0x10
-   and n / all / case 2's countdown / the v temp at +0x14 (everything else agrees: +0x18 b / owner / case
-   -1's countdown, +0x1c sum, +0x24 mean / master, +0x2c spy). The packer replayed (c2frame --names counts
-   and conflicts, each local joins the newest compatible slot, equal counts in the order of their last
-   reference): the original's slots need room packed before n, i.e. n counted 4 or less (ours 6: the n = 0
-   store, the store behind the loop and the use, per case), or room 7 (ours 5), or goods 7, or both case 1
-   countdowns counted 5 (a doubled latch). = control: continue forms of case 1's loops, n = sum = 0 chains,
-   declaration order (reversed: the packing order does not follow it), n / sum inits at the declaration,
-   room / spy inits as statements, the main object in room or it instead of obj, spy as the loop character
-   of the other cases. Worse: separate n / sum variables for case 2, cases -2 / -1 as two written-out
-   bodies (not merged: the table differs), the message box per p == 0 / flag arm or per kind. flip --want
-   '_n. = -1084': only meaning changes. prior: s51: the exits: the message-box arm's own he_FreeEvent +
-   return dropped (the arm falls into the break -> free), case 2's no-spy exit as break (246 -> 178); the
-   spying time as (rank * 120.0) * (252.0f / (int)mean) / n (the original's fmul 120.0 right after the rank
-   fild, s49's parenthesised product) and all = 1 set after the b == 0 guard, right before the door loop
-   (178 -> 170). Size 1934 -> 1883 (orig 1910): the original keeps its own he_FreeEvent copy for case 2's n
-   == 0 exit (written out with return: 234, the other copies then do not merge as now). Left: 0 in ebx
-   through the whole function in the original (cmp reg,ebx / push ebx; ours test / push 0 in cases 1 / 2:
-   one 0 reference more in the original makes 0 a candidate), case 1's loop: the original has &ids[k] in
-   ebp and the countdown in [esp+0x10], ours ebx / ebp; the frame slots of spy / room / all. No lever: spy
-   = 0 right before case 2's loop (worse). */
+   freed. Stages -2 / -1 send the spies back and free it */
 void he_RunBuildingSpying(AIJOB *ev) {
   AIJOB *x = ev;
   AIBLD *b, *g;
-  AICHAR *c, *owner, *master, *spy = 0, *p;
   AIOBJ *room = 0, *stall, *it, *obj;
-  HESPYREPORT rec;
+  AICHAR *c, *owner, *master, *spy = 0, *p;
   char text[0x400];
-  int k, n, sum, all, worth, goods, know;
+  int k, n, sum, all, worth, know;
   double mean;
   float t, v, amt;
 
@@ -16411,32 +16344,36 @@ void he_RunBuildingSpying(AIJOB *ev) {
       ev->stage = -1;
       return;
     }
-    owner = &ai_Chars[b->owner];
-    stall = gm_Query(b->objList, 2, 6, 0, 0x2a);
-    worth = gm_GetWorth(owner->id);
-    if (worth >= 1600000)
-      worth = 1600000;
-    rec.worth = (int)(worth * 0.1);
-    goods = 0;
-    if (stall != 0) {
-      for (it = gm_Query(stall->list, 1, 5); it != 0; it = gm_QueryNext()) {
-        amt = (float)gm_ListAmount(stall, it);
-        goods += amt * gm_GoodsPrice(it->id, ai_OwnPlayer);
+    {
+      HESPYREPORT rec;
+
+      owner = &ai_Chars[b->owner];
+      stall = gm_Query(b->objList, 2, 6, 0, 0x2a);
+      worth = gm_GetWorth(owner->id);
+      if (worth >= 1600000)
+        worth = 1600000;
+      rec.worth = (int)(worth * 0.1);
+      worth = 0;
+      if (stall != 0) {
+        for (it = gm_Query(stall->list, 1, 5); it != 0; it = gm_QueryNext()) {
+          amt = (float)gm_ListAmount(stall, it);
+          worth += (float)(amt * gm_GoodsPrice(it->id, ai_OwnPlayer));
+        }
       }
+      v = (float)n * sum * 0.25f;
+      know = (int)(v / gm_BuildingRank(b));
+      know += util_Random(4) - 2;
+      if (know > 100)
+        know = 100;
+      else if (know < 2)
+        know = 2;
+      rec.when = ai_Time;
+      rec.bld = b->id;
+      rec.goods = worth;
+      rec.skill = gm_BuildingSkill(b, 7, 1);
+      rec.know = know;
+      cm_SendSpyReport(g, &rec);
     }
-    v = (float)n * sum * 0.25f;
-    know = (int)(v / gm_BuildingRank(b));
-    know += util_Random(4) - 2;
-    if (know > 100)
-      know = 100;
-    else if (know < 2)
-      know = 2;
-    rec.when = ai_Time;
-    rec.bld = b->id;
-    rec.goods = goods;
-    rec.skill = gm_BuildingSkill(b, 7, 1);
-    rec.know = know;
-    cm_SendSpyReport(g, &rec);
     if (master->kind == 6 || master->kind == 7) {
       p = gm_FindCharacterByMaster(g);
       if (spy != 0 && (p == 0 || (p->flags1b4 & 1) == 0)) {
@@ -18446,17 +18383,38 @@ void he_AllocPatrolEvent(AIJOB *ev) {
    (12, 8, 4, 2, 0); once at that building's door (and the building is no town market, or the cart belongs to the
    patrol building) it moves on to the next point of the route (wrapping to 0; the field send's cm slot goes to
    ev->exSlot), else, in a building, it sends the message 0xf (the cart, the building it is in, the point's building)
-   @deep deep s32: the hunk is the order of the message 0xf fill (the last block): the original stores the
-   ai_Time words, to and car first, then type / fromId / flags just before the time's last word, loads
-   bld->id and at->id after those (m has escaped through the first branch's cm_SendLongMessage: pointer
-   loads wait for the stores), pushes &m, and only then stores n and ch (and flag9e). Ours stores n / ch
-   before the push in every order: 720 orders of type/fromId/to/flags/time/car (best p160 = fromId, to,
-   time, car, type, flags: 8 ins but draft, code 20), x the 6 orders of n/ch/flag9e on the six best (no
-   gain), 4000 sampled orders of all nine (10 ins at best), climb --ops move,swap 4 rounds from the tree
-   and from p160 (8). A fresh block-local m in each branch puts the n / ch stores after the push as the
-   original but also the type / fromId / flags stores, and hoists bld->id above the memset (8 ins / 71
-   bytes, draft): the escape is right, the store/push order is not. Not kept (every 8-ins row grades
-   draft). (declaration set: not byte under the declaration sets tried (best shape)) */
+   @deep deep s50 (the message 0xf fill, the last block). Mechanism (c2dag): a store to an escaped local
+   gets an edge (0x20) to every later load through a non-parameter pointer (owner / bld / at are k6 .80;
+   c->objId, a parameter, is .0 and free; a pointer read from a global is .80 too). Escape: a
+   function-scope m is escaped everywhere (even with the first branch's sends deleted); a block local is
+   fresh until its own call (a block-local m in the last block has no 0x20 edges at all, and bld->id then
+   fills the lea edi -> rep stosd latency slot). A store with no outgoing edge (h4) is scheduled after the
+   push (h5); that is why flag9e always follows the push. The original: nothing between lea edi and rep
+   stosd (bld->id is ordered after the memset: an edge), type / fromId / flags after the time / to / car
+   loads and before bld->id, then bld->id, at->id, lea, push, and BOTH n and ch stores after the push
+   (neither has an edge to the other's load). With two plain statements m.n = bld->id; m.ch = at->id;
+   (either order) one store always precedes the other load, so the original's text there is something else.
+   Rounds, best rows: block-local m in each branch x 720 orders of the first six fills: 8 ins draft
+   (bld->id above rep stosd, the constants after the push); 4000 sampled 9-statement orders block-local:
+   10; zero-initialised block-local AIMSG m = {0} x 720: 13; n / ch as arg[1] / arg[2]: = the named fields;
+   decided if (bld != 0) / ternary / nested fill: = block-local code (decided tests vanish before
+   scheduling); function-scope x 216 grouped orders: 14 (OMCTFLNHE); int locals from = bld->id, to = at->id
+   read before the two stores (4 tail forms x 720, function scope): 14, their tail is the original's shape
+   but the lea takes eax; climb 4 rounds from the tree: 8 ins draft (fromId, to, time, car, n, flags, ch,
+   flag9e, type: ch then has no edge and follows the push, n still before it); climb 3 rounds from the
+   block-local best: nothing; flip.py on the tree / OMCTFLNHE for the original tail: no single mutation.
+   Not kept (every 8-ins row grades draft). prior: deep s32: the hunk is the order of the message 0xf fill
+   (the last block): the original stores the ai_Time words, to and car first, then type / fromId / flags
+   just before the time's last word, loads bld->id and at->id after those (m has escaped through the first
+   branch's cm_SendLongMessage: pointer loads wait for the stores), pushes &m, and only then stores n and
+   ch (and flag9e). Ours stores n / ch before the push in every order: 720 orders of
+   type/fromId/to/flags/time/car (best p160 = fromId, to, time, car, type, flags: 8 ins but draft, code
+   20), x the 6 orders of n/ch/flag9e on the six best (no gain), 4000 sampled orders of all nine (10 ins at
+   best), climb --ops move,swap 4 rounds from the tree and from p160 (8). A fresh block-local m in each
+   branch puts the n / ch stores after the push as the original but also the type / fromId / flags stores,
+   and hoists bld->id above the memset (8 ins / 71 bytes, draft): the escape is right, the store/push order
+   is not. Not kept (every 8-ins row grades draft). (declaration set: not byte under the declaration sets
+   tried (best shape)) */
 void he_PatrolStep(AIJOB *ev, AIOBJ *c) {
   AICHAR *owner;
   RTPOINT *p;

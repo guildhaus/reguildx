@@ -405,52 +405,35 @@ VFSENTRY *vfs_FindFile(char *path, VFSDIR *d, VFSDIR **found) {
   return e;
 }
 /* 0x42fa10, builds the path of entry e (or of directory d without the trailing slash if e is 0) relative to
-   the directory stop.
-   @deep s45: c2trace: the swap is the order of service among the callee-saved candidates (avail edx ebx
-   ebp): d (the parameter, p = d is forwarded into the head) prio 40 -> edx, out prio 23 (16 refs) -> ebx,
-   the two loop webs p#1 / p#2 prio 18 each -> ebp; the original has the loop pointer in ebx and out in
-   ebp, so p must be served before out (one web over both loops would be 36). Rounds: d used directly (no
-   p): the loop gets ebx but the parent test becomes one load (mov ebx,[edx+0x110]; test) where the
-   original computes lea eax,[p+0x110], cmp [eax],0, mov ebx,[eax] (27 ins); early return 0 / return out
-   forms: 16-80 ins (code); p = d / for (p = d; ..) per loop: = control; r used for out after r = out (all
-   or loops): = control. Next: what gives the loop pointer one web or a higher priority with p still a
-   separate local (the two loops written once? a do-while form?), or what lowers out (fewer counted refs).
-   prior: behaviour: 56 code hunk lines are the ebp/ebx role swap of the out buffer and the loop directory
-   pointer (every differing instruction is mov/cmp/lea/rep with the other register, e.g. [ebp+0x110] vs
-   [ebx+0x110], mov eax,ebx vs mov eax,ebp, plus that mov sitting one slot later between pop edi and pop
-   esi in the epilogue = order 18); no statement, constant, callee or operand differs (asmdiff, listing).
-   Register/slot allocation - deep */
+   the directory stop. */
 
 char *vfs_EntryPath(VFSENTRY *e, VFSDIR *d, VFSDIR *stop, char *out) {
   char tmp[0x100];
   VFSDIR *p = d;
-  char *r;
 
   if (!p)
-    r = 0;
-  else {
-    r = out;
-    if (p != stop) {
-      strcpy(out, p->name);
-      if (e) {
-        strcat(out, e->name);
-        while (p->parent && (p = p->parent) != stop) {
-          strcpy(tmp, p->name);
-          strcat(tmp, out);
-          strcpy(out, tmp);
-        }
-      } else {
-        out[strlen(out) - 1] = 0;
-        while (p->parent && (p = p->parent) != stop) {
-          strcpy(tmp, p->name);
-          strcat(tmp, out);
-          strcpy(out, tmp);
-        }
+    return 0;
+  if (p != stop) {
+    strcpy(out, p->name);
+    if (e) {
+      strcat(out, e->name);
+      while (p->parent && (p = p->parent) != stop) {
+        strcpy(tmp, p->name);
+        strcat(tmp, out);
+        strcpy(out, tmp);
       }
-    } else
-      strcpy(out, e->name);
-  }
-  return r;
+      return out;
+    } else {
+      out[strlen(out) - 1] = 0;
+      while (p->parent && (p = p->parent) != stop) {
+        strcpy(tmp, p->name);
+        strcat(tmp, out);
+        strcpy(out, tmp);
+      }
+    }
+  } else
+    strcpy(out, e->name);
+  return out;
 }
 /* 0x42fbf0, builds the path of directory d relative to the directory stop. */
 

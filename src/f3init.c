@@ -3703,24 +3703,14 @@ void init_LoadShopScript(AIBLD *b, AIOBJ *o) {
 /* 0x5126a0, the scene callback for the "sfx_" objects (a function start Ghidra missed): starts the sound
    named after the prefix (the name's "_l" / "_r" suffixes decide on looping and a 2000 ms delay) at the
    object's position (d3snd_Attach, volume 0x7f, range the object's sound radius + 50) when sound is on
-   (snd_SfxEnabled), then clears the object's state (0x224)
-   @deep deep s34: the hunk is the loop / s register pair (original loop edi, s esi; ours loop esi, s edi).
-   c2trace --prio: loop#1 prio 17 against s#1 16, served first (esi). loop's terms: +12 def block, +6 the
-   _r arm, -2/-1/-2/-4 through the sfx / sample / attach blocks, +8 the Play block (P=4: h, loop, delay,
-   const#0). flip.py --want 'neg edi': the Play call's 0 -> 1 (block P 4 -> 3, loop 15 < s 16: the
-   original's registers), loop = 0 -> 1, h != 0 -> == 0, the sfx test swapped with the sample call: all
-   meaning changes, so the lever is a value count in the Play / attach blocks. = control: initgen (4
-   locals), if (x) for != 0 (all three), sb_GetSample(NULL, ..), h as D3SOUND * through the real
-   d3snd_Attach prototype, a named int range, the && chain of the sfx / sample tests, loop as ?: / ! /
-   if-else; worse: loop = 1 + if, if (!_r) first, loop = 0 before delay = 2000, delay = 0 first, float
-   range (27), char / short loop or delay. climb round 1: nothing. prior: frame sweep s21: name[0x100] (not
-   MAX_PATH): the original's frame 0xf8, 12 -> 9 bytes. Left: regs 26 (18 ins). */
+   (snd_SfxEnabled), then clears the object's state (0x224) */
 
 void init_SoundObjectHook(D3OBJECT *o) {
   char name[0x100];
   int loop, delay;
   struct D3SOUND *h;
   struct SBSAMPLE *s;
+  int radius;
 
   if (strncmp(o->name, "sfx_", 4) == 0) {
     strcpy(name, o->name + 4);
@@ -3733,7 +3723,8 @@ void init_SoundObjectHook(D3OBJECT *o) {
     if (snd_SfxEnabled != 0) {
       s = sb_GetSample(0, name);
       if (s != 0) {
-        h = d3snd_Attach(s, o, 0x7f, (float)((int)o->soundRange + 0x32));
+        radius = (int)o->soundRange;
+        h = d3snd_Attach(s, o, 0x7f, (float)(radius + 0x32));
         if (h != 0)
           d3snd_Play(h, 0, loop, delay);
       }

@@ -518,33 +518,14 @@ int he_HasEvent9f(AICHAR *a);
    (1.3 * +0x14 + +0x18) times the rate wear the amount down; every work time used up makes one unit
    (cm_SendMakeGoods); without units and the good no longer in the store, the good is ordered (cm_SendExSellObject).
    A shortage reports as above (once), stops the smoke and waits 5 minutes. Stage 2 goes back to 1 while workers are
-   left, else the workers leave the building's group, the smoke stops and the event is freed; -1 / -2 free it
-   @deep deep s44: 40 -> 4 ins, size right (3793). Two levers: case 1's no-worker path written out in case
-   1 (if (w0 <= 0 && w1 <= 0) { ev->stage++; return; }, no goto work) with case 0 placed before case 2: VC6
-   cross-jumps case 0 into case 1's copy (the switch entry +0x87, the stage in eax from the switch); and
-   the debug line's buffer is its own char buf[0x200] (the original's only reference to esp+0x534), text is
-   char text[0x400]. Left (4 ins): line 'fv = (gm_GetSkill(worker, 1) + 0.5) * fv;' - the original
-   schedules mov al,[esi+0x1b4] (the flags1b4 test) and add esp,8 before fadd 0.5 / fmul fv; ours fadd /
-   fmul first (c2dag: fadd prio 131072 h=8 above the flag load 106496 h=5; the op=263 node of the
-   parenthesised sum). Tried: fv *= .., fv * (..), 0.5f (fpu hunk), (float) cast, 0.5 + .., (double)fv, the
-   flag test as != 0 / == 1 / ternary / if-else: none moves it. prior: rebuilt from the whole original
-   (frame 0x724: name[MAX_PATH] at 0x20, text[0x600] at 0x124; the case order 1/0/2/-1; txt_Format(text,
-   id, bld, good*2+0x9a8); the shortage news chains; the make / order slots; while amount <= 0.0f; the
-   minutes product with the call converted in place). 1147 vs 1151 instructions. Left is allocation: VC6
-   keeps &ev->clock60 (the CSE, or the clock variable) in ebx where the original keeps it in the stack slot
-   0x8 (mov [esp+0x24], eax at +0x79e) and caches the constant 0 in ebx instead (xor ebx, ebx at +0x8cc /
-   +0x96b; cmp ax, bx / push ebx / cmp [ebp+0xc8], ebx / mov [esp+0x28], ebx for the qword high half):
-   every code hunk from +0x792 to +0xd95 is that (push ebx vs push 0, mov ecx, ebx vs mov edx, [esp+0x18]),
-   and the slots hunks follow from it (factor f at 0x8 vs 0xc). The tail hunk: case 1's no-worker path
-   shares case 0's stage++ inline in the original (+0x87) and as a tail block in ours (+0xda0), the cause
-   of the one switch entry that differs; goto / fall-through spellings gave the same layout (size: 8 of the
-   instruction difference are shared / inline tails) */
+   left, else the workers leave the building's group, the smoke stops and the event is freed; -1 / -2 free it */
 void he_RunProduktion(AIJOB *ev) {
   AIJOB *p = ev;
   AIBLD *bld;
   AIOBJ *store;
   float f;
   float fv;
+  float skill;
   float sum;
   AIBTYPE *bt;
   char name[MAX_PATH];
@@ -686,7 +667,8 @@ void he_RunProduktion(AIJOB *ev) {
         if (worker != 0) {
           fv = gm_HealthRatio(worker);
           if (worker->title == 0x1b || worker->title == 0x1c) {
-            fv = (gm_GetSkill(worker, 1) + 0.5) * fv;
+            skill = gm_GetSkill(worker, 1);
+            fv = (skill + 0.5) * fv;
             if (worker->flags1b4 & 1)
               fv = 0.01f;
           }
@@ -4036,19 +4018,7 @@ void he_AllocMasterWork(AIJOB *e) {
    0x412c / 0x412d / 0x412e else; a full store 0x4225 / 0x412f; the voices "_NACHRICHTEN_ZIGEUNER_03" /
    "_NACHRICHTEN_FRIEDHOF_01"); then the workers leave the group and the event is freed. The 1.0f is a literal
    (VC6's pooled 1.0f, 0x5eb780): spelled as an object VC6 loads it first and keeps the rate on
-   the FPU stack (fld / fadd st, st(1)), which the original's fadd [0x5eb780] does not.
-   @deep 58 ins, stack slots only (plus 6 regs / 4 order that follow them). The original's slot groups
-   (read from its pushes): {loop count of the ids loop, busy, master} 0x10, {bt} 0x14, {hour, bld} 0x18,
-   {the two gm_BuildingSkill int temps} 0x1c, {minutes, step} 0x20, {store} 0x24, {season} 0x28; ours {tmp,
-   busy}, {minutes, step, master}, {hour, both temps}, {bt}, {store}, {season}, {bld}. c2frame replay: the
-   original's groups come out exactly when master and bld each have one more counted reference (count 3:
-   they are then packed before the count-2 locals: master joins busy's slot, bld opens one that hour then
-   joins, the temps conflict with bld and open their own). Their counts are spill / reload IL ops (bld: the
-   store after gm_BuildQuery and the reload for bld->id at the end; master: the store after
-   gm_FindCharacterByMaster and one reload). s41 no lever: all 720 declaration orders (one code), removing
-   hour / bt = 0 / store = 0 (draft), climb 2 rounds (958 mutants, nothing), the kind / master tests as one
-   && or master outer, master read after gm_FreeCapacity. Next: a source where bld and master are reloaded
-   once more before the late passes (a second use in another block, e.g. bld in the store-full arms) */
+   the FPU stack (fld / fadd st, st(1)), which the original's fadd [0x5eb780] does not. */
 void he_RunMasterWork(AIJOB *e) {
   AIJOB *p = e;
   char voice[0x98];
@@ -4118,8 +4088,9 @@ void he_RunMasterWork(AIJOB *e) {
   }
   if (e->stage != -2 && e->stage != -1)
     return;
-  n = (int)p->masterworkMade;
-  if (n <= 1)
+  if ((int)p->masterworkMade > 1)
+    n = (int)p->masterworkMade;
+  else
     n = 1;
   if (e->stage == -1 && sv_UsedGroupSlots(e) <= 0)
     n = -1;
@@ -4145,17 +4116,24 @@ void he_RunMasterWork(AIJOB *e) {
           txt_Format(what, 0x412e, n, p->masterworkGood * 2 + 0x9a8);
       }
       strcat(text, what);
-    } else if (bt->kind == 0x1f) {
-      txt_Format(text, 0x4225, 0x421e, 0x22c, bld);
-      strcpy(voice, "_NACHRICHTEN_ZIGEUNER_03");
+      if (ai_Chars[e->chr].kind == 6 || ai_Chars[e->chr].kind == 7) {
+        if (master == 0 || !(master->flags1b4 & 1))
+          he_MessageBoxQuickjump(ai_Chars[e->chr].netId, -1, text, 0, 0x5ec,
+                                 bld->id, -1, 0, voice);
+      }
     } else {
-      txt_Format(text, 0x412f, 0x4128, 0x228, bld);
-      strcpy(voice, "_NACHRICHTEN_FRIEDHOF_01");
-    }
-    if (ai_Chars[e->chr].kind == 6 || ai_Chars[e->chr].kind == 7) {
-      if (master == 0 || !(master->flags1b4 & 1))
-        he_MessageBoxQuickjump(ai_Chars[e->chr].netId, -1, text, 0, 0x5ec,
-                               bld->id, -1, 0, voice);
+      if (bt->kind == 0x1f) {
+        txt_Format(text, 0x4225, 0x421e, 0x22c, bld);
+        strcpy(voice, "_NACHRICHTEN_ZIGEUNER_03");
+      } else {
+        txt_Format(text, 0x412f, 0x4128, 0x228, bld);
+        strcpy(voice, "_NACHRICHTEN_FRIEDHOF_01");
+      }
+      if (ai_Chars[e->chr].kind == 6 || ai_Chars[e->chr].kind == 7) {
+        if (master == 0 || !(master->flags1b4 & 1))
+          he_MessageBoxQuickjump(ai_Chars[e->chr].netId, -1, text, 0, 0x5ec,
+                                 bld->id, -1, 0, voice);
+      }
     }
   }
   for (i = 0; i < 4; i++) {
@@ -4464,28 +4442,16 @@ void he_AllocMeeting(AIJOB *e) {
    other 6 and a coin throw of 7 / 8 (one of two free ones by a coin throw). The disease's record (gm_GetDisease)
    gives its severity util_Random(range); a severity above 0 is written into the disease's bit field (a field
    delta of v02c) and costs severity * the record's cost health (gm_AddHealth), the health left stored in *health
-   when given. Returns the disease kind, 0 when none was caught.
-   @deep deep s48: a = 0; b = 0; at the top with delta (the field-delta int) as a block local of the
-   lottery block gives the original's frame 0x10 (function-scope delta: 0x14), but a still in memory
-   (c2trace: a#1 prio -8 split alone where ch#1 prio 0 took ebp; the original never keeps ch in a register:
-   [esp+0x24] reloaded in every arm). 127 variants (a / b init orders and the < form x delta / d / res /
-   bits as block locals x cost after the sev test): best with the original frame 76 ins; climb round 1 from
-   that base: nothing. Left: the 2-ins xor ebx,ebx place (the tree's text). prior: deep s24: the severity
-   as its own local sev (not the reused b) = the same code, kept (one register either way, esi). a = 0
-   before the call again with the pick written as (a == 0 || (b != 0 && rnd == 0)) { if (b == 0) return 0;
-   a = b; } (or: 3 ins with a = 0 inside, 79 with a = 0 at the top), if / else-if + one if (a == 0) return
-   0 (7 / 79), the zero test first (23 / 97): a = 0 at the top always lets ch#1 (prio -1) take ebp before
-   a#1 (-12, c2trace), frame 0x14. Left: the original's xor ebx,ebx before the util_RandomF call (ours
-   after the chance test). */
+   when given. Returns the disease kind, 0 when none was caught. */
 int he_CatchMeetingDisease(AICHAR *ch, float chance, int kind, float *health) {
   unsigned int bits, delta;
   GMDISEASE d;
-  int a, b, sev, cost;
+  int a, b, n, sev, cost;
   float res;
 
+  a = 0;
   b = 0;
   if (!(util_RandomF() >= chance)) {
-    a = 0;
     if (kind == 2) {
       if ((ch->ailments & 0xf0) == 0)
         a = 2;
@@ -4505,36 +4471,37 @@ int he_CatchMeetingDisease(AICHAR *ch, float chance, int kind, float *health) {
       if ((ch->ailments & (7 << 0x14)) != 0 && b == 7)
         b = 0;
     }
+    n = a;
     if (a != 0) {
       if (b != 0 && util_Random(2) == 0)
-        a = b;
+        n = b;
     } else {
       if (b == 0)
         return 0;
-      a = b;
+      n = b;
     }
     bits = ch->ailments;
-    if (gm_GetDisease(a, &d) == 0)
-      return a;
+    if (gm_GetDisease(n, &d) == 0)
+      return n;
     sev = util_Random(d.range);
     cost = (int)(sev * d.cost);
     if (sev == 0)
-      return a;
-    if (a == 2)
+      return n;
+    if (n == 2)
       bits ^= ((sev << 4) ^ bits) & 0xf0;
-    else if (a == 3)
+    else if (n == 3)
       bits ^= ((sev << 8) ^ bits) & 0xf00;
-    else if (a == 4)
+    else if (n == 4)
       bits ^= ((sev << 0xc) ^ bits) & 0x3000;
-    else if (a == 5)
+    else if (n == 5)
       bits ^= ((sev << 0xe) ^ bits) & 0x1c000;
-    else if (a == 6)
+    else if (n == 6)
       bits ^= ((sev << 0x11) ^ bits) & 0xe0000;
-    else if (a == 7)
+    else if (n == 7)
       bits ^= ((sev << 0x14) ^ bits) & (7 << 0x14);
-    else if (a == 8)
+    else if (n == 8)
       bits ^= ((sev << 0x17) ^ bits) & 0x1800000;
-    else if (a == 9)
+    else if (n == 9)
       bits ^= ((sev << 0x19) ^ bits) & 0x1e000000;
     delta = bits;
     cm_BeginFieldBlock(ch, ch->netId);
@@ -4543,7 +4510,7 @@ int he_CatchMeetingDisease(AICHAR *ch, float chance, int kind, float *health) {
     res = gm_AddHealth(ch->id, -cost);
     if (health != 0)
       *health = res;
-    return a;
+    return n;
   }
   return 0;
 }

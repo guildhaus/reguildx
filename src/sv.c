@@ -6155,37 +6155,24 @@ void sv_SetStatusText(char *s) {
 }
 /* 0x52e350, creates n buttons (d2_WinCreateSlider kind 0xbf, font 0x53) in a row in the window f at the height y, the
    labels are the n string arguments; every button is as wide as the widest label + 0x20, the ids go to out[]. The
-   buttons are spread evenly over the window's width, or, when they do not fit, put side by side 8 apart and centred
-   @deep Read whole against the original 0x52e350..0x52e4af and rewritten: D2WIN *win = &d2_Wins[f] (font
-   +0x27c, w +8), the va_arg label loop with the inline strcpy, two copies of the widest width (wmax in a
-   register for the step / centring, bw in a slot for d2_SetObjWidth, as the original keeps it), the spread
-   / side-by-side branch with its if/else difference and the shared halving, the slider x as x - wmax / 2
-   (VC6's induction variable in the preheader), D2OBJ.font = 0x53. Same size (352 = 352), 122 = 122
-   instructions; diffclass: slots 26, regs 34, order 6 and one 'code' hunk at the prologue (0x52e35f) that
-   is the same rotation: with --regs edi=ebx,ebx=edi it is the push order (push ebx/ebp/esi/edi vs ours
-   edi/ebp/esi/ebx), the zero test of n (the original 'test eax,eax', ours 'cmp eax,ebx' against the zero
-   wmax register) and the slot swap win [esp+0x18] / count [esp+0x14] / bw [esp+0x10] (ours win 0x10, count
-   0x18, bw 0x14). Declaration orders tried (bw first, win last, i with bw): no change. */
+   buttons are spread evenly over the window's width, or, when they do not fit, put side by side 8 apart and centred */
 
 void sv_ButtonRow(int f, int y, int *out, int n, ...) {
   char labels[0x20][0x40];
   D2WIN *win;
-  int wmax, bw, w, step, x, i, id, row;
+  int wmax, w, step, x, i, id, row;
   char *s;
   va_list ap;
 
   wmax = 0;
-  bw = 0;
   win = &d2_Wins[f];
   va_start(ap, n);
   for (i = 0; i < n; i++) {
     s = va_arg(ap, char *);
     strcpy(labels[i], s);
     w = d2_TextWidth(s, win->font) + 0x20;
-    if (w > wmax) {
-      bw = w;
+    if (w > wmax)
       wmax = w;
-    }
   }
   va_end(ap);
   w = win->w;
@@ -6199,33 +6186,16 @@ void sv_ButtonRow(int f, int y, int *out, int n, ...) {
       x = (w - row) / 2 + step / 2;
   } else
     step = x;
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < n; i++, x += step) {
     id = d2_WinCreateSlider(x - wmax / 2, y, 0xbf, labels[i], f);
     out[i] = id;
     d2_Objs[id].font = 0x53;
-    d2_SetObjWidth(id, bw);
-    x += step;
+    d2_SetObjWidth(id, wmax);
   }
 }
 /* 0x52e4b0, sv_ButtonRow with the font 0x54 and the button kind 0xc5 (rt_EditCartRoute's tab row): n buttons in a
    row in the window f at the height y, labelled with the n string arguments, as wide as the widest label + 0x20,
-   spread evenly or put side by side 8 apart and centred; the ids go to out[]
-   @deep s45: c2trace: the swap is a priority tie: loop 2's IVs x - wmax / 2 (k#14d), labels[i] (k#14f) and
-   x itself all have prio 109; ours x -> edi, k#14d edi, k#14f ebx, loop 1's down counter (copy of n) ebx
-   and label pointer edi; the original has every pair the other way (n / counter edi, label pointer ebx, x
-   ebx). So the lever is which candidate is created / ranked first, not a spelling. No change (= control):
-   x - wmax / 2 hoisted as x -= wmax / 2 (71 ins, x becomes the IV), strcpy(labels[i], s = va_arg(..)),
-   out[i] = id = .., x = x + step, wmax = max(w, wmax), n > i; worse: out[i] read back for font / width
-   (84), d2_Wins[f].w for win->w (125), d2_TextWidth(labels[i]) (frame 0x804). climb 2 rounds: nothing.
-   Next: one reference more or fewer for x or the labels pointer (c2trace --prio x), the sibling
-   sv_ButtonRow's state (its own swap is edi / ebx too). prior: Read whole against the original
-   0x52e4b0..0x52e5fc and rewritten as sv_ButtonRow's twin: D2WIN *win (w +8), the va_arg label loop with
-   the inline strcpy, d2_TextWidth(s, 0x54) + 0x20, one widest width wmax (a slot, as the original), the
-   spread / side-by-side branch with the if/else difference, the slider x as x - wmax / 2, D2OBJ.font =
-   0x54, kind 0xc5. Same size (333 = 333); the whole diff is the ebx/edi rotation: with --regs
-   ebx=edi,edi=ebx only the prologue's push order / the load of n (ours mov edi,[esp+0x81c] before push
-   ebp, the original after push edi), the reload of n after the label loop scheduled one line later, the
-   'add ebx,ebp' line order and the pop order remain. */
+   spread evenly or put side by side 8 apart and centred; the ids go to out[] */
 
 void sv_TabButtonRow(int f, int y, int *out, int n, ...) {
   char labels[0x20][0x40];
@@ -6256,12 +6226,11 @@ void sv_TabButtonRow(int f, int y, int *out, int n, ...) {
       x = (w - row) / 2 + step / 2;
   } else
     step = x;
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < n; i++, x += step) {
     id = d2_WinCreateSlider(x - wmax / 2, y, 0xc5, labels[i], f);
     out[i] = id;
     d2_Objs[id].font = 0x54;
     d2_SetObjWidth(id, wmax);
-    x += step;
   }
 }
 

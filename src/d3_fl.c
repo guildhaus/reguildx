@@ -1680,15 +1680,15 @@ void d3fl_ReloadTextures(D3FLMAP *map) {
 }
 
 #define D3FL_CORNER(i, X0, Z0, H)                                              \
-  p.x = d3fl_AxisX.x * (X0) + d3fl_Origin.x;                                   \
-  p.y = d3fl_AxisX.y * (X0) + d3fl_Origin.y;                                   \
-  p.z = d3fl_AxisX.z * (X0) + d3fl_Origin.z;                                   \
-  q.x = d3fl_AxisZ.x * (Z0) + p.x;                                             \
-  q.y = d3fl_AxisZ.y * (Z0) + p.y;                                             \
-  q.z = d3fl_AxisZ.z * (Z0) + p.z;                                             \
-  d3fl_Box[i].x = d3fl_AxisY.x * (H) + q.x;                                    \
-  d3fl_Box[i].y = d3fl_AxisY.y * (H) + q.y;                                    \
-  d3fl_Box[i].z = d3fl_AxisY.z * (H) + q.z;
+  p.x = (d3fl_AxisX.x * (X0)) + d3fl_Origin.x;                                 \
+  p.y = (d3fl_AxisX.y * (X0)) + d3fl_Origin.y;                                 \
+  p.z = (d3fl_AxisX.z * (X0)) + d3fl_Origin.z;                                 \
+  q.x = (d3fl_AxisZ.x * (Z0)) + p.x;                                           \
+  q.y = (d3fl_AxisZ.y * (Z0)) + p.y;                                           \
+  q.z = (d3fl_AxisZ.z * (Z0)) + p.z;                                           \
+  d3fl_Box[i].x = (d3fl_AxisY.x * (H)) + q.x;                                  \
+  d3fl_Box[i].y = (d3fl_AxisY.y * (H)) + q.y;                                  \
+  d3fl_Box[i].z = (d3fl_AxisY.z * (H)) + q.z;
 
 /* 0x442390, creates a terrain map from a description: height, water and texture maps either from memory or from
    "boden/<name>.bmp", "boden/<name>_w.bmp" and "boden/<texname>.bmp" */
@@ -1813,14 +1813,7 @@ D3FLMAP *d3fl_LoadMap(D3FLDESC *desc) {
   d3fl_FreeMap(map);
   return 0;
 }
-/* 0x442ac0, the bounding box of tile (tx, ty) in world space (bottom from t->hmin, top from the map's tile)
-   @deep s36: the code is equal up to corner 3 (line 1793); the original schedules the address of
-   map->tiles[ty][tx].hmax (lea / xor edx / mov eax,[esp+0x24]) into corner 3's last fadd / fstp and pops
-   the two FPU temps after it, ours emits corner 3 whole first; corner 7's stores at the end differ the
-   same way. Looks like another scheduling-region cut (one IL instruction more or fewer in the
-   straight-line body). No lever: a separate top local (= control), its assignment at each position from
-   the x0 line to corner 4 (46..241, the early ones grow the frame), (float) casts on either h (= control),
-   int h (68), t->hmax for the top (meaning: 259). climb round 1: nothing (the macro body is not mutated). */
+/* 0x442ac0, the bounding box of tile (tx, ty) in world space (bottom from t->hmin, top from the map's tile) */
 D3VERTEX *d3fl_TileBox(D3FLMAP *map, D3FLTILE *t, int tx, int ty) {
   D3VECTOR4 p, q;
   float x0, x1, z0, z1, h;

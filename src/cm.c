@@ -3253,7 +3253,7 @@ int cm_ExFieldDeltas(G17MSG *m, G17STAT *s) {
     int *i;
   } p;
   unsigned int i, j, n;
-  int size, id;
+  int size, id, off;
 
   id = cm_ResolveId((int)m, m->fields.id);
   if (gm_FindById(&x, &y, &z, id) == 0)
@@ -3269,7 +3269,8 @@ int cm_ExFieldDeltas(G17MSG *m, G17STAT *s) {
   for (i = 0; i < m->fields.n; i++) {
     size = (signed char)*p.b++;
     n = (signed char)*p.b++;
-    d.b = base + *p.w++;
+    off = *p.w++;
+    d.b = base + off;
     switch (size) {
     case 1:
       for (j = 0; j < n; j++)

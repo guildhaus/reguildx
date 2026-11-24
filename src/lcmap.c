@@ -1147,18 +1147,7 @@ int ai_OpenTownMap(LCMAPWIN *m) {
    (di_MinX .. di_MaxY) and the window's scroll are kept and the bounds narrowed to the map (ai_MapSize x
    ai_MapHeight less the 0x200 x 0x168 window) around the start position; while it is held the scroll follows the
    relative mouse position dm_P; on release the bounds come back and the pointer is put back at d2_MouseX /
-   d2_MouseY. Returns 1 when the scroll changed
-   @deep 48 ins, block layout only (every instruction equal, size 466 vs 473 from jump lengths): the
-   original places the release test + release block (cmp ai_Dragging; je to the final 'mov eax,[esp+4]';
-   restores; di_SetMousePos; xor eax,eax; ret) right behind the init block's jmp and BEFORE the reload edge
-   block (mov eax/edi/ebx/ebp from ai_DragStart* /ai_DragScroll*) that falls into the drag code; ours puts
-   it after the main return. s41 rounds: climb --rounds 2 (1062 mutants: only a store swap, 48 ins / 156
-   bytes); outer test inverted with the release first (48 ins/257 bytes: the release lands right behind the
-   rhold test instead); guards 'if (rhold == 0) {..return}' before the drag code, compute outside the
-   if/else, '&&' init test, release falling to return changed: 66-130 ins (the globals no longer stay in
-   registers). c2pass --skip block order (C1's source order) also puts the release last. Next: the RPO walk
-   cannot put a block between the init block and the reload edge block unless the init block's subtree
-   reaches it; read c2tail --il of the original-like graph / try a goto into the release from the init path */
+   d2_MouseY. Returns 1 when the scroll changed */
 int ai_DragTownMap(D2WIN *win) {
   float dx;
   int changed;
@@ -1183,6 +1172,19 @@ int ai_DragTownMap(D2WIN *win) {
       di_MinY = ai_DragStartY - ai_DragScrollY;
       di_MaxY = ai_MapHeight - ai_DragScrollY + ai_DragStartY - 0x168;
     }
+  } else if (ai_Dragging != 0) {
+    di_MaxX = ai_DragSavedMaxX;
+    di_MaxY = ai_DragSavedMaxY;
+    di_MinX = ai_DragSavedMinX;
+    ai_DragStartX = 0;
+    ai_DragStartY = 0;
+    di_MinY = ai_DragSavedMinY;
+    di_Absolute = 1;
+    di_SetMousePos(d2_MouseX, d2_MouseY);
+    ai_Dragging = 0;
+    return 0;
+  }
+  if (dm_L.rhold != 0) {
     dx = (float)(dm_P.x - ai_DragStartX);
     x = (int)dx;
     dx = (float)(dm_P.y - ai_DragStartY);
@@ -1192,17 +1194,6 @@ int ai_DragTownMap(D2WIN *win) {
       changed = 1;
     win->scrollX = x + ai_DragScrollX;
     win->scrollY = ai_DragScrollY + y;
-  } else if (ai_Dragging != 0) {
-    di_MaxY = ai_DragSavedMaxY;
-    di_MinX = ai_DragSavedMinX;
-    di_MaxX = ai_DragSavedMaxX;
-    ai_DragStartX = 0;
-    ai_DragStartY = 0;
-    di_MinY = ai_DragSavedMinY;
-    di_Absolute = 1;
-    di_SetMousePos(d2_MouseX, d2_MouseY);
-    ai_Dragging = 0;
-    return 0;
   }
   return changed;
 }

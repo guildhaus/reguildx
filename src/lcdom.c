@@ -4270,16 +4270,7 @@ void *ai_MapPick(unsigned int flags, AMOUNTCFG *req, char *name, void (*cb)(),
    (384 B, ai_StorageWindow): the caption 0x10b; a store of type 0x116 offers one upgrade (0x10e) while level is
    below the type's max116, else the text 0x111; the others offer the first slot (0x10c) while level is below
    min0 (else 0x110) and the second (0x10d) while level2 is below min1 (else 0x111); the closing text 0x10f.
-   Returns 1 for the first offer, 2 for the second, 0 when closed (the button 1 or the right button)
-   @deep 32 ins (was 52), a register permutation of bt / win only: the original has bt in edi, win in esi;
-   ours the reverse. c2trace: bt 24 = win 24 (tie, bt served first). Kept (s41): the loop's three
-   sv_PopRequest stores as a flag decided per path (pop = 0; .. pop = 1 in each arm; if (pop) sv_PopRequest
-   = 1;), the same code as one store behind gotos: it fixes r / first (r ebp, first ebx as in the original)
-   and lifts win from 22 to 24. Breaking the tie: win before bt in the source gives the right registers (20
-   ins) but then bt is computed after d2_OpenForm (the original computes it before). No lever: all 120
-   orders of the 5 inits, inline bt (82), the 0x116 arm first, inverted min tests, while(1)+break, nested
-   ||, the flag around the rup test too (= 32), climb 2 rounds. Next: one more reference for win or one
-   fewer block where bt is live (P weights in c2trace --prio) */
+   Returns 1 for the first offer, 2 for the second, 0 when closed (the button 1 or the right button) */
 
 int ai_NewStorageSlotWindow(AIOBJ *obj, AIBLD *bld, int level, int level2) {
   int r;
@@ -4287,6 +4278,7 @@ int ai_NewStorageSlotWindow(AIOBJ *obj, AIBLD *bld, int level, int level2) {
   int second;
   int win;
   int pop;
+  int txt;
   AIBTYPE *bt;
 
   r = 0;
@@ -4308,7 +4300,8 @@ int ai_NewStorageSlotWindow(AIOBJ *obj, AIBLD *bld, int level, int level2) {
   } else if (level >= bt->max116) {
     io_PrintText(0x111);
   } else {
-    first = d2_GetWinObj(win, 0, io_PrintText(0x10e, 0x1f40));
+    txt = io_PrintText(0x10e, 0x1f40);
+    first = d2_GetWinObj(win, 0, txt);
   }
   io_PrintText(0x10f, 1);
   do {
@@ -9085,18 +9078,18 @@ int ai_PassesPartnerFilter(unsigned short me, unsigned short id, AMOUNTCFG *cfg,
    without masters) in a radio group that starts on the page picked last (ai_StatsPage). Per frame: shows the
    picked page, refills the money rows, opens the building detail window for a clicked building row, scrolls the
    master list by its buttons and sends a changed master budget input to the building (AIBLD.budget, in the
-   player's money: gm_PlayerFactor) and the change to its master (AICHAR.budget)
-   @deep near-byte sweep s22: left win in the slot above the one the original gives it ([esp+0xc] vs
-   [esp+0x8]) and two reloads after the master loop in swapped registers. value as a local of the if / the
-   loop body = control (frame sweep lever does not reach it). */
+   player's money: gm_PlayerFactor) and the change to its master (AICHAR.budget) */
 void ai_PlayerStatsPanel(void) {
   int out[3];
   int value;
   int win;
   int moneyPage;
-  int bldPage;
+  /* @original: the dead -1 defaults of bldPage and radio emit no code; they move VC6's first-reference
+     keys so that win's split piece is reloaded (and packed) before the d2_Radios offset after the master
+     loop, as in the original */
+  int bldPage = -1;
   int masterPage;
-  int radio;
+  int radio = -1;
   int i;
   int down;
   int list;

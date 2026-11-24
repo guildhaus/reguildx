@@ -1840,24 +1840,35 @@ void d2_ShowPicture(int pic) {
               d2_ScreenSurf);
 }
 /* 0x46d040, draws a picture (or a frame of one) at x, y on a surface
-   @deep deep s34: the only hunk class is the x / y register pair (original x esi, y edi; ours y esi, x
-   edi; every other hunk follows from it). c2trace (on the ANSI form: c2trace / initgen do not parse the
-   K&R definition): x#1 and y#1 tie at prio 51 with identical block terms (both referenced in the same five
-   call blocks), tie keys x 5b / y 5c: y is popped first and takes esi. So the original popped x first:
-   either x was created after y or x has one more weighted reference. = control: the K&R parameter list in
-   the other order (int y; int x;), the ANSI definition (kept K&R), sel / type / t = 0 initializers; worse:
-   sel = -1 as initializer (34), data = 0 after the guard (42). The declaration-set sweep (0..63) finds no
-   byte, so the key is not period-64 here (or other ties move with it). Open: which ordinary form gives x a
-   reference y lacks, or creates y first. prior: draft (25 differing instructions of 159; 13 code + 12 regs
-   + 4 order hunks): the code hunks are the x/y register swap read in the previous base-3 session
-   (0x46d157: ours mov esi,[esp+0x18] + mov edi,[esp+0x14], original esi=[esp+0x14] + edi=[esp+0x18], and
-   the movsx/push at 0x46d17a/0x46d18c follow the swap); no meaning error, the source passes (short)x,
-   (short)y, surf, data in that order. spell.py: reload at 0x46d157 (drop the local / use the parameter
-   itself) is already the source form - x and y are the parameters, re-read at the call, no local holds
-   them - and the regs/code entries name no source form. Q2 fails only on d3io_NoopCallback, an empty no-op
-   triangle filler with no evidence at all (assigned to d3_TriFuncs[0..5] with different signatures, deep
-   in d3_io_a.c/d3_engine.c), so no name can be given here. Left: the x/y allocation and the tail at
-   0x46d208 (listing/c2prio/siblings) plus that name. */
+   @deep deep s58: still only the x / y pair (original x esi, y edi, surf ebp). c2trace: x#1 / y#1 both
+   prio 51 with refs in the same five blocks, tie keys x 5b / y 5c (larger pops first), y pops first and
+   takes esi by the choice-order tie (scores all 0); x must pop first, and y before surf (49). Probe matrix
+   (meaning probes, 81 variants: x or y dropped at case 1 / 0x11 / 5-8 then / 5-8 else): the key goes by
+   the FIRST call site in the order 5-8 then-arm, case 1, case 0x11 where only one of the two is passed
+   (that one gets 5b and pops later); the 5-8 else-arm never counts; with both present everywhere x gets 5b
+   whatever the argument order inside the calls (all 31 swap subsets), the names (21 renames), K&R / ANSI,
+   declaration order, register / const / unsigned / long, header prototype names. So any text with x and y
+   at the same call sites gives y esi. All = control: x = x / x += 0 / (void)x / x; / if (x) {} at every
+   statement, named int / short copies (folded), short / int p[2] copies, 100 no-code spellings of (short)x
+   per site, d2_DrawNothing through cast pointers (short / char / int params), case splits, default: break,
+   labels, do { } while (0) wrappers, nested lock / guard forms, 162 initializer combinations, a dead
+   trailing parameter, type as ternary. A head temp t = (short)y; used by both 5-8 arms gives x esi and the
+   head's movsx edx (the original's) but y drops to prio 28 below surf (ebp: 32 ins); flip.py from that
+   base wanting y in edi: only a duplicated d2_AddDirty. Worse: ternary 5th argument forms (25-141), case
+   orders, fall-through / goto sharing of the 0-frame call (the original has its own case-1 block), short
+   params (39), d2_DrawNothing above the function (VC6 drops the call). flip.py on the control (ANSI tree
+   copy): 0 of 142; climb 4 rounds: nothing. Open: which plain text puts y alone at the 5-8 then-arm (or x
+   1 prio above y) with this code. Tooling: flip.py / c2trace function_span miss this K&R definition
+   (clang-format joined 'int x;' to the definition line); for flip.py put an ANSI copy in the tree (blank
+   lines keep the line count). prior: deep s34: the only hunk class is the x / y register pair (original x
+   esi, y edi; ours y esi, x edi; every other hunk follows from it). c2trace (on the ANSI form: c2trace /
+   initgen do not parse the K&R definition): x#1 and y#1 tie at prio 51 with identical block terms (both
+   referenced in the same five call blocks), tie keys x 5b / y 5c: y is popped first and takes esi. So the
+   original popped x first: either x was created after y or x has one more weighted reference. = control:
+   the K&R parameter list in the other order (int y; int x;), the ANSI definition (kept K&R), sel / type /
+   t = 0 initializers; worse: sel = -1 as initializer (34), data = 0 after the guard (42). The
+   declaration-set sweep (0..63) finds no byte, so the key is not period-64 here (or other ties move with
+   it). Open: which ordinary form gives x a reference y lacks, or creates y first. */
 
 void d2_DrawPic(x, y, pic, surf) int x;
 int y;

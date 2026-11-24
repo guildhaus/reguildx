@@ -936,7 +936,7 @@ struct D3PARTSYS { /* 0x31c bytes */
   union {
     unsigned int
         spawnCount; /* particles spawned per frame (d3t_CreateEmitter sets 2) */
-    D3COLOR color24; /* base color + random mask in a (Erdbrocken) */
+    D3COLORU color24; /* base color + random mask in a (Erdbrocken) */
     unsigned long
         lasttime; /* an emitter's d3_Time of its last callback; a repeated time is skipped */
   };
